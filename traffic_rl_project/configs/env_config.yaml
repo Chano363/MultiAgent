@@ -1,0 +1,15 @@
+environment:
+  name: "formation_control"
+  mode: "simulation"
+  num_drones: 3
+  target_distance: 5.0
+  max_speed: 10.0
+  max_acceleration: 2.0
+  max_steps: 1000
+  render_mode: null
+
+reward:
+  distance_weight: 0.2
+  speed_weight: 0.2
+  smoothness_weight: 0.2
+  coordination_weight: 0.2
