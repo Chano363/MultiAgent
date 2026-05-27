@@ -12,6 +12,34 @@ from typing import List, Dict, Tuple, Optional
 import logging
 
 
+class RunningMeanStd:
+    """运行均值和标准差计算类 - 用于奖励归一化"""
+    
+    def __init__(self, shape=()):
+        self.mean = np.zeros(shape, dtype=np.float32)
+        self.var = np.ones(shape, dtype=np.float32)
+        self.count = 0
+    
+    def update(self, x):
+        batch_mean = np.mean(x, axis=0)
+        batch_var = np.var(x, axis=0)
+        batch_count = len(x)
+        self.mean, self.var, self.count = self._update_mean_var_count(
+            self.mean, self.var, self.count, batch_mean, batch_var, batch_count
+        )
+    
+    @staticmethod
+    def _update_mean_var_count(mean, var, count, batch_mean, batch_var, batch_count):
+        total_count = count + batch_count
+        delta = batch_mean - mean
+        new_mean = mean + delta * batch_count / total_count
+        m_a = var * count
+        m_b = batch_var * batch_count
+        M2 = m_a + m_b + delta**2 * count * batch_count / total_count
+        new_var = M2 / total_count
+        return new_mean, new_var, total_count
+
+
 class ContinuousPolicyNetwork(nn.Module):
     """连续动作空间策略网络"""
 
@@ -152,6 +180,9 @@ class OptimizedPPOAgent:
         self.buffer_dones = None
         self.buffer_values = None
 
+        # 奖励归一化
+        self.reward_rms = RunningMeanStd()
+        
         self.training_step = 0
 
     def select_action(self, state: np.ndarray) -> Tuple[np.ndarray, float]:
@@ -200,9 +231,9 @@ class OptimizedPPOAgent:
 
     def compute_gae(
         self,
-        rewards: List[float],
-        values: List[float],
-        dones: List[bool]
+        rewards: np.ndarray,
+        values: np.ndarray,
+        dones: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
         advantages = []
         last_gae = 0
@@ -218,7 +249,7 @@ class OptimizedPPOAgent:
             advantages.insert(0, last_gae)
 
         advantages = np.array(advantages)
-        returns = advantages + np.array(values)
+        returns = advantages + values
         
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         
@@ -247,6 +278,10 @@ class OptimizedPPOAgent:
         rewards = np.array(self.buffer_rewards)
         dones = np.array(self.buffer_dones)
         values = np.array(self.buffer_values)
+        
+        # === 奖励归一化 ===
+        self.reward_rms.update(rewards)
+        rewards = rewards / np.sqrt(self.reward_rms.var + 1e-8)
 
         advantages, returns = self.compute_gae(rewards, values, dones)
         advantages = torch.FloatTensor(advantages).to(self.device)
@@ -255,8 +290,9 @@ class OptimizedPPOAgent:
         total_policy_loss = 0.0
         total_value_loss = 0.0
         total_entropy_loss = 0.0
+        total_grad_norm = 0.0
 
-        for _ in range(self.epochs):
+        for epoch in range(self.epochs):
             indices = np.random.permutation(len(states))
             
             for start in range(0, len(states), self.batch_size):
@@ -303,13 +339,28 @@ class OptimizedPPOAgent:
                     entropy_coef = self.entropy_coef
 
                 total_loss = policy_loss + self.value_coef * value_loss - entropy_coef * entropy
+                
+                # === Loss裁剪和跳过机制 ===
+                if total_loss.item() > 100.0:
+                    logging.warning(f"Loss爆炸 ({total_loss.item():.2f})，跳过本次更新")
+                    self.buffer_states = None
+                    self.buffer_actions = None
+                    self.buffer_log_probs = None
+                    self.buffer_rewards = None
+                    self.buffer_dones = None
+                    self.buffer_values = None
+                    return {'total_loss': 0, 'policy_loss': 0, 'value_loss': 0, 'entropy': 0}
 
                 self.optimizer.zero_grad()
                 total_loss.backward()
-                torch.nn.utils.clip_grad_norm_(
+                
+                # 梯度范数监控
+                grad_norm = torch.nn.utils.clip_grad_norm_(
                     list(self.policy.parameters()) + list(self.value.parameters()),
                     self.max_grad_norm
                 )
+                total_grad_norm += grad_norm.item()
+                
                 self.optimizer.step()
 
                 total_policy_loss += policy_loss.item()
@@ -326,12 +377,15 @@ class OptimizedPPOAgent:
         self.buffer_values = None
 
         num_updates = self.epochs * (len(states) // self.batch_size)
+        if num_updates == 0:
+            num_updates = 1
         
         return {
             'total_loss': total_policy_loss / num_updates + total_value_loss / num_updates,
             'policy_loss': total_policy_loss / num_updates,
             'value_loss': total_value_loss / num_updates,
-            'entropy': total_entropy_loss / num_updates
+            'entropy': total_entropy_loss / num_updates,
+            'grad_norm': total_grad_norm / num_updates
         }
 
     def save(self, path: str):
@@ -339,7 +393,10 @@ class OptimizedPPOAgent:
             'policy_state_dict': self.policy.state_dict(),
             'value_state_dict': self.value.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'training_step': self.training_step
+            'training_step': self.training_step,
+            'reward_rms_mean': self.reward_rms.mean,
+            'reward_rms_var': self.reward_rms.var,
+            'reward_rms_count': self.reward_rms.count
         }
         torch.save(checkpoint, path)
         logging.info(f"模型已保存到: {path}")
@@ -350,4 +407,11 @@ class OptimizedPPOAgent:
         self.value.load_state_dict(checkpoint['value_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.training_step = checkpoint.get('training_step', 0)
+        
+        # 恢复 reward_rms 状态
+        if 'reward_rms_mean' in checkpoint:
+            self.reward_rms.mean = checkpoint['reward_rms_mean']
+            self.reward_rms.var = checkpoint['reward_rms_var']
+            self.reward_rms.count = checkpoint.get('reward_rms_count', 0)
+        
         logging.info(f"模型已从 {path} 加载")

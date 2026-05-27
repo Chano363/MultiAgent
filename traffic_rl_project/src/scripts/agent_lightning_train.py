@@ -42,6 +42,7 @@ sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
 
 from src.algorithms.optimized_dqn import OptimizedDQNAgent
 from src.algorithms.optimized_ppo import OptimizedPPOAgent
+from src.algorithms.sac_agent import SACAgent
 from src.utils import MetricsTracker, plot_training_curve, save_results
 from src.environments import FormationControlEnv, make_formation_control_env
 
@@ -245,6 +246,21 @@ def create_agent(
             use_entropy_decay=params.get('use_entropy_decay', True)
         )
 
+    elif algorithm.upper() == 'SAC':
+        params = algo_params.get('sac', {})
+        agent = SACAgent(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            learning_rate=params.get('learning_rate', 3e-4),
+            gamma=params.get('gamma', 0.99),
+            tau=params.get('tau', 0.005),
+            alpha=params.get('alpha', 0.2),
+            automatic_entropy_tuning=params.get('automatic_entropy_tuning', True),
+            buffer_capacity=params.get('buffer_capacity', 1000000),
+            batch_size=params.get('batch_size', 256),
+            device=device
+        )
+
     else:
         raise ValueError(f"不支持的算法: {algorithm}")
 
@@ -368,6 +384,8 @@ def train_agent(
     episode_losses = []
     episode_mean_velocities = []
     episode_distances = []
+    episode_formation_errors = []
+    episode_height_errors = []
     best_reward = float('-inf')
     convergence_count = 0
     max_convergence_checks = 5
@@ -462,15 +480,56 @@ def train_agent(
                     state = next_state
                     step += 1
 
+                elif algorithm.upper() == 'SAC':
+                    flattened_state = state.flatten()
+                    action = agent.select_action(flattened_state)
+
+                    if len(env.action_space.shape) == 2:
+                        action_for_env = action.reshape(env.num_drones, env.action_space.shape[1])
+                    else:
+                        action_for_env = action.reshape(env.num_drones, 4)
+
+                    next_state, reward, terminated, truncated, info = env.step(action_for_env)
+
+                    done = terminated or truncated
+
+                    agent.store_transition(flattened_state, action, reward, next_state.flatten(), done)
+
+                    # SAC每步都更新
+                    metrics = agent.update()
+                    episode_loss += metrics.get('total_loss', 0)
+                    update_count += 1
+
+                    episode_reward += reward
+                    episode_info.append(info)
+                    state = next_state
+                    step += 1
+
             if algorithm.upper() == 'PPO':
                 metrics = agent.update()
                 episode_loss = metrics.get('total_loss', 0)
 
+            elif algorithm.upper() == 'SAC':
+                # SAC已经在每步更新了，这里只计算平均loss
+                if update_count > 0:
+                    episode_loss = episode_loss / update_count
+
             episode_rewards.append(episode_reward)
             episode_losses.append(episode_loss if episode_loss > 0 else 0)
-        
+
             mean_vel = np.mean(np.linalg.norm(state[:, 6:9], axis=1)) if state.ndim > 1 else 0
             episode_mean_velocities.append(mean_vel)
+
+            if episode_info:
+                formation_errors = [info.get('formation_error', 0) for info in episode_info if info]
+                height_errors = [info.get('height_error', 0) for info in episode_info if info]
+                mean_formation_error = np.mean(formation_errors) if formation_errors else 0
+                mean_height_error = np.mean(height_errors) if height_errors else 0
+            else:
+                mean_formation_error = 0
+                mean_height_error = 0
+            episode_formation_errors.append(mean_formation_error)
+            episode_height_errors.append(mean_height_error)
 
             if episode_reward > best_reward:
                 best_reward = episode_reward
@@ -496,14 +555,16 @@ def train_agent(
                 recent_mean = np.mean(episode_rewards[-10:]) if len(episode_rewards) >= 10 else np.mean(episode_rewards)
                 recent_std = np.std(episode_rewards[-10:]) if len(episode_rewards) >= 10 else 0
                 mean_vel_recent = np.mean(episode_mean_velocities[-10:]) if len(episode_mean_velocities) >= 10 else mean_vel
-                
+                mean_formation_recent = np.mean(episode_formation_errors[-10:]) if len(episode_formation_errors) >= 10 else mean_formation_error
+                mean_height_recent = np.mean(episode_height_errors[-10:]) if len(episode_height_errors) >= 10 else mean_height_error
+
                 logger.info(f"\n{'─' * 80}")
                 logger.info(f"Episode {episode}/{episodes} | 用时: {elapsed_time:.1f}s | 预计剩余: {estimated_remaining_time:.0f}s")
                 logger.info(f"   - 当前奖励: {episode_reward:+.2f}")
                 logger.info(f"   - 近10回合平均: {recent_mean:.2f} ± {recent_std:.2f}")
                 logger.info(f"   - 历史最佳: {best_reward:.2f}")
                 logger.info(f"   - 损失值: {episode_loss:.4f}")
-                logger.info(f"   - 平均速度: {mean_vel_recent:.2f} m/s")
+                logger.info(f"   - 平均速度: {mean_vel_recent:.2f} m/s | 编队误差: {mean_formation_recent:.3f} m | 高度误差: {mean_height_recent:.3f} m")
                 
                 # 收敛状态
                 if convergence_check and episode >= convergence_window:
@@ -629,7 +690,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Agent Lightning 多智能体无人机编队控制训练')
     parser.add_argument('--algorithm', type=str, default='PPO',
-                        choices=['DQN', 'PPO'], help='训练算法')
+                        choices=['DQN', 'PPO', 'SAC'], help='训练算法')
     parser.add_argument('--config', type=str,
                         default='configs/train_config.yaml',
                         help='训练配置文件路径')

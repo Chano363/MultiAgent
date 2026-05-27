@@ -28,6 +28,7 @@ from agentlightning.tracer.otel import OtelTracer
 
 from src.algorithms.optimized_dqn import OptimizedDQNAgent
 from src.algorithms.optimized_ppo import OptimizedPPOAgent
+from src.algorithms.sac_agent import SACAgent
 from src.environments import make_formation_control_env
 from src.utils import plot_training_curve, save_results
 
@@ -100,6 +101,21 @@ def create_agent(
             use_entropy_decay=params.get("use_entropy_decay", True),
         )
 
+    if algorithm.upper() == "SAC":
+        params = algo_params.get("sac", {})
+        return SACAgent(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            learning_rate=params.get("learning_rate", 3e-4),
+            gamma=params.get("gamma", 0.99),
+            tau=params.get("tau", 0.005),
+            alpha=params.get("alpha", 0.2),
+            automatic_entropy_tuning=params.get("automatic_entropy_tuning", True),
+            buffer_capacity=params.get("buffer_capacity", 1000000),
+            batch_size=params.get("batch_size", 256),
+            device=device,
+        )
+
     raise ValueError(f"不支持的算法: {algorithm}")
 
 
@@ -158,6 +174,7 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
         episode_id = int(task.get("episode_id", len(self.episode_rewards)))
         episode_reward = 0.0
         episode_loss = 0.0
+        episode_velocities = []
 
         with self.tracer.operation_context(
             name="drone_episode",
@@ -181,8 +198,10 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                     if loss > 0:
                         episode_loss += loss
 
+                    # 记录速度
+                    episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
                     state = next_state
-                else:
+                elif self.algorithm == "PPO":
                     flattened_state = state.flatten()
                     action, log_prob = self.agent.select_action(flattened_state)
                     
@@ -207,6 +226,34 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                         value = self.agent.value(state_tensor).item()
 
                     self.agent.store_transition(flattened_state, original_action, reward, log_prob, done, value)
+                    # 记录速度
+                    episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
+                    state = next_state
+                elif self.algorithm == "SAC":
+                    flattened_state = state.flatten()
+                    action = self.agent.select_action(flattened_state)
+
+                    if len(self.env.action_space.shape) == 2:
+                        action_for_env = action.reshape(self.env.num_drones, self.env.action_space.shape[1])
+                    else:
+                        action_for_env = action.reshape(self.env.num_drones, 4)
+
+                    next_state, reward, terminated, truncated, info = self.env.step(action_for_env)
+
+                    if terminated:
+                        termination_reason = "terminated"
+                    elif truncated:
+                        termination_reason = "truncated"
+
+                    done = terminated or truncated
+
+                    self.agent.store_transition(flattened_state, action, reward, next_state.flatten(), done)
+
+                    metrics = self.agent.update()
+                    episode_loss += metrics.get("total_loss", 0.0)
+
+                    # 记录速度
+                    episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
                     state = next_state
 
                 episode_steps += 1
@@ -223,8 +270,11 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                         f"Steps={episode_steps}, Term={termination_reason}, "
                         f"BatchSize={self.agent.batch_size}"
                     )
+            elif self.algorithm == "SAC":
+                if episode_steps > 0:
+                    episode_loss = episode_loss / episode_steps
 
-            mean_velocity = np.mean(np.linalg.norm(state[:, 6:9], axis=1)) if state.ndim > 1 else 0.0
+            mean_velocity = np.mean(episode_velocities) if episode_velocities else 0.0
 
         self.episode_rewards.append(float(episode_reward))
         self.episode_losses.append(float(episode_loss))
