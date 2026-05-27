@@ -9,7 +9,7 @@ agent:
 training:
   algorithm: "ppo"
   total_episodes: 500
-  batch_size: 128
+  batch_size: 8
   eval_interval: 50
   save_interval: 100
 
@@ -35,7 +35,8 @@ training:
       entropy_coef: 0.005
       value_coef: 0.5
       epochs: 10
-      n_steps: 100
+      batch_size: 8
+      n_steps: 16
       max_grad_norm: 0.5
       use_gae: true
       use_clipped_value_loss: true

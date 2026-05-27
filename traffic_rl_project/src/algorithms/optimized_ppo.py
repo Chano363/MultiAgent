@@ -115,6 +115,8 @@ class OptimizedPPOAgent:
         use_clipped_value_loss: bool = True,
         use_entropy_decay: bool = True
     ):
+        self.state_dim = state_dim
+        self.action_dim = action_dim
         self.gamma = gamma
         self.gae_lambda = gae_lambda
         self.clip_epsilon = clip_epsilon
@@ -228,6 +230,19 @@ class OptimizedPPOAgent:
 
         states = torch.FloatTensor(np.array(self.buffer_states)).to(self.device)
         actions = torch.FloatTensor(np.array(self.buffer_actions)).to(self.device)
+        
+        # 错误检测：检查动作形状是否正确
+        expected_action_dim = self.action_dim
+        if len(actions.shape) > 2:
+            raise ValueError(
+                f"动作形状错误！期望形状 [batch_size, {expected_action_dim}]，"
+                f"实际形状 {actions.shape}。请检查存储的是否是flatten后的动作。"
+            )
+        if actions.shape[-1] != expected_action_dim:
+            raise ValueError(
+                f"动作维度错误！期望维度 {expected_action_dim}，实际维度 {actions.shape[-1]}。"
+            )
+        
         old_log_probs = torch.FloatTensor(self.buffer_log_probs).to(self.device)
         rewards = np.array(self.buffer_rewards)
         dones = np.array(self.buffer_dones)

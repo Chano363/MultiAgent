@@ -78,7 +78,7 @@ class FormationControlEnv(gym.Env):
         reward = 0.0
         
         positions = obs[:, :3]
-        velocities = obs[:, 3:6]
+        velocities = obs[:, 6:9]
         
         for i in range(1, self.num_drones):
             dist_to_leader = np.linalg.norm(positions[i] - positions[i-1])
@@ -90,9 +90,6 @@ class FormationControlEnv(gym.Env):
             
             speed_diff = np.linalg.norm(velocities[i] - velocities[i-1])
             reward -= 0.2 * speed_diff
-            
-            acc_i = np.linalg.norm(obs[i, 6:9])
-            reward -= 0.2 * min(acc_i, self.max_acceleration) / self.max_acceleration
         
         return reward
     

@@ -7,28 +7,175 @@ Agent Lightning 强化学习模型训练脚本
 import sys
 import os
 from pathlib import Path
+import time
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import torch
+import torch.nn as nn
 import numpy as np
 import yaml
 import json
-from typing import Dict, Any
+from typing import Dict, List, Any, Optional
 from tqdm import tqdm
 import logging
 
+# 配置logging - 简洁清晰的训练日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stderr)
+    ]
+)
+
+# 抑制第三方库的冗余日志
+logging.getLogger('agentlightning').setLevel(logging.WARNING)
+logging.getLogger('agentlightning.runner').setLevel(logging.ERROR)
+logging.getLogger('agentlightning.trainer').setLevel(logging.ERROR)
+logging.getLogger('agentlightning.execution').setLevel(logging.ERROR)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('opentelemetry').setLevel(logging.WARNING)
+
+# 强制刷新输出
+sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
+
 from src.algorithms.optimized_dqn import OptimizedDQNAgent
 from src.algorithms.optimized_ppo import OptimizedPPOAgent
-from src.agent_lightning_integration import AgentLightningWrapper, RewardOptimizer
 from src.utils import MetricsTracker, plot_training_curve, save_results
 from src.environments import FormationControlEnv, make_formation_control_env
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# 获取 logger（不重复配置）
+logger = logging.getLogger('DroneRL')
+
+
+try:
+    import agentlightning as agl
+    AGENT_LIGHTNING_AVAILABLE = True
+except ImportError:
+    AGENT_LIGHTNING_AVAILABLE = False
+    agl = None
+
+
+class AgentLightningWrapper:
+    """Agent Lightning 集成包装器"""
+
+    def __init__(
+        self,
+        agent,
+        agent_type: str = "dqn",
+        device: str = "cuda" if torch.cuda.is_available() else "cpu",
+        enable_tracing: bool = True
+    ):
+        self.agent = agent
+        self.agent_type = agent_type
+        self.device = device
+        self.enable_tracing = enable_tracing and AGENT_LIGHTNING_AVAILABLE
+        self.agent_lightning = agl if self.enable_tracing else None
+
+        if self.enable_tracing:
+            self._setup_agent_lightning()
+        elif enable_tracing and not AGENT_LIGHTNING_AVAILABLE:
+            logger.info("Agent Lightning 未安装，跳过可选 tracing")
+
+        self.episode_count = 0
+        self.metrics_history = []
+
+    def _setup_agent_lightning(self):
+        """初始化 Agent Lightning"""
+        logger.info("初始化 Agent Lightning 集成")
+
+    def before_episode(self, episode_id: int):
+        """episode开始前的回调"""
+        if self.enable_tracing:
+            self.episode_count = episode_id
+            return {"episode_id": episode_id, "agent_type": self.agent_type}
+
+    def after_episode(
+        self,
+        episode_id: int,
+        episode_reward: float,
+        episode_loss: float,
+        metrics: Optional[Dict[str, float]] = None
+    ):
+        """episode结束后的回调"""
+        episode_metrics = {
+            "episode": episode_id,
+            "reward": episode_reward,
+            "loss": episode_loss,
+            "agent_type": self.agent_type
+        }
+
+        if metrics:
+            episode_metrics.update(metrics)
+
+        self.metrics_history.append(episode_metrics)
+
+        if self.enable_tracing and AGENT_LIGHTNING_AVAILABLE:
+            try:
+                if hasattr(self.agent_lightning, "log"):
+                    self.agent_lightning.log("episode_reward", episode_reward)
+                    self.agent_lightning.log("episode_loss", episode_loss)
+            except:
+                pass
+
+            if metrics:
+                for key, value in metrics.items():
+                    try:
+                        if hasattr(self.agent_lightning, "log"):
+                            self.agent_lightning.log(key, value)
+                    except:
+                        pass
+
+    def on_step(
+        self,
+        step: int,
+        state: np.ndarray,
+        action: int,
+        reward: float,
+        next_state: np.ndarray,
+        done: bool
+    ):
+        """每个训练步骤的回调"""
+        if self.enable_tracing and hasattr(self.agent, 'epsilon'):
+            epsilon = getattr(self.agent, 'epsilon', 1.0)
+            try:
+                if hasattr(self.agent_lightning, "log"):
+                    self.agent_lightning.log("exploration_rate", epsilon)
+            except:
+                pass
+
+    def get_best_metrics(self) -> Dict[str, float]:
+        """获取最佳指标"""
+        if not self.metrics_history:
+            return {}
+
+        best_reward = max(m["reward"] for m in self.metrics_history)
+        avg_reward = np.mean([m["reward"] for m in self.metrics_history[-10:]])
+
+        return {
+            "best_reward": best_reward,
+            "avg_reward_10": avg_reward,
+            "total_episodes": len(self.metrics_history)
+        }
+
+    def save_checkpoint(self, path: str):
+        """保存检查点"""
+        checkpoint = {
+            "agent_state": self.agent.state_dict() if hasattr(self.agent, 'state_dict') else None,
+            "agent_type": self.agent_type,
+            "metrics_history": self.metrics_history,
+            "episode_count": self.episode_count
+        }
+        torch.save(checkpoint, path)
+
+    def load_checkpoint(self, path: str):
+        """加载检查点"""
+        checkpoint = torch.load(path)
+        if hasattr(self.agent, 'load_state_dict') and checkpoint["agent_state"]:
+            self.agent.load_state_dict(checkpoint["agent_state"])
+        self.metrics_history = checkpoint.get("metrics_history", [])
+        self.episode_count = checkpoint.get("episode_count", 0)
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
@@ -131,16 +278,37 @@ def train_agent(
     checkpoint_path: str = None
 ):
     """训练多智能体无人机编队控制模型直到收敛"""
+    
+    start_time = time.time()
 
-    logger.info("=" * 70)
-    logger.info(f"开始训练 - 算法: {algorithm}")
-    logger.info("=" * 70)
+    logger.info(f"\n{'='*60}")
+    logger.info(f"无人机编队控制训练 | {algorithm.upper()} | {device.upper()}")
+    logger.info(f"{'='*60}\n")
 
     set_seed(42)
 
+    # Agent Lightning 集成检查
+    if AGENT_LIGHTNING_AVAILABLE:
+        from src.agent_lightning_integration import train_with_agent_lightning
+        return train_with_agent_lightning(
+            algorithm=algorithm,
+            config_path=config_path,
+            env_config_path=env_config_path,
+            episodes=episodes,
+            device=device,
+            checkpoint_path=checkpoint_path,
+            convergence_window=convergence_window,
+            convergence_threshold=convergence_threshold,
+        )
+    else:
+        logger.info("Agent Lightning 未安装，使用传统训练模式")
+
+    # 环境初始化
+    logger.info("\n正在初始化仿真环境...")
     env = make_formation_control_env(env_config_path)
     logger.info("使用 gym-pybullet-drones 专业物理仿真器")
     
+    # 环境信息
     if len(env.observation_space.shape) == 2:
         state_dim = env.observation_space.shape[0] * env.observation_space.shape[1]
     else:
@@ -151,37 +319,43 @@ def train_agent(
     else:
         action_dim = env.action_space.shape[0] * env.num_drones
     
-    logger.info(f"环境初始化完成")
-    logger.info(f"无人机数量: {env.num_drones}")
-    logger.info(f"状态维度: {state_dim}")
-    logger.info(f"动作维度: {action_dim}")
-    logger.info(f"目标距离: {env.target_distance}米")
-    logger.info(f"最大速度: {env.max_speed} m/s")
-
+    logger.info("\n环境配置:")
+    logger.info(f"   - 无人机数量: {env.num_drones}")
+    logger.info(f"   - 状态维度: {state_dim}")
+    logger.info(f"   - 动作维度: {action_dim}")
+    logger.info(f"   - 目标距离: {env.target_distance} m")
+    logger.info(f"   - 最大速度: {env.max_speed} m/s")
+    logger.info(f"   - 最大步数: {env.max_steps}")
+    
+    # 加载配置
     try:
         config = load_config(config_path)
-        logger.info(f"已加载配置: {config_path}")
+        logger.info(f"已加载配置文件: {config_path}")
     except Exception as e:
         logger.warning(f"无法加载配置文件: {e}，使用默认配置")
         config = {'training': {'hyperparameters': {}}}
 
+    # 创建智能体
     agent = create_agent(algorithm, state_dim, action_dim, config, device)
+    logger.info(f"{algorithm.upper()} 智能体创建成功")
 
+    # 加载检查点（断点续训）
     start_episode = 0
     if checkpoint_path:
         import os
         if os.path.exists(checkpoint_path):
-            logger.info(f"从检查点加载模型: {checkpoint_path}")
+            logger.info(f"\n从检查点加载模型: {checkpoint_path}")
             agent.load(checkpoint_path)
             filename = os.path.basename(checkpoint_path)
             try:
                 start_episode = int(filename.split('ep')[1].split('.')[0])
                 logger.info(f"从第 {start_episode} 回合继续训练")
             except:
-                logger.warning("无法解析检查点回合数，从0开始")
+                logger.warning("无法解析检查点回合数，从 0 开始")
         else:
             logger.warning(f"检查点文件不存在: {checkpoint_path}")
 
+    # 初始化包装器和跟踪器
     wrapper = AgentLightningWrapper(
         agent,
         agent_type=algorithm.lower(),
@@ -198,6 +372,7 @@ def train_agent(
     convergence_count = 0
     max_convergence_checks = 5
 
+    # 加载历史数据（断点续训）
     if checkpoint_path:
         results_dir = Path("outputs/results") / f"{algorithm.lower()}_results"
         if results_dir.exists() and (results_dir / "results.json").exists():
@@ -209,126 +384,200 @@ def train_agent(
                     logger.info(f"已加载历史奖励数据: {len(episode_rewards)} 条")
                 if 'best_reward' in existing_results:
                     best_reward = existing_results['best_reward']
-                    logger.info(f"已加载历史最佳奖励: {best_reward:.2f}")
+                    logger.info(f"历史最佳奖励: {best_reward:.2f}")
             except Exception as e:
                 logger.warning(f"加载历史数据失败: {e}")
 
-    logger.info(f"开始训练 {episodes} 回合 (或直到收敛)...")
+    # 开始训练
+    logger.info("\n" + "=" * 80)
+    logger.info("开始训练")
+    logger.info("=" * 80)
+    
+    episode_start_time = time.time()
+    training_aborted = False
+    abort_reason = ""
 
-    for episode in tqdm(range(start_episode, episodes), desc=f"{algorithm} Training"):
-        episode_reward = 0
-        episode_loss = 0
-        update_count = 0
+    try:
+        for episode in tqdm(range(start_episode, episodes), desc=f"{algorithm.upper()} Training", ncols=100):
+            episode_reward = 0
+            episode_loss = 0
+            update_count = 0
 
-        wrapper.before_episode(episode)
+            wrapper.before_episode(episode)
 
-        state, _ = env.reset()
+            state, _ = env.reset()
 
-        done = False
-        step = 0
-        episode_info = []
-        while not done:
-            if algorithm.upper() == 'DQN':
-                action = agent.select_action(state, training=True)
+            done = False
+            step = 0
+            episode_info = []
+            while not done:
+                if algorithm.upper() == 'DQN':
+                    action = agent.select_action(state, training=True)
 
-                next_state, reward, terminated, truncated, info = env.step(action)
+                    if len(env.action_space.shape) == 2:
+                        action = action.reshape(env.num_drones, env.action_space.shape[1])
 
-                done = terminated or truncated
+                    next_state, reward, terminated, truncated, info = env.step(action)
 
-                agent.store_transition(state, action, reward, next_state, done)
-                loss = agent.update()
+                    done = terminated or truncated
 
-                episode_reward += reward
-                if loss > 0:
-                    episode_loss += loss
-                    update_count += 1
+                    agent.store_transition(state, action, reward, next_state, done)
+                    loss = agent.update()
 
-                wrapper.on_step(step, state, action, reward, next_state, done)
+                    episode_reward += reward
+                    if loss > 0:
+                        episode_loss += loss
+                        update_count += 1
 
-                state = next_state
+                    wrapper.on_step(step, state, action, reward, next_state, done)
 
-            elif algorithm.upper() == 'PPO':
-                flattened_state = state.flatten()
-                action, log_prob = agent.select_action(flattened_state)
+                    state = next_state
+                    step += 1
 
-                action = action.reshape(env.num_drones, 4)
-                next_state, reward, terminated, truncated, info = env.step(action)
+                elif algorithm.upper() == 'PPO':
+                    flattened_state = state.flatten()
+                    action, log_prob = agent.select_action(flattened_state)
 
-                done = terminated or truncated
+                    # 保存原始flatten动作用于存储
+                    original_action = action.copy()
 
-                with torch.no_grad():
-                    state_tensor = torch.FloatTensor(flattened_state).unsqueeze(0).to(device)
-                    value = agent.value(state_tensor).item()
+                    if len(env.action_space.shape) == 2:
+                        action = action.reshape(env.num_drones, env.action_space.shape[1])
+                    else:
+                        action = action.reshape(env.num_drones, 4)
 
-                agent.store_transition(flattened_state, action, reward, log_prob, done, value)
+                    next_state, reward, terminated, truncated, info = env.step(action)
 
-                episode_reward += reward
-                episode_info.append(info)
-                state = next_state
+                    done = terminated or truncated
 
-            step += 1
+                    with torch.no_grad():
+                        state_tensor = torch.FloatTensor(flattened_state).unsqueeze(0).to(device)
+                        value = agent.value(state_tensor).item()
 
-        if algorithm.upper() == 'PPO':
-            metrics = agent.update()
-            episode_loss = metrics.get('total_loss', 0)
+                    # 存储原始flatten动作，而不是reshape后的动作
+                    agent.store_transition(flattened_state, original_action, reward, log_prob, done, value)
 
-        episode_rewards.append(episode_reward)
-        episode_losses.append(episode_loss if episode_loss > 0 else 0)
+                    episode_reward += reward
+                    episode_info.append(info)
+                    state = next_state
+                    step += 1
+
+            if algorithm.upper() == 'PPO':
+                metrics = agent.update()
+                episode_loss = metrics.get('total_loss', 0)
+
+            episode_rewards.append(episode_reward)
+            episode_losses.append(episode_loss if episode_loss > 0 else 0)
         
-        if episode_info:
-            episode_mean_velocities.append(np.mean([info.get('mean_velocity', 0) for info in episode_info]))
+            mean_vel = np.mean(np.linalg.norm(state[:, 6:9], axis=1)) if state.ndim > 1 else 0
+            episode_mean_velocities.append(mean_vel)
 
-        if episode_reward > best_reward:
-            best_reward = episode_reward
+            if episode_reward > best_reward:
+                best_reward = episode_reward
 
-        wrapper.after_episode(
-            episode,
-            episode_reward,
-            episode_loss,
-            {
-                'best_reward': best_reward,
-                'convergence_check': convergence_count
-            }
-        )
-
-        if episode % 10 == 0:
-            recent_mean = np.mean(episode_rewards[-10:])
-            mean_vel = np.mean(episode_mean_velocities[-10:]) if episode_mean_velocities else 0
-            logger.info(
-                f"Episode {episode}/{episodes} | "
-                f"Reward: {episode_reward:.2f} | "
-                f"Avg Reward: {recent_mean:.2f} | "
-                f"Best: {best_reward:.2f} | "
-                f"Mean Velocity: {mean_vel:.2f} m/s"
+            wrapper.after_episode(
+                episode,
+                episode_reward,
+                episode_loss,
+                {
+                    'best_reward': best_reward,
+                    'convergence_check': convergence_count
+                }
             )
 
-        if convergence_check and episode >= convergence_window:
-            if check_convergence(episode_rewards, window=convergence_window, threshold=convergence_threshold):
-                convergence_count += 1
-                logger.info(f"检测到收敛迹象 ({convergence_count}/{max_convergence_checks})")
+            # 定期输出训练进度（每10回合）
+            if episode % 10 == 0 or episode == episodes - 1:
+                elapsed_time = time.time() - episode_start_time
+                episodes_completed = episode - start_episode + 1
+                avg_time_per_episode = elapsed_time / episodes_completed if episodes_completed > 0 else 0
+                remaining_episodes = episodes - episode - 1
+                estimated_remaining_time = avg_time_per_episode * remaining_episodes
+                
+                recent_mean = np.mean(episode_rewards[-10:]) if len(episode_rewards) >= 10 else np.mean(episode_rewards)
+                recent_std = np.std(episode_rewards[-10:]) if len(episode_rewards) >= 10 else 0
+                mean_vel_recent = np.mean(episode_mean_velocities[-10:]) if len(episode_mean_velocities) >= 10 else mean_vel
+                
+                logger.info(f"\n{'─' * 80}")
+                logger.info(f"Episode {episode}/{episodes} | 用时: {elapsed_time:.1f}s | 预计剩余: {estimated_remaining_time:.0f}s")
+                logger.info(f"   - 当前奖励: {episode_reward:+.2f}")
+                logger.info(f"   - 近10回合平均: {recent_mean:.2f} ± {recent_std:.2f}")
+                logger.info(f"   - 历史最佳: {best_reward:.2f}")
+                logger.info(f"   - 损失值: {episode_loss:.4f}")
+                logger.info(f"   - 平均速度: {mean_vel_recent:.2f} m/s")
+                
+                # 收敛状态
+                if convergence_check and episode >= convergence_window:
+                    if check_convergence(episode_rewards, window=convergence_window, threshold=convergence_threshold):
+                        logger.info(f"   - 收敛检测: 是 ({convergence_count + 1}/{max_convergence_checks})")
+                    else:
+                        logger.info(f"   - 收敛检测: 否")
+                
+                logger.info(f"{'─' * 80}\n")
 
-                if convergence_count >= max_convergence_checks:
-                    logger.info("模型已收敛！停止训练。")
-                    break
-            else:
-                convergence_count = 0
+            # 收敛检测
+            if convergence_check and episode >= convergence_window:
+                if check_convergence(episode_rewards, window=convergence_window, threshold=convergence_threshold):
+                    convergence_count += 1
+                    logger.info(f"检测到收敛迹象 ({convergence_count}/{max_convergence_checks})")
 
-        if episode % 50 == 0 and episode > 0:
-            checkpoint_path = Path("outputs/checkpoints")
-            checkpoint_path.mkdir(parents=True, exist_ok=True)
-            agent.save(str(checkpoint_path / f"{algorithm.lower()}_formation_ep{episode}.pt"))
-            logger.info(f"检查点已保存")
+                    if convergence_count >= max_convergence_checks:
+                        total_time = time.time() - start_time
+                        logger.info("\n" + "=" * 80)
+                        logger.info("模型已收敛！停止训练")
+                        logger.info(f"总训练时间: {total_time:.1f}s ({total_time/60:.1f} min)")
+                        logger.info("=" * 80)
+                        break
+                else:
+                    convergence_count = 0
 
-    env.close()
+            # 定期保存检查点
+            if episode % 10 == 0 and episode > 0:
+                checkpoint_dir = Path("outputs/checkpoints")
+                checkpoint_dir.mkdir(parents=True, exist_ok=True)
+                checkpoint_file = checkpoint_dir / f"{algorithm.lower()}_formation_ep{episode}.pt"
+                agent.save(str(checkpoint_file))
+                file_size_mb = checkpoint_file.stat().st_size / (1024 * 1024)
+                logger.info(f"检查点已保存: {checkpoint_file.name} ({file_size_mb:.2f} MB)")
 
-    logger.info("\n" + "=" * 70)
-    logger.info("训练完成!")
-    logger.info("=" * 70)
+    except ValueError as e:
+        training_aborted = True
+        abort_reason = str(e)
+        logger.error("\n" + "=" * 80)
+        logger.error(f"训练因严重错误中止: {abort_reason}")
+        logger.error("=" * 80)
+        raise
+    except Exception as e:
+        training_aborted = True
+        abort_reason = str(e)
+        logger.error("\n" + "=" * 80)
+        logger.error(f"训练因未预期错误中止: {type(e).__name__}: {abort_reason}")
+        logger.error("=" * 80)
+        raise
+    finally:
+        env.close()
 
+    # 训练完成总结
+    total_time = time.time() - start_time
+    
+    logger.info("\n" + "=" * 80)
+    if training_aborted:
+        logger.info("训练已中止!")
+        logger.info(f"中止原因: {abort_reason}")
+    else:
+        logger.info("训练完成!")
+    logger.info("=" * 80)
+    logger.info(f"总训练时间: {total_time:.1f}s ({total_time/60:.1f} min)")
+    logger.info(f"总回合数: {len(episode_rewards)}")
+    logger.info(f"是否收敛: {'是' if convergence_count >= max_convergence_checks else '否'}")
+    logger.info(f"是否中止: {'是' if training_aborted else '否'}")
+    logger.info("=" * 80)
+
+    # 保存结果
     results_dir = Path("outputs/results")
     results_dir.mkdir(parents=True, exist_ok=True)
 
     plot_path = results_dir / f"{algorithm.lower()}_formation_training_results.png"
+    logger.info(f"\n生成可视化图表: {plot_path}")
     plot_training_curve(episode_rewards, episode_losses, save_path=str(plot_path))
 
     results = {
@@ -344,19 +593,32 @@ def train_agent(
         'converged': convergence_count >= max_convergence_checks,
         'num_drones': env.num_drones,
         'target_distance': env.target_distance,
-        'max_speed': env.max_speed
+        'max_speed': env.max_speed,
+        'training_time_seconds': total_time
     }
 
     save_results(results, str(results_dir / f"{algorithm.lower()}_formation_results"))
 
-    logger.info(f"\n最终结果:")
-    logger.info(f"  - 训练回合: {len(episode_rewards)}")
-    logger.info(f"  - 最佳奖励: {results['best_reward']:.2f}")
-    logger.info(f"  - 平均奖励: {results['mean_reward']:.2f}")
-    logger.info(f"  - 最终奖励: {results['final_reward']:.2f}")
-    logger.info(f"  - 平均速度: {results['mean_velocity']:.2f} m/s")
-    logger.info(f"  - 已收敛: {results['converged']}")
-    logger.info(f"\n结果已保存到: {results_dir}")
+    # 最终结果汇总表格
+    logger.info("\n" + "=" * 80)
+    logger.info("最终训练结果汇总")
+    logger.info("=" * 80)
+    logger.info(f"   - 算法: {algorithm.upper()}")
+    logger.info(f"   - 无人机数量: {results['num_drones']}")
+    logger.info(f"   - 目标距离: {results['target_distance']} m")
+    logger.info(f"   - 最大速度: {results['max_speed']} m/s")
+    logger.info(f"   - 训练回合: {results['total_episodes']}")
+    logger.info(f"   - 最佳奖励: {results['best_reward']:.2f}")
+    logger.info(f"   - 平均奖励: {results['mean_reward']:.2f}")
+    logger.info(f"   - 最终奖励: {results['final_reward']:.2f}")
+    logger.info(f"   - 平均速度: {results['mean_velocity']:.2f} m/s")
+    logger.info(f"   - 已收敛: {'是' if results['converged'] else '否'}")
+    logger.info("=" * 80)
+    logger.info(f"\n结果已保存到: {results_dir.absolute()}")
+    logger.info(f"JSON: {results_dir / f'{algorithm.lower()}_formation_results.json'}")
+    logger.info(f"YAML: {results_dir / f'{algorithm.lower()}_formation_results.yaml'}")
+    logger.info(f"图表: {plot_path}")
+    logger.info("=" * 80 + "\n")
 
     return results
 

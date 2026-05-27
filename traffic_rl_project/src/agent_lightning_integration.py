@@ -1,287 +1,385 @@
-"""
-Agent Lightning 集成模块
-用于无人机编队控制的强化学习模型优化
+"""Agent Lightning integration for the drone formation RL project.
+
+This adapter keeps the existing PPO/DQN control logic intact while routing
+episode execution through Agent Lightning's `Trainer.fit` + `LitAgent` flow.
+It avoids any extra LLM dependencies by using a local LiteLLM compatibility
+shim in the project workspace.
 """
 
-import torch
-import torch.nn as nn
-import numpy as np
-from typing import Dict, List, Any, Optional
+from __future__ import annotations
+
 import logging
+import multiprocessing as mp
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+import time
 
-try:
-    import agentlightning as agl
-    AGENT_LIGHTNING_AVAILABLE = True
-except ImportError:
-    AGENT_LIGHTNING_AVAILABLE = False
-    logging.warning("Agent Lightning 未安装，将使用基础训练模式")
+import numpy as np
+import torch
+import yaml
+
+from agentlightning.algorithm.fast import Baseline
+from agentlightning.emitter.reward import emit_reward
+from agentlightning.execution.shared_memory import SharedMemoryExecutionStrategy
+from agentlightning.litagent import LitAgent
+from agentlightning.types.resources import LLM, PromptTemplate
+from agentlightning.trainer import Trainer
+from agentlightning.tracer.otel import OtelTracer
+
+from src.algorithms.optimized_dqn import OptimizedDQNAgent
+from src.algorithms.optimized_ppo import OptimizedPPOAgent
+from src.environments import make_formation_control_env
+from src.utils import plot_training_curve, save_results
+
+# 获取 logger（不重复配置）
+logger = logging.getLogger('DroneRL')
 
 
-class AgentLightningWrapper:
-    """Agent Lightning 集成包装器"""
+def load_config(config_path: str) -> Dict[str, Any]:
+    """Load a YAML config file."""
+    with open(config_path, "r", encoding="utf-8") as handle:
+        return yaml.safe_load(handle)
+
+
+def set_seed(seed: int) -> None:
+    """Set deterministic seeds for the training run."""
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+
+
+def create_agent(
+    algorithm: str,
+    state_dim: int,
+    action_dim: int,
+    config: Dict[str, Any],
+    device: str,
+):
+    """Create the project-specific RL agent."""
+    algo_params = config.get("training", {}).get("hyperparameters", {})
+
+    if algorithm.upper() == "DQN":
+        params = algo_params.get("dqn", {})
+        return OptimizedDQNAgent(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            learning_rate=params.get("learning_rate", 2.5e-4),
+            gamma=params.get("gamma", 0.99),
+            epsilon_start=params.get("epsilon_start", 1.0),
+            epsilon_decay=params.get("epsilon_decay", 0.995),
+            epsilon_min=params.get("epsilon_min", 0.01),
+            buffer_size=params.get("buffer_size", 10000),
+            batch_size=params.get("batch_size", 128),
+            target_update_freq=params.get("target_update_freq", 100),
+            device=device,
+            hidden_sizes=params.get("network_architecture", [256, 256, 128]),
+            use_layer_norm=params.get("use_layer_norm", True),
+            use_prioritized_replay=params.get("use_prioritized_replay", True),
+            double_dqn=params.get("double_dqn", True),
+        )
+
+    if algorithm.upper() == "PPO":
+        params = algo_params.get("ppo", {})
+        return OptimizedPPOAgent(
+            state_dim=state_dim,
+            action_dim=action_dim,
+            learning_rate=params.get("learning_rate", 2.5e-4),
+            gamma=params.get("gamma", 0.99),
+            gae_lambda=params.get("gae_lambda", 0.95),
+            clip_epsilon=params.get("clip_epsilon", 0.15),
+            entropy_coef=params.get("entropy_coef", 0.005),
+            value_coef=params.get("value_coef", 0.5),
+            epochs=params.get("epochs", 10),
+            batch_size=params.get("batch_size", 128),
+            n_steps=params.get("n_steps", 100),
+            max_grad_norm=params.get("max_grad_norm", 0.5),
+            device=device,
+            use_gae=params.get("use_gae", True),
+            use_clipped_value_loss=params.get("use_clipped_value_loss", True),
+            use_entropy_decay=params.get("use_entropy_decay", True),
+        )
+
+    raise ValueError(f"不支持的算法: {algorithm}")
+
+
+def _check_convergence(rewards: List[float], window: int, threshold: float) -> bool:
+    if len(rewards) < window:
+        return False
+
+    recent_rewards = rewards[-window:]
+    mean_reward = np.mean(recent_rewards)
+    std_reward = np.std(recent_rewards)
+    return std_reward < threshold * abs(mean_reward)
+
+
+class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
+    """Rollout wrapper that executes one environment episode per task."""
 
     def __init__(
         self,
+        env,
         agent,
-        agent_type: str = "dqn",
-        device: str = "cuda" if torch.cuda.is_available() else "cpu",
-        enable_tracing: bool = True
+        algorithm: str,
+        device: str,
+        checkpoint_dir: str,
+        save_every: int = 10,
+        convergence_window: int = 50,
+        convergence_threshold: float = 0.1,
+        max_convergence_checks: int = 5,
+        total_episodes: int = 0,
     ):
+        super().__init__()
+        self.env = env
         self.agent = agent
-        self.agent_type = agent_type
+        self.algorithm = algorithm.upper()
         self.device = device
-        self.enable_tracing = enable_tracing and AGENT_LIGHTNING_AVAILABLE
+        self.checkpoint_dir = Path(checkpoint_dir)
+        self.save_every = save_every
+        self.convergence_window = convergence_window
+        self.convergence_threshold = convergence_threshold
+        self.max_convergence_checks = max_convergence_checks
+        self.total_episodes = total_episodes
 
-        if self.enable_tracing:
-            self._setup_agent_lightning()
+        self.episode_rewards: List[float] = []
+        self.episode_losses: List[float] = []
+        self.episode_mean_velocities: List[float] = []
+        self.best_reward = float("-inf")
+        self.convergence_count = 0
 
-        self.episode_count = 0
-        self.metrics_history = []
+    def _save_checkpoint(self, episode_id: int) -> None:
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        checkpoint_path = self.checkpoint_dir / f"{self.algorithm.lower()}_formation_ep{episode_id}.pt"
+        self.agent.save(str(checkpoint_path))
+        file_size_mb = checkpoint_path.stat().st_size / (1024 * 1024)
+        logger.info(f"检查点已保存: {checkpoint_path.name} ({file_size_mb:.2f} MB)")
 
-    def _setup_agent_lightning(self):
-        """初始化 Agent Lightning"""
-        logging.info("初始化 Agent Lightning 集成")
+    def rollout(self, task: Dict[str, Any], resources, rollout):  # noqa: D401
+        episode_id = int(task.get("episode_id", len(self.episode_rewards)))
+        episode_reward = 0.0
+        episode_loss = 0.0
 
-    def before_episode(self, episode_id: int):
-        """episode开始前的回调"""
-        if self.enable_tracing:
-            self.episode_count = episode_id
-            return {"episode_id": episode_id, "agent_type": self.agent_type}
+        with self.tracer.operation_context(
+            name="drone_episode",
+            attributes={"episode_id": episode_id, "algorithm": self.algorithm},
+        ):
+            state, _ = self.env.reset()
+            done = False
 
-    def after_episode(
-        self,
-        episode_id: int,
-        episode_reward: float,
-        episode_loss: float,
-        metrics: Optional[Dict[str, float]] = None
-    ):
-        """episode结束后的回调"""
-        episode_metrics = {
-            "episode": episode_id,
-            "reward": episode_reward,
-            "loss": episode_loss,
-            "agent_type": self.agent_type
-        }
+            while not done:
+                if self.algorithm == "DQN":
+                    action = self.agent.select_action(state, training=True)
+                    if len(self.env.action_space.shape) == 2:
+                        action = action.reshape(self.env.num_drones, self.env.action_space.shape[1])
+                    next_state, reward, terminated, truncated, info = self.env.step(action)
+                    done = terminated or truncated
 
-        if metrics:
-            episode_metrics.update(metrics)
+                    self.agent.store_transition(state, action, reward, next_state, done)
+                    loss = self.agent.update()
+                    if loss > 0:
+                        episode_loss += loss
 
-        self.metrics_history.append(episode_metrics)
+                    state = next_state
+                else:
+                    flattened_state = state.flatten()
+                    action, log_prob = self.agent.select_action(flattened_state)
+                    
+                    original_action = action.copy()
+                    
+                    if len(self.env.action_space.shape) == 2:
+                        action = action.reshape(self.env.num_drones, self.env.action_space.shape[1])
+                    else:
+                        action = action.reshape(self.env.num_drones, 4)
 
-        if self.enable_tracing and AGENT_LIGHTNING_AVAILABLE:
-            try:
-                import agentops
-                agentops.log("episode_reward", episode_reward)
-                agentops.log("episode_loss", episode_loss)
-            except:
-                pass
+                    next_state, reward, terminated, truncated, info = self.env.step(action)
+                    done = terminated or truncated
 
-            if metrics:
-                for key, value in metrics.items():
-                    try:
-                        agentops.log(key, value)
-                    except:
-                        pass
+                    with torch.no_grad():
+                        state_tensor = torch.FloatTensor(flattened_state).unsqueeze(0).to(self.device)
+                        value = self.agent.value(state_tensor).item()
 
-    def on_step(
-        self,
-        step: int,
-        state: np.ndarray,
-        action: int,
-        reward: float,
-        next_state: np.ndarray,
-        done: bool
-    ):
-        """每个训练步骤的回调"""
-        if self.enable_tracing and hasattr(self.agent, 'epsilon'):
-            epsilon = getattr(self.agent, 'epsilon', 1.0)
-            try:
-                import agentops
-                agentops.log("exploration_rate", epsilon)
-            except:
-                pass
+                    # 存储原始flatten动作，而不是reshape后的动作
+                    self.agent.store_transition(flattened_state, original_action, reward, log_prob, done, value)
+                    state = next_state
 
-    def get_best_metrics(self) -> Dict[str, float]:
-        """获取最佳指标"""
-        if not self.metrics_history:
-            return {}
+                episode_reward += reward
 
-        best_reward = max(m["reward"] for m in self.metrics_history)
-        avg_reward = np.mean([m["reward"] for m in self.metrics_history[-10:]])
+            if self.algorithm == "PPO":
+                metrics = self.agent.update()
+                episode_loss = metrics.get("total_loss", 0.0)
 
+            mean_velocity = np.mean(np.linalg.norm(state[:, 6:9], axis=1)) if state.ndim > 1 else 0.0
+
+        self.episode_rewards.append(float(episode_reward))
+        self.episode_losses.append(float(episode_loss))
+        self.episode_mean_velocities.append(float(mean_velocity))
+
+        if episode_reward > self.best_reward:
+            self.best_reward = float(episode_reward)
+
+        # 每10个episode输出一次进度
+        if (episode_id + 1) % 10 == 0 or (episode_id + 1) == self.total_episodes:
+            recent_mean = np.mean(self.episode_rewards[-10:]) if len(self.episode_rewards) >= 10 else np.mean(self.episode_rewards)
+            recent_std = np.std(self.episode_rewards[-10:]) if len(self.episode_rewards) >= 10 else 0
+            logger.info(f"Episode {episode_id + 1:4d}/{self.total_episodes} | "
+                       f"Reward: {episode_reward:+7.2f} | "
+                       f"Avg10: {recent_mean:7.2f}±{recent_std:5.2f} | "
+                       f"Best: {self.best_reward:7.2f} | "
+                       f"Loss: {episode_loss:8.4f} | "
+                       f"Speed: {mean_velocity:5.2f} m/s")
+
+        try:
+            emit_reward(
+                float(episode_reward),
+                attributes={
+                    "episode": episode_id,
+                    "algorithm": self.algorithm,
+                    "mean_velocity": float(mean_velocity),
+                },
+            )
+        except Exception:
+            pass
+
+        if episode_id > 0 and episode_id % self.save_every == 0:
+            self._save_checkpoint(episode_id)
+
+        # 收敛检测
+        if _check_convergence(self.episode_rewards, self.convergence_window, self.convergence_threshold):
+            self.convergence_count += 1
+            if self.convergence_count % 5 == 0:
+                logger.info(f"收敛检测: {self.convergence_count}/{self.max_convergence_checks}")
+        else:
+            self.convergence_count = 0
+
+        return float(episode_reward)
+
+    def results(self) -> Dict[str, Any]:
+        total_episodes = len(self.episode_rewards)
         return {
-            "best_reward": best_reward,
-            "avg_reward_10": avg_reward,
-            "total_episodes": len(self.metrics_history)
+            "algorithm": self.algorithm,
+            "total_episodes": total_episodes,
+            "final_reward": float(np.mean(self.episode_rewards[-10:])) if total_episodes else 0.0,
+            "best_reward": float(self.best_reward),
+            "mean_reward": float(np.mean(self.episode_rewards)) if total_episodes else 0.0,
+            "mean_velocity": float(np.mean(self.episode_mean_velocities)) if self.episode_mean_velocities else 0.0,
+            "rewards": self.episode_rewards,
+            "losses": self.episode_losses,
+            "mean_velocities": self.episode_mean_velocities,
+            "converged": self.convergence_count >= self.max_convergence_checks,
+            "num_drones": self.env.num_drones,
+            "target_distance": self.env.target_distance,
+            "max_speed": self.env.max_speed,
         }
 
-    def save_checkpoint(self, path: str):
-        """保存检查点"""
-        checkpoint = {
-            "agent_state": self.agent.state_dict() if hasattr(self.agent, 'state_dict') else None,
-            "agent_type": self.agent_type,
-            "metrics_history": self.metrics_history,
-            "episode_count": self.episode_count
-        }
-        torch.save(checkpoint, path)
 
-    def load_checkpoint(self, path: str):
-        """加载检查点"""
-        checkpoint = torch.load(path)
-        if hasattr(self.agent, 'load_state_dict') and checkpoint["agent_state"]:
-            self.agent.load_state_dict(checkpoint["agent_state"])
-        self.metrics_history = checkpoint.get("metrics_history", [])
-        self.episode_count = checkpoint.get("episode_count", 0)
+def train_with_agent_lightning(
+    algorithm: str,
+    config_path: str,
+    env_config_path: str,
+    episodes: int,
+    device: str,
+    checkpoint_path: Optional[str] = None,
+    convergence_window: int = 50,
+    convergence_threshold: float = 0.1,
+    save_every: int = 10,
+) -> Dict[str, Any]:
+    """Train the existing RL agent through Agent Lightning orchestration."""
+    
+    start_time = time.time()
+    
+    mp.set_start_method("spawn", force=True)
+    set_seed(42)
 
+    # 环境初始化
+    env = make_formation_control_env(env_config_path)
+    config = load_config(config_path)
 
-class RewardOptimizer:
-    """奖励函数优化器"""
-
-    def __init__(self):
-        self.reward_components = {
-            "queue_penalty": -0.1,
-            "waiting_penalty": -0.05,
-            "throughput_bonus": 0.2,
-            "safety_bonus": 0.1
-        }
-
-    def compute_reward(self, info: Dict[str, Any]) -> float:
-        """
-        计算优化后的奖励
-
-        Args:
-            info: 环境信息，包含：
-                - total_queue: 总排队车辆数
-                - total_waiting_time: 总等待时间
-                - vehicles_passed: 通过车辆数
-                - stopped_vehicles: 停止的车辆数
-
-        Returns:
-            float: 奖励值
-        """
-        reward = 0.0
-
-        if "total_queue" in info:
-            reward += self.reward_components["queue_penalty"] * info["total_queue"]
-
-        if "total_waiting_time" in info:
-            reward += self.reward_components["waiting_penalty"] * info["total_waiting_time"]
-
-        if "vehicles_passed" in info:
-            reward += self.reward_components["throughput_bonus"] * info["vehicles_passed"]
-
-        if "stopped_vehicles" in info:
-            stopped_ratio = info.get("stopped_vehicles", 0) / max(info.get("total_vehicles", 1), 1)
-            if stopped_ratio < 0.3:
-                reward += self.reward_components["safety_bonus"]
-
-        return reward
-
-    def set_components(self, components: Dict[str, float]):
-        """设置奖励组件权重"""
-        self.reward_components.update(components)
-
-
-def create_optimized_agent(
-    agent_type: str,
-    state_dim: int,
-    action_dim: int,
-    config: Optional[Dict[str, Any]] = None
-):
-    """
-    创建优化后的智能体
-
-    Args:
-        agent_type: 智能体类型 ('dqn' 或 'ppo')
-        state_dim: 状态空间维度
-        action_dim: 动作空间维度
-        config: 优化配置
-
-    Returns:
-        优化后的智能体
-    """
-    if config is None:
-        config = {}
-
-    if agent_type.lower() == "dqn":
-        from src.algorithms import DQNAgent
-
-        optimized_config = {
-            "learning_rate": config.get("learning_rate", 2.5e-4),
-            "gamma": config.get("gamma", 0.99),
-            "epsilon": config.get("epsilon_start", 1.0),
-            "epsilon_decay": config.get("epsilon_decay", 0.995),
-            "epsilon_min": config.get("epsilon_min", 0.01),
-            "buffer_size": config.get("buffer_size", 10000),
-            "batch_size": config.get("batch_size", 128),
-        }
-
-        return DQNAgent(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            **optimized_config
-        )
-
-    elif agent_type.lower() == "ppo":
-        from src.algorithms import PPOAgent
-
-        optimized_config = {
-            "learning_rate": config.get("learning_rate", 2.5e-4),
-            "gamma": config.get("gamma", 0.99),
-            "gae_lambda": config.get("gae_lambda", 0.95),
-            "clip_epsilon": config.get("clip_epsilon", 0.15),
-            "entropy_coef": config.get("entropy_coef", 0.005),
-            "value_coef": config.get("value_coef", 0.5),
-            "epochs": config.get("epochs", 10),
-            "batch_size": config.get("batch_size", 128),
-        }
-
-        return PPOAgent(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            **optimized_config
-        )
-
+    # 计算状态和动作维度
+    if len(env.observation_space.shape) == 2:
+        state_dim = env.observation_space.shape[0] * env.observation_space.shape[1]
     else:
-        raise ValueError(f"不支持的智能体类型: {agent_type}")
+        state_dim = env.observation_space.shape[0] * env.num_drones
 
-
-def get_default_optimization_config(agent_type: str) -> Dict[str, Any]:
-    """
-    获取默认优化配置
-
-    Args:
-        agent_type: 智能体类型
-
-    Returns:
-        优化配置字典
-    """
-    base_config = {
-        "learning_rate": 2.5e-4,
-        "gamma": 0.99,
-        "batch_size": 128,
-    }
-
-    if agent_type.lower() == "dqn":
-        return {
-            **base_config,
-            "epsilon_start": 1.0,
-            "epsilon_decay": 0.995,
-            "epsilon_min": 0.01,
-            "buffer_size": 10000,
-            "target_update_freq": 100,
-        }
-
-    elif agent_type.lower() == "ppo":
-        return {
-            **base_config,
-            "gae_lambda": 0.95,
-            "clip_epsilon": 0.15,
-            "entropy_coef": 0.005,
-            "value_coef": 0.5,
-            "epochs": 10,
-            "n_steps": 100,
-        }
-
+    if len(env.action_space.shape) == 2:
+        action_dim = env.action_space.shape[0] * env.action_space.shape[1]
     else:
-        raise ValueError(f"不支持的智能体类型: {agent_type}")
+        action_dim = env.action_space.shape[0] * env.num_drones
+    
+    logger.info(f"环境: {env.num_drones}架无人机 | 状态{state_dim}维 | 动作{action_dim}维")
+
+    # 创建智能体
+    agent = create_agent(algorithm, state_dim, action_dim, config, device)
+
+    # 加载检查点
+    if checkpoint_path and Path(checkpoint_path).exists():
+        agent.load(checkpoint_path)
+        logger.info(f"已加载检查点: {checkpoint_path}")
+    elif checkpoint_path:
+        logger.warning(f"检查点不存在: {checkpoint_path}")
+
+    # 创建 Agent Lightning 智能体
+    lightning_agent = DroneFormationLitAgent(
+        env=env,
+        agent=agent,
+        algorithm=algorithm,
+        device=device,
+        checkpoint_dir="outputs/checkpoints",
+        save_every=save_every,
+        convergence_window=convergence_window,
+        convergence_threshold=convergence_threshold,
+        total_episodes=episodes,
+    )
+
+    # 配置 Trainer
+    trainer = Trainer(
+        algorithm=Baseline(n_epochs=1, train_split=0.8, polling_interval=0.1, max_queue_length=4),
+        tracer=OtelTracer(),
+        strategy=SharedMemoryExecutionStrategy(n_runners=1, main_thread="algorithm"),
+        initial_resources={
+            "main_llm": LLM(endpoint="http://127.0.0.1:0", model="drone-formation"),
+            "system_prompt": PromptTemplate(
+                template="You are optimizing a drone formation controller.",
+                engine="f-string",
+            ),
+        },
+    )
+
+    # 开始训练
+    train_dataset = [{"episode_id": episode} for episode in range(episodes)]
+    trainer.fit(lightning_agent, train_dataset=train_dataset)
+    
+    logger.debug(f"[时间跟踪] trainer.fit() 完成")
+
+    env.close()
+    
+    logger.debug(f"[时间跟踪] env.close() 完成")
+    
+    total_time = time.time() - start_time
+
+    # 保存结果
+    results_dir = Path("outputs/results")
+    results_dir.mkdir(parents=True, exist_ok=True)
+    results = lightning_agent.results()
+    
+    logger.debug(f"[时间跟踪] lightning_agent.results() 完成")
+
+    plot_path = results_dir / f"{algorithm.lower()}_formation_training_results.png"
+    plot_training_curve(results["rewards"], results["losses"], save_path=str(plot_path))
+    
+    logger.debug(f"[时间跟踪] plot_training_curve() 完成")
+    
+    save_results(results, str(results_dir / f"{algorithm.lower()}_formation_results"))
+    
+    logger.debug(f"[时间跟踪] save_results() 完成")
+
+    # 最终结果汇总
+    logger.info(f"\n{'='*60}")
+    logger.info(f"训练完成 | 用时: {total_time:.1f}s ({total_time/60:.1f}min)")
+    logger.info(f"{'='*60}")
+    logger.info(f"回合: {results['total_episodes']} | 最佳: {results['best_reward']:.2f} | "
+               f"平均: {results['mean_reward']:.2f} | 最终: {results['final_reward']:.2f}")
+    logger.info(f"速度: {results['mean_velocity']:.2f} m/s | 收敛: {'是' if results['converged'] else '否'}")
+    logger.info(f"结果已保存: {results_dir.absolute()}")
+    logger.info(f"{'='*60}\n")
+
+    return results

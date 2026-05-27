@@ -1,33 +1,47 @@
 """
 无人机编队控制强化学习系统
-主入口文件 - 基于 gym-pybullet-drones 专业物理仿真器
+主入口文件 - 默认使用 Agent Lightning 优化训练框架
+基于 gym-pybullet-drones 专业物理仿真器
 """
 
 import os
 import sys
 import argparse
 from pathlib import Path
+import logging
+import time
 
 sys.path.append(str(Path(__file__).parent.parent))
+from src.utils.quiet_print import suppress_prints
 
-from src.environments.formation_control_env import FormationControlEnv
-from src.algorithms import PPOAgent, DQNAgent
-from src.utils import MetricsTracker, plot_training_curve, save_results
-import numpy as np
+# 在导入训练模块之前静默非错误打印，避免大量噪声输出
+suppress_prints()
+
+from src.scripts.agent_lightning_train import train_agent
+
+
+# 配置日志（唯一配置点）
+logger = logging.getLogger('DroneRL')
+if not logger.handlers:  # 避免重复添加 handler
+    logger.setLevel(logging.INFO)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter('[%(levelname)s] %(message)s'))
+    logger.addHandler(console_handler)
+    logger.propagate = False  # 防止传播到根 logger
 
 
 def parse_args():
     """解析命令行参数"""
     parser = argparse.ArgumentParser(
-        description='Drone Formation Control RL - Main Entry'
+        description='Drone Formation Control RL - Agent Lightning Training'
     )
 
     parser.add_argument(
         '--mode',
         type=str,
         default='train',
-        choices=['train', 'test', 'demo'],
-        help='运行模式: train (训练), test (测试), demo (演示)'
+        choices=['train', 'test', 'continue'],
+        help='运行模式: train (新建训练), continue (断点续训), test (测试)'
     )
 
     parser.add_argument(
@@ -41,15 +55,8 @@ def parse_args():
     parser.add_argument(
         '--episodes',
         type=int,
-        default=50,
-        help='训练回合数'
-    )
-
-    parser.add_argument(
-        '--max_steps',
-        type=int,
-        default=1000,
-        help='每个回合最大步数'
+        default=500,
+        help='训练回合数（或直到收敛）'
     )
 
     parser.add_argument(
@@ -62,7 +69,7 @@ def parse_args():
     parser.add_argument(
         '--device',
         type=str,
-        default='cuda' if os.environ.get('CUDA_VISIBLE_DEVICES') else 'cpu',
+        default='cuda' if torch.cuda.is_available() else 'cpu',
         help='计算设备'
     )
 
@@ -70,30 +77,114 @@ def parse_args():
         '--checkpoint',
         type=str,
         default=None,
-        help='模型检查点路径'
+        help='检查点路径（用于断点续训或测试）'
+    )
+
+    parser.add_argument(
+        '--config',
+        type=str,
+        default='configs/train_config.yaml',
+        help='训练配置文件路径'
+    )
+
+    parser.add_argument(
+        '--env_config',
+        type=str,
+        default='configs/env_config.yaml',
+        help='环境配置文件路径'
+    )
+
+    parser.add_argument(
+        '--no_convergence',
+        action='store_true',
+        default=False,
+        help='禁用自动收敛检测，训练固定回合数'
     )
 
     parser.add_argument(
         '--render',
         action='store_true',
         default=False,
-        help='是否启用可视化渲染'
+        help='启用可视化渲染（训练时建议关闭以提高性能）'
     )
 
     return parser.parse_args()
 
 
-def train(args):
-    """训练函数"""
-    print("=" * 60)
-    print("Drone Formation Control RL - Training Mode")
-    print("=" * 60)
-    print(f"Algorithm: {args.algorithm}")
-    print(f"Episodes: {args.episodes}")
-    print(f"Max Steps per Episode: {args.max_steps}")
-    print(f"Number of Drones: {args.num_drones}")
-    print(f"Render: {args.render}")
-    print("=" * 60)
+def main():
+    """主函数 - 默认使用 Agent Lightning 训练"""
+    args = parse_args()
+    
+    # 配置日志级别
+    level_name = os.getenv('TRAFFIC_RL_LOG_LEVEL', 'INFO').upper()
+    level = getattr(logging, level_name, logging.INFO)
+    logger.setLevel(level)
+    for handler in logger.handlers:
+        handler.setLevel(level)
+
+    # 降低常见噪声库的输出
+    noisy_libs = ('matplotlib', 'urllib3', 'pybullet', 'gym', 'gym_pybullet_drones', 'torch', 'asyncio')
+    for lib in noisy_libs:
+        logging.getLogger(lib).setLevel(logging.WARNING)
+
+    logger.info("=" * 80)
+    logger.info("无人机编队控制强化学习系统")
+    logger.info("=" * 80)
+    logger.info(f"启动时间: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"运行模式: {args.mode}")
+    logger.info(f"算法: {args.algorithm}")
+    logger.info(f"回合数: {args.episodes}")
+    logger.info(f"无人机数量: {args.num_drones}")
+    logger.info(f"设备: {args.device}")
+    logger.info(f"收敛检测: {'禁用' if args.no_convergence else '启用'}")
+    logger.info(f"可视化: {'启用' if args.render else '禁用'}")
+    logger.info("=" * 80)
+
+    if args.mode == 'train':
+        logger.info("\n开始新训练")
+        results = train_agent(
+            algorithm=args.algorithm,
+            config_path=args.config,
+            env_config_path=args.env_config,
+            episodes=args.episodes,
+            device=args.device,
+            convergence_check=not args.no_convergence,
+            checkpoint_path=None
+        )
+
+    elif args.mode == 'continue':
+        if not args.checkpoint:
+            logger.error("断点续训需要指定 --checkpoint 参数")
+            logger.info("示例: python src/main.py --mode continue --checkpoint outputs/checkpoints/ppo_formation_ep100.pt")
+            return
+        logger.info(f"\n从检查点继续训练: {args.checkpoint}")
+        results = train_agent(
+            algorithm=args.algorithm,
+            config_path=args.config,
+            env_config_path=args.env_config,
+            episodes=args.episodes,
+            device=args.device,
+            convergence_check=not args.no_convergence,
+            checkpoint_path=args.checkpoint
+        )
+
+    elif args.mode == 'test':
+        if not args.checkpoint:
+            logger.error("测试模式需要指定 --checkpoint 参数")
+            logger.info("示例: python src/main.py --mode test --checkpoint outputs/checkpoints/ppo_formation_best.pt")
+            return
+
+        logger.info(f"\n测试模型: {args.checkpoint}")
+        test_model(args)
+
+    else:
+        logger.error(f"不支持的模式: {args.mode}")
+
+
+def test_model(args):
+    """测试训练好的模型"""
+    from src.environments import FormationControlEnv
+    from src.algorithms import PPOAgent, DQNAgent
 
     try:
         env = FormationControlEnv(
@@ -101,203 +192,67 @@ def train(args):
             render_mode='human' if args.render else None
         )
     except Exception as e:
-        print(f"\n✗ Failed to create environment: {e}")
-        print("\n⚠ Note: gym-pybullet-drones must be installed properly.")
+        logger.error(f"创建环境失败: {e}")
         return
 
-    print(f"\n✓ Environment created successfully")
-    print(f"  - Observation space: {env.observation_space}")
-    print(f"  - Action space: {env.action_space}")
-
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
+    state_dim = env.observation_space.shape[0] * env.num_drones
+    action_dim = env.action_space.shape[0] * env.num_drones
 
     if args.algorithm == 'DQN':
-        agent = DQNAgent(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            learning_rate=1e-3,
-            gamma=0.99,
-            device=args.device
-        )
+        agent = DQNAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
     else:
-        agent = PPOAgent(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            device=args.device
-        )
-
-    if args.checkpoint:
-        agent.load(args.checkpoint)
-        print(f"\n✓ Loaded checkpoint from: {args.checkpoint}")
-
-    tracker = MetricsTracker()
-
-    print("\n开始训练...")
-    print("-" * 60)
-
-    for episode in range(args.episodes):
-        obs, info = env.reset()
-        episode_reward = 0
-        episode_loss = 0
-        update_count = 0
-
-        for step in range(args.max_steps):
-            state = obs
-
-            if args.algorithm == 'DQN':
-                action = agent.select_action(state, training=True)
-            else:
-                action, log_prob = agent.select_action(state)
-
-            next_obs, reward, terminated, truncated, info = env.step(action)
-
-            done = terminated or truncated
-
-            if args.algorithm == 'DQN':
-                agent.store_transition(state, action, reward, next_obs, done)
-                loss = agent.update()
-                if loss > 0:
-                    episode_loss += loss
-                    update_count += 1
-            else:
-                agent.store_transition(state, action, reward, log_prob, done)
-                if step % 100 == 0:
-                    values = [0] * 100
-                    metrics = agent.update(values)
-                    episode_loss += abs(metrics.get('policy_loss', 0))
-
-            episode_reward += reward
-            obs = next_obs
-
-            if done:
-                break
-
-        if args.algorithm == 'DQN' and episode % 10 == 0:
-            agent.update_target_network()
-
-        tracker.add_reward(episode_reward)
-        tracker.add_loss(episode_loss / max(update_count, 1))
-
-        if (episode + 1) % 10 == 0:
-            recent_rewards = tracker.metrics['rewards'][-10:]
-            avg_reward = np.mean(recent_rewards)
-            print(f"Episode {episode + 1}/{args.episodes} | "
-                  f"Reward: {episode_reward:.2f} | "
-                  f"Avg(10): {avg_reward:.2f}" +
-                  (f" | Epsilon: {agent.epsilon:.4f}" if args.algorithm == 'DQN' else ""))
-
-    env.close()
-
-    print("-" * 60)
-    print("训练完成!")
-
-    save_dir = Path("outputs")
-    save_dir.mkdir(parents=True, exist_ok=True)
-
-    tracker.save(str(save_dir / "training_metrics"))
-    plot_training_curve(tracker, str(save_dir / "training_curve.png"))
-    print(f"\n训练指标已保存到: {save_dir / 'training_metrics'}")
-
-
-def test(args):
-    """测试函数"""
-    print("=" * 60)
-    print("Drone Formation Control RL - Testing Mode")
-    print("=" * 60)
-
-    if not args.checkpoint:
-        print("✗ Error: --checkpoint is required for testing mode")
-        return
-
-    try:
-        env = FormationControlEnv(
-            num_drones=args.num_drones,
-            render_mode='human' if args.render else None
-        )
-    except Exception as e:
-        print(f"\n✗ Failed to create environment: {e}")
-        return
-
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
-
-    if args.algorithm == 'DQN':
-        agent = DQNAgent(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            device=args.device
-        )
-    else:
-        agent = PPOAgent(
-            state_dim=state_dim,
-            action_dim=action_dim,
-            device=args.device
-        )
+        agent = PPOAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
 
     agent.load(args.checkpoint)
-    print(f"✓ Loaded checkpoint from: {args.checkpoint}")
+    logger.info(f"加载检查点成功: {args.checkpoint}")
 
     test_episodes = 10
     test_rewards = []
+    episode_distances = []
 
-    print(f"\n运行 {test_episodes} 个测试回合...")
+    logger.info(f"\n运行 {test_episodes} 个测试回合...")
+    logger.info("=" * 80)
 
     for episode in range(test_episodes):
         obs, info = env.reset()
         episode_reward = 0
+        done = False
+        step = 0
 
-        for step in range(args.max_steps):
-            state = obs
-
+        while not done:
             if args.algorithm == 'DQN':
-                action = agent.select_action(state, training=False)
+                action = agent.select_action(obs.flatten(), training=False)
             else:
-                action, _ = agent.select_action(state)
+                action, _ = agent.select_action(obs.flatten())
 
+            action = action.reshape(args.num_drones, 4)
             next_obs, reward, terminated, truncated, info = env.step(action)
 
             episode_reward += reward
             obs = next_obs
-
-            if terminated or truncated:
-                break
+            done = terminated or truncated
+            step += 1
 
         test_rewards.append(episode_reward)
-        print(f"Episode {episode + 1}: Reward = {episode_reward:.2f}")
+        logger.info(f"   Episode {episode + 1}/{test_episodes}: Reward = {episode_reward:+.2f}")
 
     env.close()
 
-    print("\n" + "=" * 60)
-    print("测试结果")
-    print("=" * 60)
-    print(f"平均奖励: {np.mean(test_rewards):.2f} ± {np.std(test_rewards):.2f}")
-    print(f"最高奖励: {max(test_rewards):.2f}")
-    print(f"最低奖励: {min(test_rewards):.2f}")
-
-
-def demo(args):
-    """演示函数"""
-    print("=" * 60)
-    print("Drone Formation Control RL - Demo Mode")
-    print("=" * 60)
-    print("此模式需要一个训练好的模型检查点")
-    print("使用 --checkpoint 参数指定模型路径")
-    print("使用 --render 参数启用可视化")
-    print("=" * 60)
-
-
-def main():
-    """主函数"""
-    args = parse_args()
-
-    if args.mode == 'train':
-        train(args)
-    elif args.mode == 'test':
-        test(args)
-    elif args.mode == 'demo':
-        demo(args)
+    avg_reward = np.mean(test_rewards)
+    std_reward = np.std(test_rewards)
+    max_reward = max(test_rewards)
+    min_reward = min(test_rewards)
+    
+    logger.info("=" * 80)
+    logger.info("测试结果汇总")
+    logger.info("=" * 80)
+    logger.info(f"   - 平均奖励: {avg_reward:.2f} ± {std_reward:.2f}")
+    logger.info(f"   - 最高奖励: {max_reward:.2f}")
+    logger.info(f"   - 最低奖励: {min_reward:.2f}")
+    logger.info("=" * 80)
 
 
 if __name__ == "__main__":
+    import torch
+    import numpy as np
     main()
