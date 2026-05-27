@@ -165,6 +165,8 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
         ):
             state, _ = self.env.reset()
             done = False
+            episode_steps = 0
+            termination_reason = "timeout"
 
             while not done:
                 if self.algorithm == "DQN":
@@ -192,21 +194,35 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                         action = action.reshape(self.env.num_drones, 4)
 
                     next_state, reward, terminated, truncated, info = self.env.step(action)
+                    
+                    if terminated:
+                        termination_reason = "terminated"
+                    elif truncated:
+                        termination_reason = "truncated"
+                    
                     done = terminated or truncated
 
                     with torch.no_grad():
                         state_tensor = torch.FloatTensor(flattened_state).unsqueeze(0).to(self.device)
                         value = self.agent.value(state_tensor).item()
 
-                    # 存储原始flatten动作，而不是reshape后的动作
                     self.agent.store_transition(flattened_state, original_action, reward, log_prob, done, value)
                     state = next_state
 
+                episode_steps += 1
                 episode_reward += reward
 
             if self.algorithm == "PPO":
+                buffer_size = len(self.agent.buffer_states) if self.agent.buffer_states else 0
                 metrics = self.agent.update()
                 episode_loss = metrics.get("total_loss", 0.0)
+                
+                if episode_loss == 0.0 and buffer_size > 0:
+                    logger.warning(
+                        f"Ep {episode_id}: Loss=0, Buffer={buffer_size}, "
+                        f"Steps={episode_steps}, Term={termination_reason}, "
+                        f"BatchSize={self.agent.batch_size}"
+                    )
 
             mean_velocity = np.mean(np.linalg.norm(state[:, 6:9], axis=1)) if state.ndim > 1 else 0.0
 

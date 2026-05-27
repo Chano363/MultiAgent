@@ -184,24 +184,34 @@ def main():
 def test_model(args):
     """测试训练好的模型"""
     from src.environments import FormationControlEnv
-    from src.algorithms import PPOAgent, DQNAgent
+    from src.algorithms import OptimizedPPOAgent, OptimizedDQNAgent
 
     try:
         env = FormationControlEnv(
-            num_drones=args.num_drones,
-            render_mode='human' if args.render else None
+            config={
+                'num_drones': args.num_drones,
+                'gui': args.render
+            }
         )
     except Exception as e:
         logger.error(f"创建环境失败: {e}")
         return
 
-    state_dim = env.observation_space.shape[0] * env.num_drones
-    action_dim = env.action_space.shape[0] * env.num_drones
+    # 正确计算状态和动作维度
+    if len(env.observation_space.shape) == 2:
+        state_dim = env.observation_space.shape[0] * env.observation_space.shape[1]
+    else:
+        state_dim = env.observation_space.shape[0] * env.num_drones
+
+    if len(env.action_space.shape) == 2:
+        action_dim = env.action_space.shape[0] * env.action_space.shape[1]
+    else:
+        action_dim = env.action_space.shape[0] * env.num_drones
 
     if args.algorithm == 'DQN':
-        agent = DQNAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
+        agent = OptimizedDQNAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
     else:
-        agent = PPOAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
+        agent = OptimizedPPOAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
 
     agent.load(args.checkpoint)
     logger.info(f"加载检查点成功: {args.checkpoint}")
