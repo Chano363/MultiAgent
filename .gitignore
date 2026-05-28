@@ -1,2 +1,23 @@
-traffic_rl_project\outputs\checkpoints\
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+
+# 训练检查点（大文件）
+traffic_rl_project/outputs/checkpoints/
+
+# 训练日志和结果
+traffic_rl_project/outputs/logs/
+traffic_rl_project/outputs/results/
+
+# 临时文件
+*.tmp
+*.log
+
+# 项目特定
 prompts.md

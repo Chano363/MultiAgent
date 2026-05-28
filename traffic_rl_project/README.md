@@ -4,67 +4,147 @@
 
 ## 🚀 快速开始
 
-### 环境配置
+### 环境配置要求
+
+本项目必须在以下环境中运行，**不支持其他配置方式**：
+
+- **操作系统**: Windows 11 + WSL2 (Ubuntu 24.04 LTS)
+- **包管理器**: Conda (miniconda3)
+- **计算设备**: NVIDIA GPU + CUDA
+- **Python版本**: 3.10+
+
+### 环境准备步骤
+
+#### 步骤1：激活 Conda 环境
 
 ```bash
-# 激活 Conda 环境
+# 在 WSL2 Ubuntu 终端中执行
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate traffic_rl
+```
 
-# 安装依赖
+**注意**: 
+- 确保已安装 miniconda3
+- 确保已创建名为 `traffic_rl` 的 conda 环境
+- 如果环境不存在，请先创建：`conda create -n traffic_rl python=3.10`
+
+#### 步骤2：安装 PyTorch (GPU版本)
+
+```bash
+# 安装 PyTorch 2.0+ with CUDA 11.8 支持
+pip install torch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 --index-url https://download.pytorch.org/whl/cu118
+```
+
+**验证 PyTorch GPU 支持**:
+```bash
+# 创建临时验证脚本
+cat > verify_pytorch.py << 'EOF'
+import torch
+print(f'CUDA available: {torch.cuda.is_available()}')
+print(f'CUDA version: {torch.version.cuda}')
+EOF
+
+# 执行验证
+python verify_pytorch.py
+
+# 删除临时脚本
+rm verify_pytorch.py
+```
+
+预期输出应显示 `CUDA available: True`
+
+#### 步骤3：安装项目依赖
+
+```bash
+# 进入项目目录
+cd /mnt/d/Code/MultiAgent/traffic_rl_project
+
+# 安装所有依赖
 pip install -r requirements.txt
 ```
 
-### 启动训练（默认使用 Agent Lightning）
+**依赖列表**:
+- gymnasium>=0.29.0
+- gym-pybullet-drones>=2.1.0
+- agentlightning
+- numpy>=1.24.0
+- matplotlib>=3.7.0
+- tensorboard>=2.14.0
+- tqdm>=4.65.0
+- pyyaml>=6.0
+- pybullet>=3.2.0
+- scipy>=1.10.0
+
+#### 步骤4：验证环境配置
 
 ```bash
-# 基础训练（PPO算法，3架无人机，自动收敛检测）
-python src/main.py
-
-# 自定义训练参数
-python src/main.py --algorithm PPO --episodes 500 --num_drones 3
-
-# 使用 DQN 算法
-python src/main.py --algorithm DQN --episodes 1000
-
-# 禁用自动收敛检测（训练固定回合数）
-python src/main.py --no_convergence --episodes 1000
+# 验证所有关键依赖
+python -c "
+import torch
+import gymnasium as gym
+import pybullet
+import agentlightning as agl
+from gym_pybullet_drones.envs.MultiHoverAviary import MultiHoverAviary
+print('✓ 所有依赖安装成功')
+print(f'✓ PyTorch CUDA: {torch.cuda.is_available()}')
+print(f'✓ PyTorch version: {torch.__version__}')
+"
 ```
 
-### 断点续训（增量训练）
+### 启动训练
+
+#### 基础训练（SAC算法）
 
 ```bash
-# 从检查点继续训练
-python src/main.py --mode continue --checkpoint outputs/checkpoints/ppo_formation_ep100.pt
-
-# 继续训练并调整参数
-python src/main.py --mode continue --checkpoint outputs/checkpoints/ppo_formation_ep100.pt --episodes 1000
+# 使用 SAC 算法训练 1000 回合，使用 GPU
+python src/scripts/agent_lightning_train.py --algorithm SAC --episodes 1000 --device cuda
 ```
 
-### 测试模型
+#### 从检查点继续训练
 
 ```bash
-# 测试训练好的模型
-python src/main.py --mode test --checkpoint outputs/checkpoints/ppo_formation_ep500.pt
-
-# 测试时启用可视化渲染
-python src/main.py --mode test --checkpoint outputs/checkpoints/ppo_formation_ep500.pt --render
+# 从最新检查点继续训练
+python src/scripts/agent_lightning_train.py --algorithm SAC --episodes 1000 --device cuda --checkpoint outputs/checkpoints/sac_formation_ep130.pt
 ```
+
+**训练参数说明**:
+- `--algorithm`: 算法选择（SAC/PPO/DQN），推荐使用 SAC
+- `--episodes`: 训练回合数
+- `--device`: 计算设备，必须使用 `cuda`（GPU）
+- `--checkpoint`: 检查点路径（可选，用于断点续训）
 
 ### 训练输出
 
-训练完成后自动生成以下输出：
+训练完成后，输出文件位于 `outputs/` 目录：
 
 ```
 outputs/
-├── checkpoints/          # 模型检查点（每50回合保存）
-│   └── ppo_formation_ep500.pt
+├── checkpoints/          # 模型检查点（每10回合保存）
+│   ├── sac_formation_ep10.pt
+│   ├── sac_formation_ep20.pt
+│   └── sac_formation_ep100.pt
 ├── results/              # 训练结果
-│   ├── ppo_formation_results.json    # 详细结果数据
-│   ├── ppo_formation_results.yaml    # YAML格式结果
-│   └── ppo_formation_training_results.png  # 可视化图表
+│   ├── sac_results.json
+│   └── sac_formation_training_results.png
 └── logs/                 # 训练日志
 ```
+
+### 训练监控
+
+训练过程中会实时显示以下指标：
+
+```
+Episode  100/1000 | Reward: +434.78 | Avg10: -563.99±503.08 | Best:  434.78 | Loss:  23.9654 | Speed:  1.14 m/s | FormationErr: 1.688 m | HeightErr: 0.771 m
+```
+
+**指标说明**:
+- `Reward`: 当前回合总奖励
+- `Avg10`: 最近10回合平均奖励 ± 标准差
+- `Best`: 历史最佳奖励
+- `Loss`: 训练损失
+- `Speed`: 平均速度 (m/s)
+- `FormationErr`: 编队误差 (m)
+- `HeightErr`: 高度误差 (m)
 
 ---
 

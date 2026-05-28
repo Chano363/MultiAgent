@@ -53,6 +53,7 @@ class FormationControlEnv(gym.Env):
 
         self.steps = 0
         self._start_center_xy = None  # 用于净位移奖励
+        self._prev_center_xy = None   # 用于增量位移奖励
 
     def _get_observation(self):
         """获取当前观测"""
@@ -74,25 +75,29 @@ class FormationControlEnv(gym.Env):
 
         reward = 0.0
 
-        # 1. 水平速度奖励（降低权重）
+        # 1. 水平速度奖励（略微降低到5.0）
         horizontal_speeds = np.linalg.norm(velocities[:, :2], axis=1)
         mean_horiz = np.mean(horizontal_speeds)
-        reward += 8.0 * mean_horiz
+        reward += 5.0 * mean_horiz
 
-        # 2. 垂直速度惩罚（替代奖励，防止上下抖动）
+        # 2. 垂直速度惩罚（加强到-0.8）
         vertical_speeds = np.abs(velocities[:, 2])
         mean_vert = np.mean(vertical_speeds)
-        reward -= 1.0 * mean_vert
+        reward -= 0.8 * mean_vert
 
         # 3. 低速强制移动惩罚
         MIN_HORIZ_SPEED = 0.5
         if mean_horiz < MIN_HORIZ_SPEED:
             reward -= 5.0 * (MIN_HORIZ_SPEED - mean_horiz)
 
-        # 4. 高度误差惩罚（略增）
+        # 4. 高度误差惩罚（加强到-1.5）
         for i in range(self.num_drones):
             alt_error = abs(positions[i][2] - self.target_altitude)
-            reward -= 0.8 * alt_error
+            reward -= 1.5 * alt_error
+
+            # 高度保持奖励：当误差小于0.2米时给予正向奖励
+            if alt_error < 0.2:
+                reward += 0.2
 
             # 边界软惩罚（保留）
             if positions[i][2] > 8.0:
@@ -106,13 +111,13 @@ class FormationControlEnv(gym.Env):
             if speed > self.max_speed:
                 reward -= 0.5 * (speed - self.max_speed)
 
-        # 6. 编队惩罚（大幅增加）
+        # 6. 编队惩罚（加强到-0.5）
         for i in range(1, self.num_drones):
             dist_to_prev = np.linalg.norm(positions[i] - positions[i-1])
             dist_error = abs(dist_to_prev - self.target_distance)
-            reward -= 0.1 * dist_error      # 原 0.01
+            reward -= 0.5 * dist_error
             speed_diff = np.linalg.norm(velocities[i] - velocities[i-1])
-            reward -= 0.02 * speed_diff     # 原 0.005
+            reward -= 0.05 * speed_diff
 
         # 7. 速度一致性奖励（保持）
         if mean_horiz > 0.1:
@@ -125,18 +130,20 @@ class FormationControlEnv(gym.Env):
                     speed_i = np.linalg.norm(v_xy)
                     if speed_i > 0.01:
                         alignment += np.dot(v_xy, mean_horiz_vec) / (speed_i * mean_speed_h)
-                reward += 0.5 * alignment / self.num_drones   # 降低到 0.5
+                reward += 0.3 * alignment / self.num_drones   # 回退到 0.3
 
-        # 8. 生存奖励（不变）
+        # 8. 生存奖励（降低到0.05，减少悬停优势）
         reward += 0.05
 
-        # 9. 净位移奖励（替代每步位移奖励，鼓励直线前进）
-        center_pos_xy = np.mean(positions[:, :2], axis=0)
-        net_displacement = np.linalg.norm(center_pos_xy - self._start_center_xy)
-        reward += 1.0 * net_displacement   # 每米奖励
+        # 9. 增量位移奖励（降低到0.8）
+        center_xy = np.mean(positions[:, :2], axis=0)
+        if self._prev_center_xy is not None:
+            step_displacement = np.linalg.norm(center_xy - self._prev_center_xy)
+            reward += 0.8 * step_displacement  # 每步移动距离奖励
+        self._prev_center_xy = center_xy.copy()
 
-        # 10. 裁剪到合理范围
-        reward = np.clip(reward, -5.0, 25.0)
+        # 10. 裁剪到合理范围（扩大上限到30）
+        reward = np.clip(reward, -10.0, 30.0)
         return reward
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
@@ -189,6 +196,9 @@ class FormationControlEnv(gym.Env):
         # 记录起点中心位置（用于净位移奖励）
         positions = obs[:, :3]
         self._start_center_xy = np.mean(positions[:, :2], axis=0).copy()
+        
+        # 重置增量位移奖励的前一位置
+        self._prev_center_xy = None
 
         return obs, info
 

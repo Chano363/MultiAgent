@@ -14,6 +14,9 @@ import yaml
 def plot_training_curve(
     rewards: List[float],
     losses: List[float],
+    velocities: List[float] = None,
+    formation_errors: List[float] = None,
+    height_errors: List[float] = None,
     save_path: str = None
 ):
     """
@@ -22,21 +25,60 @@ def plot_training_curve(
     Args:
         rewards: 奖励列表
         losses: 损失列表
+        velocities: 速度列表
+        formation_errors: 编队误差列表
+        height_errors: 高度误差列表
         save_path: 保存路径
     """
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+    num_plots = 2 + (1 if velocities else 0) + (1 if formation_errors else 0) + (1 if height_errors else 0)
+    fig, axes = plt.subplots(1, num_plots, figsize=(4 * num_plots, 4))
 
+    if num_plots == 1:
+        axes = [axes]
+
+    idx = 0
+
+    ax1 = axes[idx]
+    idx += 1
     ax1.plot(rewards)
     ax1.set_xlabel('Episode')
     ax1.set_ylabel('Reward')
     ax1.set_title('Training Reward')
     ax1.grid(True)
 
+    ax2 = axes[idx]
+    idx += 1
     ax2.plot(losses)
     ax2.set_xlabel('Update Step')
     ax2.set_ylabel('Loss')
     ax2.set_title('Training Loss')
     ax2.grid(True)
+
+    if velocities:
+        ax3 = axes[idx]
+        idx += 1
+        ax3.plot(velocities, color='green')
+        ax3.set_xlabel('Episode')
+        ax3.set_ylabel('Speed (m/s)')
+        ax3.set_title('Average Velocity')
+        ax3.grid(True)
+
+    if formation_errors:
+        ax4 = axes[idx]
+        idx += 1
+        ax4.plot(formation_errors, color='orange')
+        ax4.set_xlabel('Episode')
+        ax4.set_ylabel('Error (m)')
+        ax4.set_title('Formation Error')
+        ax4.grid(True)
+
+    if height_errors:
+        ax5 = axes[idx]
+        ax5.plot(height_errors, color='red')
+        ax5.set_xlabel('Episode')
+        ax5.set_ylabel('Error (m)')
+        ax5.set_title('Height Error')
+        ax5.grid(True)
 
     plt.tight_layout()
 

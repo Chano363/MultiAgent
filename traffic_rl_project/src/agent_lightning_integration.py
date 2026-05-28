@@ -160,6 +160,8 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
         self.episode_rewards: List[float] = []
         self.episode_losses: List[float] = []
         self.episode_mean_velocities: List[float] = []
+        self.episode_formation_errors: List[float] = []
+        self.episode_height_errors: List[float] = []
         self.best_reward = float("-inf")
         self.convergence_count = 0
 
@@ -175,6 +177,8 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
         episode_reward = 0.0
         episode_loss = 0.0
         episode_velocities = []
+        episode_formation_errors = []
+        episode_height_errors = []
 
         with self.tracer.operation_context(
             name="drone_episode",
@@ -200,6 +204,8 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
 
                     # 记录速度
                     episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
+                    episode_formation_errors.append(info.get('formation_error', 0))
+                    episode_height_errors.append(info.get('height_error', 0))
                     state = next_state
                 elif self.algorithm == "PPO":
                     flattened_state = state.flatten()
@@ -228,6 +234,8 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                     self.agent.store_transition(flattened_state, original_action, reward, log_prob, done, value)
                     # 记录速度
                     episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
+                    episode_formation_errors.append(info.get('formation_error', 0))
+                    episode_height_errors.append(info.get('height_error', 0))
                     state = next_state
                 elif self.algorithm == "SAC":
                     flattened_state = state.flatten()
@@ -254,6 +262,8 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
 
                     # 记录速度
                     episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
+                    episode_formation_errors.append(info.get('formation_error', 0))
+                    episode_height_errors.append(info.get('height_error', 0))
                     state = next_state
 
                 episode_steps += 1
@@ -275,10 +285,14 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                     episode_loss = episode_loss / episode_steps
 
             mean_velocity = np.mean(episode_velocities) if episode_velocities else 0.0
+            mean_formation_error = np.mean(episode_formation_errors) if episode_formation_errors else 0.0
+            mean_height_error = np.mean(episode_height_errors) if episode_height_errors else 0.0
 
         self.episode_rewards.append(float(episode_reward))
         self.episode_losses.append(float(episode_loss))
         self.episode_mean_velocities.append(float(mean_velocity))
+        self.episode_formation_errors.append(float(mean_formation_error))
+        self.episode_height_errors.append(float(mean_height_error))
 
         if episode_reward > self.best_reward:
             self.best_reward = float(episode_reward)
@@ -287,12 +301,15 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
         if (episode_id + 1) % 10 == 0 or (episode_id + 1) == self.total_episodes:
             recent_mean = np.mean(self.episode_rewards[-10:]) if len(self.episode_rewards) >= 10 else np.mean(self.episode_rewards)
             recent_std = np.std(self.episode_rewards[-10:]) if len(self.episode_rewards) >= 10 else 0
+            recent_formation = np.mean(self.episode_formation_errors[-10:]) if len(self.episode_formation_errors) >= 10 else mean_formation_error
+            recent_height = np.mean(self.episode_height_errors[-10:]) if len(self.episode_height_errors) >= 10 else mean_height_error
             logger.info(f"Episode {episode_id + 1:4d}/{self.total_episodes} | "
                        f"Reward: {episode_reward:+7.2f} | "
                        f"Avg10: {recent_mean:7.2f}±{recent_std:5.2f} | "
                        f"Best: {self.best_reward:7.2f} | "
                        f"Loss: {episode_loss:8.4f} | "
-                       f"Speed: {mean_velocity:5.2f} m/s")
+                       f"Speed: {mean_velocity:5.2f} m/s | "
+                       f"FormationErr: {recent_formation:.3f} m | HeightErr: {recent_height:.3f} m")
 
         try:
             emit_reward(
@@ -328,9 +345,13 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
             "best_reward": float(self.best_reward),
             "mean_reward": float(np.mean(self.episode_rewards)) if total_episodes else 0.0,
             "mean_velocity": float(np.mean(self.episode_mean_velocities)) if self.episode_mean_velocities else 0.0,
+            "mean_formation_error": float(np.mean(self.episode_formation_errors)) if self.episode_formation_errors else 0.0,
+            "mean_height_error": float(np.mean(self.episode_height_errors)) if self.episode_height_errors else 0.0,
             "rewards": self.episode_rewards,
             "losses": self.episode_losses,
             "mean_velocities": self.episode_mean_velocities,
+            "formation_errors": self.episode_formation_errors,
+            "height_errors": self.episode_height_errors,
             "converged": self.convergence_count >= self.max_convergence_checks,
             "num_drones": self.env.num_drones,
             "target_distance": self.env.target_distance,
@@ -426,11 +447,18 @@ def train_with_agent_lightning(
     results_dir = Path("outputs/results")
     results_dir.mkdir(parents=True, exist_ok=True)
     results = lightning_agent.results()
-    
+
     logger.debug(f"[时间跟踪] lightning_agent.results() 完成")
 
     plot_path = results_dir / f"{algorithm.lower()}_formation_training_results.png"
-    plot_training_curve(results["rewards"], results["losses"], save_path=str(plot_path))
+    plot_training_curve(
+        results["rewards"],
+        results["losses"],
+        velocities=results.get("mean_velocities"),
+        formation_errors=results.get("formation_errors"),
+        height_errors=results.get("height_errors"),
+        save_path=str(plot_path)
+    )
     
     logger.debug(f"[时间跟踪] plot_training_curve() 完成")
     
