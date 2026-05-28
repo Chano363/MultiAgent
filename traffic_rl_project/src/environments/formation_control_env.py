@@ -90,14 +90,14 @@ class FormationControlEnv(gym.Env):
         if mean_horiz < MIN_HORIZ_SPEED:
             reward -= 5.0 * (MIN_HORIZ_SPEED - mean_horiz)
 
-        # 4. 高度误差惩罚（加强到-1.5）
+        # 4. 高度误差惩罚（大幅降低，给智能体试错空间）
         for i in range(self.num_drones):
             alt_error = abs(positions[i][2] - self.target_altitude)
-            reward -= 1.5 * alt_error
+            reward -= 0.2 * alt_error  # 从 1.5 大幅降低到 0.2
 
-            # 高度保持奖励：当误差小于0.2米时给予正向奖励
+            # 高度保持奖励：当误差小于0.2米时给予正向奖励（大幅提高）
             if alt_error < 0.2:
-                reward += 0.2
+                reward += 1.0  # 从 0.2 提高到 1.0
 
             # 边界软惩罚（保留）
             if positions[i][2] > 8.0:
@@ -111,13 +111,13 @@ class FormationControlEnv(gym.Env):
             if speed > self.max_speed:
                 reward -= 0.5 * (speed - self.max_speed)
 
-        # 6. 编队惩罚（加强到-0.5）
+        # 6. 编队惩罚（大幅降低，给智能体试错空间）
         for i in range(1, self.num_drones):
             dist_to_prev = np.linalg.norm(positions[i] - positions[i-1])
             dist_error = abs(dist_to_prev - self.target_distance)
-            reward -= 0.5 * dist_error
+            reward -= 0.05 * dist_error  # 从 0.5 大幅降低到 0.05
             speed_diff = np.linalg.norm(velocities[i] - velocities[i-1])
-            reward -= 0.05 * speed_diff
+            reward -= 0.02 * speed_diff  # 从 0.05 降低到 0.02
 
         # 7. 速度一致性奖励（保持）
         if mean_horiz > 0.1:
@@ -135,15 +135,13 @@ class FormationControlEnv(gym.Env):
         # 8. 生存奖励（降低到0.05，减少悬停优势）
         reward += 0.05
 
-        # 9. 增量位移奖励（降低到0.8）
+        # 9. 增量位移奖励（保持0.8）
         center_xy = np.mean(positions[:, :2], axis=0)
         if self._prev_center_xy is not None:
             step_displacement = np.linalg.norm(center_xy - self._prev_center_xy)
             reward += 0.8 * step_displacement  # 每步移动距离奖励
         self._prev_center_xy = center_xy.copy()
 
-        # 10. 裁剪到合理范围（扩大上限到30）
-        reward = np.clip(reward, -10.0, 30.0)
         return reward
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
