@@ -42,6 +42,7 @@ sys.stderr = os.fdopen(sys.stderr.fileno(), 'w', buffering=1)
 
 from src.algorithms.optimized_dqn import OptimizedDQNAgent
 from src.algorithms.optimized_ppo import OptimizedPPOAgent
+from src.algorithms.mappo_agent import MAPPOAgent
 from src.algorithms.sac_agent import SACAgent
 from src.utils import MetricsTracker, plot_training_curve, save_results
 from src.environments import FormationControlEnv, make_formation_control_env
@@ -198,12 +199,17 @@ def create_agent(
     state_dim: int,
     action_dim: int,
     config: Dict[str, Any],
-    device: str
+    device: str,
+    num_drones: int = None,
+    obs_per_drone: int = None,
+    act_per_drone: int = None
 ):
     """创建优化后的智能体"""
     logger.info(f"创建 {algorithm} 智能体...")
 
     algo_params = config.get('training', {}).get('hyperparameters', {})
+    if not isinstance(algo_params, dict):
+        algo_params = {}
 
     if algorithm.upper() == 'DQN':
         params = algo_params.get('dqn', {})
@@ -259,6 +265,26 @@ def create_agent(
             buffer_capacity=params.get('buffer_capacity', 1000000),
             batch_size=params.get('batch_size', 256),
             device=device
+        )
+
+    elif algorithm.upper() == 'MAPPO':
+        params = algo_params.get('mappo', {})
+        agent = MAPPOAgent(
+            num_drones=num_drones or 3,
+            obs_per_drone=obs_per_drone or 72,
+            act_per_drone=act_per_drone or 4,
+            learning_rate=params.get('learning_rate', 5e-5),
+            gamma=params.get('gamma', 0.99),
+            gae_lambda=params.get('gae_lambda', 0.95),
+            clip_epsilon=params.get('clip_epsilon', 0.2),
+            entropy_coef=params.get('entropy_coef', 0.005),
+            value_coef=params.get('value_coef', 0.5),
+            epochs=params.get('epochs', 4),
+            batch_size=params.get('batch_size', 64),
+            max_grad_norm=params.get('max_grad_norm', 0.5),
+            device=device,
+            use_gae=params.get('use_gae', True),
+            use_clipped_value_loss=params.get('use_clipped_value_loss', True),
         )
 
     else:
@@ -352,7 +378,15 @@ def train_agent(
         config = {'training': {'hyperparameters': {}}}
 
     # 创建智能体
-    agent = create_agent(algorithm, state_dim, action_dim, config, device)
+    obs_per_drone = env.observation_space.shape[1] if len(env.observation_space.shape) == 2 else env.observation_space.shape[0]
+    act_per_drone = env.action_space.shape[1] if len(env.action_space.shape) == 2 else 4
+
+    agent = create_agent(
+        algorithm, state_dim, action_dim, config, device,
+        num_drones=env.num_drones,
+        obs_per_drone=obs_per_drone,
+        act_per_drone=act_per_drone
+    )
     logger.info(f"{algorithm.upper()} 智能体创建成功")
 
     # 加载检查点（断点续训）
@@ -472,8 +506,29 @@ def train_agent(
                         state_tensor = torch.FloatTensor(flattened_state).unsqueeze(0).to(device)
                         value = agent.value(state_tensor).item()
 
-                    # 存储原始flatten动作，而不是reshape后的动作
                     agent.store_transition(flattened_state, original_action, reward, log_prob, done, value)
+
+                    episode_reward += reward
+                    episode_info.append(info)
+                    state = next_state
+                    step += 1
+
+                elif algorithm.upper() == 'MAPPO':
+                    flattened_state = state.flatten()
+                    actions, total_log_prob = agent.select_actions(flattened_state)
+
+                    if len(env.action_space.shape) == 2:
+                        action_for_env = actions.reshape(env.num_drones, env.action_space.shape[1])
+                    else:
+                        action_for_env = actions.reshape(env.num_drones, 4)
+
+                    next_state, reward, terminated, truncated, info = env.step(action_for_env)
+
+                    done = terminated or truncated
+
+                    value = agent.get_value(flattened_state)
+
+                    agent.store_transition(flattened_state, actions, reward, total_log_prob, done, value)
 
                     episode_reward += reward
                     episode_info.append(info)
@@ -506,6 +561,10 @@ def train_agent(
                     step += 1
 
             if algorithm.upper() == 'PPO':
+                metrics = agent.update()
+                episode_loss = metrics.get('total_loss', 0)
+
+            elif algorithm.upper() == 'MAPPO':
                 metrics = agent.update()
                 episode_loss = metrics.get('total_loss', 0)
 
@@ -690,7 +749,7 @@ def main():
 
     parser = argparse.ArgumentParser(description='Agent Lightning 多智能体无人机编队控制训练')
     parser.add_argument('--algorithm', type=str, default='PPO',
-                        choices=['DQN', 'PPO', 'SAC'], help='训练算法')
+                        choices=['DQN', 'PPO', 'SAC', 'MAPPO'], help='训练算法')
     parser.add_argument('--config', type=str,
                         default='configs/train_config.yaml',
                         help='训练配置文件路径')

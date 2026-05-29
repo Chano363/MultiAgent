@@ -341,8 +341,8 @@ class OptimizedPPOAgent:
                 total_loss = policy_loss + self.value_coef * value_loss - entropy_coef * entropy
                 
                 # === Loss裁剪和跳过机制 ===
-                if total_loss.item() > 100.0:
-                    logging.warning(f"Loss爆炸 ({total_loss.item():.2f})，跳过本次更新")
+                if total_loss.item() > 1000.0:
+                    logging.warning(f"Loss异常 ({total_loss.item():.2f})，跳过本次更新")
                     self.buffer_states = None
                     self.buffer_actions = None
                     self.buffer_log_probs = None

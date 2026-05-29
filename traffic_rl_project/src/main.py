@@ -48,7 +48,7 @@ def parse_args():
         '--algorithm',
         type=str,
         default='PPO',
-        choices=['DQN', 'PPO'],
+        choices=['DQN', 'PPO', 'SAC', 'MAPPO'],
         help='强化学习算法'
     )
 
@@ -183,16 +183,21 @@ def main():
 
 def test_model(args):
     """测试训练好的模型"""
+    import yaml
     from src.environments import FormationControlEnv
-    from src.algorithms import OptimizedPPOAgent, OptimizedDQNAgent
+    from src.algorithms import OptimizedPPOAgent, OptimizedDQNAgent, MAPPOAgent
+
+    env_config = {}
+    if args.env_config and Path(args.env_config).exists():
+        with open(args.env_config, 'r') as f:
+            raw = yaml.safe_load(f)
+            env_config = raw.get('environment', raw)
+
+    env_config['gui'] = args.render
+    env_config.setdefault('num_drones', args.num_drones)
 
     try:
-        env = FormationControlEnv(
-            config={
-                'num_drones': args.num_drones,
-                'gui': args.render
-            }
-        )
+        env = FormationControlEnv(config=env_config)
     except Exception as e:
         logger.error(f"创建环境失败: {e}")
         return
@@ -210,6 +215,15 @@ def test_model(args):
 
     if args.algorithm == 'DQN':
         agent = OptimizedDQNAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
+    elif args.algorithm == 'MAPPO':
+        obs_per_drone = env.observation_space.shape[-1]
+        act_per_drone = 4
+        agent = MAPPOAgent(
+            num_drones=env.num_drones,
+            obs_per_drone=obs_per_drone,
+            act_per_drone=act_per_drone,
+            device=args.device
+        )
     else:
         agent = OptimizedPPOAgent(state_dim=state_dim, action_dim=action_dim, device=args.device)
 
@@ -218,7 +232,8 @@ def test_model(args):
 
     test_episodes = 10
     test_rewards = []
-    episode_distances = []
+    test_height_errs = []
+    test_formation_errs = []
 
     logger.info(f"\n运行 {test_episodes} 个测试回合...")
     logger.info("=" * 80)
@@ -228,23 +243,33 @@ def test_model(args):
         episode_reward = 0
         done = False
         step = 0
+        height_errs = []
+        formation_errs = []
 
         while not done:
             if args.algorithm == 'DQN':
                 action = agent.select_action(obs.flatten(), training=False)
+            elif args.algorithm == 'MAPPO':
+                action, _ = agent.select_actions(obs.flatten(), deterministic=True)
             else:
                 action, _ = agent.select_action(obs.flatten())
 
-            action = action.reshape(args.num_drones, 4)
+            action = action.reshape(env.num_drones, 4)
             next_obs, reward, terminated, truncated, info = env.step(action)
 
             episode_reward += reward
+            height_errs.append(info.get('height_error', 0))
+            formation_errs.append(info.get('formation_error', 0))
             obs = next_obs
             done = terminated or truncated
             step += 1
 
         test_rewards.append(episode_reward)
-        logger.info(f"   Episode {episode + 1}/{test_episodes}: Reward = {episode_reward:+.2f}")
+        test_height_errs.append(np.mean(height_errs))
+        test_formation_errs.append(np.mean(formation_errs))
+        logger.info(f"   Episode {episode + 1}/{test_episodes}: Reward = {episode_reward:+.2f}, "
+                    f"HeightErr = {np.mean(height_errs):.3f}m, "
+                    f"FormationErr = {np.mean(formation_errs):.3f}m")
 
     env.close()
 
@@ -252,13 +277,17 @@ def test_model(args):
     std_reward = np.std(test_rewards)
     max_reward = max(test_rewards)
     min_reward = min(test_rewards)
-    
+    avg_height_err = np.mean(test_height_errs)
+    avg_formation_err = np.mean(test_formation_errs)
+
     logger.info("=" * 80)
     logger.info("测试结果汇总")
     logger.info("=" * 80)
     logger.info(f"   - 平均奖励: {avg_reward:.2f} ± {std_reward:.2f}")
     logger.info(f"   - 最高奖励: {max_reward:.2f}")
     logger.info(f"   - 最低奖励: {min_reward:.2f}")
+    logger.info(f"   - 平均高度误差: {avg_height_err:.3f}m")
+    logger.info(f"   - 平均编队误差: {avg_formation_err:.3f}m")
     logger.info("=" * 80)
 
 

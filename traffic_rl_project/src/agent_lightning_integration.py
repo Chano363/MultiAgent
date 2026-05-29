@@ -26,8 +26,7 @@ from agentlightning.types.resources import LLM, PromptTemplate
 from agentlightning.trainer import Trainer
 from agentlightning.tracer.otel import OtelTracer
 
-from src.algorithms.optimized_dqn import OptimizedDQNAgent
-from src.algorithms.optimized_ppo import OptimizedPPOAgent
+from src.algorithms import OptimizedDQNAgent, OptimizedPPOAgent, MAPPOAgent
 from src.algorithms.sac_agent import SACAgent
 from src.environments import make_formation_control_env
 from src.utils import plot_training_curve, save_results
@@ -56,9 +55,14 @@ def create_agent(
     action_dim: int,
     config: Dict[str, Any],
     device: str,
+    num_drones: int = 3,
+    obs_per_drone: int = 72,
+    act_per_drone: int = 4,
 ):
     """Create the project-specific RL agent."""
     algo_params = config.get("training", {}).get("hyperparameters", {})
+    if not isinstance(algo_params, dict):
+        algo_params = {}
 
     if algorithm.upper() == "DQN":
         params = algo_params.get("dqn", {})
@@ -114,6 +118,26 @@ def create_agent(
             buffer_capacity=params.get("buffer_capacity", 1000000),
             batch_size=params.get("batch_size", 256),
             device=device,
+        )
+
+    if algorithm.upper() == "MAPPO":
+        params = algo_params.get("mappo", {})
+        return MAPPOAgent(
+            num_drones=num_drones,
+            obs_per_drone=obs_per_drone,
+            act_per_drone=act_per_drone,
+            learning_rate=params.get("learning_rate", 5e-5),
+            gamma=params.get("gamma", 0.99),
+            gae_lambda=params.get("gae_lambda", 0.95),
+            clip_epsilon=params.get("clip_epsilon", 0.2),
+            entropy_coef=params.get("entropy_coef", 0.005),
+            value_coef=params.get("value_coef", 0.5),
+            epochs=params.get("epochs", 4),
+            batch_size=params.get("batch_size", 64),
+            max_grad_norm=params.get("max_grad_norm", 0.5),
+            device=device,
+            use_gae=params.get("use_gae", True),
+            use_clipped_value_loss=params.get("use_clipped_value_loss", True),
         )
 
     raise ValueError(f"不支持的算法: {algorithm}")
@@ -265,6 +289,32 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                     episode_formation_errors.append(info.get('formation_error', 0))
                     episode_height_errors.append(info.get('height_error', 0))
                     state = next_state
+                elif self.algorithm == "MAPPO":
+                    flattened_state = state.flatten()
+                    actions, total_log_prob = self.agent.select_actions(flattened_state)
+
+                    if len(self.env.action_space.shape) == 2:
+                        action_for_env = actions.reshape(self.env.num_drones, self.env.action_space.shape[1])
+                    else:
+                        action_for_env = actions.reshape(self.env.num_drones, 4)
+
+                    next_state, reward, terminated, truncated, info = self.env.step(action_for_env)
+
+                    if terminated:
+                        termination_reason = "terminated"
+                    elif truncated:
+                        termination_reason = "truncated"
+
+                    done = terminated or truncated
+
+                    value = self.agent.get_value(flattened_state)
+
+                    self.agent.store_transition(flattened_state, actions, reward, total_log_prob, done, value)
+
+                    episode_velocities.append(np.mean(np.linalg.norm(state[:, 6:9], axis=1)))
+                    episode_formation_errors.append(info.get('formation_error', 0))
+                    episode_height_errors.append(info.get('height_error', 0))
+                    state = next_state
 
                 episode_steps += 1
                 episode_reward += reward
@@ -279,6 +329,16 @@ class DroneFormationLitAgent(LitAgent[Dict[str, Any]]):
                         f"Ep {episode_id}: Loss=0, Buffer={buffer_size}, "
                         f"Steps={episode_steps}, Term={termination_reason}, "
                         f"BatchSize={self.agent.batch_size}"
+                    )
+            elif self.algorithm == "MAPPO":
+                buffer_size = len(self.agent.buffer_states) if self.agent.buffer_states else 0
+                metrics = self.agent.update()
+                episode_loss = metrics.get("total_loss", 0.0)
+
+                if episode_loss == 0.0 and buffer_size > 0:
+                    logger.warning(
+                        f"Ep {episode_id}: Loss=0, Buffer={buffer_size}, "
+                        f"Steps={episode_steps}, Term={termination_reason}"
                     )
             elif self.algorithm == "SAC":
                 if episode_steps > 0:
@@ -394,8 +454,15 @@ def train_with_agent_lightning(
     
     logger.info(f"环境: {env.num_drones}架无人机 | 状态{state_dim}维 | 动作{action_dim}维")
 
-    # 创建智能体
-    agent = create_agent(algorithm, state_dim, action_dim, config, device)
+    obs_per_drone = env.observation_space.shape[1] if len(env.observation_space.shape) == 2 else env.observation_space.shape[0]
+    act_per_drone = env.action_space.shape[1] if len(env.action_space.shape) == 2 else 4
+
+    agent = create_agent(
+        algorithm, state_dim, action_dim, config, device,
+        num_drones=env.num_drones,
+        obs_per_drone=obs_per_drone,
+        act_per_drone=act_per_drone
+    )
 
     # 加载检查点
     if checkpoint_path and Path(checkpoint_path).exists():

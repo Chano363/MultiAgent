@@ -1,5 +1,5 @@
 algorithm:
-  name: "SAC"
+  name: "PPO"
 
 training:
   total_frames: 100000
@@ -22,26 +22,39 @@ training:
       double_dqn: true
     
     ppo:
-      learning_rate: 0.00003
+      learning_rate: 0.0003
       gamma: 0.99
-      gae_lambda: 0.92
-      clip_epsilon: 0.08
-      entropy_coef: 0.01
+      gae_lambda: 0.95
+      clip_epsilon: 0.15
+      entropy_coef: 0.001
       value_coef: 0.5
-      max_grad_norm: 0.8
-      epochs: 8
+      max_grad_norm: 0.5
+      epochs: 10
       batch_size: 128
-      n_steps: 128
+      n_steps: 400
       use_gae: true
       use_clipped_value_loss: true
       use_entropy_decay: false
     
+    mappo:
+      learning_rate: 0.00005
+      gamma: 0.99
+      gae_lambda: 0.95
+      clip_epsilon: 0.2
+      entropy_coef: 0.005
+      value_coef: 0.5
+      max_grad_norm: 0.5
+      epochs: 4
+      batch_size: 64
+      use_gae: true
+      use_clipped_value_loss: true
+    
     sac:
       learning_rate: 0.0001
       gamma: 0.99
-      tau: 0.005
-      alpha: 0.2
-      automatic_entropy_tuning: true
+      tau: 0.001
+      alpha: 0.02       # 固定低alpha，使策略接近确定性，减少探索噪声
+      automatic_entropy_tuning: false  # 关闭自动调优，防止α被调高导致策略发散
       buffer_capacity: 1000000
       batch_size: 256
 

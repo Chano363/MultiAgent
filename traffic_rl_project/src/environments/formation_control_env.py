@@ -1,59 +1,64 @@
 """
-多智能体编队控制环境
-基于 gym-pybullet-drones 专业物理仿真器
-支持稳定时距保持和编队协调
+无人机编队控制环境
+基于 gym-pybullet-drones 的多智能体强化学习环境
 """
 
 import numpy as np
-import gymnasium as gym
-from gymnasium import spaces
+from gym import spaces
+from typing import Tuple, Dict, Any
 from gym_pybullet_drones.envs.MultiHoverAviary import MultiHoverAviary
-from gym_pybullet_drones.utils.enums import DroneModel, Physics, ActionType, ObservationType
-import yaml
-from typing import Dict, Any, Tuple, Optional
+from gym_pybullet_drones.utils.enums import ActionType, ObservationType
 
-
-class FormationControlEnv(gym.Env):
+class FormationControlEnv:
     """
-    多智能体无人机编队控制环境
-    基于 gym-pybullet-drones 的专业物理仿真
-    使用 VEL (速度控制) 动作空间，底层 PID 保证飞控稳定性
+    无人机编队控制环境
+
+    Args:
+        config (Dict): 配置参数
+            - num_drones: 无人机数量
+            - target_distance: 目标编队间距
+            - target_altitude: 目标高度
+            - max_speed: 最大速度 (m/s)
+            - max_steps: 最大步数
     """
 
-    metadata = {'render.modes': ['human', 'rgb_array']}
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        if config is None:
-            config = {}
-
+    def __init__(self, config: Dict = None):
+        # 默认配置
         self.num_drones = config.get('num_drones', 3)
         self.target_distance = config.get('target_distance', 5.0)
         self.target_altitude = config.get('target_altitude', 1.0)
         self.max_speed = config.get('max_speed', 3.0)
-        self.gui = config.get('gui', False)
         self.max_steps = config.get('max_steps', 400)
 
-        initial_xyzs = np.zeros((self.num_drones, 3))
-        for i in range(self.num_drones):
-            initial_xyzs[i] = [i * self.target_distance, 0, self.target_altitude]
+        # 设置初始位置：排成编队队形，所有无人机从目标高度开始
+        initial_xyzs = np.array([[i * self.target_distance, 0, self.target_altitude]
+                                for i in range(self.num_drones)])
 
+        # 创建底层 aviary 环境 (使用VEL模式)
         self.aviary = MultiHoverAviary(
             num_drones=self.num_drones,
-            drone_model=DroneModel.CF2X,
-            initial_xyzs=initial_xyzs,
-            gui=self.gui,
             obs=ObservationType.KIN,
-            act=ActionType.VEL
+            act=ActionType.VEL,
+            gui=False,
+            initial_xyzs=initial_xyzs
         )
 
         self.aviary.SPEED_LIMIT = self.max_speed
 
         self.observation_space = self.aviary.observation_space
-        self.action_space = self.aviary.action_space
+
+        # 4D动作空间: [vx, vy, vz, mag] ∈ [-1, 1] per 无人机
+        # vx,vy,vz = 方向分量（VEL模式内部会归一化为单位向量）
+        # mag = 速度幅度（绝对值控制, 0=悬停, 1=全速）
+        # action=[0,0,0,0] → target_vel=[0,0,0] → PID积分项自动补偿重力
+        self.action_space = spaces.Box(
+            low=-1.0,
+            high=1.0,
+            shape=(self.num_drones, 4),
+            dtype=np.float32
+        )
 
         self.steps = 0
-        self._start_center_xy = None  # 用于净位移奖励
-        self._prev_center_xy = None   # 用于增量位移奖励
 
     def _get_observation(self):
         """获取当前观测"""
@@ -61,91 +66,36 @@ class FormationControlEnv(gym.Env):
         return obs
 
     def _calculate_reward(self, obs: np.ndarray) -> float:
-        """
-        优化后的奖励函数（按prompts.md方案）：
-        - 水平速度奖励（降低权重）
-        - 垂直速度惩罚（替代奖励）
-        - 低速强制移动惩罚
-        - 高度误差惩罚（略增）
-        - 编队惩罚（大幅增加）
-        - 净位移奖励（鼓励直线前进）
-        """
         positions = obs[:, :3]
-        velocities = obs[:, 6:9]
-
         reward = 0.0
 
-        # 1. 水平速度奖励（略微降低到5.0）
-        horizontal_speeds = np.linalg.norm(velocities[:, :2], axis=1)
-        mean_horiz = np.mean(horizontal_speeds)
-        reward += 5.0 * mean_horiz
+        alt_errors = [abs(p[2] - self.target_altitude) for p in positions]
+        mean_alt_error = np.mean(alt_errors)
+        reward -= 0.2 * mean_alt_error
+        height_performance = max(0, 1.0 - mean_alt_error)
+        reward += height_performance
 
-        # 2. 垂直速度惩罚（加强到-0.8）
-        vertical_speeds = np.abs(velocities[:, 2])
-        mean_vert = np.mean(vertical_speeds)
-        reward -= 0.8 * mean_vert
-
-        # 3. 低速强制移动惩罚
-        MIN_HORIZ_SPEED = 0.5
-        if mean_horiz < MIN_HORIZ_SPEED:
-            reward -= 5.0 * (MIN_HORIZ_SPEED - mean_horiz)
-
-        # 4. 高度误差惩罚（大幅降低，给智能体试错空间）
-        for i in range(self.num_drones):
-            alt_error = abs(positions[i][2] - self.target_altitude)
-            reward -= 0.2 * alt_error  # 从 1.5 大幅降低到 0.2
-
-            # 高度保持奖励：当误差小于0.2米时给予正向奖励（大幅提高）
-            if alt_error < 0.2:
-                reward += 1.0  # 从 0.2 提高到 1.0
-
-            # 边界软惩罚（保留）
-            if positions[i][2] > 8.0:
-                reward -= 2.0 * (positions[i][2] - 8.0)
-            if positions[i][2] < 0.2:
-                reward -= 1.0 * (0.2 - positions[i][2])
-
-        # 5. 速度超限惩罚
-        for i in range(self.num_drones):
-            speed = np.linalg.norm(velocities[i])
-            if speed > self.max_speed:
-                reward -= 0.5 * (speed - self.max_speed)
-
-        # 6. 编队惩罚（大幅降低，给智能体试错空间）
         for i in range(1, self.num_drones):
             dist_to_prev = np.linalg.norm(positions[i] - positions[i-1])
             dist_error = abs(dist_to_prev - self.target_distance)
-            reward -= 0.05 * dist_error  # 从 0.5 大幅降低到 0.05
-            speed_diff = np.linalg.norm(velocities[i] - velocities[i-1])
-            reward -= 0.02 * speed_diff  # 从 0.05 降低到 0.02
+            reward -= 0.1 * dist_error
 
-        # 7. 速度一致性奖励（保持）
-        if mean_horiz > 0.1:
-            mean_horiz_vec = np.mean(velocities[:, :2], axis=0)
-            mean_speed_h = np.linalg.norm(mean_horiz_vec)
-            if mean_speed_h > 0.01:
-                alignment = 0.0
-                for i in range(self.num_drones):
-                    v_xy = velocities[i, :2]
-                    speed_i = np.linalg.norm(v_xy)
-                    if speed_i > 0.01:
-                        alignment += np.dot(v_xy, mean_horiz_vec) / (speed_i * mean_speed_h)
-                reward += 0.3 * alignment / self.num_drones   # 回退到 0.3
-
-        # 8. 生存奖励（降低到0.05，减少悬停优势）
         reward += 0.05
 
-        # 9. 增量位移奖励（保持0.8）
-        center_xy = np.mean(positions[:, :2], axis=0)
-        if self._prev_center_xy is not None:
-            step_displacement = np.linalg.norm(center_xy - self._prev_center_xy)
-            reward += 0.8 * step_displacement  # 每步移动距离奖励
-        self._prev_center_xy = center_xy.copy()
+        for i in range(self.num_drones):
+            if positions[i][2] > 8.0:
+                reward -= 2.0
+            elif positions[i][2] < 0.3:
+                reward -= 0.4 * (0.3 - positions[i][2])
 
         return reward
 
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict]:
-        obs, _, terminated, truncated, info = self.aviary.step(action)
+        # 4D动作直接传递到VEL模式: [vx, vy, vz, mag]
+        # mag取绝对值确保非负（SAC可能输出负值，模拟器内部用abs(mag)）
+        scaled_action = action.copy()
+        scaled_action[:, 3] = np.abs(scaled_action[:, 3])
+        obs, _, terminated, truncated, info = self.aviary.step(scaled_action)
 
         if truncated and self.steps < self.max_steps - 10:
             states = np.array([self.aviary._getDroneStateVector(i) for i in range(self.num_drones)])
@@ -184,37 +134,40 @@ class FormationControlEnv(gym.Env):
 
         return obs, reward, terminated, truncated, info
 
-    def reset(self, seed: Optional[int] = None, options: Optional[Dict] = None) -> Tuple[np.ndarray, Dict]:
-        """重置环境"""
-        super().reset(seed=seed)
+    def reset(self, seed: int = None, options: Dict = None) -> Tuple[np.ndarray, Dict]:
         self.steps = 0
 
+        # 设置初始位置为编队队形
         obs, info = self.aviary.reset()
 
-        # 记录起点中心位置（用于净位移奖励）
-        positions = obs[:, :3]
-        self._start_center_xy = np.mean(positions[:, :2], axis=0).copy()
-        
-        # 重置增量位移奖励的前一位置
-        self._prev_center_xy = None
-
         return obs, info
-
-    def render(self, mode: str = 'human'):
-        """渲染环境"""
-        return self.aviary.render(mode)
 
     def close(self):
         """关闭环境"""
         self.aviary.close()
 
+    def render(self):
+        """渲染环境"""
+        self.aviary.render()
 
-def make_formation_control_env(config_path: str) -> FormationControlEnv:
-    """工厂函数：创建编队控制环境
+
+def make_formation_control_env(config_path: str = None) -> FormationControlEnv:
+    """
+    创建编队控制环境的工厂函数
 
     Args:
-        config_path: YAML 配置文件路径
+        config_path: 配置文件路径（可选）
+
+    Returns:
+        FormationControlEnv: 编队控制环境实例
     """
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
+    config = {}
+
+    if config_path:
+        import yaml
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            if 'environment' in config:
+                config = config['environment']
+
     return FormationControlEnv(config=config)

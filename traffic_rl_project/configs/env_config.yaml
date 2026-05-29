@@ -4,7 +4,7 @@ environment:
   num_drones: 3
   target_distance: 5.0
   target_altitude: 1.0
-  max_speed: 3.0
+  max_speed: 1.0
   max_steps: 400
   render_mode: null
 

@@ -340,10 +340,10 @@ class SACAgent:
             self.alpha = self.log_alpha.exp()
         
         return {
-            'total_loss': q_loss.item() + policy_loss.item() + alpha_loss.item(),
+            'total_loss': q_loss.item() + policy_loss.item() + (alpha_loss.item() if isinstance(alpha_loss, torch.Tensor) else alpha_loss),
             'q_loss': q_loss.item(),
             'policy_loss': policy_loss.item(),
-            'alpha_loss': alpha_loss.item(),
+            'alpha_loss': alpha_loss.item() if isinstance(alpha_loss, torch.Tensor) else alpha_loss,
             'alpha': self.alpha.item() if isinstance(self.alpha, torch.Tensor) else self.alpha
         }
     
