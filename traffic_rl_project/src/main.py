@@ -17,7 +17,7 @@ from src.utils.quiet_print import suppress_prints
 # 在导入训练模块之前静默非错误打印，避免大量噪声输出
 suppress_prints()
 
-from src.scripts.agent_lightning_train import train_agent
+from src.trainer.train_loop import train_agent
 
 
 # 配置日志（唯一配置点）
