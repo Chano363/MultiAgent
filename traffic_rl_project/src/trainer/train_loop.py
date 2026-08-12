@@ -40,8 +40,9 @@ from src.algorithms.optimized_dqn import OptimizedDQNAgent
 from src.algorithms.optimized_ppo import OptimizedPPOAgent
 from src.algorithms.mappo_agent import MAPPOAgent
 from src.algorithms.sac_agent import SACAgent
-from src.utils import MetricsTracker, plot_training_curve, save_results
+from src.utils import MetricsTracker, plot_training_curve, save_results, generate_training_charts, plot_from_results
 from src.environments import FormationControlEnv, make_formation_control_env
+import inspect
 
 logger = logging.getLogger('DroneRL')
 
@@ -671,9 +672,28 @@ def train_agent(
     results_dir = Path("outputs/results")
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    plot_path = results_dir / f"{algorithm.lower()}_formation_training_results.png"
-    logger.info(f"\n生成可视化图表: {plot_path}")
-    plot_training_curve(episode_rewards, episode_losses, save_path=str(plot_path))
+    logger.info("\n生成可视化图表...")
+    chart_paths = generate_training_charts(
+        rewards=episode_rewards,
+        losses=episode_losses,
+        velocities=episode_mean_velocities,
+        formation_errors=episode_formation_errors,
+        height_errors=episode_height_errors,
+        algorithm=algorithm,
+        output_dir=str(results_dir)
+    )
+    for p in chart_paths:
+        logger.info(f"   - 图表已保存: {p}")
+
+    # 加载环境配置中的奖励函数设置
+    reward_config = {}
+    try:
+        with open(env_config_path, 'r') as f:
+            env_config = yaml.safe_load(f)
+        reward_config = env_config.get('reward', {})
+    except Exception:
+        pass
+    reward_fn_source = inspect.getsource(FormationControlEnv._calculate_reward)
 
     results = {
         'algorithm': algorithm,
@@ -685,14 +705,26 @@ def train_agent(
         'rewards': episode_rewards,
         'losses': episode_losses,
         'mean_velocities': episode_mean_velocities,
+        'formation_errors': episode_formation_errors,
+        'height_errors': episode_height_errors,
         'converged': convergence_count >= max_convergence_checks,
         'num_drones': env.num_drones,
         'target_distance': env.target_distance,
         'max_speed': env.max_speed,
-        'training_time_seconds': total_time
+        'training_time_seconds': total_time,
+        'reward_config': reward_config,
+        'reward_fn': reward_fn_source,
     }
 
     save_results(results, str(results_dir / f"{algorithm.lower()}_formation_results"))
+
+    logger.info("\n从已保存结果文件重新生成图表（验证可复现性）...")
+    reloaded_paths = plot_from_results(
+        str(results_dir / f"{algorithm.lower()}_formation_results"),
+        output_dir=str(results_dir / f"{algorithm.lower()}_formation_results" / "charts")
+    )
+    for p in reloaded_paths:
+        logger.info(f"   - 重载图表已保存: {p}")
 
     logger.info("\n" + "=" * 80)
     logger.info("最终训练结果汇总")
@@ -711,7 +743,9 @@ def train_agent(
     logger.info(f"\n结果已保存到: {results_dir.absolute()}")
     logger.info(f"JSON: {results_dir / f'{algorithm.lower()}_formation_results.json'}")
     logger.info(f"YAML: {results_dir / f'{algorithm.lower()}_formation_results.yaml'}")
-    logger.info(f"图表: {plot_path}")
+    logger.info(f"图表: 共 {len(chart_paths)} 张")
+    for cp in chart_paths:
+        logger.info(f"   - {cp}")
     logger.info("=" * 80 + "\n")
 
     return results

@@ -8,6 +8,7 @@ shim in the project workspace.
 
 from __future__ import annotations
 
+import inspect
 import logging
 import multiprocessing as mp
 from pathlib import Path
@@ -29,6 +30,7 @@ from agentlightning.tracer.otel import OtelTracer
 from src.algorithms import OptimizedDQNAgent, OptimizedPPOAgent, MAPPOAgent
 from src.algorithms.sac_agent import SACAgent
 from src.environments import make_formation_control_env
+from src.environments.formation_control_env import FormationControlEnv
 from src.utils import plot_training_curve, save_results
 
 # 获取 logger（不重复配置）
@@ -514,6 +516,17 @@ def train_with_agent_lightning(
     results_dir = Path("outputs/results")
     results_dir.mkdir(parents=True, exist_ok=True)
     results = lightning_agent.results()
+
+    reward_config = {}
+    try:
+        with open(env_config_path, 'r') as f:
+            env_config_yaml = yaml.safe_load(f)
+        reward_config = env_config_yaml.get('reward', {})
+    except Exception:
+        pass
+    reward_fn_source = inspect.getsource(FormationControlEnv._calculate_reward)
+    results['reward_config'] = reward_config
+    results['reward_fn'] = reward_fn_source
 
     logger.debug(f"[时间跟踪] lightning_agent.results() 完成")
 
