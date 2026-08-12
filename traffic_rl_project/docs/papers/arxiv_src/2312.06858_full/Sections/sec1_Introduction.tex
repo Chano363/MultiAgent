@@ -1,0 +1,88 @@
+\section{Introduction}
+\IEEEPARstart{E}{ra} of automation is rising and Autonomous Vehicles (AVs) shape and provide an important technology that contributes to creating this era. AVs, as one of the automation applications that many companies and research communities are hitting, are coming to our streets to assist and improve the safety standards of intelligent transportation systems (ITS). Levels of AVs range from level 1, just as driver assistant, to level 5, fully automated driving vehicle, as provided in J3016 standard \cite{TaxonomyAD} that illustrated the classification levels of autonomous driving. Sensors are what shape a vehicle's perception and let vehicles observe the surrounding environment to know how to properly interact with it, but each sensor like camera and radar has its field of view (FOV) that limits the vehicle's perception, as also for human driver's vision. \\
+Driver error is the main cause of vehicle accidents and driver inattention is one of the highest causes of these accidents which yields to approximately 80\% of vehicle crashes and 65\% of near-crashes as reported in the conducted study by the National Highway Traffic Safety Administration \cite{dingus2006100}.
+Cooperative autonomous driving tackles such a serious cause of vehicle accidents by providing a wider perception of AVs. Vehicles can communicate with each other through vehicle-to-vehicle (V2V) to alert surrounding vehicles by their position that may be for other vehicles without communication are out of their FOV. Intersections with buildings limit vehicles' observation to the coming crossing cars and based on the report by the Fatality Analysis Reporting System (FARS) and National Automotive Sampling System General Estimates System (NASS-GES) data, approximately 40\% of the estimated 5,811,000 crashes that happened in the US in 2008 were intersection-related crashes \cite{choi2010crash}. Numbers and statistics force increasing intentions to invest more work and time in ITS applications and technologies. \\
+One of these well-known applications for cooperative autonomous driving is vehicle platooning, which is a group of connected AVs driving with certain formations following each other. Vehicle platooning has a quite high impact on enhancing safety, increasing highway capacity, and decreasing traffic congestion\cite{kavathekar2011vehicle}. V2V communication between vehicles in the platoon enables cooperative control strategies that can achieve high Cooperative ITS (C-ITS) objectives through coordination across all vehicles in the platoon. There are many developed communication topologies for vehicle platooning as predecessor follower, bidirectional predecessor follower, two-predecessors following, and others \cite{li2017distributed}, \cite{zheng2015stability}. These different types of inter-communication between vehicles aim to achieve better cooperation for the whole system performance and how vehicles can create cooperative driving strategies to improve the impact of C-ITS on cities' roads. However, some of these communication topologies require too much processing power and high communication capabilities like 5G or better to handle the high flow of data between vehicles, so big data issues should be taken into consideration to avoid any lag or miscommunication between the connected vehicles.\\
+Two of the main objectives of vehicles in the platoon are decreasing gap errors between the vehicles and maintaining the same velocity between them throughout the whole driving distance. Researchers studied the performance of classical approaches for vehicle platooning control such as backstepping, sliding mode control, and model predictive control (MPC) \cite{shalaby2019design} to manage the gaps between vehicles in platoon formation, and others addressed the usage of artificial intelligence such as deep reinforcement learning (RL) \cite{chu2019model}. Classical approaches for vehicle platooning control achieved good results, however, some limitations exist in these types of controllers, such as the need to develop a very highly accurate vehicle dynamical model, which increases the complexity of the system as the model dynamics complexity increases, and the need to high computational power for the nonlinear optimization. Farag et al. used a deep RL-based controller and MPC for managing the inter-vehicle distances in a platoon, and the analysis of the controllers confirms that the RL controller outperforms the MPC in terms of computational time and control effort while maintaining a similar root mean square error in the inter-vehicle distances \cite{faragreinforcement}. Also, many other studies demonstrated the power of model-free deep RL for vehicle motion control \cite{jaritz2018end}, \cite{cai2020high}, and some of the work exceeded superhuman driving performance \cite{fuchs2021super}.
+
+After examining the above-mentioned literature in addition to the survey conducted on applying deep RL for autonomous vehicles’ control \cite{aradi2020survey}, there exist some research gaps listed as follows:
+
+\begin{itemize}
+    \item Most of the research papers and theses apply the dynamical vehicle model in studying a small number of vehicles, and for a large number of vehicles, they use the kinematical model or a simplified linearized dynamical model.
+    \item The use of low physics simulators, where there is a huge gap between the simulation and real-life work.
+    \item Urban test case experiments are not addressed heavily for vehicle platooning, for the complexity of the urban environment and the presence of surrounding vehicles affect the ego vehicle’s control actions.
+\end{itemize}
+
+\begin{comment}
+Most of the research papers and theses apply the dynamical vehicle model in studying a small number of vehicles, and for a large number of vehicles, they use the kinematical model or a simplified linearized dynamical model.
+
+Most of them use low physics simulators, where there is a huge gap between the simulation and real-life work.
+
+Urban test cases experiments are not addressed heavily, for the complexity of the urban environment and the presence of surrounding vehicles affect the ego vehicle’s control actions.
+
+
+From the above mentioned literature, there exists a research gap in optimizing
+the computational efficiency of the proposed algorithms that
+aim at reducing fuel consumption. Additionally, most of
+the research papers selected one single optimizer to solve
+these optimization problems. Furthermore, the effect of drag
+reduction propagation through the platoon is not considered
+yet.
+The contribution of
+\end{comment}
+
+
+
+
+
+
+The contribution of this paper is to develop a scalable decentralized cooperative control hierarchy using Deep RL that optimizes the performance of platoon behavior and cooperation starting from a platoon of a single vehicle to multiple vehicles without affecting computational expenses. Simulation work is held on Unity, a very powerful real-time 3D physics Game Engine. An urban environment is created on Unity and different testing scenarios are conducted to evaluate the proposed multi-agent system (platoon) performance and robustness as illustrated in the following sections.\\
+The rest of the paper is organized as follows; Section II introduces the proposed platoon methodology, and then in Section III, the experimental work of this work is illustrated and clarifies how results in Section IV are presented, while Section V concludes all the work of the paper.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{comment}
+intro+Motivation+Literature
+
+Lately
+
+Cooperative Driving is useful in larging/widing perception of autonomous vehicles and this avoid crashing when there is objects that narrow FOV of vehicles.
+
+There has been tremendous interest in the development
+of vehicles capable of autonomous driving, from both the
+research community and industry. In 2014, the SAE organization published the J3016 standard [4], which aims at
+providing a common terminology and classification levels
+for autonomous driving. Five levels of autonomous driving
+are defined according to their relative extent of automation,
+ranging from level 1: Driver Assistance to level 5: Full
+Automation. In the past two years, several Level 4 (High
+Automation) autonomous driving vehicles and applications
+have been developed, of which the most typical one is
+‘‘Waymo One’’. Most autonomous vehicles currently in
+development depend on a perception subsystem consisting
+of onboard sensors of the vehicle itself. Although this selfonly method has already been demonstrated in field tests,
+it presents some drawbacks: the limited perception range of
+onboard sensors and lack of collaborative maneuvers with
+related vehicles.
+\end{comment}

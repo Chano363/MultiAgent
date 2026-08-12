@@ -21,3 +21,6 @@ traffic_rl_project/outputs/results/
 
 # 项目特定
 prompts.md
+
+# IDE MCP 配置（可能含 API key，不进仓库）
+.codebuddy/mcp.json

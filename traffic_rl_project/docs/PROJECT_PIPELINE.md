@@ -98,6 +98,8 @@
 | 仿真器调研选型（NeTrainSim） | ✅ 已完成 |
 | 相关工作调研（MAPPO 列车应用） | ✅ 已完成 |
 | 列车动力学 Gym 环境搭建 | ✅ 已完成（2026-08，P0） |
+| 列车仿真升级（电制动+空气制动波速传播+ATP 安全层+车钩力指标） | ✅ 已完成（40 测试通过） |
+| 研究定位 + 文献库搭建（车钩力+群组分层 MARL 创新点） | ✅ 已完成 |
 | MAPPO 迁移与奖励重设计 | ⬜ 未开始 |
 | 对比分析（无人机 vs 列车） | ⬜ 未开始 |
 
@@ -133,19 +135,30 @@
 
 1. ✅ 建立 `src/environments/train_env.py`，确定状态（速度误差/间距误差/车钩力/位置）与动作（每车 throttle ∈ [-1,1]）接口
 2. ✅ 从 NeTrainSim 源码提取公式并实现 `src/train_dynamics/`（Davis 阻力、牵引、Karwatzki 制动、坡度、车钩）
-3. ✅ Gym 环境 `reset/step` 数值闭环跑通，26 个测试全部通过（`tests/test_train_dynamics.py` + `tests/test_train_env.py`）
+3. ✅ Gym 环境 `reset/step` 数值闭环跑通，40 个测试全部通过（`tests/test_train_dynamics.py` + `tests/test_train_env.py` + `tests/test_safety_layer.py`）
+
+**P0.5 — 仿真能力升级 + 研究定位 ✅（2026-08）**
+
+4. ✅ **列车仿真升级**：空气制动离散档位（EB/SB）+ 沿车列按制动波速传播（纵向冲动来源）、机车电制动（连续）、规则式 ATP 安全层（`safety_layer.py`：限速/车钩力 1000kN/间距约束）、车钩力 1000kN 最终指标系统
+5. ✅ **研究定位**：确立"**车钩力 + 多列群组**分层 MARL"创新点（`docs/RESEARCH_POSITIONING.md`）
+6. ✅ **文献库搭建**：`docs/papers/`（10 PDF + 3 arXiv 源码），MCP 部署（`docs/MCP_DEPLOYMENT.md`）
 
 **P1 — 接下来（1-2 周）**
 
-4. 验证环境：模拟 30 秒列车编队轨迹、确认奖励信号分布合理（当前速度同步权重占主导）
-5. 将 MAPPO 从无人机迁移到列车（新状态/动作维度），从 `lr=5e-5, entropy=0.005` 起步跑基线
-6. 复用 KL 早停、集中 Critic、收敛检测、定期存档等已验证机制
+7. 验证环境：模拟 30 秒列车编队轨迹、确认奖励信号分布合理（当前速度同步权重占主导）
+8. 将 MAPPO 从无人机迁移到列车（新状态/动作维度），从 `lr=5e-5, entropy=0.005` 起步跑基线
+9. 复用 KL 早停、集中 Critic、收敛检测、定期存档等已验证机制
 
 **P2 — 优化与结论（2-3 周）**
 
-7. 奖励权重消融（冲动 / 间距 / 能耗），参考无人机阶段 L1 优于 L2 的经验
-8. 多算法对比（若时间允许：SAC 短训对照）与消融实验
-9. 系统对比无人机 vs 列车场景差异，撰写阶段二报告
+10. 奖励权重消融（冲动 / 间距 / 能耗），参考无人机阶段 L1 优于 L2 的经验
+11. 多算法对比（若时间允许：SAC 短训对照）与消融实验
+12. 系统对比无人机 vs 列车场景差异，撰写阶段二报告
+
+**P3 — 创新点推进（分层 MARL）**
+
+13. 层级一（多列群组环境）：每列列车为智能体，安全间距约束（复用现有 `train_env.py` 作为每列内部动力学）
+14. 对比实验：考虑 vs 忽略车钩力的群组控制（证明"群组不能忽略车钩力"创新论点）
 
 ### 4.4 迁移需注意的差异（来自阶段一经验）
 
@@ -174,20 +187,22 @@
 | `agent_lightning_integration.py` | Agent Lightning 编排训练（默认路径） |
 | `utils/` | 图表、结果存储、指标跟踪 |
 
-### 阶段二代码结构（新增，P0 已完成）
+### 阶段二代码结构（新增，P0/P0.5 已完成）
 
 | 路径 | 职责 |
 |:--|:--|
 | `train_dynamics/` | 列车纵向动力学（NeTrainSim 公式 + 多体车钩） |
 | `train_dynamics/resistance.py` | Davis 阻力公式 |
 | `train_dynamics/tractive.py` | 牵引力（功率/粘着约束 + throttle 曲线） |
-| `train_dynamics/braking.py` | Karwatzki 制动力 |
+| `train_dynamics/braking.py` | Karwatzki 制动 + **离散空气制动档位（EB/SB）+ 机车电制动（连续）** |
 | `train_dynamics/coupler.py` | 车钩力（质量-弹簧-阻尼） |
-| `train_dynamics/train.py` | 多体动力学积分器（每车独立控制） |
+| `train_dynamics/train.py` | 多体动力学积分器 + **空气制动波速传播**（纵向冲动来源） |
 | `train_dynamics/params.py` | 机车/货车/车钩参数 |
-| `environments/train_env.py` | 列车编队 Gym 环境 |
+| `environments/train_env.py` | 列车编队 Gym 环境（电制动/空气制动分离 + 车钩力 1000kN 指标） |
+| `safety_layer.py` | **规则式 ATP 安全层**（限速/车钩力 1000kN/间距约束，动作前修正） |
 | `tests/test_train_dynamics.py` | 动力学数值验证（18 测试） |
 | `tests/test_train_env.py` | 环境闭环验证（8 测试） |
+| `tests/test_safety_layer.py` | 安全层 + 制动/电制动/传播验证（14 测试） |
 
 ### 配置文件
 
@@ -217,6 +232,9 @@
 | `docs/learning_report.md` | 阶段一完整技术报告（理论 + 实现 + 调试） | 深入理解阶段一 |
 | `docs/training_results_standardized.md` | 阶段一学术成果报告 | 引用指标/写论文 |
 | `docs/ppt_plan.md` | 导师汇报 PPT 提纲 | 做汇报时 |
+| `docs/RESEARCH_POSITIONING.md` | 阶段二研究定位 + 创新点 + 文献库 | 写论文/补文献时 |
+| `docs/PAPER_DOWNLOAD_LINKS.md` | 开放获取论文手动下载网址 | 需要补全文时 |
+| `docs/MCP_DEPLOYMENT.md` | scholar-search-mcp 部署说明 | 文献检索时 |
 | `../.learnings/LEARNINGS.md` | 踩坑记录（调试经验） | 遇到对应问题时 |
 
 ---

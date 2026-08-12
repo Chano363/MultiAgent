@@ -14,7 +14,11 @@
 from .params import VehicleParams, LocomotiveParams, CouplerParams, TrainConsist
 from .resistance import resistance_force_n
 from .tractive import tractive_force, throttle_coefficient
-from .braking import braking_force, brake_shoe_friction, BrakeShoeType
+from .braking import (
+    braking_force, brake_shoe_friction, BrakeShoeType,
+    AirBrakeNotch, air_brake_force_n, electric_brake_force_n,
+    notch_from_throttle, AIR_BRAKE_RATIO,
+)
 from .coupler import coupler_force
 from .train import TrainDynamics
 
@@ -23,4 +27,6 @@ __all__ = [
     'resistance_force_n', 'tractive_force', 'throttle_coefficient',
     'braking_force', 'brake_shoe_friction', 'BrakeShoeType',
     'coupler_force', 'TrainDynamics',
+    'AirBrakeNotch', 'air_brake_force_n', 'electric_brake_force_n',
+    'notch_from_throttle', 'AIR_BRAKE_RATIO',
 ]
