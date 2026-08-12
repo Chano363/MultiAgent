@@ -93,6 +93,17 @@ class TrainDynamics:
         """设置统一坡度（无量纲）。"""
         self.grade = np.full(self.num_vehicles, grade)
 
+    def set_grade_profile(self, profile) -> None:
+        """设置线路坡度剖面（GradeProfile），每步按车辆位置实时更新坡度。"""
+        self._grade_profile = profile
+        # 立即按当前位置更新一次
+        self._update_grade_from_profile()
+
+    def _update_grade_from_profile(self) -> None:
+        """根据每节车当前位置从坡度剖面查询坡度（无量纲）。"""
+        if getattr(self, '_grade_profile', None) is not None:
+            self.grade = self._grade_profile.grades_for_positions(self.pos)
+
     def set_initial(self, pos: np.ndarray = None, vel: np.ndarray = None):
         """设置初始位置/速度（米, 米/秒）。"""
         if pos is not None:
@@ -228,6 +239,7 @@ class TrainDynamics:
         self.vel = np.maximum(self.vel, 0.0)
         self.pos = self.pos + self.vel * self.dt
         self.time += self.dt
+        self._update_grade_from_profile()
 
     def step_vehicles_ed_ab(
         self,
@@ -284,6 +296,7 @@ class TrainDynamics:
         self.vel = np.maximum(self.vel, 0.0)
         self.pos = self.pos + self.vel * self.dt
         self.time += self.dt
+        self._update_grade_from_profile()
 
     def air_brake_state(self) -> np.ndarray:
         """返回每节车当前生效的空气制动档位（AirBrakeNotch 数组）。"""

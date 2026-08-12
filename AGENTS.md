@@ -24,9 +24,13 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 ## Key commands
 
 ```sh
-# 阶段二列车动力学/环境测试（54 个测试）
+# 阶段二列车动力学/环境测试（69 个测试）
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python -m pytest tests/ -q
+
+# 阶段二 MAPPO 训练（长大下坡 + 万吨级 1+0）
+cd /mnt/d/Code/MultiAgent/traffic_rl_project
+python src/trainer/train_train.py --episodes 500 --preset 10kt_1plus0 --grade long_downhill
 
 # 阶段一无人机训练（历史命令，MAPPO 唯一收敛）
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
@@ -66,9 +70,10 @@ pytest tests/
 | P0.5 仿真升级：电制动/空气制动波速传播/ATP 安全层/车钩力指标 | ✅ 完成（54 测试） |
 | P0.5 研究定位 + 文献库搭建（docs/papers/） | ✅ 完成 |
 | P0.75 验证基准：提取 6 篇论文数据 + coupler 间隙死区 + 多源制动 + 紧急制动上限 | ✅ 完成（54 测试通过） |
-| P1 第9条 环境验证：修复 Davis 阻力 bug + 验证 20m/s 可达 | ✅ 完成（54 测试通过） |
-| **P1.5 题目对齐前置**：长大下坡变坡剖面建模 + 万吨级 1+0 编组 + Zhang2024 验证基准 | ⬜ 下一步（对齐论文题目） |
-| P1 MAPPO 迁移 + 基线训练（目标=长大下坡循环制动自动控制） | ⬜ |
+| P1 第9条 环境验证：修复 Davis 阻力 bug + 验证 20m/s 可达 | ✅ 完成（65 测试通过） |
+| **P1.5 题目对齐前置**：长大下坡变坡剖面 + 万吨级 1+0 编组 + Zhang2024 验证基准 | ✅ 完成（65 测试通过） |
+| P1 第15条 MAPPO 迁移到列车（train_train.py）+ 冒烟/短训验证 | ✅ 完成（69 测试通过） |
+| P1 第16条 正式基线训练（长大下坡循环制动自动控制） | ⬜ |
 | P2 奖励消融/多算法对比/阶段二报告 | ⬜ |
 | P3 层级一（多列群组）环境 + 对比实验 | ⬜ |
 
@@ -80,10 +85,13 @@ pytest tests/
   - **电制动（ED）**：连续可调，仅机车，功率+粘着约束
   - **空气制动（AB）**：离散档位（RELEASE/MIN/SERVICE/EMERGENCY），**沿车列按制动波速向后传播**（常用 200m/s、紧急 250m/s）——纵向冲动的主要物理来源
 - **车钩力** `coupler.py`：质量-弹簧-阻尼 + **车钩间隙死区**（`_dead_zone`，`CouplerParams.coupler_gap_m` 默认 0.01m），复现杨敏"间隙→车钩力"规律，牛顿第三定律成对抵消
+- **坡度剖面** `grade_profile.py`：`GradeProfile` 分段剖面 + 3 种预置（樊运新：长大下坡-10.2‰/缓坡变陡坡/V型坡），每步按车辆位置实时更新坡度
 
 **环境**（`src/environments/train_env.py`，`TrainFormationEnv`）：
 - 状态（每车 4 维）：速度误差、与前车间距误差、车钩力、位置
 - 动作（每车 1 维）：throttle ∈ [-1,1]，>0 牵引（仅机车）、<0 制动
+- **编组预设**：`consist_preset: '10kt_1plus0'`（1机+100货=10188t，论文研究对象）或 `default`
+- **坡度剖面**：`grade_profile: 'long_downhill'/'gradual_to_steep'/'v_shape'`（长大下坡场景）
 - 奖励：−0.5·速度误差 − 0.3·间距误差 − 0.15·平均冲动 − 0.15·峰值冲动 + 超限惩罚
 
 **安全层**（`src/safety_layer.py`，`SafetyLayer`）：

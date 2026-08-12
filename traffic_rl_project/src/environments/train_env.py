@@ -42,6 +42,30 @@ def default_consist(num_vehicles: int = 4, num_locomotives: int = 1):
     return TrainConsist([loco] + [car for _ in range(num_vehicles - num_locomotives)])
 
 
+def consist_10kt_1plus0():
+    """一万吨级 1+0 编组：1 台 HXD3B 机车 + 100 节 C80 货车（约 10188 t）。
+
+    对应论文研究对象"一万吨级 1+0 重载列车群组"的单列单元。
+    """
+    loco = LocomotiveParams(
+        mass_t=188.0, no_of_axles=6, frontal_area_m2=11.5, drag_coef=1.4,
+        length_m=21.0, max_power_kw=9600.0, transmission_efficiency=0.85,
+        max_speed_mps=30.0, n_notches=8,
+    )
+    # C80 货车：载重 80t + 自重 20t ≈ 100t，4 轴
+    car = VehicleParams(
+        mass_t=100.0, no_of_axles=4, frontal_area_m2=10.0, drag_coef=1.0,
+        length_m=12.0,  # C80 长度约 12m
+    )
+    return TrainConsist([loco] + [car for _ in range(100)])
+
+
+CONSIST_PRESETS = {
+    'default': default_consist,
+    '10kt_1plus0': consist_10kt_1plus0,
+}
+
+
 class TrainFormationEnv:
     """
     重载列车编队控制环境（多智能体）。
@@ -68,12 +92,28 @@ class TrainFormationEnv:
         self.target_gap = config.get('target_gap', 1.0)
         self.max_steps = config.get('max_steps', 500)
         self.grade = config.get('grade', 0.0)
+        self.grade_profile_name = config.get('grade_profile', None)  # 'long_downhill'/'gradual_to_steep'/'v_shape'
         self.enable_safety = config.get('enable_safety', True)
         self.coupler_force_limit_n = config.get('coupler_force_limit_n', COUPLER_FORCE_LIMIT_N)
 
-        consist = default_consist(self.num_vehicles, self.num_locomotives)
+        # 编组预设：优先用预设（如万吨级 1+0），否则按 num_vehicles 构造默认
+        consist_preset = config.get('consist_preset', None)
+        if consist_preset:
+            if consist_preset not in CONSIST_PRESETS:
+                raise ValueError(f"未知编组预设: {consist_preset}，可选: {list(CONSIST_PRESETS.keys())}")
+            consist = CONSIST_PRESETS[consist_preset]()
+            self.num_vehicles = consist.num_vehicles
+        else:
+            consist = default_consist(self.num_vehicles, self.num_locomotives)
         self.dynamics = TrainDynamics(consist, dt=self.dt)
-        if self.grade:
+        # 优先使用坡度剖面（长大下坡场景），否则用恒定坡度
+        if self.grade_profile_name:
+            from src.train_dynamics.grade_profile import PROFILES
+            if self.grade_profile_name in PROFILES:
+                self.dynamics.set_grade_profile(PROFILES[self.grade_profile_name]())
+            else:
+                raise ValueError(f"未知坡度剖面: {self.grade_profile_name}，可选: {list(PROFILES.keys())}")
+        elif self.grade:
             self.dynamics.set_grade(self.grade)
 
         # 车钩力范围估计（约束观察/奖励缩放）
