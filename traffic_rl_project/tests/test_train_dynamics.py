@@ -28,21 +28,27 @@ G = 9.8066
 
 
 # ---------------------------------------------------------------------------
-# Davis 阻力：与 NeTrainSim Car::getResistance 手算对比
+# Davis 阻力：标准公式验证（发现并修复 NeTrainSim 复制来的公式 bug）
 # 例：weight=100t(公吨), axles=4, area=10m^2, cd=1.0, v=10m/s, grade=0, curv=0
 # 转换: w=100*1.10231=110.231 short_tons, v=10*2.23694=22.3694 mph,
 #       area=10*10.7639=107.639 ft^2
-# r = 1.5 + 18/(110.231/4) + 0.03*22.3694 + 107.639*1.0*22.3694^2/110.231
-#   = 1.5 + 0.65320 + 0.67108 + 488.87 = 491.694 lb
-# R = 491.694*110.231 = 54200.6 lb  ->  *4.44822 = 241102 N
-def test_davis_resistance_matches_netrainsim():
+# 标准 Davis 公式（AAR）：R = (1.5 + 18/W_axle + 0.03*V)*W + K*C*A*V²
+#   单位重量阻力项 (lb/ton): 1.5 + 18/(110.231/4) + 0.03*22.3694 = 2.8243
+#   空气阻力项 (lb, 独立于车重): 0.0018 * 1.0 * 107.639 * 22.3694² = 96.94
+# R = 2.8243*110.231 + 96.94 = 408.37 lb -> *4.44822 = 1816.8 N
+#
+# 注：原实现（从 NeTrainSim 复制）把空气项写成 area*cd*v²/w，导致空气阻力被错误放大
+# 约 w 倍（10m/s 时单车阻力 241kN 而非合理的 ~1.8kN），使平衡速度被严重低估
+# （6 车仅 8 m/s，达不到 20 m/s 目标）。已修复为标准 Davis 形式。
+def test_davis_resistance_standard_formula():
     w, axles, area, cd, v = 100.0, 4, 10.0, 1.0, 10.0
 
     w_short = w * 1.10231
     v_mph = v * 2.23694
     area_ft = area * 10.7639
-    r = 1.5 + 18 / (w_short / axles) + 0.03 * v_mph + area_ft * cd * v_mph**2 / w_short
-    R_lb = r * w_short
+    unit = 1.5 + 18 / (w_short / axles) + 0.03 * v_mph
+    air = 0.0018 * cd * area_ft * v_mph**2
+    R_lb = unit * w_short + air
     expected_n = R_lb * 4.44822
 
     got_n = resistance_force_n(w, axles, area, cd, v)

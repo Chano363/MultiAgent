@@ -82,6 +82,55 @@ def test_safety_coupler_force_below_limit_unchanged():
 
 
 # ---------------------------------------------------------------------------
+# 安全层：紧急制动上限区分（Fu2019：正常运行 1000kN / 紧急制动 2250kN）
+def test_safety_emergency_allows_higher_coupler_force():
+    """紧急制动工况下，车钩力在 1000-2250kN 之间不触发防护（上限放宽）。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
+    # 默认紧急制动上限 = 2.25 * 1000kN = 2250kN
+    assert sl.coupler_force_limit_emergency_n == pytest.approx(2.25e6)
+    actions = np.array([1.0, 1.0])
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.5e6, 1.5e6]),  # 1500kN，超正常运行但低于紧急制动
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': True,
+    }
+    corrected = sl.protect(actions, obs_state)
+    assert corrected[0] == pytest.approx(1.0)  # 紧急制动下不拦截
+    assert not any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+
+
+def test_safety_normal_blocks_1500kn():
+    """正常运行工况下，1500kN 超过 1000kN 上限应触发防护。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
+    actions = np.array([1.0, 0.5])
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.5e6, 1.5e6]),
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    corrected = sl.protect(actions, obs_state)
+    assert corrected[0] == 0.0  # 正常运行 1500kN 超限被拦截
+    assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+
+
+def test_safety_emergency_still_blocks_over_2250():
+    """紧急制动工况下，超过 2250kN 硬极限仍应触发防护。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
+    actions = np.array([1.0, 1.0])
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([2.5e6, 2.5e6]),  # 2500kN > 2250kN
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': True,
+    }
+    corrected = sl.protect(actions, obs_state)
+    assert corrected[0] == 0.0  # 紧急制动也超硬极限，拦截
+    assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+
+
+# ---------------------------------------------------------------------------
 # 安全层：间距防护
 def test_safety_min_gap_blocks_acceleration():
     """间距过小时，后车继续加速应被抑制。"""

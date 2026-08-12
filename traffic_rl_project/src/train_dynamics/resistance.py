@@ -59,10 +59,23 @@ def resistance_force_lb(
     axle_weight = w / no_of_axles
     area = _sqft(frontal_area_m2)
 
-    r = 1.5 + 18.0 / axle_weight + 0.03 * speed + area * drag_coef * speed**2 / w
-    r = r * w + 20.0 * w * track_grade
+    # 标准 Davis 公式：
+    #   总阻力 = 单位重量阻力(lb/ton) × 车重(短吨) + 空气阻力(lb, 独立于车重) + 坡道 + 曲线
+    # 单位重量阻力项：滚动 + 轴荷 + 速度项
+    unit_resistance = 1.5 + 18.0 / axle_weight + 0.03 * speed
+    # 空气阻力项：DAVIS_AIR_COEF * C * A * V² （Davis 标准空气系数，独立于车重）
+    # 注：原实现把空气项除以 w 再乘 w，且 drag_coef 直接用 1.0，导致空气阻力被错误放大约 500 倍，
+    #     使平衡速度被低估（6 车仅 8 m/s）。修复为 Davis 标准形式。
+    air_resistance = _davis_air_coef() * area * drag_coef * speed**2
+    r = unit_resistance * w + air_resistance
+    r += 20.0 * w * track_grade
     r += abs(track_curvature_deg) * 20.0 * 0.04 * w
     return r
+
+
+def _davis_air_coef() -> float:
+    """Davis 空气阻力标准系数（lb/(ft²·mph²·C)）。"""
+    return 0.0018
 
 
 def resistance_force_n(

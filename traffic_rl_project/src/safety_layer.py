@@ -46,11 +46,19 @@ class SafetyLayer:
         max_speed_mps: float = 30.0,
         coupler_force_limit_n: float = DEFAULT_COUPLER_FORCE_LIMIT_N,
         min_gap_m: float = 0.1,
+        coupler_force_limit_emergency_n: float = None,
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
         self.coupler_force_limit_n = coupler_force_limit_n
         self.min_gap_m = min_gap_m
+        # Fu2019 区分正常运行/紧急制动的车钩力上限。
+        # 默认紧急制动上限 = 2.25 * 正常运行上限（Fu2019: 1000/2250 kN）
+        self.coupler_force_limit_emergency_n = (
+            coupler_force_limit_emergency_n
+            if coupler_force_limit_emergency_n is not None
+            else 2.25 * coupler_force_limit_n
+        )
         self.last_events = []
 
     def reset(self):
@@ -88,6 +96,12 @@ class SafetyLayer:
             obs_state.get('coupler_forces', np.zeros(self.num_vehicles)), dtype=float
         )
         gaps = np.asarray(obs_state.get('gaps', np.full(self.num_vehicles, self.min_gap_m)), dtype=float)
+        # 是否紧急制动工况（Fu2019 区分上限：紧急制动允许更大车钩力）
+        is_emergency = bool(obs_state.get('emergency', False))
+        coupler_limit = (
+            self.coupler_force_limit_emergency_n
+            if is_emergency else self.coupler_force_limit_n
+        )
 
         # 规则 1：限速防护
         for i in range(self.num_vehicles):
@@ -99,12 +113,13 @@ class SafetyLayer:
                 elif actions[i] >= 0:
                     actions[i] = 0.0  # 钳制为缓解
 
-        # 规则 2：车钩力上限防护
+        # 规则 2：车钩力上限防护（区分正常运行/紧急制动上限，Fu2019）
         for i in range(self.num_vehicles):
-            if coupler_forces[i] >= self.coupler_force_limit_n:
+            if coupler_forces[i] >= coupler_limit:
                 # 车钩力已达上限：抑制加剧该车车钩力的牵引动作
                 if actions[i] > 0:
-                    self._log(i, 'coupler_force_limit', f'|F|={coupler_forces[i]/1e3:.0f}kN')
+                    mode = 'emergency' if is_emergency else 'normal'
+                    self._log(i, 'coupler_force_limit', f'|F|={coupler_forces[i]/1e3:.0f}kN({mode})')
                     actions[i] = 0.0
 
         # 规则 3：间距防护（后车逼近前车时禁止继续加速）

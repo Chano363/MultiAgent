@@ -163,10 +163,14 @@ class TrainFormationEnv:
         gaps = np.full(n, self.safety.min_gap_m)
         for i in range(1, n):
             gaps[i] = pos[i - 1] - pos[i]
+        # 是否紧急制动工况（Fu2019：紧急制动时车钩力上限放宽到 2250kN）
+        ab_state = self.dynamics.air_brake_state()
+        is_emergency = any(x == AirBrakeNotch.EMERGENCY for x in ab_state)
         return {
             'vel': self.dynamics.vel.copy(),
             'coupler_forces': np.abs(self.dynamics._coupler_forces()),
             'gaps': gaps,
+            'emergency': is_emergency,
         }
 
     def _update_metrics(self, coupler: np.ndarray):

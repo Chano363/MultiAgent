@@ -116,6 +116,7 @@ class TrainDynamics:
                 self.pos[i], self.vel[i],
                 self.pos[i + 1], self.vel[i + 1],
                 p.stiffness, p.damping, p.free_length_m,
+                p.coupler_gap_m,
             )
             forces[i] += f       # 前车受后车拉力
             forces[i + 1] -= f   # 后车受前车反力
@@ -234,6 +235,7 @@ class TrainDynamics:
         ed_throttle: np.ndarray,
         ab_command: AirBrakeNotch,
         brake_origin: int = 0,
+        ab_sources: list = None,
     ):
         """按 电制动（连续）+ 空气制动（离散+波速传播）推进一个时间步。
 
@@ -242,9 +244,23 @@ class TrainDynamics:
             ed_throttle: 每节车电制动指令（0~1，仅机车有效，连续）
             ab_command: 空气制动指令（离散档位，队首发出后向后传播）
             brake_origin: 空气制动指令源车辆索引（默认 0=机车/队首）
+            ab_sources: 可选多源空气制动列表 [(index, AirBrakeNotch), ...]。
+                用于验证"尾部动力/分布式制动"降低纵向冲动（樊运新规律）。
+                提供时优先使用多源，忽略 ab_command/brake_origin 的单源逻辑。
         """
-        # 空气制动指令：发出后由 _apply_air_brake_command 建立向后传播
-        if ab_command != AirBrakeNotch.RELEASE:
+        if ab_sources:
+            # 多源制动：多个位置同时发出空气制动指令（分布式动力）
+            # 尾部/中部动力源需要双向传播以提升制动同步
+            cmd = ab_sources[0][1]
+            if cmd != AirBrakeNotch.RELEASE:
+                for idx, notch in ab_sources:
+                    if not self._air_brake_active[idx]:
+                        self._apply_air_brake_command(notch, idx, bidirectional=True)
+            else:
+                if np.any(self._air_brake_active):
+                    self._reset_air_brake_command(0)
+        elif ab_command != AirBrakeNotch.RELEASE:
+            # 单源制动（向后兼容）
             if not self._air_brake_active[brake_origin]:
                 self._apply_air_brake_command(ab_command, brake_origin)
         else:
@@ -303,25 +319,41 @@ class TrainDynamics:
         return np.concatenate([[0.0], np.cumsum(lengths[:-1])])
 
     def _advance_air_brake_propagation(self, dt: float):
-        """推进空气制动波速传播：按车列从前向后逐节延迟生效。
+        """推进空气制动波速传播：按车列逐节延迟生效（支持双向传播）。
 
-        空气制动指令在队首（机车）发出，以有限波速沿车辆累计长度向后传播。
-        传播延迟 = 到该车的累计距离 / 波速（真实重载列车制动波速为 200~250 m/s）。
+        空气制动指令从源车辆以有限波速（200~250 m/s）沿车列传播，
+        传播延迟 = 到该车的累计距离 / 波速。源在前（队首）向后传播；
+        尾部/中部动力源还可向前传播（双向）。这决定制动同步性 → 纵向冲动。
         """
         n = self.num_vehicles
+        # 从前向后传播：前车已激活 → 倒计时激活后车
         for i in range(1, n):
-            # 前车已激活时，若当前车尚未激活，则倒计时传播延迟
             if self._air_brake_active[i - 1] and not self._air_brake_active[i]:
                 self._air_brake_delay_remaining[i] -= dt
                 if self._air_brake_delay_remaining[i] <= 0.0:
                     self._air_brake_active[i] = True
                     self._air_brake_notch[i] = self._air_brake_notch[i - 1]
+        # 从后向前传播：后车已激活 → 倒计时激活前车（尾部动力/中部动力）
+        for i in range(n - 2, -1, -1):
+            if self._air_brake_active[i + 1] and not self._air_brake_active[i]:
+                self._air_brake_delay_remaining[i] -= dt
+                if self._air_brake_delay_remaining[i] <= 0.0:
+                    self._air_brake_active[i] = True
+                    self._air_brake_notch[i] = self._air_brake_notch[i + 1]
 
-    def _apply_air_brake_command(self, cmd_notch: AirBrakeNotch, vehicle_idx: int):
-        """对 vehicle_idx 施加空气制动指令，并初始化向后传播。
+    def _apply_air_brake_command(
+        self,
+        cmd_notch: AirBrakeNotch,
+        vehicle_idx: int,
+        bidirectional: bool = False,
+    ):
+        """对 vehicle_idx 施加空气制动指令，并初始化波速传播。
 
-        vehicle_idx 为 0（机车）时为指令源；传播延迟按车辆累计长度与波速计算，
-        越靠后的车辆延迟越大（这正是纵向冲动的主要来源）。
+        Args:
+            cmd_notch: 空气制动离散档位
+            vehicle_idx: 指令源车辆索引（0=队首，n-1=队尾）
+            bidirectional: 是否双向传播（分布式动力，多源制动时用 True）。
+                True：从源向前车与后车同时传播；False：仅向后传播（单源队首，向后兼容）。
         """
         n = self.num_vehicles
         is_emergency = cmd_notch == AirBrakeNotch.EMERGENCY
@@ -334,10 +366,15 @@ class TrainDynamics:
         if not self._air_brake_active[vehicle_idx]:
             self._air_brake_active[vehicle_idx] = True
             self._air_brake_notch[vehicle_idx] = cmd_notch
-            # 为后续车辆设置传播延迟（相对指令源的距离差 / 波速）
+            # 向后传播（source -> 后方）
             for j in range(vehicle_idx + 1, n):
                 distance = cum_len[j] - cum_len[vehicle_idx]
                 self._air_brake_delay_remaining[j] = max(distance / wave_speed, 0.0)
+            # 向前传播（source -> 前方），用于尾部/中部动力（分布式制动）
+            if bidirectional:
+                for j in range(vehicle_idx - 1, -1, -1):
+                    distance = cum_len[vehicle_idx] - cum_len[j]
+                    self._air_brake_delay_remaining[j] = max(distance / wave_speed, 0.0)
 
     def _reset_air_brake_command(self, vehicle_idx: int = 0):
         """缓解空气制动（全部车辆释放）。"""

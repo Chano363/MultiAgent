@@ -44,14 +44,18 @@ class LocomotiveParams(VehicleParams):
 
 @dataclass
 class CouplerParams:
-    """车钩模型参数（质量-弹簧-阻尼）。"""
+    """车钩模型参数（质量-弹簧-阻尼 + 车钩间隙死区）。"""
 
     stiffness: float = 5.0e6
     """车钩纵向刚度（N/m）。"""
     damping: float = 5.0e4
     """车钩纵向阻尼（N·s/m）。"""
     free_length_m: float = 1.0
-    """车钩自由长度（两车参考点间距，米）。"""
+    """车钩自由长度（两车参考点间距，米，决定静止间距）。"""
+    coupler_gap_m: float = 0.01
+    """车钩间隙/游隙死区（米）。0 表示无死区（纯线性弹簧）。
+    死区内 |e|<=gap 不产生弹簧力，只有阻尼；间隙越大→车钩力峰值越大。
+    默认 0.01m 对应杨敏论文研究的间隙量级。"""
 
 
 @dataclass
