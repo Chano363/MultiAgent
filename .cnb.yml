@@ -1,0 +1,100 @@
+# CNB 云原生构建配置
+# 详见官方文档：https://docs.cnb.cool/zh/build/grammar.html
+# CodeBuddy NPC 文档：https://docs.cnb.cool/zh/build/npc.html
+#
+# 本项目为两阶段 RL 研究：
+#   - 阶段一：无人机编队控制（gym_pybullet_drones，历史成果）
+#   - 阶段二（当前主战场）：重载列车群组协同控制（traffic_rl_project/）
+#
+# CI 策略：
+#   - push 到 main 时仅跑核心测试（阶段二列车动力学/环境 + 阶段一无人机冒烟）
+#   - 训练任务不放入 push CI（耗时长 + 需 GPU），按需手动触发
+#   - 仅当 src/tests 代码变更时才触发，避免 docs/papers 等触发无谓构建
+#
+# NPC 策略：
+#   - 在 Issue/PR 评论中 @ 召唤 CodeBuddy NPC（系统内置）或自定义角色（.cnb/settings.yml）
+#   - 自定义角色名「列车控制专家」，针对本 RL 项目做了领域 prompt 定制
+
+main:
+  push:
+    - name: ci-test-trains
+      ifModify:
+        - "traffic_rl_project/src/**"
+        - "traffic_rl_project/tests/**"
+        - "traffic_rl_project/requirements.txt"
+        - "gym_pybullet_drones/**"
+      runner:
+        cpus: 4
+      docker:
+        image: python:3.10
+        volumes:
+          - /root/.cache/pip:copy-on-write
+      stages:
+        - name: install-deps
+          script: |
+            pip install --quiet -r traffic_rl_project/requirements.txt
+            pip install --quiet pytest
+        - name: test-train-dynamics
+          script: |
+            cd traffic_rl_project
+            python -m pytest tests/ -q
+      failStages:
+        - name: notify-failure
+          script: echo "CI failed! Please check the build log on CNB."
+      endStages:
+        - name: notify-done
+          script: echo "CI pipeline finished."
+
+# $ 兜底分支：处理所有未明确指定分支的事件
+# 包括 NPC 事件（issue/PR 评论 @）与轻量 CI 检查
+$:
+  # NPC 事件：在 Issue/PR 评论中 @ 提及 NPC 时触发
+  issue.comment@npc:
+    - docker:
+        image: cnbcool/default-npc:latest
+      stages:
+        - name: npc-go-issue
+          type: npc:go
+  pull_request.comment@npc:
+    - docker:
+        image: cnbcool/default-npc:latest
+      stages:
+        - name: npc-go-pr
+          type: npc:go
+
+  # PR 自动代码审查（用 npc:go 内置任务，非 @ 触发）
+  pull_request:
+    - docker:
+        image: cnbcool/default-npc:latest
+      stages:
+        - name: npc-code-review
+          type: npc:go
+          options:
+            role: 代码审查员
+            systemPrompt: 你是一个专业的 RL/列车控制代码审查员，重点检查训练逻辑、维度匹配、YAML 配置正确性、车钩力安全约束（≤1000kN）。
+            userPrompt: 审查本次 PR 的代码变更，给出改进建议。
+
+  # 轻量 CI：其他分支/路径变更仅做 import 冒烟检查，不跑重型测试
+  push:
+    - name: ci-light
+      ifModify:
+        - "traffic_rl_project/src/**"
+        - "traffic_rl_project/tests/**"
+      runner:
+        cpus: 2
+      docker:
+        image: python:3.10
+        volumes:
+          - /root/.cache/pip:copy-on-write
+      stages:
+        - name: install-deps
+          script: |
+            pip install --quiet -r traffic_rl_project/requirements.txt
+            pip install --quiet pytest
+        - name: smoke-import
+          script: |
+            cd traffic_rl_project
+            python -c "import src.train_dynamics; import src.environments.train_env; import src.safety_layer; print('import OK')"
+      failStages:
+        - name: notify-failure
+          script: echo "CI light check failed."
