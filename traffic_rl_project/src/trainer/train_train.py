@@ -160,6 +160,7 @@ def train(
                 f"best {best_reward:+.1f} | peakCoupler {recent_peak:.0f}kN | "
                 f"viol {recent_viol:.1f} | loss {metrics.get('total_loss',0):.3f}"
             )
+            sys.stdout.flush()  # 强制刷出进度日志（双保险）
             agent.save(str(Path(checkpoint_dir) / f"mappo_train_ep{ep+1}.pt"))
 
     total_time = time.time() - start_time
