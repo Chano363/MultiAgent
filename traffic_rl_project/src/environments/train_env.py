@@ -183,15 +183,20 @@ class TrainFormationEnv:
         # 平均冲动 + 峰值冲动（峰值更能反映纵向冲动风险）
         mean_impulse = np.mean(np.abs(coupler)) / self._max_coupler_n
         peak_impulse = np.max(np.abs(coupler)) / self._max_coupler_n if len(coupler) else 0.0
-        # 车钩力超限硬惩罚
+        # 车钩力超限惩罚：按超限幅度成比例（超得越多罚得越重），
+        # 替代原常数 -2.0（V5.4 教训：常数惩罚无梯度信息，策略学不会"平稳制动"）。
+        # 超限幅度 = (峰值 - 上限) / 上限，无量纲；乘以惩罚系数给策略强梯度信号。
+        abs_c = np.abs(coupler)
+        peak = np.max(abs_c) if len(abs_c) else 0.0
         violation_penalty = 0.0
-        if np.max(np.abs(coupler)) > self.coupler_force_limit_n:
-            violation_penalty = -2.0
+        if peak > self.coupler_force_limit_n:
+            over_ratio = (peak - self.coupler_force_limit_n) / self.coupler_force_limit_n
+            violation_penalty = -5.0 * over_ratio  # 超限 1 倍 → -5.0，2.5 倍 → -12.5
         reward = (
             -0.5 * speed_err
             - 0.3 * gap_err
-            - 0.15 * mean_impulse
-            - 0.15 * peak_impulse
+            - 0.2 * mean_impulse
+            - 0.2 * peak_impulse
             + violation_penalty
         )
         return reward
@@ -228,8 +233,13 @@ class TrainFormationEnv:
             raise ValueError(f"动作维度应为 {self.num_vehicles}, 实际 {actions.shape[0]}")
 
         # 规则式 ATP 安全层：修正危险动作
+        # 注意：修正后动作才是"实际执行动作"，训练时必须用它重算 log_prob，
+        # 否则 log_prob 对应的是修正前动作 → 实际执行策略≠学习策略 → 重要性采样失效 → 策略发散
+        actions_modified = False
         if self.enable_safety:
+            original_actions = actions.copy()
             actions = self.safety.protect(actions, self._state_snapshot())
+            actions_modified = not np.allclose(actions, original_actions, atol=1e-9)
             self._safety_events += len(self.safety.last_events)
 
         # 拆分动作为：牵引 / 电制动 / 空气制动
@@ -277,6 +287,10 @@ class TrainFormationEnv:
             'overspeed_violations': int(self._overspeed_violations),
             'safety_events': int(self._safety_events),
             'reward': reward,
+            # 安全层修正后的实际执行动作（训练须用它重算 log_prob，保证一致性）
+            'executed_actions': np.array(actions, dtype=float),
+            # 本步安全层是否修正了动作（False 时训练可复用 select_actions 的 log_prob，省一次前向）
+            'actions_modified': bool(actions_modified),
         }
         return obs, reward, terminated, truncated, info
 

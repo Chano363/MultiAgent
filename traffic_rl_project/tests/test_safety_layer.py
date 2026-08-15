@@ -130,6 +130,44 @@ def test_safety_emergency_still_blocks_over_2250():
     assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
 
 
+def test_safety_coupler_force_limit_blocks_braking():
+    """车钩力达上限（1000kN）时，制动动作也应被对称抑制（V5.4 修复）。
+
+    长大下坡场景车钩力爆表主因是剧烈制动（空气制动波速传播 → 纵向冲动），
+    安全层必须对称拦截制动动作（不只是牵引），否则守不住 1000kN 上限。
+    """
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
+    actions = np.array([-1.0, -0.8])  # 制动动作（负）
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.2e6, 1.2e6]),  # 1200kN 超限
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    corrected = sl.protect(actions, obs_state)
+    assert corrected[0] == 0.0  # 制动被钳制为 0（惰行）
+    assert corrected[1] == 0.0
+    assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+
+
+def test_safety_coupler_force_limit_blocks_both_signs_symmetrically():
+    """对称性验证：同一超限车钩力下，牵引与制动都被钳制为 0。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
+    base_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.5e6, 1.5e6]),
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    # 牵引动作
+    corrected_traction = sl.protect(np.array([1.0, 0.5]), base_state)
+    # 制动动作
+    sl.last_events = []
+    corrected_braking = sl.protect(np.array([-1.0, -0.5]), base_state)
+    assert corrected_traction[0] == 0.0
+    assert corrected_braking[0] == 0.0  # 对称：制动同样被拦
+
+
 # ---------------------------------------------------------------------------
 # 安全层：间距防护
 def test_safety_min_gap_blocks_acceleration():
@@ -268,3 +306,34 @@ def test_env_coupler_force_limit_metric_present():
     assert 'coupler_force_limit' in info
     assert 'coupler_limit_violations' in info
     assert info['coupler_force_limit'] == pytest.approx(1.0e6)
+
+
+def test_reward_violation_penalty_scales_with_overrun():
+    """车钩力超限惩罚应随超限幅度成比例加重（V5.4 修复：替代常数 -2.0）。
+
+    验证：超限越多，奖励越低（惩罚越重），给策略"平稳制动"的梯度信号。
+    """
+    env = TrainFormationEnv({'num_vehicles': 4})
+    env.reset()
+    # 构造无速度/间距误差的 obs（4 维，车钩力/位置置 0）
+    obs = np.zeros((4, 4), dtype=np.float32)
+    # 未超限（峰值 < 1000kN）
+    reward_ok = env._calculate_reward(obs, np.array([5.0e5, 5.0e5, 5.0e5, 5.0e5]))
+    # 超限 1.5 倍（峰值 1500kN）
+    reward_over1 = env._calculate_reward(obs, np.array([1.5e6, 1.0e6, 1.0e6, 1.0e6]))
+    # 超限 3 倍（峰值 3000kN）
+    reward_over2 = env._calculate_reward(obs, np.array([3.0e6, 1.0e6, 1.0e6, 1.0e6]))
+    # 超限越多，奖励越低（惩罚越重）
+    assert reward_ok > reward_over1
+    assert reward_over1 > reward_over2
+
+
+def test_reward_no_overrun_no_violation_penalty():
+    """峰值车钩力未超限时，不产生超限惩罚（只含冲动项）。"""
+    env = TrainFormationEnv({'num_vehicles': 4})
+    env.reset()
+    obs = np.zeros((4, 4), dtype=np.float32)
+    # 峰值 800kN < 1000kN 上限，4 车都是 800kN → mean_impulse=peak_impulse=0.8
+    reward = env._calculate_reward(obs, np.array([8.0e5, 8.0e5, 8.0e5, 8.0e5]))
+    # 无超限惩罚，仅 -0.2*mean_impulse -0.2*peak_impulse = -0.2*0.8 -0.2*0.8 = -0.32
+    assert reward == pytest.approx(-0.32, abs=1e-6)

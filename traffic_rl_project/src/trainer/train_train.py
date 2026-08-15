@@ -134,12 +134,22 @@ def train(
             value = agent.get_value(flat_obs)
             next_obs, reward, terminated, truncated, info = env.step(action_for_env)
 
+            # 安全层可能修正动作：仅当本步实际修正（actions_modified=True）时，
+            # 才用"实际执行动作"重算 log_prob；否则复用 select_actions 的 log_prob，
+            # 省一次整批前向（性能优化：安全层未触发时避免重复前向）
+            executed = info.get('executed_actions')
+            if executed is not None and info.get('actions_modified', True):
+                actions = executed
+                log_prob = agent.get_log_prob(flat_obs, executed)
+
             done = terminated or truncated
             agent.store_transition(flat_obs, actions, reward, log_prob, done, value)
 
             ep_reward += reward
             ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))
-            ep_viol += info.get('coupler_limit_violations', 0)
+            # info 的 coupler_limit_violations 是 reset 起累计值：直接覆盖取最后一步的累计，
+            # 不能用 += （会把累计值再累加 → 三角放大，历史 viol 数值虚高数倍）
+            ep_viol = info.get('coupler_limit_violations', 0)
             obs = next_obs
             step += 1
 

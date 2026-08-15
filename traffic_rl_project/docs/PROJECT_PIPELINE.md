@@ -180,7 +180,17 @@
 16. ✅ **复用已验证机制**：KL 早停（短训多次触发防坍缩）、集中式 Critic、GAE 均正常复用
     - ✅ **日志系统修复**（2026-08-13）：`logging.basicConfig(flush=True)` 此 Python3.10 不支持，改用每10轮 `sys.stdout.flush()` 实现实时日志
     - ✅ **收敛趋势验证**（小编组4节+长大下坡，30回合）：Reward -740→-95、车钩力峰值 1226→514kN、超限 95→10，MAPPO 明确收敛
-    - ⬜ **正式长训**：需数百回合 + 扩展至万吨级 1+0 编组（P1 第16条后续）
+    - ✅ **万吨级发散诊断 + ValueNorm 修复**（2026-08-13）：log_prob 未归一化（×101）+ value 目标尺度爆炸（|returns|~1e4-1e5 → value_loss~1e8 → Loss>1000 阈值整回合跳过更新）。修复=ValueNorm（PopArt 简化版）value 归一化 + NaN 检查替换硬编码阈值。71 测试通过（含 2 新增回归），详见 `VALIDATION_BASELINE.md` V5.1
+    - ✅ **SafetyLayer 一致性 + per-agent ratio 修复**（2026-08-14）：V5.1 的"log_prob 归一化"本身是错的（per-agent ratio 才是正确 MAPPO，归一化 → ratio≈1 → 策略不学习）。修复=per-agent log_prob/ratio + 安全层修正后用 `executed_actions` 重算 log_prob + viol 指标累加 bug。详见 `VALIDATION_BASELINE.md` V5.2
+    - ✅ **训练性能向量化优化**（2026-08-14）：策略前向/update 逐车循环整批向量化 + 安全层未触发时复用 log_prob + 车钩力/Davis 阻力 numpy 向量化。**提速 8-10 倍**（~130-180s/ep → 16.8s/ep），500ep 从 18h 降到 ~2.3h，71 测试无回归。详见 `VALIDATION_BASELINE.md` V5.3
+    - ⬜ **正式长训（P1 第16条，待启动）**：万吨级 1+0 + 长大下坡 500 回合，lr=5e-5（性能优化后）
+17. ✅ **CNB PR 双重保障机制设计**（2026-08-13，`/.cnb.yml`）：
+    - **定位**：CNB 无 GPU + 单任务超时上限 12h，不适合训练；只承担 CI 测试 + NPC 审查
+    - **CI 管「跑不跑得通」**：push 触发 pytest 回归（已有，`ci-test-trains` 69 测试）
+    - **NPC 管「对不对得上论文基准」**：PR 自动 npc 审查增强为 2 个 stage：
+      - `npc-code-review`（代码审查员）：涉及动力学/环境代码时对照 `VALIDATION_BASELINE.md` 核验 Davis 阻力标准形式（`0.0018*C*A*V²`，禁放大 w 倍）、制动传播延迟=累计长度/波速（禁 free_length）、车钩力上限 1000kN/2250kN、长大下坡剖面参数
+      - `npc-paper-baseline`（验证基准核验员）：逐条对照论文数据核验——制动减压-压钩力 +16.8%/+36.8%（Zhang2025）、车钩间隙-车钩力 52.14kN（杨敏）、EOT 双源降拉钩力 -37%（780→489kN）、编组→冲动排序、1000kN/2250kN 上限；输出「通过/不通过+理由+论文出处」
+    - **待验证**：下个 PR 推送到 CNB 观察 npc 双 stage 是否按预期执行（约 40s+ 响应）
 
 **P2 — 优化与结论（2-3 周）**
 
@@ -190,8 +200,11 @@
 
 **P3 — 创新点推进（分层 MARL）**
 
-20. 层级一（多列群组环境）：每列万吨级列车为智能体，安全间距约束（复用现有 `train_env.py` 作为每列内部动力学）
-21. 对比实验：考虑 vs 忽略车钩力的群组控制（证明"群组不能忽略车钩力"创新论点，对照 Zhang2024 等忽略车钩力的工作）
+20. ✅ **层级一（多列群组环境，TrainFleetEnv）**：每列万吨级列车 = 智能体（`num_trains`），列内 `TrainFormationEnv` + `TrainLowLevelController` 单列控制，车钩力作为该列状态/奖励约束。动作 = 每列目标加速度（对齐 Zhang2021/Hua2024），obs 含该列速度/间距误差/坡度/车钩力统计
+    - ✅ **列内底层控制器**（`TrainLowLevelController`）：加速度指令 → 列级 throttle + 车钩力安全钳制
+    - ✅ **列间 MAPPO 训练**（`train_fleet.py`）：`num_drones = num_trains`（智能体=列数），best 模型评估
+    - ✅ **多种子 + 50 评估种子对比**：MAPPO 考虑车钩力在守住 ≤1000kN（超限仅 0.33 次）前提下，间距误差 ↓23%、能耗 ↓19%，优于单列独立/忽略车钩力（V5.16）
+21. ⬜ 对比实验完善：考虑 vs 忽略车钩力的群组控制（证明"群组不能忽略车钩力"创新论点，对照 Zhang2024 等忽略车钩力的工作）——框架已建，需补全论文级消融
 
 ### 4.4 迁移需注意的差异（来自阶段一经验）
 
@@ -267,6 +280,7 @@
 | `docs/ppt_plan.md` | 导师汇报 PPT 提纲 | 做汇报时 |
 | `docs/RESEARCH_POSITIONING.md` | 阶段二研究定位 + 创新点 + 文献库 | 写论文/补文献时 |
 | `docs/VALIDATION_BASELINE.md` | **论文→项目正确性验证基准**（仿真器/算法对照） | **P1 前必读** |
+| `docs/HUMAN_TODO.md` | **人工待办清单**（论文下载、方向决策等需人参与的） | 有需人工处理的任务时 |
 | `docs/PAPER_DOWNLOAD_LINKS.md` | 开放获取论文手动下载网址 | 需要补全文时 |
 | `docs/MCP_DEPLOYMENT.md` | scholar-search-mcp 部署说明 | 文献检索时 |
 | `../.learnings/LEARNINGS.md` | 踩坑记录（调试经验） | 遇到对应问题时 |

@@ -1,5 +1,5 @@
-"""Trainer module for RL training loops."""
+"""Trainer module for RL training loops.
+（阶段二：仅 train_train，阶段一 train_loop 已随无人机代码移除）
+"""
 
-from .train_loop import train_agent, create_agent, load_config, set_seed, check_convergence
-
-__all__ = ['train_agent', 'create_agent', 'load_config', 'set_seed', 'check_convergence']
+__all__ = []

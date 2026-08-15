@@ -18,6 +18,10 @@ traffic_rl_project/outputs/results/
 # 临时文件
 *.tmp
 *.log
+tmp_*.py
+tmp_*.sh
+tmp_*.ps1
+tmp_*.bat
 
 # 项目特定
 prompts.md

@@ -109,6 +109,8 @@ pytest tests/
 | INFO 日志不打印 | 脚本入口 `logging.basicConfig(level=logging.INFO)` |
 | **Davis 阻力被放大 w 倍** | 空气阻力必须是标准 Davis 形式 `0.0018*C*A*V²`（独立于车重），不能 `area*cd*v²/w` 再乘 w（会把阻力放大数百倍，平衡速度被低估到 8m/s，20m/s 不可达）。已修复（见 VALIDATION_BASELINE V2） |
 | **制动传播被 dt 吞掉** | 传播延迟按**车辆累计长度/波速**算（真实重载数百米→数秒延迟），不要用车钩 free_length |
+| **安全层修正 → log_prob 失配 → 策略发散** | SafetyLayer 修正动作后必须用**实际执行动作**重算 log_prob 存储（`info['executed_actions']` + `agent.get_log_prob`），否则重要性采样失效，viol 每 10ep 爆 85 倍（V5.1 三层 bug 链之一） |
+| **value_loss 爆炸 → 阈值误杀** | 多智能体累计 returns ~1e4-1e5，value 网络初始输出 0 → value_loss ~1e8 → 用 ValueNorm（PopArt）归一化 value 目标，不要用 `total_loss>1000` 硬编码阈值 |
 | **mcp 2.0 崩溃** | scholar-search-mcp 需 `mcp==1.9.3`（2.0 移除 `@app.list_tools`） |
 | **程序化下载论文被 403** | MDPI/Wiley/IEEE/Hindawi 反爬，开放获取论文用浏览器手动下载（见 `docs/PAPER_DOWNLOAD_LINKS.md`） |
 | 网络下载 | 用 Windows PowerShell，别用 WSL |

@@ -114,10 +114,13 @@ class SafetyLayer:
                     actions[i] = 0.0  # 钳制为缓解
 
         # 规则 2：车钩力上限防护（区分正常运行/紧急制动上限，Fu2019）
+        # 对称干预：车钩力超限时，无论牵引(>0)还是制动(<0)都会加剧纵向冲动，
+        # 统一钳制为 0（惰行/缓解），避免"只拦牵引不拦制动"导致长大下坡制动冲动失控
+        # （V5.4 教训：车钩力爆表主因是剧烈制动，安全层必须对称拦截）
         for i in range(self.num_vehicles):
             if coupler_forces[i] >= coupler_limit:
-                # 车钩力已达上限：抑制加剧该车车钩力的牵引动作
-                if actions[i] > 0:
+                # 车钩力已达上限：抑制加剧该车车钩力的牵引/制动动作
+                if actions[i] != 0.0:
                     mode = 'emergency' if is_emergency else 'normal'
                     self._log(i, 'coupler_force_limit', f'|F|={coupler_forces[i]/1e3:.0f}kN({mode})')
                     actions[i] = 0.0

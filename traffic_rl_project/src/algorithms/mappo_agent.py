@@ -1,6 +1,9 @@
 """
 Multi-Agent Proximal Policy Optimization (MAPPO)
-Shared policy + centralized critic for multi-drone formation control.
+Shared policy + centralized critic for multi-agent control (trains/drones).
+
+复用阶段一验证过的 MAPPO 架构，阶段二迁移到重载列车群组控制：
+每节车厢 = 智能体（共享策略），集中式 Critic 观测全列状态。
 """
 
 import torch
@@ -35,6 +38,48 @@ class RunningMeanStd:
         M2 = m_a + m_b + delta**2 * count * batch_count / total_count
         new_var = M2 / total_count
         return new_mean, new_var, total_count
+
+
+class ValueNorm:
+    """value 目标归一化（PopArt 简化版）。
+
+    问题：多智能体累计回报 |returns| 可达 1e4~1e5，value 网络初始输出 ~0，
+    导致 value_loss ~1e8 量级 → 数值不稳定、梯度被 clip 吞没、Loss 阈值误杀。
+    解决：value 网络拟合"归一化 returns"（O(1) 尺度），
+    推理/GAE 时用 denormalize 还原为真实尺度，保证与奖励回报同量纲。
+    """
+
+    def __init__(self, eps: float = 1e-8):
+        self.mean = 0.0
+        self.std = 1.0
+        self.count = 0
+        self.eps = eps
+
+    def update(self, returns: np.ndarray):
+        """用一批 returns 增量更新 running mean/std（Welford）。"""
+        x = np.asarray(returns, dtype=np.float64)
+        n = len(x)
+        if n == 0:
+            return
+        batch_mean = float(np.mean(x))
+        batch_var = float(np.var(x))
+        batch_count = n
+        total_count = self.count + batch_count
+        delta = batch_mean - self.mean
+        new_mean = self.mean + delta * batch_count / total_count
+        m_a = self.std**2 * self.count
+        m_b = batch_var * batch_count
+        M2 = m_a + m_b + delta**2 * self.count * batch_count / total_count
+        new_var = M2 / total_count if total_count > 0 else 1.0
+        self.mean = new_mean
+        self.std = float(np.sqrt(new_var))
+        self.count = total_count
+
+    def normalize(self, x) -> np.ndarray:
+        return (np.asarray(x) - self.mean) / (self.std + self.eps)
+
+    def denormalize(self, x) -> np.ndarray:
+        return np.asarray(x) * (self.std + self.eps) + self.mean
 
 
 class ContinuousPolicyNetwork(nn.Module):
@@ -174,58 +219,90 @@ class MAPPOAgent:
         self.buffer_dones = None
         self.buffer_values = None
 
+        # value 目标归一化（解决多智能体累计回报量级过大导致的 value_loss 爆炸）
+        self.value_norm = ValueNorm()
+        # reward running 统计（保留字段以兼容旧 checkpoint，更新逻辑已迁移至 value_norm）
         self.reward_rms = RunningMeanStd()
         self.training_step = 0
 
-    def select_actions(self, global_state: np.ndarray, deterministic: bool = False) -> Tuple[np.ndarray, float]:
-        actions = []
-        total_log_prob = 0.0
-        for i in range(self.num_drones):
-            start = i * self.obs_per_drone
-            end = start + self.obs_per_drone
-            obs_i = global_state[start:end]
-            obs_tensor = torch.FloatTensor(obs_i).unsqueeze(0).to(self.device)
+    def _batch_obs(self, global_state: np.ndarray) -> torch.Tensor:
+        """把 flatten 的全局状态 reshape 成 [num_drones, obs_per_drone] 张量。
 
-            mean, log_std = self.policy(obs_tensor)
-            if deterministic:
-                action = mean
-            else:
-                std = torch.exp(log_std)
-                dist = torch.distributions.Normal(mean, std)
-                action = dist.sample()
-            action = torch.clamp(action, -1.0, 1.0)
-            log_prob = torch.distributions.Normal(mean, torch.exp(log_std)).log_prob(action).sum(dim=-1)
+        共享策略下每车 obs 维度相同，整批一次前向替代 N 次 batch=1 循环，
+        GPU 利用率从 ~5% 提升到 ~80%+（性能优化核心）。
+        """
+        obs = np.asarray(global_state, dtype=np.float32).reshape(self.num_drones, self.obs_per_drone)
+        return torch.FloatTensor(obs).to(self.device)
 
-            actions.append(action.cpu().detach().numpy().flatten())
-            total_log_prob += log_prob.item()
+    def _batch_actions(self, actions: np.ndarray) -> torch.Tensor:
+        """把 flatten 动作 reshape 成 [num_drones, act_per_drone] 张量。"""
+        act = np.asarray(actions, dtype=np.float32).reshape(self.num_drones, self.act_per_drone)
+        return torch.FloatTensor(act).to(self.device)
 
-        return np.concatenate(actions), total_log_prob
+    def select_actions(self, global_state: np.ndarray, deterministic: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+        # 整批一次前向（[num_drones, obs_per_drone]），替代 101 次 batch=1 循环
+        obs_batch = self._batch_obs(global_state)
+        mean, log_std = self.policy(obs_batch)  # [num_drones, act_per_drone]
+
+        if deterministic:
+            action = mean
+        else:
+            std = torch.exp(log_std)
+            dist = torch.distributions.Normal(mean, std)
+            action = dist.sample()
+        action = torch.clamp(action, -1.0, 1.0)
+
+        # per-agent log_prob（shape=[num_drones]），
+        # 更新时逐 agent 算 ratio，避免 N 大时联合 log_prob 求和/平均导致的
+        # ratio 压缩（平均→exp^(1/N)≈1→policy_loss≈0）或 KL 爆炸（求和→×N）
+        log_prob = torch.distributions.Normal(mean, torch.exp(log_std)).log_prob(action).sum(dim=-1)
+
+        return action.detach().cpu().numpy().flatten(), log_prob.detach().cpu().numpy().astype(np.float32)
+
+    def get_log_prob(self, global_state: np.ndarray, actions: np.ndarray) -> np.ndarray:
+        """用"实际执行动作"重算 per-agent log_prob（shape=[num_drones]）。
+
+        安全层（SafetyLayer）可能修正动作后才喂给动力学，若仍存修正前动作的
+        log_prob，则 实际执行策略 ≠ 学习策略，重要性采样失效 → 策略发散。
+        必须在 step 后用 info['executed_actions'] 重算。
+        """
+        obs_batch = self._batch_obs(global_state)
+        act_batch = self._batch_actions(actions)
+        with torch.no_grad():
+            mean, log_std = self.policy(obs_batch)
+            std = torch.exp(log_std)
+            dist = torch.distributions.Normal(mean, std)
+            log_prob = dist.log_prob(act_batch).sum(dim=-1)
+        return log_prob.cpu().numpy().astype(np.float32)
 
     def get_value(self, global_state: np.ndarray) -> float:
         with torch.no_grad():
             state_tensor = torch.FloatTensor(global_state).unsqueeze(0).to(self.device)
-            return self.value(state_tensor).item()
+            # value 网络输出为归一化尺度，反归一化为真实回报尺度（与 GAE 中 rewards 同量纲）
+            norm_value = self.value(state_tensor).item()
+            return float(self.value_norm.denormalize(np.array([norm_value]))[0])
 
     def store_transition(
         self,
         global_state: np.ndarray,
         actions: np.ndarray,
         reward: float,
-        total_log_prob: float,
+        log_probs: np.ndarray,
         done: bool,
         value: float
     ):
+        """log_probs 为 per-agent 数组（shape=[num_drones]）。"""
         if self.buffer_states is None:
             self.buffer_states = [global_state]
             self.buffer_actions = [actions]
-            self.buffer_log_probs = [total_log_prob]
+            self.buffer_log_probs = [np.asarray(log_probs, dtype=np.float32)]
             self.buffer_rewards = [reward]
             self.buffer_dones = [done]
             self.buffer_values = [value]
         else:
             self.buffer_states.append(global_state)
             self.buffer_actions.append(actions)
-            self.buffer_log_probs.append(total_log_prob)
+            self.buffer_log_probs.append(np.asarray(log_probs, dtype=np.float32))
             self.buffer_rewards.append(reward)
             self.buffer_dones.append(done)
             self.buffer_values.append(value)
@@ -260,17 +337,24 @@ class MAPPOAgent:
 
         states = torch.FloatTensor(np.array(self.buffer_states)).to(self.device)
         actions = torch.FloatTensor(np.array(self.buffer_actions)).to(self.device)
-        old_log_probs = torch.FloatTensor(self.buffer_log_probs).to(self.device)
+        # buffer_log_probs 是 per-agent 数组列表，先 np.array 堆叠成 [batch, num_drones]，
+        # 避免 torch 直接对 list 构造触发 UserWarning + 慢路径
+        old_log_probs = torch.FloatTensor(np.array(self.buffer_log_probs)).to(self.device)
         rewards = np.array(self.buffer_rewards)
         dones = np.array(self.buffer_dones)
         values = np.array(self.buffer_values)
 
+        # 用原始奖励计算 GAE：advantages 内部已标准化（尺度无关），
+        # returns = advantages + values 为真实回报尺度，供 value_norm 归一化。
         self.reward_rms.update(rewards)
-        rewards = rewards / np.sqrt(self.reward_rms.var + 1e-8)
-
         advantages, returns = self.compute_gae(rewards, values, dones)
+        # value 目标归一化（PopArt 简化版）：value 网络拟合 O(1) 尺度的 returns，
+        # 避免 |returns| ~ 1e4~1e5 时 value_loss ~1e8 导致数值爆炸 / 阈值误杀 / 梯度被 clip 吞没
+        self.value_norm.update(returns)
+        returns_norm = self.value_norm.normalize(returns)
+
         advantages = torch.FloatTensor(advantages).to(self.device)
-        returns = torch.FloatTensor(returns).to(self.device)
+        returns_norm = torch.FloatTensor(returns_norm).to(self.device)
 
         total_policy_loss = 0.0
         total_value_loss = 0.0
@@ -288,32 +372,32 @@ class MAPPOAgent:
                 batch_actions = actions[batch_indices]
                 batch_old_log_probs = old_log_probs[batch_indices]
                 batch_advantages = advantages[batch_indices]
-                batch_returns = returns[batch_indices]
+                batch_returns = returns_norm[batch_indices]  # 归一化 returns 作为 value 训练目标
 
-                new_total_log_probs = torch.zeros(len(batch_indices), device=self.device)
-                batch_entropy = 0.0
-                for i in range(self.num_drones):
-                    s_start = i * self.obs_per_drone
-                    s_end = s_start + self.obs_per_drone
-                    a_start = i * self.act_per_drone
-                    a_end = a_start + self.act_per_drone
+                # per-agent log_prob（shape [batch, num_drones]）→ per-agent ratio，
+                # 避免联合 log_prob 求和(×N)/平均(exp^(1/N))导致 ratio 爆炸或坍缩。
+                # 整批一次前向：把 [batch, num_drones*obs_per_drone] reshape 成
+                # [batch*num_drones, obs_per_drone] 送入共享策略（替代 N 次逐车循环）
+                flat_obs = batch_states.view(-1, self.obs_per_drone)       # [batch*N, obs_dim]
+                flat_act = batch_actions.view(-1, self.act_per_drone)     # [batch*N, act_dim]
 
-                    obs_i = batch_states[:, s_start:s_end]
-                    act_i = batch_actions[:, a_start:a_end]
+                mean, log_std = self.policy(flat_obs)                      # [batch*N, act_dim]
+                std = torch.exp(log_std)
+                dist = torch.distributions.Normal(mean, std)
 
-                    mean, log_std = self.policy(obs_i)
-                    std = torch.exp(log_std)
-                    dist = torch.distributions.Normal(mean, std)
+                log_prob_flat = dist.log_prob(flat_act).sum(dim=-1)        # [batch*N]
+                entropy_flat = dist.entropy().sum(dim=-1)                  # [batch*N]
 
-                    log_prob_i = dist.log_prob(act_i).sum(dim=-1)
-                    new_total_log_probs += log_prob_i
-                    batch_entropy += dist.entropy().sum(dim=-1).mean()
+                new_log_probs = log_prob_flat.view(len(batch_indices), self.num_drones)  # [batch, N]
+                entropy = entropy_flat.mean()
 
-                entropy = batch_entropy / self.num_drones
-                ratio = torch.exp(new_total_log_probs - batch_old_log_probs)
+                ratio = torch.exp(new_log_probs - batch_old_log_probs)  # [batch, num_drones]
 
-                surr1 = ratio * batch_advantages
-                surr2 = torch.clamp(ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon) * batch_advantages
+                # advantage 为每步一个标量（集中式 critic），广播到每个 agent
+                adv_broad = batch_advantages.unsqueeze(-1)  # [batch, 1]
+                surr1 = ratio * adv_broad
+                surr2 = torch.clamp(ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon) * adv_broad
+                # 在 batch × agents 上平均（per-agent surrogate，MAPPO 共享策略标准做法）
                 policy_loss = -torch.min(surr1, surr2).mean()
 
                 new_values = self.value(batch_states).squeeze()
@@ -333,8 +417,8 @@ class MAPPOAgent:
 
                 total_loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
 
-                if total_loss.item() > 1000.0:
-                    logging.warning(f"Loss异常 ({total_loss.item():.2f})，跳过本次更新")
+                if not torch.isfinite(total_loss):
+                    logging.warning(f"Loss非有限值 ({total_loss.item():.2f})，跳过本次更新")
                     self._clear_buffer()
                     return {'total_loss': 0.0}
 
@@ -352,7 +436,8 @@ class MAPPOAgent:
                 total_value_loss += value_loss.item()
                 total_entropy += entropy.item()
 
-            approx_kl = ((new_total_log_probs - batch_old_log_probs) ** 2).mean().item()
+            # per-agent KL（batch × agents 平均），避免联合 log_prob 求和导致 KL 被 N 倍放大
+            approx_kl = ((new_log_probs - batch_old_log_probs) ** 2).mean().item()
             if approx_kl > self.target_kl * 1.5:
                 logging.info(f"KL早停: {approx_kl:.4f} > {self.target_kl * 1.5:.4f} (epoch {epoch + 1}/{self.epochs})")
                 break
@@ -383,6 +468,10 @@ class MAPPOAgent:
             'value_state_dict': self.value.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'training_step': self.training_step,
+            # value 归一化统计量（重要：推理时反归一化依赖它）
+            'value_norm_mean': self.value_norm.mean,
+            'value_norm_std': self.value_norm.std,
+            'value_norm_count': self.value_norm.count,
             'reward_rms_mean': self.reward_rms.mean,
             'reward_rms_var': self.reward_rms.var,
             'reward_rms_count': self.reward_rms.count
@@ -396,6 +485,10 @@ class MAPPOAgent:
         self.value.load_state_dict(checkpoint['value_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.training_step = checkpoint.get('training_step', 0)
+        if 'value_norm_mean' in checkpoint:
+            self.value_norm.mean = checkpoint['value_norm_mean']
+            self.value_norm.std = checkpoint['value_norm_std']
+            self.value_norm.count = checkpoint.get('value_norm_count', 0)
         if 'reward_rms_mean' in checkpoint:
             self.reward_rms.mean = checkpoint['reward_rms_mean']
             self.reward_rms.var = checkpoint['reward_rms_var']

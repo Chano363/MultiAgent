@@ -61,6 +61,10 @@ class TrainDynamics:
         self.grade = np.zeros(n)    # 每节车所在坡度
         self.time = 0.0
 
+        # 能耗追踪（kWh）：累计牵引能量（力×速度×dt 沿机车积分）
+        self.energy_kwh = 0.0
+        self._energy_delta_kwh = 0.0  # 单步能耗增量（供奖励用）
+
         # 空气制动传播状态：
         #   _air_brake_active[i] 是否已接收制动指令
         #   _air_brake_notch[i]   当前实际生效的离散档位
@@ -116,32 +120,62 @@ class TrainDynamics:
         self.vel = np.full(self.num_vehicles, speed_mps)
 
     def _coupler_forces(self) -> np.ndarray:
-        """计算每节车受到的车钩合力（正=向前）。"""
+        """计算每节车受到的车钩合力（正=向前）。
+
+        向量化实现：相邻车钩力用 numpy 数组一次算完（替代 n-1 次标量循环）。
+        """
         n = self.num_vehicles
         forces = np.zeros(n)
         if n < 2:
             return forces
         p = self.coupler
-        for i in range(n - 1):
-            f = coupler_force(
-                self.pos[i], self.vel[i],
-                self.pos[i + 1], self.vel[i + 1],
-                p.stiffness, p.damping, p.free_length_m,
-                p.coupler_gap_m,
+
+        # 相邻车钩伸长量 e = (x_back - x_front) + free_length
+        e = (self.pos[1:] - self.pos[:-1]) + p.free_length_m
+        # 车钩间隙死区
+        if p.coupler_gap_m > 0.0:
+            e_eff = np.where(
+                e > p.coupler_gap_m, e - p.coupler_gap_m,
+                np.where(e < -p.coupler_gap_m, e + p.coupler_gap_m, 0.0),
             )
-            forces[i] += f       # 前车受后车拉力
-            forces[i + 1] -= f   # 后车受前车反力
+        else:
+            e_eff = e
+        # 相邻车钩对前车的力：+stiffness*e_eff - damping*(v_front - v_back)
+        dv = self.vel[:-1] - self.vel[1:]
+        f_adj = p.stiffness * e_eff - p.damping * dv
+
+        # 前车受力 +f，后车受力 -f（牛顿第三定律成对抵消）
+        forces[:-1] += f_adj
+        forces[1:] -= f_adj
         return forces
 
     def _resistance_forces(self) -> np.ndarray:
-        """Davis 阻力（恒与速度方向相反，含坡度项在 grade 中单独计算）。"""
+        """Davis 阻力（恒与速度方向相反，含坡度项在 grade 中单独计算）。
+
+        向量化实现：内联 Davis 公式（与 resistance_force_n 数值一致），
+        提取每车参数为数组，替代逐车标量循环。
+        """
         n = self.num_vehicles
-        forces = np.zeros(n)
-        for i, v in enumerate(self.consist.vehicles):
-            forces[i] = resistance_force_n(
-                v.mass_t, v.no_of_axles, v.frontal_area_m2, v.drag_coef,
-                abs(self.vel[i]), 0.0, 0.0,
-            ) * np.sign(self.vel[i]) if abs(self.vel[i]) > 1e-6 else 0.0
+        # 每车参数数组
+        mass_t = np.array([v.mass_t for v in self.consist.vehicles])
+        axles = np.array([v.no_of_axles for v in self.consist.vehicles])
+        area_m2 = np.array([v.frontal_area_m2 for v in self.consist.vehicles])
+        drag = np.array([v.drag_coef for v in self.consist.vehicles])
+
+        speed = np.abs(self.vel)
+        # Davis 单位换算（与 resistance.py 的 _short_tons/_mph/_sqft 一致）
+        w = mass_t * 1.10231                    # 公吨 -> 短吨
+        v_mph = speed * 2.23694                 # m/s -> mph
+        area_sqft = area_m2 * 10.7639           # m² -> ft²
+        axle_weight = w / np.maximum(axles, 1)
+
+        unit_resistance = 1.5 + 18.0 / axle_weight + 0.03 * v_mph
+        air_resistance = 0.0018 * area_sqft * drag * v_mph ** 2
+        r_lb = unit_resistance * w + air_resistance
+        forces = r_lb * 4.44822                 # lb -> N
+
+        # 方向与速度相反；静止时无阻力
+        forces = np.where(speed > 1e-6, forces * np.sign(self.vel), 0.0)
         return forces
 
     def _grade_forces(self) -> np.ndarray:
@@ -297,6 +331,18 @@ class TrainDynamics:
         self.pos = self.pos + self.vel * self.dt
         self.time += self.dt
         self._update_grade_from_profile()
+
+        # 能耗追踪：牵引功率 = 牵引力 × 速度（仅对牵引为正的工况累计）
+        # 牵引力 > 0 表示机车做功；能耗 kWh = Σ(F_tractive * v * dt) / (3600*1000)
+        tractive = self._tractive_forces_per_vehicle(throttle)
+        power_w = np.sum(np.maximum(tractive, 0.0) * self.vel)
+        self._energy_delta_kwh = power_w * self.dt / 3.6e6
+        self.energy_kwh += self._energy_delta_kwh
+
+    def reset_energy(self):
+        """重置能耗累计（用于评估/回合开始）。"""
+        self.energy_kwh = 0.0
+        self._energy_delta_kwh = 0.0
 
     def air_brake_state(self) -> np.ndarray:
         """返回每节车当前生效的空气制动档位（AirBrakeNotch 数组）。"""

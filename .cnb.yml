@@ -11,7 +11,11 @@
 #   - 训练任务不放入 push CI（耗时长 + 需 GPU），按需手动触发
 #   - 仅当 src/tests 代码变更时才触发，避免 docs/papers 等触发无谓构建
 #
-# NPC 策略：
+# NPC 策略（PR 双重保障）：
+#   - CI 管「跑不跑得通」：push/PR 触发 pytest 回归测试
+#   - NPC 管「对不对得上论文基准」：PR 时 npc 自动代码审查 + 对照
+#     docs/VALIDATION_BASELINE.md 核验动力学/环境代码（Davis 阻力形式、
+#     制动波速传播延迟、车钩间隙-车钩力、车钩力上限 1000kN/2250kN）
 #   - 在 Issue/PR 评论中 @ 召唤 CodeBuddy NPC（系统内置）或自定义角色（.cnb/settings.yml）
 #   - 自定义角色名「列车控制专家」，针对本 RL 项目做了领域 prompt 定制
 
@@ -62,7 +66,10 @@ $:
         - name: npc-go-pr
           type: npc:go
 
-  # PR 自动代码审查（用 npc:go 内置任务，非 @ 触发）
+  # PR 自动审查（用 npc:go 内置任务，非 @ 触发）——双重保障
+  #   1) npc-code-review：常规代码审查（训练逻辑/维度/YAML/安全约束）
+  #   2) npc-paper-baseline：对照 docs/VALIDATION_BASELINE.md 核验论文验证基准
+  #      （若本次 PR 未涉及动力学/环境代码，可简短输出"无涉及，跳过核验"）
   pull_request:
     - docker:
         image: cnbcool/default-npc:latest
@@ -71,8 +78,28 @@ $:
           type: npc:go
           options:
             role: 代码审查员
-            systemPrompt: 你是一个专业的 RL/列车控制代码审查员，重点检查训练逻辑、维度匹配、YAML 配置正确性、车钩力安全约束（≤1000kN）。
-            userPrompt: 审查本次 PR 的代码变更，给出改进建议。
+            systemPrompt: |
+              你是一个专业的 RL/列车控制代码审查员，重点检查训练逻辑、维度匹配、YAML 配置正确性、车钩力安全约束（≤1000kN，紧急 2250kN）。
+              若本次变更涉及动力学/环境代码（src/train_dynamics/**、src/environments/**、src/safety_layer.py），须对照 docs/VALIDATION_BASELINE.md 核验关键公式：
+              1. Davis 阻力必须为标准形式 0.0018*C*A*V²（独立于车重，禁止被放大 w 倍）
+              2. 制动传播延迟 = 车辆累计长度/波速（常用 200m/s、紧急 250m/s），禁止用车钩 free_length
+              3. 车钩间隙死区 → 车钩力规律（杨敏），上限 1000kN（正常）/2250kN（紧急，Fu2019）
+              4. 长大下坡剖面参数（樊运新：-10.2‰ / 缓坡变陡坡 / V型坡）
+              不符合基准之处需给出依据（论文作者+年份+DOI）。
+            userPrompt: 审查本次 PR 的代码变更，给出改进建议；若涉及动力学/环境代码，请补充与 docs/VALIDATION_BASELINE.md 的对照结论。
+        - name: npc-paper-baseline
+          type: npc:go
+          options:
+            role: 验证基准核验员
+            systemPrompt: |
+              你是重载列车仿真的验证基准核验员。项目以论文为正确性验证基准（docs/VALIDATION_BASELINE.md），代码结果应与论文一致或接近。
+              请阅读 docs/VALIDATION_BASELINE.md 与本次 PR 涉及的文件，逐条对照核验：
+              1. 制动减压-压钩力：减压 50/70/100kPa → 压钩力 +16.8%/+36.8%（Zhang2025），单调递增
+              2. 车钩间隙-车钩力：0.01m vs 0.018m 相差 52.14kN（杨敏），间隙增大→峰值增大
+              3. 制动波速传播：延迟=车辆累计长度/波速，多源制动（EOT 双源）降低最大拉钩力（780→489kN，-37%）
+              4. 编组→纵向冲动排序、车钩力上限 1000kN（正常）/2250kN（紧急）
+              输出格式：逐条「通过/不通过 + 理由 + 论文出处」；若本次变更与验证基准无关，简述后输出"未涉及基准核验项"。
+            userPrompt: 核验本次 PR 的代码是否符合 docs/VALIDATION_BASELINE.md 的论文验证基准，输出对照结论。
 
   # 轻量 CI：其他分支/路径变更仅做 import 冒烟检查，不跑重型测试
   push:

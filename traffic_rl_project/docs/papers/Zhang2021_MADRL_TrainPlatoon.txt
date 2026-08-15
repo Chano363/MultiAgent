@@ -1,0 +1,1153 @@
+Multi-Agent Deep Reinforcement Learning Based
+Consistency Control in Train Platoon Systems
+Xinran Zhang, Gaofeng Nie, Wanli Ni, Hui Tian
+State Key Laboratory of Networking and Switching Technology
+Beijing University of Posts and Telecommunications, Beijing 100876, China
+Email: {ZhangXinran, niegaofeng, charleswall, tianhui }@bupt.edu.cn
+Abstract—The train platoon (TP) in the urban rail transit
+(URT) system has been regarded as a promising solution to
+improve the transportation capacity between metro stations.
+Moreover, TP has a great potential to effectively adapt to
+the high dynamic ﬂow of passengers during major events or
+festivals. Unfortunately, the promotion of TP is challenged due
+to the auto-block system in the traditional URT system as well
+as the complicated and dynamic operation environment. This
+paper investigates a cooperative control method to realize the
+consistency of TP in the premise of anti-interference. The multi-
+agent system of TP based on leader-follower typology is designed
+to achieve the operation goals in terms of distance and velocity.
+A novel distributed multi-agent deep reinforcement learning
+algorithm is proposed to obtain the optimal control strategy,
+where the artiﬁcial potential ﬁeld is structured to provide prior
+knowledge of the environment. Compared with the conventional
+Q-learning based methods, simulation results validate that the
+proposed algorithm not only beneﬁts the achievement of the
+operation goal, but also prevents the unfavorable interference
+from the external system.
+Index Terms —Multi-agent deep reinforcement learning, train
+platoons, artiﬁcial potential ﬁeld, cooperative control.
+I. I NTRODUCTION
+Communication-based train control system (CBTC) serves
+as the core of urban rail transit (URT) system nowadays. Under
+CBTC mechanism, two transportation problems urge to be
+solved. Firstly, with the increasing pressure of overwhelming
+passenger ﬂow, the capacity of railway transportation can
+not satisfy the quantity of passengers virtually. Overload of
+trains happens occasionally, which may threaten life security
+of passengers. Secondly, regarded as the phenomenon of tidal
+passenger ﬂows, the direction into the city requires more
+trains than the counterpart in the morning peak. Instead, both
+directions are allocated with identical numbers of train sets,
+in which case demand exceeds supply in the direction of city-
+entering and vice versa, causing transportation resource waste.
+Based on aforementioned problems, a novel train platoon
+(TP) system is structured to increase the transportation capac-
+ity and accommodate the high dynamic ﬂow of passengers. In
+order to shorten the distance between adjacent trains in TP ,
+train-to-train is introduced as another communication method
+in addition to train-to-infrastructure to reduce the communica-
+tion delay [1]. However, the auto-block system of the control
+This work was supported by National Natural Science Foundation
+of China (Grant No. 61801046), and Beijing University of Posts and
+Telecommunications-China Mobile Research Institute Joint Innovation Center.
+center in CBTC restrains the relative distance of trains [2].
+Therefore, auto-control based on commands from the control
+center is possible to be substituted for smart control based on
+artiﬁcial intelligence. To facilitate the matching between trains
+and passengers, trains in TP utilize wireless communication
+as a virtual coupler replacing the mechanical coupler so that
+TP can enroll or deprive trains according to the quantity
+of passengers ﬂexibly [3]. Nevertheless, the dynamic motion
+of trains and the complicated environment pose a threat to
+operation security of TP . In this paper, we consider operation
+security is achieved if TP arrives at the destination successfully
+without out-of-range accidents and break-down caused by
+unpredictable interference.
+Considering that TP serves as a multi-agent system (MAS),
+deep reinforcement learning (DRL) is regarded as an appropri-
+ate AI control method of TP in recent studies. Most existing
+works adopt centralized DRL based on global information on
+considerable states [4], whose dimension increases intensely
+when participants enroll in TP , leading to unforeseen com-
+putation complexity. Meanwhile, DRL lacks the prior knowl-
+edge resulting in poor training efﬁciency. Motivated by the
+aforementioned challenges of DRL, we propose a distributed
+multi-agent deep reinforcement learning (multi-agent DRL) to
+control agents locally and increase the training speed by the
+pre-designed reward function. Compared with general DRL,
+the proposed multi-agent DRL has greater advantage of saving
+computation resource and improving training efﬁciency, which
+is more suitable to the TP system with multiple agents.
+A. Related Work
+Researchers have developed various control methods to
+operate vehicle platoons. In early studies, researchers focused
+on the motion of platoons, including formulation of platoon
+and path planning [5]. Recently, robust performance of vehicle
+operation has been considered based on cybernetics control
+method. Considering possible interior error or exterior inter-
+ference, control methods were developed by [6]–[8] to real-
+ize error detection and correction. Speciﬁcally, Wang eta l .
+proposed a distributed model predictive control algorithm to
+tackle time-varying constraints derived from abnormal com-
+munication by switching communication topology and control
+topology [6]. Alotibi eta l . considered the critical threats of
+false information from the platoon leader, and proposed a real-
+time anomaly detection mechanism that combined statistical
+1405
+2021 IEEE 23rd Int Conf on High Performance Computing & Communications; 7th Int Conf on Data Science & Systems; 19th
+Int Conf on Smart City; 7th Int Conf on Dependability in Sensor, Cloud & Big Data Systems & Application
+978-1-6654-9457-1/21/$31.00 ©2021 IEEE
+DOI 10.1109/HPCC-DSS-SmartCity-DependSys53884.2021.00211
+2021 IEEE 23rd Int Conf on High Performance Computing & Communications; 7th Int Conf on Data Science & Systems; 19th Int Conf on Smart City; 7th Int Conf on Dependability in Sensor, Cloud & Big Data Systems &
+ Application (HPCC/DSS/SmartCity/DependSys) | 978-1-6654-9457-1/21/$31.00 ©2021 IEEE | DOI: 10.1109/HPCC-DSS-SMARTCITY-DEPENDSYS53884.2021.00211
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+learning and kinematics laws [7]. Meanwhile, information
+sharing method was designed in cooperative adaptive cruise
+control (CACC) model to support the detection and improve
+the reliability. Considering cyber-security of communication
+networks between vehicles, a distributed security control ap-
+proach driven by data was proposed to prevent denial-of-
+service attacks, which was suitable for nun-model system [8].
+Meanwhile, RL-based control method has substituted for
+conventional cybernetics increasingly. Robust performance of
+vehicle operation was improved by [9]–[12]. Speciﬁcally,
+Li eta l . adopted a curriculum learning approach to reduce
+crashes during training exploration [9]. Sui eta l . proposed
+two-stage training framework based on DRL to balance the
+comprehensive problem of formation maintenance and colli-
+sion avoidance [10]. Zhang eta l . integrate soft actor-critic
+algorithm with Lyapunov function to guarantee stability of
+motion planning of autonomous vehicles [11]. Peake eta l .
+developed a novel CCAC method based on multi-agent DRL
+to optimize decision-making of communication and improve
+the string stability of driving in platoons [12]. Moreover,
+[9], [13] contributed to save resource of platoon system.
+Concretely, Meng eta l . designed a communication proximal
+policy optimization to tackle redundant information derived
+from multi-agent RL algorithms [9]. Du eta l . employed DRL
+for energy management of the series electric vehicle and cre-
+ated heuristic method for efﬁcient sampling [13]. Furthermore,
+adaptive control methods were developed for more complex
+scenarios. With regard to motion control under the roundabout,
+Zhang eta l . developed an optimization embedded RL to
+achieve adaptive decision-making [14]. Taking into account
+the platoon containing both autonomous vehicles and human-
+driven vehicles, an adaptive optimal control method for the
+former was proposed to tackle heterogeneous driver behavior,
+which adapted to different platoon dynamics [15].
+B. Contributions
+Due to the dynamic motion of multiple trains in the
+complicated environment, achieving an efﬁcient cooperative
+control of TP is a challenging problem. In this paper, we
+propose a distributed reinforcement learning method to solve
+the consistency control problem with security guarantee. The
+main contributions of this paper are listed as follows:
+• We formulate a multi-objective problem in the TP system
+based on a leader-follower typology, where an artiﬁcial
+potential ﬁeld (APF) method is adopted to unify a variety
+of force. Unlike APF in previous studies, we design
+twin potential ﬁelds in terms of distance and velocity
+difference between adjacent trains separately, and the
+value of potential ﬁeld force is limited to suit for reality.
+• By designing reward function based on APF to provide
+prior knowledge and improve training efﬁciency, we
+develop a distributed multi-agent DQN algorithm which
+allows agents to prevent overwhelming state information.
+Different from the past studies, the reward function is
+built according to characteristics of different states, which
+accelerates the training process to a large degree.
+TABLE I: Summary of Symbols and Main Notations
+N , N Set of trains in TP , and size of the set
+n, xn Operation distance from beginning of train n
+xn− 1,n Relative distance of train n − 1 and train n
+en− 1,n Distance error of train n − 1 and train n
+dgoal Goal distance distance between adjacent trains
+dmax Maximum distance between adjacent trains
+vn V elocity of the n-th train
+vn− 1,n V elocity difference of train n − 1 and train n
+vn,max Maximum velocity of the n-th train
+unx(en− 1,n) Position controller of the n-th train
+unv(vn− 1,n) V elocity controller of the n-th train
+k Period number of wireless communication
+S, A Set of operation states, and set of actions
+sn State vector of the n-th train
+δn− 1,n, νn− 1,n Distance state and velocity state
+an Acceleration and action of the n-th train
+rn Reward function of the n-th train
+wn, w−
+n
+Weights of Q-network and Q-target network
+I Sample set selected for every training
+I Size of the sample set
+ǫ Probability to select a random action
+γ Discount factor to adjust the sensitivity
+Q∗(sn,a n) Q value function
+Q(sn,a n; wn) Estimated Q value function
+Lni(wni) Mean-square error method based loss function
+yn Target function in Q-network
+• We further convert communication typology from uni-
+direction to bi-direction to constrain distance between ad-
+jacent trains so as to reduce out-of-range communication.
+A virtual leader is employed to regulate the prescriptive
+schedule and route, and the reward is upgraded to be
+multi-standard to achieve the operation goal.
+• Compared with Q-learning, simulation results show that
+our proposed learning algorithm can achieve better per-
+formance in terms of consistency control, decoupling
+reduction and interference suppression. Meanwhile, bi-
+direction communication method makes a difference to
+out-of-range communication precaution remarkably.
+The rest of this paper is organized as follows. Section
+II describes the structure of the TP system and the formu-
+lated multi-objective problem. Section III elaborates on the
+proposed distributed multi-agent DQN algorithm. Section IV
+presents numerical results of the proposed algorithm compared
+with Q-learning for performance evaluation. Finally, section V
+provides conclusion to this paper.
+II. S
+YSTEM MODEL AND PROBLEM FORMULA TION
+In this paper, we focus on the entire journey of TP from
+one destination to another. In the premise of the successful
+arrival at destination, the operation goal of TP is to achieve
+the consistence of velocity and distance between adjacent
+trains simultaneously, which is deﬁned as the cooperative
+consistency control of TP . The operation goal of TP is able
+to be converted into the operation goal of followers, which
+is to achieve zero velocity difference and the predeﬁned
+goal distance simultaneously between every follower and the
+predecessor. Note that the predeﬁned goal distance is identical
+in terms of every follower.
+1406
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+Fig. 1: System model of TP with N trains. (a) Model of uni-
+direction communication. (b) Model of bi-direction communi-
+cation.
+A. System Model
+As illustrated in Fig. 1(a), the leader-follower typology is
+applied to the formation of TP . N denotes the size of TP
+indexed by N = {1, 2, ..., N}. Members of TP are divided into
+leaders and followers. Leaders play a role of leading direction,
+including trains in TP except the N -th train. Followers are
+the trains behind leaders, including trains in TP except the
+ﬁrst train. To be simpliﬁed, any follower mentioned below is
+denoted as the n-th train, and ∀n ∈N \ {1} if not instructed
+particularly. With the exception of the ﬁrst and the N -th
+train, every train in TP is regarded as not only a leader but
+also a follower, which follows the predecessor and leads the
+successor. Every follower communicates with the predecessor
+leader solely. Followers depend on the operation states of their
+leaders to decide the control strategies.
+We model the complex dynamics environment of TP as an
+artiﬁcial potential ﬁeld (APF) where potential ﬁeld force is
+the only variety of force that trains take [16]. Two aspects
+are considered to design the APF. Firstly, the zero potential
+point is required to be the operation goal of TP . Considering
+the local optimization of APF, the potential ﬁeld function
+requires a sole minimum. Secondly, the potential ﬁeld force
+function is required to reach zero at the zero potential point. In
+other words, trains maintain the goal operation state. In other
+situations, the potential ﬁeld force of a train points to the zero
+potential point, which means the potential ﬁeld force can be
+attractive or repulsive. The potential ﬁeld force drives TP to
+achieve the operation goal. Considering practical situation, the
+potential ﬁeld force function is required to be bounded. Based
+on the aforementioned aspects, ln(cosh(·)) is selected as the
+potential ﬁeld function and ∇ ln(cosh(·))= tanh(·) serves as
+the potential ﬁeld force function [1]. In view of the operation
+goal, twin potential ﬁelds are designed and constitute the entire
+artiﬁcial environment.
+We deﬁne xn as the operation distance of the n-th train, and
+the distance between adjacent trains is xn− 1,n=xn− 1 − xn.
+dgoal is deﬁned as the goal distance between adjacent trains,
+and the distance error between them is en− 1,n = xn− 1,n −
+dgoal. vn is deﬁned as the velocity of the n-th train, and the ve-
+locity difference between adjacent trains is vn− 1,n=vn− 1 − vn.
+The potential ﬁeld force function is considered as a controller
+of the n-th train, which is described as
+un
+AP F = α1
+N∑
+n
+′ =1
+ann′ tanh(enn′ )
+/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+unx(enn′ )
++ α2
+N∑
+n=1
+ann′ tanh(vnn′ )
+/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+unv(vnn′ )
+,
+(1)
+where ∀n
+′
+,n ∈N ,n
+′
+⁄= n, unx(en,n′ ) is a position controller,
+which controls the n-th train to reach dgoal, unv(vnn′ ) is a
+velocity controller, which controls the n-th train to achieve the
+consistent velocity with the predecessor, unAP F is the com-
+pound controller consisting of the two, α1 and α2 are positive
+parameters which adjust the amplitudes of the controllers, ann′
+is an element in the matrix Am =[ ann′ ]N ×N of the formation
+typology of TP . In this model, Am =
+[0 AN − 1,N − 1
+00
+]
+, where
+AN − 1,N − 1 is an adjacent matrix and hence the controller of
+followers is simpliﬁed as
+un
+AP F = α1 tanh(en− 1,n)/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+unx(en− 1,n)
++ α2 tanh(vn− 1,n)/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+unv(vn− 1,n)
+, (2)
+where ∀n ∈N \ {1}. The controller of the n-th train in TP is
+described as
+un =
+{
+uAT O
+n ,n =1
+uAP F
+n ,n ⁄=1 (3)
+where uAT O
+1 denotes the controller of the ﬁrst train in the
+automatic train operation (A TO) module.
+In this paper, the operation journey of the ﬁrst train con-
+trolled by A TO is divided into three stages: traction, cruising
+and braking, and the operation stage of the n-th train is
+deﬁned by the real-time stage of the ﬁrst train. At the traction
+stage, v1 increases from 0 to the maximum v1,max, and
+xA
+1 = v2
+1,max/2aA
+1 . At the cruising stage, v1 remains v1,max,
+and xB
+1 = v1,maxtB
+1 . At the braking stage, v1 decreases from
+v1,max to 0, and xC
+1 = − v2
+1,max/2aC
+1 , where a1 denotes the
+acceleration of the ﬁrst train, A, B and C denote the three
+stages successively.
+B. Problem F ormulation
+The operation goal of TP is to achieve the cooperative
+consistency control in the premise of the constraints for
+security guarantee. The operation goal and the constraints are
+formulated as
+goal :
+⎧
+⎨
+⎩
+lim
+k→∞
+xk
+n− 1,n(ak
+n)= dgoal,
+lim
+k→∞
+vk
+n− 1,n(ak
+n)=0 , (4)
+constraints :
+⎧
+⎪
+⎨
+⎪
+⎩
+0 ≤ xk
+n− 1,n ≤ dmax, ∀n, ∀k,
+0 ≤ vk
+n ≤ vn,max, ∀n, ∀k,
+amaxb ≤ ak
+n ≤ amaxt, ∀n, ∀k,
+(5)
+1407
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+where k denotes the period number of wireless commu-
+nication between adjacent trains as a positive integer, the
+variables with superscript k refer to the variables in the k-
+th communication period, dmax = max( xn− 1,n) which is
+determined by the maximum range of wireless communication,
+vn,max = max( vn) which is not identical for every train
+to obtain better performance, amaxb and amaxt denote the
+maximum deceleration and the maximum acceleration of the
+n-th train, which are predeﬁned and identical for every train.
+However, It’s difﬁcult to obtain an optimal control strategy
+due to the following reasons. Firstly, predecessors are part of
+the operation environment of TP resulting in the variability
+and complexity of surroundings. Secondly, the overwhelming
+data derived from TP brings excessive pressure on computation
+and storage of the transportation system. Thirdly, traditional
+auto-control method inclines to be stuck in local optimization.
+Therefore, it’s crucial to introduce reinforcement learning in
+the cooperative control of TP .
+III. M
+ULTI -AGENT DEEP Q-N ETWORK FOR COOPERA TIVE
+CONSISTENCY CONTROL
+To address the above problems, we turn to developing
+DRL-based control method for followers, which is capable
+to search the global optimal strategy. However, due to zero
+prior knowledge of environment and random action-choosing
+at the start of training, DRL is of low training efﬁciency.
+Moreover, to deal with the MAS, the general DRL produces
+overwhelming data leading to excessively complex computa-
+tion. To solve these problems, we develop a distributed multi-
+agent DRL algorithm. Distributed DRL means every agent in
+TP is trained separately and has personal states, actions and
+rewards differently, instead of being trained jointly and sharing
+identical states and rewards. Compared with general DRL, the
+reward function of multi-agent DRL is delicately designed in
+accordance with APF, by means of which APF plays a role of
+prior knowledge provider. Deep Q-Network (DQN) is adopted
+due to the signiﬁcant competence in ﬁtting nonlinear function
+and saving storage space.
+A. MDP F ormulation
+Multi-agent DQN agents in TP interact with the environ-
+ment and transit to the next operation state, which can be
+modeled as a Markov decision process (MDP). In this section,
+we formulate the state space S, the action space A and the
+reward function of the n-th train rn. Note that we assume the
+state transition probability is 1.
+State space: We assume S denotes the state space of the
+n-th train. The state of the n-th train denoted as sn i sa2 -
+dimension vector consisting of xn− 1,n and vn− 1,n. Due to
+the continuity of xn− 1,n and vn− 1,n, discretization is of great
+importance. In this paper, the value range of xn− 1,n is divided
+equally into X segments denoted as δn− 1,n ∈{ 1, 2, ..., X}.
+Similarly, the value range of vn− 1,n is divided equally into
+V segments denoted as νn− 1,n ∈{ 1, 2, ..., V }. Hence sn =
+(δn− 1,n,ν n− 1,n), ∀sn ∈S , and the size of state space is XV .
+-100 -50 0 50 100
+en-1,n
+0
+20
+40
+60
+80
+100
+Potential function
+-10 -5 0 5 10
+vn-1,n
+0
+2
+4
+6
+8
+10
+-100 -50 0 50 100
+en-1,n
+-1
+-0.5
+0
+0.5
+1
+Unx(en-1,n)
+Potential force function
+-10 -5 0 5 10
+vn-1,n
+-1
+-0.5
+0
+0.5
+1
+Unv(vn-1,n)
+-100 -50 0 50 100
+en-1,n
+0
+0.2
+0.4
+0.6
+0.8
+1
+Derivative of potential force function
+-10 -5 0 5 10
+vn-1,n
+0
+0.2
+0.4
+0.6
+0.8
+1
+-100 -50 0 50 100
+en-1,n
+0
+20
+40
+60
+80
+100
+rn
+e
+Prototype of reward function
+-10 -5 0 5 10
+vn-1,n
+0
+2
+4
+6
+8
+10
+rn
+v
+Fig. 2: Prototypes of twin reward functions re
+n and rv
+n.
+Action space: We assume A denotes the action space of
+the n-th train. We regard the acceleration of the n-th train as
+an action denoted as an, ∀an ∈A . Due to the continuity of
+accelerations and simplicity of the problem, we assume the n-
+th train is equipped with three gears consisting of acceleration
+gear, idle gear and deceleration gear, which are set as A =
+{a+, 0,a − }, and the size of action space is 3.
+Reward function: Reward function is designed in accor-
+dance with aforementioned controllers derived from APF.
+We assume the reward function of the n-th train is rn =
+f (en− 1,n,v n− 1,n) consisting of re
+n = fe(en− 1,n) and rv
+n =
+fv(vn− 1,n). As a core discipline of reward-designing, when a
+follower is closer to the operation goal, the reward value is
+larger. In other words, when a follower is closer to the zero
+potential point or takes less potential ﬁeld force, the reward
+value is larger. As shown in Fig. 2, we simplify the derivative
+curve of potential ﬁeld forces function as prototypes of twin
+reward functions. Based on the prototypes, speciﬁc disciplines
+to design rn are as follows:
+Fixed reward value: For the sake of improving the efﬁ-
+ciency of training, some ﬁxed and larger reward values are
+designed for the operation goal achievement and security
+problems separately to select a better action. The operation
+goal achievement is equivalent to en− 1,n =0 or vn− 1,n =0 ,
+corresponding to re
+n = R or rv
+n = R, where R is a
+ﬁxed positive large value. Security problems contain collision,
+out-of-range and reverse, which are separately denoted as
+en− 1,n < − dgoal, en− 1,n >d max − dgoal corresponding to
+re
+n = − R, and vn < 0 corresponding to rv
+n = − R. When a
+security problem emerges, training failure happens.
+Safe states and edge states: The edge state is deﬁned as
+a state where the training is close to failure, while the safe
+state is the one except edge states and training failure states
+in S. To facilitate the training process, we design the safe
+state corresponds to positive reward while the edge state
+corresponds to negative reward. Speciﬁcally, edge states of
+en− 1,n include − dgoal ≤ en− 1,n < 0 and dmax − dgoal − D<
+en− 1,n ≤ dmax − dgoal, where D is a ﬁxed value to deﬁne the
+range of edge state of en− 1,n. To achieve the optimal strategy
+quickly during transaction and braking stages particularly,
+we deﬁne edge states of vn− 1,n by introducing wmax1 and
+− wmax2 as shown in Fig. 3.
+For transaction stage with vn− 1,n ≥ 0 constantly, wmax1
+1408
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+denotes the maximum of vn− 1,n if no out-of-range happens.
+More speciﬁcally, from the moment of vn− 1,n = wmax1,
+if the agent accelerates continually until vn− 1 = vn− 1,max
+with vn− 1,n =0 , the edge state en− 1,n = dmax − dgoal is
+obtained exactly. In other words, vn− 1,n >w max1 deﬁnitely
+leads to out-of-range. Therefore, wmax1 is formulated as
+wmax1 = vn− 1 − vn, where vn− 1 and vn satisfy xn− 1,n +
+0.5((vn− 1,max − vn)tn − (vn− 1,max − vn− 1)tn− 1)= dmax.
+For braking stage with vn− 1,n ≤ 0 constantly, − wmax2
+denotes the minimum of vn− 1,n in the premise of no collision.
+More speciﬁcally, from the moment of vn− 1,n = − wmax2,i f
+the agent selects deceleration action continually until vn− 1 =
+vn =0 , the edge state en− 1,n = − dgoal is obtained exactly. In
+other words, vn− 1,n < − wmax2 deﬁnitely leads to collision.
+Therefore, − wmax2 is formulated as − wmax2 = vn− 1 − vn,
+where vn− 1 and vn satisfy xn− 1,n − 0.5(vn− 1tn− 1 − vntn)=
+0. Note that vn− 1,n >w max1 and vn− 1,n < − wmax2 do not
+lead to training failure immediately, which are reasonable to be
+considered as edge states. It is worth mentioning that wmax1
+and − wmax2 are time-varying, which is not a problem for
+identiﬁcation of edge states.
+Combination of re
+n and rv
+n: To intergrate re
+n and rv
+n to rn
+reasonably, we deﬁne the priority of the negative one is higher
+than that of the positive one. More speciﬁcally, as long as
+anyone of the two is negative, the positive one is hidden.
+In accordance with three principles above, the reward func-
+tion of the n-th train in TP is formulated as
+rn =
+⎧
+⎪
+⎨
+⎪
+⎩
+re
+n + rv
+n,r e
+nrv
+n > 0
+re
+n,r e
+n < 0,r v
+n > 0
+rv
+n,r v
+n < 0,r e
+n > 0
+(6)
+Note that if re
+n or rv
+n equals to zero, rn is consistent with the
+non-zero one. To be simpliﬁed, we deﬁne dm = dmax − dgoal.
+re
+n and rv
+n are separately formulated as
+re
+n =
+⎧
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎨
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎩
+dmd− 1
+goalen− 1,n, − dgoal ≤ en− 1,n < 0
+− en− 1,n + dm, 0 <e n− 1,n ≤ dm − D
+dm((dm − 1)D− 1 − 1),d m − D<e n− 1,n ≤ dm
+R, e n− 1,n =0
+− R, else
+(7)
+rv
+n =
+⎧
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎨
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎪
+⎩
+2vn− 1,n,v n− 1,n < − wmax2
+vn− 1,n + vn,max, − wmax2 ≤ vn− 1,n < 0
+− vn− 1,n + vn,max, 0 <v n− 1,n ≤ wmax1
+− 2vn− 1,n,v n− 1,n >w max1
+R, v n− 1,n =0
+− R, v n < 0
+(8)
+B. Multi-Agent Deep Q-Network
+As illustrated in Fig.4, every agent possesses a personal
+Q-network trained respectively. Q-network is a deep neural
+network with three fully connected layers. At the k-th step
+in a training, the n-th train observes current state sk
+n viewed
+as a 2-dimension input to Q-network. The second layer of
+1,maxnv 
+1nv 
+max1nvw 
+1nt 
+nt
+max 2=nvw 
+1nv 
+nt
+1nt 
+v
+t0
+Fig. 3: The simpliﬁed illustration of wmax1 and − wmax2.
+Replay bufferReplay buffer
+Loss functionLoss function
+'I 'I
+Q-network with          Q-network with          Q-network with          Q-target network with    Q-target network with    Q-target network with    for every      
+steps 
+Q-network with          Q-target network with    for every      
+steps 
+I sample setsI sample sets
+nw(, ; )kk
+nn nQs a w
++1k
+ns
+k
+nr
+1(, ,, )kk k k
+nn nnsars 
+1
+11max ( , ; )k
+n
+kk
+nn na Qs a
+  w
+k
+nsk
+ns
+max ( , ; )
+=
+kk
+nn n
+k
+n
+arg Q s a
+a
+wmax ( , ; )
+=
+kk
+nn n
+k
+n
+arg Q s a
+a
+wn(( n
+nw nw
+nn
+ ww
+k
+ns
+follow followfollow
+Train N Train n Train 2 Train 1
+follow
+Fig. 4: Framework of the proposed DQN algorithm.
+Q-network is a hidden layer, the weight wn of which is
+initialized randomly. Q-network approximates the estimated
+Q value function by Q∗(sn,a n) ≈ Q(sn,a n; wn), where
+Q(sn,a n; wn)= E
+[ ∞∑
+κ =k
+= γκ − krκ
+n | sk
+n,a k
+n; wn
+]
+. (9)
+By means of the computation of the hidden layer, the approx-
+imate Q-values of three actions in A are obtained simultane-
+ously as a 3-dimension output. The agent selects the action
+ak
+n possessing the maximum Q-value with the probability of
+1 − ϵ, while it selects the action in A randomly with ϵ. The
+immediate corresponding reward rk
+n is obtained in accordance
+with the aforementioned reward function. Simultaneously, the
+state of the agent transits to the next state sk+1
+n .
+Experience replay method is employed to distort the cor-
+relation of samples and improve the utility efﬁciency of
+previous experience. The sample set derived from the k-th
+step (sk
+n,a k
+n,r k
+n,s k+1
+n ) is preserved in a relay buffer with the
+capability of B samples. In accordance with the ﬁrst in ﬁrst
+out (FIFO) principle, if the replay buffer is ﬁlled and the new
+sample enrolls, the oldest sample set is expelled from the
+buffer. We select I samples from the replay buffer for every
+training indexed by I = {1, 2, ..., I}.
+1409
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+Considering the non-stability of Q∗(sn,a n), Q-target net-
+work is employed to approximate the actual Q value function
+known as the target yn with the ﬁxed weight w−
+n . The loss
+function based on mean-square error method is formulated as
+Lni(wni)= E[(yk
+ni − Q(sk
+ni,a k
+ni; wn))2], ∀i ∈I , ∀n, (10)
+the target yk
+ni is formulated as
+yk
+ni =
+{
+rk
+ni + γ maxa
+k+1
+ni
+Q(sk+1
+ni ,a k+1
+ni ; w−
+n ),k ⁄= kt
+rk
+ni,k = kt
+(11)
+where γ ∈ (0, 1] denotes the discount factor to adjust the
+sensitivity to predicted reward, kt denotes the terminal period
+of communication. To minimize the loss function, the weights
+wn is updated by gradient descent method. Initially, sample
+sets in the replay buffer is fewer than I, training happens
+at every step employing every sample set, otherwise training
+process is repeated intermittently with the interval of I steps.
+Q-target network is identical to Q-network initially, the weight
+w−
+n of which is replaced by wn with the interval of I ′ steps.
+The agent interacts with the environment and produces one
+sample set. The process is repeated per step. Hundreds of
+steps make up one training episode. An entire training episode
+begins when the agent starts to operate, and ends up with
+training failure or training success deﬁned as successful arrival
+at the destination with cessation of every agent. If the current
+episode fails, then all the variables are initialized and train the
+current episode a second time until it succeeds. If the current
+episode succeeds, the training moves on to a new episode. Note
+that from the initial value ϵ0, ϵ decreases by ϵp per successful
+episode until obtain the minimum value ϵmin. In this way,
+exploration at the beginning and anti-interference ability are
+achieved, and meanwhile negative inﬂuence on efﬁciency of
+training is avoided.
+C. Extension to Bi-direction Communication
+As illustrated in Fig.1(b) , in order to prevent trains
+from out-of-range communication during operation, we further
+develop a cooperative consistency control method with bi-
+direction communication between adjacent trains. Every train
+except the N -th train in TP communicates with the successor
+in addition to the predecessor so as to obtains operation states
+information. In other words, every train except the N -th train
+is attached with perception ability to the successor. When the
+distance between adjacent trains is nearly out-of-range, both
+of them can adjust acceleration automatically to shorten the
+distance rather than the successor solely, which strengthens
+the operation security for the most part.
+We allow the ﬁrst train to adjust the operation state automat-
+ically by substituting A TO for RL. In order to guarantee the
+prescriptive schedule and route of TP , we introduce a virtual
+leader as a predecessor of the ﬁrst train, which serves as a
+follower. The virtual leader is assumed to be controlled by
+A TO, the operation state of which is identical to the ﬁrst train
+with uni-direction communication.
+Additionally, we equip the multi-agent DQN algorithm with
+multi-standard rewards. Considering that out-of-range happens
+Algorithm 1 Proposed Multi-Agent DQN Algorithm for the
+Cooperative Consistency Control of TP
+1: Initialize replay buffer with random numbers, Q-network,
+Q-target network, wn with random parameters, w−
+n = wn,
+ϵ = ϵ0.
+2: for episode e=1:E do
+3: Initialize The n-th train operation state at start, ϵ = ϵϵp
+until ϵ = ϵmin.
+4: while !(vn− 1 = vn =0 ) do
+5: if training failure then
+6: Initialize The n-th train operation state at start.
+7: end if
+8: With probability ϵ select a random action ak
+n, other-
+wise select ak
+n = arg maxA Q(sk
+n,a k
+n; wn).
+Execute action ak
+n, obtain reward rk
+n, next state sk+1
+n .
+Store transition (sk
+n,a k
+n,r k
+n,s k+1
+n ) in replay buffer.
+step k = k +1 .
+9: if k<I then
+10: Input entire sample sets to Q-network.
+11: else
+12: Every I steps select I sample sets from replay
+buffer.
+13: end if
+Perform gradient descent on (10) to update wn.
+Reset w−
+n = wn every I ′ steps.
+14: end while
+15: end for
+at the traction stage and the cruising stage abbreviated to tra-
+cru stage solely, we design different reward functions for tra-
+cru stage and braking stage respectively based on speciﬁc
+feature of states. The rest part of the algorithm resembles
+aforementioned one. We omit the details for simplicity.
+IV . N
+UMERICAL RESULT
+In this section, we consider a TP containing two trains. With
+the uni-direction communication, control method of the ﬁrst
+train is based on A TO while it is based on DRL with the bi-
+direction communication.We refer to Q-learning as a counter-
+part of the proposed algorithm. The operation parameters are
+designed as follows: the k-th step is 0.2 s, the initial distance
+between two trains x0
+12 =6 0 m, the maximum distance
+dmax = 100 m, the goal distance dgoal =1 0 m, the initial
+velocity v0
+1 = v0
+2 =0 , the maximum velocities v1,max =2 0
+m/s and v2,max =2 0.32 m/s. To illustrate the braking process
+of the second train, the cessation time of the ﬁrst train lasts for
+200 steps. The proposed DQN is a fully connected deep neural
+network consisting of a 2D input layer, a hidden layer with
+100 neurons and a 3D output layer with the tanh(·) activation.
+DQN training is set with parameter settings: initial exploration
+probability ϵ0 =0 .1, declining ratio ϵp =0 .02, the minimum
+exploration probability ϵmin =0 .01, learning rate α =0 .01,
+discount factor γ =0 .9, replay buffer size B =1 0 , 000,
+sample set size I =5 0, Q-target network replacing frequency
+I ′ = 200 , episode quantity E = 200 . Meanwhile, parameters
+1410
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+0 200 400 600 800 1000 1200
+Step
+0
+5
+10
+15
+20
+25Velocity (m/s)
+The first train
+The second train (Q-learning)
+The second train (multi-agent DQN)
+280 290 300 310 320 330 340
+19.5
+20
+20.5
+740 760 780 800 820 840
+19
+19.5
+20
+20.5
+(a)
+0 200 400 600 800 1000 1200
+Step
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100Distance (m)
+Q-learning
+multi-agent DQN
+(b)
+Fig. 5: Relative distance and velocities curves of the ﬁrst
+train and the second train. (a) V elocities curves. (b) Relative
+distance curves.
+of the three factors of DRL are designed. The size of distance
+state X =2 1 , the size of velocity state V =2 3 , the actions
+a+ =0 .8m /s2 and a− = − 0.8m /s2. The reward function
+is set with parameter settings: ﬁxed reward value R =4 0 0,
+range of edge state of distance D =1 0 m.
+In Fig. 5, relative distance and velocities of the two simu-
+lated trains through the entire operation journey is illustrated.
+The vibration of the velocity curve of multi-agent DQN is 298
+steps later than the one of Q-learning. At the braking stage,
+the multi-agent DQN train remains a velocity difference of
+0.32 m/s. It can be observed that the second train controlled
+by multi-agent DQN is closer to the operation goal. This is
+because the multi-agent DQN train learns to sacriﬁce less
+velocity reward value to attain more distance reward value,
+obtaining shorter relative distance ultimately compared with
+the Q-learning train.
+In Fig. 6, the inﬂuence on the out-of-range reduction based
+on multi-agent DQN versus Q-learning is presented. It is
+0 20 40 60 80 100 120 140 160 180 200
+Episode
+0
+10
+20
+30
+40
+50
+60
+70Times of out-of-range
+Q-learning
+multi-agent DQN
+Fig. 6: Performance comparison of times of out-of-range with
+Q-learning and multi-agent DQN.
+0 50 100
+Times of Operation journey
+0
+0.5
+1
+1.5Success bool
+One time of interference
+Qtable Qnet
+0
+50
+100
+150Times of operation journey
+0 50 100
+Times of Operation journey
+0
+0.5
+1
+1.5Success bool
+Two times of interference
+Qtable Qnet
+0
+50
+100
+150Times of operation journey
+0 50 100
+Times of Operation journey
+0
+0.5
+1
+1.5Success bool
+Three times of interference
+Q-learning
+multi-agent DQN
+Qtable Qnet
+0
+50
+100
+150Times of operation journey
+Test failure
+Test success
+Fig. 7: Success ratio under outside interference.
+notable that multi-agent DQN effectively reduces out-of-range
+accidents at the beginning of the training. Meanwhile, in
+every successful episode, multi-agent DQN reduces out-of-
+range accidents by 57% evenly compared with Q-learning.
+This is because multi-agent DQN has greater efﬁciency in
+training, so that it learns to avoid large penalty and obtain
+sufﬁcient reward in high efﬁciency.
+In Fig. 7, the capability of anti-interference based on multi-
+agent DQN versus Q-learning is shown. After 200 episodes
+of training, the Q-network and Q-table are employed for 100
+journeys, during every of which interference is added as tests.
+Every time of interference lasts for 100 steps. With times of
+interference increasing, the number of successful arrivals is de-
+clining. Under the same interference, the number of successful
+arrivals based on multi-agent DQN is larger than that of Q-
+learning to a great extent. Under three times of interference,
+success ratio of multi-agent DQN is 90% compared with 43%
+1411
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 
+0 20 40 60 80 100 120 140 160 180 200
+Episode
+0
+10
+20
+30
+40
+50
+60
+70Times of out-of-range
+Uni-direction communication
+Bi-direction communication
+Fig. 8: Performance comparison of times of out-of-range with
+uni-direction and bi-direction communication.
+of Q-learning. This is because multi-agent DQN is equipped
+with the great ﬁtting non-linear function capability, and thus
+the control method derived from multi-agent DQN has greater
+competence in preventing outside interference.
+In Fig. 8, the impact of bi-direction communication on
+precaution of out-of-range is demonstrated. It can be noticed
+that bi-direction communication method reduces the out-of-
+range accidents by 94.9% compared with uni-direction one.
+This advantage results from the perception ability of the ﬁrst
+train. The ﬁrst train obtains real-time states of the successor
+at every step, in which way the ﬁrst train can foresee the
+happening of out-of-range and take precaution by deceleration
+in time, and constrain the relative distance effectively.
+V. C
+ONCLUSION
+In this paper, we investigated the cooperative consistency
+control problem in TP system. Considering local optimization
+of traditional control method and a lack of operation security, a
+novel multi-agent DQN algorithm based on APF was proposed
+to solve zero prior knowledge problem and obtain the global
+optimal control strategy. Furthermore, the bi-direction commu-
+nication method of trains was proposed to prevent TP from the
+out-of-range accident speciﬁcally. Simulation results showed
+that the proposed multi-agent DQN algorithm could not only
+contribute to the achievement of the operation goal, but also
+improve the anti-interference capability of the control method.
+Meanwhile, out-of-range is reduced based on the proposed
+algorithm. Moreover, the proposed bi-direction communication
+method could take precaution against the out-of-range accident
+for the most part.
+R
+EFERENCES
+[1] H. Wang, Q. Zhao, S. Lin et al. , “A reinforcement learning empowered
+cooperative control approach for iiot-based virtually coupled train sets,”
+IEEE Trans. Industr . Inform., vol. 17, no. 7, pp. 4935–4945, July 2021,
+doi:10.1109/TII.2020.3024946.
+[2] H. Gao, Y . Zhang, and J. Guo, “Calculation and optimization
+of minimum headway in moving block system,” in 2020 IEEE
+5th Int. Conf. Intell. Transp. Eng. , Sept. 2020, pp. 482–486, doi:
+10.1109/ICITE50838.2020.9231437.
+[3] R. Parise, H. Dittus, J. Winter et al., “Reasoning functional requirements
+for virtually coupled train sets: Communication,” IEEE Commun. Mag. ,
+vol. 57, no. 9, pp. 12–17, 2019, doi:10.1109/MCOM.2019.1800936.
+[4] T. M. E. Hernandez-Leal P , Kartal B, “A survey and critique of
+multiagent deep reinforcement learning,” Auton. Agents and Multi-Agent
+Syst., vol. 33, no. 6, pp. 750–797, Nov. 2019, doi:10.1007/s10458-019-
+09421-1.
+[5] Y . Zheng, B. Li, D. An et al. , “A multi-agent path planning algorithm
+based on hierarchical reinforcement learning and artiﬁcial potential
+ﬁeld,” in 2015 11th Int. Conf. Natural Computation , Aug. 2015, pp.
+363–369, doi:10.1109/ICNC.2015.7378017.
+[6] P . Wang, H. Deng, J. Zhang et al. , “Model predictive con-
+trol for connected vehicle platoon under switching communica-
+tion topology,” IEEE Trans. Intell. Transp. Syst. , pp. 1–14, 2021,
+doi:10.1109/TITS.2021.3073012.
+[7] F. Alotibi and M. Abdelhakim, “Anomaly detection for cooperative
+adaptive cruise control in autonomous vehicles using statistical learning
+and kinematic model,” IEEE Trans. Intell. Transp. Syst. , vol. 22, no. 6,
+pp. 3468–3478, 2021, doi:10.1109/TITS.2020.2983392.
+[8] W. Che, C. Deng, and D. Liu, “Data-driven-based distributed security
+control for vehicle-following platoon,” in 2020 IEEE 9th Data Driven
+Control and Learn. Syst. Conf. (DDCLS) , Nov. 2020, pp. 1109–1113,
+doi: 10.1109/DDCLS49620.2020.9275217.
+[9] M. Li, Z. Cao, and Z. Li, “A reinforcement learning-based vehicle
+platoon control strategy for reducing energy consumption in trafﬁc
+oscillations,” IEEE Trans. Neural Netw. and Learn. Syst. , pp. 1–14, Apr.
+2021, doi:10.1109/TNNLS.2021.3071959.
+[10] Z. Sui, Z. Pu, J. Yi et al. , “Formation control with collision avoidance
+through deep reinforcement learning using model-guided demonstra-
+tion,” IEEE Trans. Neural Netw. and Learn. Syst. , vol. 32, no. 6, pp.
+2358–2372, July 2021, doi:10.1109/TNNLS.2020.3004893.
+[11] L. Zhang, R. Zhang, T. Wu et al. , “Safe reinforcement learning
+with stability guarantee for motion planning of autonomous vehicles,”
+IEEE Trans. Neural Netw. and Learn. Syst. , pp. 1–10, July 2021,
+doi:10.1109/TNNLS.2021.3084685.
+[12] A. Peake, J. McCalmon, B. Raiford et al. , “Multi-agent reinforcement
+learning for cooperative adaptive cruise control,” in 2020 IEEE 32nd
+Int. Conf. Tools Artif. Intell. , Nov. 2020, pp. 15–22, doi: 10.1109/IC-
+TAI50040.2020.00013.
+[13] G. Du, Y . Zou, X. Zhang et al. , “Heuristic energy management strategy
+of hybrid electric vehicle based on deep reinforcement learning with
+accelerated gradient optimization,” IEEE Trans. Transp. Electriﬁc. , pp.
+1–1, June 2021, doi:10.1109/TTE.2021.3088853.
+[14] Y . Zhang, B. Gao, L. Guo et al. , “Adaptive decision-making for auto-
+mated vehicles under roundabout scenarios using optimization embedded
+reinforcement learning,” IEEE Trans. Neural Netw. and Learn. Syst. , pp.
+1–13, Dec. 2020, doi:10.1109/TNNLS.2020.3042981.
+[15] M. Huang, Z.-P . Jiang, and K. Ozbay, “Learning-based adaptive op-
+timal control for connected vehicles in mixed trafﬁc: Robustness
+to driver reaction time,” IEEE Trans. Cybern. , pp. 1–11, 2020,
+doi:10.1109/TCYB.2020.3029077.
+[16] P . Wang, S. Gao, L. Li et al. , “Obstacle avoidance path planning
+design for autonomous driving vehicles based on an improved artiﬁ-
+cial potential ﬁeld algorithm,” Energies, vol. 12, no. 12, June 2019,
+doi:10.3390/en12122342.
+1412
+Authorized licensed use limited to: University of Canberra. Downloaded on November 13,2022 at 23:24:20 UTC from IEEE Xplore.  Restrictions apply. 

@@ -1,0 +1,1030 @@
+1
+Communication-Efficient MARL for Platoon
+Stability and Energy-efficiency Co-optimization in
+Cooperative Adaptive Cruise Control of CA Vs
+Min Hua, Dong Chen, Kun Jiang, Fanggang Zhang, Jinhai Wang, Bo Wang, Quan Zhou, and Hongming Xu
+Abstract—Cooperative adaptive cruise control (CACC) has
+been recognized as a fundamental function of autonomous
+driving, in which platoon stability and energy efficiency are
+outstanding challenges that are difficult to accommodate in real-
+world operations. This paper studied the CACC of connected
+and autonomous vehicles (CA Vs) based on the multi-agent
+reinforcement learning algorithm (MARL) to optimize platoon
+stability and energy efficiency simultaneously. The optimal use
+of communication bandwidth is the key to guaranteeing learning
+performance in real-world driving, and thus this paper proposes
+a communication-efficient MARL by incorporating the quantified
+stochastic gradient descent (QSGD) and a binary differential
+consensus (BDC) method into a fully-decentralized MARL frame-
+work. We benchmarked the performance of our proposed BDC-
+MARL algorithm against several several non-communicative and
+communicative MARL algorithms, e.g., IA2C, FPrint, and DIAL,
+through the evaluation of platoon stability, fuel economy, and
+driving comfort. Our results show that BDC-MARL achieved
+the highest energy savings, improving by up to 5.8%, with an
+average velocity of 15.26 m/s and an inter-vehicle spacing of
+20.76 m. In addition, we conducted different information-sharing
+analyses to assess communication efficacy, along with sensitivity
+analyses and scalability tests with varying platoon sizes. The
+practical effectiveness of our approach is further demonstrated
+using real-world scenarios sourced from open-sourced OpenACC.
+Index Terms—Connected and automated vehicles, multi-agent
+deep reinforcement learning, cooperative adaptive cruise control
+I. I NTRODUCTION
+C
+OOPERATIVE adaptive cruise control (CACC) is a mile-
+stone technology in achieving high-level autonomous
+driving as it provides a sensor-reach platform with high-
+level computing resources for advanced AI methods [1]. By
+enabling coherent communication among connected and au-
+tonomous vehicles (CA Vs), CACC facilitates the formulation
+The work is supported in part by the Fundamental Research Funds for the
+Central Universities (22120240223), by the EPSRC (EP/J00930X/1), and by
+Innovate UK (102253).
+Min Hua, Fanggang Zhang, and Quan Zhou, and Hongming Xu are with
+the School of Engineering, University of Birmingham, Birmingham, UK.
+Corresponding author: Hongming Xu (h.m.xu@bham.ac.uk).
+Dong Chen is with the Environmental Institute & Link Lab & Computer
+Science, University of Virginia, V A, USA
+Kun Jiang is also with with the School of Automation, Southeast University,
+Nanjing, China
+Jinhai Wang is with Hubei Key Laboratory of Advanced Technology for
+Automotive Components, Wuhan University of Technology, Wuhan, China.
+Bo Wang is with the Automotive New Technology Research Institute, BYD
+Auto, Shenzhen, China
+Quan Zhou is also with the School of Automotive Studies, Tongji Univer-
+sity, Shanghai, China
+of vehicle platoon and determines the optimal velocity and
+spacing of the vehicle platoon to smooth traffic flow and
+reduce overall vehicle energy consumption [2]–[4]. Therefore,
+CACC is a foundational engineering platform to support the
+revolution of a smarter, safer, and more sustainable transporta-
+tion system.
+Rule-based methods, optimization-based methods, and
+learning-based methods were developed to achieve CACC of
+CA Vs. Rule-based methods are simple and easy to implement
+but have limited adaptability in complex traffic environments.
+Optimization-based CACC methods were developed based
+on the optimal control theory (e.g., model predictive control
+(MPC)) to calculate the optimal velocity at each step for CA V
+platoons [5], [6]. Optimization-based methods demonstrated
+their capability in improving fuel economy and traffic effi-
+ciency in predefined driving environments [5]. However, most
+of the optimization-based methods were based on a assumption
+that the lead vehicle in a platoon maintains a constant velocity
+or a foreknown speed profile, limiting its effectiveness in real-
+world scenarios where vehicles often accelerate or decelerate
+randomly. On the other hand, the computational demands
+of the optimization-based methods are significant, making
+it hard to be implemented on vehicle onboard control units
+[7]. Compared to rule-based and optimization-based meth-
+ods, learning-based methods, developed using deep learning,
+reinforcement learning, or deep reinforcement learning, of-
+fer greater adaptability and self-optimization capabilities. For
+instance, Lin et al. present a learning-based method using
+the Deep Deterministic Policy Gradient (DDPG) to improve
+control performance, reducing the episode cost by up to 5.8%
+compared to MPC methods [8].
+Among the learning-based methods, multi-agent reinforce-
+ment learning (MARL) demonstrated its advancement over
+the single-agent reinforcement learning methods and other
+learning-based methods (e.g., imitation Learning) in many
+fields including industrial robots and autonomous driving
+[9]–[11]. MARL involves multiple agents learning to make
+decisions in a shared environment, optimizing their actions
+based on rewards. These agents can work together or compete,
+allowing them to solve complex tasks that require coordi-
+nation and improve system performance [12]. In the devel-
+opment of CACC strategies using MARL, most of existing
+research focused on the development of learning algorithms
+and communication protocols. For example, Liu et al. propose
+an intermediate solution to improve the traffic efficiency of
+CA Vs by avoiding congestion through coordinated behavior
+arXiv:2406.11653v1  [eess.SY]  17 Jun 2024
+2
+controlled by a deep RL agent with an altruistic reward
+function [13]. Han et al. leveraged information-sharing MARL
+framework with safe actor-critic algorithm to improve traffic
+efficiency and safety using shared neighbor data with bounded
+error and safety guarantees [14]. However, there has been
+limited research integrating energy consumption optimization
+into the CACC framework using MARL. Energy efficiency is
+a critical aspect of CA V operations, especially with the need
+for sustainable transportation solutions.
+In the realm of CACC, a fully decentralized MARL frame-
+work is proposed by practical considerations that align with
+the operational constraints specific to networked vehicular en-
+vironments, which minimizes reliance on global observations
+during execution. In [15], global data collection introduces
+significant risks, including increased communication delays
+and higher failure rates, which in turn compromise system
+robustness. In contrast, Xie et al. propose a decentralized
+control protocol that relies on local neighbor information,
+addressing the challenges of unreliable communication and
+enhancing safety and stability [16]. The decentralized frame-
+work offers increased robustness by ensuring that the failure
+of a single vehicle does not compromise the entire network,
+thereby maintaining continuous system operation and safety
+[17]. Petrillo et al. utilize an adaptive synchronization-based
+control algorithm with decentralized mitigation of malicious
+information, ensuring robustness and resilience against various
+cyber threats [18]. Additionally, Du et al. introduce a decen-
+tralized model-based policy optimization framework (DMPO)
+to enhance data efficiency in CA V control [19]. Therefore,
+this framework is highly advantageous for CACC due to
+its scalability, robustness, and reduced latency in decision-
+making. From the perspective of communication protocols,
+there are communicative MARL methods [20], [21] and non-
+communicative MARL methods [22], [23]. However, for the
+CACC based on a decentralized MARL framework, inter-agent
+communication is critical for driving safety, and coordinating
+platoon stability [12], [24]. In [25], the heuristic or direct
+information-sharing method is employed to lead to inefficient
+communications. These types are easy to perform delayed
+information sharing [26].
+While significant advances have been made in learning
+algorithms and communication protocols for traffic efficiency
+and safety, crucial aspects like energy efficiency and com-
+munication efficacy have been overlooked. This gap is evi-
+dent in decentralized MARL frameworks, which are robust
+and scalable but lack energy-efficient strategies and effective
+communication protocols. This paper addresses this gap by
+introducing energy efficiency into CACC problems, enhancing
+communication protocols, and validating the approach with
+real-world scenarios. Therefore, the following contributions
+and novelities distinguish this paper from the existing works:
+1) We have introduced energy efficiency into a short-term
+CACC problem as a decentralized MARL, designing a
+multi-objective reward function for energy efficiency,
+stability, and safety. We then benchmark the perfor-
+mance of our proposed MARL algorithm against several
+other algorithms, including both non-communicative and
+communicative MARL approaches.
+2) We have integrated the quantized stochastic gradient
+descent (QSGD) method into our communication proto-
+col and proposed a binary differential consensus (BDC)
+method to enhance the training process, improving
+information-sharing efficacy in various CACC scenarios.
+We also conduct extensive information-sharing analyses
+to assess the communication efficacy, along with sensi-
+tivity analyses and scalability tests with varying platoon
+sizes.
+3) The practical effectiveness of our approach is further
+demonstrated using real-world scenarios sourced from
+the open-sourced OpenACC. By analyzing these real-
+world scenarios, we validate our model’s applicability
+and robustness in achieving improved energy efficiency,
+stability, and safety in real-world CACC operations.
+The remainder of the paper is organized as follows: Section
+II introduces the CACC problem formulation for CA Vs. The
+MARL for the CACC scenario is established in Section III. In
+Section IV , the simulation results and discussion are discussed.
+Conclusions are drawn in Section V .
+II. A RCHITECTURE OF MARL- BASED CACC FOR CAVS
+AND THE OPTIMIZATION PROBLEM
+The multi-agent reinforcement learning system for CACC
+of CA Vs is illustrated in in Figure 1. The system includes N
+CA Vs that are connected through vehicle-to-vehicle network.
+We assume that all CA Vs in this study are plug-in hybrids
+equipped with a 70 kW internal combustion engine, two
+motor/generators (MG1 with a nominal power of 21 kW and
+MG2 with a nominal power of 135 kW), and a 20 kWh
+battery [27], [28]. Details of the vehicle modelling and vehicle
+specification can be found in [28]. However, when considering
+the dynamics of plug-in hybrids without focusing on energy
+management between two power sources, the electric motor
+is utilized for propulsion in a short-term condition without
+engaging the full capabilities of the hybrid powertrain.
+Within an undirected graph Gt = (N,Et) at each step t,
+agenti takes into account not only their current state but also
+the information Et from their neighbors (Nnei represents the
+front and rear vehicle). and the states of its neighbor vehicles
+Nnei. To train the MARL system, a new state representation
+mechanism is proposed by incorporating the long short-term
+memory (LSTM) network with a fully-connected (FC) neural
+network for the actor networks and critic networks of all
+learning agents. To update the N critic networks effectively,
+the QSGD method is developed. Details of the system are
+described as follows:
+A. Decentralized MADRL framework for CACC of CAV
+In this section, we introduce the CACC problem as a model-
+free multi-agent MDP framework through a decentralized
+MARL algorithm to maintain a predefined and adjustable
+inter-vehicle spacing (IVS) d∗ and longitudinal velocity v∗ .
+Here, a fully decentralized MARL framework provides agents
+with only partial observations of the environment, concentrat-
+ing mainly on the vehicles directly ahead and behind. This
+realistically reflects the practical constraints for each vehicle,
+which are limited in their ability to sense or communicate
+3
+Fig. 1: The multi-agent system for CA Vs
+with other vehicles. Therefore, a partially observable Markov
+decision process (POMDP) has been formulated by the tuple
+S,{Ai}i∈N,P,{Ri}i∈N,{Gt}t≥0
+
+. More details [29] are
+given as follows:
+1) State Space : To achieve an optimal balance between
+accurately modeling vehicle behavior and avoiding overcom-
+plexity, the state space S is defined as [v,v diff,vh,d,u ],
+specifically,
+• The first state is the current normalized vehicle velocity
+v = (vi,t−vi,0)/vi,0 from time 0 to current time t,
+where vi is longitudinal velocity.
+• The second state is the clipped vehicle veloc-
+ity difference with its leading vehicle vdiff =
+clip ((vi−1,t−vi,t)/5,−2, 2), withvi and the correpond-
+ing preceding vehicle (i− 1).
+• The third state is the IVS-based velocity
+according to vehicle behavior modeling , vh =
+clip ((v◦(di)−vi,t)/5,−2, 2), where v◦(di) represents
+the behavior of the i th vehicle with optimal velocity
+model (OVM) [30] and di is the IVS of each vehicle
+i. The formulation of OVM for the behavior of the ith
+vehicle is defined as follows:
+ui =αi (v◦ (di;ds,d g) −vi) +βi (vi−1 −vi)
+v◦(di) ≜
+
+
+
+0, if di <d s,
+1
+2vmax
+
+1 − cos
+
+π di−ds
+dg −ds
+
+, if ds ≤di ≤dg,
+vmax, if di >h g
+(1)
+where αi and βi are the IVS gain and relative velocity
+gain respectively, highlighting how both the IVS and the
+relative velocity contribute to adjustments in acceleration
+ui of vehicle i . Specifically, ds = 5 m and dg = 35 m
+denote the stop IVS and the IVS at full velocity for
+analyzing the behavior of traffic flow. Additionally, v◦
+represents the IVS-based velocity policy. This policy
+function is continuous and differentiable, which is ben-
+eficial for computational models and simulations in the
+environment of the MARL framework.
+• The fourth state is the normalized IVS d =
+(di,t + (vi−1,t− vi,t) ∆t−d∗)/d∗, where a sampling
+time ∆t are given with the discretized longitudinal kine-
+matics for each vehicle i.
+• The last one is the normalized acceleration u =
+ui,t/umax, where umax is the maximum acceleration.
+By normalizing and clipping the values, the model ensures that
+the state variables remain within practical bounds, enhancing
+the model’s stability and predictability in handling diverse
+driving scenarios.
+2) Action Space: In the defined CACC problem, the action
+space{Ai}i∈N is straightforwardly related to the longitudi-
+nal control. According to Eq. 1, the OVM control behav-
+ior is affected by two critical hyperparameters: IVS gains
+α, relative velocity gain β. Thus, these values are chosen
+from a predefined set comprising four levels: {(0, 0), (0.5,
+0), (0, 0.5), (0.5, 0.5)}. Subsequently, the longitudinal action
+is calculated by Eq. (1). The selection of four discrete sets of
+parameters for OVM within a MARL framework is driven by
+the goal of balancing simplicity, computational efficiency, and
+the capacity to model a range of driving behaviors for longi-
+tudinal vehicle control. These distinct parameter sets simplify
+the exploration space for the RL, enabling an efficient search
+through potential actions to optimize driving performance.
+B. Co-optimization of platoon stability and energy efficiency
+1) Reward function: The collective objective is to train the
+agents toward these desired behaviors. So the multi-objective
+reward{Ri}i∈N for the i th agent is designed as follows:
+Ri =w1 (di−d∗)2 +w2 (vi−v∗)2 +w3u2
+i
++w4 (2ds−di)2
++ +w5Pi
+(2)
+where w1,w 2,w 3,w 4, and w5 are the weighting coefficients.
+This multi-objective reward design is conducted to achieve
+4
+a trade-off between performance efficiency, driving comfort,
+safety, and energy savings in the CACC system. Pi is the
+power consumption of the electric motor of each vehicle,
+where a polynomial-based, differentiable approximation of an
+energy consumption model [31] is calculated as follows:
+Pi =Ti·ωi·η−k
+i
+Ti =Fi·R (3)
+whereTi represents the motor torque of each vehicle, ωi is the
+rotational velocity of the motor for each vehicle, and ηi is the
+efficiency of electric-mechanical conversion. The k indicates
+the operational mode. k = 1 denotes the driving model while
+k =−1 denotes regenerative braking mode. The driving force
+of each vehicle, Fi, can be calculated by
+Fi(t) =mgf cosα + 1
+2ρPi(t) =Fi(t)·vi
+Ti(t) =Fi(t)·R
+(4)
+where m is the vehicle mass; g is the gravity acceleration;
+f is the rolling resistance coefficient; ρ is the air density;
+Af is the front area of the vehicle; Cd is the aerodynamic
+drag coefficient; R is the wheel radius; α is the road slope.
+The critical parameters can be found in [28]. To simplify the
+calculation and calibration, the vehicle energy consumption,
+Pi(vi,ui), is formulated as a function of vehicle velocity vi
+and acceleration ui as in [32],
+Pi(vi,ui) =
+4X
+k=0
+4X
+j=0
+pkj·vk
+i·uj
+i (5)
+where pkj is the polynomial coefficient determined by fitting
+as shown in Figure 2. In this work, each vehicle equipped
+with the CACC is considered to have identical capabilities and
+physical characteristics. The inclusion of the real energy model
+reveals that the CACC not only regulates vehicle velocity
+and inter-vehicle spacing (IVS) but also actively manages the
+powertrain to improve fuel economy and energy efficiency.
+Fig. 2: Contour plot of the fitted energy consumption model
+with respect to vehicle velocity and acceleration.
+Further, if the IVS is less than twice the stop IVS ds,
+preventing collisions and ensuring the safety of the vehicle
+platoon. Here, the ”+” in the reward function indicates that
+a penalty is applied only when the di falls below twice the
+ds, functioning similarly to a Rectified Linear Unit (ReLU)
+by activating the penalty under specific conditions; if the
+IVS di ≤ 1 m, the substantial penalty of 1000 serves as a
+strong deterrent against behaviors that could lead to collisions,
+effectively terminating the training episode to guarantee safety.
+2) Transition Probabilities : Based on the model-free
+MARL, we do not assume any prior knowledge of this tran-
+sition probability P while developing our MARL algorithm.
+III. C OMMUNICATION -EFFICIENT MADRL FOR CACC
+A. Decentralized Multi-agent MDP problem
+The system consists of N agents, indexed by N = [N],
+interacting within a shared environment. They communi-
+cate via a dynamic network represented as Gt = (N,Et)
+at each step t. The multi-agent Markov decision process
+(MDP) in this networked environment is defined by the tuple
+S,{Ai}i∈N,P,{Ri}i∈N,{Gt}t≥0
+
+, where S is the global
+state space and Ai is the action space for each agent i. The
+local reward function for each agent i isRi :S×A→ R, and
+P :S×A×S → [0, 1] is the state transition probability
+function. Each agent i chooses its action ai based on the
+local policy πi :S×A i→ [0, 1], leading to a joint policy
+π(s,a ) = Q
+i∈Nπi (s,ai). A fully decentralized framework
+is characterized by the fact that the reward is received locally
+and the action is executed individually by each agent.The
+policy for each agent i is parameterized by πi
+θi with θi
+over Θi, where Θ = QN
+i=1 Θi by packing the parameters
+together as θ =
+h 
+θ1T
+,··· ,
+ 
+θNTiT
+∈ Θ. Thus, the joint
+policy then becomes πθ(s,a ) =Q
+i∈Nπi
+θi (s,ai). We assume
+that the Markov chain {st}t≥0 is irreducible and aperiodic
+under any πθ, with the stationary distribution denoted by
+dθ. Additionally, the Markov chain of the state-action pair
+{(st,at)}t≥0 has a stationary distribution dθ(s)·πθ(s,a ) for
+anys∈S anda∈A . Furthermore, the collective objective of
+the agents is to collaboratively find a policy πθ that maximizes
+the globally averaged long-term return over the network based
+solely on local information, formalized as:
+max
+θ
+J(θ) = lim
+T
+1
+T E
+ T−1X
+t=0
+1
+N
+X
+i∈N
+ri
+t+1
+!
+=
+X
+s∈S,a∈A
+dθ(s)·πθ(s,a )· ¯R(s,a )
+(6)
+where ¯R(s,a ) = N−1 · P
+i∈NRi(s,a ) is the globally
+averaged reward function. The global relative action-value
+function Qθ(s,a ) and state-value function Vθ(s) are de-
+fined as Qθ(s,a ) = P
+t E [¯rt+1−J(θ)|s0 =s,a 0 =a,πθ]
+and Vθ(s) = P
+a∈Aπθ(s,a )Qθ(s,a ) respectively. Further-
+more, the advantage function can be defined as Aθ(s,a ) =
+Qθ(s,a )−Vθ(s).
+In this paper, the typical deployment scenario for CACC
+involves extensive offline training and testing to address safety
+and efficiency concerns and avoid online learning. Kuutti et
+al. emphasize the effectiveness of extensive offline training in
+5
+reducing deployment risks and enhancing system reliability
+[21]. Hence, a decentralized MDP framework ensures that
+each vehicle, acting as an autonomous control agent, pri-
+marily relies on local information and communicates within
+a limited neighborhood. This approach effectively addresses
+the challenges of partial observability and non-stationarity
+in a multi-agent environment by allowing each vehicle to
+enhance responsiveness and adaptability but also ensures that
+training, although decentralized, happens offline with global
+information available in batches during the training phase.
+B. Communication protocol design
+Quantified stochastic gradient descent (QSGD) method is a
+family of compression schemes with convergence guarantees
+and practical performance, this method balances communica-
+tion bandwidth and convergence time by adjusting the number
+of bits sent per iteration, maintaining convergence even with
+reduced precision [33]. Significantly, the decentralized frame-
+work operates without the need for a centralized controller.
+However, it operates under the assumption that all agents
+are homogeneous, possessing identical characteristics. While
+this assumption simplifies the structural complexity of the
+problem, it fails to capture the inherent diversity among in-
+dividual agents, especially for CACC. To tackle this issue, we
+introduce a difference update strategy that promotes a balance
+between individual learning and the collaborative influence
+by neighboring agents. Then, a binary differential consensus
+(BDC) method is presented, where agents first quantize their
+weights and then update their weights based on the quantized
+differential weights between themselves and their neighbors.
+Therefore, the update rule is described as:
+w′
+i =wi +ϵ
+X
+j∈ neighbors (i)
+(q (wj)−q (wi)) (7)
+where w′
+i is the updated weight for agent i. wi is the current
+weight of the agent i before the update. ϵ is a small positive
+scalar that scales the update magnitude. q (wj) and q (wi)
+are the quantized weights of neighbor agent j and agent i,
+respectively, mapped to -1, 0, 1 based on the sign of the
+weight. The sum is taken over all neighbors j of agent i,
+as defined by the neighbor mask.
+We utilizes quantization to potentially reduce communica-
+tion overhead while still achieving consensus through differ-
+ential updates. To mitigate the impact of quantization errors,
+QSGD often incorporates mechanisms like error accumulation
+(also known as error feedback), which means the quantization
+error from one iteration (i.e., the difference between the
+quantized gradient and the actual gradient) is carried over to
+the next iteration. This error feedback helps compensate for
+the quantization errors over time, allowing for more accurate
+updates despite the initial loss of information. The update
+strategy is given in Algorithm 1.
+In the CACC scenario, by transmitting only three possible
+values for each gradient component, the system minimizes
+the amount of data exchanged between vehicles, preserv-
+ing bandwidth for critical vehicular communications. Since
+smaller messages mean quicker transmissions, which is crucial
+for real-time or near-real-time applications like CACC where
+Algorithm 1:The gradient descent algorithm with
+gradient encoding
+1 Data: Parameter vectorw
+2 Procedure: Gradient Descent
+3 foreach iterationt do
+4 Quantize gradient:q(∇f(w))← Quantize
+(∇f(w)));
+5 Apply gradientw←w−ϵtq(∇f(w))
+6 end
+timely updates can impact system performance and vehicle
+safety. With less dependency on the bandwidth, the system can
+scale more effectively, accommodating more vehicles without
+proportional increases in communication overhead. While it
+introduces some challenges in terms of convergence and accu-
+racy, these can be managed through strategic implementations
+like error feedback. This makes it a effective technique for
+distributed systems in high-demand, bandwidth-constrained
+environments such as CACC scenario.
+IV. E XPERIMENT SETUPS
+In this section, we evaluate the BDC-MARL framework
+across various CACC scenarios. Initially, our approach is com-
+pared with several leading-edge MARL strategies. Then we
+explore the efficacy of diverse information-sharing methods.
+Concurrently, we investigate the effects of different platoon
+sizes. Finally, the proposed algorithm is applied to scenarios
+derived from real-world OpenACC data.
+A. General setups for the learning agents
+The network architecture comprises a single fully-connected
+input layer for processing state information and an LSTM
+layer tasked for message extraction, all with hidden layers
+containing 64 neurons. An orthogonal initializer is utilized
+to optimize the network parameters during training. Training
+is conducted over 6× 105 steps, utilizing a discount factor
+of γ = 0.99, an actor learning rate of 5.0× 10−4, and a
+critic learning rate of 2.5× 10−4. In the reward function,
+hyperparametersw1,w 2,w 3,w 4, andw5 in the reward function
+are set to −1.0,−1.0,−0.1, -5.0, and -10, respectively, with
+significant emphasis on penalizing scenarios that feature in-
+adequate safe IVS distances. To enhance generalization, each
+model undergoes training three times using distinct random
+seeds on a Ubuntu 18.04 server with a NVIDIA RTX 3080.
+B. Real-world driving scenario extraction
+The real-world scenarios are from an open-access database
+involving vehicles with adaptive cruise control (ACC) systems
+provided by the Joint Research Centre (JRC) of the European
+Commission (EC) [34]. The dataset used in this paper is
+collected at the ZalaZONE from 10 commercially-available
+vehicles with tunable ACC settings. The data was captured
+using INVENTURE (Race Logic VBOX) equipment, U-blox
+9, and the Tracker App, with sensor data from these devices
+fused and interpolated at a frequency of 10 Hz.
+The real-world driving scenarios are generated for the
+testing in this paper based on the Dynamic Platform. The
+Dynamic Platform focuses on the vehicles’ response to such
+perturbations in a controlled environment. This includes a
+6
+0 1 2 3 4 5 6
+Training steps ×105
+−2000
+−1750
+−1500
+−1250
+−1000
+−750
+−500
+−250
+Training reward
+IA2C
+Fingerprint
+CommNet
+DIAL
+BDC-MARL
+Fig. 3: The comparison with different methods
+rapid deceleration followed by an acceleration back to the
+original velocity. Three groups are selected and extracted
+respectively from three typical datasets (dynamic part1,
+dynamic part2, dynamic part9) from timestamps ( 316s−
+376s, 450s− 510s, 473s− 533s).
+V. R ESULTS AND DISCUSSION
+In this section, we evaluate the BDC-MARL framework
+across various CACC scenarios. Initially, our approach is com-
+pared with several leading-edge MARL strategies. Then we
+explore the efficacy of diverse information-sharing methods.
+Concurrently, we investigate the effects of different platoon
+sizes. Finally, the proposed algorithm is applied to scenarios
+derived from real-world OpenACC data.
+A. Co-optimization Performance with State-of-the-art MARL
+To demonstrate the effectiveness of the proposed method,
+we compare with several state-of-the-art MARL algorithms,
+which include both non-communicative and communicative
+approaches. Specifically, IA2C [22] employs an independent
+learning strategy, while FPrint [23] integrates neighboring
+policies into its inputs, both of which are non-communicative
+methods. In contrast, DIAL [20] and CommNet [35] imple-
+ment learnable communication protocols that allow for the
+inclusion of additional information from neighboring agents,
+such as states or policy details, which necessitates a higher
+communication banwidth. All the algorithms compared utilize
+the same deep neural network architecture.
+A comparative learning progress through training curves
+for the various MARL algorithms are described as shown in
+Figure 3 and Table I. The proposed BDC-MARL outperforms
+other algorithms, starting with a higher initial reward and
+steadily increasing performance. Despite early fluctuations,
+it maintains a higher reward throughout training, indicating
+extensive strategy exploration before stabilizing. This thorough
+exploration can lead to more optimal policies. After the train-
+ing phase, the evaluation phase for each algorithm included 50
+distinct trials, each initiated with different initial conditions to
+ensure a thorough and varied testing environment, as shown
+in Table II. It achieved significantly higher rewards with-
+out compromising power consumption efficiency. Although
+it shows slightly higher standard deviations in some metrics,
+this suggests an adaptive strategy. All algorithms effectively
+prioritized safety, with consistently low or zero collisions.
+Figure 4 compares the performance of 8 vehicles using
+different MARL algorithms, including I2AC, CommNet, and
+BDC-MARL, based on IVS, velocity, acceleration, and power
+consumption over time. Divergences in some vehicles with
+I2AC (e.g., Vehicle 2 and 4) and CommNet (e.g., Vehicle 1)
+suggest challenges in information sharing and coordination.
+Effective communication is crucial for synchronizing actions
+and maintaining uniform IVS and velocity in MARL systems
+like CACC. The I2AC method’s divergences may indicate
+lagging communication channels, while CommNet’s velocity
+fluctuations suggest inefficient use of communicated informa-
+tion. These issues imply potential communication latency or
+protocols preventing agents from aligning actions effectively
+in dynamic tasks. Conversely, BDC-MARL’s convergence
+towards the desired IVS and velocity with less variability
+indicates a more efficient communication strategy, enabling
+better coordination and faster adaptation to achieve goals.
+B. Communication Efficiency of MARL on CACC
+Using different information-sharing methods in CACC sys-
+tems is crucial because each method offers unique bene-
+fits in various traffic scenarios and communication environ-
+ments. For example, a broadcast method ensures all vehi-
+cles have the same information, promoting consistent be-
+havior, enhancing safety, and preventing collisions. This is
+achieved with weight averaging consensus (W AC)-MARL,
+where each agent’s weights are averaged with its neighbors.
+Alternatively, directed information sharing, which communi-
+cates with neighbors, efficiently relays information in both
+directions within a platoon. This approach uses differen-
+tial consensus-enhanced adjustment (DCEA)-MARL, adjust-
+ing each agent’s weights by adding a weighted difference
+between the neighbors’ weights and its own. The term w′
+i =
+wi +ϵP
+j∈neighbors(i) (wj+1−wi+1) captures the essence of
+this update mechanism, where an epsilon factor ϵ is the
+scale factor. The selective sharing, such as the proposed
+method BDC-MARL, is more appropriate when the bandwidth
+is limited or when too much information could overwhelm
+the processing capabilities of individual agents, leading to
+increased reaction times or errors. Hence, Figure 5 presents
+a comparison of learning curves, highlighting the superior
+performance of the BDC-MARL method against the other two.
+While BDC-MARL exhibits some mid-training variability,
+it ultimately achieves the highest rewards, making it the most
+effective method for maximizing training rewards. DCEA-
+MARL shows good initial learning velocity and stability, ideal
+for scenarios where early performance is critical. W AC-MARL
+demonstrates steady improvement and stability, suitable for en-
+vironments requiring consistent performance gains over time.
+After the training phase, each algorithm was evaluated on
+50 seeds under varied starting conditions. The performance
+7
+TABLE I: Reward comparison with different algorithms
+Algorithms IA2C Fingerprint Commnet DIAL BDC-MARL
+Reward value -351.07 -409.12 -559.45 -636.19 -314.99
+TABLE II: Test performance comparison with different algorithms
+Algorithms IA2C Fingerprint Commnet DIAL BDC-MARL
+Statistical value Avgerage Std Avgerage Std Avgerage Std Avgerage Std Avgerage Std
+IVS (m) 20.75 0.81 21.68 0.31 22.38 0.03 22.08 0.2 20.76 0.78
+Velocity (m/s) 15.28 0.47 15.11 0.26 15.01 0.03 15.06 0.09 15.26 0.69
+Acceeration (m/sˆ2) 0.11 0.18 0.08 0.13 0.01 0.02 0.04 0.05 0.15 0.21
+Platoon power consumption (kW) 17.97 0.31 18.28 0.42 18.94 0.04 18.89 0.15 17.85 0.46
+Collision number 0 0 0 0 0 0 0 0 0 0
+(a) IA2C method
+(b) CommNet method
+(c) BDC-MARL method
+Fig. 4: The performance comparison of all vehicles with typical MARL algorithms
+process with all vehicles is illustrated in Figure 6. Comparing
+Figure 4 (c) with Figure 6, all three methods eventually
+converge towards a pre-designed IVS and velocity. The W AC
+method shows initial over-corrections in acceleration and
+power consumption before stabilizing. The DCEA method
+reaches stability quicker than the W AC method, despite initial
+inconsistencies in acceleration and velocity. The BDC-MARL
+approach quickly converges in terms of IVS and maintains
+a more stable velocity and acceleration pattern, due to its
+efficient use of limited bandwidth and information processing
+capabilities, preventing data overflow and response lag.
+The radar chart in Figure 7 evaluates the performance
+of three methods using four metrics. This chart effectively
+visualizes comprehensive performance through the aggregate
+area of each method’s plot. A smaller area within the radar
+chart signifies a more robust overall performance, indicating
+a method’s efficiency and effectiveness across the evaluated
+dimensions. Therefore, the balance across all four metrics
+for BDC-MARL can imply a more robust overall system
+performance. For IVS and velocity, all three methods show
+comparable performance, with their lines relatively close to the
+outer edge. However, in acceleration and power consumption,
+the BDC-MARL method is noticeably closer to the edge,
+indicating superior performance in these areas.
+In summary, while the W AC and DCEA methods initially
+face oscillations, they eventually achieve consensus, promoting
+8
+0 1 2 3 4 5 6
+Training steps ×105
+−2500
+−2000
+−1500
+−1000
+−500
+0
+Training reward
+WAC-MARL
+DCEA-MARL
+BDC-MARL
+Fig. 5: The comparison with three different sharing methods
+collective efficiency. However, the BDC-MARL method stands
+out for its quick convergence and stability, demonstrating
+its effectiveness in environments with limited communication
+resources.
+C. Impact of Platooning Size on the Scalability of MARL on
+CACC
+In CACC, the overall performance including energy effi-
+ciency, safety, and the effectiveness of communication will
+be affected by different vehicle sizes, since there is the
+propagation phenomenon in the response and communication
+signals.
+Figure 8 shows the training curves with different sizes,
+ranging from a minimal arrangement (i.e., 2 A Vs) to more
+populated configurations (i.e., 6 and 8 A Vs), thereby providing
+a comprehensive overview of the scalability and adaptability
+in a variety of urban traffic scenarios, since larger vehicle
+sizes experience more complex effects, such as increased air
+resistance or more intricate behavior in a platoon. In Figure
+8, we can find that Size 8 needs more sophisticated models
+to handle these effects effectively, which could explain a
+slower but steady increase in training process. In contrast,
+Size 2 experiences less interaction and therefore might find
+an optimal policy faster.
+The overall test performance under 50 different trials is
+displayed in Figure 9. The comprehensive analysis of varying
+platoon sizes suggests that while larger platoons achieve fuel
+savings due to decreased aerodynamic drag, this does not result
+in a proportional increase in power consumption. Interestingly,
+a platoon size of 6 emerges as the most advantageous, ex-
+hibiting consistent IVS, moderate velocities, and the lowest
+variation in power consumption, indicative of an efficient
+balance between fuel efficiency and operational stability. Al-
+though larger platoons benefit from aerodynamic efficiency,
+they also confront the challenge of maintaining stable and safe
+following distances amidst dynamic traffic conditions, which is
+less of a concern with smaller platoons. Therefore, a platoon
+size of 6 is potentially optimal for achieving a harmonious
+balance between power efficiency, vehicle spacing stability,
+and the complexities inherent in managing larger numbers of
+closely following vehicles. More importantly, it also indicates
+that the presented algorithms effectively optimize platoon
+dynamics, achieving fuel economy improvements without a
+corresponding escalation in power consumption across varying
+platoon sizes.
+D. Co-optimization Performance Validation with Real-World
+Data
+In this part, the different targets (the target IVS and ve-
+locity) on the performance of the presented algorithm has
+been conducted from the real-data scenarios extracted from
+OpenACC. The examination is primarily focused on analyzing
+three different IVS settings with the target velocity 11 m/s
+and the Size 4, ranging from IVS setting S (12m), M (16m),
+and L (20m), labelled as Group 1, Group 2, and Group 3.
+Table III presents average and standard deviation values for
+velocity, IVS, acceleration, and total energy for vehicles in the
+proposed BDC-MARL algorithm and real-world OpenACC
+data. Here, the average velocities are close to the target
+velocity of 11 m/s, indicating that all strategies and groups are
+performing well in terms of pre-designed setting. However,
+there are noticeable differences in the standard deviation of
+IVS, showing greater variability in the OpenACC. The total
+energy consumption is fairly consistent across groups, since
+the analysis has been conducted over a short period, which
+might not be sufficient to capture the long-term benefits of
+BDC-MARL in terms of energy savings but the stability of
+the vehicle dynamics is improved.
+VI. C ONCLUSION
+The paper introduces a binary differential consensus (BDC)-
+MARL approach to enhance system robustness and efficiency.
+By minimizing dependency on potentially delayed or unreli-
+able information exchanges between vehicles, this approach
+optimizes individual vehicle responses to real-time traffic
+conditions. The main conclusions are summarized as follows::
+(1) Compared with state-of-the-art algorithms, the BDC-
+MARL achieves the largest improvement in energy savings,
+up to 5.8%, with an average velocity of 15.26 m/s and an
+IVS of 20.76 m. In CACC scenarios, delayed messages in
+real-time CACC tasks hinder performance, as observed with
+I2AC and CommNet. In contrast, BDC-MARL demonstrates
+efficient communication that effectively mitigates this issue.
+(2) Integrating QSGD into our communication protocol
+achieves stable performance and comparable energy savings
+across three information-sharing methods. Among them, the
+BDC-MARL approach rapidly converges for IVS and main-
+tains a more stable velocity and acceleration pattern, effec-
+tively using limited bandwidth and processing capabilities to
+prevent data overflow and delays.
+(3) A 6-vehicle platoon is optimal for balancing efficiency
+and stability, demonstrating the scalability in optimizing pla-
+toon dynamics for energy efficiency. Larger platoons save fuel
+through reduced aerodynamic drag without increasing power
+use proportionally.
+(4)While average velocities align with the target in both
+BDC-MARL and OpenACC data, OpenACC exhibits greater
+variability in IVS due to less efficient coordination between ve-
+hicles. Despite short-term consistency in energy consumption,
+9
+(a) W AC-MARL method
+(b) DCEA-MARL method
+Fig. 6: The performance process of different sharing methods
+TABLE III: Extraction of real-world scenarios from OpenACC
+Group Statistical Values Method Velocity (11 m/s) IVS (m) Acceleration Total energy for all vehicles (kWh)
+1 (S)
+Average OpenACC 10.81 16.96 0.01 0.11
+BDC-MARL 10.75 11.99 0 0.11
+Std OpenACC 2.01 5.36 0.77 /
+BDC-MARL 0.73 1.37 0.23 /
+2 (M)
+Average OpenACC 10.28 21.89 0.11 0.09
+BDC-MARL 10.2 16.99 0 0.09
+Std OpenACC 2.08 3.68 0.68 /
+BDC-MARL 2.23 2.27 0.71 /
+3 (L)
+Average OpenACC 10.6 25.12 0.02 0.10
+BDC-MARL 10.47 19.54 0 0.10
+Std OpenACC 1.68 4.3 0.55 /
+BDC-MARL 1.47 2.15 0.55 /
+IVS
+Acc
+Vel
+Power
+BDC-MARL
+DCEA-MARL
+WAC-MARL
+Fig. 7: The statistical comparison of different communicative
+methods
+BDC-MARL enhances vehicle dynamics stability by leverag-
+ing robust communication protocols and optimized response
+strategies.
+Future work will focus on extending the analysis to longer
+periods to better assess the long-term energy savings potential
+0 1 2 3 4 5 6
+Training steps ×105
+−2000
+−1750
+−1500
+−1250
+−1000
+−750
+−500
+−250
+0
+Training reward
+Size = 2
+Size = 6
+Size = 8
+Fig. 8: The comparison with different sizes
+of BDC-MARL, refining communication protocols to reduce
+variability in IVS, and enhance real-time coordination.
+VII. A CKNOWLEDGEMENT
+The work is supported in part by the Fundamental Research
+Funds for the Central Universities (22120240223), by the
+EPSRC (EP/J00930X/1), and by Innovate UK (102253).
+10
+Size 2 Size 6 Size 8
+15
+20
+25IVS (m)
+Avg Ivs
+Size 2 Size 6 Size 810
+12
+15
+17
+20Velocity (m/s)
+Avg Velocity
+Size 2 Size 6 Size 8
+1
+0
+1
+Acceleration (m/s²)
+Avg Accel
+Size 2 Size 6 Size 8
+10
+20Power Consumption (kW)
+Avg Energy
+Fig. 9: The comparison with different size
+REFERENCES
+[1] W. Liu, M. Hua, Z. Deng, Z. Meng, Y . Huang, C. Hu, S. Song, L. Gao,
+C. Liu, B. Shuai et al., “A systematic survey of control techniques and
+applications in connected and automated vehicles,” IEEE Internet of
+Things Journal, 2023.
+[2] S. Boddupalli, A. S. Rao, and S. Ray, “Resilient cooperative adaptive
+cruise control for autonomous vehicles using machine learning,” IEEE
+Transactions on Intelligent Transportation Systems , vol. 23, no. 9, pp.
+15 655–15 672, 2022.
+[3] Z. Wang, G. Wu, and M. J. Barth, “Cooperative eco-driving at signalized
+intersections in a partially connected and automated vehicle environ-
+ment,” IEEE Transactions on Intelligent Transportation Systems, vol. 21,
+no. 5, pp. 2029–2038, 2019.
+[4] C. Dai, C. Zong, D. Zhang, M. Hua, H. Zheng, and K. Chuyo, “A
+bargaining game-based human–machine shared driving control authority
+allocation strategy,” IEEE Transactions on Intelligent Transportation
+Systems, 2023.
+[5] J. Wang, Z. Jiang, and Y . V . Pant, “Improving safety in mixed traffic:
+A learning-based model predictive control for autonomous and human-
+driven vehicle platooning,” Knowledge-Based Systems, p. 111673, 2024.
+[6] F. Yang, H. Wang, D. Pi, X. Sun, and X. Wang, “Research on collabora-
+tive adaptive cruise control based on mpc and improved spacing policy,”
+Proceedings of the Institution of Mechanical Engineers, Part D: Journal
+of Automobile Engineering , p. 09544070241240166, 2024.
+[7] H. Kazemi, H. N. Mahjoub, A. Tahmasbi-Sarvestani, and Y . P. Fallah,
+“A learning-based stochastic mpc design for cooperative adaptive cruise
+control to handle interfering vehicles,” IEEE Transactions on Intelligent
+Vehicles, vol. 3, no. 3, pp. 266–275, 2018.
+[8] Y . Lin, J. McPhee, and N. L. Azad, “Comparison of deep reinforcement
+learning and model predictive control for adaptive cruise control,” IEEE
+Transactions on Intelligent Vehicles, vol. 6, no. 2, pp. 221–231, 2020.
+[9] B. Shuai, M. Hua, Y . Li, S. Shuai, H. Xu, and Q. Zhou, “Optimal
+energy management of plug-in hybrid electric vehicles through ensemble
+reinforcement learning with exploration-to-exploitation ratio control,”
+IEEE Transactions on Intelligent Vehicles , 2024.
+[10] M. Hua, D. Chen, X. Qi, K. Jiang, Z. E. Liu, Q. Zhou, and H. Xu, “Multi-
+agent reinforcement learning for connected and automated vehicles
+control: Recent advancements and future prospects,” arXiv preprint
+arXiv:2312.11084, 2023.
+[11] G. Chen, Z. Gao, M. Hua, B. Shuai, and Z. Gao, “Lane change trajectory
+prediction considering driving style uncertainty for autonomous vehi-
+cles,” Mechanical Systems and Signal Processing , vol. 206, p. 110854,
+2024.
+[12] T. Chu, S. Chinchali, and S. Katti, “Multi-agent reinforcement
+learning for networked system control,” in International Conference
+on Learning Representations , 2020. [Online]. Available: https:
+//openreview.net/forum?id=Syx7A3NFvH
+[13] B. Liu, W. Han, E. Wang, X. Ma, S. Xiong, C. Qiao, and J. Wang,
+“An efficient message dissemination scheme for cooperative drivings
+via multi-agent hierarchical attention reinforcement learning,” in 2021
+IEEE 41st International Conference on Distributed Computing Systems
+(ICDCS). IEEE, 2021, pp. 326–336.
+[14] S. Han, S. Zhou, J. Wang, L. Pepin, C. Ding, J. Fu, and F. Miao, “A
+multi-agent reinforcement learning approach for safe and efficient be-
+havior planning of connected autonomous vehicles,” IEEE Transactions
+on Intelligent Transportation Systems , 2023.
+[15] K. Zhang, Z. Yang, and T. Bas ¸ar, “Decentralized multi-agent reinforce-
+ment learning with networked agents: Recent advances,” Frontiers of
+Information Technology & Electronic Engineering , vol. 22, no. 6, pp.
+802–814, 2021.
+[16] S. Xie, J. Hu, Z. Ding, and F. Arvin, “Cooperative adaptive cruise control
+for connected autonomous vehicles using spring damping energy model,”
+IEEE Transactions on Vehicular Technology , vol. 72, no. 3, pp. 2974–
+2987, 2023.
+[17] H. Long, A. Khalatbarisoltani, Y . Yang, and X. Hu, “Hierarchical
+control strategies for connected heavy-duty modular fuel cell vehicles
+via decentralized convex optimization,” IEEE Transactions on Vehicular
+Technology, 2023.
+[18] A. Petrillo, A. Pescape, and S. Santini, “A secure adaptive control for
+cooperative driving of autonomous connected vehicles in the presence
+of heterogeneous communication delays and cyberattacks,” IEEE trans-
+actions on cybernetics , vol. 51, no. 3, pp. 1134–1149, 2020.
+[19] Y . Du, C. Ma, Y . Liu, R. Lin, H. Dong, J. Wang, and Y . Yang, “Scalable
+model-based policy optimization for decentralized networked systems,”
+in 2022 IEEE/RSJ International Conference on Intelligent Robots and
+Systems (IROS). IEEE, 2022, pp. 9019–9026.
+[20] J. Foerster, I. A. Assael, N. De Freitas, and S. Whiteson, “Learning to
+communicate with deep multi-agent reinforcement learning,” Advances
+in neural information processing systems , vol. 29, 2016.
+[21] S. Kuutti, R. Bowden, Y . Jin, P. Barber, and S. Fallah, “A survey of deep
+learning applications to autonomous vehicle control,” IEEE Transactions
+on Intelligent Transportation Systems, vol. 22, no. 2, pp. 712–733, 2020.
+[22] R. Lowe, Y . I. Wu, A. Tamar, J. Harb, O. Pieter Abbeel, and I. Mordatch,
+“Multi-agent actor-critic for mixed cooperative-competitive environ-
+ments,” Advances in neural information processing systems , vol. 30,
+2017.
+[23] J. Foerster, N. Nardelli, G. Farquhar, T. Afouras, P. H. Torr, P. Kohli,
+and S. Whiteson, “Stabilising experience replay for deep multi-agent re-
+inforcement learning,” in International conference on machine learning.
+PMLR, 2017, pp. 1146–1155.
+[24] Y . Zhang, Z. Xu, Z. Wang, X. Yao, and Z. Xu, “Impacts of commu-
+nication delay on vehicle platoon string stability and its compensation
+strategy: A review,” Journal of traffic and transportation engineering
+(English edition), 2023.
+[25] S. Gronauer and K. Diepold, “Multi-agent deep reinforcement learning:
+a survey,” Artificial Intelligence Review , vol. 55, no. 2, pp. 895–943,
+2022.
+[26] Y . Yan, B. Zhang, C. Li, and C. Su, “Cooperative caching and fetching
+in d2d communications-a fully decentralized multi-agent reinforcement
+learning approach,” IEEE Transactions on Vehicular Technology, vol. 69,
+no. 12, pp. 16 095–16 109, 2020.
+[27] C. Zhang, Q. Zhou, M. Hua, H. Xu, M. Bassett, and F. Zhang, “Cuboid
+equivalent consumption minimization strategy for energy management
+of multi-mode plug-in hybrid vehicles considering diverse time scale
+objectives,” Applied Energy, vol. 351, p. 121901, 2023.
+[28] M. Hua, C. Zhang, F. Zhang, Z. Li, X. Yu, H. Xu, and Q. Zhou, “Energy
+management of multi-mode plug-in hybrid electric vehicle using multi-
+agent deep reinforcement learning,” Applied Energy, vol. 348, p. 121526,
+2023.
+[29] D. Chen, K. Zhang, Y . Wang, X. Yin, Z. Li, and D. Filev,
+“Communication-efficient decentralized multi-agent reinforcement
+learning for cooperative adaptive cruise control,” IEEE Transactions on
+Intelligent Vehicles, 2024.
+[30] M. Bando, K. Hasebe, A. Nakayama, A. Shibata, and Y . Sugiyama,
+“Dynamical model of traffic congestion and numerical simulation,”
+Physical review E , vol. 51, no. 2, p. 1035, 1995.
+[31] Q. Wang, H. Dong, F. Ju, W. Zhuang, C. Lv, L. Wang, and Z. Song,
+“Adaptive leading cruise control in mixed traffic considering human
+behavioral diversity,” IEEE Transactions on Intelligent Transportation
+Systems, pp. 1–12, 2023.
+[32] L. Guzzella, A. Sciarretta et al., Vehicle propulsion systems. Springer,
+2007, vol. 1.
+[33] A. Abdi and F. Fekri, “Quantized compressive sampling of stochastic
+gradients for efficient communication in distributed deep learning,” in
+Proceedings of the AAAI Conference on Artificial Intelligence , vol. 34,
+no. 04, 2020, pp. 3105–3112.
+[34] A. Anesiadou, M. Makridis, B. Ciuffo, and K. Mattas, “Open acc
+database,” European Commission, Joint Research Centre (JRC)
+[Dataset] PID: http://data.europa.eu/89h/9702c950-c80f-4d2f-982f-
+44d06ea0009f, 2020.
+[35] S. Sukhbaatar, R. Fergus et al. , “Learning multiagent communication
+with backpropagation,” Advances in neural information processing sys-
+tems, vol. 29, 2016.
