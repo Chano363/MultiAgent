@@ -26,6 +26,7 @@ from gym import spaces
 
 from src.environments.train_env import TrainFormationEnv, COUPLER_FORCE_LIMIT_N
 from src.controllers.low_level_controller import TrainLowLevelController
+from src.controllers.hierarchical_controller import HierarchicalController
 
 
 class TrainFleetEnv:
@@ -51,9 +52,25 @@ class TrainFleetEnv:
         config = config or {}
         self.num_trains = config.get('num_trains', 3)
         self.consist_preset = config.get('consist_preset', '10kt_1plus0')
-        self.grade_profile = config.get('grade_profile', 'long_downhill')
-        self.target_speed = config.get('target_speed', 20.0)
-        self.target_gap = config.get('target_gap', 100.0)  # 列间安全间距（m）
+        self.grade_profile = config.get('grade_profile', 'shuozhou_23800')
+        # 限速区间（m/s）：对齐 Zhang2024（朔黄线 23.8km 长大下坡循环制动）[40,80] km/h。
+        # 依据（V5.24 系统核对）：
+        # - 上限 80 km/h = 朔黄线实际线路限速（Zhang2024: "speed limit on this line was 80 km/h"，
+        #   行业/线路标准，与研究对象1万吨朔黄线一致）
+        # - 下限 40 km/h = 2万吨列车最小缓解速度（行业规则"重载30km/h以下不应缓解制动"，
+        #   Zhang2024取40保守值；为与其直接对标+物理可行）
+        # 弃用 [45,65]：那是樊运新（3万吨）参数，与1万吨对象不一致，且物理上不可行
+        # （1.2km万吨列车在窄区间制动频繁→车钩力爆炸+掉速）。
+        self.v_max = config.get('v_max', 80.0 / 3.6)   # 上限（80 km/h，线路限速）
+        self.v_min = config.get('v_min', 40.0 / 3.6)   # 下限（40 km/h，最小缓解速度）
+        # 巡航参考速度 = 限速区间中值（作为 obs 速度误差参考，非硬目标）
+        self.target_speed = config.get('target_speed', (self.v_min + self.v_max) / 2.0)
+        self.target_gap = config.get('target_gap', 100.0)  # 列间参考间距（m，用于初始布置/时间间隔换算）
+        # E4 时间间隔（VCTS 虚拟耦合范式）：动态目标间距 = headway_s × 本列速度。
+        # 论文依据：VCTS 用时间间隔而非固定距离（速度快时拉大、慢时缩小，自适应），
+        # Wang2021 动态安全间距 x_safe 随速度/制动力变化；固定 100m 在真实剖面多坡段
+        # 无法与控速同时满足。默认 5s：20m/s 时 = 100m（与历史一致），速度自适应。
+        self.headway_s = config.get('headway_s', 5.0)
         self.coupler_force_limit_n = config.get('coupler_force_limit_n', COUPLER_FORCE_LIMIT_N)
         self.max_steps = config.get('max_steps', 500)
         self.dt = config.get('dt', 0.1)
@@ -61,12 +78,24 @@ class TrainFleetEnv:
         # 动作直接影响物理（列车加速度），有真实学习区分度（解决"学无可学"）
         self.max_accel = config.get('max_accel', 1.0)
         # 最小允许速度（长大下坡只能制动降速，速度下限）
-        self.min_speed = config.get('min_speed', 10.0)
+        self.min_speed = config.get('min_speed', self.v_min)
         # 扰动（突发工况）配置：领航车在某时刻突发减速，测试跟随车协同制动
         self.enable_disturbance = config.get('enable_disturbance', False)
         self.disturbance_step = config.get('disturbance_step', 100)   # 扰动触发步
         # 扰动时领航车的目标加速度（负值 = 强制制动，模拟前方障碍/限速）
         self.disturbance_target_accel = config.get('disturbance_target_accel', -0.5)
+        # 是否考虑车钩力约束（消融实验：use_coupler_constraint=False 模拟"忽略车钩力"，
+        # 奖励去掉车钩力项 + 底层控制器不钳制，证明"车钩力建模必要性"）
+        self.use_coupler_constraint = config.get('use_coupler_constraint', True)
+        # E4 分层框架：层级二用第1层策略控速（hierarchical=True），层级一 RL 只学协同调整。
+        # 依据：论文分层框架（层级一生成宏观决策 + 层级二执行）+ 物理诊断（第2层从零学
+        # 控速+协同过重，第1层已验证能控速车钩力150kN/速度71km/h）。
+        self.hierarchical = config.get('hierarchical', False)
+        self.layer1_checkpoint = config.get(
+            'layer1_checkpoint',
+            'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80.pt',  # [40,80]第1层策略
+        )
+        self.adj_coef = config.get('adj_coef', 0.3)
 
         # 每列内部用单列动力学环境（列车内车钩力由此计算）
         self.trains = [
@@ -80,22 +109,43 @@ class TrainFleetEnv:
             })
             for _ in range(self.num_trains)
         ]
-        # 每列的底层控制器（列内：跟踪目标速度 + 车钩力约束）
+        # 每列的底层控制器（列内：加速度执行 + 车钩力约束，可开关）
         self.controllers = [
             TrainLowLevelController(
                 num_vehicles=tr.num_vehicles,
                 dt=self.dt,
                 coupler_force_limit_n=self.coupler_force_limit_n,
+                enforce_coupler=self.use_coupler_constraint,
             )
             for tr in self.trains
         ]
+        # 分层控制器（E4）：层级二用第1层策略控速。若 hierarchical=True，每列改用
+        # 分层控制器（第1层策略生成基础 throttle + 层级一 RL 叠加协同调整）。
+        self.hier_controllers = None
+        if self.hierarchical:
+            self.hier_controllers = [
+                HierarchicalController(
+                    layer1_checkpoint=self.layer1_checkpoint,
+                    num_vehicles=tr.num_vehicles,
+                    coupler_force_limit_n=self.coupler_force_limit_n,
+                    target_speed=self.target_speed,
+                    device='cuda',
+                    adj_coef=self.adj_coef,
+                )
+                for tr in self.trains
+            ]
         # 记录每列参考点位置（队首位置，用于列间间距）
         self._train_heads = np.zeros(self.num_trains)
         # 每列初始基准位置（reset 时据此重建，避免跨 reset 累积平移）
         self._base_pos = [np.array(tr.dynamics.pos, dtype=float) for tr in self.trains]
 
-        # 列级观测：每列 [速度误差, 间距误差, 前方坡度, 车钩力均值, 车钩力峰值, 车钩力超限]
-        self.obs_dim = 6
+        # 列级观测（E3+E4 增强，借鉴第1层成功设计：位置推断坡度 + 协同预判信息）：
+        # [0]=速度误差 [1]=间距误差 [2]=前方坡度(队首) [3]=车钩力均值 [4]=车钩力峰值 [5]=超限数
+        # [6]=本列队首位置(归一化,推断坡度剖面) [7]=本列队尾坡度(前方坡度变化)
+        # [8]=前列队首速度 [9]=前列是否制动 [10]=前列减速度强度（协同制动预判，E4 新增）
+        self.obs_dim = 11
+        # 记录每列上一步实际目标加速度（供 obs 的"前列制动状态"使用）
+        self._last_target_accels = np.zeros(self.num_trains)
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf,
             shape=(self.num_trains, self.obs_dim), dtype=np.float32,
@@ -115,11 +165,16 @@ class TrainFleetEnv:
         self._peak_coupler_n = 0.0
         self._coupler_limit_violations = 0
         self._safety_events = 0
+        self._last_target_accels = np.zeros(self.num_trains)
+        self._actions_modified = False
+        self._executed_actions = np.zeros(self.num_trains)
 
         # 记录每列参考点位置（队首位置，用于列间间距）
         cumulative_offset = 0.0
+        # 初始速度：对齐 Zhang2024 长大下坡循环制动初始速度 65 km/h（18.06 m/s）
+        init_speed = (options or {}).get('speed', 65.0 / 3.6)
         for i, (tr, ctrl) in enumerate(zip(self.trains, self.controllers)):
-            tr.reset(options={'speed': self.target_speed * 0.8})
+            tr.reset(options={'speed': init_speed})
             ctrl.reset()
             tr.dynamics.reset_energy()  # 重置能耗累计（避免跨回合累积）
             # 从基准初始位置重建（避免跨 reset 的累积平移）
@@ -128,9 +183,10 @@ class TrainFleetEnv:
                 # 领航列在原点
                 tr.dynamics.set_initial(pos=base_pos, vel=tr.dynamics.vel)
             else:
-                # 跟随列：整列向后平移（列内长度 + 列间目标间距）
+                # 跟随列：整列向后平移（列内长度 + 动态目标间距，E4 时间间隔）
                 train_len = abs(base_pos[0] - base_pos[-1])
-                offset = train_len + self.target_gap
+                init_gap = self._dynamic_gap(init_speed)
+                offset = train_len + init_gap
                 cumulative_offset += offset
                 tr.dynamics.set_initial(
                     pos=base_pos - cumulative_offset,
@@ -139,9 +195,28 @@ class TrainFleetEnv:
             self._train_heads[i] = float(tr.dynamics.pos[0])
         return self._get_obs(), {}
 
+    def _dynamic_gap(self, vel: float = None) -> float:
+        """动态目标间距（VCTS 时间间隔范式）：target_gap + headway_s × 参考速度。
+
+        E4 修正：目标间距用**固定参考速度**（限速区间中值），而非本列速度。
+        原实现用本列速度导致 RL 漏洞——速度越高目标间距越大，RL 通过超速"逃避"间距
+        惩罚（E4 评估超速 83.4%、间距 1194m）。用固定参考速度则动态间距为常数，
+        既保留 VCTS 时间间隔语义（headway×速度尺度），又不让 RL 操纵目标。
+        对齐 Wang2021 动态安全间距、Chen2024 虚拟耦合重载列车编队。
+        """
+        ref_vel = self.target_speed if vel is None else float(self.target_speed)
+        return float(self.target_gap + self.headway_s * max(ref_vel, 0.0))
+
     def _get_obs(self) -> np.ndarray:
-        """构造每列观测 [速度误差, 间距误差, 前方坡度, 车钩力均值, 车钩力峰值, 车钩力超限]。"""
+        """构造每列观测（E3 增强）。
+
+        [0]=速度误差 [1]=间距误差 [2]=前方坡度(队首) [3]=车钩力均值 [4]=车钩力峰值 [5]=超限数
+        [6]=本列队首位置(归一化,推断坡度剖面位置) [7]=本列队尾坡度(前方坡度变化预判)
+        [8]=前列队首速度 [9]=前列是否制动 [10]=前列减速度强度（协同制动预判，跟随车用；领航列=自身）
+        """
         obs = np.zeros((self.num_trains, self.obs_dim), dtype=np.float32)
+        # 先算各列队首速度（协同预判用）
+        head_speeds = np.array([tr.dynamics.vel[0] for tr in self.trains])
         for i, tr in enumerate(self.trains):
             # 每列内部车钩力
             coupler = np.abs(tr.dynamics._coupler_forces())
@@ -149,21 +224,37 @@ class TrainFleetEnv:
             coupler_peak = np.max(coupler) if len(coupler) else 0.0
             viol = int(np.sum(coupler > self.coupler_force_limit_n))
 
-            # 列间间距误差：前车（i-1）尾部 vs 本列队首
+            # 列间间距误差：前车（i-1）尾部 vs 本列队首 - 动态目标间距
+            # E4：目标间距 = 时间间隔×本列速度（VCTS 动态安全间距），非固定 100m
             gap_err = 0.0
             if i > 0:
                 prev_tail = self.trains[i - 1].dynamics.pos[-1]
-                gap_err = (prev_tail - self._train_heads[i]) - self.target_gap
+                dyn_gap = self._dynamic_gap(tr.dynamics.vel[0])
+                gap_err = (prev_tail - self._train_heads[i]) - dyn_gap
 
-            # 前方坡度（取本列队首位置所在坡度）
-            grade = float(tr.dynamics.grade[0]) if hasattr(tr.dynamics, 'grade') else 0.0
+            # 坡度：队首（当前）与队尾（前方将遇到）所在坡度
+            grade_head = float(tr.dynamics.grade[0]) if hasattr(tr.dynamics, 'grade') else 0.0
+            grade_tail = float(tr.dynamics.grade[-1]) if hasattr(tr.dynamics, 'grade') else grade_head
 
-            obs[i, 0] = tr.dynamics.vel[0] - self.target_speed  # 本列速度误差
+            # 本列队首位置归一化（用于推断坡度剖面位置，借鉴第1层 pos*0.0001）
+            pos_norm = float(tr.dynamics.pos[0]) * 0.0001
+            # 前列状态（跟随车预判协同制动；领航列用自身）
+            prev_speed = head_speeds[i - 1] if i > 0 else head_speeds[i]
+            prev_accel = self._last_target_accels[i - 1] if i > 0 else self._last_target_accels[i]
+            prev_braking = float(prev_accel < -0.05)   # 前列是否正在制动（目标加速度<0）
+            prev_decel = float(min(prev_accel, 0.0)) / max(self.max_accel, 1e-6)  # 前列减速度强度 ∈[-1,0]
+
+            obs[i, 0] = tr.dynamics.vel[0] - self.target_speed   # 速度误差
             obs[i, 1] = gap_err                                   # 列间间距误差
-            obs[i, 2] = grade                                     # 前方坡度
+            obs[i, 2] = grade_head                                # 前方坡度(队首)
             obs[i, 3] = coupler_mean / self.coupler_force_limit_n  # 车钩力均值（归一化）
             obs[i, 4] = coupler_peak / self.coupler_force_limit_n  # 车钩力峰值（归一化）
             obs[i, 5] = float(viol)                                # 车钩力超限次数
+            obs[i, 6] = pos_norm                                   # 本列队首位置（推断坡度）
+            obs[i, 7] = grade_tail                                 # 本列队尾坡度（前方坡度变化）
+            obs[i, 8] = prev_speed / self.v_max                    # 前列速度（协同预判，归一化）
+            obs[i, 9] = prev_braking                               # 前列是否制动（E4 协同预判）
+            obs[i, 10] = prev_decel                                # 前列减速度强度（E4 协同预判）
         return obs
 
     def step(self, actions: np.ndarray):
@@ -182,20 +273,32 @@ class TrainFleetEnv:
         self._safety_events = 0
         target_accels = np.zeros(self.num_trains)  # 记录每列实际目标加速度（奖励判断用）
         accels = np.zeros(self.num_trains)         # 记录每列实际加速度（舒适性奖励项）
+        executed_throttles = np.zeros(self.num_trains)  # 每列实际执行 throttle（安全层修正后）
         for i, (tr, ctrl) in enumerate(zip(self.trains, self.controllers)):
-            # 层级一动作 → 该列目标加速度（动作直接影响物理，有学习区分度）
-            target_accel = float(actions[i]) * self.max_accel
-
-            # 领航车（第0列）扰动：突发强制制动（模拟前方障碍/限速），
-            # 跟随车需观察并协同制动保持间距 → 这是列间协同制动策略的价值所在
-            if self.enable_disturbance and i == 0 and self.steps >= self.disturbance_step:
-                target_accel = self.disturbance_target_accel
-            target_accels[i] = target_accel
-
             # 记录步前速度（算实际加速度用）
             v_before = float(tr.dynamics.vel[0])
-            # 层级二底层控制器：目标加速度 → 列级 throttle（执行 + 车钩力约束）
-            col_actions = ctrl.get_action_accel(tr, target_accel)
+
+            if self.hierarchical:
+                # 分层模式：层级一 RL 输出"协同调整量" δ ∈ [-1,1]，
+                # 层级二（第1层策略）负责列内控速，叠加 δ 得到最终 throttle。
+                coor_adj = float(actions[i])
+                col_actions = self.hier_controllers[i].get_action(tr, coor_adj)
+                target_accel = float(coor_adj) * self.max_accel  # 供奖励/obs 用
+                target_accels[i] = target_accel
+            else:
+                # 非分层模式：层级一动作 → 该列目标加速度（动作直接影响物理）
+                target_accel = float(actions[i]) * self.max_accel
+                # 领航车（第0列）扰动：突发强制制动（模拟前方障碍/限速），
+                if self.enable_disturbance and i == 0 and self.steps >= self.disturbance_step:
+                    target_accel = self.disturbance_target_accel
+                target_accels[i] = target_accel
+                # 层级二底层控制器：目标加速度 → 列级 throttle（执行 + 车钩力约束）
+                col_actions = ctrl.get_action_accel(tr, target_accel)
+
+            # 记录实际执行 throttle（分层模式无 safety 钳制，直接取第0节）
+            executed_throttles[i] = float(col_actions[0])
+            requested_throttle = float(actions[i])
+            self._actions_modified = executed_throttles[i] != requested_throttle
             tr.step(col_actions)
             self._train_heads[i] = float(tr.dynamics.pos[0])
             # 实际加速度 = (新速度 - 旧速度) / dt（舒适性奖励项，对齐 Hua2024 w3·u²）
@@ -206,6 +309,9 @@ class TrainFleetEnv:
             self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(coupler)) if len(coupler) else 0.0)
             self._coupler_limit_violations += int(np.sum(coupler > self.coupler_force_limit_n))
             self._safety_events += tr._safety_events
+
+        # 记录本步各列目标加速度（供 obs 的"前列制动状态"，E4 协同预判用）
+        self._last_target_accels = target_accels.copy()
 
         obs = self._get_obs()
         reward = self._calculate_reward(obs, target_accels, accels)
@@ -220,6 +326,9 @@ class TrainFleetEnv:
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
             'safety_events': int(self._safety_events),
+            # V5.1 教训：安全层修正动作后必须用实际执行动作重算 log_prob
+            'executed_actions': self._executed_actions.copy(),
+            'actions_modified': bool(self._actions_modified),
         }
         return obs, reward, terminated, truncated, info
 
@@ -247,62 +356,93 @@ class TrainFleetEnv:
         - 间距保持：间距误差 → 惩罚（跟随车协同保持间距）
         - 速度一致性：各列速度差 → 惩罚（协同制动一致）
         """
-        # 速度误差（各列 vs 目标速度，越小越好）——惩罚"大家一起慢速滑行"的次优解。
-        # V5.14 发现：只用 speed_consistency（各列速度差）会让策略学到"各列同速但偏离目标"
-        # （速度一致就 reward 最优，无论是否达到 target_speed）。必须加速度绝对值约束。
-        speed_err = np.mean(np.abs(obs[:, 0]))
+        # 【E3 奖励重构，借鉴第1层 train_cyclic_braking 已验证有效的"稀疏清晰"哲学】
+        # 第1层成功关键：速度在限速区间内给清晰正向(+5/步)，超出硬惩罚(-20/步)，制动有成本(-0.5)。
+        # 第2层原奖励全是连续负惩罚，RL 无法判断"该制动还是缓解"，导致 v1 贴上限超速(97%)、
+        # v2 二次惩罚探索期崩溃。重构为与第1层一致的清晰区间引导 + 多列协同项。
         # 速度一致性（各列速度相互差，越小越好）——协同制动时各列应协调减速
         speeds = np.array([tr.dynamics.vel[0] for tr in self.trains])
         speed_consistency = float(np.std(speeds))
 
         # 避免追尾（势场硬惩罚）：间距低于安全阈值 → 强惩罚（协同制动核心）
+        # V5.x 修正：势场二次惩罚在追尾穿透时二次爆炸（单步可到 -4万）导致 GAE 尺度爆炸、
+        # 训练发散（E3 实测 Ep70 崩盘到 -2000万）。加 clip 上限保证数值稳定，
+        # 同时保留足够强的惩罚引导（协同制动核心目标）。
         potential_field = 0.0
-        min_gap = self.target_gap * 0.4
         collision_penalty = 0.0
         for i in range(1, self.num_trains):
-            actual_gap = self.target_gap + obs[i, 1]
+            # E4 动态间距：实际间距 = 动态目标 + gap_err（obs[1] 基于动态目标）
+            dyn_gap = self._dynamic_gap(self.trains[i].dynamics.vel[0])
+            actual_gap = dyn_gap + obs[i, 1]
+            min_gap = dyn_gap * 0.4
             if actual_gap < min_gap:
-                # 势场惩罚：间距越近惩罚越重（二次）
+                # 势场惩罚：间距越近惩罚越重（二次），clip 防爆炸
                 potential_field += -2.0 * (min_gap - actual_gap) ** 2
             # 追尾硬惩罚（间距接近 0）
             if actual_gap < 5.0:
                 collision_penalty -= 50.0
+        potential_field = max(potential_field, -2000.0)  # 数值稳定：单步势场惩罚上限
 
-        # 速度不超限：速度超目标速度太多 → 惩罚（长大下坡需制动控速）
-        overspeed_penalty = 0.0
+        # 限速区间约束 [v_min, v_max]（循环制动核心目标，对齐 Zhang2024 朔黄线[40,80]，V5.24）：
+        # 借鉴第1层 train_cyclic_braking 哲学（对齐 Zhang2024 Eq.22 的 Rc/Rd）：
+        # - 速度在区间内 → 每列 +5 清晰正向（鼓励保持有效运行速度，非"免罚"）
+        # - 超 v_max / 低于 v_min → 每列 -20 硬惩罚（长大下坡必须制动降速）
+        # 这样 RL 有明确动机在 [v_min,v_max] 循环，而非贴上限超速（v1）或探索期崩溃（v2）。
+        speed_band_reward = 0.0
         for i, tr in enumerate(self.trains):
-            overspeed = tr.dynamics.vel[0] - self.target_speed - 0.5  # 允许小余量
-            if overspeed > 0:
-                overspeed_penalty -= 2.0 * overspeed
+            vel = tr.dynamics.vel[0]
+            if self.v_min <= vel <= self.v_max:
+                speed_band_reward += 5.0
+            else:
+                speed_band_reward -= 20.0
 
-        # 间距保持（跟随车）：间距误差 → 惩罚
-        gap_err = np.mean(np.abs(obs[1:, 1])) if self.num_trains > 1 else 0.0
+        # 制动成本：鼓励"只在必要时制动"（循环制动关键——学到"到上限制动，区间内缓解滑行"）
+        # 借鉴第1层 brake_engaged → -0.5（Zhang2024 制动距离维护成本）
+        brake_cost = 0.0
+        if target_accels is not None:
+            # target_accels<0 = 请求制动（加速度为负）
+            brake_cost = -0.5 * float(np.sum(np.asarray(target_accels) < -0.05))
+
+        # 间距保持（跟随车）——E4 重构为"安全跟车"语义（对齐虚拟耦合 VCTS 安全间隔）。
+        # E4 诊断：真实剖面多坡段 → 3列速度天然不同步（列间实距~1300m），精确保持固定
+        # 间距物理上不可行。且 speed_band_reward(超速-20) 与"追车需速度差"冲突，RL 学不会
+        # 追车（v4 间距拉到1106m）。改为"安全跟车"：间距误差在安全区间内无惩罚（跟住了），
+        # 拉开过大（跟丢，协同失败）→ 硬惩罚。过近由势场处理（避免追尾）。
+        # 依据：VCTS 用安全间隔而非精确间距；Chen2024 虚拟耦合重载列车 = 安全间隔约束。
+        gap_reward = 0.0
+        if self.num_trains > 1:
+            for i in range(1, self.num_trains):
+                ge = obs[i, 1]  # 该跟随列间距误差（带符号：正=拉大，负=逼近）
+                # 过近由势场/碰撞惩罚处理；这里只惩罚"拉开跟丢"（ge>安全上限）
+                if ge > 200.0:
+                    gap_reward -= 2.0 * (ge - 200.0) / 100.0  # 跟丢硬惩罚（随拉大加重）
 
         # 舒适性（加速度惩罚，对齐 Hua2024 w3·u²）：惩罚剧烈加减速 → RL 学平稳驾驶。
         # 这是底层 PID 不优化的目标，是列间 RL 的增量价值（解决"学无可学"）。
-        # 加速度归一化：典型制动/牵引加速度 ~1 m/s²，平方后 ~1，权重 0.3 合适
         comfort_penalty = 0.0
         if accels is not None and len(accels) > 0:
             comfort_penalty = -0.3 * float(np.mean(accels ** 2))
 
-        # 车钩力约束（创新点：考虑车钩力）
-        coupler_mean = np.mean(obs[:, 3])
-        coupler_peak = np.max(obs[:, 4]) if self.num_trains else 0.0
-        violation_penalty = 0.0
-        if coupler_peak > 1.0:
-            violation_penalty = -5.0 * (coupler_peak - 1.0)
+        # 车钩力约束（创新点：考虑车钩力）——消融实验可关闭（use_coupler_constraint=False）
+        if self.use_coupler_constraint:
+            coupler_mean = np.mean(obs[:, 3])
+            coupler_peak = np.max(obs[:, 4]) if self.num_trains else 0.0
+            violation_penalty = 0.0
+            if coupler_peak > 1.0:
+                violation_penalty = -5.0 * (coupler_peak - 1.0)
+            coupler_term = -0.2 * coupler_mean - 0.2 * coupler_peak + violation_penalty
+        else:
+            coupler_term = 0.0  # 忽略车钩力（奖励不含车钩力项）
 
         reward = (
-            -0.5 * speed_err          # 速度绝对值误差（必须接近目标速度，V5.14 新增）
-            - 0.3 * speed_consistency  # 速度一致性（各列协同）
-            - 0.4 * gap_err            # 间距保持
-            + potential_field          # 避免追尾势场
+            + speed_band_reward        # 限速区间内+5/超限-20（E3 重构，第1层哲学）
+            - 0.1 * speed_consistency  # 速度一致性（E4 降低权重：真实剖面多坡段各列速度天然不同，且追车需速度差）
+            + gap_reward               # 间距保持（E4：安全跟车，拉开过大硬惩罚）
+            + potential_field          # 避免追尾势场（clip 防爆炸）
             + collision_penalty        # 追尾硬惩罚
-            + overspeed_penalty        # 速度超限
+            + brake_cost               # 制动成本（E3 新增，鼓励循环制动）
             + comfort_penalty          # 舒适性
-            - 0.2 * coupler_mean       # 车钩力均值
-            - 0.2 * coupler_peak       # 车钩力峰值
-            + violation_penalty        # 车钩力超限
+            + coupler_term             # 车钩力约束（可关闭）
         )
         return reward
 

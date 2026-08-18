@@ -47,11 +47,16 @@ class SafetyLayer:
         coupler_force_limit_n: float = DEFAULT_COUPLER_FORCE_LIMIT_N,
         min_gap_m: float = 0.1,
         coupler_force_limit_emergency_n: float = None,
+        coupler_override: str = 'release',
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
         self.coupler_force_limit_n = coupler_force_limit_n
         self.min_gap_m = min_gap_m
+        # 车钩力超限时的干预策略（8/18 修正，避免 E3 改动破坏第1层）：
+        # - 'release'（默认，原行为）：制动完全钳制为 0（释放），保持速度，第1层单列用
+        # - 'min_brake'（E3 修复）：制动降到 MIN 档保留制动，避免长大下坡"释放→再制动"死锁，第2层多列用
+        self.coupler_override = coupler_override
         # Fu2019 区分正常运行/紧急制动的车钩力上限。
         # 默认紧急制动上限 = 2.25 * 正常运行上限（Fu2019: 1000/2250 kN）
         self.coupler_force_limit_emergency_n = (
@@ -114,15 +119,25 @@ class SafetyLayer:
                     actions[i] = 0.0  # 钳制为缓解
 
         # 规则 2：车钩力上限防护（区分正常运行/紧急制动上限，Fu2019）
-        # 对称干预：车钩力超限时，无论牵引(>0)还是制动(<0)都会加剧纵向冲动，
-        # 统一钳制为 0（惰行/缓解），避免"只拦牵引不拦制动"导致长大下坡制动冲动失控
-        # （V5.4 教训：车钩力爆表主因是剧烈制动，安全层必须对称拦截）
+        # 车钩力超限干预策略（coupler_override，8/18 修正）：
+        # - 'min_brake'：降低制动到 MIN 档（保留制动，避免长大下坡"释放→再制动"死锁，
+        #   用于第2层多列协同；E3 修复，实测消除车钩力超限暴涨 625次→0）
+        # - 'release'（默认）：制动完全钳制为 0（释放），用于第1层单列循环制动
+        #   （E3 改动曾让第1层掉速到0：车钩力超限→仍保持MIN制动→持续减速→掉速，
+        #   8/18 恢复第1层为 release，保持速度保持能力）
+        MIN_BRAKE = -0.3   # 对应 AirBrakeNotch.MIN（0.2倍制动力，braking.py）
         for i in range(self.num_vehicles):
             if coupler_forces[i] >= coupler_limit:
-                # 车钩力已达上限：抑制加剧该车车钩力的牵引/制动动作
-                if actions[i] != 0.0:
-                    mode = 'emergency' if is_emergency else 'normal'
-                    self._log(i, 'coupler_force_limit', f'|F|={coupler_forces[i]/1e3:.0f}kN({mode})')
+                mode = 'emergency' if is_emergency else 'normal'
+                self._log(i, 'coupler_force_limit', f'|F|={coupler_forces[i]/1e3:.0f}kN({mode})')
+                if actions[i] > 0.0:
+                    # 牵引加剧冲动 → 完全钳制为 0
+                    actions[i] = 0.0
+                elif actions[i] < 0.0 and self.coupler_override == 'min_brake':
+                    # 制动：降低到 MIN 档（保留必要制动，长大下坡不能完全释放）
+                    actions[i] = max(actions[i], MIN_BRAKE)
+                elif actions[i] < 0.0:
+                    # 'release'：制动完全钳制为 0（释放，保持速度，第1层用）
                     actions[i] = 0.0
 
         # 规则 3：间距防护（后车逼近前车时禁止继续加速）

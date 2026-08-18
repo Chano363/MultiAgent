@@ -95,6 +95,13 @@ class TrainFormationEnv:
         self.grade_profile_name = config.get('grade_profile', None)  # 'long_downhill'/'gradual_to_steep'/'v_shape'
         self.enable_safety = config.get('enable_safety', True)
         self.coupler_force_limit_n = config.get('coupler_force_limit_n', COUPLER_FORCE_LIMIT_N)
+        # E7：缓解空气制动用同步（True，第1层简化物理，RL能学循环制动不掉速）
+        # 还是缓解波传播（False，第2层物理真实，保留"缓解后车钩力最大"机制）
+        self.release_sync = config.get('release_sync', False)
+        # E8：可控尾车 EOT（缓解时尾部同步排风，双向缓解波，提升缓解同步性）。
+        # 论文依据：Zhang2025 大秦线 20kT EOT 使最大拉钩力 780→489kN（-37%）。
+        # 用于缓解波下把"缓解后车钩力"峰值降到 1000kN 以内。
+        self.eot = config.get('eot', False)
 
         # 编组预设：优先用预设（如万吨级 1+0），否则按 num_vehicles 构造默认
         consist_preset = config.get('consist_preset', None)
@@ -261,7 +268,10 @@ class TrainFormationEnv:
                 if self._air_brake_priority(notch, ab_command):
                     ab_command = notch
 
-        self.dynamics.step_vehicles_ed_ab(throttle, ed_throttle, ab_command)
+        self.dynamics.step_vehicles_ed_ab(
+            throttle, ed_throttle, ab_command, release_sync=self.release_sync,
+            eot=self.eot,
+        )
 
         obs = self._get_obs()
         coupler = np.abs(self.dynamics._coupler_forces())

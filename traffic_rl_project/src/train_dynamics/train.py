@@ -74,6 +74,18 @@ class TrainDynamics:
             [AirBrakeNotch.RELEASE] * n, dtype=object
         )
         self._air_brake_delay_remaining = np.zeros(n)
+        # 缓解波状态：_air_brake_releasing[i]=True 表示该节"已接收缓解指令、等待传播解除制动"
+        # 真实空气制动缓解是"缓解波"按波速从车头向后传播（车头先缓、车尾后缓），
+        # 这种不同步正是"缓解后车钩力最大"（张二田/刘博阳/王宏宇/李蔚 一致）的物理根源。
+        self._air_brake_releasing = np.zeros(n, dtype=bool)
+        # 缓解波初始延迟总量（记录每节车缓解开始时到释放的时间，供制动力渐变衰减）
+        self._air_brake_delay_total = np.zeros(n)
+        # 缓解制动力衰减系数（0~1，1=满制动，0=完全释放）。
+        # E7 物理改进：真实空气制动缓解是"制动力逐渐衰减"（逐步排风），
+        # 而非"延迟期间保持满制动后突然释放"。原实现缓解波期间尾部保持 SERVICE
+        # 满制动直到 6.1s 延迟结束才释放 → 掉速到0。改为随缓解波进度渐变衰减，
+        # 既保留"缓解不同步→车钩力最大"的物理现象，又避免持续制动导致掉速。
+        self._air_brake_release_frac = np.ones(n)
 
         self._spacing()  # 按车钩自由长度初始化位置
 
@@ -205,6 +217,8 @@ class TrainDynamics:
                 v.mass_t, abs(self.vel[i]), self._air_brake_notch[i],
                 v.braked_weight_ratio,
             )
+            # E7：缓解制动力渐变衰减（真实缓解逐步排风，非瞬间释放），避免掉速
+            f *= self._air_brake_release_frac[i]
             forces[i] = -f * np.sign(self.vel[i]) if abs(self.vel[i]) > 1e-6 else -f
         return forces
 
@@ -282,6 +296,8 @@ class TrainDynamics:
         ab_command: AirBrakeNotch,
         brake_origin: int = 0,
         ab_sources: list = None,
+        release_sync: bool = False,
+        eot: bool = False,
     ):
         """按 电制动（连续）+ 空气制动（离散+波速传播）推进一个时间步。
 
@@ -304,15 +320,19 @@ class TrainDynamics:
                         self._apply_air_brake_command(notch, idx, bidirectional=True)
             else:
                 if np.any(self._air_brake_active):
-                    self._reset_air_brake_command(0)
+                    self._reset_air_brake_command(0, sync=release_sync, eot=eot)
         elif ab_command != AirBrakeNotch.RELEASE:
             # 单源制动（向后兼容）
             if not self._air_brake_active[brake_origin]:
                 self._apply_air_brake_command(ab_command, brake_origin)
         else:
             # 缓解：仅在确实处于制动状态时释放
-            if np.any(self._air_brake_active):
-                self._reset_air_brake_command(brake_origin)
+            # 【bug修复】缓解波传播中（车头 _air_brake_releasing[0] 已触发）不重复
+            # _reset_air_brake_command，否则每次 step 都重置缓解波 delay → 缓解波
+            # 永远传播不完 → 尾部持续制动 → 掉速 + active 反而增加（8/18 诊断：
+            # 缓解后 active 4→14、delay 恒定6.0）。首次缓解才触发缓解波。
+            if np.any(self._air_brake_active) and not self._air_brake_releasing[brake_origin]:
+                self._reset_air_brake_command(brake_origin, sync=release_sync, eot=eot)
 
         # 推进空气制动波速传播
         self._advance_air_brake_propagation(self.dt)
@@ -393,12 +413,38 @@ class TrainDynamics:
                     self._air_brake_active[i] = True
                     self._air_brake_notch[i] = self._air_brake_notch[i - 1]
         # 从后向前传播：后车已激活 → 倒计时激活前车（尾部动力/中部动力）
-        for i in range(n - 2, -1, -1):
-            if self._air_brake_active[i + 1] and not self._air_brake_active[i]:
+        # 【bug修复】缓解状态（车头 _air_brake_releasing[0]）时禁止反向制动传播：
+        # 否则缓解波传播中尾部仍 active → 反向把已释放的前车重新激活 → active车反而增加
+        # → 缓解不生效 → 持续制动 → 掉速（8/18 诊断：缓解后 active 6→21、制动力不归零）
+        if not self._air_brake_releasing[0]:
+            for i in range(n - 2, -1, -1):
+                if self._air_brake_active[i + 1] and not self._air_brake_active[i]:
+                    self._air_brake_delay_remaining[i] -= dt
+                    if self._air_brake_delay_remaining[i] <= 0.0:
+                        self._air_brake_active[i] = True
+                        self._air_brake_notch[i] = self._air_brake_notch[i + 1]
+
+        # 【缓解波传播】前车已释放 → 倒计时向后释放后车（模拟缓解波 ~200m/s 从车头向后传播）
+        # 缓解不同步 → 前部先失去制动力、后部仍在制动 → 拉伸/压缩 → 放大车钩力（"缓解后车钩力最大"）
+        # E7 物理改进：缓解波传播期间后车制动力**渐变衰减**（真实缓解逐步排风），
+        # 从满制动(SERVICE)逐渐降到0，而非"延迟期间保持满制动后突然释放"。
+        # 这样保留缓解波物理现象（不同步→车钩力），又避免持续满制动导致掉速。
+        for i in range(1, n):
+            if self._air_brake_releasing[i - 1] and self._air_brake_active[i]:
                 self._air_brake_delay_remaining[i] -= dt
+                # 制动力随缓解进度衰减：delay 剩余越多，制动力越大；delay→0 时制动力→0
+                self._air_brake_release_frac[i] = max(
+                    self._air_brake_delay_remaining[i] / max(self._air_brake_delay_total[i], 1e-6),
+                    0.0,
+                )
                 if self._air_brake_delay_remaining[i] <= 0.0:
-                    self._air_brake_active[i] = True
-                    self._air_brake_notch[i] = self._air_brake_notch[i + 1]
+                    self._air_brake_active[i] = False
+                    self._air_brake_notch[i] = AirBrakeNotch.RELEASE
+                    self._air_brake_releasing[i] = True
+                    self._air_brake_release_frac[i] = 0.0
+
+        # 【EOT 缓解波】EOT 时 delay 已在 _reset_air_brake_command 设为 min(到头,到尾)/波速，
+        # 正向传播循环按此 delay 递减即可实现"两端向中间缓解"，无需单独反向循环。
 
     def _apply_air_brake_command(
         self,
@@ -425,6 +471,11 @@ class TrainDynamics:
         if not self._air_brake_active[vehicle_idx]:
             self._air_brake_active[vehicle_idx] = True
             self._air_brake_notch[vehicle_idx] = cmd_notch
+            # 若该节正在缓解波传播中，清除缓解状态（重新制动）
+            if self._air_brake_releasing[vehicle_idx]:
+                self._air_brake_releasing[vehicle_idx] = False
+            # E7：重新制动时恢复满制动力（清除缓解衰减）
+            self._air_brake_release_frac[vehicle_idx] = 1.0
             # 向后传播（source -> 后方）
             for j in range(vehicle_idx + 1, n):
                 distance = cum_len[j] - cum_len[vehicle_idx]
@@ -435,13 +486,62 @@ class TrainDynamics:
                     distance = cum_len[vehicle_idx] - cum_len[j]
                     self._air_brake_delay_remaining[j] = max(distance / wave_speed, 0.0)
 
-    def _reset_air_brake_command(self, vehicle_idx: int = 0):
-        """缓解空气制动（全部车辆释放）。"""
+    def _reset_air_brake_command(self, vehicle_idx: int = 0, sync: bool = False, eot: bool = False):
+        """缓解空气制动。
+
+        真实缓解（sync=False，默认）：缓解波按波速（~200m/s）从车头向后传播，
+        车头先缓、车尾后缓，不同步导致"缓解后车钩力最大"（张二田等一致）。
+        仅释放源头车辆，后方由 `_advance_air_brake_propagation` 逐节延迟释放。
+
+        同步缓解（sync=True）：所有车厢立即同时释放（简化物理）。
+        E7 分层：第1层（单列控速，train_cyclic_braking）用 sync=True 简化缓解，
+        避免缓解波延迟导致 RL 训练掉速+车钩力爆炸学不会；第2层（多列协同）用
+        缓解波（sync=False）保留"缓解后车钩力最大"物理机制。
+
+        EOT（eot=True，论文解决方案）：缓解时**尾部同时触发缓解波**（双向缓解）。
+        真实重载列车配 EOT（可控尾车），缓解时尾部同步排风加速缓解波传播，
+        提升缓解同步性。论文依据：Zhang2025 大秦线 20kT EOT 使最大拉钩力
+        780→489kN（-37%）；樊运新 3万吨 长大下坡循环制动最大拉钩力 952.6kN
+        （尾部分布式动力提升同步）。EOT 让缓解波下"缓解后车钩力最大"的峰值
+        显著降低，车钩力可守住 1000kN。
+        """
         n = self.num_vehicles
-        for i in range(vehicle_idx, n):
-            self._air_brake_active[i] = False
-            self._air_brake_notch[i] = AirBrakeNotch.RELEASE
-            self._air_brake_delay_remaining[i] = 0.0
+        if sync:
+            # 同步缓解：所有车厢立即释放
+            self._air_brake_active[:] = False
+            self._air_brake_notch[:] = AirBrakeNotch.RELEASE
+            self._air_brake_releasing[:] = False
+            self._air_brake_release_frac[:] = 1.0
+            self._air_brake_delay_remaining[:] = 0.0
+            return
+        cum_len = self._vehicle_cum_lengths()
+        wave_speed = AIR_BRAKE_PROPAGATION_SPEED_SERVICE
+        # 源头车辆立即释放，并触发缓解波
+        if vehicle_idx < n:
+            self._air_brake_active[vehicle_idx] = False
+            self._air_brake_notch[vehicle_idx] = AirBrakeNotch.RELEASE
+            self._air_brake_releasing[vehicle_idx] = True
+            self._air_brake_delay_remaining[vehicle_idx] = 0.0
+            # 对后方仍在制动的车辆设置缓解波延迟（按距离/波速）
+            for j in range(vehicle_idx + 1, n):
+                if self._air_brake_active[j]:
+                    distance = cum_len[j] - cum_len[vehicle_idx]
+                    delay = max(distance / wave_speed, 0.0)
+                    # EOT：尾部（倒数第1节）也作为缓解源，缓解波双向传播 →
+                    # 中间车辆延迟 = min(到头距离, 到尾部距离)/波速，缓解同步性显著提升
+                    if eot:
+                        distance_to_tail = cum_len[n - 1] - cum_len[j]
+                        delay = min(delay, max(distance_to_tail / wave_speed, 0.0))
+                    self._air_brake_delay_remaining[j] = delay
+                    # E7：记录缓解波初始延迟总量，供制动力渐变衰减
+                    self._air_brake_delay_total[j] = delay
+                    self._air_brake_release_frac[j] = 1.0
+            if eot:
+                # EOT：尾部也立即释放并作为缓解波源（双向）
+                self._air_brake_active[n - 1] = False
+                self._air_brake_notch[n - 1] = AirBrakeNotch.RELEASE
+                self._air_brake_releasing[n - 1] = True
+                self._air_brake_delay_remaining[n - 1] = 0.0
 
     def max_throttle_at_speed(self, speed_mps: float) -> float:
         """该速度下允许的最大 throttle（由机车档位曲线决定）。"""

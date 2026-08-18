@@ -49,10 +49,12 @@ def train(
     episodes: int = 200,
     num_trains: int = 3,
     consist_preset: str = '10kt_1plus0',
-    grade_profile: str = 'long_downhill',
-    target_speed: float = 20.0,
+    grade_profile: str = 'shuozhou_23800',
+    target_speed: float = None,
     target_gap: float = 100.0,
     max_steps: int = 300,
+    v_max: float = 80.0 / 3.6,
+    v_min: float = 40.0 / 3.6,
     lr: float = 5e-5,
     entropy: float = 0.005,
     batch_size: int = 64,
@@ -63,6 +65,10 @@ def train(
     enable_disturbance: bool = False,
     disturbance_step: int = 150,
     disturbance_target_accel: float = -0.8,
+    use_coupler_constraint: bool = True,
+    hierarchical: bool = False,
+    layer1_checkpoint: str = 'outputs/checkpoints/cyclic_mappo_best_seed0.pt',
+    adj_coef: float = 0.3,
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
 ):
@@ -75,14 +81,21 @@ def train(
         'num_trains': num_trains,
         'consist_preset': consist_preset,
         'grade_profile': grade_profile,
-        'target_speed': target_speed,
+        'v_max': v_max,
+        'v_min': v_min,
         'target_gap': target_gap,
         'max_steps': max_steps,
         'max_accel': max_accel,
         'enable_disturbance': enable_disturbance,
         'disturbance_step': disturbance_step,
         'disturbance_target_accel': disturbance_target_accel,
+        'use_coupler_constraint': use_coupler_constraint,
+        'hierarchical': hierarchical,
+        'layer1_checkpoint': layer1_checkpoint,
+        'adj_coef': adj_coef,
     }
+    if target_speed is not None:
+        env_cfg['target_speed'] = target_speed
     env = make_env(env_cfg)
 
     obs_dim = env.obs_dim       # 每列观测维度（6）
@@ -94,7 +107,8 @@ def train(
     logger.info(f"编队列数: {num_trains} 列")
     logger.info(f"单列编组: {consist_preset}")
     logger.info(f"坡度剖面: {grade_profile}")
-    logger.info(f"目标速度: {target_speed} m/s | 列间目标间距: {target_gap} m")
+    logger.info(f"限速区间: [{v_min*3.6:.0f}, {v_max*3.6:.0f}] km/h (循环制动)")
+    logger.info(f"巡航参考速度: {(env.target_speed):.1f} m/s | 列间目标间距: {target_gap} m")
     logger.info(f"每列 obs={obs_dim}维, act={act_dim}维")
     logger.info(f"设备: {device}")
 
@@ -127,7 +141,8 @@ def train(
     start_time = time.time()
 
     for ep in range(episodes):
-        obs, _ = env.reset(options={'speed': target_speed * 0.8})
+        # 初始速度对齐 Zhang2024 长大下坡循环制动 65 km/h（18.06 m/s）
+        obs, _ = env.reset(options={'speed': 65.0 / 3.6})
         done = False
         ep_reward = 0.0
         ep_peak = 0.0
@@ -141,6 +156,15 @@ def train(
 
             value = agent.get_value(flat_obs)
             next_obs, reward, terminated, truncated, info = env.step(action_for_env)
+
+            # V5.1 教训：安全层修正动作后，实际执行动作 ≠ RL 输出动作，
+            # 必须用实际执行动作重算 log_prob，否则重要性采样失效 → 策略发散。
+            # 底层控制器 get_action_accel 限制动深度 + 车钩力安全钳制会修正动作，
+            # info['executed_actions'] 即安全层修正后每列实际执行的列级 throttle。
+            if info.get('actions_modified', False):
+                executed = np.asarray(info.get('executed_actions'), dtype=np.float32)
+                actions = executed
+                log_prob = agent.get_log_prob(flat_obs, executed)
 
             done = terminated or truncated
             agent.store_transition(flat_obs, actions, reward, log_prob, done, value)
@@ -160,7 +184,9 @@ def train(
             best_reward = ep_reward
             # 保存 best 模型（策略最优时的 checkpoint）——论文评估应报告 best 而非末 ep
             # （V5.14 教训：策略可能后期退化，末 ep 模型性能可能差于早期）
-            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_seed{seed}.pt"))
+            # 文件名含 coupler 标识（消融实验：有车钩力 _cp / 无车钩力 _nocp）
+            cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_{cp_tag}_seed{seed}.pt"))
 
         if (ep + 1) % 10 == 0 or ep == episodes - 1:
             recent = np.mean(episode_rewards[-10:]) if len(episode_rewards) >= 10 else np.mean(episode_rewards)
@@ -172,8 +198,9 @@ def train(
                 f"viol {recent_viol:.1f} | loss {metrics.get('total_loss',0):.3f}"
             )
             sys.stdout.flush()
-            # checkpoint 带 seed 后缀（多种子训练不互相覆盖）
-            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{ep+1}_seed{seed}.pt"))
+            # checkpoint 带 seed + coupler 标识（多种子/消融训练不互相覆盖）
+            cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{ep+1}_{cp_tag}_seed{seed}.pt"))
 
     total_time = time.time() - start_time
     logger.info("=" * 70)
@@ -200,10 +227,16 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', type=int, default=200)
     parser.add_argument('--num_trains', type=int, default=3)
     parser.add_argument('--preset', type=str, default='10kt_1plus0')
-    parser.add_argument('--grade', type=str, default='long_downhill')
-    parser.add_argument('--target_speed', type=float, default=20.0)
+    parser.add_argument('--grade', type=str, default='shuozhou_23800',
+                        help='坡度剖面（默认朔黄线真实剖面，循环制动）')
+    parser.add_argument('--target_speed', type=float, default=None,
+                        help='巡航参考速度（默认取限速区间中值）')
     parser.add_argument('--target_gap', type=float, default=100.0)
     parser.add_argument('--max_steps', type=int, default=300)
+    parser.add_argument('--v_max', type=float, default=80.0 / 3.6,
+                        help='限速上限 m/s（默认 80 km/h，朔黄线线路限速，Zhang2024）')
+    parser.add_argument('--v_min', type=float, default=40.0 / 3.6,
+                        help='限速下限 m/s（默认 40 km/h，重载最小缓解速度，Zhang2024）')
     parser.add_argument('--lr', type=float, default=5e-5)
     parser.add_argument('--entropy', type=float, default=0.005)
     parser.add_argument('--batch_size', type=int, default=64)
@@ -215,6 +248,15 @@ if __name__ == '__main__':
                         help='开启领航车突发减速扰动（协同制动场景）')
     parser.add_argument('--disturbance_step', type=int, default=150)
     parser.add_argument('--disturbance_target_accel', type=float, default=-0.8)
+    parser.add_argument('--no_coupler_constraint', action='store_true',
+                        help='关闭车钩力约束（消融实验：模拟忽略车钩力）')
+    parser.add_argument('--hierarchical', action='store_true',
+                        help='分层模式：第1层策略控速，RL 只学协同调整（E4）')
+    parser.add_argument('--layer1_checkpoint', type=str,
+                        default='outputs/checkpoints/cyclic_mappo_best_seed0_v40-80.pt',
+                        help='第1层单列控速策略 checkpoint（[40,80]限速）')
+    parser.add_argument('--adj_coef', type=float, default=0.3,
+                        help='协同调整量缩放系数（分层模式）')
 
     args = parser.parse_args()
     train(
@@ -225,6 +267,8 @@ if __name__ == '__main__':
         target_speed=args.target_speed,
         target_gap=args.target_gap,
         max_steps=args.max_steps,
+        v_max=args.v_max,
+        v_min=args.v_min,
         lr=args.lr,
         entropy=args.entropy,
         batch_size=args.batch_size,
@@ -235,4 +279,8 @@ if __name__ == '__main__':
         enable_disturbance=args.enable_disturbance,
         disturbance_step=args.disturbance_step,
         disturbance_target_accel=args.disturbance_target_accel,
+        use_coupler_constraint=not args.no_coupler_constraint,
+        hierarchical=args.hierarchical,
+        layer1_checkpoint=args.layer1_checkpoint,
+        adj_coef=args.adj_coef,
     )

@@ -81,8 +81,30 @@ def profile_v_shape() -> GradeProfile:
     ])
 
 
+def profile_shuozhou_23800() -> GradeProfile:
+    """朔黄线 Longgong→Beidaniu 段 23,800m 真实剖面（Zhang2024 Algorithms 2024,17,190 Table 2）。
+
+    这是 Zhang2024 复现用的**真实线路**，坡度在 -1.5‰~-11.4‰ 间交替变化（多段变坡），
+    用于校准我们动力学能否复现其"长大下坡循环制动"结果（5 次制动、速度 40-80km/h 区间）。
+    负值=下坡（与全局约定一致）。
+    """
+    return GradeProfile(segments=[
+        GradeSegment(0.0, -1.5),        # 0–1000: -1.5
+        GradeSegment(1000.0, -7.5),     # 1000–1400: -7.5
+        GradeSegment(1400.0, -10.9),    # 1400–6200: -10.9
+        GradeSegment(6200.0, -9.0),     # 6200–6750: -9.0
+        GradeSegment(6750.0, -11.3),    # 6750–12430: -11.3
+        GradeSegment(12430.0, -10.5),   # 12430–14080: -10.5
+        GradeSegment(14080.0, -11.4),   # 14080–16330: -11.4
+        GradeSegment(16330.0, -10.6),   # 16330–19130: -10.6
+        GradeSegment(19130.0, -10.9),   # 19130–22260: -10.9
+        GradeSegment(22260.0, -3.3),    # 22260–23800: -3.3
+    ])
+
+
 PROFILES = {
     'long_downhill': profile_long_downhill,
     'gradual_to_steep': profile_gradual_to_steep,
     'v_shape': profile_v_shape,
+    'shuozhou_23800': profile_shuozhou_23800,  # Zhang2024 复现场景
 }

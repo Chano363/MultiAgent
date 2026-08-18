@@ -1,0 +1,1448 @@
+Received:20May2024 Accepted:3March2025
+DOI:10.1111/mice.13463
+INDUSTRIAL APPLICATION
+Enhancedconsensuscontrolarchitectureforautonomous
+platoonutilizingmulti-agentreinforcementlearning
+XinGuo1 JiankunPeng1 DaweiPi2 HailongZhang3 ChangchengWu1
+ChunyeMa1
+1SchoolofTransportation,Southeast
+University,Nanjing,China
+2SchoolofMechanicalEngineering,
+NanjingUniversityofScienceand
+Technology,Nanjing,China
+3CollegeofMechanicsEngineering,North
+UniversityofChina,Taiyuan,China
+Correspondence
+JiankunPeng,SchoolofTransportation,
+SoutheastUniversity,Nanjing211189,
+China.
+Email:jkpeng@seu.edu.cn
+Fundinginformation
+NationalNaturalScienceFoundationof
+China,Grant/AwardNumber:52372380;
+KeyR&DProgramofShandongProvince,
+China,Grant/AwardNumber:
+2023CXGC010111
+Abstract
+Coordinating a platoon of connected and automated vehicles significantly
+improvestrafficefficiencyandsafety.Currentplatooncontrolmethodsprioritize
+consistency and convergence performance but overlook the inherent interde-
+pendencebetweentheplatoonandthethenon-connectedleadingvehicle.This
+oversightconstrainstheplatoon’sadaptabilityincar-followingscenarios,result-
+ing in suboptimal optimization performance. To address this issue, this paper
+proposed a platoon control framework based on multi-agent reinforcement
+learning, aiming to integrate cooperative optimization with platoon tracking
+behavior and internal coordination strategies. This strategy employs a bidirec-
+tionalcooperativeoptimizationmechanismtoeffectivelydecoupletheplatoon’s
+tracking behavior from its internal coordination control, and then recouple it
+in a multi-objective optimized manner. Additionally, it leverages long short-
+termmemorynetworkstoaccuratelycaptureandmanagetheplatoon’sdynamic
+nature over time, aiming to achieve enhanced optimization outcomes. The
+simulation results demonstrate that the proposed method effectively improves
+the platoon’s cooperative effect and car-following adaptability. Compared to
+the consensus control strategy, it reduces the average spacing error by 8.3%.
+Furthermore,theaveragelengthoftheplatoondecreasesby19.1%.
+1 INTRODUCTION
+The theoretical underpinnings established by intelligent
+transportationsystems(ITS)researchhaveprovidedindis-
+pensable foundations for the evolution of connected and
+autonomous vehicles (CAVs) (Adeli & Ghosh-Dastidar,
+2004;Hooshdar&Adeli, 2004).Throughthedevelopment
+ofvehicle-to-everythingcommunicationarchitecturesand
+multi-agent coordination frameworks, ITS advancements
+enable CAVs to achieve superior environmental percep-
+tion capabilities, compared to conventional autonomous
+This is an open access article under the terms of theCreative Commons Attribution-NonCommercialLicense, which permits use, distribution and reproduction in any
+medium,providedtheoriginalworkisproperlycitedandisnotusedforcommercialpurposes.
+©2025TheAuthor(s). Computer-AidedCivilandInfrastructureEngineering publishedbyWileyPeriodicalsLLConbehalfofEditor.
+systems (Lesch et al.,2022). Central to the functionality
+of CAVs is platooning, which promotes cooperation and
+coordinationbetweenvehiclesbyfacilitatinginformation
+sharing.Toachieveeffectiveplatooncontrol,itisessential
+forfollowingvehiclestoreactquicklytothemovementsof
+the platoon leader while maintaining a safe distance and
+consistentspeed(Leietal., 2015).Notably,platoondriving
+can achieve upto16% energysavings (T.Liuetal., 2023).
+It can also improve traffic flow and increase the capac-
+ityofexistingroadinfrastructurebyupto200%,reducing
+congestion(Y.Liuetal., 2023).
+ComputAidedCivInf. 2025;40:2561–2577. wileyonlinelibrary.com/journal/mice 2561
+
+2562 GUOetal.
+Existing studies on vehicular platoon control predomi-
+nantlyclassifycontrolmethodologiesintotwocategories:
+model-based approaches and learning-based approaches.
+Model-based approaches typically employ nonlinear con-
+trolstrategiestocharacterizevehicledynamicsandcapture
+inter-vehicle interactions within platoons. Representative
+techniquesincludeintegralsliding-modecontrol(ISMC;Y.
+Li et al.,2019), sliding-mode control (Wang et al.,2020),
+cooperative adaptive control (Ruan et al.,2025), and𝐻∞
+control (Yang Zheng et al.,2018). The core challenge in
+platoon control lies in making real-time decisions within
+dynamicsystemsamidstvariousuncertainties.Toaddress
+these challenges, several studies have explored the appli-
+cation of model predictive control (MPC; Dong et al.,
+2025; Pauca et al.,2023) and consensus control strate-
+gies (CCS). For example, a longitudinal controller based
+on MPC has been developed for string stability analysis
+(Pauca et al.,2023). In order to address the online com-
+putation and control challenges, the literature (Zhang &
+Du,2025)proposestheuseofareal-timeexecutablehierar-
+chicalandrecursiveplatoonformationarchitectureforthe
+platoon control. In addition, previous study (Chen et al.,
+2021)proposedaCCSforvehicleplatoonsandtheoretically
+investigated the asymptotic stability using the Lyapunov
+theorem. The reference (Lyu et al., 2025)p r o p o s e sa
+data-driven robust predictive control method, which has
+been demonstrated to effectively solve traffic oscillations
+and improve traffic efficiency. Their results demonstrate
+the effectiveness of the proposed approach in achieving
+platoon convergence and maintaining consistent control.
+Despite the advantages of model-based control methods
+in improving platoon stability, developing accurate and
+reliablemodelsforthelongitudinalmotionofvehiclepla-
+toonsremainsasignificantchallengeowingtothecomplex
+nature of nonlinear dynamics. Additionally, model-based
+control methodologies require manual parameter cali-
+bration, a process that is both resource-intensive and
+time-consuming,whiledemonstratinglimitedadaptability
+inadaptingtodiverseoperationalscenarios.
+Learning-based methodologies, characterized by their
+model-agnostic nature, have demonstrated superior per-
+formance in ITS control applications (Karim & Adeli,
+2003;R a f i e ie ta l . ,2024a, 2024b). Current research iden-
+tifies three dominant learning-based control paradigms:
+Iterativelearning-basedcontrol(ILC;Dekkeretal., 2019),
+neuralnetwork(NN)-basedadaptivecontrol(X.Ma, 2006),
+and RL-based control (RL). NN and their derived con-
+trollersarelimitedtomimickingtheparameteradjustment
+strategies shown by experts, and their ability to general-
+ize must be validated. While ILC requires minimal prior
+knowledge, it suffers from computational latency that
+impedes real-time implementation, posing challenges for
+real-time control. RL achieves effective control outcomes
+by learningand enhancingperformancethroughinterac-
+tions with the environment without the need for precise
+physical models and has received significant attention in
+recent years. A comparative analysis (Yuan Lin et al.,
+2021)wasconductedtoevaluatetheRLandmodel-based
+control in terms of cooperative adaptive cruise control
+(CACC) performance, and the results indicated that the
+RL algorithm outperformed MPC in uncertain condi-
+tions. Previous research (Y. Ma et al.,2021)p r o p o s e da
+longitudinal car-following control algorithm based on a
+deepdeterministicpolicygradient(DDPG)RLalgorithm.
+Although platoon-level control ensures individual agent
+coordination, it fails to account for spatiotemporal inter-
+action dynamics between adjacent vehicles. Focusing on
+the overall vehicle platoon, a robust control method has
+been proposed that possesses the capability to adapt to
+modelerrorsandenvironmentaluncertaintiesbasedonRL
+(Neto&Mozelli, 2024).Despitedemonstratingmodel-free
+control efficacy, RL-based approaches face fundamen-
+tal challenges in guaranteeing vehicular platoon string
+stability.
+Toovercometheselimitations,recentadvancesfocuson
+hybrid control architectures that synergistically integrate
+model-basedcontrolwithRLforenhancedplatooncoordi-
+nation.T.Liuetal.( 2023)developedaDDPG-drivenstate-
+space compression algorithm combined with dynamic
+programming(DP),demonstratingimprovedplatooncon-
+vergencethroughdimensionreduction.However,bytheir
+nature,DP-basedstrategiesarelimitedtoofflinecomputa-
+tion.Inordertoaddressthisshortcoming,Yanetal.( 2022)
+proposed a hybrid car-following strategy that integrates
+DDPG with CACC. In addition, previous study (Yang
+etal., 2021)proposedalongitudinalcontrolmethodbased
+on proportional-integral-derivative (PID) and DDPG, the
+method uses a data-driven approach to achieve real-time
+automatic adjustment of PID control parameters. Cur-
+rent hybrid control systems predominantly adopt either
+parallelizedarchitecturesorcascadedstructures,focusing
+primarily on intra-platoon coordination. These method-
+ologiesseektoachieveconsensusontheinternalspacing
+andspeedofthevehicleswithintheplatoon.However,the
+overall consistency of the platoon with the external envi-
+ronmentisnotaddressed,whichmayresultinsub-optimal
+optimisationperformance.
+Fundamentally, platoon control can be characterized
+asasequentialstochasticdecision-makingproblem.Prior
+research (Chen et al., 2021; Y. Li et al.,2022) has demon-
+strated that CCS offers a more robust solution for main-
+taining platoon stability and consistency. Multi-agent RL
+(MARL) has garnered considerable attention in recent
+yearsacrossvariousdomains,includinggroundrobotcon-
+trolanddroneswarmmanagement(Gronauer&Diepold,
+2022).MARLhasbeenutilizedtoaddresstheconvergence
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2563
+challengesinnon-cooperativeMarkovgamesandtofacil-
+itatecollaborationamongmultipleagentsthroughshared
+trainingframeworks.Consequently,numerousstudieson
+platoon control have been conducted based on MARL,
+yielding effective control outcomes (Chen et al.,2022;M .
+Li et al.,2025; Shi et al.,2025;X ue ta l . ,2024). Long
+short-term memory (LSTM) networks, known for their
+proficiency in managing sequential data and capturing
+long-term dependencies, are particularly effective in fil-
+teringirrelevanthistoricalinformation.ThismakesLSTM
+highly promising for modeling car-following behaviors
+(YangxinLinetal., 2022).Giventhesestrengths,acontrol
+methodisproposedthatintegratesMARLandLSTMnet-
+work to improve the optimization results. The proposed
+methodology aims to address the joint optimization of
+platoon internal consistency control and adaptability in
+car-followingscenarios.
+The key contributionsof this research are summarized
+below:
+1. To achieve platoon internal consistency control in
+concert with car-following behaviors, a bidirectional
+control mechanism is designed. Specifically, by con-
+sidering the platoon leader as a central hub, a com-
+prehensive trade-off between platoon leader tracking
+and internal collaborative performance is made to
+enhance the car-following scenario adaptability of the
+platoon.
+2. A model-based method is deeply integrated with an
+RL approach, unifying the overall coordinated control
+of the platoon and the adjustment of CCS parameter
+weightsintoaMarkovdecisionprocess(MDP).
+3. To enhance platoon coordination and car-following
+adaptability, we propose anLSTM basedmulti-Aagent
+proximal policy optimization (LSTM-MAPPO) strat-
+egy that effectively captures the dynamic interactions
+betweentheplatoonleaderandfollowers.Specifically,
+the LSTM’s ability to model long-term dependencies
+enables followers to predict the leader’s intentions
+based on historical data, while the bidirectional con-
+trol mechanism allows the leader to actively respond
+tofollowerfeedback,therebyestablishingaclosed-loop
+optimization and improving the overall optimization
+performance.
+Thesubsequentsectionsofthispaperarestructuredas
+follows: Section2 outlines the problem description and
+system model. Section3 introduces the LSTM-MAPPO
+control architecture.Section4evaluates the performance
+of LSTM-MAPPO through simulation and compares it
+with benchmark algorithms. Finally, Section 5 provides
+concluding remarks on this paper along with proposed
+futureresearchdirections.
+FIGURE 1 Predecessor–leaderfollowingtopology-based
+platoonscenario.
+2 SYSTEMMODELDESCRIPTION
+In the scenario illustrated in Figure1, a platoon of𝑁+
+1 CAVs follows an non-connected vehicle (hereinafter
+defined as an exogenous vehicle) operating freely on a
+straight road. The communication between the CAVs is
+based on the predecessor–leader following topology, and
+theplatoonisassumedtobehomogeneous.
+2.1 Platoonmodeldescription
+Assuming homogeneous vehicle dynamics and negligi-
+ble lateral motion, the longitudinal kinematics of the𝑖th
+vehiclefollow:
+⎧
+⎪
+⎨
+⎪⎩
+.
+𝑝𝑖 (𝑡)=𝑣𝑖 (𝑡),∀𝑖 ∈ {0,1,…,𝑁 }.
+𝑣𝑖 (𝑡)=𝑎𝑖 (𝑡),∀𝑖 ∈ {0,1,…,𝑁 }
+𝑢𝑖 (𝑡)=𝑎𝑖 (𝑡)+𝑇𝑖
+.
+𝑎𝑖 (𝑡),∀𝑖 ∈ {0,1,…,𝑁 }
+(1)
+where 𝑝𝑖(𝑡) ≥0m, 0 ≤𝑣𝑖(𝑡) ≤33.3m∕s and −3m∕s2 ≤
+𝑎𝑖(𝑡) ≤3m∕s2 are, respectively, position, velocity, and
+accelerationofthe 𝑖thvehicleoftheplatoonattime 𝑡.𝑢𝑖(𝑡)
+isthecontrolinput,and 𝑇𝑖 isatimeconstantrepresenting
+thedrivelinedelay.
+The inter-vehicle spacing within the platoon is charac-
+terized by the variable time headway (VTH) as described
+below:
+𝑑𝑖0 =𝑠𝑖0 +𝐾𝑑
+(
+𝛼𝑣0 (𝑡)+𝛽𝑣 2
+0 (𝑡)
+)
+(2)
+where𝑠𝑖0 isthedesiredstandstilldistancebetweenvehicle
+𝑖 and platoon leader.𝛽 ,𝛼 are positive relevance coeffi-
+cientsfortheleaderspeed, 𝐾𝑑 isthecontrolparameter,and
+𝑑𝑖𝑗 =𝑑𝑖0 −𝑑𝑗0.
+Accordingly, the relative distance𝑒𝑑
+𝑖,𝑖−1, relative veloc-
+ity 𝑒𝑣
+𝑖,𝑖−1(𝑡), and relative acceleration𝑒𝑎
+𝑖,𝑖−1(𝑡) during the
+controlprocesscanbeformulatedasfollows:
+⎧
+⎪
+⎨
+⎪⎩
+𝑒𝑑
+𝑖,𝑖−1 (𝑡)=𝑝𝑖−1 (𝑡)−𝑝𝑖 (𝑡)−𝑙
+𝑒𝑣
+𝑖,𝑖−1 (𝑡)=𝑣𝑖 (𝑡)−𝑣𝑖−1 (𝑡)
+𝑒𝑎
+𝑖,𝑖−1 (𝑡)=𝑎𝑖 (𝑡)−𝑎𝑖−1 (𝑡)
+(3)
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2564 GUOetal.
+Theobjectiveofthisstudycanbedescribedasfollows:
+⎧
+⎪
+⎪
+⎨
+⎪
+⎪⎩
+lim𝑡→+∞
+|||𝑒𝑑
+𝑖,0 (𝑡)|||=l i m𝑡→+∞
+|||𝑒𝑑
+𝑖,𝑖−1 (𝑡)|||=0
+lim𝑡→+∞
+|||𝑒𝑣
+𝑖,0 (𝑡)|||=l i m𝑡→+∞
+|||𝑒𝑣
+𝑖,𝑖−1 (𝑡)|||=0
+lim𝑡→+∞
+|||𝑒𝑎
+𝑖,0 (𝑡)|||=l i m𝑡→+∞
+|||𝑒𝑎
+𝑖,𝑖−1 (𝑡)|||=0
+(4)
+2.2 Bidirectionalcontrolmechanismfor
+platoonleader
+The platoon-leading vehicle must simultaneously ensure
+tracking safety and efficiency with the exogenous vehicle
+and maintain internal formation consistency. To address
+this complex coordination challenge, this paper proposes
+a bidirectional control mechanism coupling relationship
+between internal consistency within the platoon and the
+exogenousvehicleasillustratedinFigure 2.
+In order to provide a description of the safety of the
+platoon leader during the tracking process, it is neces-
+sary to define the minimum tracking distance𝑑𝑠𝑎𝑓𝑒 and
+the maximum tracking distance𝑑max. Based on (Peng
+et al.,2023), the distance between the platoon leader and
+the exogenous vehicle can be estimated in the following
+manner:
+⎧
+⎪
+⎨
+⎪⎩
+𝑑𝑠𝑎𝑓𝑒 (𝑡)=𝑣0 (𝑡)⋅𝑇0 +(𝑣0 (𝑡))2∕𝑎max +𝑑𝑠
+𝑑max (𝑡)=1 0+𝑣0 (𝑡)+0.0825⋅𝑣 0(𝑡)2
+𝑝𝑒,0 (𝑡)=𝑝𝑒𝑥 (𝑡)−𝑝0 (𝑡)−𝑙𝑒𝑥
+(5)
+where𝑎max ∈[ − 3 ,3 ] 𝑚∕ 𝑠2 denotesaccelerationlimitation
+range,𝑑𝑠 isthestandstilldistancebetweenadjacentvehi-
+cles.𝑝𝑒𝑥(𝑡)representsthepositionoftheexogenousvehicle
+at time t,𝑙𝑒𝑥 denotes for the length of the exogenous
+vehicle, 𝑝𝑒,0 represents the distance between the tail of
+the exogenous vehicle and the front bumper of platoon
+leader.
+FIGURE 2 Bidirectionalcontrolmechanismsforplatoon
+leader.
+FIGURE 3 Controlprincipleforplatoonfollowers.
+Thisstudyintroducestimeheadway(Zhuetal., 2020)to
+characterizetrackingefficiencybehavior.
+𝑓ℎ𝑒𝑎𝑑𝑤𝑎𝑦 (𝑥|𝜇,𝜎)= 1
+𝑥𝜎
+√
+2𝜋
+𝑒
+−(ln𝑥−𝜇)2
+2𝜎2 (6)
+where𝑥>0 ,denotesthetimeheadway. 𝜎and𝜇wereset
+at 0.4365 and 0.4226, respectively. In this study, the opti-
+mization ranges of car following distance are set to be
+betweenthe25thand75thpercentiles,witharangeof1.15
+to1.5s.
+2.3 MDPmodelforvehicleplatoon
+followers
+Theconsensuscontrolmodel(Chenetal.,2021)accounts
+for communication delay and the VTH spacing strategy
+canberepresentedas
+𝑢𝑖 (𝑡)=
+𝑁∑
+𝑗=1
+𝑎𝑖𝑗
+[
+𝐾𝑝
+( 𝑝𝑗
+(
+𝑡−𝜏 𝑖𝑗 (𝑡)
+)
+−𝑝𝑖 (𝑡)+𝜏𝑖𝑗 (𝑡)𝑣0
+(
+𝑡−𝜏 𝑖𝑗 (𝑡)
+)
+−𝑑𝑖𝑗
+)
++𝐾 𝑣0
+(
+𝑣𝑗
+(
+𝑡−𝜏 𝑖𝑗 (𝑡)
+)
+−𝑣𝑖 (𝑡)
+)]
++𝑎𝑖0 [𝐾𝑎 (𝑎0 (𝑡−𝜏 𝑖0 (𝑡))−𝑎𝑖 (𝑡))
++𝐾 𝑣1 (𝑣0 (𝑡−𝜏 𝑖0 (𝑡))−𝑣𝑖 (𝑡))
++𝐾 𝑝
+( 𝑝0 (𝑡−𝜏 𝑖0 (𝑡))
++𝜏𝑖0 (𝑡)𝑣0 (𝑡−𝜏 𝑖0 (𝑡))−𝑝𝑖 (𝑡)−𝑑𝑖0
+)]
+(7)
+where 𝐾𝑝,𝐾𝑎,𝐾𝑣0,𝐾𝑣1 are control parameters;𝜏𝑖0(𝑡) and
+𝜏𝑖𝑗(𝑡) are time-varying communication delay between
+platoonvehicle (𝑗 ≠𝑖,𝑖,𝑗 =1,2,…,𝑁) ,and 𝜏𝑖𝑗 ≠𝜏𝑗𝑖.
+As shown in Figure3, the control instructions for the
+platoon followers are derived from the CCS model, while
+themodelcontrolparameters 𝐾𝑝,𝐾𝑎,𝐾𝑣0,𝐾𝑣1 arederived
+fromtheactionoutputoftheRL.
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2565
+Remark 1. This study primarily focuses on the imple-
+mentation of cooperative control of the platoon through
+a MARL approach based on the CCS model. As such,
+this paper will not present a demonstration of stabil-
+ity analysis and convergence analysis, in pursuit of this
+objective, the analysis conclusions regarding the conver-
+gence have been referenced from the literature (Chen
+etal.,2021;Fiengoetal., 2019).Theconstraintrangesare:
+𝐾𝑑 >0 ,𝐾𝑝 >0 ,𝐾𝑎 >0 ,𝐾𝑣0 >0 ,𝐾𝑣1 >0,a n d0 ≤𝜏𝑖𝑗(𝑡) ≤
+𝜏∗,0 ≤
+.
+𝜏𝑖𝑗(𝑡) ≤ℎ, ∀𝑡, ℎ≤1.
+3 LSTM-MAPPOCONTROL
+ARCHITECTURE
+Section 2 delineates the control objectives for the pla-
+toonleaderandfollowersincar-followingscenarios.This
+section first presents the control architecture design for
+the platoon leader agent (Agent Leader) and the follow-
+ing vehicle agent (Agent Follower) utilizing the MAPPO
+method. Subsequently, it details the state space, action
+space, and cost function for both agents. The proposed
+controlframeworkisillustratedinFigure 4.
+3.1 Multi-agentproximalpolicy
+optimization(PPO)
+Employing an actor–critic architecture, PPO serves as a
+RL algorithm tailored for addressing MDP within con-
+tinuous action spaces (Schulman et al.,2017). Compared
+to the policy gradient strategy, PPO enables mini-batch
+updatesacrossmultipletrainingiterations,addressingthe
+issue of determining the step size. Through the impor-
+tancesamplingstrategy,thegradientcalculation ∇̄𝑅𝜃 can
+betransformedasfollowsequation:
+∇ ̄𝑅𝜃 =𝐸𝜏∼𝑝𝜃′(𝜏)
+[𝑝𝜃 (𝜏)
+𝑝𝜃′ (𝜏)𝑅(𝜏)∇𝑙𝑜𝑔𝑝𝜃 (𝜏)
+]
+(8)
+where𝑝𝜃(𝜏)representstheprobabilityofsequence 𝜏occur-
+ring, 𝑝𝜃′(𝜏) is the probability of employing another NN
+withparameter 𝜃′ tosampledatafromtheenvironment.
+PPO incorporates two crucial enhancements: PPO and
+value function clipping. Through the comparison of the
+estimated state-action value functions between the new
+andpreviouspolicies,andleveragingtheadvantagefunc-
+tion, value function clipping operations are conducted.
+Theclippedsurrogateobjectivefunctioncanbeformulated
+asfollows:
+𝐿𝐶𝐿𝐼𝑃 (𝜃)
+= ̂𝔼𝑡
+[
+min
+(
+𝑟𝑡 (𝜃) ̂𝐴𝑡,𝑐𝑙𝑖𝑝 (𝑟𝑡 (𝜃),1−𝜖,1+𝜖 ) ̂𝐴𝑡
+)] (9)
+where𝜀isaclipfraction,and 𝑟𝑡(𝜃)istheratioofthenew
+policy.Thegeneralizedadvantageestimator ̂𝐴(𝑡)isdefined
+asfollows(Jin&Xu, 2022):
+̂𝐴(𝑡)≈𝑟 (𝑠,𝑎)+𝛾𝑉∅ (𝑠𝑡+1)−𝑉∅ (𝑠𝑡) (10)
+MAPPO algorithm trains centrally and executes in a
+decentralized manner. Actor–critic networks are used to
+facilitatecentralizedtraininganddecentralizedexecution.
+During training, exploratory behavior is used to identify
+the optimal strategy. The execution phase requires only
+forwardpropagation.
+During the training process, the critic network utilizes
+global state information, which encompasses actions and
+observation results from all agents, to compute action-
+value functions. This centralized approach facilitates the
+evaluationofagentactionsfromaglobalperspective,aid-
+ing in decision refinement. Subsequently, the parameters
+ofthecriticnetworkareupdatedbyminimizingtheloss.
+𝑙𝑜𝑠𝑠 (𝜃𝑐)=𝐸
+[
+𝑄(𝑠,𝑎1,…,𝑎 𝑁 |∅)−𝑦′]2
+(11)
+where 𝑦′ =𝑟𝑡 +𝛾𝑄′(𝑠′,𝑎
+′
+1,…,𝑎
+′
+𝑁 |∅′), 𝑠=( 𝑠1,…,𝑠 𝑁) and
+∅istheparameterofthecriticnetwork. ∅
+′
+istheupdated
+parameteroftheevaluationnetwork,and 𝑠′ istheupdated
+stateforthetargetnetwork.
+Toefficientlyupdatethenetworkparameters,theactor
+network iteratively updates the network parameters𝜃 by
+iterating along the direction of∇𝜃 𝐽(𝜃). The global state
+transformsapartiallyobservableMDPintoafullyobserv-
+able MDP by adopting a centralized value function. This
+approachenablesexpeditedandsimplifiedvalue-learning
+processes.
+∇𝜃 𝐽(𝜃)≈𝐸 [∇𝑎𝑄(𝑠,𝑎1,…,𝑎 𝑁 |∅)∇𝜃𝜋(𝑠|𝜃)] (12)
+3.2 LSTM-basedNN
+LSTM (Pranolo et al.,2022) consists of forgetting gate𝑓𝑡,
+input gate𝑖𝑡, and output gate𝑜𝑡, and these gates regu-
+late the flow of information into and out of the cell state,
+whichservesasthememoryoftheLSTM.Agraphicalrep-
+resentation of the components of the LSTM is shown in
+Figure5.
+When the memory cell unit processes the input𝑥𝑡,
+certain information is deliberately discarded, while some
+are retained and stored. Assuming the input vector𝑥=
+(𝑥1,…,𝑥 𝑡−1,𝑥𝑡) and the corresponding output is 𝑆=
+(𝑆1,…,𝑆 𝑡−1,𝑆𝑡),thegatescanbedefinedas
+𝑔 (𝑥)=𝜎 (𝑊𝑥 +𝑏) (13)
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2566 GUOetal.
+FIGURE 4 Longshort-termmemory(LSTM)-MAPPOcontrolstructure.
+The initial stage involves the forgetting gate, which
+identifies the information to be discarded. Equation (14)
+representstheoutputoftheforgetgate.
+𝑓𝑡 =𝜎
+[
+𝑊𝑓 (𝑆𝑡−1,𝑥𝑡)+𝑏𝑓
+]
+(14)
+where 𝜎 is the sigmoid activation function,𝑓𝑡 denotes
+the forget gate with a value of[0,1], 𝑊𝑓 denote weight
+matricesofforgetgate,and 𝑏𝑓 isthebiasvector.
+Following the forgetting gate, the vector cell state𝑐𝑡 is
+generatedatthetanhlevelbyaddingthecomponentinput
+gate𝑖𝑡 tothestoragecellunitforupdatingtheinformation.
+Equation(15)correspondstothecalculationof it andct.
+{𝑖𝑡 =𝜎 [𝑊𝑖 (𝑆𝑡−1,𝑥𝑡)+𝑏𝑖]
+𝑐𝑡 =𝑓𝑡.𝑐𝑡−1 +𝑖𝑡.tanh (𝑊𝑐 (𝑆𝑡−1,𝑥𝑡)+𝑏𝑐) (15)
+where𝑊𝑖 and𝑏𝑖 denoteforthelearnedparameters, 𝑊𝑐 is
+thematrixweight,and 𝑏𝑐 denotesbiasvector.
+The final step involves calculating the output gate𝑜𝑡
+using the sigmoid function𝜎,which considersthe train-
+able weight matrix for the output gate𝑊𝑜 as well as the
+previousoutput 𝑆𝑡−1,currentinput 𝑥𝑡,andbiasvector 𝑏𝑜.
+Additionally, the output gate is used to multiply the tanh
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2567
+FIGURE 5 LSTMnetworkstructure.
+output𝑐𝑡 toobtainthefinaloutput 𝑆𝑡.
+{𝑜𝑡 =𝜎 [𝑊𝑜 (𝑆𝑡−1,𝑥𝑡)+𝑏𝑜]
+𝑆𝑡 =𝑜𝑡.tanh (𝑐𝑡) (16)
+3.3 Reward,observation,andaction
+setting
+ThecoreprincipleofRLrevolvesaroundtheacquisitionof
+reward𝑟(𝑡)obtainedbytheagent’saction 𝑎(𝑡)inresponse
+to the state𝑠(𝑡) during its interaction with the environ-
+ment. By maximizing the expectation of the cumulative
+discounted reward𝑅=𝐸[ ∑𝑇
+𝑡=0 𝛾𝑡𝑟𝑡], where 𝑇 represents
+thetotalnumberoftimestepsand 𝛾denotesthediscount
+factor,theagentlearnsanoptimalstrategy 𝜋.Optimalcon-
+trolisachievedbyminimizingthefollowingcostfunction
+𝐾𝑖(𝑡)inthispaper:
+𝑟𝑖 (𝑡)=𝐾𝑖 (𝑡) (17)
+where the subscript 𝑖 denotes different agents, with
+number 1 representing the agent leader and number 2
+representingtheagentfollower.
+3.3.1 Rewardforagentleader
+The agent leader aims to maintain a safe distance from
+the lead vehicle while ensuring adequate tracking per-
+formance, smooth acceleration, and efficient following
+behavior for the second platoon follower. Agent leader
+attains these objectives by maximizing the following cost
+function:
+𝐾1 (𝑡)=𝜔1 𝑅𝑓 (𝑡)+𝜔2𝑅𝑐 (𝑡)+𝜔3𝑅𝑒 (𝑡) (18)
+where𝜔1,𝜔2,and 𝜔3 representweightsofdifferentobjec-
+tives, 𝑅𝑓(𝑡) is the forward safety cost,𝑅𝑐(𝑡) represents for
+the comfortable cost, and𝑅𝑒(𝑡) denotes for the backward
+efficiencycost.Duringthecar-followingprocess,penalties
+shouldbeappliedwhenvehiclesexceedthemaximumor
+minimumconstraints.Therefore,thesafetyrewardscanbe
+listedasfollows:
+𝑅𝑓 =
+⎧
+⎪
+⎪
+⎨
+⎪
+⎪⎩
+𝑝𝑒,0 −𝑑max,𝑖 𝑓𝑝𝑒,0 >𝑑max
+−15, 𝑖𝑓𝑑𝑠𝑎𝑓𝑒 <𝑝𝑒,0 ≤𝑑max
+𝑣0,𝑖 𝑓0<𝑝 𝑒,0 ≤𝑑𝑠𝑎𝑓𝑒
+𝑣max,𝑖 𝑓𝑝𝑒,0 ≤0
+(19)
+The principle of punishment dictates that larger devi-
+ations incur greater penalties. When𝑝𝑒,0 >𝑑max,i ts i g -
+nifies inadequate following performance, resulting in
+a corresponding penalty. Conversely,𝑝𝑒,0 <0 indicates
+a collision, warranting a substantial penalty equiva-
+lent to the maximum velocity𝑣max.When 𝑝𝑒,0 ≤𝑑𝑠𝑎𝑓𝑒,
+the penalty value is determined based on the platoon
+leader’s velocity 𝑣0, with a smaller penalty assigned
+when the vehicle’s velocity is lower, and vice versa. To
+incentivize optimal decision-making, a reward value of
+−15 is assigned to facilitate the acquisition of larger
+rewards.
+Passenger comfort is affected by the rate of change of
+acceleration.Toensurethattheproposedcontrolmethod
+maintains comfort, a comfort cost function based on the
+rateofchangeofaccelerationisconstructedasfollows:
+𝑅𝑐 = 𝑗𝑒𝑟𝑘0
+2
+3600 (20)
+where 𝑗𝑒𝑟𝑘0 =( 𝑎0(𝑡)−𝑎 0(𝑡−1))∕Δ𝑡 denotes for the
+changerateofacceleration.Forthesampleintervalofthe
+data, Δ𝑡 is set to 0.1 s, and the acceleration was bounded
+between [−3m∕s2 and3m∕s 2] in Section 2. Therefore,
+after squaring the jerk range will be [0 3600], this paper
+madeanormalizationsetting.
+The headway time between the platoon leader and the
+followervehicleswasconsideredtoevaluatethebackward
+efficiencycostfunction.
+𝑅𝑒 =
+⎧
+⎪
+⎨
+⎪⎩
+∑𝑁
+𝑖=1 𝑓ℎ𝑒𝑎𝑑𝑤𝑎𝑦
+(
+𝑒𝑑
+𝑖,0(𝑡)
+𝑣𝑖(𝑡)
+)
+,𝑣𝑖 (𝑡)>0
+0, 𝑒𝑙𝑠𝑒
+(21)
+3.3.2 Rewardforagentfollower
+Platoon followers are treated as a cohesive unit, analo-
+goustoa“smalltrain.”Therefore,therelativeposition 𝑒𝑑
+𝑖,0
+andrelativespeed 𝑒𝑣
+𝑖,0 ofthefollowerswithrespecttothe
+leadvehicleareconsideredastrade-offfactors,alongwith
+follower comfort. Consequently, the cost function can be
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2568 GUOetal.
+constructedasfollows:
+𝐾2 (𝑡)=
+𝑁∑
+𝑖=1
+̂𝑡
+∫
+0
+𝜔4
+|||𝑒𝑑
+𝑖,0 (𝑡)|||𝑑𝑡
++
+̂𝑡
+∫
+0
+𝑁∑
+𝑖=1
+̂𝑡
+∫
+0
+𝜔5
+|||𝑒𝑣
+𝑖,0 (𝑡)|||𝑑𝑡+
+𝑁∑
+𝑖=1
+̂𝑡
+∫
+0
+𝜔6
+𝑗𝑒𝑟𝑘𝑖
+2
+3600 𝑑𝑡
+(22)
+where 𝜔4,𝜔 5 are weight factors for distance and velocity
+error, and𝜔6 denotes the following comfortable coeffi-
+cient. 𝑗𝑒𝑟𝑘𝑖 denotes for the change rate ofith vehicle
+acceleration.
+3.3.3 Statespace
+Based on the reward function settings and control objec-
+tives outlined above, the proposed control architecture
+incorporatesdistancedeviation,speederror,velocity,and
+accelerationbothwithintheplatoonandbetweenthepla-
+toonandtheexogenousvehicle.Thestatespaceisdefined
+asfollows:
+⎧
+⎪
+⎨
+⎪⎩
+𝑠=
+{
+𝑠𝑙𝑒𝑎𝑑𝑒𝑟,𝑠𝑓𝑜𝑙𝑙𝑜𝑤𝑒𝑟
+}
+𝑠𝑙𝑒𝑎𝑑𝑒𝑟 =
+{
+𝑣0,𝑎0,𝑣𝑒𝑥,𝑎𝑒𝑥,𝑒𝑑
+1,0,𝑝𝑒,0,𝑒𝑣
+1,0
+}
+𝑠𝑓𝑜𝑙𝑙𝑜𝑤𝑒𝑟 =
+{
+𝑒𝑑
+𝑖,0,𝑒𝑣
+𝑖,0,𝑒𝑎
+𝑖,0,𝑒𝑑
+𝑖,𝑖−1,𝑒𝑣
+𝑖,𝑖−1,𝑒𝑎
+𝑖,𝑖−1,
+} (23)
+where the observation of the agent leader is denoted
+by 𝑠leader, while the observation of the agent follower is
+represented by𝑠follower.𝑣 𝑒𝑥 and 𝑎𝑒𝑥 are corresponding to
+the velocity and acceleration of the exogenous vehicle,
+respectively.
+3.3.4 Actionspace
+The cooperation between the two agents is designed to
+achieve the goal of platoon control. The agent leader’s
+acceleration 𝑎0 is selected to control the platoon leader.
+For the agent follower, the selected actions include
+𝐾𝑑,𝐾𝑝,𝐾𝑎,𝐾𝑣0,and 𝐾𝑣1,ensuringcoordinationwithinthe
+platoon,andthecombinedactionspacesuchas
+⎧
+⎪
+⎨
+⎪⎩
+𝑎=
+{
+𝑎𝑙𝑒𝑎𝑑𝑒𝑟,𝑎𝑓𝑜𝑙𝑙𝑜𝑤𝑒𝑟
+}
+𝑎𝑙𝑒𝑎𝑑𝑒𝑟 =𝑎0
+𝑎𝑓𝑜𝑙𝑙𝑜𝑤𝑒𝑟 =
+{
+𝐾𝑑,𝐾𝑝,𝐾𝑎,𝐾𝑣0,𝐾𝑣1
+} (24)
+where 𝑎𝑙𝑒𝑎𝑑𝑒𝑟 and 𝑎𝑓𝑜𝑙𝑙𝑜𝑤𝑒𝑟 are the action space of agent
+leaderandagentfollower,respectively.
+3.3.5 Trainingsettings
+As illustrated in Figure6, a combined trip was used to
+create the training dataset, which consisted of the World
+FIGURE 6 Trainingandvalidationtrip:(a)combinedtripfor
+trainingand(b)tripforvalidation.HWFET,HighwayFuel
+EconomyTestCycle;NEDC,NewEuropeanDrivingCycle;WLTC,
+WorldLightVehicleTestCycle.
+TABLE 1 Hyperparametersusedforlongshort-termmemory
+(LSTM)-MAPPO.
+Parameter Agentleader Agentfollower
+Actor-networksize 1281286416 1281286416
+Critic-networksize 12812812864 12812812864
+LSTMLayer 8 8
+Experiencehorizon 1024 512
+Clipfactor 0.2 0.2
+Entropylossweight 0.01 0.01
+Numepoch 4 4
+Generalized
+advantage
+estimation(GAE)
+Vehicletovehicle
+factor
+0.95 0.95
+Learningrate [1e-4,1e-3] [1e-5,1e-4]
+Discountfactor 0.99 0.99
+Minibatchsize 64 64
+TABLE 2 Parametersusedforsimulation.
+Parameter Value
+Standstilldistance 𝑑𝑠 =3m
+Vehicleparameters 𝑙=5m ,𝑙𝑒𝑥 =5m , 𝑇𝑖 =0 . 1 s
+Spacingparameters 𝛼 = 0.0019s,𝛽 = 0.0448s2∕m
+Costfunction
+parameters
+𝜔1 = −0.01,𝜔2 = −0.25,𝜔3 =0 . 0 1
+𝜔4 =− 1,𝜔5 =− 0 . 5,𝜔6 =− 0 . 1
+Light Vehicle Test Cycle and the Highway Fuel Econ-
+omy Test Cycle. Furthermore, the proposed algorithm
+was validated using the New European Driving Cycle
+(NEDC) scenario. The proposed framework parameters
+are detailed in Table1, with the remaining simulation
+procedureparameterselaboratedinTable 2.
+4 RESULTSANDDISCUSSION
+To evaluate the effectiveness of the proposed control
+scheme,atestenvironmentisestablishedwithoneexoge-
+nous vehicle and a platoon of six vehicles. The NN
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2569
+-10,000
+FIGURE 7 ConvergencecurvebasedonLSTM-MAPPO:(a)
+MeanrewardofAgentleaderineachtrainingepisodeand(b)mean
+rewardofAgentfollowerineachtrainingepisode.
+parametersaretrainedusingthecombinedloopillustrated
+in Figure6. Subsequently, the CACC (Xiao et al.,2017),
+CCS (Chen et al., 2021), PID-DDPG (Yang et al.,2021),
+and LSTM-MAPPO are compared based on NEDC, and
+themethod’srobustnessisanalyzed.Specifically,theVTH
+spacingstrategyisusedtomodeltheCACCmodel.
+At i m es t e po f0 . 1si sc o n f i g u r e di nt h es i m u l a -
+tion environment, the initial positions are 𝑝(0)=
+[48,40,32,24,16,8,0] 𝑇 m,theinitialvelocitiesareconsis-
+tentwiththepredefinedtripprofile,asshowninFigure 7a,
+andthesetvalueis 𝑣(0) = [0,0,0,0,0,0,0] 𝑇 m∕s.Vehicle
+to vehicle (V2V) communication is utilized between the
+platoonvehiclestoenableinformationexchangeofvehicle
+position, speed, and acceleration. Additionally, the time
+delay of neighboring vehicles passing through the V2V is
+5ms.
+4.1 Trainingprocessandconvergence
+analysis
+Figure 7 presents the temporal evolution of average
+episodic rewards across 1400 training rounds. The learn-
+ingcurvesdemonstrateprogressiveimprovementforboth
+leader and follower agents, stabilizing at elevated perfor-
+mance levels after distinct convergence phases. Specifi-
+cally, convergence is achieved by the leader agent at 400
+epochs and the follower agent at 340 epochs. This stable
+co-evolution pattern validates the efficacy of our dual-
+agentMARLarchitectureincoordinatingplatooncontrol
+objectives.
+FIGURE 8 1/time-to-collision(TTC)resultsunderdifferent
+controlstrategies:(a)1/TTCcurveresultsunderdifferentcontrol
+strategiesand(b)1/TTCresultsunderdifferentcontrolstrategies.
+CACC,cooperativeadaptivecruisecontrol;CCS,consensuscontrol
+strategy.
+4.2 Trainingandtestingresultsof
+platooningscenario
+4.2.1 Bidirectionalcontrolmechanisms
+analysis
+Time-to-collision (TTC) serves as a critical safety indica-
+tor for quantifying collision risks in vehicular platoons
+(Cuietal., 2022).Higher1/TTCvaluevaluescorrelatewith
+increased oscillation risks during vehicle-approaching
+maneuvers. To ensure a clear comparison of the test
+results, this paper s analysis on the period of 0–390 s
+withinthescenario.InFigure 8a,thecriticalTTCthresh-
+oldvalueisrepresentedbytheblackdottedline,whichis
+s e tt o3s( Y u a nZ h e n ge ta l . ,2023). Notably, the CACC
+strategy shows the most significant change, exceeding a
+magnitudeof0.4.Conversely,theCCSandLSTM-MAPPO
+methodsexhibitsmallervariations,withnonesurpassing
+the black dashed boundary value of 0.2. Figure8b shows
+the bar result plot, which indicates that the distribution
+of the 1/TTC value for the LSTM-MAPPO control strat-
+egy is concentrated within [−0.1 0.1], displaying minimal
+fluctuationsoverall.ThisresultvalidatesLSTM-MAPPO’s
+superior safety performance through stabilized vehicle
+interactions,particularlyduringdynamictrafficscenarios.
+To analyze the impact of bidirectional control on effi-
+ciency,thispaperexamineditseffectonthesecondvehicle.
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2570 GUOetal.
+FIGURE 9 Trackingefficiencyofthesecondfollower:(a)
+Efficiencyresultscurvesand(b)distributionoftheefficiency
+results.CACC,cooperativeadaptivecruisecontrol;CCS,consensus
+controlstrategy.
+Figure 9a compares the efficiency curves, demonstrat-
+ing that LSTM-MAPPO achieves the highest efficiency
+(close to 0.65), followed by CCS. CACC exhibits the low-
+est efficiency (around 0.3) during acceleration. During
+deceleration, CACC showed improved efficiency (around
+0.5), compared to CCS and LSTM-MAPPO. Furthermore,
+Figure 9b shows the efficiency distribution, indicating
+that the LSTM-MAPPO approach has a wider efficiency
+range (total 1010 time steps exceeded 0.5), representing
+approximately25.7%ofthetotal.
+4.2.2 Platooningperformanceanalysis
+Tofacilitateanoverallcomparison,thissubsectionfocuses
+on analyzing a specific time range of 70–90 s (200 steps)
+within the driving cycle scenario, simultaneously, three
+control methods, CACC, CCS, and LSTM-MAPPO, are
+selectedforcomparison.
+Figure 10 illustrates that the LSTM-MAPPO strategy
+resultedinagreatermeanrelativedistance(21.7m)tothe
+exogenous vehicle, compared to CCS (19.51 m). Further-
+more, LSTM-MAPPO effectively controlled the relative
+distance of the followers to approximately 11.5 m, com-
+pared to CACC (25.1 m) and CCS (19.1 m). The results
+indicate that the platoon leader maintains a larger fol-
+lowingdistancewithexogenousvehicles,comparedtothe
+CCSstrategy,whilesimultaneouslyimprovingtheoverall
+followingperformanceofthefollowers.
+FIGURE 10 Meanrelativedistanceoftheplatoon.CACC,
+cooperativeadaptivecruisecontrol;CCS,consensuscontrolstrategy.
+Figure 11a–c shows an increased distance between the
+platoonleaderandtheexternalvehiclewhenusingLSTM-
+MAPPO. However, at Step 200, the position of the sixth
+followershowsthelargestoutcome(1132.78m),indicating
+animprovementinplatoonfollowingefficiency.
+Figure11d–fshowsthattheCACC-basedcontrolstrategy
+results in larger relative speeds among platoon followers,
+while the proposed control strategy exhibits the small-
+est relative speeds. Furthermore, as depicted in Table3,
+the sum of absolute speed errors for all vehicles over
+theentireobservationwindowissignificantlysmallerfor
+LSTM-MAPPO(57.64m/s),comparedtoCCS(96.68m/s)
+and CACC (206.1 m/s). These results indicate the supe-
+riorspeedregulationperformanceoftheproposedstrategy,
+comparedtoCACCandCCS.
+Figure 11g–i illustrates the jerk results for the three
+control algorithms. Figure11g shows smoother fluctua-
+tions for CACC, Figure11h illustrates larger fluctuation
+amplitudes for CCS, and Figure11i shows a higher fluc-
+tuation frequency for LSTM-MAPPO. This is attributable
+to the nature of the MDP, which leads to higher jerk
+fluctuation frequencies; however, the reward mechanism
+promotesbetteroverallperformance.AsshowninTable 3,
+the sum of jerk through CACC (59.06m∕s3)i sl a r g e r
+than CCS (34.94m∕s3) and LSTM-MAPPO (34.02m∕s3).
+Regardingthemeansquarederror(MSE),LSTM-MAPPO
+(0.13 m∕s3) outperforms CACC (0.33 m∕s3)a n dC C S
+(0.21m∕s3).
+It has been demonstrated that disturbances in platoon
+spacing and velocity errors do not propagate within the
+platoon, a phenomenon known as string stability (Feng
+et al.,2019). In order to evaluate the efficacy of the algo-
+rithm,thetimeof0–390swithinthesimulationscenario
+is utilized to examine string stability. It can be observed
+from Figure12 that the distance error and velocity error
+of the platoon leader are dampened as they propagate to
+the platoon downstream. This demonstrates the platoon
+maintainingstringstability.
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2571
+FIGURE 11 Compareresultsunderdifferentstrategies:(a)cooperativeadaptivecruisecontrol(CACC)-basedtrajectoryprofile,(b)
+consensuscontrolstrategy(CCS)-basedtrajectoryprofile,(c)LSTM-MAPPO-basedtrajectoryprofile,(d)CACC-basedvelocityprofile,(e)
+CCS-basedvelocityprofile,(f)LSTM-MAPPO-basedvelocityprofile,(g)CACC-basedjerkprofile,(h)CCS-basedjerkprofile,and(i)
+LSTM-MAPPO-basedjerkprofile.
+TABLE 3 Simulationresultscomparison.
+Item
+Cooperativeadaptive
+cruisecontrol(CACC)
+Consensuscontrol
+strategy(CCS) Proposed
+∑2
+𝑖=1
+∑200
+𝑡=1 𝑟𝑖(𝑡) − 137.06 −73.87 −41.61
+∑6
+𝑖=1
+∑200
+𝑡=1 |Δ𝑣𝑖,𝑖−1(𝑡)| 206.1 96.68 57.64
+∑5
+𝑖=0
+∑200
+𝑡=1 |𝑗𝑒𝑟𝑘𝑖(𝑡)| 59.06 34.94 34.02√
+∑5
+𝑖=0
+∑200
+𝑡=1 (𝑗𝑒𝑟𝑘𝑖(𝑡)− 𝑗𝑒𝑟𝑘𝑖)
+2
+∕𝑁 0.33 0.21 0.13
+4.3 Validationanddiscussion
+Thissubsectionvalidatestheeffectivenessoftheproposed
+methodbasedonthetypicaldrivingcyclescenarioNEDC.
+ItcomparesitwiththeMPC,ISMC,PID-DDPG,CCS,and
+CACC*(basedonconstanttimeheadway[CTH],set0.6s)
+approach.
+4.3.1 ValidationinNEDCscenarios
+Figure 13 presents the validation results in the NEDC
+scenario. From Figure13a, it can be observed that the
+vehicle platoon maintains a safe operational distance
+fromtheexogenousvehicle,withnocollisionsoccurring.
+On the basis of the proposed method, the spacing within
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2572 GUOetal.
+FIGURE 12 Resultsofdistanceerrorandvelocityerrorbased
+onLSTM-MAPPO:(a)distanceerrorprofile,(b)velocityerror
+profile,(c)boxofdistanceerror,(d)boxofvelocityerror.
+the platoon resembles that of a “small train.” Figure13b
+demonstrates that the speed consistency between the
+vehicles in the platoon is well-maintained, with mini-
+mal variations in relative speed during acceleration and
+deceleration processes. More detailed validation results
+c a nb ef o u n di nT a b l e4. While the inter-vehicle dis-
+tance between the platoon leader and exogenous vehicle
+remains comparatively large, the proposed methodology
+yieldssignificantimprovementsinaverageplatoonlength,
+relative speed error, relative acceleration, and average
+accelerationvariance.
+4.3.2 Ablationandcomparison
+The experimental validation of the bidirectional coordi-
+nation mechanism and LSTM-enhanced architecture is
+FIGURE 13 ValidationcurvesforNewEuropeanDriving
+Cycle(NEDC)scenariosbasedonLSTM-MAPPO:(a)trajectory
+profileand(b)velocityprofile.
+TABLE 4 ValidationstatisticsforNewEuropeanDrivingCycle
+scenarios.
+Measurement CCS Proposed
+∑12100
+𝑡=1 𝑝𝑒,0(𝑡) 357,397 371,250
+∑12100
+𝑡=1 𝑒𝑑
+5,0(𝑡)∕𝑁 95.94 77.58
+∑6
+𝑖=1
+∑12100
+𝑡=1 |𝑒𝑑
+𝑖,𝑖−1(𝑡)| 12,676.26 9707.13
+∑6
+𝑖=1
+∑12100
+𝑡=1 |𝑒𝑣
+𝑖,𝑖−1(𝑡)| 7225.54 5099.67
+∑5
+𝑖=0
+∑12100
+𝑡=1 |𝑗𝑒𝑟𝑘𝑖(𝑡)| 2468.78 1696.1√
+∑5
+𝑖=0
+∑12100
+𝑡=1 (𝑗𝑒𝑟𝑘𝑖(𝑡)− 𝑗𝑒𝑟𝑘𝑖)
+2
+∕𝑁 0.29 0.19
+systematically demonstrated in Table5. When compared
+to the proposed experiments, it is evident that there are
+significant improvements in the other evaluated metrics
+besidestheincreaseinfollowingdistancewithexogenous
+vehicles.Thestandarddeviationofjerkshowsasignificant
+improvement,indicatingthatthebidirectionalmechanism
+effectivelyoptimizesanomalousaccelerationfluctuations
+within the platoon. Furthermore, the table showcases
+the results obtained from prior research utilizing the
+PID-DDPG method. The suggested control approach has
+resultedinsubstantialimprovementsinmanagingplatoon
+length,speederror,andspacingerror.Regardingthetotal
+distance error, total velocity error, MSE of the jerk, the
+LSTM-MAPPO-based approach outperforms the CCS by
+8.3%, 2.46%, and 12.5%. Based on the results, it is evident
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2573
+TABLE 5 Comparisonofresultsfordifferentcontrolstrategies.
+Measurement CACC*
+Modelpredictive
+control(MPC)
+Integral
+sliding-modecontrol
+(ISMC)
+PID-deep
+deterministicpolicy
+gradient(DDPG)
+MAPPO(with
+bidirectional)
+LSTM-MAPPO(no
+bidirectional) Proposed
+∑12100
+𝑡=1 𝑝𝑒,0(𝑡) 337,012 342,503 349,971 377,976 387,651 344,115 371,250
+∑12100
+𝑡=1 𝑒𝑑
+5,0(𝑡)∕𝑁 186.32 95.71 101.32 93.94 83.32 101.41 77.58
+∑6
+𝑖=1
+∑12100
+𝑡=1 |𝑒𝑑
+𝑖,𝑖−1(𝑡)| 9491.17 10,302.12 10,864.16 11,002.91 9996.81 11,401.38 9707.13
+∑6
+𝑖=1
+∑12100
+𝑡=1 |𝑒𝑣
+𝑖,𝑖−1(𝑡)| 9293.66 6719.33 6618.43 5719.33 5817.98 5907.46 5099.67
+∑5
+𝑖=0
+∑12100
+𝑡=1 |𝑗𝑒𝑟𝑘𝑖(𝑡)| 2841.13 2064.21 2736.95 1904.21 1901.94 1871.45 1696.1
+√
+∑5
+𝑖=0
+∑12100
+𝑡=1 (𝑗𝑒𝑟𝑘𝑖(𝑡)− 𝑗𝑒𝑟𝑘𝑖)
+2
+∕𝑁
+0.37 0.24 0.33 0.25 0.21 0.24 0.19
+FIGURE 14 Trafficoutflowcomparison:(a)observation
+pointsbasedontheNEDCscenarioand(b)trafficoutflowunder
+differentstrategies.DDPG,deepdeterministicpolicygradient;
+ISMC,integralsliding-modecontrol;MPC,modelpredictivecontrol.
+that the proposed method exhibits a larger total spac-
+ingwiththeexogenousvehicle.BycomparingwithMPC,
+ISMC, and PID-DDPG methods show similar results in
+terms of following efficiency, while the MSE of the jerk
+oftheISMCmethodisrelativelylarge,butingeneral,the
+proposedmethodoverallshowsbetterresults.
+4.3.3 outflow
+Thetrafficoutflow( 𝑄)canbecalculatedasthetotalnum-
+berofvehicles( 𝑁𝑡𝑜𝑡𝑎𝑙)dividedbythetimeinterval( 𝑡1 ∼𝑡𝑛)
+betweenthepassingvehicleandtheidenticaldownstream
+measurementpositionontheroadwayasexpressedbythe
+followingformula(Duretetal., 2020):
+𝑄= 𝑁𝑡𝑜𝑡𝑎𝑙
+𝑡𝑛 −𝑡1
+(25)
+To ensure comprehensive observation across various
+drivingconditions,representativepointsA(125s),B(880
+s),andC(1156s)wereselectedfromtheNEDCasshownin
+Figure14a.Thesepointscaptureadiverserangeofspeeds,
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2574 GUOetal.
+TABLE 6 Time-exposedtime-to-collision(TTC;TET)and
+time-integratedTTC(TIT)resultscomparison.
+Measurement Strategy
+𝑻𝑻𝑪∗ =
+𝟏
+𝑻𝑻𝑪∗ =
+𝟐
+𝑻𝑻𝑪∗ =
+𝟑
+TET CACC* 1.17 4.04 9.17
+Modelpredictive
+control(MPC)
+0.00 0.00 0.00
+Integral
+sliding-mode
+control(ISMC)
+0.00 0.00 0.00
+CCS 0.00 0.00 0.00
+PID-DDPG 0.00 0.00 0.00
+LSTM-MAPPO 0.00 0.00 0.00
+TIT CACC* 0.81 1.16 2.54
+MPC 0.00 0.00 0.00
+ISMC 0.00 0.00 0.00
+CCS 0.00 0.00 0.00
+PID-DDPG 0.00 0.00 0.00
+LSTM-MAPPO 0.00 0.00 0.00
+enablingathoroughanalysisofthesystem’sperformance
+underlow,medium,andhigh-speedconditions.
+As demonstrated in Figure14b, the traffic outflow is
+observed under various control strategies. Overall, CACC
+is observed to have the highest outflow due to the fixed
+headway strategy. In comparison to the other strategies,
+LSTM-MAPPOisobservedtohavethehighestoutflow,fol-
+lowed by PID-DDPG, ISMC, and MPC. At high speeds,
+MPC, CCS, and ISMC produce similar outflows of 1.55,
+1.54, and 1.58 veh/s, respectively. LSTM-MAPPO has the
+highest flow outflow of all the strategies at 1.68 veh/s.
+Further analysis indicates that the LSTM-MAPPO-based
+controlmethodenhancestheflowoutflowby30.4%,28.6%,
+and 7.5% in low-, medium-, and high-speed scenarios,
+respectively,whencomparedtoCCS.
+4.3.4 Safety
+Two derived TTC metrics—time-exposed TTC (TET) and
+time-integrated TTC (TIT)—were employed to quantify
+traffic conflict risks, following the methodology estab-
+lishedbyYaoetal.( 2023).
+Table6comparesvehicleplatoonsundervarious 𝑇𝑇𝐶∗
+safety values; the CTH strategy exhibits higher TIT and
+TET values, suggesting potentially compromised safety
+performance. In contrast, the LSTM-MAPPO approach
+inherits the control benefits of CCS while maintaining
+good safety performance, whereas CACC* exhibits rel-
+atively lower safety performance. This validation result
+alignswithFigure 8a,where1/TTCvaluesforbothLSTM-
+FIGURE 15 Hardware-in-the-looptestsetup:(a)test
+environmentsetup,(b)testroadprofile,and(c)testresults.DDPG,
+deepdeterministicpolicygradient;ISMC,integralsliding-mode
+control;MPC,modelpredictivecontrol.
+MAPPO and CCS in the training scenario are distributed
+within[−0.1,0.1],asshowninFigure 8b.
+4.4 Analysisofhardware-in-the-loop
+(HIL)testresults
+HIL testing plays a critical role in validating the per-
+formance and reliability of proposed strategies under
+real-worldapplicationscenarios.TheconstructedHILsys-
+tem, as illustrated in Figure15a, comprises the following
+components:CarSimsoftwareforvehiclekinematicsmod-
+eling, MATLAB/Simulink software for control algorithm
+development, a domain controller EV22297A03 (Infineon
+TC297), a dSPACE real-time system for executing high-
+fidelity simulations, and a host computer for system
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2575
+monitoringanddataacquisition.Thisintegratedplatform
+ensures seamless communication and synchronization
+across subsystems, enabling rigorous validation of con-
+trol strategies under dynamically emulated operational
+conditions.
+AsillustratedinFigure 15b,theroadconditiondatauti-
+lized for HIL testing were sourced from real-world road
+conditions (Han et al.,2022). A systematic parameter-
+by-parameter comparison was conducted following the
+experimentalprotocoldefinedinTable 5,utilizingsixeval-
+uation metrics (denoted as Measure@A to Measure@F)
+for comprehensive performance assessment. Figure15c
+illustrates the statistics of the normalized results, where
+the proposed method improves 11.7%, 16.4%, 24.1%, and
+29.3% in terms of velocity error, distance error, jerk,
+and jerk MSE, respectively, as compared to the conven-
+tional benchmark method CCS. This empirical evidence
+substantiates the enhanced robustness and adaptability
+of the LSTM-MAPPO framework in managing complex
+dynamic interactions under practical HIL testing condi-
+tions, thereby providing a foundational basis for further
+industrialapplications.
+5 CONCLUSIONANDFUTUREWORK
+ThispaperinvestigatedtheintegrationofMARLandCCS
+to address platoon control challenges while preserving
+the coupling relationship between internal coordination
+within the platoon and the exogenous vehicle. Multi-
+agent Markov game theory created a joint target value
+function estimated by LSTM to capture time-relatedness
+in platoon control. The platoon’s performance improved,
+convergencestabilityimproved,andtrafficflowefficiency
+enhanced through training in a mixed driving scenario.
+Theprimaryconclusionsaresummarizedasfollows:
+1. TheLSTM-MAPPOalgorithmachievesa19.13%reduc-
+tion in average platoon length compared to CCS,
+attributedtothebidirectionalcontrolmechanism.
+2. The incorporation of the LSTM network has resulted
+in improved traffic outflow performance compared to
+the original CCS method. This improvement is evi-
+dent across various scenarios, with a 20.1% increase
+in optimization effect observed in low-speed scenar-
+ios.Theproposedcontrolstrategyhasdemonstratedan
+8.3% reduction in spacing error control in high-speed
+scenarios.
+While the LSTM-MAPPO framework enhances pla-
+toon coordination, three limitations persist: first, homo-
+geneous assumptions misrepresent mixed fleets. Sec-
+ond,V2Xuncertaintiesdegradedecisionsynchronization.
+Third, labeled data dependency limits scenario general-
+ization. Future work will explore the following: neural
+dynamic classification for heterogeneous interaction pat-
+tern recognition through dynamic weighting; dynamic
+ensemble learning for robust multi-sensor fusion under
+communicationdisturbances;finiteelementmachinesfor
+sparse state representation; and self-supervised strategies
+for latent feature extraction. These aim to build uni-
+versal cooperative control while retaining computational
+efficiency.
+ACKNOWLEDGMENTS
+This work was supported in part by the National Natu-
+ralScienceFoundationofChina(grantnumber52372380).
+Key R&D Program of Shandong Province, China, Grant
+Number2023CXGC010111.
+REFERENCES
+Adeli,H.,&Ghosh-Dastidar,S.(2004).Mesoscopic-waveletfreeway
+work zone flow and congestion feature extraction model.Jour-
+nalofTransportationEngineering ,130(1).https://doi.org/10.1061/
+ASCE0733-947x2004130:194
+Chen,J.,Li,J.,Xu,Z.,&Wu,X.(2022).Cooperativeoptimalcontrol
+forconnectedandautomatedvehiclesplatoon. PhysicaA:Statisti-
+calMechanicsanditsApplications ,607,128197. https://doi.org/10.
+1016/j.physa.2022.128197
+Chen, J., Liang, H., Li, J., & Lv, Z. (2021). Connected automated
+vehicle platoon control with input saturation and variable time
+headway strategy.IEEE Transactions on Intelligent Transporta-
+tion Systems, 22,4 9 2 9 – 4 9 4 0 .https://doi.org/10.1109/TITS.2020.
+2983468
+Cui,L.,Chen,Z.,Wang,A.,Hu,J.,&Park,B.B.(2022).Development
+ofarobustcooperativeadaptivecruisecontrolwithdynamictopol-
+ogy.IEEE Transactions on Intelligent Transportation Systems, 23,
+4279–4290.https://doi.org/10.1109/TITS.2020.3043194
+Dekker, L. G., Marshall, J. A., & Larsson, J. (2019). Experiments
+infeedbacklinearizediterativelearning-basedpathfollowingfor
+center-articulatedindustrialvehicles. JournalofFieldRobotics ,36,
+955–972.https://doi.org/10.1002/rob.21864
+Dong, C., Lyu, K., Li, N., Xiong, Z., Ni, D., Li, Y., Chen, Y., &
+Wang, H. (2025). A hierarchical-centralized MPC strategy for
+connectedautomatedvehicularplatoonincorporatinglevelinter-
+actions. Transportation Research Part C: Emerging Technologies,
+170,104911. https://doi.org/10.1016/j.trc.2024.104911
+Duret,A.,Wang,M.,&Ladino,A.(2020).Ahierarchicalapproachfor
+splittingtruckplatoonsnearnetworkdiscontinuities. Transporta-
+tionResearchPartB:Methodological ,132,285–302. https://doi.org/
+10.1016/j.trb.2019.04.006
+Feng,S.,Zhang,Y.,Li,S.E.,Cao,Z.,Liu,H.X.,&Li,L.(2019).String
+stability for vehicular platoon control: Definitions and analysis
+methods.AnnualReviewsinControl ,47,81–97. https://doi.org/10.
+1016/j.arcontrol.2019.03.001
+Fiengo, G., Lui, D. G., Petrillo, A., Santini, S., & Tufo, M. (2019).
+Distributed robust PID control for leader tracking in uncer-
+tain connected ground vehicles with V2V communication delay.
+IEEE/ASMETransactionsonMechatronics ,24,1 153–1 165.https://
+doi.org/10.1109/TMECH.2019.2907053
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+2576 GUOetal.
+Gronauer, S., & Diepold, K. (2022). Multi-agent deep reinforce-
+mentlearning:Asurvey. ArtificialIntelligenceReview ,55,895–943.
+https://doi.org/10.1007/s10462-021-09996-w
+Han, L., Yang, K., Ma, T., Yang, N., Liu, H., & Guo, L. (2022). Bat-
+tery life constrained real-time energy management strategy for
+hybridelectricvehiclesbasedonreinforcementlearning. Energy,
+259,124986. https://doi.org/10.1016/j.energy.2022.124986
+Hooshdar, S., & Adeli, H. (2004). Toward intelligent variable mes-
+sage signs in freeway work zones: Neural network model.Jour-
+nalofTransportationEngineering ,130(1).https://doi.org/10.1061/
+ASCE0733-947x2004130:183
+Jin, J., & Xu, Y. (2022). Optimal policy characterization enhanced
+proximal policy optimization for multitask scheduling in cloud
+computing.IEEEInternetofThingsJournal ,9,6418–6433. https://
+doi.org/10.1109/JIOT.2021.3111414
+Karim,A.,&Adeli,H.(2003).Fastautomaticincidentdetectionon
+urban and rural freeways using wavelet energy algorithm.Jour-
+nalofTransportationEngineering ,129(1).https://doi.org/10.1061/
+ASCE0733-947x2003129:157
+Lei, L., Liu, T., Zheng, K., & Fellow, H. (2015). Deep reinforcement
+learningaidedplatooncontrolrelyingonV2Xinformation. IEEE
+TransactionsonVehicularTechnology ,71(6),5811–5826. https://doi.
+org/10.1109/TVT.2022.3161585
+Lesch, V., Breitbach, M., Segata, M., Becker, C., Kounev, S., &
+Krupitzer, C. (2022). An overview on approaches for coordina-
+tion of platoons.IEEE Transactions on Intelligent Transportation
+Systems, 23(8), 10049–10065. https://doi.org/10.1109/TITS.2021.
+3115908
+Li, M., Wang, B., Wang, S., & Ke, Z. (2025). Serial distributed rein-
+forcementlearningforenhancedmulti-objective platooncontrol
+incurvedroadcoordinates. ExpertSystemswithApplications ,269,
+126493.https://doi.org/10.1016/j.eswa.2025.126493
+Li, Y., Tang, C., Peeta, S., & Wang, Y. (2019). Integral-sliding-mode
+brakingcontrolforaconnectedvehicleplatoon:Theoryandappli-
+cation.IEEETransactionsonIndustrialElectronics ,66,4618–4628.
+https://doi.org/10.1109/TIE.2018.2864708
+Li,Y.,Zhong,Z.,Song,Y.,Sun,Q.,Sun,H.,Hu,S.,&Wang,Y.(2022).
+Longitudinal platoon control of connected vehicles: Analysis
+and verification.IEEE Transactions on Intelligent Transportation
+Systems,23,4225–4235. https://doi.org/10.1109/TITS.2020.3042973
+Lin, Y., McPhee, J., & Azad, N. L. (2021). Comparison of deep rein-
+forcement learning and model predictive control for adaptive
+cruisecontrol. IEEETransactionsonIntelligentVehicles ,6,221–231.
+https://doi.org/10.1109/TIV.2020.3012947
+Lin, Y., Wang, P., Zhou, Y., Ding, F., Wang, C., & Tan, H. (2022).
+Platoon trajectories generation: A unidirectional interconnected
+LSTM-based car-following model.IEEE Transactions on Intel-
+ligent Transportation Systems, 23,2 0 7 1 – 2 0 8 1 .https://doi.org/10.
+1109/TITS.2020.3031282
+Liu,T.,Lei,L.,Zheng,K.,&Zhang,K.(2023a).Autonomousplatoon
+controlwithintegrateddeepreinforcementlearninganddynamic
+programming. IEEE Internet of Things Journal, 10,5 4 7 6 – 5 4 8 9 .
+https://doi.org/10.1109/JIOT.2022.3222128
+Liu,Y.,Shi,C.,&Zhang,W.(2023).Safetyspacingpolicyandcruise
+controlstrategyforheterogeneousplatoontoenhancesafetyand
+efficiency.JournalofTransportationEngineering,PartA:Systems ,
+149(4).https://doi.org/10.1061/jtepbs.teeng-7402
+Lyu, H., Guo, Y., Liu, P., & Wang, T. (2025). Uncertainty-aware
+dynamicsmodelinganddata-drivenrobustpredictivecontrolfor
+mixed vehicle platoon.IEEEInternetofThingsJournal . Advance
+onlinepublication. https://doi.org/10.1109/JIOT.2025.3540215
+Ma,X.(2006).Aneural-fuzzyframeworkformodelingcar-following
+behavior. 2006 IEEE International Conference on Systems, Man
+and Cybernetics, Taipei, Taiwan.https://doi.org/10.1109/ICSMC.
+2006.384560
+Ma, Y., Li, Z., Malekian, R., Zheng, S., & Sotelo, M. A. (2021). A
+novel multimode hybrid control method for cooperative driving
+ofanautomatedvehicleplatoon. IEEEInternetofThingsJournal ,
+8,5822–5838. https://doi.org/10.1109/JIOT.2020.3034221
+Neto, A. A., & Mozelli, L. A. (2024). Robust longitudinal con-
+trol for vehicular platoons using deep reinforcement learning.
+IEEE Transactions on Intelligent Transportation Systems, 25(10),
+14401–14410.https://doi.org/10.1109/TITS.2024.3388390
+Pauca, O., Lazar, M., & Caruntu, C. F. (2023). Hybrid cost func-
+tiondistributedMPCforvehicleplatoonswithstabilityandstring
+stability properties.IEEE Control Systems Letters, 7,2 2 5 7 – 2 2 6 2 .
+https://doi.org/10.1109/LCSYS.2023.3285519
+Peng, J., Fan, Y., Yin, G., & Jiang, R. (2023). Collaborative opti-
+mization of energy management strategy and adaptive cruise
+controlbasedondeepreinforcementlearning. IEEETransactions
+onTransportationElectrification,9,34–44. https://doi.org/10.1109/
+TTE.2022.3177572
+Pranolo, A., Mao, Y., Wibawa, A. P., Utama, A. B. P., & Dwiyanto,
+F. A. (2022). Robust LSTM with tuned-PSO and bifold-attention
+mechanism for analyzing multivariate time-series. IEEE
+Access, 10, 78423–78434. https://doi.org/10.1109/ACCESS.2022.
+3193643
+Rafiei, M. H., Gauthier, L. V., Adeli, H., & Takabi, D. (2024a).
+Self-supervisedlearningforelectroencephalography. IEEETrans-
+actions on Neural Networks and Learning Systems, 35, 1457–1471.
+https://doi.org/10.1109/TNNLS.2022.3190448
+Rafiei, M. H., Gauthier, L. V., Adeli, H., & Takabi, D. (2024b).
+Self-supervisedlearningfornear-wildcognitiveworkloadestima-
+tion.JournalofMedicalSystems ,48,1 0 7 .https://doi.org/10.1007/
+s10916-024-02122-7
+Ruan, T., Chen, Y., Han, G., Wang, J., Li, X., Jiang, R., Wang, W., &
+Wang, H. (2025). Cooperative adaptive cruise platoon controller
+designconsideringswitchingcontrolandstability. Transportation
+Research Part C: Emerging Technologies, 172,1 0 5 0 2 4 .https://doi.
+org/10.1016/j.trc.2025.105024
+Schulman, J., Wolski, F., Dhariwal, P., Radford, A., & Klimov, O.
+(2017).Proximalpolicyoptimizationalgorithms .https://arxiv.org/
+abs/1707.06347
+Shi,Y.,Dong,H.,He,C.R.,Chen,Y.,&Song,Z.(2025).Mixedvehicle
+platoonforming:Amulti-agentreinforcementlearningapproach.
+IEEE Internet of Things Journal. Advance online publication,
+https://doi.org/10.1109/JIOT.2025.3535732
+Wang, J., Luo, X., Wang, L., Zuo, Z., & Guan, X. (2020). Integral
+slidingmodecontrolusingadisturbanceobserverforvehiclepla-
+toons.IEEETransactionsonIndustrialElectronics ,67,6639–6648.
+https://doi.org/10.1109/TIE.2019.2936990
+Xiao, L., Wang, M., & Van Arem, B. (2017). Realistic car-following
+models for microscopic simulation of adaptive and cooperative
+adaptive cruise control vehicles.TransportationResearchRecord ,
+2623(1),1–9. https://doi.org/10.3141/2623-01
+Xu, Y., Shi, Y., Tong, X., Chen, S., & Ge, Y. (2024). A multi-agent
+reinforcement learning based control method for connected and
+autonomous vehicles in a mixed platoon.IEEE Transactions on
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+
+GUOetal. 2577
+VehicularTechnology,73(11),16160–16172. https://doi.org/10.1109/
+TVT.2024.3415660
+Yan, R., Jiang, R., Jia, B., Huang, J., & Yang, D. (2022). Hybrid car-
+following strategy based on deep deterministic policy gradient
+and cooperative adaptive cruise control.IEEE Transactions on
+Automation Science and Engineering, 19,2 8 1 6 – 2 8 2 4 .https://doi.
+org/10.1109/TASE.2021.3100709
+Yang,J.,Chu,D.,Peng,W.,Sun,C.,Deng,Z.,Lu,L.,&Wu,C.(2021).A
+learningcontrolmethodofautomatedvehicleplatoonatstraight
+pathwithDDPG-basedPID. Electronics,10(21),2580. https://doi.
+org/10.3390/electronics10212580
+Yao,Z.,Wu,Y.,Wang,Y.,Zhao,B.,&Jiang,Y.(2023).Analysisofthe
+impactofmaximumplatoonsizeofCAVsonmixedtrafficflow:An
+analytical and simulation method.Transportation Research Part
+C:EmergingTechnologies,147,103989. https://doi.org/10.1016/j.trc.
+2022.103989
+Zhang,H.,&Du,L.(2025).Real-timeexecutableplatoonformation
+approachusinghierarchicalcooperativemotionplanningframe-
+work.TransportationResearchPartC:EmergingTechnologies ,171,
+104942.https://doi.org/10.1016/j.trc.2024.104942
+Zheng, Y., Li, S. E., Li, K., & Ren, W. (2018). Platooning of con-
+nected vehicles with undirected topologies: Robustness analysis
+anddistributedH-infinitycontrollersynthesis. IEEETransactions
+on Intelligent Transportation Systems, 19,1 3 5 3 – 1 3 6 4 .https://doi.
+org/10.1109/TITS.2017.2726038
+Zheng, Y., Xu, M., Wu, S., & Wang, S. (2023). Development of con-
+nected and automated vehicle platoons with combined spacing
+policy. IEEE Transactions on Intelligent Transportation Systems,
+24,596–614. https://doi.org/10.1109/TITS.2022.3216618
+Z h u ,M . ,W a n g ,Y . ,P u ,Z . ,H u ,J . ,W a n g ,X . ,&K e ,R .( 2 0 2 0 ) .S a f e ,
+efficient,andcomfortablevelocitycontrolbasedonreinforcement
+learning for autonomous driving.Transportation Research Part
+C:EmergingTechnologies ,117,102662. https://doi.org/10.1016/j.trc.
+2020.102662
+Howtocitethisarticle: Guo,X.,Peng,J.,Pi,D.,
+Zhang,H.,Wu,C.,&Ma,C.(2025).Enhanced
+consensuscontrolarchitectureforautonomous
+platoonutilizingmulti-agentreinforcement
+learning.Computer-AidedCivilandInfrastructure
+Engineering,40,2561–2577.
+https://doi.org/10.1111/mice.13463
+ 14678667, 2025, 17, Downloaded from https://onlinelibrary.wiley.com/doi/10.1111/mice.13463, Wiley Online Library on [12/08/2026]. See the Terms and Conditions (https://onlinelibrary.wiley.com/terms-and-conditions) on Wiley Online Library for rules of use; OA articles are governed by the applicable Creative Commons License
+

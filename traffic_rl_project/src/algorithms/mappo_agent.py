@@ -117,7 +117,12 @@ class ContinuousPolicyNetwork(nn.Module):
         features = self.backbone(state)
         mean = torch.tanh(self.mean_layer(features))
         log_std = self.log_std_layer(features)
-        log_std = torch.clamp(log_std, min=-20, max=2)
+        # log_std 下限收紧到 -4（std≈0.018）：
+        # E4 诊断——log_prob 重算（安全层修正动作后）时，若 log_std 崩到 -20（std~2e-9），
+        # 任何动作 log_prob 极端负值，`(new_log_probs - old_log_probs)²` KL 爆炸到 7e4（观测到 27174/74261），
+        # 破坏策略更新。收紧下限保证 std 有合理下限，避免确定性崩塌导致的数值不稳定。
+        # 只影响训练，不影响推理（deterministic 用 mean）。
+        log_std = torch.clamp(log_std, min=-4.0, max=2.0)
         return mean, log_std
 
 
@@ -346,8 +351,23 @@ class MAPPOAgent:
 
         # 用原始奖励计算 GAE：advantages 内部已标准化（尺度无关），
         # returns = advantages + values 为真实回报尺度，供 value_norm 归一化。
+        # E4 稳健性防御：若 rewards/returns 含 inf/NaN（reward 或 value 数值发散），
+        # 跳过本次 update 保留旧策略，防止策略权重被推到 NaN（观测到 Ep60 后
+        # Normal 分布 loc 变 NaN 崩溃）。
+        if not np.all(np.isfinite(rewards)):
+            logging.warning("rewards 含 inf/NaN，跳过本次更新")
+            self._clear_buffer()
+            return {'total_loss': 0.0}
+        if not np.all(np.isfinite(values)):
+            logging.warning("values 含 inf/NaN，跳过本次更新")
+            self._clear_buffer()
+            return {'total_loss': 0.0}
         self.reward_rms.update(rewards)
         advantages, returns = self.compute_gae(rewards, values, dones)
+        if not np.all(np.isfinite(advantages)) or not np.all(np.isfinite(returns)):
+            logging.warning("advantages/returns 含 inf/NaN，跳过本次更新")
+            self._clear_buffer()
+            return {'total_loss': 0.0}
         # value 目标归一化（PopArt 简化版）：value 网络拟合 O(1) 尺度的 returns，
         # 避免 |returns| ~ 1e4~1e5 时 value_loss ~1e8 导致数值爆炸 / 阈值误杀 / 梯度被 clip 吞没
         self.value_norm.update(returns)
@@ -382,6 +402,12 @@ class MAPPOAgent:
                 flat_act = batch_actions.view(-1, self.act_per_drone)     # [batch*N, act_dim]
 
                 mean, log_std = self.policy(flat_obs)                      # [batch*N, act_dim]
+                # E4 稳健性防御：策略输出 NaN 时跳过（防止权重被推到 NaN 后崩溃，
+                # 观测到 Ep60 后 policy 输出全部 NaN）
+                if not torch.isfinite(mean).all() or not torch.isfinite(log_std).all():
+                    logging.warning("策略输出含 NaN，跳过本次更新")
+                    self._clear_buffer()
+                    return {'total_loss': 0.0}
                 std = torch.exp(log_std)
                 dist = torch.distributions.Normal(mean, std)
 
@@ -424,6 +450,19 @@ class MAPPOAgent:
 
                 self.optimizer.zero_grad()
                 total_loss.backward()
+
+                # E4 稳健性防御：梯度含 NaN/inf 时跳过 step（clip_grad_norm_ 对 NaN 无效，
+                # 会把 grad clip 成 NaN 再写回权重 → 策略崩溃。观测到 Ep60 后权重 NaN）。
+                grad_ok = True
+                for p in list(self.policy.parameters()) + list(self.value.parameters()):
+                    if p.grad is not None and not torch.isfinite(p.grad).all():
+                        grad_ok = False
+                        break
+                if not grad_ok:
+                    logging.warning("梯度含 NaN/inf，跳过本次 step")
+                    self.optimizer.zero_grad()
+                    self._clear_buffer()
+                    return {'total_loss': 0.0}
 
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     list(self.policy.parameters()) + list(self.value.parameters()),

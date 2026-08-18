@@ -130,11 +130,11 @@ def test_safety_emergency_still_blocks_over_2250():
     assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
 
 
-def test_safety_coupler_force_limit_blocks_braking():
-    """车钩力达上限（1000kN）时，制动动作也应被对称抑制（V5.4 修复）。
+def test_safety_coupler_force_limit_blocks_braking_release_default():
+    """车钩力达上限时，制动动作被完全钳制为 0（默认 'release' 策略，8/18 修正）。
 
-    长大下坡场景车钩力爆表主因是剧烈制动（空气制动波速传播 → 纵向冲动），
-    安全层必须对称拦截制动动作（不只是牵引），否则守不住 1000kN 上限。
+    第1层单列循环制动用 'release'：车钩力超限→完全释放制动，保持速度保持能力
+    （E3 曾改为降 MIN 档导致第1层掉速到0，8/18 恢复默认 release）。
     """
     sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
     actions = np.array([-1.0, -0.8])  # 制动动作（负）
@@ -145,13 +145,37 @@ def test_safety_coupler_force_limit_blocks_braking():
         'emergency': False,
     }
     corrected = sl.protect(actions, obs_state)
-    assert corrected[0] == 0.0  # 制动被钳制为 0（惰行）
+    assert corrected[0] == 0.0  # 制动被完全钳制为 0（release）
     assert corrected[1] == 0.0
     assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
 
 
+def test_safety_coupler_force_limit_min_brake_mode():
+    """车钩力超限时制动降到 MIN 档（coupler_override='min_brake'，第2层多列用）。
+
+    第2层长大下坡多列协同：车钩力超限→降到 MIN 档保留制动，避免"释放→再制动"震荡死锁。
+    """
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N,
+                     coupler_override='min_brake')
+    actions = np.array([-1.0, -0.8])
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.2e6, 1.2e6]),
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    corrected = sl.protect(actions, obs_state)
+    assert corrected[0] == -0.3  # 制动降到 MIN 档（-0.3，保留制动）
+    assert corrected[1] == -0.3
+    assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+
+
 def test_safety_coupler_force_limit_blocks_both_signs_symmetrically():
-    """对称性验证：同一超限车钩力下，牵引与制动都被钳制为 0。"""
+    """对称性验证：牵引完全钳制为0；制动按 coupler_override 处理。
+
+    - 'release'（默认）：制动钳制为 0
+    - 'min_brake'：制动降到 MIN 档（-0.3）
+    """
     sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)
     base_state = {
         'vel': np.array([20.0, 20.0]),
@@ -161,11 +185,11 @@ def test_safety_coupler_force_limit_blocks_both_signs_symmetrically():
     }
     # 牵引动作
     corrected_traction = sl.protect(np.array([1.0, 0.5]), base_state)
-    # 制动动作
+    # 制动动作（release 默认）
     sl.last_events = []
     corrected_braking = sl.protect(np.array([-1.0, -0.5]), base_state)
-    assert corrected_traction[0] == 0.0
-    assert corrected_braking[0] == 0.0  # 对称：制动同样被拦
+    assert corrected_traction[0] == 0.0  # 牵引完全钳制为 0
+    assert corrected_braking[0] == 0.0   # 制动钳制为 0（release）
 
 
 # ---------------------------------------------------------------------------
