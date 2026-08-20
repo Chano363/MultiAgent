@@ -96,7 +96,9 @@ class TrainLowLevelController:
 
     def get_action_cyclic_braking(self, train_env, v_max: float, v_min: float,
                                   brake_notch: float = -0.75,
-                                  release_throttle: float = 0.0) -> np.ndarray:
+                                  release_throttle: float = 0.0,
+                                  v_max_adj: float = 0.0,
+                                  v_min_adj: float = 0.0) -> np.ndarray:
         """【混合方案·列内】规则循环制动：按当前速度在限速区间内做制动-缓解循环。
 
         对齐 Zhang2024（Algorithms 2024,17,190）的循环制动策略：
@@ -123,10 +125,17 @@ class TrainLowLevelController:
         if not hasattr(self, '_cyclic_braking'):
             self._cyclic_braking = False
 
+        # E17 协同参数调整：第2层 RL 输出 v_max_adj/v_min_adj 调整该列制动/缓解
+        # 触发阈值（不直接动 throttle，不破坏规则循环制动逻辑）。
+        # v_max_adj>0 → 提前制动（更高速度触发制动，防超速）；<0 → 延后制动。
+        # v_min_adj>0 → 提前缓解（更高速度恢复牵引）；<0 → 延后缓解（更低速度缓解）。
+        eff_v_max = v_max + v_max_adj
+        eff_v_min = v_min + v_min_adj
+
         vel = float(train_env.dynamics.vel[0])  # 机车速度（列首）
-        if vel >= v_max:
+        if vel >= eff_v_max:
             self._cyclic_braking = True          # 超速 → 制动
-        elif vel <= v_min:
+        elif vel <= eff_v_min:
             self._cyclic_braking = False         # 低速 → 缓解
         # 中间区间维持 self._cyclic_braking（制动/缓解交替）
 

@@ -333,6 +333,9 @@ class MAPPOAgent:
 
         advantages = np.array(advantages)
         returns = advantages + values
+        # E22 长轨迹数值稳定：returns 可能巨大（3000步累积），clip 防 value_loss 爆炸
+        # （实测长距离多列 loss 4.7e12）。clip 到合理范围，保留正常 returns，只限极端。
+        returns = np.clip(returns, -2e5, 2e5)
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         return advantages, returns
 

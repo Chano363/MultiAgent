@@ -65,11 +65,85 @@ def cyclic_obs(env) -> np.ndarray:
     ], dtype=np.float32)
 
 
-def cyclic_reward(env, prev_speed, prev_coupler_peak, brake_engaged) -> float:
-    """奖励：对齐 Zhang2024（速度约束 + 制动距离）+ 我们的车钩力。
+# E17 离散档位表（对齐重载列车 Tang2020/VCTS：牵引+惰行+制动）
+# 档位值（throttle）：[大牵引, 中牵引, 小牵引, 惰行, MIN制动, SERVICE制动, 紧急制动]
+NOTCH_TABLE = np.array([0.7, 0.4, 0.2, 0.0, -0.3, -0.5, -0.8])
+
+
+def quantize_to_notch(continuous: float) -> float:
+    """连续动作量化到最近离散档位（对齐领域标准，避免连续策略mean塌缩）。"""
+    idx = int(np.argmin(np.abs(NOTCH_TABLE - continuous)))
+    return float(NOTCH_TABLE[idx])
+
+
+def warm_start_bc(
+    agent: MAPPOAgent,
+    env: TrainFormationEnv,
+    num_vehicles: int,
+    obs_fn,
+    v_max: float,
+    v_min: float,
+    episodes: int = 3,
+    bc_epochs: int = 5,
+    brake_notch: float = -0.8,
+    max_steps: int = 1500,
+):
+    """行为克隆 warm start：用规则循环制动采集 (obs, action)，预训练策略。
+
+    E15：RL 第1层在缓解波下学到"持续牵引"而非"循环制动"（动作均值+0.61，
+    掉速+车钩力1849kN超限）。用规则循环制动（get_action_cyclic_braking，稳定
+    523kN）做行为克隆初始化，让策略从"规则式循环制动"开始，RL 再微调优化
+    （如车钩力约束/制动时机）。规则循环制动能稳定是因为"中间维持上次动作"。
+    """
+    from src.controllers.low_level_controller import TrainLowLevelController
+    ctrl = TrainLowLevelController(num_vehicles=num_vehicles, dt=env.dt,
+                                   coupler_force_limit_n=env.coupler_force_limit_n,
+                                   enforce_coupler=True)
+    bc_obs = []
+    bc_acts = []
+    for ep in range(episodes):
+        env.reset(options={'speed': 80.0 / 3.6})
+        obs = obs_fn(env)
+        done = False
+        step = 0
+        while not done and step < max_steps:
+            rule = ctrl.get_action_cyclic_braking(env, v_max, v_min,
+                                                  brake_notch=brake_notch,
+                                                  release_throttle=0.5)
+            throttle = float(np.clip(rule[0], -1, 1))
+            bc_obs.append(obs.flatten())
+            bc_acts.append(throttle)
+            obs, r, term, trunc, info = env.step(np.full(num_vehicles, throttle))
+            done = term or trunc
+            obs = obs_fn(env)
+            step += 1
+    bc_obs = np.array(bc_obs, dtype=np.float32)      # [N, obs_dim]
+    bc_acts = np.array(bc_acts, dtype=np.float32)    # [N, 1]
+    logger.info(f"Warm start 行为克隆: 采集 {len(bc_obs)} 条 (obs, action)，预训练策略 {bc_epochs} epochs")
+    # bc_obs 已是 batch（[N,4]），直接用 tensor，不 reshape 成单obs
+    bc_obs_t = torch.tensor(bc_obs, dtype=torch.float32, device=agent.device)
+    bc_acts_t = torch.tensor(bc_acts.reshape(-1, 1), dtype=torch.float32, device=agent.device)
+    for epoch in range(bc_epochs):
+        mean, log_std = agent.policy(bc_obs_t)
+        dist = torch.distributions.Normal(mean, log_std.exp())
+        log_prob = dist.log_prob(bc_acts_t).sum(dim=-1)
+        # BC loss = -log_prob（最大化模仿规则动作），加小熵项防确定性塌缩
+        entropy = dist.entropy().sum(dim=-1).mean()
+        loss = -(log_prob.mean() + 0.01 * entropy)
+        agent.optimizer.zero_grad()
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(agent.policy.parameters(), 0.5)
+        agent.optimizer.step()
+    logger.info(f"Warm start 完成，BC loss={loss.item():.3f}")
+
+
+def cyclic_reward(env, prev_speed, prev_coupler_peak, brake_engaged, throttle) -> float:
+    """奖励：对齐 Zhang2024（速度约束 + 制动距离）+ 我们的车钩力 + 循环制动引导。
 
     Zhang2024: 速度<40 或 >80 → 惩罚 Rc；空气制动中 → 0；缓解 → +Rd（鼓励减制动距离）
     我们加：车钩力超限成比例惩罚 + 车钩力峰值最小化（创新点）。
+    E16 加循环制动引导：速度接近上限不制动→惩罚（引导制动降速），速度低于中值不牵引
+    →惩罚（引导牵引恢复）。修复 RL 只学"贴上限[76,81]"不学"40-80完整循环"。
     """
     vel = float(env.dynamics.vel[0])
     coupler = np.abs(env.dynamics._coupler_forces())
@@ -81,6 +155,15 @@ def cyclic_reward(env, prev_speed, prev_coupler_peak, brake_engaged) -> float:
         reward -= 20.0   # Rc（超出 [40,80] 限速）
     else:
         reward += 5.0    # Rd（在限速内，鼓励；Zhang2024 缓解时+5，制动时0）
+
+    # E16 循环制动引导（对齐规则循环制动：上限制动/下限牵引/中值缓解）：
+    # - 速度接近上限(>75km/h)但不制动 → 惩罚（引导制动降速，避免贴上限持续牵引掉速）
+    # - 速度低于中值(<55km/h)但不牵引 → 惩罚（引导牵引恢复，避免低速掉速）
+    v_kmh = vel * 3.6
+    if v_kmh > 75.0 and throttle >= 0.0:
+        reward -= 2.0    # 应制动未制动
+    elif v_kmh < 55.0 and throttle <= 0.0:
+        reward -= 2.0    # 应牵引未牵引
 
     # 空气制动距离惩罚（Zhang2024 La，本环境用制动档位持续时间近似）
     if brake_engaged:
@@ -100,6 +183,8 @@ def train(
     consist_preset: str = '10kt_1plus0',
     grade_profile: str = 'shuozhou_23800',
     max_steps: int = 1500,     # Zhang2024 计划运行 1500s
+    init_speed: float = 65.0 / 3.6,
+    warm_start: bool = False,  # 用规则循环制动做行为克隆预训练（E15修复持续牵引问题）
     lr: float = 5e-5,
     entropy: float = 0.005,
     epochs: int = 4,
@@ -169,8 +254,13 @@ def train(
     logger.info("=" * 70)
     start_time = time.time()
 
+    # E15：规则循环制动 warm start（修复 RL 学到"持续牵引"而非"循环制动"）
+    if warm_start:
+        warm_start_bc(agent, env, num_vehicles, cyclic_obs,
+                      V_MAX_MPS, V_MIN_MPS, brake_notch=-0.8)
+
     for ep in range(episodes):
-        env.reset(options={'speed': 65.0 / 3.6})  # 初始 65 km/h（Zhang2024）
+        env.reset(options={'speed': init_speed})  # 初始速度（默认 65 km/h Zhang2024；80=立即循环制动）
         obs = cyclic_obs(env)  # 用自定义单智能体观测 (1,4)，不用环境默认 (101,4)
         done = False
         ep_reward = 0.0
@@ -183,8 +273,15 @@ def train(
         while not done and step < max_steps:
             flat_obs = obs.flatten()
             actions, log_prob = agent.select_actions(flat_obs)
-            # 整列统一 throttle（1 智能体动作广播到所有车厢）
-            throttle = float(np.clip(actions[0], -1.0, 1.0))
+            # E17 离散档位动作（对齐 Zhang2024/Tang2020/VCTS 重载列车领域标准）：
+            # 连续策略输出 ∈[-1,1] 量化到最近离散档位（牵引3档+惰行+制动3档）。
+            # 离散动作天然避免连续策略 mean 塌缩导致的 deterministic 掉速问题，
+            # 且对齐领域"档位控制"惯例。
+            throttle = quantize_to_notch(float(np.clip(actions[0], -1.0, 1.0)))
+            # 实际执行离散档位 → 用档位值重算 log_prob（V5.1 教训：动作被量化后
+            # 必须用实际执行动作重算 log_prob，保证重要性采样一致）
+            if abs(throttle - float(actions[0])) > 1e-4:
+                log_prob = agent.get_log_prob(flat_obs, np.array([throttle]))
             action_for_env = np.full(num_vehicles, throttle)
 
             value = agent.get_value(flat_obs)
@@ -203,7 +300,7 @@ def train(
                 log_prob = agent.get_log_prob(flat_obs, actions)
 
             # 用自定义循环制动奖励（覆盖环境默认奖励，因 Zhang2024 奖励更贴合）
-            reward = cyclic_reward(env, prev_speed, ep_peak, brake_engaged)
+            reward = cyclic_reward(env, prev_speed, ep_peak, brake_engaged, throttle)
 
             done = terminated or truncated
             agent.store_transition(flat_obs, actions, reward, log_prob, done, value)
@@ -227,7 +324,8 @@ def train(
             best_reward = ep_reward
             # checkpoint 命名含限速区间，避免不同限速训练互相覆盖（8/18 教训：
             # [45,65]重训覆盖了[40,80]成功模型导致后续评估出错）
-            ckpt_name = f"cyclic_mappo_best_seed{seed}_v{int(V_MIN_MPS*3.6)}-{int(V_MAX_MPS*3.6)}.pt"
+            ckpt_name = (f"cyclic_mappo_best_seed{seed}_v{int(V_MIN_MPS*3.6)}-{int(V_MAX_MPS*3.6)}"
+                         f"_init{int(init_speed*3.6)}.pt")
             agent.save(str(Path(checkpoint_dir) / ckpt_name))
 
         if (ep + 1) % 10 == 0 or ep == episodes - 1:
@@ -281,6 +379,10 @@ if __name__ == '__main__':
                         help='限速下限 m/s（默认 40 km/h，对齐 Zhang2024）')
     parser.add_argument('--no_release_sync', action='store_true',
                         help='使用缓解波传播（物理真实，默认关闭=同步缓解；第2层用缓解波）')
+    parser.add_argument('--init_speed_kmh', type=float, default=65.0,
+                        help='初始速度 km/h（默认 65，Zhang2024；80=立即触发循环制动）')
+    parser.add_argument('--warm_start', action='store_true',
+                        help='用规则循环制动做行为克隆预训练策略（E15修复持续牵引问题）')
     args = parser.parse_args()
 
     V_MAX_MPS = args.v_max
@@ -290,6 +392,8 @@ if __name__ == '__main__':
         consist_preset=args.preset,
         grade_profile=args.grade,
         max_steps=args.max_steps,
+        init_speed=args.init_speed_kmh / 3.6,
+        warm_start=args.warm_start,
         lr=args.lr,
         entropy=args.entropy,
         device=args.device,

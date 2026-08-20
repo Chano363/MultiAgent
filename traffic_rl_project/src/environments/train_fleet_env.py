@@ -93,7 +93,7 @@ class TrainFleetEnv:
         self.hierarchical = config.get('hierarchical', False)
         self.layer1_checkpoint = config.get(
             'layer1_checkpoint',
-            'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80.pt',  # [40,80]第1层策略
+            'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',  # [40,80]第1层策略（初始80循环制动）
         )
         self.adj_coef = config.get('adj_coef', 0.3)
 
@@ -119,8 +119,9 @@ class TrainFleetEnv:
             )
             for tr in self.trains
         ]
-        # 分层控制器（E4）：层级二用第1层策略控速。若 hierarchical=True，每列改用
-        # 分层控制器（第1层策略生成基础 throttle + 层级一 RL 叠加协同调整）。
+        # 分层控制器（2026-08-19 定位确认）：层级二用 RL 第1层策略控速
+        # （warm start 自规则循环制动，缓解波下循环制动稳定，E16实测训练稳定avg+2.1万），
+        # 层级一 RL 叠加协同调整 δ。
         self.hier_controllers = None
         if self.hierarchical:
             self.hier_controllers = [
@@ -159,6 +160,8 @@ class TrainFleetEnv:
         self._peak_coupler_n = 0.0
         self._coupler_limit_violations = 0
         self._safety_events = 0
+        # E21 追尾趋势：上一步各列间距误差（检测间距缩小→追尾风险，引导RL提前协同）
+        self._prev_gap_err = None
 
     def reset(self, seed=None, options=None):
         self.steps = 0
@@ -166,6 +169,7 @@ class TrainFleetEnv:
         self._coupler_limit_violations = 0
         self._safety_events = 0
         self._last_target_accels = np.zeros(self.num_trains)
+        self._prev_gap_err = None
         self._actions_modified = False
         self._executed_actions = np.zeros(self.num_trains)
 
@@ -370,6 +374,19 @@ class TrainFleetEnv:
         # 同时保留足够强的惩罚引导（协同制动核心目标）。
         potential_field = 0.0
         collision_penalty = 0.0
+        # E21 追尾趋势惩罚：间距在缩小（后列逼近前列）→ 早期惩罚，引导 RL 提前协同
+        # 减速避免追尾（seed1 灾难根因：追尾698步累积-172万，需提前预防而非等追尾势场爆炸）
+        gap_trend_penalty = 0.0
+        current_gap_err = obs[1:, 1].copy() if self.num_trains > 1 else np.array([])
+        if self._prev_gap_err is not None and len(current_gap_err) == len(self._prev_gap_err):
+            for i, cur in enumerate(current_gap_err):
+                prev = self._prev_gap_err[i]
+                # 间距误差在变小（实际间距缩短，逼近前列）→ 追尾趋势 → 惩罚
+                shrink = prev - cur
+                if shrink > 1.0 and cur < 30.0:  # 间距缩短且已较近 → 追尾风险
+                    gap_trend_penalty -= 0.5 * shrink
+        self._prev_gap_err = current_gap_err
+
         for i in range(1, self.num_trains):
             # E4 动态间距：实际间距 = 动态目标 + gap_err（obs[1] 基于动态目标）
             dyn_gap = self._dynamic_gap(self.trains[i].dynamics.vel[0])
@@ -381,7 +398,7 @@ class TrainFleetEnv:
             # 追尾硬惩罚（间距接近 0）
             if actual_gap < 5.0:
                 collision_penalty -= 50.0
-        potential_field = max(potential_field, -2000.0)  # 数值稳定：单步势场惩罚上限
+        potential_field = max(potential_field, -200.0)  # E22：数值稳定+降灾难量级（原-2000长距离累积爆炸）
 
         # 限速区间约束 [v_min, v_max]（循环制动核心目标，对齐 Zhang2024 朔黄线[40,80]，V5.24）：
         # 借鉴第1层 train_cyclic_braking 哲学（对齐 Zhang2024 Eq.22 的 Rc/Rd）：
@@ -440,6 +457,7 @@ class TrainFleetEnv:
             + gap_reward               # 间距保持（E4：安全跟车，拉开过大硬惩罚）
             + potential_field          # 避免追尾势场（clip 防爆炸）
             + collision_penalty        # 追尾硬惩罚
+            + gap_trend_penalty        # E21 追尾趋势早期惩罚（间距缩小→提前协同避免追尾）
             + brake_cost               # 制动成本（E3 新增，鼓励循环制动）
             + comfort_penalty          # 舒适性
             + coupler_term             # 车钩力约束（可关闭）

@@ -67,8 +67,12 @@ def train(
     disturbance_target_accel: float = -0.8,
     use_coupler_constraint: bool = True,
     hierarchical: bool = False,
-    layer1_checkpoint: str = 'outputs/checkpoints/cyclic_mappo_best_seed0.pt',
+    layer1_checkpoint: str = 'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',
     adj_coef: float = 0.3,
+    random_init_speed: bool = False,
+    init_speed_min: float = 55.0 / 3.6,
+    init_speed_max: float = 75.0 / 3.6,
+    init_speed_kmh: float = 65.0,   # 固定初始速度（km/h），循环制动场景用 80
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
 ):
@@ -141,8 +145,14 @@ def train(
     start_time = time.time()
 
     for ep in range(episodes):
-        # 初始速度对齐 Zhang2024 长大下坡循环制动 65 km/h（18.06 m/s）
-        obs, _ = env.reset(options={'speed': 65.0 / 3.6})
+        # 初始速度：默认对齐 Zhang2024 长大下坡循环制动 65 km/h（18.06 m/s）；
+        # 若 random_init_speed=True 则随机采样 [init_speed_min, init_speed_max]，
+        # 增强策略对多初始条件的鲁棒性（E9 泛化：初始55/75表现差）。
+        if random_init_speed:
+            init_speed = float(np.random.uniform(init_speed_min, init_speed_max))
+        else:
+            init_speed = init_speed_kmh / 3.6  # 固定初始速度（默认65，循环制动用80）
+        obs, _ = env.reset(options={'speed': init_speed})
         done = False
         ep_reward = 0.0
         ep_peak = 0.0
@@ -252,8 +262,14 @@ if __name__ == '__main__':
                         help='关闭车钩力约束（消融实验：模拟忽略车钩力）')
     parser.add_argument('--hierarchical', action='store_true',
                         help='分层模式：第1层策略控速，RL 只学协同调整（E4）')
+    parser.add_argument('--random_init_speed', action='store_true',
+                        help='训练时随机化初始速度 [55,75]km/h，增强多初始条件鲁棒性（E9泛化）')
+    parser.add_argument('--init_speed_min', type=float, default=55.0 / 3.6)
+    parser.add_argument('--init_speed_max', type=float, default=75.0 / 3.6)
+    parser.add_argument('--init_speed_kmh', type=float, default=65.0,
+                        help='固定初始速度 km/h（默认65，循环制动场景用80）')
     parser.add_argument('--layer1_checkpoint', type=str,
-                        default='outputs/checkpoints/cyclic_mappo_best_seed0_v40-80.pt',
+                        default='outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',
                         help='第1层单列控速策略 checkpoint（[40,80]限速）')
     parser.add_argument('--adj_coef', type=float, default=0.3,
                         help='协同调整量缩放系数（分层模式）')
@@ -283,4 +299,8 @@ if __name__ == '__main__':
         hierarchical=args.hierarchical,
         layer1_checkpoint=args.layer1_checkpoint,
         adj_coef=args.adj_coef,
+        random_init_speed=args.random_init_speed,
+        init_speed_min=args.init_speed_min,
+        init_speed_max=args.init_speed_max,
+        init_speed_kmh=args.init_speed_kmh,
     )
