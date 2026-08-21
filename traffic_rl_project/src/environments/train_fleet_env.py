@@ -96,14 +96,24 @@ class TrainFleetEnv:
             'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',  # [40,80]第1层策略（初始80循环制动）
         )
         self.adj_coef = config.get('adj_coef', 0.3)
+        # 【bug修复 2026-08-20】eval_mode：评估时第1层策略用确定性采样（消除
+        # M1/M3 结果随机性）；训练时 False 保持探索。评估脚本应设 eval_mode=True。
+        self.eval_mode = config.get('eval_mode', False)
+        # 注：方案A（start_offset_m/spacing_m 人为坡段错开）已于 2026-08-20 移除。
+        # 它偏离正确场景（各列同坡段起步、随间距保持自然产生动态相位差），
+        # 且导致前列/后列缓解持续不同步 → 车钩力持续超限 + M1 训练不收敛。
+        # 正确场景 = 普通 reset 布局（各列同坡段起步，见 reset()），协同由场景天然驱动。
 
         # 每列内部用单列动力学环境（列车内车钩力由此计算）
+        # line_speed_limit_mps：场景线路限速（80km/h），传给内层 ATP 安全层作
+        # 限速保护 + 超速指标口径（bug修复：原内层用机车物理限速 108km/h）
         self.trains = [
             TrainFormationEnv({
                 'consist_preset': self.consist_preset,
                 'grade_profile': self.grade_profile,
                 'target_speed': self.target_speed,
                 'coupler_force_limit_n': self.coupler_force_limit_n,
+                'line_speed_limit_mps': self.v_max,
                 'dt': self.dt,
                 'max_steps': self.max_steps,
             })
@@ -132,6 +142,8 @@ class TrainFleetEnv:
                     target_speed=self.target_speed,
                     device='cuda',
                     adj_coef=self.adj_coef,
+                    eval_mode=self.eval_mode,
+                    line_speed_limit_mps=self.v_max,  # bug修复：限速安全层对齐80km/h
                 )
                 for tr in self.trains
             ]
@@ -170,7 +182,6 @@ class TrainFleetEnv:
         self._safety_events = 0
         self._last_target_accels = np.zeros(self.num_trains)
         self._prev_gap_err = None
-        self._actions_modified = False
         self._executed_actions = np.zeros(self.num_trains)
 
         # 记录每列参考点位置（队首位置，用于列间间距）
@@ -184,12 +195,14 @@ class TrainFleetEnv:
             # 从基准初始位置重建（避免跨 reset 的累积平移）
             base_pos = self._base_pos[i].copy()
             if i == 0:
-                # 领航列在原点
+                # 领航列在原点（各列同坡段起步，普通场景）
                 tr.dynamics.set_initial(pos=base_pos, vel=tr.dynamics.vel)
             else:
-                # 跟随列：整列向后平移（列内长度 + 动态目标间距，E4 时间间隔）
+                # 跟随列：整列向后平移（列内长度 + 动态目标间距，E4 时间间隔）。
+                # 各列同坡段起步，随编队推进自然产生动态相位差（真实编队总长~4km，
+                # 前列后列进入同一坡段的时机天然不同）——协同由场景驱动，非人为错开。
                 train_len = abs(base_pos[0] - base_pos[-1])
-                init_gap = self._dynamic_gap(init_speed)
+                init_gap = self._dynamic_gap()
                 offset = train_len + init_gap
                 cumulative_offset += offset
                 tr.dynamics.set_initial(
@@ -199,7 +212,7 @@ class TrainFleetEnv:
             self._train_heads[i] = float(tr.dynamics.pos[0])
         return self._get_obs(), {}
 
-    def _dynamic_gap(self, vel: float = None) -> float:
+    def _dynamic_gap(self) -> float:
         """动态目标间距（VCTS 时间间隔范式）：target_gap + headway_s × 参考速度。
 
         E4 修正：目标间距用**固定参考速度**（限速区间中值），而非本列速度。
@@ -207,9 +220,9 @@ class TrainFleetEnv:
         惩罚（E4 评估超速 83.4%、间距 1194m）。用固定参考速度则动态间距为常数，
         既保留 VCTS 时间间隔语义（headway×速度尺度），又不让 RL 操纵目标。
         对齐 Wang2021 动态安全间距、Chen2024 虚拟耦合重载列车编队。
+        【代码清理 2026-08-20】原签名带 vel 参数但恒被忽略（死参数），现移除。
         """
-        ref_vel = self.target_speed if vel is None else float(self.target_speed)
-        return float(self.target_gap + self.headway_s * max(ref_vel, 0.0))
+        return float(self.target_gap + self.headway_s * max(self.target_speed, 0.0))
 
     def _get_obs(self) -> np.ndarray:
         """构造每列观测（E3 增强）。
@@ -233,7 +246,7 @@ class TrainFleetEnv:
             gap_err = 0.0
             if i > 0:
                 prev_tail = self.trains[i - 1].dynamics.pos[-1]
-                dyn_gap = self._dynamic_gap(tr.dynamics.vel[0])
+                dyn_gap = self._dynamic_gap()
                 gap_err = (prev_tail - self._train_heads[i]) - dyn_gap
 
             # 坡度：队首（当前）与队尾（前方将遇到）所在坡度
@@ -299,10 +312,14 @@ class TrainFleetEnv:
                 # 层级二底层控制器：目标加速度 → 列级 throttle（执行 + 车钩力约束）
                 col_actions = ctrl.get_action_accel(tr, target_accel)
 
-            # 记录实际执行 throttle（分层模式无 safety 钳制，直接取第0节）
+            # 记录实际执行 throttle（分层/映射模式取第0节，即整列统一动作）
             executed_throttles[i] = float(col_actions[0])
-            requested_throttle = float(actions[i])
-            self._actions_modified = executed_throttles[i] != requested_throttle
+            # 关键：RL 输出的列级动作（δ 协同调整 / 目标加速度）经底层控制器
+            # 确定性映射为 throttle 后才执行。策略分布定义在"RL 输出动作"空间，
+            # log_prob 应基于原始 RL 动作计算，无需用 throttle 重算（V5.1 教训
+            # 仅适用于"同一动作空间内的安全层修正"，如 train_cyclic_braking）。
+            # 此处仅记录实际执行 throttle 供 info 诊断，不覆盖 RL 动作。
+            self._executed_actions[i] = executed_throttles[i]
             tr.step(col_actions)
             self._train_heads[i] = float(tr.dynamics.pos[0])
             # 实际加速度 = (新速度 - 旧速度) / dt（舒适性奖励项，对齐 Hua2024 w3·u²）
@@ -330,9 +347,12 @@ class TrainFleetEnv:
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
             'safety_events': int(self._safety_events),
-            # V5.1 教训：安全层修正动作后必须用实际执行动作重算 log_prob
+            # 实际执行 throttle（列级，供诊断/评估）
             'executed_actions': self._executed_actions.copy(),
-            'actions_modified': bool(self._actions_modified),
+            # 恒 False：RL 输出动作（δ 协同 / 目标加速度）经确定性映射才执行，
+            # 策略分布定义在 RL 动作空间，log_prob 应基于原始动作，无需重算。
+            # （V5.1 教训仅针对"同一动作空间内安全层修正"，见 train_cyclic_braking）
+            'actions_modified': False,
         }
         return obs, reward, terminated, truncated, info
 
@@ -389,7 +409,7 @@ class TrainFleetEnv:
 
         for i in range(1, self.num_trains):
             # E4 动态间距：实际间距 = 动态目标 + gap_err（obs[1] 基于动态目标）
-            dyn_gap = self._dynamic_gap(self.trains[i].dynamics.vel[0])
+            dyn_gap = self._dynamic_gap()
             actual_gap = dyn_gap + obs[i, 1]
             min_gap = dyn_gap * 0.4
             if actual_gap < min_gap:
@@ -430,8 +450,13 @@ class TrainFleetEnv:
         if self.num_trains > 1:
             for i in range(1, self.num_trains):
                 ge = obs[i, 1]  # 该跟随列间距误差（带符号：正=拉大，负=逼近）
-                # 过近由势场/碰撞惩罚处理；这里只惩罚"拉开跟丢"（ge>安全上限）
-                if ge > 200.0:
+                # 过近由势场/碰撞惩罚处理；这里给"协同保持间距"正向 + "拉开跟丢"惩罚。
+                # E25 方案A（坡段错开）：各列因坡段不同前列加速/后列缓坡，间距天然易拉开，
+                # 需给 RL"协同保持间距"正向信号（而非纯惩罚），引导后列主动跟进。
+                # 安全区间内（-100~100m）给 +1.0/列 正向；拉开过大（>200m）→ 惩罚。
+                if -100.0 <= ge <= 100.0:
+                    gap_reward += 1.0
+                elif ge > 200.0:
                     gap_reward -= 2.0 * (ge - 200.0) / 100.0  # 跟丢硬惩罚（随拉大加重）
 
         # 舒适性（加速度惩罚，对齐 Hua2024 w3·u²）：惩罚剧烈加减速 → RL 学平稳驾驶。

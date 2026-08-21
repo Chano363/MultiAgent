@@ -109,14 +109,16 @@ class SafetyLayer:
         )
 
         # 规则 1：限速防护
+        # 【bug修复 2026-08-21】速度>=限速时必须强制制动（保留对抗下坡的制动力）。
+        # 原实现把>=0的动作钳为0（缓解），在长大下坡上缓解无法对抗重力→列车持续
+        # 加速超速（实测-11.3‰坡上飙到117km/h）。实测 MIN 制动(-0.3)仍不足以对抗
+        # -11.3‰坡（平衡速度>80），故用 full service 制动力 -0.75（接近 ATP 常用制动）。
+        FULL_SERVICE_BRAKE = -0.75
         for i in range(self.num_vehicles):
             if vel[i] >= self.max_speed_mps - 1e-6:
-                if actions[i] > 0:
-                    # 已达限速，禁止继续牵引，强制常用制动
-                    self._log(i, 'overspeed', f'v={vel[i]:.2f}')
-                    actions[i] = min(actions[i], -0.75)
-                elif actions[i] >= 0:
-                    actions[i] = 0.0  # 钳制为缓解
+                self._log(i, 'overspeed', f'v={vel[i]:.2f}')
+                # 已达限速，强制 full service 制动（对抗最陡下坡段）
+                actions[i] = min(actions[i], FULL_SERVICE_BRAKE)
 
         # 规则 2：车钩力上限防护（区分正常运行/紧急制动上限，Fu2019）
         # 车钩力超限干预策略（coupler_override，8/18 修正）：

@@ -167,11 +167,21 @@ class TrainLowLevelController:
 
     @staticmethod
     def _state_snapshot(train_env) -> dict:
-        """构造安全层需要的状态快照。"""
+        """构造安全层需要的状态快照。
+
+        【bug修复 2026-08-20】原实现 gaps 全 0，导致 SafetyLayer 规则3
+        （间距下限防护）对每节车恒触发，列内正牵引被错误钳制为 0。
+        现与 train_env._state_snapshot() 一致，正确计算 gaps[i]=pos[i-1]-pos[i]。
+        """
         dyn = train_env.dynamics
+        n = train_env.num_vehicles
+        pos = dyn.pos
+        gaps = np.full(n, 0.1)  # min_gap_m 兜底（与 SafetyLayer 默认一致）
+        for i in range(1, n):
+            gaps[i] = pos[i - 1] - pos[i]
         return {
             'vel': np.array(dyn.vel, dtype=float),
             'coupler_forces': np.array(np.abs(dyn._coupler_forces()), dtype=float),
-            'gaps': np.zeros(train_env.num_vehicles),
+            'gaps': gaps,
             'emergency': False,
         }

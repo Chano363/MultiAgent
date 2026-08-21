@@ -126,10 +126,17 @@ class TrainFormationEnv:
         # 车钩力范围估计（约束观察/奖励缩放）
         self._max_coupler_n = self.coupler_force_limit_n
 
-        # 规则式 ATP 安全层
+        # 【bug修复 2026-08-20】线路限速（ATP 限速保护/超速指标口径）。
+        # 原实现用机车物理限速 max_speed_mps（30m/s=108km/h）作安全层限速保护，
+        # 与场景限速区间 [40,80]km/h 不符（80km/h 线路限速完全不在安全层保护内）。
+        # 现默认取机车限速，但可由外部传入 line_speed_limit_mps（如 fleet 传 80/3.6）。
+        # 安全层用 line_speed_limit_mps 作限速防护，物理限速 max_speed_mps 保留为兜底。
+        self.line_speed_limit_mps = config.get(
+            'line_speed_limit_mps', consist.vehicles[0].max_speed_mps
+        )
         self.safety = SafetyLayer(
             num_vehicles=self.num_vehicles,
-            max_speed_mps=consist.vehicles[0].max_speed_mps,
+            max_speed_mps=self.line_speed_limit_mps,
             coupler_force_limit_n=self.coupler_force_limit_n,
             min_gap_m=self.target_gap * 0.1,
         )
@@ -231,7 +238,9 @@ class TrainFormationEnv:
         if len(abs_c):
             self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(abs_c)))
             self._coupler_limit_violations += int(np.sum(abs_c > self.coupler_force_limit_n))
-        if np.max(self.dynamics.vel) > self.dynamics.consist.vehicles[0].max_speed_mps:
+        # 【bug修复 2026-08-20】超速指标按线路限速 line_speed_limit_mps 统计
+        # （原实现按机车物理限速 max_speed_mps=108km/h，与论文"超80率"指标口径不符）
+        if np.max(self.dynamics.vel) > self.line_speed_limit_mps:
             self._overspeed_violations += 1
 
     def step(self, actions: np.ndarray):

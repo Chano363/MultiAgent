@@ -21,10 +21,16 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.safety_layer import SafetyLayer
 
 
 class HierarchicalController:
-    """每列的分层控制器：RL 第1层策略控速 + 协同调整叠加。"""
+    """每列的分层控制器：RL 第1层策略控速 + 协同调整叠加 + 车钩力安全钳制。
+
+    E25 修复：分层模式原实现直接输出第1层策略 throttle，绕过车钩力安全钳制，
+    导致坡段错开（方案A）下缓解不同步→车钩力超1000kN。现补上车钩力安全层
+    （与 TrainLowLevelController 一致），保证车钩力 ≤1000kN。
+    """
 
     def __init__(
         self,
@@ -35,6 +41,8 @@ class HierarchicalController:
         device: str = 'cuda',
         adj_coef: float = 0.3,
         layer1_target_speed: float = 20.0,
+        eval_mode: bool = False,
+        line_speed_limit_mps: float = 30.0,
     ):
         # RL 第1层策略（warm start 自规则循环制动，obs=4维, act=1维）
         self.layer1 = MAPPOAgent(
@@ -49,6 +57,19 @@ class HierarchicalController:
         # 第1层策略训练时 obs[1]=vel-target_speed(20.0)，必须用训练值
         self.layer1_target_speed = layer1_target_speed
         self.adj_coef = adj_coef
+        # 【bug修复 2026-08-20】评估/推理用确定性策略（消除 M1/M3 结果随机性，
+        # 原实现 base_throttle 恒 deterministic=False，评估带随机采样，5-seed 中位数
+        # 只是掩盖而非解决）。训练时 eval_mode=False 保持探索随机。
+        self.eval_mode = eval_mode
+        # 【bug修复 2026-08-21】限速安全层必须对齐 80km/h 线路限速。
+        # 原实现 SafetyLayer 未传 max_speed_mps → 默认 30m/s=108km/h，导致长陡坡下
+        # 速度飙到 117km/h 超80不受控（只保护108）。现传 line_speed_limit_mps（80/3.6）。
+        self._safety = SafetyLayer(
+            num_vehicles=num_vehicles,
+            max_speed_mps=line_speed_limit_mps,
+            coupler_force_limit_n=coupler_force_limit_n,
+            coupler_override='min_brake',
+        )
 
     def layer1_obs(self, train_env) -> np.ndarray:
         """构造第1层策略所需的 4 维 obs（与 train_cyclic_braking 一致）。"""
@@ -61,13 +82,54 @@ class HierarchicalController:
         ], dtype=np.float32)
 
     def base_throttle(self, train_env) -> float:
-        """RL 第1层策略的基础 throttle（列内控速，deterministic/随机）。"""
+        """RL 第1层策略的基础 throttle（列内控速）。
+
+        deterministic 由 eval_mode 决定：训练（探索）随机采样，评估/推理取均值。
+        """
         obs = self.layer1_obs(train_env)
-        action, _ = self.layer1.select_actions(obs.flatten(), deterministic=False)
+        action, _ = self.layer1.select_actions(
+            obs.flatten(), deterministic=self.eval_mode,
+        )
         return float(np.clip(action[0], -1.0, 1.0))
 
+    def _state_snapshot(self, train_env) -> dict:
+        """构造安全层需要的状态快照（与 TrainLowLevelController 一致）。
+
+        【bug修复 2026-08-20】原实现 gaps 全 0，导致 SafetyLayer 规则3 恒触发、
+        列内正牵引被错误钳制。现正确计算 gaps[i]=pos[i-1]-pos[i]。
+        """
+        dyn = train_env.dynamics
+        n = train_env.num_vehicles
+        pos = dyn.pos
+        gaps = np.full(n, 0.1)  # min_gap_m 兜底（与 SafetyLayer 默认一致）
+        for i in range(1, n):
+            gaps[i] = pos[i - 1] - pos[i]
+        return {
+            'vel': np.array(dyn.vel, dtype=float),
+            'coupler_forces': np.array(np.abs(dyn._coupler_forces()), dtype=float),
+            'gaps': gaps,
+            'emergency': False,
+        }
+
     def get_action(self, train_env, coor_adj: float) -> np.ndarray:
-        """最终列级动作：第1层策略 throttle + adj_coef*协同调整，广播到所有车厢。"""
+        """最终列级动作：第1层策略 throttle + adj_coef*协同调整，广播到所有车厢。
+        叠加 δ 后应用车钩力安全钳制（接近上限预缓和 + SafetyLayer.protect），
+        保证车钩力 ≤1000kN（E25 修复）。
+        """
         base = self.base_throttle(train_env)
         throttle = float(np.clip(base + self.adj_coef * coor_adj, -1.0, 1.0))
-        return np.full(self.num_vehicles, throttle)
+
+        # 车钩力接近上限预缓和（与 TrainLowLevelController 一致）：车钩力越高，
+        # 允许的牵引/制动幅度越小，避免动作冲过上限。
+        snapshot = self._state_snapshot(train_env)
+        coupler_peak = float(np.max(snapshot['coupler_forces'])) if self.num_vehicles else 0.0
+        if coupler_peak > 0:
+            ratio = coupler_peak / max(self.coupler_force_limit_n, 1e-6)
+            if ratio > 0.8:
+                scale = max(1.0 - (ratio - 0.8) / 0.2, 0.0)  # 0.8→1.0 时 scale 1→0
+                throttle *= scale
+
+        # 列级动作 + SafetyLayer 车钩力钳制（超限时修正）
+        actions = np.full(self.num_vehicles, throttle)
+        actions = self._safety.protect(actions, snapshot)
+        return actions

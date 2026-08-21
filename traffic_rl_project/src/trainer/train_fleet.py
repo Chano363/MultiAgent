@@ -167,15 +167,18 @@ def train(
             value = agent.get_value(flat_obs)
             next_obs, reward, terminated, truncated, info = env.step(action_for_env)
 
-            # V5.1 教训：安全层修正动作后，实际执行动作 ≠ RL 输出动作，
-            # 必须用实际执行动作重算 log_prob，否则重要性采样失效 → 策略发散。
-            # 底层控制器 get_action_accel 限制动深度 + 车钩力安全钳制会修正动作，
-            # info['executed_actions'] 即安全层修正后每列实际执行的列级 throttle。
-            if info.get('actions_modified', False):
-                executed = np.asarray(info.get('executed_actions'), dtype=np.float32)
-                actions = executed
-                log_prob = agent.get_log_prob(flat_obs, executed)
-
+            # 【V5.1 修正的适用范围澄清（2026-08-20 审计）】
+            # V5.1 教训（安全层修正后需用实际执行动作重算 log_prob）仅适用于
+            # "RL 直接输出 throttle 且在同一动作空间被 SafetyLayer 修正"的场景
+            # （如 train_cyclic_braking 单列控速）。
+            # 本 fleet 环境为分层/映射模式：RL 输出列级动作（δ 协同调整 / 目标
+            # 加速度），经底层控制器确定性映射为 throttle 后才执行。策略分布定义
+            # 在"RL 输出动作"空间，log_prob 必须基于原始 RL 动作 actions 计算，
+            # 用执行 throttle 重算反而是错误（量纲/语义不同，会污染重要性采样）。
+            # 因此这里不再用 executed_actions 重算 log_prob，直接存原始 actions。
+            # 注：旧的 _executed_actions 恒0 + _actions_modified 恒True 导致每步
+            # 用全0动作重算 log_prob（PPO 重要性采样完全失效，E19-E24 训练可信度
+            # 受质疑），已由 env 修复（executed 正确记录 + actions_modified=False）。
             done = terminated or truncated
             agent.store_transition(flat_obs, actions, reward, log_prob, done, value)
 
