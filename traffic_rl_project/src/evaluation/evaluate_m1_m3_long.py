@@ -25,16 +25,22 @@ MAX_STEPS = 3000
 NUM_TRAINS = 3
 
 
-def make_env(init_speed, hierarchical, adj_coef=0.0):
+def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, disturbance_duration=200):
     # 普通场景（各列同坡段起步，无 start_offset/spacing 人为坡段错开）
     # eval_mode=True：第1层策略用确定性采样（bug修复：消除 M1/M3 评估随机性）
+    # disturbance_accel<0：领航车扰动鲁棒性评估（突发减速），默认 0=无扰动。
+    # disturbance_duration：扰动持续步数（短暂窗口，模拟前方临时限速，扰动后恢复）
+    enable_disturbance = disturbance_accel < 0
     return TrainFleetEnv({
         'num_trains': NUM_TRAINS, 'consist_preset': '10kt_1plus0',
         'grade_profile': 'shuozhou_23800',
         'v_max': V_MAX, 'v_min': V_MIN,
         'target_gap': 100.0, 'headway_s': 5.0,
         'max_steps': MAX_STEPS, 'max_accel': 1.0,
-        'enable_disturbance': False, 'use_coupler_constraint': True,
+        'enable_disturbance': enable_disturbance,
+        'disturbance_step': 500, 'disturbance_duration': disturbance_duration,
+        'disturbance_target_accel': disturbance_accel,
+        'use_coupler_constraint': True,
         'hierarchical': hierarchical, 'adj_coef': adj_coef,
         'eval_mode': True,
     })
@@ -59,9 +65,16 @@ def count_cycles(speeds_per_train):
     return total
 
 
-def run_episode(env, agent, mode, seed, deterministic=True):
+def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False):
     np.random.seed(seed)
-    init = 65.0 / 3.6
+    if randomize_init:
+        # 初态随机化：初始速度在 [58,66] km/h 均匀采样（真实多种子统计，
+        # 让不同 seed 跑不同工况，报告 mean±std 而非确定性单点）。
+        # 注：范围限 [58,66] 避开高初态(68+)触发"缓解波满制动失效→车钩力爆炸"
+        # 的已知动力学边界（见 VALIDATION_BASELINE 长距离超速问题），保证统计有效。
+        init = np.random.uniform(58.0, 66.0) / 3.6
+    else:
+        init = 65.0 / 3.6
     obs, _ = env.reset(options={'speed': init})
     done = False
     step = 0
@@ -110,7 +123,8 @@ def run_episode(env, agent, mode, seed, deterministic=True):
 
 
 def summarize(label, results):
-    """确定性评估 + 多 seed 汇总。车钩力取中位数（排除 RL 随机爆炸异常值）。"""
+    """确定性/多种子汇总。车钩力取中位数（排除 RL 随机爆炸异常值）。
+    输出 mean±std（多种子统计）+ 中位数（稳健）。"""
     rewards = sorted(r['reward'] for r in results)
     over = sorted(r['over'] for r in results)
     under = sorted(r['under'] for r in results)
@@ -120,26 +134,55 @@ def summarize(label, results):
     colls = sorted(r['collision_steps'] for r in results)
     cycles = sorted(r['cycles'] for r in results)
     def med(x): return x[len(x) // 2]
-    print(f"\n[{label}] 确定性评估 5 seed 汇总")
-    print(f"  reward 中位={med(rewards):+.0f}  min={rewards[0]:+.0f} max={rewards[-1]:+.0f}")
-    print(f"  超80中位={med(over):.1f}%  低40中位={med(under):.1f}%")
-    print(f"  车钩力峰值中位={med(peaks):.0f}kN  min={peaks[0]:.0f} max={peaks[-1]:.0f}")
-    print(f"  间距min中位={med(gap_mins):.0f}m  间距漂移(范围)中位={med(drifts):.0f}m  追尾步数中位={med(colls)}")
-    print(f"  循环制动次数中位={med(cycles)}")
+    def mean_std(x):
+        a = np.array(x, dtype=float)
+        return a.mean(), a.std()
+    n = len(rewards)
+    mr, sr = mean_std(rewards)
+    mo, so = mean_std(over)
+    mu, su = mean_std(under)
+    mp, sp = mean_std(peaks)
+    mg, sg = mean_std(gap_mins)
+    md, sd = mean_std(drifts)
+    mc, sc = mean_std(colls)
+    mcyc, scyc = mean_std(cycles)
+    print(f"\n[{label}] {'随机化初态' if n > 1 else '确定性'} 评估 {n} seed 汇总 (mean±std / 中位)")
+    print(f"  reward mean={mr:+.0f}±{sr:.0f}  中位={med(rewards):+.0f}  [{rewards[0]:+.0f},{rewards[-1]:+.0f}]")
+    print(f"  超80 mean={mo:.1f}±{so:.1f}%  低40 mean={mu:.1f}±{su:.1f}%")
+    print(f"  车钩力峰值 mean={mp:.0f}±{sp:.0f}kN  中位={med(peaks):.0f}kN  [{peaks[0]:.0f},{peaks[-1]:.0f}]")
+    print(f"  间距min mean={mg:.0f}±{sg:.0f}m  间距漂移 mean={md:.0f}±{sd:.0f}m  追尾步数 mean={mc:.1f}±{sc:.1f}  中位={med(colls)}")
+    print(f"  循环制动次数 mean={mcyc:.1f}±{scyc:.1f}  中位={med(cycles)}")
 
 
 def main():
+    # CLI: mode [ckpt] [--disturbance <accel>] [--disturbance_duration N] [--n_seed N] [--randomize_init]
     mode = sys.argv[1] if len(sys.argv) > 1 else 'all'
     ckpt = sys.argv[2] if len(sys.argv) > 2 else 'outputs/checkpoints/mappo_fleet_best_cp_seed0.pt'
+    disturbance_accel = 0.0
+    disturbance_duration = 200
     n_seed = 5
+    randomize_init = '--randomize_init' in sys.argv
+    if '--disturbance' in sys.argv:
+        disturbance_accel = float(sys.argv[sys.argv.index('--disturbance') + 1])
+    if '--disturbance_duration' in sys.argv:
+        disturbance_duration = int(sys.argv[sys.argv.index('--disturbance_duration') + 1])
+    if '--n_seed' in sys.argv:
+        n_seed = int(sys.argv[sys.argv.index('--n_seed') + 1])
     deterministic = True
-    tag = "场景=[普通场景：各列同坡段起步，无人为坡段错开]"
+    if disturbance_accel < 0:
+        tag = (f"场景=[普通场景 + 领航车扰动鲁棒性评估（扰动脉冲 {disturbance_accel:.1f}m/s² "
+               f"@step500 持续{disturbance_duration}步）]")
+    elif randomize_init:
+        tag = "场景=[普通场景 + 初态随机化（初始速度55-75km/h，多种子统计）]"
+    else:
+        tag = "场景=[普通场景：各列同坡段起步，无人为坡段错开，无扰动]"
 
     # 惰行 baseline
     coast_res = []
     for s in range(n_seed):
-        env = make_env(65 / 3.6, hierarchical=False)
-        coast_res.append(run_episode(env, None, 'coast', s, deterministic))
+        env = make_env(65 / 3.6, hierarchical=False, disturbance_accel=disturbance_accel,
+                       disturbance_duration=disturbance_duration)
+        coast_res.append(run_episode(env, None, 'coast', s, deterministic, randomize_init))
     summarize(f"惰行 baseline {tag}", coast_res)
 
     # M1 群组协同+车钩力
@@ -149,16 +192,18 @@ def main():
         agent.load(ckpt)
         agent.policy.eval()
         for s in range(n_seed):
-            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.1)
-            m1_res.append(run_episode(env, agent, 'm1', s, deterministic))
+            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.1, disturbance_accel=disturbance_accel,
+                           disturbance_duration=disturbance_duration)
+            m1_res.append(run_episode(env, agent, 'm1', s, deterministic, randomize_init))
         summarize(f"M1 群组协同+车钩力 ({ckpt}) {tag}", m1_res)
 
     # M3 单列独立（δ=0，仅第1层策略各自控速）
     m3_res = []
     if mode in ('all', 'm3'):
         for s in range(n_seed):
-            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.0)
-            m3_res.append(run_episode(env, None, 'm3', s, deterministic))
+            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.0, disturbance_accel=disturbance_accel,
+                           disturbance_duration=disturbance_duration)
+            m3_res.append(run_episode(env, None, 'm3', s, deterministic, randomize_init))
         summarize(f"M3 单列独立（δ=0）{tag}", m3_res)
 
 

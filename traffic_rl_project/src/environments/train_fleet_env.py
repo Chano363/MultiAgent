@@ -82,6 +82,8 @@ class TrainFleetEnv:
         # 扰动（突发工况）配置：领航车在某时刻突发减速，测试跟随车协同制动
         self.enable_disturbance = config.get('enable_disturbance', False)
         self.disturbance_step = config.get('disturbance_step', 100)   # 扰动触发步
+        # 扰动持续步数（默认大值=扰动触发后永久生效；评估设短暂窗口模拟"前方临时限速"）
+        self.disturbance_duration = config.get('disturbance_duration', 1 << 30)
         # 扰动时领航车的目标加速度（负值 = 强制制动，模拟前方障碍/限速）
         self.disturbance_target_accel = config.get('disturbance_target_accel', -0.5)
         # 是否考虑车钩力约束（消融实验：use_coupler_constraint=False 模拟"忽略车钩力"，
@@ -299,14 +301,19 @@ class TrainFleetEnv:
                 # 分层模式：层级一 RL 输出"协同调整量" δ ∈ [-1,1]，
                 # 层级二（第1层策略）负责列内控速，叠加 δ 得到最终 throttle。
                 coor_adj = float(actions[i])
-                col_actions = self.hier_controllers[i].get_action(tr, coor_adj)
+                if self.enable_disturbance and i == 0 and self.disturbance_step <= self.steps < self.disturbance_step + self.disturbance_duration:
+                    # 【扰动鲁棒性评估 2026-08-22】领航车突发强制制动（模拟前方临时限速/障碍），
+                    # 走底层控制器（含车钩力钳制），驱动后列协同响应。默认 enable_disturbance=False 不受影响。
+                    col_actions = ctrl.get_action_accel(tr, self.disturbance_target_accel)
+                else:
+                    col_actions = self.hier_controllers[i].get_action(tr, coor_adj)
                 target_accel = float(coor_adj) * self.max_accel  # 供奖励/obs 用
                 target_accels[i] = target_accel
             else:
                 # 非分层模式：层级一动作 → 该列目标加速度（动作直接影响物理）
                 target_accel = float(actions[i]) * self.max_accel
                 # 领航车（第0列）扰动：突发强制制动（模拟前方障碍/限速），
-                if self.enable_disturbance and i == 0 and self.steps >= self.disturbance_step:
+                if self.enable_disturbance and i == 0 and self.disturbance_step <= self.steps < self.disturbance_step + self.disturbance_duration:
                     target_accel = self.disturbance_target_accel
                 target_accels[i] = target_accel
                 # 层级二底层控制器：目标加速度 → 列级 throttle（执行 + 车钩力约束）
