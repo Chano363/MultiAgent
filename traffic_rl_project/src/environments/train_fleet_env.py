@@ -131,19 +131,19 @@ class TrainFleetEnv:
         ]
         # 分层控制器（2026-08-19 定位确认）：层级二用 RL 第1层策略控速
         # （warm start 自规则循环制动，缓解波下循环制动稳定，E16实测训练稳定avg+2.1万），
-        # 层级一 RL 叠加协同调整 δ。
+        # 层级一 RL 输出协同阈值偏移（v_max_adj/v_min_adj），层级二规则循环制动控速。
+        # 【重构 2026-08-22】HierarchicalController 不再用 RL 第1层策略（RL 学单列
+        # 循环制动结构性失败），改用规则循环制动 + 阈值协同。
         self.hier_controllers = None
         if self.hierarchical:
             self.hier_controllers = [
                 HierarchicalController(
-                    layer1_checkpoint=self.layer1_checkpoint,
                     num_vehicles=tr.num_vehicles,
                     coupler_force_limit_n=self.coupler_force_limit_n,
                     target_speed=self.target_speed,
-                    device='cuda',
+                    v_max=self.v_max,  # 规则循环制动限速上限
+                    v_min=self.v_min,  # 规则循环制动限速下限
                     adj_coef=self.adj_coef,
-                    eval_mode=self.eval_mode,
-                    line_speed_limit_mps=self.v_max,  # bug修复：限速安全层对齐80km/h
                 )
                 for tr in self.trains
             ]

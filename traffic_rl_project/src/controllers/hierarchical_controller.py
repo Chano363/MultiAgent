@@ -1,17 +1,20 @@
 """
-分层控制器（层级二）：RL 第1层策略控速（warm start 自规则循环制动）+ 层级一协同调整。
+分层控制器（层级二）：规则循环制动控速（不用 RL）+ 层级一阈值协同。
 
-【分层框架（论文核心，2026-08-19 定位确认）】
-- 层级一（第2层）：多列 MARL 智能体 = 每列，输出"协同调整量" δ ∈ [-1,1]
-- 层级二（本文件）：RL 第1层策略（经 warm start 自规则循环制动初始化，缓解波下
-  循环制动稳定）负责单列控速。
+【最终分层框架（2026-08-22 战略重构）】
+- 层级一（第2层）：多列 MARL 智能体 = 每列，输出"协同阈值偏移" δ ∈ [-1,1]
+- 层级二（本文件）：规则循环制动 get_action_cyclic_braking（领域最优，已验证
+  缓解波下车钩力 523kN 稳定）负责单列控速，不用 RL。
 
-定位依据：E16 实测——硬规则循环制动 + RL 调整（叠加throttle或调阈值）训练不稳定
-（探索破坏规则边界，avg -78万）；RL 策略（warm start 自规则）控速训练稳定
-（avg +2.1万，E9 已验证）。RL 策略既"基于规则循环制动"（warm start 初始化），
-又可通过 RL 稳定优化协同。
+战略依据：
+- RL 学单列循环制动结构性失败（缓解波长时延 6s → PPO 信用分配失效 + 车钩力
+  多体强耦合 → 探索即爆炸；连续/离散/warm start/循环引导均失败，MEMORY L72）
+- 领域标准（Zhang2024/Tang2020）：重载列车 RL 用离散档位 + 规则循环制动；
+  Zhang2024 用 DQN 学循环制动但忽略车钩力（单质点）——我们建模车钩力，不能照搬
+- 正确分层：第1层规则循环制动（微观控速）+ 第2层 RL 宏观协同（调阈值不直接动 throttle）
 
-最终 throttle = clip(layer1_throttle + adj_coef * δ, -1, 1)。
+协同方式：coor_adj ∈ [-1,1] 映射为 v_max_adj/v_min_adj（阈值偏移，限制 ±COOP_LIMIT），
+不直接叠加 throttle（避免 E16/E18 的 δ 破坏规则循环制动）。
 """
 
 import numpy as np
@@ -20,116 +23,71 @@ import sys
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.algorithms.mappo_agent import MAPPOAgent
-from src.safety_layer import SafetyLayer
+from src.controllers.low_level_controller import TrainLowLevelController
 
 
 class HierarchicalController:
-    """每列的分层控制器：RL 第1层策略控速 + 协同调整叠加 + 车钩力安全钳制。
+    """每列的分层控制器：规则循环制动控速 + 协同阈值偏移 + 车钩力安全钳制。
 
-    E25 修复：分层模式原实现直接输出第1层策略 throttle，绕过车钩力安全钳制，
-    导致坡段错开（方案A）下缓解不同步→车钩力超1000kN。现补上车钩力安全层
-    （与 TrainLowLevelController 一致），保证车钩力 ≤1000kN。
+    【重构 2026-08-22】不再用 RL 第1层策略（RL 学单列循环制动结构性失败），
+    改用领域最优的规则循环制动（get_action_cyclic_braking，含车钩力安全层）。
+    第2层 RL 输出 v_max_adj/v_min_adj 阈值偏移（宏观协同），不直接动 throttle。
     """
+
+    # 协同阈值偏移上限（m/s）：coor_adj=±1 对应 ±COOP_LIMIT 的速度阈值偏移
+    # 限制在 ±5km/h，避免 E17 探索到极端阈值破坏规则循环制动。
+    COOP_LIMIT = 5.0 / 3.6  # 5 km/h
 
     def __init__(
         self,
-        layer1_checkpoint: str,
         num_vehicles: int,
         coupler_force_limit_n: float,
         target_speed: float,
-        device: str = 'cuda',
+        v_max: float = 80.0 / 3.6,
+        v_min: float = 40.0 / 3.6,
         adj_coef: float = 0.3,
-        layer1_target_speed: float = 20.0,
-        eval_mode: bool = False,
         line_speed_limit_mps: float = 30.0,
     ):
-        # RL 第1层策略（warm start 自规则循环制动，obs=4维, act=1维）
-        self.layer1 = MAPPOAgent(
-            num_drones=1, obs_per_drone=4, act_per_drone=1, device=device,
-        )
-        self.layer1.load(layer1_checkpoint)
-        self.layer1.policy.eval()
-
         self.num_vehicles = num_vehicles
         self.coupler_force_limit_n = coupler_force_limit_n
         self.target_speed = target_speed
-        # 第1层策略训练时 obs[1]=vel-target_speed(20.0)，必须用训练值
-        self.layer1_target_speed = layer1_target_speed
+        self.v_max = v_max  # 规则循环制动限速上限
+        self.v_min = v_min  # 规则循环制动限速下限
         self.adj_coef = adj_coef
-        # 【bug修复 2026-08-20】评估/推理用确定性策略（消除 M1/M3 结果随机性，
-        # 原实现 base_throttle 恒 deterministic=False，评估带随机采样，5-seed 中位数
-        # 只是掩盖而非解决）。训练时 eval_mode=False 保持探索随机。
-        self.eval_mode = eval_mode
-        # 【bug修复 2026-08-21】限速安全层必须对齐 80km/h 线路限速。
-        # 原实现 SafetyLayer 未传 max_speed_mps → 默认 30m/s=108km/h，导致长陡坡下
-        # 速度飙到 117km/h 超80不受控（只保护108）。现传 line_speed_limit_mps（80/3.6）。
-        self._safety = SafetyLayer(
+        # 规则循环制动控制器（含车钩力安全层，领域最优）
+        self._low_level = TrainLowLevelController(
             num_vehicles=num_vehicles,
-            max_speed_mps=line_speed_limit_mps,
+            dt=0.1,
             coupler_force_limit_n=coupler_force_limit_n,
+            enforce_coupler=True,
             coupler_override='min_brake',
         )
 
-    def layer1_obs(self, train_env) -> np.ndarray:
-        """构造第1层策略所需的 4 维 obs（与 train_cyclic_braking 一致）。"""
-        vel = float(train_env.dynamics.vel[0])
-        coupler = np.abs(train_env.dynamics._coupler_forces())
-        coupler_peak = float(np.max(coupler)) if len(coupler) else 0.0
-        return np.array([
-            [vel, vel - self.layer1_target_speed, train_env.dynamics.pos[0] * 0.0001,
-             coupler_peak / self.coupler_force_limit_n],
-        ], dtype=np.float32)
-
-    def base_throttle(self, train_env) -> float:
-        """RL 第1层策略的基础 throttle（列内控速）。
-
-        deterministic 由 eval_mode 决定：训练（探索）随机采样，评估/推理取均值。
-        """
-        obs = self.layer1_obs(train_env)
-        action, _ = self.layer1.select_actions(
-            obs.flatten(), deterministic=self.eval_mode,
-        )
-        return float(np.clip(action[0], -1.0, 1.0))
-
-    def _state_snapshot(self, train_env) -> dict:
-        """构造安全层需要的状态快照（与 TrainLowLevelController 一致）。
-
-        【bug修复 2026-08-20】原实现 gaps 全 0，导致 SafetyLayer 规则3 恒触发、
-        列内正牵引被错误钳制。现正确计算 gaps[i]=pos[i-1]-pos[i]。
-        """
-        dyn = train_env.dynamics
-        n = train_env.num_vehicles
-        pos = dyn.pos
-        gaps = np.full(n, 0.1)  # min_gap_m 兜底（与 SafetyLayer 默认一致）
-        for i in range(1, n):
-            gaps[i] = pos[i - 1] - pos[i]
-        return {
-            'vel': np.array(dyn.vel, dtype=float),
-            'coupler_forces': np.array(np.abs(dyn._coupler_forces()), dtype=float),
-            'gaps': gaps,
-            'emergency': False,
-        }
-
     def get_action(self, train_env, coor_adj: float) -> np.ndarray:
-        """最终列级动作：第1层策略 throttle + adj_coef*协同调整，广播到所有车厢。
-        叠加 δ 后应用车钩力安全钳制（接近上限预缓和 + SafetyLayer.protect），
-        保证车钩力 ≤1000kN（E25 修复）。
+        """最终列级动作：规则循环制动 + 协同阈值偏移 v_max_adj/v_min_adj。
+
+        Args:
+            train_env: TrainFormationEnv（该列）
+            coor_adj: 层级一 RL 协同调整量 ∈ [-1,1]（宏观，限制在 ±COOP_LIMIT）
+
+        Returns:
+            actions: 该列所有车厢统一的 throttle ∈ [-1,1]（列级动作）
         """
-        base = self.base_throttle(train_env)
-        throttle = float(np.clip(base + self.adj_coef * coor_adj, -1.0, 1.0))
+        # 协同调整 → 规则循环制动阈值偏移（不直接动 throttle，不破坏循环制动）
+        # coor_adj>0 → 提前制动/延后缓解（配合前列，防追尾）；<0 → 延后制动/提前缓解
+        adj = float(np.clip(coor_adj, -1.0, 1.0)) * self.adj_coef * self.COOP_LIMIT
+        v_max_adj = adj   # 制动触发阈值偏移
+        v_min_adj = adj   # 缓解触发阈值偏移
+        return self._low_level.get_action_cyclic_braking(
+            train_env,
+            v_max=self.v_max,
+            v_min=self.v_min,
+            brake_notch=-0.75,
+            release_throttle=0.0,
+            v_max_adj=v_max_adj,
+            v_min_adj=v_min_adj,
+        )
 
-        # 车钩力接近上限预缓和（与 TrainLowLevelController 一致）：车钩力越高，
-        # 允许的牵引/制动幅度越小，避免动作冲过上限。
-        snapshot = self._state_snapshot(train_env)
-        coupler_peak = float(np.max(snapshot['coupler_forces'])) if self.num_vehicles else 0.0
-        if coupler_peak > 0:
-            ratio = coupler_peak / max(self.coupler_force_limit_n, 1e-6)
-            if ratio > 0.8:
-                scale = max(1.0 - (ratio - 0.8) / 0.2, 0.0)  # 0.8→1.0 时 scale 1→0
-                throttle *= scale
-
-        # 列级动作 + SafetyLayer 车钩力钳制（超限时修正）
-        actions = np.full(self.num_vehicles, throttle)
-        actions = self._safety.protect(actions, snapshot)
-        return actions
+    def reset(self):
+        """重置循环制动状态（跨回合）。"""
+        self._low_level.reset()
