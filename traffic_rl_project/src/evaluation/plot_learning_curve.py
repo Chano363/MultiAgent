@@ -27,7 +27,7 @@ def parse_log(filepath):
     rewards = []
     with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
         for line in f:
-            m = re.search(r'Ep (\d+)/\d+ \| Reward ([-\d.]+) \(avg ([-\d.]+)\)', line)
+            m = re.search(r'Ep (\d+)/\d+ \| Reward ([-+\d.]+) \(avg ([-+\d.]+)\)', line)
             if m:
                 eps.append(int(m.group(1)))
                 rewards.append(float(m.group(2)))
@@ -68,7 +68,7 @@ def plot(logdir, pattern, out):
 
     plt.xlabel('Episode')
     plt.ylabel('Episode Reward')
-    plt.title('MAPPO 列间协同制动训练收敛曲线')
+    plt.title('MAPPO training convergence (M1, 3 seeds)')
     plt.legend()
     plt.grid(alpha=0.3)
     plt.tight_layout()

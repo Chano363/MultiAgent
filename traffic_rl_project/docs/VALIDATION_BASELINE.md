@@ -1789,6 +1789,40 @@ seed1/2 在 60ep 时 Reward 略回弹（best 更优），说明 60ep 偏短，�
 
 **脚本**：`run_train_l2_robust.sh`、`evaluate_m1_m3_long.py --disturbance -0.3 --disturbance_duration 100`；日志 `outputs/train_logs/l2_robust_200ep_seed0.log`；新 checkpoint `mappo_fleet_best_cp_seed0.pt`（覆盖原 cp，原 M1 已备份为 `mappo_fleet_best_cp_seed0_orig.pt`）。
 
+### 诊断-2026-08-22 多 seed 训练（M1 第2层 MAPPO，3 seed 训练，2/3 泛化成功）
+
+**背景**：审稿硬门槛——多 seed 训练证明 MAPPO 训练收敛稳健。用 `run_train_l2_layered.sh` 改 seed 训练 seed0/1/2（已有 seed0 即 orig checkpoint），画多 seed 收敛曲线 + 评估各 seed checkpoint。
+
+**训练结果（3 seed，200ep，short-horizon 300步训练）**：
+| seed | best reward | 训练期 loss | 训练期 peakCoupler | viol |
+|:--|:--|:--|:--|:--|
+| 0 | +5070 | 0.015→-0.006 | 3kN | 0 |
+| 1 | +5070.9 | 0.015→-0.006 | 3kN | 0 |
+| 2 | +5049.4 | 0.014→0.006 | 3kN | 0 |
+
+**3 seed 训练 best reward 极接近（5049-5071）**，训练曲线均落在 4800-5050 区间（`fig_learning_curve_m1_multiseed.png`），看似训练稳健。
+
+**评估结果（3000步全程评估，固定初态65）**：
+| seed | 训练 best | 评估 reward | 车钩力峰值 | 追尾 | 状态 |
+|:--|:--|:--|:--|:--|:--|
+| 0 | +5070 | **+33886** | 864kN | 0 | ✅ **泛化成功** |
+| 1 | +5070.9 | **-78281** | **1074kN（超限）** | **398** | ❌ **泛化失败（过拟合短程）** |
+| 2 | +5049.4 | **+34179** | 864kN | 0 | ✅ **泛化成功** |
+
+**诚实结论（重要）**：
+- **2/3 训练 seed 泛化成功**（seed0/seed2 在全程 3000 步评估下保持协同 +34000 / 车钩力 864kN / 追尾0）
+- **1/3 训练 seed 泛化失败**（seed1 训练时 best 与 seed0/seed2 接近，但全程评估时车钩力超限、追尾398）——这是**训练时过拟合短程（300步）分布，泛化到全程（3000步）失败**
+- **训练 best reward 不足以预测泛化性能**——MAPPO 训练稳定性需以**全程评估**为准
+
+**对论文的影响**：
+- 论文应诚实报告"3 seed 训练，2/3 泛化成功，1 seed 失败"，不能宣称"多 seed 都收敛"
+- 主结果（协同增量 +110042）使用 **seed0 checkpoint**（泛化成功）
+- 论文可讨论"短程训练 → 全程泛化"的挑战，建议未来工作加 curriculum learning 或长程训练
+
+**图表**：`outputs/figures/fig_learning_curve_m1_multiseed.png`（3 seed 训练曲线 + mean）
+**脚本**：`run_train_l2_layered.sh`（改 seed 参数）、`evaluate_m1_m3_long.py`（用各 seed checkpoint）
+**训练日志**：`outputs/train_logs/l2_layered_200ep_seed{0,1,2}.log`
+
 ### 诊断-2026-08-22 多种子统计评估（随机化初态，协同增量稳健）
 
 **背景**：4.2.9 步骤②——强化 M1 vs M3 协同增量（+110042）的统计稳健性。`evaluate_m1_m3_long.py` 加 `--randomize_init`（初态 58-66 km/h 均匀采样，避免高初态触发缓解波 bug）+ `--n_seed`，summarize 输出 mean±std。

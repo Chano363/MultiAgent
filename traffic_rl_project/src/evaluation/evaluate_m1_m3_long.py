@@ -65,7 +65,13 @@ def count_cycles(speeds_per_train):
     return total
 
 
-def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False):
+def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False, return_traj=False):
+    """确定性评估一条轨迹，返回汇总指标。
+
+    若 return_traj=True，额外在返回 dict 中加入 'traj'（逐步轨迹 DataFrame）：
+    step / speed_0..2 / speed_mean / gap_1 / gap_2 / gap_min / coupler_peak_kN / reward_accum，
+    供 make_m1m3_figures.py 制图复用 —— 保证 reward/指标/轨迹同一口径。
+    """
     np.random.seed(seed)
     if randomize_init:
         # 初态随机化：初始速度在 [58,66] km/h 均匀采样（真实多种子统计，
@@ -80,6 +86,8 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
     step = 0
     speeds_per_train = [[] for _ in range(NUM_TRAINS)]
     peaks_all, gaps, rewards = [], [], []
+    traj_rows = []
+    cum_reward = 0.0
     while not done and step < MAX_STEPS:
         if mode == 'coast':
             a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
@@ -95,18 +103,32 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
         for i, tr in enumerate(env.trains):
             speeds_per_train[i].append(float(tr.dynamics.vel[0]))
         peaks_all.append(info['coupler_force_peak'] / 1e3)
+        g1 = g2 = None
         if env.num_trains > 1:
             g1 = env.trains[0].dynamics.pos[-1] - env._train_heads[1]
             g2 = env.trains[1].dynamics.pos[-1] - env._train_heads[2]
             gaps.append(min(g1, g2))
         rewards.append(r)
+        cum_reward += float(r)
+        if return_traj:
+            traj_rows.append({
+                'step': step,
+                'speed_0': float(env.trains[0].dynamics.vel[0]) * 3.6,
+                'speed_1': float(env.trains[1].dynamics.vel[0]) * 3.6,
+                'speed_2': float(env.trains[2].dynamics.vel[0]) * 3.6,
+                'speed_mean': float(np.mean([t.dynamics.vel[0] for t in env.trains])) * 3.6,
+                'gap_1': g1, 'gap_2': g2,
+                'gap_min': min(g1, g2) if (g1 is not None and g2 is not None) else None,
+                'coupler_peak_kN': info['coupler_force_peak'] / 1e3,
+                'reward_accum': cum_reward,
+            })
         step += 1
     speeds = np.array([np.array(c) for c in speeds_per_train])
     all_spd = np.concatenate(speeds)
     # 间距漂移指标：最小间距（负=追尾穿透）、间距范围（漂移幅度）、追尾步数
     gap_arr = np.array(gaps) if gaps else np.array([])
     collision_steps = int((gap_arr < 5.0).sum()) if len(gap_arr) else 0
-    return {
+    res = {
         'reward': float(sum(rewards)),
         'speed_mean': float(all_spd.mean()) * 3.6,
         'speed_max': float(all_spd.max()) * 3.6,
@@ -120,6 +142,10 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
         'cycles': count_cycles(speeds_per_train),  # 【接入 2026-08-20】循环制动次数指标
         'steps': step,
     }
+    if return_traj:
+        import pandas as pd
+        res['traj'] = pd.DataFrame(traj_rows)
+    return res
 
 
 def summarize(label, results):
