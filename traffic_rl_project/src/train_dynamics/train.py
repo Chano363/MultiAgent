@@ -424,13 +424,15 @@ class TrainDynamics:
                         self._air_brake_active[i] = True
                         self._air_brake_notch[i] = self._air_brake_notch[i + 1]
 
-        # 【缓解波传播】前车已释放 → 倒计时向后释放后车（模拟缓解波 ~200m/s 从车头向后传播）
-        # 缓解不同步 → 前部先失去制动力、后部仍在制动 → 拉伸/压缩 → 放大车钩力（"缓解后车钩力最大"）
-        # E7 物理改进：缓解波传播期间后车制动力**渐变衰减**（真实缓解逐步排风），
-        # 从满制动(SERVICE)逐渐降到0，而非"延迟期间保持满制动后突然释放"。
-        # 这样保留缓解波物理现象（不同步→车钩力），又避免持续满制动导致掉速。
-        for i in range(1, n):
-            if self._air_brake_releasing[i - 1] and self._air_brake_active[i]:
+        # 【缓解波传播修复 2026-08-22】连续波前并行释放（替代原"逐节串行等待"）。
+        # 原实现依赖 releasing[i-1]（前一节已释放才倒计时本节的独立满 delay），导致
+        # 第 k 节需 ~60k 步才释放（串行累积，缓解传播严重延迟 → 尾部残留满制动 → 拖停）。
+        # 正确物理：缓解波以 ~200m/s 连续传播，各节 delay = distance/波速，并行独立倒计时，
+        # 波前到达即释放（1200m 车长 6 秒传完），保留"缓解后车钩力最大"不同步物理现象。
+        # 每节 i 在缓解开始时已被 `_reset_air_brake_command` 标记 releasing[i]=True 并设置
+        # delay_remaining[i]=distance/波速；此处对"缓解波传播中且仍在制动"的节独立倒计时。
+        for i in range(n):
+            if self._air_brake_releasing[i] and self._air_brake_active[i]:
                 self._air_brake_delay_remaining[i] -= dt
                 # 制动力随缓解进度衰减：delay 剩余越多，制动力越大；delay→0 时制动力→0
                 self._air_brake_release_frac[i] = max(
@@ -440,7 +442,6 @@ class TrainDynamics:
                 if self._air_brake_delay_remaining[i] <= 0.0:
                     self._air_brake_active[i] = False
                     self._air_brake_notch[i] = AirBrakeNotch.RELEASE
-                    self._air_brake_releasing[i] = True
                     self._air_brake_release_frac[i] = 0.0
 
         # 【EOT 缓解波】EOT 时 delay 已在 _reset_air_brake_command 设为 min(到头,到尾)/波速，
@@ -535,6 +536,11 @@ class TrainDynamics:
                     self._air_brake_delay_remaining[j] = delay
                     # E7：记录缓解波初始延迟总量，供制动力渐变衰减
                     self._air_brake_delay_total[j] = delay
+                    # 【缓解波修复 2026-08-22】标记该节"缓解波传播中"（releasing=True）。
+                    # 原实现缓解波循环依赖 releasing[i-1]（逐节串行），导致第 k 节需
+                    # ~60k 步才释放（串行累积），缓解传播严重延迟 → 尾部残留满制动 → 拖停。
+                    # 改为各节并行按 distance/波速 独立倒计时（连续波前，6 秒传完）。
+                    self._air_brake_releasing[j] = True
                     self._air_brake_release_frac[j] = 1.0
             if eot:
                 # EOT：尾部也立即释放并作为缓解波源（双向）
