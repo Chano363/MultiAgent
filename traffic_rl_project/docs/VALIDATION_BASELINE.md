@@ -1910,6 +1910,42 @@ seed1/2 在 60ep 时 Reward 略回弹（best 更优），说明 60ep 偏短，�
 
 **脚本**：`evaluate_m1_m3_long.py`（M1/M3/M4/惰行）、`make_m1m3_figures.py`、`analyze_coor_policy.py`（M1策略分析）、`sweep_m4_kp.py`（M4规则扫描）；日志 `outputs/train_logs/eval_after_fix_multiseed.log`
 
+### 诊断-2026-08-22 更强压力场景消融（target_gap 初始间距）+ DQN baseline 对标
+
+**更强压力场景（target_gap 压力扫描，`sweep_pressure_gap.py`）**：
+用现有 M1 checkpoint（100m 训练）评估，目标间距 100→40m：
+| target_gap | M1(协同) | M3(独立) | 增量 | M3追尾 |
+|:--|:--|:--|:--|:--|
+| 100m | +36446 | -31151 | +67597 | 202 |
+| 80m | +36477 | -38630 | +75107 | 226 |
+| 60m | +36507 | -46191 | +82698 | 264 |
+| 50m | +36524 | -49772 | +88916 | 285 |
+| 40m | +36542 | -53046 | +89588 | 305 |
+
+**关键发现**：
+- **M1 协同对压力鲁棒**：100→40m，reward 几乎不变（+36446→+36542），从不追尾、车钩力 804kN 守住
+- **M3/M4 追尾随压力加剧**：202→305 步，reward 从 -31k 跌到 -53k
+- **协同增量单调增大**：+67597→+89588 —— 场景越有压力，协同价值越突出
+- **M1 泛化**：100m 训练却在 40-80m 更近间距保持稳健 → 学到可泛化协同策略
+- **M4 规则协同无优势**：M4 与 M3 追尾相同 → 证明 RL 协同增量
+
+**DQN baseline 对标（Zhang2024 式，`eval_dqn_multitrain.py`）**：
+实现单列 DQN（`dqn_agent.py` + `train_dqn_cyclic.py`）学循环制动（对齐 Zhang2024），多列场景中每列独立 DQN（无协同）：
+| target_gap | DQN reward | 车钩力 | 追尾 |
+|:--|:--|:--|:--|
+| 100m | -606185 | **2111kN(超限)** | **1434** |
+| 60m | -637550 | 2367kN | 1624 |
+| 40m | -630982 | 2116kN | 1651 |
+
+**DQN 训练**（`train_dqn_cyclic.py`，300ep）：eval +15000 收敛、车钩力守住（单列）；但**多列评估车钩力超限（2111kN）+ 追尾（1434步）**——因为 DQN 忽略车钩力约束 + 无列间协同。
+
+**对论文价值**：
+1. **DQN baseline 对比**：M1（协同，804kN 守住、0 追尾）全面优于 DQN（2111kN 超限、1434 追尾）——证明分层框架（规则循环制动 + 车钩力安全层 + RL 协同）优于朴素 DQN
+2. **车钩力建模必要性**：DQN 忽略车钩力 → 多列制动车钩力爆表（2111kN）vs M1 守住（804kN）
+3. **协同价值**：DQN 独立控制 → 追尾 1434 vs M1 协同 0
+
+**脚本**：`sweep_pressure_gap.py`、`eval_dqn_multitrain.py`、`dqn_agent.py`、`train_dqn_cyclic.py`；数据 `outputs/diagnostics/pressure_gap_sweep.md`
+
 ---
 
 ## 文档索引
