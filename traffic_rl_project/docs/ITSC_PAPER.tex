@@ -5,14 +5,10 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
 
-\usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{hyperref}
 
 \begin{document}
 
@@ -39,7 +35,7 @@ Heavy-haul train, virtual coupling, multi-agent reinforcement learning, cyclic b
 %-------------------------- I. INTRODUCTION --------------------------
 \section{Introduction}
 
-Heavy-haul trains operating on long downhill sections (e.g., the Shuozhou--Huanghua line, 23.8~km with sustained $-10.9\permil$ gradients) require cyclic air braking to regulate speed: braking when speed exceeds an upper limit, and releasing when it falls below a lower limit. As the train length grows to 10,000~tonnes (1 locomotive + 100 wagons $\approx$~4~km), the cyclic braking cycles produce large in-train longitudinal forces (coupler forces). Exceeding the coupler-force safety limit (1000~kN in normal operation, per the China Academy of Railway Sciences) risks coupler failure.
+Heavy-haul trains operating on long downhill sections (e.g., the Shuozhou--Huanghua line, 23.8~km with sustained $-1.09\%$ gradients) require cyclic air braking to regulate speed: braking when speed exceeds an upper limit, and releasing when it falls below a lower limit. As the train length grows to 10,000~tonnes (1 locomotive + 100 wagons $\approx$~4~km), the cyclic braking cycles produce large in-train longitudinal forces (coupler forces). Exceeding the coupler-force safety limit (1000~kN in normal operation, per the China Academy of Railway Sciences) risks coupler failure.
 
 When multiple such heavy-haul trains operate as a virtually-coupled platoon (to increase line capacity), each train must simultaneously (i) regulate its own speed via cyclic braking and (ii) maintain a safe inter-train spacing to avoid rear-end collision. \textbf{Independent control of each train is fragile}: under a long downhill profile, the follower's cyclic-braking speed profile can lag the leader's, and the inter-train gap collapses into a rear-end collision in a subset of operating conditions.
 
@@ -87,7 +83,7 @@ with $e = x_i - x_{i+1} - l_0$. The coupler-force safety limit is 1000~kN~\cite{
 
 \subsection{Train platoon scenario}
 
-Three 10,000-tonne trains (1 locomotive + 100 wagons each, total $\approx$~4~km) operate on the Shuozhou--Huanghua profile $\texttt{shuozhou\_23800}$ with speed limits $[40, 80]$~km/h. The target inter-train gap is 100~m (headway 5~s). Trains start on the same grade section at initial speed 65~km/h. No artificial disturbance is introduced in the main evaluation; the natural profile (sustained $-10.9\permil$) drives cyclic braking.
+Three 10,000-tonne trains (1 locomotive + 100 wagons each, total $\approx$~4~km) operate on the Shuozhou--Huanghua profile $\texttt{shuozhou\_23800}$ with speed limits $[40, 80]$~km/h. The target inter-train gap is 100~m (headway 5~s). Trains start on the same grade section at initial speed 65~km/h. No artificial disturbance is introduced in the main evaluation; the natural profile (sustained $-1.09\%$) drives cyclic braking.
 
 %-------------------------- IV. PROPOSED METHOD --------------------------
 \section{Proposed Method}
@@ -142,18 +138,19 @@ We evaluate deterministically (policy in eval mode) on the Shuozhou profile at f
 \centering
 \caption{Main result (3-train platoon, fixed init 65~km/h).}
 \label{tab:main}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrrrr}
-\toprule
+\hline
 Metric & Coast & \textbf{M1} & M3 & M4 & M-DQN \\
-\midrule
+\hline
 Reward & +27,950 & \textbf{+36,446} & $-31,151$ & $-33,991$ & \textbf{$-606,185$} \\
 Overspeed (\%) & 5.3 & \textbf{1.3} & 0.8 & 0.8 & --- \\
 Under-speed (\%) & 0.0 & 0.9 & \textbf{4.5} & 4.5 & --- \\
-Peak coupler (kN) & 651 & \textbf{804} & 734 & 734 & \textbf{2,111} (violated) \\
+Peak coupler (kN) & 651 & \textbf{804} & 734 & 734 & \textbf{2,111} \\
 Min gap (m) & 182 & \textbf{182} & $-321$ & $-321$ & $-234$ \\
 Collision steps & 0 & \textbf{0} & 202 & 202 & \textbf{1,434} \\
-\bottomrule
-\end{tabular}
+\hline
+\end{tabular}}
 \end{table}
 
 M1 avoids rear-end collisions (0 vs 202), keeping the min gap at 182~m, while M3/M4's independent control leads to gap collapse ($-321$~m). Both M1 and M3 keep the coupler force below 1000~kN. \textbf{M-DQN fails on both safety metrics}: it violates the coupler-force limit (2,111~kN) and collides frequently (1,434 steps), because it ignores coupler forces and inter-train cooperation.
@@ -164,15 +161,16 @@ M1 avoids rear-end collisions (0 vs 202), keeping the min gap at 182~m, while M3
 \centering
 \caption{Robustness across 10 randomized initial conditions (3-train).}
 \label{tab:robust}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lrrr}
-\toprule
+\hline
 Metric & \textbf{M1 (coop)} & M3 (indep) & M4 (rule) \\
-\midrule
+\hline
 Reward (mean$\pm$std) & \textbf{$+34{,}929 \pm 1{,}158$} & $+19{,}921 \pm 26{,}808$ & $+17{,}452 \pm 27{,}012$ \\
 Reward (median) & $+35{,}686$ & $+35{,}527$ & $+33{,}174$ \\
 Collision steps & \textbf{$0 \pm 0$} & $45.7 \pm 80.7$ & $45.1 \pm 80.8$ \\
-\bottomrule
-\end{tabular}
+\hline
+\end{tabular}}
 \end{table}
 
 \textbf{The key finding is robustness.} M1 achieves a \textbf{small reward variance ($+34{,}929 \pm 1{,}158$) and zero collisions across all 10 seeds}, whereas M3 and M4 exhibit large variance ($\pm 26{,}808$ / $\pm 27{,}012$) and collide in a subset of conditions. When the independent controller happens not to collide (the median seed), its reward ($+35{,}527$) is close to M1's; however, it is \textbf{not reliable}. A hand-crafted rule-based cooperative heuristic (M4) does not achieve this robustness, motivating the learned policy.
@@ -192,16 +190,17 @@ We reduce the target inter-train gap (100 $\to$ 40~m) to increase the rear-end-c
 \centering
 \caption{Pressure ablation (3-train): target gap 100 $\to$ 40~m.}
 \label{tab:pressure}
+\footnotesize
 \begin{tabular}{lrrrrr}
-\toprule
+\hline
 Target gap & \textbf{M1} & M3 & Gain & M3 collisions \\
-\midrule
+\hline
 100 m & +36,446 & $-31,151$ & +67,597 & 202 \\
 80 m & +36,477 & $-38,630$ & +75,107 & 226 \\
 60 m & +36,507 & $-46,191$ & +82,698 & 264 \\
 50 m & +36,524 & $-49,772$ & +88,916 & 285 \\
 40 m & +36,542 & $-53,046$ & \textbf{+89,588} & 305 \\
-\bottomrule
+\hline
 \end{tabular}
 \end{table}
 
@@ -222,13 +221,14 @@ We retrain M1 for a 5-train platoon and evaluate all methods (fixed init 65, 100
 \centering
 \caption{Scalability: 3- vs 5-train cooperative gain (fixed init 65, 100~m).}
 \label{tab:scal}
+\footnotesize
 \begin{tabular}{lrrrr}
-\toprule
+\hline
 Platoon & \textbf{M1 (coop)} & M3 (indep) & Gain & M-DQN \\
-\midrule
+\hline
 3-train & +36,446 & $-31,151$ & \textbf{+67,597} & $-606{,}185$ \\
 5-train & +72,572 & $+4,977$  & \textbf{+67,595} & $-739{,}997$ \\
-\bottomrule
+\hline
 \end{tabular}
 \end{table}
 
@@ -265,9 +265,9 @@ We proposed a hierarchical framework for cooperative control of heavy-haul train
 
 \bibitem{guo2025platoon} J. Guo et al., ``Enhanced consensus control architecture for autonomous platoon utilizing MARL,'' \emph{Comput.-Aided Civ. Infrastruct. Eng.}, 2025.
 
-\bibitem{wei2024coupler} M. Wei et al., ``考虑车钩力约束的重载列车运行优化分层框架与迭代求解方法,'' \emph{铁道学报}, 2024.
+\bibitem{wei2024coupler} M. Wei et al., ``Hierarchical Optimization Framework for Heavy-Haul Train Operation with Coupler-Force Constraints,'' \emph{J.~China Railway Society}, 2024.
 
-\bibitem{fu2019coupler} Z. Fu et al., ``基于钩缓约束的重载列车驾驶过程优化,'' \emph{自动化学报}, 2019.
+\bibitem{fu2019coupler} Z. Fu et al., ``Heavy-Haul Train Driving Process Optimization under Coupler-Buffer Constraints,'' \emph{Acta Automatica Sinica}, 2019.
 
 \bibitem{zhang2025releasewave} Y. Zhang et al., ``Brake-pipe pressure and coupler force in heavy-haul trains,'' \emph{ASME J.~Rail Transp. Dyn.}, 2025.
 
