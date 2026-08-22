@@ -64,6 +64,7 @@ def train(
     max_accel: float = 1.0,
     enable_disturbance: bool = False,
     disturbance_step: int = 150,
+    disturbance_duration: int = 300,
     disturbance_target_accel: float = -0.8,
     use_coupler_constraint: bool = True,
     hierarchical: bool = False,
@@ -92,6 +93,7 @@ def train(
         'max_accel': max_accel,
         'enable_disturbance': enable_disturbance,
         'disturbance_step': disturbance_step,
+        'disturbance_duration': disturbance_duration,
         'disturbance_target_accel': disturbance_target_accel,
         'use_coupler_constraint': use_coupler_constraint,
         'hierarchical': hierarchical,
@@ -260,6 +262,8 @@ if __name__ == '__main__':
     parser.add_argument('--enable_disturbance', action='store_true',
                         help='开启领航车突发减速扰动（协同制动场景）')
     parser.add_argument('--disturbance_step', type=int, default=150)
+    parser.add_argument('--disturbance_duration', type=int, default=300,
+                        help='扰动持续步数（短暂窗口模拟临时限速，训练加扰动鲁棒性）')
     parser.add_argument('--disturbance_target_accel', type=float, default=-0.8)
     parser.add_argument('--no_coupler_constraint', action='store_true',
                         help='关闭车钩力约束（消融实验：模拟忽略车钩力）')
@@ -297,6 +301,7 @@ if __name__ == '__main__':
         max_accel=args.max_accel,
         enable_disturbance=args.enable_disturbance,
         disturbance_step=args.disturbance_step,
+        disturbance_duration=args.disturbance_duration,
         disturbance_target_accel=args.disturbance_target_accel,
         use_coupler_constraint=not args.no_coupler_constraint,
         hierarchical=args.hierarchical,

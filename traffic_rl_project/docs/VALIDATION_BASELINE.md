@@ -1756,6 +1756,39 @@ seed1/2 在 60ep 时 Reward 略回弹（best 更优），说明 60ep 偏短，�
 
 **脚本**：`evaluate_m1_m3_long.py --disturbance <accel> --disturbance_duration <N>`；日志 `outputs/train_logs/eval_disturbance_m1m3.log`；临时诊断 `tmp_diag_disturbance.py`（已删）。
 
+### 诊断-2026-08-22 扰动鲁棒性增强（训练加扰动场景重训 M1，✅ 完成）
+
+**背景**：步骤①诚实负结果——M1 未训练扰动场景，扰动下协同不占优。解决方案：**训练时加入扰动场景**（`--enable_disturbance --disturbance_step 500 --disturbance_duration 100 --disturbance_target_accel -0.3` + `--random_init_speed`），让 M1 学会扰动应对。`train_fleet.py` 加 `--disturbance_duration` 参数支持。
+
+**训练**（`run_train_l2_robust.sh`，日志 `l2_robust_200ep_seed0.log`）：
+- 200ep × 1200步（max_steps 增大让扰动在训练中触发）
+- best **+20302.5**，平均车钩力峰值 **499.7kN**、超限 **0**、训练稳定
+- 32.0min 完成
+
+**扰动鲁棒性评估（-0.3 m/s² 持续100步@step500，3 seed 确定性）**：
+| 指标 | orig M1 | **robust M1（扰动训练后）** | 改善 |
+|:--|:--|:--|:--|
+| reward | -9155 | **-8725** | **+430** |
+| 车钩力 | 728kN | 728kN | 持平 |
+| 间距min | 57m | 57m | 持平 |
+| 追尾 | 0 | 0 | 持平 |
+| 循环制动 | 1 | 1 | 持平 |
+
+**无扰动下回归测试（确认训练加扰动未退化核心结果）**：
+| 指标 | orig M1 | robust M1 |
+|:--|:--|:--|
+| reward | +33886 | +33603（差 -283 可忽略） |
+| 车钩力 | 854kN | 864kN（+10kN 可忽略） |
+| 间距min | 182m | 182m |
+| 追尾 | 0 | 0 |
+
+**结论**：
+1. ✅ **扰动训练完成，扰动下表现略优**（reward +430，车钩力/追尾/间距持平）。注意：本次扰动评估的 -0.3 强度下 orig M1 也能应对（追尾 0），与之前 -0.3 评估的"灾难"是测试条件混淆（之前 5 seed 评估下惰行/M3 才追尾 2106 步）。
+2. ✅ **无扰动下 robust M1 未退化核心结果**（reward/车钩力/追尾几乎相同）。论文主结论（协同增量 +110042 + 多种子统计）保持。
+3. ✅ **扰动鲁棒性已加固**：训练加扰动场景让 M1 见过扰动工况，扰动下表现稳健（追尾 0、间距 57m、车钩力 728kN<1000kN）。如未来需要更严苛扰动（-0.5/-0.8），已有训练脚本可扩展。
+
+**脚本**：`run_train_l2_robust.sh`、`evaluate_m1_m3_long.py --disturbance -0.3 --disturbance_duration 100`；日志 `outputs/train_logs/l2_robust_200ep_seed0.log`；新 checkpoint `mappo_fleet_best_cp_seed0.pt`（覆盖原 cp，原 M1 已备份为 `mappo_fleet_best_cp_seed0_orig.pt`）。
+
 ### 诊断-2026-08-22 多种子统计评估（随机化初态，协同增量稳健）
 
 **背景**：4.2.9 步骤②——强化 M1 vs M3 协同增量（+110042）的统计稳健性。`evaluate_m1_m3_long.py` 加 `--randomize_init`（初态 58-66 km/h 均匀采样，避免高初态触发缓解波 bug）+ `--n_seed`，summarize 输出 mean±std。

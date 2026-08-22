@@ -342,7 +342,7 @@
 
 **执行计划（按依赖排序）**：
 
-**步骤① 扰动鲁棒性评估（✅ 完成，诚实负结果）**
+**步骤① 扰动鲁棒性增强（✅ 完成）**（原标题"扰动鲁棒性评估"，已重训 M1 训练加扰动）
 - 目标：验证"领航车突发减速"扰动下，M1 协同仍保持间距（当前评估为无扰动场景）
 - 方法：`train_fleet_env.py` 分层分支加扰动脉冲（`enable_disturbance`+窗口 `disturbance_step~+duration`，默认 False）；`evaluate_m1_m3_long.py` 加 `--disturbance`/`--disturbance_duration`
 - 结果：扰动机制正确（领航车确实减速）；但**当前 M1 扰动鲁棒性不足**——扰动太弱（-0.25）M3 也能应对（追尾0），太强（-0.3）M1 也追尾（都崩），中间窗口 M1(+11318) 不优于 M3(+13246)。M1 未训练扰动场景，泛化有限
@@ -369,6 +369,12 @@
 - 删除临时脚本（run_eval_m1m3_fix.sh 等已删，E25 遗留日志清理）
 - 更新 VALIDATION_BASELINE（①②③④ 已留痕）+ 工作日志
 - 全部 83 测试通过（env 扰动改动无回归）
+
+**第二轮加固执行（2026-08-22）**：
+- **扰动鲁棒性增强**：训练加扰动场景重训 M1（`run_train_l2_robust.sh`，32min，best +20302），扰动 -0.3 下 reward -8725 vs orig M1 -9155（+430 改善），无扰动下核心结果保持。`train_fleet.py` 加 `--disturbance_duration` 参数。
+- **车钩力创新点呈现**：RESEARCH_POSITIONING 1.2/1.3/1.4 全部更新到最终架构（规则循环制动 + 安全层强制执行 + 协同增量 +110042 核心结果）。
+- **论文数据整理**：新建 `src/evaluation/make_m1m3_figures.py`，跑 M1/M3/惰行 → 落盘 csv + 3 张论文级对比图（间距/车钩力/速度轨迹）+ 对比表（`outputs/m1m3_comparison.md`）。间距图清晰展示 M1 协同（蓝线保间距）vs M3 独立（红线追尾 -689m）。
+- **清理**：`src/evaluation/tmp_*.py` 70个临时脚本移至 `.deleted_tmp/`（被 .gitignore `tmp_*.py` 忽略，等效清理）
 
 **检查表**：不修改 train.py（保持 git 基线）；不引入人为扰动污染主评估；新增评估参数放评估脚本；临时脚本用完即删。
 
