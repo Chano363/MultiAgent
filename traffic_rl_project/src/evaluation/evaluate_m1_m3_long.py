@@ -25,17 +25,19 @@ MAX_STEPS = 3000
 NUM_TRAINS = 3
 
 
-def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, disturbance_duration=200):
+def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, disturbance_duration=200,
+             target_gap=100.0):
     # 普通场景（各列同坡段起步，无 start_offset/spacing 人为坡段错开）
     # eval_mode=True：第1层策略用确定性采样（bug修复：消除 M1/M3 评估随机性）
     # disturbance_accel<0：领航车扰动鲁棒性评估（突发减速），默认 0=无扰动。
     # disturbance_duration：扰动持续步数（短暂窗口，模拟前方临时限速，扰动后恢复）
+    # target_gap：列间目标间距（m），调小=初始间距更近=更大追尾压力场景（压力消融）
     enable_disturbance = disturbance_accel < 0
     return TrainFleetEnv({
         'num_trains': NUM_TRAINS, 'consist_preset': '10kt_1plus0',
         'grade_profile': 'shuozhou_23800',
         'v_max': V_MAX, 'v_min': V_MIN,
-        'target_gap': 100.0, 'headway_s': 5.0,
+        'target_gap': target_gap, 'headway_s': 5.0,
         'max_steps': MAX_STEPS, 'max_accel': 1.0,
         'enable_disturbance': enable_disturbance,
         'disturbance_step': 500, 'disturbance_duration': disturbance_duration,
