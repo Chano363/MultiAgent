@@ -217,13 +217,16 @@ def summarize(label, results):
 
 
 def main():
-    # CLI: mode [ckpt] [--disturbance <accel>] [--disturbance_duration N] [--n_seed N] [--randomize_init]
+    # CLI: mode [ckpt] [--disturbance <accel>] [--disturbance_duration N] [--n_seed N] [--randomize_init] [--num_trains N]
+    global NUM_TRAINS
     mode = sys.argv[1] if len(sys.argv) > 1 else 'all'
     ckpt = sys.argv[2] if len(sys.argv) > 2 else 'outputs/checkpoints/mappo_fleet_best_cp_seed0.pt'
     disturbance_accel = 0.0
     disturbance_duration = 200
     n_seed = 5
     randomize_init = '--randomize_init' in sys.argv
+    if '--num_trains' in sys.argv:
+        NUM_TRAINS = int(sys.argv[sys.argv.index('--num_trains') + 1])
     if '--disturbance' in sys.argv:
         disturbance_accel = float(sys.argv[sys.argv.index('--disturbance') + 1])
     if '--disturbance_duration' in sys.argv:
