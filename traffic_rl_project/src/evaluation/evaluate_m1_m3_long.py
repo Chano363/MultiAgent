@@ -65,6 +65,28 @@ def count_cycles(speeds_per_train):
     return total
 
 
+def rule_coor_adj(env, kp=0.01, kd=0.0):
+    """M4 规则启发式协同：间距误差 + 速度差 → 每列 coor_adj。
+
+    对每列 i（非领航），用与前列的间距误差和目标间距（100m）的差 + 速度差
+    生成 coor_adj ∈ [-1,1]（经 PID 增益）。领航车（列0）无前列，coor_adj=0。
+
+    coor_adj = clip(kp * (target_gap - gap_i) + kd * (v_prev - v_i), -1, 1)
+    - 间距 < 目标（gap_i < target_gap）→ (target_gap - gap_i) > 0 → coor_adj>0 → 提前制动（防追尾）
+    - 间距 > 目标 → coor_adj<0 → 延后制动/提前缓解（防过大）
+    - 前列快（v_prev>v_i）→ 后列可以慢点追，coor_adj<0；前列慢 → coor_adj>0 提前制动
+    """
+    target_gap = 100.0
+    coor = np.zeros(env.num_trains, dtype=np.float32)
+    for i in range(1, env.num_trains):
+        gap_i = env.trains[i - 1].dynamics.pos[-1] - env._train_heads[i]
+        v_prev = env.trains[i - 1].dynamics.vel[0] * 3.6
+        v_i = env.trains[i].dynamics.vel[0] * 3.6
+        adj = kp * (target_gap - gap_i) + kd * (v_prev - v_i)
+        coor[i] = float(np.clip(adj, -1.0, 1.0))
+    return coor
+
+
 def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False, return_traj=False):
     """确定性评估一条轨迹，返回汇总指标。
 
@@ -88,16 +110,26 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
     peaks_all, gaps, rewards = [], [], []
     traj_rows = []
     cum_reward = 0.0
+    # 记录每步的 RL 协同动作（M1）供策略分析
+    adj_trace = []
     while not done and step < MAX_STEPS:
         if mode == 'coast':
             a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
+            adj_trace.append([0.0, 0.0, 0.0])
         elif mode == 'm1':
             flat = obs.flatten()
             a, _ = agent.select_actions(flat, deterministic=deterministic)
             a = a.reshape(NUM_TRAINS, 1)
+            adj_trace.append([float(v) for v in a.flatten()])
+        elif mode == 'm4':
+            # 规则启发式协同（M4）：间距误差 + 速度差 → coor_adj（PID 式）
+            # 与 M1 完全同架构（分层执行），只差 coor_adj 来源（规则 vs RL）
+            a = rule_coor_adj(env, env._m4_kp, env._m4_kd).reshape(NUM_TRAINS, 1)
+            adj_trace.append([float(v) for v in a.flatten()])
         elif mode == 'm3':
             # 单列独立：δ=0，每列仅第1层策略控速（无协同）
             a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
+            adj_trace.append([0.0, 0.0, 0.0])
         obs, r, term, trunc, info = env.step(a)
         done = term or trunc
         for i, tr in enumerate(env.trains):
@@ -111,6 +143,7 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
         rewards.append(r)
         cum_reward += float(r)
         if return_traj:
+            adj = adj_trace[-1] if len(adj_trace) == step + 1 else [0.0, 0.0, 0.0]
             traj_rows.append({
                 'step': step,
                 'speed_0': float(env.trains[0].dynamics.vel[0]) * 3.6,
@@ -121,6 +154,7 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
                 'gap_min': min(g1, g2) if (g1 is not None and g2 is not None) else None,
                 'coupler_peak_kN': info['coupler_force_peak'] / 1e3,
                 'reward_accum': cum_reward,
+                'adj_0': adj[0], 'adj_1': adj[1], 'adj_2': adj[2],
             })
         step += 1
     speeds = np.array([np.array(c) for c in speeds_per_train])
@@ -231,6 +265,20 @@ def main():
                            disturbance_duration=disturbance_duration)
             m3_res.append(run_episode(env, None, 'm3', s, deterministic, randomize_init))
         summarize(f"M3 单列独立（δ=0）{tag}", m3_res)
+
+    # M4 规则启发式协同（间距误差+速度差 → coor_adj，PID 式）
+    # 与 M1 完全同架构（分层执行），只差 coor_adj 来源（规则 vs RL）——证明 RL 增量
+    m4_res = []
+    if mode in ('all', 'm4'):
+        kp = 0.01
+        kd = 0.0
+        for s in range(n_seed):
+            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
+                           disturbance_duration=disturbance_duration)
+            env._m4_kp = kp
+            env._m4_kd = kd
+            m4_res.append(run_episode(env, None, 'm4', s, deterministic, randomize_init))
+        summarize(f"M4 规则启发式协同 (kp={kp},kd={kd}) {tag}", m4_res)
 
 
 if __name__ == '__main__':
