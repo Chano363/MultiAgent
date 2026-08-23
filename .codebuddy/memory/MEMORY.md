@@ -155,3 +155,9 @@
 - **普适性已有证据** = 主评估压力消融（gap 100→40m，协同增量单调 +67597→+89588）+ 5列扩展（+67595 与 3列一致），非第二线路。
 - **评估步数须匹配剖面长度**，否则冲线假异常（3000步×16.7m/s×0.1≈5000m 远超 short 剖面总长）。
 - `evaluate_m1_m3_long.py` 已支持 `--grade/--target_gap/--max_steps`。
+
+**论文 PDF 编译（2026-08-23）**：WSL/Windows 无 pdflatex，但 **conda 环境 `traffic_rl` 有 tectonic 0.17.0**（`conda install -c conda-forge tectonic`，单二进制，自动下载宏包）。编译命令：`cd traffic_rl_project/docs && conda activate traffic_rl && tectonic ITSC_PAPER.tex`。PDF 5页 0 Overfull。
+
+**第二剖面/掉速架构发现（2026-08-23）**：构造 `long_downhill_20km`（20km，-9.5‰~-11.5‰）够长让 M3 追尾（6964步），但**第1层规则循环制动在更陡长下坡掉速到 0**（低40 60.9%，v_min=40 缓解不足）→ 协同无法弥补 → M1 也失效。**协同价值受限于第1层速度维持能力**；shuozhou 第1层不掉速所以协同有效。诚实记录，不强造协同增量。
+
+**git 提交身份（2026-08-23）**：本机 git 未配置 user.name/email，直接 commit 报 "empty ident name"。用 `-c user.name=chano363 -c user.email=chano363@localhost commit` 临时指定（不持久化 config）。中文 commit message 用 `-F <utf8文件>` + `-c i18n.commitEncoding=UTF-8`（直接 `-m 中文` 会乱码，需 amend 修正）。
