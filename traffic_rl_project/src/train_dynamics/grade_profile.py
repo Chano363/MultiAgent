@@ -102,9 +102,28 @@ def profile_shuozhou_23800() -> GradeProfile:
     ])
 
 
+def profile_long_downhill_20km() -> GradeProfile:
+    """第二长下坡剖面（20km，第二线路普适性验证）。
+
+    与 shuozhou_23800 不同的长大下坡形态：更长（20km）但坡度更均匀（-9.5‰~-11.5‰
+    交替变坡），作为"第二线路"验证协同价值对下坡长度的依赖性（短剖面如 long_downhill
+    3km 时 M3 独立也能保持间距，长剖面下 M3 独立控制长距离后追尾，体现协同价值）。
+    形态依据：大秦线/朔黄线长大下坡多段变坡特征，坡度差 ≤10.5‰（樊运新约束）。
+    """
+    return GradeProfile(segments=[
+        GradeSegment(0.0, -2.0),        # 0–1000: 起始缓坡
+        GradeSegment(1000.0, -9.5),     # 1000–6000: 长大下坡段1
+        GradeSegment(6000.0, -11.0),    # 6000–12000: 陡坡段
+        GradeSegment(12000.0, -10.0),   # 12000–16000: 下坡段
+        GradeSegment(16000.0, -11.5),   # 16000–20000: 最陡段（追尾压力区）
+        GradeSegment(20000.0, -2.0),    # 20000: 出坡缓坡
+    ])
+
+
 PROFILES = {
     'long_downhill': profile_long_downhill,
     'gradual_to_steep': profile_gradual_to_steep,
     'v_shape': profile_v_shape,
     'shuozhou_23800': profile_shuozhou_23800,  # Zhang2024 复现场景
+    'long_downhill_20km': profile_long_downhill_20km,  # 第二长下坡剖面（普适性）
 }

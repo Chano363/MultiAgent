@@ -18,6 +18,8 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 import torch
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.algorithms.coor_dqn_agent import CoorDQNAgent
+from src.controllers.mpc_controller import MPCController
 
 V_MAX = 80.0 / 3.6
 V_MIN = 40.0 / 3.6
@@ -26,19 +28,20 @@ NUM_TRAINS = 3
 
 
 def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, disturbance_duration=200,
-             target_gap=100.0):
+             target_gap=100.0, grade_profile='shuozhou_23800', max_steps=None):
     # 普通场景（各列同坡段起步，无 start_offset/spacing 人为坡段错开）
     # eval_mode=True：第1层策略用确定性采样（bug修复：消除 M1/M3 评估随机性）
     # disturbance_accel<0：领航车扰动鲁棒性评估（突发减速），默认 0=无扰动。
     # disturbance_duration：扰动持续步数（短暂窗口，模拟前方临时限速，扰动后恢复）
     # target_gap：列间目标间距（m），调小=初始间距更近=更大追尾压力场景（压力消融）
+    # grade_profile：坡度剖面（默认朔黄线真实剖面；可换 v_shape/long_downhill 等做普适性验证）
     enable_disturbance = disturbance_accel < 0
-    return TrainFleetEnv({
+    env = TrainFleetEnv({
         'num_trains': NUM_TRAINS, 'consist_preset': '10kt_1plus0',
-        'grade_profile': 'shuozhou_23800',
+        'grade_profile': grade_profile,
         'v_max': V_MAX, 'v_min': V_MIN,
         'target_gap': target_gap, 'headway_s': 5.0,
-        'max_steps': MAX_STEPS, 'max_accel': 1.0,
+        'max_steps': max_steps or MAX_STEPS, 'max_accel': 1.0,
         'enable_disturbance': enable_disturbance,
         'disturbance_step': 500, 'disturbance_duration': disturbance_duration,
         'disturbance_target_accel': disturbance_accel,
@@ -46,6 +49,13 @@ def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, dist
         'hierarchical': hierarchical, 'adj_coef': adj_coef,
         'eval_mode': True,
     })
+    # 挂载 MPC 协同控制器（供 'mpc' 模式使用）：目标间距/速度从环境读取
+    env._mpc_controller = MPCController(
+        num_trains=NUM_TRAINS, dt=0.1, horizon=20,
+        target_gap=target_gap, headway_s=5.0, target_speed=env.target_speed,
+        lambda_gap=2.0, lambda_v=0.2, lambda_u=0.05,
+    )
+    return env
 
 
 def count_cycles(speeds_per_train):
@@ -89,7 +99,8 @@ def rule_coor_adj(env, kp=0.01, kd=0.0):
     return coor
 
 
-def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False, return_traj=False):
+def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False, return_traj=False,
+                coor_agents=None):
     """确定性评估一条轨迹，返回汇总指标。
 
     若 return_traj=True，额外在返回 dict 中加入 'traj'（逐步轨迹 DataFrame）：
@@ -128,6 +139,28 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
             # 与 M1 完全同架构（分层执行），只差 coor_adj 来源（规则 vs RL）
             a = rule_coor_adj(env, env._m4_kp, env._m4_kd).reshape(NUM_TRAINS, 1)
             adj_trace.append([float(v) for v in a.flatten()])
+        elif mode == 'mpc':
+            # M-MPC baseline（对标 Yang2025 单列 MPC 范式 + 多列协同）：MPC 生成 coor_adj
+            # 喂给与 M1 相同的分层控制器。与 M1 唯一区别：第2层协同来自确定性 MPC 而非 RL。
+            spd_arr = np.array([tr.dynamics.vel[0] for tr in env.trains], dtype=float)
+            acc_arr = np.array([env._last_target_accels[i] for i in range(env.num_trains)], dtype=float)
+            gap_arr_mpc = np.array([env.trains[i - 1].dynamics.pos[-1] - env._train_heads[i]
+                                    for i in range(1, env.num_trains)], dtype=float)
+            coor = env._mpc_controller.compute_actions(obs, spd_arr, acc_arr, gap_arr_mpc)
+            a = coor.reshape(NUM_TRAINS, 1)
+            adj_trace.append([float(v) for v in a.flatten()])
+        elif mode == 'mdqn_fair':
+            # 公平 DQN baseline（分层阈值协同，与 M1 同架构）：每列独立 DQN 输出 coor_adj
+            if coor_agents is None:
+                raise ValueError("mdqn_fair 模式需要 coor_agents（每列 DQN 列表）")
+            a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
+            adj_row = []
+            for i in range(env.num_trains):
+                oi = obs[i].flatten()
+                ai = coor_agents[i].select_action(oi, eval_mode=True)
+                a[i, 0] = coor_agents[i].action_to_coor(ai)
+                adj_row.append(float(a[i, 0]))
+            adj_trace.append(adj_row)
         elif mode == 'm3':
             # 单列独立：δ=0，每列仅第1层策略控速（无协同）
             a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
@@ -218,7 +251,7 @@ def summarize(label, results):
 
 def main():
     # CLI: mode [ckpt] [--disturbance <accel>] [--disturbance_duration N] [--n_seed N] [--randomize_init] [--num_trains N]
-    global NUM_TRAINS
+    global NUM_TRAINS, MAX_STEPS
     mode = sys.argv[1] if len(sys.argv) > 1 else 'all'
     ckpt = sys.argv[2] if len(sys.argv) > 2 else 'outputs/checkpoints/mappo_fleet_best_cp_seed0.pt'
     disturbance_accel = 0.0
@@ -227,6 +260,14 @@ def main():
     randomize_init = '--randomize_init' in sys.argv
     if '--num_trains' in sys.argv:
         NUM_TRAINS = int(sys.argv[sys.argv.index('--num_trains') + 1])
+    grade_profile = 'shuozhou_23800'
+    if '--grade' in sys.argv:
+        grade_profile = sys.argv[sys.argv.index('--grade') + 1]
+    if '--max_steps' in sys.argv:
+        MAX_STEPS = int(sys.argv[sys.argv.index('--max_steps') + 1])
+    target_gap = 100.0
+    if '--target_gap' in sys.argv:
+        target_gap = float(sys.argv[sys.argv.index('--target_gap') + 1])
     if '--disturbance' in sys.argv:
         disturbance_accel = float(sys.argv[sys.argv.index('--disturbance') + 1])
     if '--disturbance_duration' in sys.argv:
@@ -246,7 +287,8 @@ def main():
     coast_res = []
     for s in range(n_seed):
         env = make_env(65 / 3.6, hierarchical=False, disturbance_accel=disturbance_accel,
-                       disturbance_duration=disturbance_duration)
+                       disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                       target_gap=target_gap)
         coast_res.append(run_episode(env, None, 'coast', s, deterministic, randomize_init))
     summarize(f"惰行 baseline {tag}", coast_res)
 
@@ -258,7 +300,8 @@ def main():
         agent.policy.eval()
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.1, disturbance_accel=disturbance_accel,
-                           disturbance_duration=disturbance_duration)
+                           disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                           target_gap=target_gap)
             m1_res.append(run_episode(env, agent, 'm1', s, deterministic, randomize_init))
         summarize(f"M1 群组协同+车钩力 ({ckpt}) {tag}", m1_res)
 
@@ -267,7 +310,8 @@ def main():
     if mode in ('all', 'm3'):
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.0, disturbance_accel=disturbance_accel,
-                           disturbance_duration=disturbance_duration)
+                           disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                           target_gap=target_gap)
             m3_res.append(run_episode(env, None, 'm3', s, deterministic, randomize_init))
         summarize(f"M3 单列独立（δ=0）{tag}", m3_res)
 
@@ -279,11 +323,42 @@ def main():
         kd = 0.0
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
-                           disturbance_duration=disturbance_duration)
+                           disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                           target_gap=target_gap)
             env._m4_kp = kp
             env._m4_kd = kd
             m4_res.append(run_episode(env, None, 'm4', s, deterministic, randomize_init))
         summarize(f"M4 规则启发式协同 (kp={kp},kd={kd}) {tag}", m4_res)
+
+    # M-MPC 协同（对标 Yang2025 单列 MPC 范式 + 多列协同）：第2层用确定性 MPC 生成 coor_adj
+    mpc_res = []
+    if mode in ('all', 'mpc'):
+        for s in range(n_seed):
+            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
+                           disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                           target_gap=target_gap)
+            mpc_res.append(run_episode(env, None, 'mpc', s, deterministic, randomize_init))
+        summarize(f"M-MPC 协同（确定性 MPC，horizon={env._mpc_controller.horizon}）{tag}", mpc_res)
+
+    # M-DQN-fair 公平 DQN baseline：分层阈值协同，与 M1 同架构，只换第2层算法（DQN）
+    # 每列独立 DQN（coor_dqn_best_seed<seed>_train<i>.pt），输出 coor_adj → 阈值偏移。
+    mdqn_fair_res = []
+    if mode in ('all', 'mdqn_fair'):
+        dqn_seed = '--dqn_seed' in sys.argv and int(sys.argv[sys.argv.index('--dqn_seed') + 1]) or 0
+        dqn_dir = sys.argv[sys.argv.index('--dqn_dir') + 1] if '--dqn_dir' in sys.argv else 'outputs/checkpoints'
+        coor_agents = []
+        for i in range(NUM_TRAINS):
+            ag = CoorDQNAgent(obs_dim=11, device='cuda')
+            ag.load(f"{dqn_dir}/coor_dqn_best_seed{dqn_seed}_train{i}.pt")
+            ag.eps = 0.0  # 评估无探索
+            coor_agents.append(ag)
+        for s in range(n_seed):
+            env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
+                           disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                           target_gap=target_gap)
+            mdqn_fair_res.append(
+                run_episode(env, None, 'mdqn_fair', s, deterministic, randomize_init, coor_agents=coor_agents))
+        summarize(f"M-DQN-fair 公平 DQN 协同 (seed{dqn_seed}) {tag}", mdqn_fair_res)
 
 
 if __name__ == '__main__':

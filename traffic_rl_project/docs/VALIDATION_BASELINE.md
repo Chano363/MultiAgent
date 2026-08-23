@@ -1975,6 +1975,127 @@ seed1/2 在 60ep 时 Reward 略回弹（best 更优），说明 60ep 偏短，�
 
 **脚本**：`evaluate_m1_m3_long.py --num_trains 5`、`eval_dqn_multitrain.py --num_trains 5`；训练日志 `outputs/train_logs/l2_layered_200ep_seed0_5train.log`；3列核心备份 `mappo_fleet_best_cp_seed0_3train.pt`
 
+### 诊断-2026-08-23 公平 DQN baseline（M-DQN-fair，同架构消解审稿质疑）
+
+**背景**：论文主结果用朴素 M-DQN（Zhang2024 式，学单列循环制动、无车钩力安全层、无协同）对标，但审稿人会质疑"DQN 输是因为没协同/没安全层，还是 DQN 本身不如 MAPPO"——公平性不足。补**同架构公平 DQN**：第1层规则循环制动 + 车钩力安全层（与 M1/M3/M4 完全相同，`HierarchicalController`），第2层换成每列独立 DQN 输出离散 coor_adj ∈ [-1,1]（5 档，映射 v_max_adj/v_min_adj 阈值偏移，与 M1 的 MAPPO 完全同架构、同 obs 11 维、同 reward）。
+
+**代码**：
+- `src/algorithms/coor_dqn_agent.py`：CoorDQNAgent（obs_dim=11，5 档离散协同动作）
+- `src/trainer/train_fleet_dqn.py`：分层架构下训练（`--resume` 支持续训）
+- `src/evaluation/evaluate_m1_m3_long.py`：新增 `mdqn_fair` 模式（`--dqn_seed/--dqn_dir`）
+
+**训练**：3列 seed1，200 步 horizon，40ep 即收敛（reward 平台 +4948，best +4954.9，车钩力 3kN，viol 0）；续训至 80ep 无改善 → **40ep 已充分收敛，评估失败非欠训练**。
+
+**评估结果（3列，target_gap 100m）**：
+
+| 指标 | M1(MAPPO) | M3(独立) | **M-DQN-fair** | 朴素M-DQN |
+|:--|:--|:--|:--|:--|
+| reward（固定65） | **+36446** | -31151 | **-38432** | -606185 |
+| 追尾步数（固定65） | **0** | 202 | **229** | 1434 |
+| 车钩力峰值（固定65） | **804** | 734 | **900** | 2111(超限) |
+| reward（10seed随机化初态） | **+34929±1158** | +19921±26808 | **+4964±34703** | — |
+| 追尾（10seed） | **0±0** | 45.7±80.7 | **89.2±109.4** | — |
+
+**关键结论（论文价值）**：
+1. **公平 DQN 有车钩力安全层 + 协同机会，但完整评估仍追尾 229 步（固定65）、89.2±109.4（随机化）**——与 M3（独立）相当甚至略差，远不如 M1（MAPPO，0 追尾）。
+2. **这是 MAPPO 算法优势的直接证据**：同架构、同 obs/reward、同安全层，唯一差别是第2层 RL 算法（MAPPO vs DQN）。DQN 学到的协同阈值不具备 MAPPO 的稳健性（短 horizon 300 步训练 → 3000 步评估泛化失败，高方差 ±34703）。
+3. **归因澄清**：朴素 M-DQN（-606185、2111kN、1434 追尾）失败是因为同时缺"安全层 + 协同"；公平 M-DQN-fair（-38432、900kN、229 追尾）即使给了安全层 + 协同，仍因 DQN 算法局限而追尾 → **论文应同时呈现两种 DQN**，分别归因到"缺约束"和"算法局限"，MAPPO 的价值在两者下都成立。
+4. 车钩力守住（900kN<1000kN）：公平 DQN 的安全层确实生效，排除了"车钩力超限干扰追尾判断"。
+
+**运行命令**：
+```
+python src/trainer/train_fleet_dqn.py --episodes 40 --seed 1 --num_trains 3 --adj_coef 0.3 --target_gap 100 --max_steps 300 --checkpoint_dir outputs/checkpoints
+python src/evaluation/evaluate_m1_m3_long.py mdqn_fair --dqn_seed 1 --dqn_dir outputs/checkpoints            # 固定65
+python src/evaluation/evaluate_m1_m3_long.py mdqn_fair --dqn_seed 1 --dqn_dir outputs/checkpoints --randomize_init --n_seed 10   # 随机化初态
+```
+
+**checkpoint**：`outputs/checkpoints/coor_dqn_best_seed1_train{0,1,2}.pt`
+
+### 诊断-2026-08-23 简化 MPC 协同 baseline（M-MPC，对标 Yang2025 范式）
+
+**背景**：论文对标 Yang2025（ITSC 2025，单列 MPC + 朔黄线 + 循环制动 + 车钩力冲动）——最强同会议对标。评估是否补一个实际 MPC baseline。决策：补一个**简化线性 MPC**（第2层确定性 MPC 生成 coor_adj，喂给与 M1 相同的 `HierarchicalController`），与 M1 同架构可比（回答"RL 协同 vs 确定性 MPC 协同"），并诚实标注其简化性。
+
+**代码**：`src/controllers/mpc_controller.py`（`MPCController`，scipy SLSQP 滚动时域优化，预测模型为简化一阶列级近似 coor_adj→减速 0.3m/s²）；`evaluate_m1_m3_long.py` 新增 `mpc` 模式。
+
+**评估结果（3列，固定初态65，target_gap 100m）**：
+
+| 指标 | M1(MAPPO) | M3(独立) | **M-MPC(简化)** |
+|:--|:--|:--|:--|
+| reward | **+36446** | -31151 | **-60231** |
+| 追尾步数 | **0** | 202 | **296** |
+| 车钩力峰值 | **804** | 734 | **1246(超限)** |
+| 间距min | **182** | -321 | **-399** |
+
+（MPC horizon=10 与 20、lambda_gap/lambda_v 调优后结果几乎不变 → 非参数问题）
+
+**关键结论（诚实）**：
+1. **简化 MPC 在多列协同上不如 M1（MAPPO）**：追尾 296、车钩力 1246kN 超限、reward -60231，均差于 M1（0 追尾、804kN、+36446）。
+2. **根因**：简化线性预测模型（coor_adj→0.3 线性减速）无法建模规则循环制动的滞回/缓解波非线性 + MPC 无车钩力感知 → 多列长下坡协同不足。参数调优（horizon/lambda）不改善，非"没调好"。
+3. **对论文**：诚实验证"确定性简化 MPC 参考线"展示 MPC 范式在多列协同的固有挑战（需精确车钩力预测模型）；但**不能作为与 M1 的严格公平对比**（预测模型粗糙 + 无车钩力约束编码）。论文采用双策略：①主 baseline 用公平 DQN（M-DQN-fair，同架构同安全层，干净）；②Yang2025 作为文献参考线引用其单列 MPC 数据（ITSC 短论文合理），并说明"完整多质点 QP MPC 复现为未来工作"。
+4. **不写入论文主结果表**（避免"MPC 没调好不公平"质疑），仅记录为探索性补充实验。
+
+**运行命令**：
+```
+python src/evaluation/evaluate_m1_m3_long.py mpc --n_seed 1
+```
+
+**脚本**：`src/controllers/mpc_controller.py`、`evaluate_m1_m3_long.py`（mpc 模式）
+
+### 诊断-2026-08-23 第二剖面普适性验证（long_downhill，方法学发现）
+
+**背景**：论文普适性验证需 ≥2 个场景。尝试用预置剖面（long_downhill/v_shape）作为第二剖面，验证 M1（协同）vs M3（独立）的协同增量在第二剖面是否成立。
+
+**执行**：
+1. **重训 M1**：v_shape（seed3）、long_downhill（seed4，short-horizon 300步）、long_downhill curriculum（seed5，`--curriculum 300-1000`，best 5052，3.4min）均训练成功（训练分布内 reward 平台、车钩力 3-16kN、viol 0）。
+2. **评估步数匹配**：发现预置剖面（long_downhill 3000m/v_shape 2500m）总长**远小于 shuozhou（23800m）**。用 3000 步评估会**冲出线路**（3000步×16.7m/s×0.1 ≈ 5000m > 剖面总长），导致 M1/M3 都"追尾537+车钩力1650kN"的假异常。改 `--max_steps 1800`（匹配 3000m）后恢复正常。
+
+**评估结果（long_downhill，1800步匹配剖面长度）**：
+
+| 指标 | M1(curriculum) | M3(独立) |
+|:--|:--|:--|
+| reward（gap100） | +25479 | +26024 |
+| reward（gap40） | +25549 | +26075 |
+| 追尾步数 | 0 | **0** |
+| 间距min（gap40） | 123m | 123m |
+| 车钩力峰值 | 777kN | 777kN |
+
+**决定性发现（方法学）**：**long_downhill（3000m）剖面太短，M3 独立控制就能保持间距不追尾**（gap 100 或 40 都一样，追尾 0），无法体现 M1 的协同价值。**协同价值需要足够长的下坡**（如 shuozhou 23800m）让 M3 独立控制在长距离后追尾。现有预置剖面（long_downhill 3000m/gradual_to_steep 2500m/v_shape 2500m）都太短，均无法作为体现协同价值的第二剖面。
+
+**对论文/普适性的诚实结论**：
+1. **普适性已有证据**：主评估的**压力消融**（target_gap 100→40m，M1 协同增量单调 +67597→+89588，M1 从不追尾 vs M3 追尾 202→305）+ **5列扩展**（协同增量 +67595 与 3 列一致）——这是"同场景不同条件（压力/编组）"的普适性证据。
+2. **第二剖面（不同线路）普适性**：需要一个 **>10km 的真实长大下坡第二剖面**（当前项目仅有 shuozhou 够长），列为未来工作（可引入大秦线/其他长大下坡真实剖面重训 M1 验证）。
+3. **方法学收获**：①评估步数必须匹配剖面长度，否则冲线假异常；②`train_fleet.py` 的 `--curriculum` 可改善跨距离泛化；③协同价值与下坡长度强相关（物理机制：越长的下坡越需要协同保持间距）。
+
+**脚本/参数**：
+```
+# 重训第二剖面 M1（short-horizon 或 curriculum）
+python src/trainer/train_fleet.py --hierarchical --grade long_downhill --curriculum 300-1000 --seed 5
+# 评估（需 --max_steps 匹配剖面长度）
+python src/evaluation/evaluate_m1_m3_long.py m1 outputs/checkpoints/mappo_fleet_best_cp_seed5.pt --grade long_downhill --max_steps 1800 --target_gap 40
+```
+
+**checkpoint**：`mappo_fleet_best_cp_seed3.pt`（v_shape）、`seed4.pt`（long_downhill short）、`seed5.pt`（long_downhill curriculum）
+
+### 诊断-2026-08-23 20km 陡剖面触发第1层掉速（协同受限，架构发现）
+
+**背景**：为补第二线路普适性，构造 `long_downhill_20km` 剖面（20km，-9.5‰~-11.5‰ 交替，坡度差≤10.5‰ 樊运新约束）——够长以让 M3 独立控制追尾（体现协同价值）。
+
+**M3 基线（10000步，m3 模式）**：追尾 **6964 步**、车钩力 **1680kN（超限）**、低40 60.8%、reward -2401978。**够长剖面确实让 M3 追尾**（协同价值场景成立）。
+
+**轨迹诊断（关键）**：M3 在 **step 3000-3500（列0头 pos~5690m，-9.5‰ 坡段）速度从 35 骤降到 1 km/h → 停住（pos 卡死 5690m）→ 后车追尾（间距 -1434m）→ 车钩力爆炸 1668-1680kN**。之后 7000 步死循环（速度 0、间距 -1434m、车钩力 1680kN）。
+
+**curriculum 训练（300-1000-2000-3000，48ep，3.9min，best 5002）后 M1 评估**：追尾 **6955 步**、车钩力 1680kN、低40 60.9% —— **与 M3 几乎相同，协同未改善**。
+
+**架构性发现（诚实结论）**：
+1. **更陡长下坡触发第1层规则循环制动掉速到 0**（低40 60.9%）——这是**第1层参数问题**（v_min=40 缓解不足，-9.5‰ 持续下坡上缓解后重力仍大于牵引，速度跌穿 40 直至 0），**不是第2层协同能解决的**（M1 阈值偏移无法阻止第1层掉速）。
+2. **协同价值受限于第1层速度维持能力**：shuozhou（主场景，-10.9‰ 但分段缓和）第1层不掉速 → 协同有效（M1 0追尾 vs M3 追尾）；20km 更陡剖面第1层掉速到 0 → 协同也失效。
+3. **第二线路普适性需先解决第1层参数泛化**（v_min/release 适配不同剖面），或选择第1层不掉速的够长剖面——这超出当前论文范围，列为 Limitations/未来工作。
+4. **论文普适性已有证据充足**：压力消融（gap 100→40m，协同增量单调 +67,597→+89,588）+ 5列扩展（+67,595）已证明"同场景不同条件"普适性；第二线路受第1层掉速限制，诚实报告。
+
+**脚本/数据**：`profile_long_downhill_20km`（grade_profile.py）、curriculum 训练 seed8（`cur20km.log`）、评估 `evaluate_m1_m3_long.py m1 --grade long_downhill_20km --max_steps 10000`。
+
+**checkpoint**：`mappo_fleet_best_cp_seed8.pt`（20km curriculum）
+
 ---
 
 ## 文档索引

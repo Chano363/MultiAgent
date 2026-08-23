@@ -76,6 +76,7 @@ def train(
     init_speed_kmh: float = 65.0,   # 固定初始速度（km/h），循环制动场景用 80
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
+    curriculum: str = None,          # 可选：'300-1000-3000' 形式，递增 horizon 分段训练（增强长程泛化）
 ):
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -141,12 +142,27 @@ def train(
     episode_violations = []
     best_reward = float('-inf')
 
+    # curriculum 解析：'300-1000-3000' → 分段递增 horizon，每段平均分配 episodes。
+    # 通过动态调整 env.max_steps 实现（env 的 truncated 判断用 self.max_steps）。
+    cur_stages = []
+    if curriculum:
+        cur_stages = [int(x) for x in curriculum.split('-')]
+        per_stage = max(1, episodes // len(cur_stages))
+        logger.info(f"curriculum 分段: {cur_stages}（每段约 {per_stage} ep）")
+
     logger.info("=" * 70)
     logger.info("开始训练")
     logger.info("=" * 70)
     start_time = time.time()
 
     for ep in range(episodes):
+        # curriculum：按当前 episode 所在阶段设置 env.max_steps（递增 horizon）
+        if cur_stages:
+            stage_idx = min(ep // per_stage, len(cur_stages) - 1)
+            env.max_steps = cur_stages[stage_idx]
+            if 'cur_stage' not in locals() or locals()['cur_stage'] != stage_idx:
+                cur_stage = stage_idx
+                logger.info(f"curriculum 阶段切换: ep{ep+1} → horizon {env.max_steps} 步")
         # 初始速度：默认对齐 Zhang2024 长大下坡循环制动 65 km/h（18.06 m/s）；
         # 若 random_init_speed=True 则随机采样 [init_speed_min, init_speed_max]，
         # 增强策略对多初始条件的鲁棒性（E9 泛化：初始55/75表现差）。
@@ -280,6 +296,8 @@ if __name__ == '__main__':
                         help='第1层单列控速策略 checkpoint（[40,80]限速）')
     parser.add_argument('--adj_coef', type=float, default=0.3,
                         help='协同调整量缩放系数（分层模式）')
+    parser.add_argument('--curriculum', type=str, default=None,
+                        help='curriculum 递增 horizon：如 "300-1000-3000"，分段增强长程泛化（缓解短训过拟合）')
 
     args = parser.parse_args()
     train(
@@ -311,4 +329,5 @@ if __name__ == '__main__':
         init_speed_min=args.init_speed_min,
         init_speed_max=args.init_speed_max,
         init_speed_kmh=args.init_speed_kmh,
+        curriculum=args.curriculum,
     )

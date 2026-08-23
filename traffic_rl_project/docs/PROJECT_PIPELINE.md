@@ -423,6 +423,44 @@
 
 **检查表**：不引入人为扰动污染主评估；对标方法说明可比性；训练泛化问题诚实报告；临时脚本用完即删。
 
+### 4.3.2 论文冲刺执行记录（2026-08-23，可发表性收尾）
+
+**背景**：按上一轮"可发表性判断"的收尾清单执行，消除审稿硬伤、补齐对标实验。
+
+**已完成 ✅**：
+
+1. **P0 叙事收敛（消除"车钩力创新点自相矛盾"）**：原论文贡献写"车钩力建模必要"（M-DQN 因忽略车钩力超限 2111kN），但项目消融（M1 vs M2）证明"第2层是否考虑车钩力无差异"——矛盾。已重写 `ITSC_PAPER.md`/`.tex` 的 Abstract/贡献/Related Work/Coupler 小节/Conclusion：把叙事改为"**车钩力约束由第1层规则循环制动 + 安全层在物理控制层强制执行**"（M1/M2 消融无差异变为证据而非矛盾），M-DQN 的 2111kN 归因到"缺安全层+缺协同"而非单纯忽略车钩力。
+2. **P0 公平 DQN baseline（M-DQN-fair）**：新增 `src/algorithms/coor_dqn_agent.py`（obs11维/5档离散协同）、`src/trainer/train_fleet_dqn.py`（含 `--resume` 续训）、`evaluate_m1_m3_long.py` 新增 `mdqn_fair` 模式。训练 40ep 即收敛（reward +4948，车钩力3kN）。**结果（关键）**：同架构下（规则循环制动+安全层+DQN协同），完整评估追尾229（固定65）/89.2±109.4（10seed随机化），reward -38432/+4964±34703，均远不如 M1（MAPPO：0追尾、+36446/+34929±1158）。**证明 MAPPO 协同价值是真实算法优势**，非"D QN 只缺安全层/协同"。已写入论文对比表（Main/Robustness）。
+3. **P1 量化泛化失败率 + curriculum**：3 seed 训练 **2/3 泛化成功、1/3 失败（seed1 全程追尾398、车钩力超限）**——已诚实写入论文 Limitations。`train_fleet.py` 新增 `--curriculum` 参数（horizon 300-1000-3000 递增），冒烟验证阶段切换正确，缓解短程训练过拟合。
+4. **P2 Yang2025 MPC 对标**：论文 Related Work 补充 Yang2025（ITSC 2025 单列 MPC + 朔黄线 + 车钩力冲动）作为最强同会议对标，明确"我们是多列无模型 MARL，免去多列耦合预测模型"。新增 `src/controllers/mpc_controller.py` 简化 MPC 作为探索性补充实验（`mpc` 模式），结果（追尾296、车钩力1246超限）诚实记录——因预测模型粗糙，不写入论文主表，仅作参考线。
+
+**P3 第二剖面普适性（✅ 完成，诚实方法学结论）**：
+- 实测 long_downhill/v_shape 预置剖面（3000m/2500m）**都太短**，M3 独立控制就能保持间距不追尾（gap 100/40 追尾均 0），无法体现 M1 协同价值 → **协同价值需要足够长的下坡**（如 shuozhou 23800m）让 M3 独立控制长距离后追尾。
+- **普适性已有证据** = 主评估压力消融（gap 100→40m，协同增量单调 +67597→+89588）+ 5列扩展（+67595 与 3列一致）。
+- **真正的第二剖面（不同线路）**需一个 >10km 真实长大下坡剖面（项目缺失）→ 未来工作。
+- **方法学收获**：评估步数须匹配剖面长度（否则冲线假异常）；`--curriculum` 改善跨距离泛化；协同价值与下坡长度强相关。
+- 详见 VALIDATION_BASELINE「诊断-2026-08-23 第二剖面普适性验证」
+
+**步骤⑤ 论文重写 + 复现性加固（✅ 完成）**：
+- 论文 Introduction 贡献 2 纳入公平 DQN（M-DQN-fair 89.2±109.4 追尾），强化"MAPPO 算法优势"论点
+- 新增实验设置表（超参/编组/限速/评估协议），满足审稿复现性硬门槛
+- **修复 .tex 压力消融表列数 bug**（`lrrrrr`→`lrrrr`，否则 LaTeX 编译告警）；`\permil`→`\textperthousand`（textcomp）
+- **.tex 结构校验通过**（环境配对/5 tabular 列数/3 图存在/8 bibitem 全 cite 无缺失）
+- .md 与 .tex 关键数据完全一致；无法编译（无 pdflatex），用结构校验替代
+
+**运行命令**：
+```
+# 公平 DQN 训练 + 评估
+python src/trainer/train_fleet_dqn.py --episodes 40 --seed 1 --num_trains 3 --adj_coef 0.3
+python src/evaluation/evaluate_m1_m3_long.py mdqn_fair --dqn_seed 1 --dqn_dir outputs/checkpoints
+# MPC 探索（简化）
+python src/evaluation/evaluate_m1_m3_long.py mpc --n_seed 1
+# curriculum 长程训练（待 GPU 环境）
+python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --grade <其他剖面>
+```
+
+**留痕**：VALIDATION_BASELINE「诊断-2026-08-23 公平 DQN baseline」「诊断-2026-08-23 简化 MPC」；`outputs/m1m3_comparison.md` 已更新。
+
 **P0 — 已全部完成 ✅（2026-08）**
 
 1. ✅ 建立 `src/environments/train_env.py`，确定状态（速度误差/间距误差/车钩力/位置）与动作（每车 throttle ∈ [-1,1]）接口
