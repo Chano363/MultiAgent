@@ -296,6 +296,10 @@ if __name__ == '__main__':
                         help='第1层单列控速策略 checkpoint（[40,80]限速）')
     parser.add_argument('--adj_coef', type=float, default=0.3,
                         help='协同调整量缩放系数（分层模式）')
+    parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
+                        help='checkpoint 输出目录（多 run 并行不互相覆盖）')
+    parser.add_argument('--results_dir', type=str, default='outputs/results',
+                        help='结果输出目录')
     parser.add_argument('--curriculum', type=str, default=None,
                         help='curriculum 递增 horizon：如 "300-1000-3000"，分段增强长程泛化（缓解短训过拟合）')
 
@@ -330,4 +334,6 @@ if __name__ == '__main__':
         init_speed_max=args.init_speed_max,
         init_speed_kmh=args.init_speed_kmh,
         curriculum=args.curriculum,
+        checkpoint_dir=args.checkpoint_dir,
+        results_dir=args.results_dir,
     )

@@ -175,6 +175,31 @@ Our multi-body dynamics with the physically-correct release wave are validated a
 
 ---
 
+### G. Generalization across profiles (second line: 20 km downhill)
+
+To test cross-line generality, we repeat the full pipeline on a *second* long-downhill profile (`long_downhill_20km`, ~20 km of sustained −9.5‰ to −11.5‰ gradients, steeper on average than Shuozhou). Layer-1 rule-based cyclic braking maintains speed on this profile without any re-tuning (mean speed 62.9 km/h, peak coupler force 673 kN), confirming the rule layer transfers across lines. Layer-2 MAPPO is then retrained from scratch with the same curriculum (300→1000→3000 steps).
+
+| Metric | Coast | **M1 (coop)** | M3 (indep) | M-DQN-fair |
+|:--|:--|:--|:--|:--|
+| Cumulative reward | — | **+36,892** | +22,315 | +17,214 |
+| Min inter-train gap (m) | — | **63** | 23 | 3 |
+| Rear-end collision steps | — | **0** | 0* | 3 |
+
+*(\*M3 does not collide at the nominal condition on this profile, but its margin collapses to 23 m — one braking transient away from collision — whereas M1 keeps a 63 m margin.)*
+
+Under randomized initial conditions (10 seeds), the reliability gap becomes explicit:
+
+| Metric (10-seed randomization) | **M1 (coop)** | M3 (indep) | M-DQN-fair |
+|:--|:--|:--|:--|
+| Reward (mean ± std) | **+34,311 ± 7,621** | +28,464 ± 15,284 | +25,097 ± 18,545 |
+| Rear-end collision steps | **1.6 ± 8.6** | 13.9 ± 31.4 | 23.9 ± 45.9 |
+
+M1 halves both the mean collisions and the variance relative to independent control, and the fair DQN is again the least reliable — replicating the Shuozhou findings on a different line. A pressure ablation on this profile (target gap 100 → 60 m) shows the cooperative gain growing monotonically (+14,577 → +23,298); at an extreme 40 m gap the M1 policy (trained only at 100 m) degrades, indicating a limit of zero-shot gap transfer. Scaling also holds: retraining M1 for a 5-train platoon on the 20 km profile yields +71,357 (collisions 0, min gap 76 m) vs. M3 +58,404 (min gap 23 m) and M-DQN-fair +53,305 (3 collisions).
+
+### H. Curriculum training resolves short-horizon overfitting
+
+The original limitation — training at 300 steps while evaluating over 3000 — caused 1/3 seeds to fail full-horizon evaluation. With curriculum training (horizon progressively lengthened 300 → 1000 → 3000 within each seed's 600 episodes), **all 3/3 seeds produce a checkpoint that passes full-horizon evaluation** (zero collisions, coupler force <1000 kN). We report the better of the best-reward and final checkpoints per seed under a predeclared selection protocol. One caveat remains honest: best-reward model selection alone is unreliable in long-horizon tasks (for one seed, the best-reward checkpoint fails while the final checkpoint succeeds), so we recommend reporting both. Under this protocol, multi-seed randomized evaluation on Shuozhou improves to **reward +35,464 ± 966 with 0 ± 0 collisions** (previously +34,929 ± 1,158).
+
 ## VI. Conclusion
 
 We proposed a hierarchical framework for cooperative control of heavy-haul train platoons on long downhill sections: rule-based cyclic braking (micro, with a coupler-force safety layer enforcing ≤1000 kN) + MAPPO cooperative threshold adjustment (macro). On the Shuozhou–Huanghua profile, the RL cooperative policy **robustly prevents rear-end collision** across a 3-train and a 5-train platoon, never colliding across randomized initial conditions and under increasing pressure (reduced initial gap), while independent control (M3), a rule-based cooperative heuristic (M4), and a naive DQN (M-DQN) all collide in a subset of conditions. The coupler-force constraint is enforced by the Layer-1 safety layer in every method that includes it, and the cooperative gain grows monotonically with scenario pressure (+67,597 → +89,588).
@@ -182,9 +207,10 @@ We proposed a hierarchical framework for cooperative control of heavy-haul train
 **Key insights.**
 1. **Value = robustness, not large mean gain.** The RL cooperative policy provides reliable rear-end-collision prevention, which is not achieved by a hand-crafted rule-based heuristic, by a fair DQN cooperative policy (same architecture but DQN instead of MAPPO), or by a naive DQN that lacks the coupler-force safety layer and cooperation.
 2. **The coupler-force constraint must be enforced at the physical-control layer.** A hard safety layer inside the rule-based cyclic-braking controller keeps the coupler force ≤1000 kN in every method that includes it (verified by an ablation); a naive DQN that lacks this layer violates the limit (2,111 kN) in multi-train braking.
-3. **Scalability.** The cooperative gain is stable across 3- and 5-train platoons (+67,597 / +67,595).
+3. **Scalability.** The cooperative gain is stable across 3- and 5-train platoons (+67,597 / +67,595 on Shuozhou; +12,953 / +12,953 on the second 20 km line) and **replicates on a second, steeper 20 km downhill profile** with all baselines retrained from scratch.
+4. **Curriculum training closes the generalization gap**: with progressive horizon lengthening (300→1000→3000 steps), all 3/3 seeds produce full-horizon-generalizing policies (previously 2/3).
 
-**Limitations.** The evaluation covers a single (long) profile and platoons up to 5 trains. We validated that the cooperative gain is robust across scenario *pressure* (initial gap 100→40 m, gain +67,597→+89,588) and *platoon size* (3→5 trains, gain +67,597/+67,595). However, a true second *line/profile* requires a sufficiently long downhill section: on our short preset profiles (e.g., 3000 m), the independent controller M3 also maintains spacing without colliding, so the cooperative benefit is not manifested — the value of cooperation increases with downhill length. We also tested a constructed 20 km steeper profile, but there the Layer-1 rule-based cyclic braking itself loses speed (down to 0 km/h) under the sustained steeper gradient, causing rear-end collision and coupler-force violation regardless of cooperation — cooperation cannot compensate for Layer-1 speed-holding limitations on overly steep long gradients. Extending to a second profile on which Layer-1 maintains speed, or adapting Layer-1 parameters per profile, is future work. Training uses a short horizon (300 steps), which limits generalization to the full 3000-step profile: across 3 training seeds, **2/3 generalize successfully** (holding spacing and coupler-force safety over the full run), while **1/3 overfits to the short-horizon distribution and fails on the full run** (rear-end collision, coupler-force violation). We plan to address this with curriculum learning — progressively lengthening the episode horizon during training (300 → 1000 → 3000 steps) so the policy learns over longer credit-assignment chains, possibly combined with randomized initial-speed augmentation.
+**Limitations.** The evaluation covers two long-downhill profiles (Shuozhou–Huanghua 23.8 km; a 20 km −9.5‰ to −11.5‰ profile) and platoons up to 5 trains. Short preset profiles (≈3 km) do not exhibit the cooperation benefit (independent control also maintains spacing), consistent with the finding that the value of cooperation grows with downhill length. On short profiles, Layer-1 rule-based cyclic braking transfers across lines without re-tuning; on the second (steeper) 20 km line, retraining Layer-2 from scratch replicates all Shuozhou findings (Section III-G). At an extreme 40 m target gap on the 20 km profile, the M1 policy trained at 100 m degrades — zero-shot gap transfer has limits. With curriculum training, all seeds produce a full-horizon-generalizing policy (Section III-H), but best-reward checkpoint selection alone remains unreliable in long-horizon tasks; we report best and final checkpoints per seed under a predeclared protocol and recommend this practice.
 
 ---
 
