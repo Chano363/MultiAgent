@@ -178,7 +178,7 @@ Collision steps & 0 & \textbf{0} & 202 & 202 & 229 & \textbf{1,434} \\
 \end{tabular}}
 \end{table}
 
-M1 avoids rear-end collisions (0 vs 202), keeping the min gap at 182~m, while M3/M4's independent control leads to gap collapse ($-321$~m). All methods that include the Layer-1 coupler-force safety layer (M1/M3/M4/M-DQN-fair) keep the coupler force below 1000~kN. \textbf{The two DQN baselines expose two distinct failure modes.} The \emph{fair} DQN (M-DQN-fair), which has the same architecture, safety layer, observation, and reward as M1 but uses DQN instead of MAPPO for the cooperative threshold adjustment, still collides (229 steps) and does not keep the gap --- it learns a cooperative policy no more robust than independent control (M3), isolating the limitation to the RL algorithm rather than the architecture. The \emph{naive} DQN (M-DQN), which additionally omits the Layer-1 coupler-force safety layer and inter-train cooperation, violates the coupler-force limit (2,111~kN) and collides far more frequently (1,434 steps) --- showing that omitting the coupler-force constraint and cooperative control simultaneously is unsafe in multi-train braking.
+Table~\ref{tab:main} summarizes the main result. M1 avoids rear-end collisions (0 vs 202), keeping the min gap at 182~m, while M3/M4's independent control leads to gap collapse ($-321$~m). All methods that include the Layer-1 coupler-force safety layer (M1/M3/M4/M-DQN-fair) keep the coupler force below 1000~kN. \textbf{The two DQN baselines expose two distinct failure modes.} The \emph{fair} DQN (M-DQN-fair), which has the same architecture, safety layer, observation, and reward as M1 but uses DQN instead of MAPPO for the cooperative threshold adjustment, still collides (229 steps) and does not keep the gap --- it learns a cooperative policy no more robust than independent control (M3), isolating the limitation to the RL algorithm rather than the architecture. The \emph{naive} DQN (M-DQN), which additionally omits the Layer-1 coupler-force safety layer and inter-train cooperation, violates the coupler-force limit (2,111~kN) and collides far more frequently (1,434 steps) --- showing that omitting the coupler-force constraint and cooperative control simultaneously is unsafe in multi-train braking.
 
 \subsection{Robustness across randomized initial conditions (10 seeds, 3-train)}
 
@@ -198,11 +198,11 @@ Collision steps & \textbf{$0 \pm 0$} & $45.7 \pm 80.7$ & $45.1 \pm 80.8$ & $89.2
 \end{tabular}}
 \end{table}
 
-\textbf{The key finding is robustness.} M1 achieves a \textbf{small reward variance ($+34{,}929 \pm 1{,}158$) and zero collisions across all 10 seeds}, whereas M3 and M4 exhibit large variance ($\pm 26{,}808$ / $\pm 27{,}012$) and collide in a subset of conditions. The \emph{fair} DQN (M-DQN-fair) shows even higher variance ($\pm 34{,}703$) and collides on average ($89.2 \pm 109.4$) --- a DQN cooperative policy is \emph{less} robust than even the rule-based heuristic. When the independent controller happens not to collide (the median seed), its reward ($+35{,}527$) is close to M1's; however, it is \textbf{not reliable}. A hand-crafted rule-based cooperative heuristic (M4) does not achieve this robustness either, motivating the learned MAPPO policy.
+\textbf{The key finding is robustness} (Table~\ref{tab:robust}). M1 achieves a \textbf{small reward variance ($+34{,}929 \pm 1{,}158$) and zero collisions across all 10 seeds}, whereas M3 and M4 exhibit large variance ($\pm 26{,}808$ / $\pm 27{,}012$) and collide in a subset of conditions. The \emph{fair} DQN (M-DQN-fair) shows even higher variance ($\pm 34{,}703$) and collides on average ($89.2 \pm 109.4$) --- a DQN cooperative policy is \emph{less} robust than even the rule-based heuristic. When the independent controller happens not to collide (the median seed), its reward ($+35{,}527$) is close to M1's; however, it is \textbf{not reliable}. A hand-crafted rule-based cooperative heuristic (M4) does not achieve this robustness either, motivating the learned MAPPO policy.
 
 \subsection{Stronger-pressure scenario ablation (initial gap, 3-train)}
 
-We reduce the target inter-train gap (100 $\to$ 40~m) to increase the rear-end-collision pressure, keeping all other settings fixed and reusing the M1 policy trained at 100~m:
+We reduce the target inter-train gap (100 $\to$ 40~m) to increase the rear-end-collision pressure, keeping all other settings fixed and reusing the M1 policy trained at 100~m (Fig.~\ref{fig:pressure} and Table~\ref{tab:pressure}):
 
 \begin{figure}[t]
 \centering
@@ -257,7 +257,7 @@ Platoon & \textbf{M1 (coop)} & M3 (indep) & Gain & M-DQN \\
 \end{tabular}
 \end{table}
 
-The 5-train cooperative gain is \textbf{$+67{,}595$} (M1 $+72{,}572$ vs M3 $+4{,}977$), nearly identical to the 3-train gain ($+67{,}597$). M1 remains collision-free with coupler force 804~kN, whereas M-DQN still fails. \textbf{The cooperative benefit scales to larger platoons.}
+As shown in Table~\ref{tab:scal} and Fig.~\ref{fig:5train}, the 5-train cooperative gain is \textbf{$+67{,}595$} (M1 $+72{,}572$ vs M3 $+4{,}977$), nearly identical to the 3-train gain ($+67{,}597$). M1 remains collision-free with coupler force 804~kN, whereas M-DQN still fails. \textbf{The cooperative benefit scales to larger platoons.}
 
 \subsection{Coupler-force safety and simulator validation}
 
@@ -269,11 +269,12 @@ Our multi-body dynamics with the physically-correct release wave are validated a
 
 To test cross-line generality, we repeat the full pipeline on a \emph{second} long-downhill profile (20~km of sustained $-9.5$\permille{} to $-11.5$\permille{} gradients, steeper on average than Shuozhou). Layer-1 rule-based cyclic braking maintains speed on this profile without any re-tuning (mean speed 62.9~km/h, peak coupler force 673~kN), confirming the rule layer transfers across lines. Layer-2 MAPPO is then retrained from scratch with the same curriculum (300$\to$1000$\to$3000 steps).
 
-Under randomized initial conditions (10 seeds), the reliability gap replicates:
+Under randomized initial conditions (10 seeds), the reliability gap replicates (Table~\ref{tab:profile2}):
 
 \begin{table}[h]
 \centering
 \caption{Second profile (20 km, steeper), 10-seed randomization.}
+\label{tab:profile2}
 \begin{tabular}{lccc}
 \hline
 Metric & \textbf{M1} & M3 & M-DQN-fair \\
@@ -311,9 +312,9 @@ We proposed a hierarchical framework for cooperative control of heavy-haul train
 
 \bibitem{zhang2024dqn} X. Zhang et al., ``Deep Q-Network Algorithm-Based Cyclic Air Braking Strategy for Heavy-Haul Trains,'' \emph{Algorithms}, vol.~17, no.~5, p.~190, 2024.
 
-\bibitem{wang2025dqn} Y. Wang, J. Wang, and S. Sun, ``Operation Optimization of Heavy Haul Train Considering Longitudinal Impulse Suppression: a DQN Approach,'' in \emph{IEEE ICIRT}, 2025.
+\bibitem{wang2025dqn} Y. Wang, J. Wang, and S. Sun, ``Operation Optimization of Heavy Haul Train Considering Longitudinal Impulse Suppression: A DQN Approach,'' in \emph{Proc. IEEE Int. Conf. Intell. Rail Transp. (ICIRT)}, 2025.
 
-\bibitem{zhang2021marl} Y. Zhang, L. Nie, J. Ni, and S. Tian, ``Multi-Agent DRL Based Consistency Control in Train Platoon Systems,'' in \emph{IEEE HPCC}, 2021.
+\bibitem{zhang2021marl} Y. Zhang, L. Nie, J. Ni, and S. Tian, ``Multi-Agent DRL Based Consistency Control in Train Platoon Systems,'' in \emph{Proc. IEEE Conf. High Perform. Comput. Commun. (HPCC)}, 2021.
 
 \bibitem{guo2025platoon} J. Guo et al., ``Enhanced consensus control architecture for autonomous platoon utilizing MARL,'' \emph{Comput.-Aided Civ. Infrastruct. Eng.}, 2025.
 
@@ -323,7 +324,7 @@ We proposed a hierarchical framework for cooperative control of heavy-haul train
 
 \bibitem{zhang2025releasewave} Y. Zhang et al., ``Brake-pipe pressure and coupler force in heavy-haul trains,'' \emph{ASME J.~Rail Transp. Dyn.}, 2025.
 
-\bibitem{yang2025mpc} Y. Yang et al., ``Automatic Train Operation of Heavy-Haul Trains Based on Model Predictive Control,'' in \emph{IEEE ITSC}, 2025. DOI: 10.1109/ITSC60802.2025.11423746.
+\bibitem{yang2025mpc} Y. Yang et al., ``Automatic Train Operation of Heavy-Haul Trains Based on Model Predictive Control,'' in \emph{Proc. IEEE Intell. Transp. Syst. Conf. (ITSC)}, 2025, doi: 10.1109/ITSC60802.2025.11423746.
 
 \end{thebibliography}
 
