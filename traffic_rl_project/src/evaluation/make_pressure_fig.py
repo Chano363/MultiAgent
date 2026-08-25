@@ -25,9 +25,10 @@ ax1.plot(GAPS, M1_REWARD, 'o-', color='blue', linewidth=2, markersize=7, label='
 ax1.plot(GAPS, M3_REWARD, 's--', color='red', linewidth=2, markersize=6, label='M3 (independent)')
 ax1.plot(GAPS, M4_REWARD, '^--', color='purple', linewidth=2, markersize=6, label='M4 (rule heuristic)')
 ax1.axhline(y=0, color='k', linestyle=':', alpha=0.5)
-ax1.set_xlabel('Target inter-train gap (m)')
+ax1.set_xlabel('Target inter-train gap (m)  (smaller gap → stronger pressure →)')
 ax1.set_ylabel('Cumulative reward')
-ax1.legend(loc='upper left')
+# 图例移到图外右下避免遮挡 M1 数据（upper left 会压在 M1 的 +36k 数据点上）
+ax1.legend(loc='lower left', bbox_to_anchor=(0.02, 0.02), framealpha=0.95)
 ax1.grid(alpha=0.3)
 
 # 协同增量（右轴）
@@ -35,7 +36,8 @@ ax2 = ax1.twinx()
 ax2.plot(GAPS, COOP_GAIN, 'D-', color='green', linewidth=2.5, markersize=8,
          label='Cooperative gain (M1−M3)')
 ax2.set_ylabel('Cooperative gain')
-ax2.legend(loc='upper right')
+# 协同增量图例移出数据区域，避开右侧的绿线尾端
+ax2.legend(loc='upper right', bbox_to_anchor=(1.0, 0.98), framealpha=0.95)
 
 plt.title('Stronger-pressure ablation: cooperative gain grows as gap shrinks (3-train)')
 fig.tight_layout()

@@ -76,7 +76,7 @@ def main():
     ev.NUM_TRAINS = NUM_TRAINS
     # M1 (5列 MAPPO 协同)
     agent = MAPPOAgent(num_drones=NUM_TRAINS, obs_per_drone=11, act_per_drone=1, device='cuda')
-    agent.load('outputs/checkpoints/mappo_fleet_best_cp_seed0.pt')  # 当前是5列
+    agent.load('outputs/checkpoints/shuozhou_5train/mappo_fleet_best_cp_seed0.pt')  # 5列 shuozhou
     agent.policy.eval()
     # M-DQN
     dqn = DQNAgent(obs_dim=4, num_actions=4, device='cuda')
@@ -96,12 +96,13 @@ def main():
     plt.plot(t, gaps_m1, '-', color='blue', linewidth=1.8, label='M1 (coop)')
     plt.plot(t, gaps_m3, '--', color='red', linewidth=1.8, label='M3 (independent)')
     plt.plot(t, gaps_dqn, ':', color='green', linewidth=1.8, label='M-DQN (per-train)')
-    plt.axhline(y=100, color='k', linestyle=':', alpha=0.5, label='Target gap 100m')
-    plt.axhline(y=0, color='r', linestyle=':', alpha=0.6, label='Rear-end (gap=0)')
-    plt.xlabel('Time step')
+    plt.axhline(y=100, color='k', linestyle=':', alpha=0.5, label='Target gap 100 m')
+    plt.axhline(y=0, color='r', linestyle=':', alpha=0.6, label='Rear-end (gap = 0)')
+    plt.xlabel('Time step (3000 steps ≈ 5 min simulated)')
     plt.ylabel('Min inter-train gap (m)')
-    plt.title('5-train platoon: M1 (coop) vs M3 (indep) vs M-DQN gap trajectory')
-    plt.legend()
+    plt.title('5-train platoon: M1 holds the gap, M3 and M-DQN collapse into collision', fontsize=10)
+    # 图例移出数据区域（lower right），避免遮挡 M1 平稳线
+    plt.legend(loc='upper right', bbox_to_anchor=(1.0, 0.35), framealpha=0.95, fontsize=9)
     plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig('outputs/figures/fig_5train_gap_trajectory.png', dpi=150)

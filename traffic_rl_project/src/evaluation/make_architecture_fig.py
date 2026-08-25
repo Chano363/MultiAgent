@@ -69,9 +69,8 @@ def main():
     arrow(ax, 3.7, 1.05, 5.6, 1.1, color='magenta', lw=1.8, style='-|>')
 
     # ===== 标题/标注 =====
-    ax.text(5, 6.75, 'Proposed hierarchical framework: rule-based cyclic braking (micro)\n'
-                     '+ RL cooperative threshold adjustment (macro)',
-            ha='center', fontsize=12, weight='bold')
+    ax.text(5, 6.75, 'Proposed hierarchical framework: rule-based cyclic braking (micro) + RL cooperative threshold adjustment (macro)',
+            ha='center', fontsize=11.5, weight='bold')
 
     ax.text(5, -0.85, 'Multi-train virtually-coupled platoon keeps inter-train gap (100 m target)\n'
                       'and each train stays within coupler-force limit (1000 kN).',
