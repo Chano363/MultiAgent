@@ -2,12 +2,11 @@
 
 ## Repo layout
 
-根目录下有两个独立包：
+根目录下的研究项目：
 
 - **`traffic_rl_project/`** — 实际的研究项目（**当前主战场**）。两阶段递进式 RL 研究：
-  - 阶段一：无人机编队控制（已完成，历史成果）
+  - 阶段一：无人机编队控制（已完成，历史成果，其仿真器依赖已移除）
   - 阶段二：**重载列车群组协同控制（进行中，核心工作）**
-- **`gym_pybullet_drones/`** — 阶段一无人机仿真器的上游 fork（quadcopter 物理仿真）。阶段二列车项目**不再依赖**它，但保留作为阶段一成果的依赖。
 
 ## Environment
 
@@ -32,13 +31,9 @@ python -m pytest tests/ -q
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python src/trainer/train_train.py --episodes 500 --preset 10kt_1plus0 --grade long_downhill
 
-# 阶段一无人机训练（历史命令，MAPPO 唯一收敛）
+# 阶段一无人机训练（历史命令，MAPPO 唯一收敛；其仿真器 gym_pybullet_drones 已移除）
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python src/main.py --mode train --algorithm MAPPO --episodes 500
-
-# gym-pybullet-drones 测试（阶段一）
-cd /mnt/d/Code/MultiAgent/gym_pybullet_drones
-pytest tests/
 ```
 
 无 linter/typechecker/formatter 配置。遵循 PEP 8。
