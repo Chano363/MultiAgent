@@ -31,7 +31,22 @@
 | M1 vs M3 vs M4 vs 惰行（主结果） | `python src/evaluation/evaluate_m1_m3_long.py all <ckpt>` | 固定65, 3000步 | — |
 | 鲁棒性（10 seed 随机化初态） | `python src/evaluation/evaluate_m1_m3_long.py all <ckpt> --randomize_init --n_seed 10` | init 58-66 km/h | — |
 | 压力消融（gap 100→40m） | `python src/evaluation/evaluate_m1_m3_long.py m1 <ckpt> --target_gap 40 --n_seed 1`（逐 gap） | 复用100m训练 | — |
-| 5列扩展 | `evaluate_m1_m3_long.py --num_trains 5` + 5列训练 `train_fleet.py --num_trains 5` | seed 0 | `mappo_fleet_best_cp_seed0_3train.pt` |
+| 5列扩展（shuozhou） | `train_fleet.py --hierarchical --num_trains 5 --grade shuozhou_23800 --checkpoint_dir outputs/checkpoints/shuozhou_5train`（重训）+ `evaluate_m1_m3_long.py --num_trains 5` | seed 0 | `outputs/checkpoints/shuozhou_5train/mappo_fleet_best_cp_seed0.pt` |
+| 5列扩展（20km 第二剖面） | 训练于 `--grade long_downhill_20km --num_trains 5` | seed 0 | `outputs/checkpoints/w5_20km_s0/mappo_fleet_best_cp_seed0.pt` |
+
+## 三、统计检验（50-seed 可靠性，论文 Sec. V-C）
+
+```
+# 分段收集 50-seed 追尾数据（M1/M3 各 5 段×10）
+python src/evaluation/stat_collect_collision.py m1 0 10 outputs/diagnostics/m1_coll.txt   # seed 0-9, 10-19, ..., 40-49
+python src/evaluation/stat_collect_collision.py m3 0 10 outputs/diagnostics/m3_coll.txt
+# 统计分析（Fisher/卡方/Mann-Whitney + 效应量）
+python src/evaluation/stat_analyze_collision.py
+# M1 vs M3 reward 统计（10-seed）
+python src/evaluation/stat_test_m1_m3.py
+```
+- **结果**：M1 0/50 追尾(0%) vs M3 17/50(34%)，**Fisher p<0.00001**，Cohen's h=1.25，风险差 0.34 (95% CI [0.21,0.47])
+- 数据：`outputs/diagnostics/{m1,m3}_coll.txt`、`collision_stats_50seed.txt`
 
 **公平 DQN baseline（M-DQN-fair）**：
 ```
@@ -64,18 +79,19 @@ python src/evaluation/evaluate_m1_m3_long.py mpc --n_seed 1
 
 | 图表 | 命令 | 输出 |
 |:--|:--|:--|
+| 架构图（Fig.1） | `python src/evaluation/make_architecture_fig.py` | `outputs/figures/fig1_architecture.png` |
+| 压力消融图（Fig.2） | `python src/evaluation/make_pressure_fig.py` | `outputs/figures/fig_pressure_ablation.png` |
+| 5列间距图（Fig.3） | `python src/evaluation/make_5train_fig.py`（需 shuozhou 5列 checkpoint） | `outputs/figures/fig_5train_gap_trajectory.png` |
 | M1/M3/惰行 对比图 + csv | `python src/evaluation/make_m1m3_figures.py` | `outputs/figures/m1m3_{gap,coupler,speed}_trajectory.png` + `outputs/m1m3_comparison.md` |
-| 压力消融图 | `sweep_pressure_gap.py` | `outputs/figures/fig_pressure_ablation.png` |
-| 5列间距图 | `evaluate_m1_m3_long.py --num_trains 5` | `outputs/figures/fig_5train_gap_trajectory.png` |
-| 架构图 | — | `outputs/figures/fig1_architecture.png` |
 
-## 六、论文编译
+## 六、论文编译 + 中文对照
 
 ```
 cd traffic_rl_project/docs
 conda activate traffic_rl   # 环境含 tectonic 0.17.0
-tectonic ITSC_PAPER.tex     # → ITSC_PAPER.pdf（5页，0 Overfull）
+tectonic ITSC_PAPER.tex     # → ITSC_PAPER.pdf（6页，0 Overfull）
 ```
+- 中文对照版：`docs/ITSC_PAPER_中文对照.md`（供作者核对英文版）
 
 ## 七、关键参数（论文 Table I）
 
