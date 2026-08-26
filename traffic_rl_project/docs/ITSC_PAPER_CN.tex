@@ -6,9 +6,15 @@
 \usepackage{graphicx}
 \usepackage{array}
 \usepackage{booktabs}
-\setCJKmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+% 中文论文标准字体：正文宋体(SimSun)、标题黑体(SimHei)、加粗用黑体
+\setCJKmainfont[Path=/mnt/c/Windows/Fonts/, BoldFont=simhei.ttf]{simsun.ttc}
 \setCJKsansfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
-\setmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+\setmainfont[Path=/mnt/c/Windows/Fonts/, BoldFont=simhei.ttf]{simsun.ttc}
+% 标题使用黑体（sans）
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{\z@}{-3.5ex \@plus -1ex \@minus -.2ex}{2.3ex \@plus .2ex}{\normalfont\large\bfseries\sffamily}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}{-3.25ex\@plus -1ex \@minus -.2ex}{1.5ex \@plus .2ex}{\normalfont\normalsize\bfseries\sffamily}}
+\makeatother
 \title{ITSC 论文中文对照版}
 \author{}
 \date{\today}
@@ -209,12 +215,12 @@ adj\_coef & 0.3 \\
 \toprule
 指标 & Coast & M1 & M3 & M4 & M-DQN-fair & M-DQN \\
 \midrule
-Cumulative reward & +27,950 & +36,446 & -31,151 & -33,991 & -38,432 & -606,185 \\
-Overspeed >80 km/h (\%) & 5.3 & 1.3 & 0.8 & 0.8 & 0.8 & — \\
-Under-speed <40 km/h (\%) & 0.0 & 0.9 & 4.5 & 4.5 & 4.7 & — \\
-Peak coupler force (kN) & 651 & 804 & 734 & 734 & 900 & 2,111 (violated) \\
-Min inter-train gap (m) & 182 & 182 & -321 & -321 & -347 & -234 \\
-Rear-end collision steps & 0 & 0 & 202 & 202 & 229 & 1,434 \\
+累计回报 & +27,950 & +36,446 & -31,151 & -33,991 & -38,432 & -606,185 \\
+超速 >80 km/h 占比（\%） & 5.3 & 1.3 & 0.8 & 0.8 & 0.8 & — \\
+低速 <40 km/h 占比（\%） & 0.0 & 0.9 & 4.5 & 4.5 & 4.7 & — \\
+峰值车钩力（kN） & 651 & 804 & 734 & 734 & 900 & 2,111（违反约束） \\
+最小列间距（m） & 182 & 182 & -321 & -321 & -347 & -234 \\
+追尾步数 & 0 & 0 & 202 & 202 & 229 & 1,434 \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -230,12 +236,12 @@ M1 避免追尾（0 vs 202），保持最小间距 182 m，而 M3/M4 独立控�
 \begin{table}[h]\centering\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
-指标 & M1 (coop) & M3 (indep) & M4 (rule) & M-DQN-fair \\
+指标 & M1 & M3 & M4 & M-DQN-fair \\
 \midrule
-Reward (mean $\pm$  std, 10 seed) & +34,929 $\pm$  1,158 & +19,921 $\pm$  26,808 & +17,452 $\pm$  27,012 & +4,964 $\pm$  34,703 \\
-Reward (median) & +35,686 & +35,527 & +33,174 & +28,234 \\
-Collision steps (10 seed) & 0 $\pm$  0 & 45.7 $\pm$  80.7 & 45.1 $\pm$  80.8 & 89.2 $\pm$  109.4 \\
-Collision seeds (50) & 0/50 (0\%) & 17/50 (34\%) & — & — \\
+Reward 均值 $\pm$  标准差（10 个 seed） & +34,929 $\pm$  1,158 & +19,921 $\pm$  26,808 & +17,452 $\pm$  27,012 & +4,964 $\pm$  34,703 \\
+Reward 中位数 & +35,686 & +35,527 & +33,174 & +28,234 \\
+追尾步数（10 个 seed） & 0 $\pm$  0 & 45.7 $\pm$  80.7 & 45.1 $\pm$  80.8 & 89.2 $\pm$  109.4 \\
+追尾 seed 数（50） & 0/50（0\%） & 17/50（34\%） & — & — \\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -258,7 +264,7 @@ Collision seeds (50) & 0/50 (0\%) & 17/50 (34\%) & — & — \\
 \begin{table}[h]\centering\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrr}
 \toprule
-Platoon & M1 (coop) & M3 (indep) & Gain & M-DQN \\
+编队 & M1 & M3 & 增益 & M-DQN \\
 \midrule
 3 列 & +36,446 & -31,151 & +67,597 & -606,185 \\
 5 列 & +72,572 & +4,977 & +67,595 & -739,997 \\
@@ -305,10 +311,10 @@ M1 和 M3 峰值车钩力 <1000 kN（804/734 kN），公平 DQN 也守住 900 kN
 \begin{table}[h]\centering\resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrr}
 \toprule
-Metric (10-seed randomization) & M1 (coop) & M3 (indep) & M-DQN-fair \\
+指标（10 个随机 seed） & M1 & M3 & M-DQN-fair \\
 \midrule
-Reward (mean $\pm$  std) & +34,311 $\pm$  7,621 & +28,464 $\pm$  15,284 & +25,097 $\pm$  18,545 \\
-Rear-end collision steps & 1.6 $\pm$  8.6 & 13.9 $\pm$  31.4 & 23.9 $\pm$  45.9 \\
+Reward 均值 $\pm$  标准差 & +34,311 $\pm$  7,621 & +28,464 $\pm$  15,284 & +25,097 $\pm$  18,545 \\
+追尾步数 & 1.6 $\pm$  8.6 & 13.9 $\pm$  31.4 & 23.9 $\pm$  45.9 \\
 \bottomrule
 \end{tabular}}
 \end{table}

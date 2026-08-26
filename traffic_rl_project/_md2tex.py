@@ -17,9 +17,15 @@ header = r"""\documentclass[11pt]{article}
 \usepackage{graphicx}
 \usepackage{array}
 \usepackage{booktabs}
-\setCJKmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+% 中文论文标准字体：正文宋体(SimSun)、标题黑体(SimHei)、加粗用黑体
+\setCJKmainfont[Path=/mnt/c/Windows/Fonts/, BoldFont=simhei.ttf]{simsun.ttc}
 \setCJKsansfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
-\setmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+\setmainfont[Path=/mnt/c/Windows/Fonts/, BoldFont=simhei.ttf]{simsun.ttc}
+% 标题使用黑体（sans）
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{\z@}{-3.5ex \@plus -1ex \@minus -.2ex}{2.3ex \@plus .2ex}{\normalfont\large\bfseries\sffamily}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}{-3.25ex\@plus -1ex \@minus -.2ex}{1.5ex \@plus .2ex}{\normalfont\normalsize\bfseries\sffamily}}
+\makeatother
 \title{ITSC 论文中文对照版}
 \author{}
 \date{\today}
