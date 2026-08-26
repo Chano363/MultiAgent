@@ -14,12 +14,12 @@ header = r"""\documentclass[11pt]{article}
 \usepackage{fontspec}
 \usepackage{xeCJK}
 \usepackage{amsmath,amssymb}
-\usepackage{longtable}
+\usepackage{graphicx}
 \usepackage{array}
 \usepackage{booktabs}
-\setCJKmainfont[Path=/home/chano/miniconda3/envs/traffic_rl/fonts/]{NotoSansCJKsc-VF.ttf}
-\setCJKsansfont[Path=/home/chano/miniconda3/envs/traffic_rl/fonts/]{NotoSansCJKsc-VF.ttf}
-\setmainfont[Path=/home/chano/miniconda3/envs/traffic_rl/fonts/]{NotoSansCJKsc-VF.ttf}
+\setCJKmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+\setCJKsansfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+\setmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
 \title{ITSC 论文中文对照版}
 \author{}
 \date{\today}
@@ -34,11 +34,17 @@ for ln in lines:
     # 表格行
     if stripped.startswith('|') and stripped.endswith('|'):
         if not in_table:
-            out.append(r"\begin{longtable}{*{20}{p{1.6cm}}}")
+            # 数列数，用 table+resizebox 自动缩放到页宽（避免超宽），tabular 内 l+r 对齐
+            n_cols = stripped.count('|') - 1
+            col_spec = 'l' + 'r' * (n_cols - 1) if n_cols > 1 else 'l'
+            out.append(r"\begin{table}[h]\centering\resizebox{\textwidth}{!}{%")
+            out.append(r"\begin{tabular}{" + col_spec + r"}")
+            out.append(r"\toprule")
             in_table = True
         # 分隔行 --- 跳过
         if set(stripped.replace('|','').replace(':','').replace('-','').strip()) == set():
             out.append(r"\midrule")
+            continue
         else:
             cells = [c.strip() for c in stripped.strip('|').split('|')]
             # 处理表格内的 **粗体**
@@ -59,15 +65,21 @@ for ln in lines:
         continue
     else:
         if in_table:
-            out.append(r"\end{longtable}")
+            out.append(r"\bottomrule")
+            out.append(r"\end{tabular}}")
+            out.append(r"\end{table}")
             in_table = False
-    # 标题
+    # 标题（去掉"（英文）"后缀括号）
+    def strip_title(s):
+        # 去掉末尾的 （English） 或 (English)
+        s = re.sub(r'\s*[（(][A-Za-z][A-Za-z0-9\s\-,./]*[)）]\s*$', '', s)
+        return s.strip()
     if stripped.startswith('### '):
-        out.append(r"\subsection*{" + stripped[4:] + "}")
+        out.append(r"\subsection*{" + strip_title(stripped[4:]) + "}")
     elif stripped.startswith('## '):
-        out.append(r"\section*{" + stripped[3:] + "}")
+        out.append(r"\section*{" + strip_title(stripped[3:]) + "}")
     elif stripped.startswith('# '):
-        out.append(r"\section*{" + stripped[2:] + "}")
+        out.append(r"\section*{" + strip_title(stripped[2:]) + "}")
     # 水平线
     elif stripped == '---' or stripped == '***':
         out.append(r"\bigskip\hrule\bigskip")
@@ -83,6 +95,7 @@ for ln in lines:
         t = t.replace('≥', r'$\geq$ ')
         t = t.replace('±', r'$\pm$ ')
         t = t.replace('×', r'$\times$ ')
+        t = t.replace('\u2212', r'$-$ ')  # U+2212 减号
         # LaTeX 特殊字符转义（数学替换已先完成；原文 .md 不含反斜杠，故不转义 \\）
         t = t.replace('{', r'\{').replace('}', r'\}')
         t = t.replace('_', r'\_').replace('%', r'\%')
@@ -92,7 +105,9 @@ for ln in lines:
         out.append('\n')
 
 if in_table:
-    out.append(r"\end{longtable}")
+    out.append(r"\bottomrule")
+    out.append(r"\end{tabular}}")
+    out.append(r"\end{table}")
 
 out.append(r"\end{document}")
 tex = '\n'.join(out)

@@ -3,19 +3,19 @@
 \usepackage{fontspec}
 \usepackage{xeCJK}
 \usepackage{amsmath,amssymb}
-\usepackage{longtable}
+\usepackage{graphicx}
 \usepackage{array}
 \usepackage{booktabs}
-\setCJKmainfont[Path=/home/chano/miniconda3/envs/traffic_rl/fonts/]{NotoSansCJKsc-VF.ttf}
-\setCJKsansfont[Path=/home/chano/miniconda3/envs/traffic_rl/fonts/]{NotoSansCJKsc-VF.ttf}
-\setmainfont[Path=/home/chano/miniconda3/envs/traffic_rl/fonts/]{NotoSansCJKsc-VF.ttf}
+\setCJKmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+\setCJKsansfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
+\setmainfont[Path=/mnt/c/Windows/Fonts/]{simhei.ttf}
 \title{ITSC 论文中文对照版}
 \author{}
 \date{\today}
 \begin{document}
 \maketitle
 
-\section*{论文中文对照文档（ITSC 2026）}
+\section*{论文中文对照文档}
 
 
 > 本文档是 ITSC\_PAPER.md / .tex 的中文版，方便对照英文核对。所有数字、引用、人名、技术术语保留英文原样。
@@ -29,21 +29,21 @@
 \bigskip\hrule\bigskip
 
 
-\section*{摘要（Abstract）}
+\section*{摘要}
 
 
-重载列车在长大下坡路段运行时需要循环空气制动（cyclic air braking），这会产生巨大的列车纵向冲动（车钩力）。当多列这样的列车组成虚拟编队（virtually-coupled platoon）时，每列独立循环制动可能导致追尾，因为后车的速度曲线滞后于前车。我们提出一种分层框架：规则循环制动 + 车钩力安全层（微观） + MAPPO 协同阈值调整（宏观）。在真实的朔黄线（Shuozhou–Huanghua）剖面上使用 1 万吨列车，我们的协同策略（M1）在随机化初态和不断增强的压力下从不追尾；而独立控制（M3）、规则启发式协同（M4）、以及朴素 DQN 基线（M-DQN）都在部分条件下追尾。具体地，在 50 个随机化初态 中，M1 追尾 0/50（0\%），而 M3 追尾 17/50（34\%）；Fisher 精确检验确认这一可靠性差异高度显著（p < 0.00001）。协同增益随压力单调增长（目标间距从 100m 到 40m 时，协同增量从 +67,597 增长到 +89,588），且收益可扩展到 5 列编队（增量 +67,595）。车钩力约束（$\leq$ 1000 kN）由规则循环制动控制器内部的硬安全层强制执行，所有包含该安全层的方法都满足约束；朴素 DQN（既没有该安全层也没有列间协同）违反约束（达 2,111 kN）。协同价值是一种统计显著的可靠性提升——它消除了独立控制偶尔发生的追尾尾部风险。
+重载列车在长大下坡路段运行时需要循环空气制动，这会产生巨大的列车纵向冲动，也就是车钩力。当多列这样的列车组成虚拟编队时，每列独立循环制动可能导致追尾，因为后车的速度曲线滞后于前车。我们提出一种分层框架：规则循环制动加车钩力安全层负责微观控速，MAPPO 协同阈值调整负责宏观决策。在真实的朔黄线剖面上使用 1 万吨列车，我们的协同策略 M1 在随机化初态和不断增强的压力下从不追尾；而独立控制 M3、规则启发式协同 M4、以及朴素 DQN 基线 M-DQN 都在部分条件下追尾。具体地，在 50 个随机化初态 中，M1 追尾 0/50（0\%），而 M3 追尾 17/50（34\%）；Fisher 精确检验确认这一可靠性差异高度显著（p < 0.00001）。协同增益随压力单调增长，目标间距从 100m 到 40m 时协同增量从 +67,597 增长到 +89,588，且收益可扩展到 5 列编队，增量 +67,595。车钩力约束不超过 1000 kN，由规则循环制动控制器内部的硬安全层强制执行，所有包含该安全层的方法都满足约束；朴素 DQN 既没有该安全层也没有列间协同，违反约束达到 2,111 kN。协同价值是一种统计显著的可靠性提升，它消除了独立控制偶尔发生的追尾尾部风险。
 
 
 
-关键词（IEEE keywords）：Heavy-haul train（重载列车）、virtual coupling（虚拟编队）、multi-agent reinforcement learning（多智能体强化学习）、cyclic braking（循环制动）、coupler force（车钩力）、long downhill（长大下坡）。
+关键词：重载列车、虚拟编队、多智能体强化学习、循环制动、车钩力、长大下坡。
 
 
 
 \bigskip\hrule\bigskip
 
 
-\section*{一、引言（Introduction）}
+\section*{一、引言}
 
 
 核心问题：在长大下坡（例如朔黄线，23.8 km 持续 -10.9\textperthousand  坡度）运行的万吨重载列车（1 机车 + 100 货车，约 4 km 长），需要通过循环空气制动调节速度：超速时制动，低速时缓解。循环制动周期会产生巨大的列车纵向冲动（车钩力）。超过车钩力安全限值（正常 1000 kN，根据中国铁道科学院标准）会导致车钩断裂风险。
@@ -66,7 +66,7 @@
 
 我们的贡献：一种分层框架——规则循环制动 + 车钩力安全层（微观） + 基于 RL 的协同阈值调整（宏观）——用于长大下坡重载列车群组的协同控制。
 
-1. 显式建模车钩力作为协同的核心约束和评估指标。与单列车循环制动 RL 工作忽略车钩力不同，我们将车钩力作为一等量（first-class quantity），协同控制必须既尊重又控制它。车钩力安全约束（$\leq$ 1000 kN）在列车内规则循环制动控制器（硬安全层）内部强制执行，因此无论协同层如何设计都满足——消融实验（M1 vs 忽略车钩力的变体）显示车钩力和安全性完全相同，确认约束在物理控制层稳健强制，而非依赖学习策略。协同的价值正是在保持列间间距的同时守住每列的车钩力（所有协同方法在主场景上车钩力 $\leq$ 804 kN）。
+1. 显式建模车钩力作为协同的核心约束和评估指标。与单列车循环制动 RL 工作忽略车钩力不同，我们将车钩力作为一等量，协同控制必须既尊重又控制它。车钩力安全约束（$\leq$ 1000 kN）在列车内规则循环制动控制器（硬安全层）内部强制执行，因此无论协同层如何设计都满足——消融实验（M1 vs 忽略车钩力的变体）显示车钩力和安全性完全相同，确认约束在物理控制层稳健强制，而非依赖学习策略。协同的价值正是在保持列间间距的同时守住每列的车钩力（所有协同方法在主场景上车钩力 $\leq$ 804 kN）。
 
 2. 稳健防追尾。M1 在所有随机化初态下从不追尾（0 $\pm$  0 追尾步数），而独立控制（M3）、规则启发式协同（M4）、缺安全层+缺协同的朴素 DQN（M-DQN）都在部分条件下追尾（45.7 $\pm$  80.7、45.1 $\pm$  80.8、1,434 步）。同架构的公平 DQN（M-DQN-fair，与 M1 共享架构/安全层/观测/奖励，只把 MAPPO 换成 DQN）平均仍追尾 89.2 $\pm$  109.4，将收益归因于 MAPPO 算法本身而非分层架构。
 
@@ -81,7 +81,7 @@
 \bigskip\hrule\bigskip
 
 
-\section*{二、相关工作（Related Work）}
+\section*{二、相关工作}
 
 
 循环空气制动 RL（单列车，忽略车钩力）：Zhang et al. [1] 用 DQN 做朔黄线循环制动（速度范围 [40,80] km/h），但明确说"interaction forces between the cars are not taken into account"。Wang et al. [2] 用 DQN 抑制纵向冲动。Huang et al. [14] 结合专家系统与深度 RL（PPO）。这些工作表明规则循环制动（超 v\_max 制动、低 v\_min 缓解）是领域标准，且 RL 已被用于学习这种制动调度。但它们都忽略车钩力并把列车视为单质点。
@@ -107,13 +107,13 @@ MPC 与最优控制：Yang et al. [8] 用 MPC 做同朔黄线长大下坡单列�
 \bigskip\hrule\bigskip
 
 
-\section*{三、问题与系统模型（Problem and System Model）}
+\section*{三、问题与系统模型}
 
 
 \subsection*{A. 列车纵向动力学与空气制动释放波}
 
 
-多体列车动力学（NeTrainSim 公式 + 多体车钩扩展）：每车独立质点，受力 = 牵引 − 制动 − Davis 阻力 $\pm$  坡度 + 车钩力。空气制动支持双向传播 + 多源制动，沿车列按制动波速向后传播（常用 200 m/s、紧急 250 m/s），是纵向冲动的物理来源。车钩力用质量-弹簧-阻尼 + 车钩间隙死区复现"间隙$\rightarrow$ 车钩力"规律。
+多体列车动力学（NeTrainSim 公式 + 多体车钩扩展）：每车独立质点，受力 = 牵引 $-$  制动 $-$  Davis 阻力 $\pm$  坡度 + 车钩力。空气制动支持双向传播 + 多源制动，沿车列按制动波速向后传播（常用 200 m/s、紧急 250 m/s），是纵向冲动的物理来源。车钩力用质量-弹簧-阻尼 + 车钩间隙死区复现"间隙$\rightarrow$ 车钩力"规律。
 
 
 
@@ -127,7 +127,7 @@ MPC 与最优控制：Yang et al. [8] 用 MPC 做同朔黄线长大下坡单列�
 \bigskip\hrule\bigskip
 
 
-\section*{四、提出的方法（Proposed Method）}
+\section*{四、提出的方法}
 
 
 \subsection*{A. 分层架构}
@@ -151,7 +151,9 @@ MPC 与最优控制：Yang et al. [8] 用 MPC 做同朔黄线长大下坡单列�
 \subsection*{C. 训练与实验设置（Table I：实验设置）}
 
 
-\begin{longtable}{*{20}{p{1.6cm}}}
+\begin{table}[h]\centering\resizebox{\textwidth}{!}{%
+\begin{tabular}{lr}
+\toprule
 参数 & 值 \\
 \midrule
 编组 & 1 万吨，1 机车 + 100 货车（≈4 km） \\
@@ -165,19 +167,21 @@ adj\_coef & 0.3 \\
 车钩力限值 & 1000 / 2250 kN \\
 制动波速 & 200 m/s \\
 训练 / 评估 seed 数 & 3 / 10 \\
-\end{longtable}
+\bottomrule
+\end{tabular}}
+\end{table}
 
 
 \bigskip\hrule\bigskip
 
 
-\section*{五、实验（Experiments）}
+\section*{五、实验}
 
 
 \subsection*{A. 评估协议与基线}
 
 
-评估方式：确定性（policy in eval mode），固定初速 65 km/h 跑 3000 步。稳健性统计用 10 seed 随机化初速 [58,66] km/h，报 mean$\pm$ std。3 列和 5 列编队都评估。
+评估方式：使用确定性策略，固定初速 65 km/h 跑 3000 步。稳健性统计用 10 个随机 seed 改变初速到 [58,66] km/h，报告均值和标准差。3 列和 5 列编队都评估。
 
 
 
@@ -200,7 +204,9 @@ adj\_coef & 0.3 \\
 \subsection*{B. 主结果（Table II：3 列，固定初态 65 km/h）}
 
 
-\begin{longtable}{*{20}{p{1.6cm}}}
+\begin{table}[h]\centering\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrr}
+\toprule
 指标 & Coast & M1 & M3 & M4 & M-DQN-fair & M-DQN \\
 \midrule
 Cumulative reward & +27,950 & +36,446 & -31,151 & -33,991 & -38,432 & -606,185 \\
@@ -209,7 +215,9 @@ Under-speed <40 km/h (\%) & 0.0 & 0.9 & 4.5 & 4.5 & 4.7 & — \\
 Peak coupler force (kN) & 651 & 804 & 734 & 734 & 900 & 2,111 (violated) \\
 Min inter-train gap (m) & 182 & 182 & -321 & -321 & -347 & -234 \\
 Rear-end collision steps & 0 & 0 & 202 & 202 & 229 & 1,434 \\
-\end{longtable}
+\bottomrule
+\end{tabular}}
+\end{table}
 
 
 M1 避免追尾（0 vs 202），保持最小间距 182 m，而 M3/M4 独立控制导致间距崩塌（-321 m）。所有包含第 1 层车钩力安全层的方法（M1/M3/M4/M-DQN-fair）车钩力都 <1000 kN。两个 DQN 基线暴露两种不同失败模式。公平 DQN（M-DQN-fair）——与 M1 同架构/安全层/观测/奖励，但用 DQN 代替 MAPPO 做协同阈值调整——仍追尾 229 步且不保持间距（协同策略不比独立控制更稳健），孤立出局限在 RL 算法而非架构。朴素 DQN（M-DQN）——额外省略第 1 层车钩力安全层和列间协同——违反车钩力限值（2,111 kN）且追尾更频繁（1,434 步）——表明同时省略车钩力约束和协同控制是多列制动时不安全的。
@@ -219,14 +227,18 @@ M1 避免追尾（0 vs 202），保持最小间距 182 m，而 M3/M4 独立控�
 \subsection*{C. 鲁棒性（Table III：随机化初态，3 列）}
 
 
-\begin{longtable}{*{20}{p{1.6cm}}}
+\begin{table}[h]\centering\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
 指标 & M1 (coop) & M3 (indep) & M4 (rule) & M-DQN-fair \\
 \midrule
 Reward (mean $\pm$  std, 10 seed) & +34,929 $\pm$  1,158 & +19,921 $\pm$  26,808 & +17,452 $\pm$  27,012 & +4,964 $\pm$  34,703 \\
 Reward (median) & +35,686 & +35,527 & +33,174 & +28,234 \\
 Collision steps (10 seed) & 0 $\pm$  0 & 45.7 $\pm$  80.7 & 45.1 $\pm$  80.8 & 89.2 $\pm$  109.4 \\
 Collision seeds (50) & 0/50 (0\%) & 17/50 (34\%) & — & — \\
-\end{longtable}
+\bottomrule
+\end{tabular}}
+\end{table}
 
 
 关键发现是统计显著的可靠性差异。在 50 个随机化初态中，M1 从不追尾（0/50, 0\%）而独立控制 M3 在 17/50 (34\%) 条件下追尾；Fisher 精确检验确认这高度显著（p < 0.00001）。可靠性是核心价值：M3 的追尾罕见但灾难性——其 reward 在追尾 seed 上崩到 ≈-30k 而其他 seed 上达 ≈+35k，所以均值 reward 的 Welch t-test 不显著（p=0.13），方差比 M1 大 ~536$\times$ 。换言之，协同并不均匀提升速度；它消除了独立控制偶尔发生的追尾尾部风险。公平 DQN（M-DQN-fair）方差更高（$\pm$ 34,703）且平均追尾 89.2$\pm$ 109.4——DQN 协同策略甚至不如规则启发式稳健。规则启发式协同（M4）也不能达到这个稳健性，证明学习 MAPPO 策略的必要性。
@@ -243,12 +255,16 @@ Collision seeds (50) & 0/50 (0\%) & 17/50 (34\%) & — & — \\
 \subsection*{E. 可扩展性到 5 列（Table V：3 vs 5 列协同增量，固定初态 65，100 m）}
 
 
-\begin{longtable}{*{20}{p{1.6cm}}}
+\begin{table}[h]\centering\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrr}
+\toprule
 Platoon & M1 (coop) & M3 (indep) & Gain & M-DQN \\
 \midrule
 3 列 & +36,446 & -31,151 & +67,597 & -606,185 \\
 5 列 & +72,572 & +4,977 & +67,595 & -739,997 \\
-\end{longtable}
+\bottomrule
+\end{tabular}}
+\end{table}
 
 
 5 列协同增量 +67,595（M1 +72,572 vs M3 +4,977）几乎与 3 列增量（+67,597）相同。M1 仍无追尾、车钩力 804 kN；M-DQN 仍失败。协同收益可扩展到更大编队。
@@ -286,12 +302,16 @@ M1 和 M3 峰值车钩力 <1000 kN（804/734 kN），公平 DQN 也守住 900 kN
 
 
 
-\begin{longtable}{*{20}{p{1.6cm}}}
+\begin{table}[h]\centering\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrr}
+\toprule
 Metric (10-seed randomization) & M1 (coop) & M3 (indep) & M-DQN-fair \\
 \midrule
 Reward (mean $\pm$  std) & +34,311 $\pm$  7,621 & +28,464 $\pm$  15,284 & +25,097 $\pm$  18,545 \\
 Rear-end collision steps & 1.6 $\pm$  8.6 & 13.9 $\pm$  31.4 & 23.9 $\pm$  45.9 \\
-\end{longtable}
+\bottomrule
+\end{tabular}}
+\end{table}
 
 
 M1 把平均追尾和方差都减半；公平 DQN 仍最不稳健——在另一条线路上复现了朔黄线发现。该剖面上的压力消融（target gap 100$\rightarrow$ 60 m）显示协同增量单调增长（+14,577 $\rightarrow$  +23,298）；在极端 40 m 间距下只用 100 m 训练的 M1 策略退化，表明零样本间距迁移的极限。可扩展性仍成立：在该剖面上为 5 列编队重训 M1 给出 +71,098（追尾 0，最小间距 83 m）vs M3 +58,404（最小间距 23 m）和独立重训的 5 列 M-DQN-fair +62,547（追尾 0，最小间距 182 m；10 seed +66,454$\pm$ 2,481、0$\pm$ 0 追尾）。5 列 fair DQN 是为 5 列编队独立重训的（而非复用 3 列权重），且不追尾——MAPPO 优势仍存在（最高 reward），但在 5 列下差距缩小。
@@ -308,7 +328,7 @@ M1 把平均追尾和方差都减半；公平 DQN 仍最不稳健——在另一
 \bigskip\hrule\bigskip
 
 
-\section*{六、结论（Conclusion）}
+\section*{六、结论}
 
 
 关键洞察：
