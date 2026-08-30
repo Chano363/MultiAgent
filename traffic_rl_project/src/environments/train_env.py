@@ -60,9 +60,30 @@ def consist_10kt_1plus0():
     return TrainConsist([loco] + [car for _ in range(100)])
 
 
+def consist_20kt_1plus108_1plus108():
+    """二万吨级组合列车：1 机车 + 108 货车 + 1 机车 + 108 货车（约 20176 t）。
+
+    对齐 Zhang2024 / 张二田实测编组（1+108+1+108），用于编组规模效应验证：
+    同一模型下 2 万吨循环制动车钩力应接近实测 929/1021 kN，
+    以证明仿真器能代表 1 万吨 1+0 编组（527/597 kN 是编组差异的合理结果）。
+    """
+    loco = LocomotiveParams(
+        mass_t=188.0, no_of_axles=6, frontal_area_m2=11.5, drag_coef=1.4,
+        length_m=21.0, max_power_kw=9600.0, transmission_efficiency=0.85,
+        max_speed_mps=30.0, n_notches=8,
+    )
+    car = VehicleParams(
+        mass_t=100.0, no_of_axles=4, frontal_area_m2=10.0, drag_coef=1.0,
+        length_m=12.0,
+    )
+    return TrainConsist([loco] + [car for _ in range(108)] +
+                        [loco] + [car for _ in range(108)])
+
+
 CONSIST_PRESETS = {
     'default': default_consist,
     '10kt_1plus0': consist_10kt_1plus0,
+    '20kt_1plus108_1plus108': consist_20kt_1plus108_1plus108,
 }
 
 
@@ -102,6 +123,9 @@ class TrainFormationEnv:
         # 论文依据：Zhang2025 大秦线 20kT EOT 使最大拉钩力 780→489kN（-37%）。
         # 用于缓解波下把"缓解后车钩力"峰值降到 1000kN 以内。
         self.eot = config.get('eot', False)
+        # 【2026-08-30 基线对齐】多机同步制动（LTE-R 同步操控，张二田2021）：
+        # 制动指令时所有机车（含中置从控）作为波源双向传播，初制动时差 ~3s。
+        self.sync_loco_brake = config.get('sync_loco_brake', True)
 
         # 编组预设：优先用预设（如万吨级 1+0），否则按 num_vehicles 构造默认
         consist_preset = config.get('consist_preset', None)
@@ -277,9 +301,20 @@ class TrainFormationEnv:
                 if self._air_brake_priority(notch, ab_command):
                     ab_command = notch
 
+        # 【2026-08-30 基线对齐】多机同步制动（LTE-R 机车同步操控）：
+        # "1+1"编组的中置从控机车同步响应制动指令，空气制动波从所有机车
+        # 双向传播（张二田2021：2万吨初制动时差仅~3s，缓解时差~10s）。
+        # 原单源队首发波 → 后半列延迟9-12s前涌 → 中置机车旁车钩力虚高
+        # （A基准 2843 kN vs 实测 650-1430 kN）。
+        ab_sources = None
+        if ab_command != AirBrakeNotch.RELEASE and self.sync_loco_brake:
+            ab_sources = [
+                (i, ab_command) for i, v in enumerate(self.dynamics.consist.vehicles)
+                if v.is_locomotive
+            ]
         self.dynamics.step_vehicles_ed_ab(
             throttle, ed_throttle, ab_command, release_sync=self.release_sync,
-            eot=self.eot,
+            eot=self.eot, ab_sources=ab_sources,
         )
 
         obs = self._get_obs()
