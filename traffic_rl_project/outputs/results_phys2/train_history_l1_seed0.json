@@ -1,0 +1,31 @@
+{
+  "rewards": [
+    -15716.185552425892,
+    -16980.620042281727,
+    -15830.354856486912
+  ],
+  "peak_coupler_kN": [
+    413.4970593735811,
+    492.31674969812053,
+    402.1483106624446
+  ],
+  "violations": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "meta": {
+    "seed": 0,
+    "episodes": 3,
+    "max_steps": 1500,
+    "grade_profile": "shuozhou_23800",
+    "warm_start": true,
+    "init_speed_kmh": 65.0,
+    "v_range_kmh": [
+      40.0,
+      80.0
+    ],
+    "best_reward": -15716.185552425892,
+    "physics": "MT2-hysteresis+real-brake+parallel-wave (2026-08-30 基线对齐)"
+  }
+}

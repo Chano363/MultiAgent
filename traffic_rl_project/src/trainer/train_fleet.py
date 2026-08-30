@@ -34,6 +34,77 @@ from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
 
 
+def save_training_artifacts(
+    rewards, peak_coupler, violations, meta, results_dir, figures_dir, tag
+):
+    """保存训练历史（JSON/CSV）并绘制学习曲线 PNG（论文/PPT 用）。
+
+    每次调用都全量覆写，保证训练中断（前台超时）后已有数据不丢失。
+    """
+    import json
+    import csv
+
+    Path(results_dir).mkdir(parents=True, exist_ok=True)
+    Path(figures_dir).mkdir(parents=True, exist_ok=True)
+    hist = {
+        'rewards': [float(r) for r in rewards],
+        'peak_coupler_kN': [float(c) for c in peak_coupler],
+        'violations': [float(v) for v in violations],
+        'meta': meta,
+    }
+    with open(Path(results_dir) / f"train_history_{tag}.json", 'w',
+              encoding='utf-8') as f:
+        json.dump(hist, f, ensure_ascii=False, indent=2)
+    with open(Path(results_dir) / f"train_history_{tag}.csv", 'w',
+              newline='', encoding='utf-8') as f:
+        w = csv.writer(f)
+        w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations'])
+        for i, (r, c, v) in enumerate(zip(rewards, peak_coupler, violations)):
+            w.writerow([i + 1, f"{r:.2f}", f"{c:.1f}", f"{v:.1f}"])
+
+    # 学习曲线图（三子图：reward 原始+10ep滑动平均 / 车钩力峰值 / 超限次数）
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        from src.utils.plot_style import setup_cjk_font
+        setup_cjk_font()
+
+        eps = np.arange(1, len(rewards) + 1)
+        fig, axes = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
+        axes[0].plot(eps, rewards, alpha=0.35, color='tab:blue', label='每回合')
+        if len(rewards) >= 10:
+            ma = np.convolve(rewards, np.ones(10) / 10, mode='valid')
+            axes[0].plot(eps[9:], ma, color='tab:blue', lw=2,
+                         label='10 回合滑动平均')
+        axes[0].axhline(0, color='gray', lw=0.6, ls='--')
+        axes[0].set_ylabel('回合奖励')
+        axes[0].legend(loc='lower right', fontsize=8)
+        axes[0].set_title(f'MAPPO 群组协同训练曲线（{tag}）', fontsize=11)
+
+        axes[1].plot(eps, peak_coupler, alpha=0.35, color='tab:orange')
+        if len(peak_coupler) >= 10:
+            ma_c = np.convolve(peak_coupler, np.ones(10) / 10, mode='valid')
+            axes[1].plot(eps[9:], ma_c, color='tab:orange', lw=2)
+        axes[1].axhline(1000, color='red', lw=1.0, ls='--', label='1000 kN 安全限值')
+        axes[1].set_ylabel('车钩力峰值 (kN)')
+        axes[1].legend(loc='upper right', fontsize=8)
+
+        axes[2].plot(eps, violations, alpha=0.35, color='tab:green')
+        if len(violations) >= 10:
+            ma_v = np.convolve(violations, np.ones(10) / 10, mode='valid')
+            axes[2].plot(eps[9:], ma_v, color='tab:green', lw=2)
+        axes[2].set_ylabel('车钩力超限次数')
+        axes[2].set_xlabel('训练回合')
+        for ax in axes:
+            ax.grid(alpha=0.3)
+        fig.tight_layout()
+        fig.savefig(Path(figures_dir) / f"fig_learning_curve_{tag}.png", dpi=150)
+        plt.close(fig)
+    except Exception as e:  # 绘图失败不应中断训练
+        logger.warning(f"[警告] 学习曲线绘制失败（训练继续）: {e}")
+
+
 def set_seed(seed: int):
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -77,6 +148,7 @@ def train(
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
     curriculum: str = None,          # 可选：'300-1000-3000' 形式，递增 horizon 分段训练（增强长程泛化）
+    resume: str = None,              # 可选：续训检查点路径（加载策略继续训练，前台分块训练用）
 ):
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -137,6 +209,14 @@ def train(
     Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
     Path(results_dir).mkdir(parents=True, exist_ok=True)
 
+    # 【2026-08-30】断点续训：加载已有策略继续训练（前台分块训练用，
+    # 优化器状态随 checkpoint 一并保存/恢复，热启动续训不打断学习进程）
+    if resume and Path(resume).exists():
+        agent.load(resume)
+        logger.info(f"已加载续训检查点: {resume}")
+    elif resume:
+        logger.warning(f"[警告] 续训检查点不存在，从头训练: {resume}")
+
     episode_rewards = []
     episode_peak_coupler = []
     episode_violations = []
@@ -177,7 +257,10 @@ def train(
         ep_viol = 0
         step = 0
 
-        while not done and step < max_steps:
+        # 【bug修复 2026-08-30】原用基础 max_steps 截断，而 curriculum 改的是
+        # env.max_steps → curriculum 静默失效（所有阶段实际都跑 max_steps 步，
+        # 与不开 curriculum 结果完全一致）。改为按 env.max_steps 截断。
+        while not done and step < env.max_steps:
             flat_obs = obs.flatten()
             actions, log_prob = agent.select_actions(flat_obs)
             action_for_env = actions.reshape(num_trains, 1)
@@ -232,6 +315,24 @@ def train(
             # checkpoint 带 seed + coupler 标识（多种子/消融训练不互相覆盖）
             cp_tag = 'cp' if use_coupler_constraint else 'nocp'
             agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{ep+1}_{cp_tag}_seed{seed}.pt"))
+
+        # 【2026-08-30】训练历史落盘 + 学习曲线图（论文/PPT 用，前台中断也不丢数据）
+        if (ep + 1) % 10 == 0 or ep == episodes - 1:
+            cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+            save_training_artifacts(
+                episode_rewards, episode_peak_coupler, episode_violations,
+                meta={
+                    'seed': seed, 'episodes': episodes, 'num_trains': num_trains,
+                    'grade_profile': grade_profile, 'max_steps': max_steps,
+                    'hierarchical': hierarchical, 'adj_coef': adj_coef,
+                    'coupler_constraint': use_coupler_constraint,
+                    'best_reward': float(best_reward),
+                    'physics': 'MT2-hysteresis+real-brake+parallel-wave (2026-08-30 基线对齐)',
+                },
+                results_dir=results_dir,
+                figures_dir='outputs/figures',
+                tag=f"{cp_tag}_seed{seed}",
+            )
 
     total_time = time.time() - start_time
     logger.info("=" * 70)
@@ -302,6 +403,8 @@ if __name__ == '__main__':
                         help='结果输出目录')
     parser.add_argument('--curriculum', type=str, default=None,
                         help='curriculum 递增 horizon：如 "300-1000-3000"，分段增强长程泛化（缓解短训过拟合）')
+    parser.add_argument('--resume', type=str, default=None,
+                        help='续训检查点路径（加载策略+优化器继续训练，前台分块训练用）')
 
     args = parser.parse_args()
     train(
@@ -336,4 +439,5 @@ if __name__ == '__main__':
         curriculum=args.curriculum,
         checkpoint_dir=args.checkpoint_dir,
         results_dir=args.results_dir,
+        resume=args.resume,
     )

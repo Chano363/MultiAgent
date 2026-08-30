@@ -202,3 +202,15 @@
 - **动力学子步进 ≤0.01s**（内部自动拆分，RL dt=0.1 透明；缓冲器冲击 50-100ms，0.1s 无法解析会 NaN）
 
 **验证结论（2026-08-30）**：B 651/671 vs 634（+3%/+6%）✅；A 1989 ∈ [836,2142] ✅。验证脚本 `src/evaluation/verify_dual_baseline.py`（dt=0.01）。**改任何动力学参数前先跑它**。
+
+## RL 重训状态（2026-08-30，物理对齐后）
+
+**结论：旧 RL 模型需在新物理下重训**（虽然旧 M1 仍可用——追尾0、车钩力659kN、M1>>M3 成立，但训练数据来自有 bug 的动力学，论文结果必须基于已验证物理）。
+
+**重训配方（已验证，勿改）**：
+- 第2层群组协同：`train_fleet.py --hierarchical --episodes 24 --curriculum 300-1000`（**必须带 curriculum**，短回合训练车钩力观测≈0 学不到协同；curriculum bug 已修，修复前静默失效）
+- seed0 结果：reward +36237、追尾0、车钩力659kN（vs 旧物理模型 +36445）
+- 检查点：`outputs/checkpoints_phys2_cur/`；评估：`eval_phys2_m1_5seed.py`；学习曲线自动存 `outputs/figures/fig_learning_curve_*.png` + `outputs/results_phys2/`
+- 第1层无需重训：群组环境已用**规则循环制动**（HierarchicalController）执行第1层，RL 第1层策略不参与 fleet 训练
+
+**出图字体**：WSL conda 无 CJK 字体，必须用 `src/utils/plot_style.py::setup_cjk_font()`（注册 Windows 微软雅黑 /mnt/c/Windows/Fonts/msyh.ttc），否则中文变方块。

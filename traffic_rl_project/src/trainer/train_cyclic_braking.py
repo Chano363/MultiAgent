@@ -350,6 +350,22 @@ def train(
                 f"loss {metrics.get('total_loss',0):.3f}"
             )
             sys.stdout.flush()
+            # 【2026-08-30】训练历史落盘 + 学习曲线图（论文/PPT 用，前台中断不丢数据）
+            from src.trainer.train_fleet import save_training_artifacts
+            save_training_artifacts(
+                episode_rewards, episode_peak_coupler, episode_violations,
+                meta={
+                    'seed': seed, 'episodes': episodes, 'max_steps': max_steps,
+                    'grade_profile': grade_profile, 'warm_start': warm_start,
+                    'init_speed_kmh': init_speed * 3.6,
+                    'v_range_kmh': [V_MIN_MPS * 3.6, V_MAX_MPS * 3.6],
+                    'best_reward': float(best_reward),
+                    'physics': 'MT2-hysteresis+real-brake+parallel-wave (2026-08-30 基线对齐)',
+                },
+                results_dir=results_dir,
+                figures_dir='outputs/figures',
+                tag=f"l1_seed{seed}",
+            )
 
     total_time = time.time() - start_time
     logger.info("=" * 70)
@@ -393,6 +409,10 @@ if __name__ == '__main__':
                         help='初始速度 km/h（默认 65，Zhang2024；80=立即触发循环制动）')
     parser.add_argument('--warm_start', action='store_true',
                         help='用规则循环制动做行为克隆预训练策略（E15修复持续牵引问题）')
+    parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
+                        help='checkpoint 输出目录（重训时用新目录，避免覆盖旧模型）')
+    parser.add_argument('--results_dir', type=str, default='outputs/results',
+                        help='训练历史输出目录')
     args = parser.parse_args()
 
     V_MAX_MPS = args.v_max
@@ -409,4 +429,6 @@ if __name__ == '__main__':
         device=args.device,
         seed=args.seed,
         release_sync=not args.no_release_sync,
+        checkpoint_dir=args.checkpoint_dir,
+        results_dir=args.results_dir,
     )
