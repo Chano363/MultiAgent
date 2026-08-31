@@ -1,0 +1,30 @@
+# 新物理(phys2)全套对比/消融/域外数据 —— 2026-08-30 批量评估结果
+# 命令: tmp_run_full_phys2.sh (job-b9c00bf4, exit 0) + tmp_run_safety_ablation.sh
+# 模型: outputs/checkpoints_phys2_warm/mappo_fleet_best_cp_seed0.pt (phys2 5seed 达标)
+# 协议: 朔黄线主剖面(23.8km) 3000步/seed, 固定初态确定性(n_seed=1, M1另报5seed均值)
+# 低40=掉到最低缓解速度(40km/h)以下时长占比; 追尾=间距<0的步数累计
+
+## [主对比] 固定初态确定性
+M1(5seed avg, eval_summary): reward=+36004±? 车钩力峰=659kN 间距min=92m 追尾步数=0 低40=1.3%
+M3(δ=0):  reward=+9791 车钩力峰=543kN 追尾步数=69
+M-DQN-fair(seed0): reward=-15215 车钩力峰=463kN 间距min=-116m 追尾步数=157 低40=1.8% 循环制动=1
+M-MPC-fair(B=5x10,固定初态): reward=-115622 车钩力峰=1178kN(>1000) 间距min=105m 追尾步数=0 低40=71.6% 循环制动=5 每步求解=110.7ms
+Coast(惰行参照): reward=+33871 车钩力峰=667kN 间距min=183m 追尾步数=0 低40=0%
+
+## [压力消融] target_gap=40m
+M1(gap40): reward=+36365 车钩力峰=659kN 间距min=92m 追尾步数=0 低40=1.3% 循环制动=2
+M3(gap40): reward=-11137 车钩力峰=543kN 间距min=-129m 追尾步数=179 低40=1.3% 循环制动=2
+Coast(gap40): reward=+33673 追尾步数=0 间距min=123m
+# 协同增量: gap100 = 36004-9791 = +26213 ; gap40 = 36365-(-11137) = +47502 (单调放大)
+
+## [域外] grade=long_downhill_20km (Layer-1 免调参跨线)
+M1: reward=+36120 车钩力峰=623kN 间距min=183m 追尾步数=0 低40=1.4% 循环制动=2
+M3: reward=-6688 车钩力峰=494kN 间距min=-114m 追尾步数=143 低40=1.4% 循环制动=2
+Coast: reward=+38331 追尾步数=0
+
+# 安全层消融(--no_coupler)结果见 mpc_safety_ablation_20260830.txt 或 jobs/job-0bb2097d
+## [安全层消融] use_coupler_constraint=False (固定初态 gap=100)
+M1(--no_coupler): reward=+36270 车钩力峰=659kN 间距min=175m 追尾步数=0 低40=1.3% 循环制动=2
+M3(--no_coupler): reward=+9791 车钩力峰=543kN 间距min=-45m 追尾步数=69 低40=1.3% 循环制动=2
+# 结论: 与安全层开启几乎无差异(m1: 659kN/追尾0, m3: 543kN/追尾69) → 安全层在名义确定性场景未激活,
+#       车钩力约束主要由规则循环制动+MT-2物理落实, 与 M1/M2 忽略车钩力"结构性无差异"同源(诚实记录)

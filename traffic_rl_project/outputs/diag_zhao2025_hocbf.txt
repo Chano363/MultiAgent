@@ -1,0 +1,1039 @@
+# SOURCE: D:\Code\MultiAgent\traffic_rl_project\docs\papers\Safe_Reinforcement_Learning_Control_of_High-Speed_Maglev_Train_Levitation_System_Considering_Aerodynamic_Lift_Force.pdf
+# PAGES: 8
+
+1 
+> FOR CIYCEE 2025 PAPER < 
+ 
+Abstract -- High-speed maglev train levitation systems face 
+significant stability and safety challenges due to their inherent 
+nonlinear open-loop instabilit y and the complex operating 
+environment caused by aerody namic lift force and track 
+irregularities. Existing model-based control methods rely on 
+precise mathematical models and manual parameter tuning, 
+struggling to adapt to comp lex dynamic environments. 
+Learning-based approaches, mean while, suffer from difficulties 
+in convergence under strong disturbances and insufficient 
+safety guarantees. To address these limitations, this paper 
+proposes a safe reinforcement learning control method based on 
+higher-order control barrier functions (HOCBF) and 
+disturbance observer (DOB). The proposed method employs a 
+hierarchical design: reinforcement learning (RL) adaptively 
+learns the optimal policy from data; HOCBF construct a safety 
+layer to modify the RL agent's actions, ensuring system safety; 
+and the DOB compensates for external disturbances like 
+aerodynamic lift, enhancing co nvergence stability under strong 
+disturbances. Simulation results verify the efficacy of the 
+presented approach under three operating conditions, 
+confirming remarkable improvements in convergence 
+performance under strong disturbances and enhanced stability. 
+ 
+Index Terms -- Maglev train, Levitation system, Safe 
+reinforcement learning, Control barrier function, Disturbance 
+observer.  
+ 
+I.   INTRODUCTION 
+lectromagnetic Suspension (EMS) type high-speed 
+maglev trains achieve contactless support, guidance, 
+traction, and braking through electromagnetic forces between 
+the vehicle and the track. Maglev trains obtain power through 
+non-contact energy transfer , overcoming the two key 
+limitations constraining the speed of traditional wheel-rail 
+trains: adhesion utilization and sliding current collection [1], 
+[2]. Consequently, maglev trains have become a research 
+hotspot for next-generation ultra-high-speed trains. 
+Theoretically, high-speed maglev trains offer an 
+economically viable operating speed of up to 600 km/h, 
+effectively bridging the speed gap between high-speed rail 
+and air transport [3]. 
+The levitation subsystem serves as the core component 
+ensuring contactless and safe operation of high-speed maglev 
+trains, and its operational performance directly impacts the 
+train’s safety and passenger ride comfort [4]. The levitation 
+ 
+This work was supported by National Natural Science Foundation of 
+China (NSFC) under Project Numbers 52272374, 52441203 and 52522217. 
+(Corresponding author: Yougang Sun) 
+Xiaoning Zhao, Yougang Sun, Zhao  Xu, Zeng Zhang and Bing Ren are 
+with State Key Laboratory of High-speed Maglev Transportation 
+Technology, College of Transportation, Tongji University, Shanghai 201804, 
+China (e-mail: zhaoxiaoning@tong ji.edu.cn; 1989yoga@tongji.edu.cn; 
+xuzhao94@foxmail.com; 2534222@tongji.edu.cn; 2253654@tongji.edu.cn). 
+system exhibits inherent nonlinear open-loop instability. 
+Furthermore, electromagnets can only provide unidirectional 
+upward force, stable levitation relies on the counteracting 
+force of gravity [5]. The operating environment is complex, 
+subject to aerodynamic lift forces  and track irregularities. At 
+high speeds, the aerodynamic lif t force increases rapidly. Its 
+counteraction to gravity causes a rapid reduction in the 
+levitation gap, significantly increasing the risk of collision 
+accidents between the train and track. [6]. 
+Numerous researchers have proposed solutions from the 
+perspective of levitation control algorithms. For instance, 
+considering the imp act of unsteady periodic aerodynamic 
+forces on the levitation system's  dynamic response, Liu et al. 
+[7] identified bifurcation parameter intervals for control 
+gains in full-state feedback control. Wang et al. [8] analyzed 
+the influence of control gain parameters on system stability 
+under random excitation induced by track irregularities, 
+determining recommended value ranges for proportional 
+derivative (PD) control parameters. 
+Beyond classical control meth ods like full-state feedback 
+and PD control, modern control techniques have been widely 
+applied to enhance levitation system robustness. For example, 
+considering voltage saturation, sensor noise, and various 
+parameter uncertainties in the levitation system, Li et al. [9] 
+developed a self-tuning double-layer SMC system capable of 
+achieving high-performance control with relatively low 
+control voltages under significant model uncertainty and 
+disturbances, validated experimentally. Considering 
+constraints on gap, velocity, an d acceleration, Hu et al. [10] 
+proposed a robust MPC strate gy, efficiently solving the 
+optimization problem using a primal-dual interior-point 
+algorithm to handle constraints in real-time, with 
+effectiveness demonstrated vi a simulation. Furthermore, 
+incorporating vehicle-track coupled vibration and control 
+loop faults, Guo et al. [11] established a coupled vehicle-
+track model, analyzed the dynamic response performance of 
+the levitation system under different fault conditions, and 
+validated the model's accuracy by comparing it with 
+measured train-viaduct responses. 
+State observers, which reconstruct unmeasurable system 
+states from measurable outputs,  provide more complete state 
+information for controller design [12]. The application of 
+sliding mode observers [13], extended state observers [14], 
+and Kalman filter observers [15] has further improved the 
+control accuracy and disturbance rejection capability of 
+levitation systems under complex operating conditions. For 
+instance, considering track irregularity excitation, Jiang et al. 
+[16] designed an adaptive disturbance observer to 
+compensate for and suppress irregularity disturbances, 
+achieving stable levitation of a half-suspension frame 
+Safe Reinforcement Learning Control of High-
+Speed Maglev Train Levitation System 
+Considering Aerodynamic Lift Force 
+Xiaoning Zhao, Yougang Sun*, Zhao Xu, Zeng Zhang, Bing Ren 
+E 
+2025 IEEE China International Youth Conference on Electrical Engineering (CIYCEE) | 979-8-3315-8783-3/25/$31.00 ©2025 IEEE | DOI: 10.1109/CIYCEE67631.2025.11308942
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+2 
+> FOR CIYCEE 2025 PAPER < 
+ 
+combined with a prescribed- time synchronous controller. 
+Zhu et al. [17] proposed an adaptive SMC method based on a 
+linear extended state observer (LESO). The LESO estimates 
+the system's total disturbance and unmodeled dynamics in 
+real-time, which are then canceled within the SMC. 
+Simulations and experiments verified the controller's strong 
+robustness against noise and external disturbances. 
+Unlike the model-based methods above, learning-based 
+methods can adaptively learn optimal control policies 
+directly from data, freeing them from reliance on manual 
+tuning and expert experience, thus offering better 
+adaptability. Representative learning-based methods include 
+iterative learning control [18], neural network control [19], 
+and reinforcement learning control (RL) [20]. Particularly, 
+deep RL, with its capability to learn complex policies in 
+high-dimensional environments , has achieved remarkable 
+success and become a powerful  approach for addressing 
+challenges in levitation systems. For example, Zhu et al. [21] 
+proposed a multi-agent RL cooperative levitation controller, 
+with simulations indicating its effectiveness in handling 
+coupling effects between levitation units. While these 
+methods yield promising results, the following issues remain 
+unresolved: 
+1) In model-based methods, controller design heavily 
+depends on accurate mathematical models of the levitation 
+system, and performance is significantly influenced by 
+manual tuning and expert experience. Adapting 
+hyperparameters to accommodat e the changing dynamics of 
+the levitation system in complex environments is challenging. 
+2) Learning-based methods typically employ an end-to-
+end approach to directly solve for the optimal policy. 
+However, under strong disturbances like aerodynamic loads, 
+RL algorithms struggle to converge and find the optimal 
+solution. 
+3) Current RL algorithms designed for levitation systems 
+lack safety guarantees, unab le to prevent the agent from 
+taking unsafe actions during random exploration. 
+Notably, the concept of safe RL has been explored in 
+other domains. For instance, Em am et al. [22] formulated a 
+constrained optimization problem based on control barrier 
+functions (CBF) to ensure safety during training. Han et al. 
+[23] constructed cost constraints based on Lyapunov theory, 
+theoretically guaranteeing the stability of the control system 
+upon RL convergence. Synthesizing the above analysis, this 
+paper focuses on the disturbance caused by aerodynamic lift 
+on high-speed maglev train levitation systems and proposes a 
+safe RL control method based on higher-order CBF (HOCBF) 
+and disturbance observer (DOB). Guided by a hierarchical 
+design principle, actions genera ted by the RL agent are first 
+corrected by a safety layer constructed using HOCBF. 
+Additionally, a DOB is designed to compensate for 
+aerodynamic loads, ensuring stab le algorithm convergence. 
+The main contributions of this paper are: 
+1) The proposed method ad aptively learns the optimal 
+policy from data, avoiding the high model dependency of 
+existing approaches. 
+2) The safety layer, designed using HOCBF, theoretically 
+guarantees the safety of the levitation system. Furthermore, 
+embedding the safety layer into the RL algorithm via 
+differentiable optimization accelerates convergence. 
+3) Targeted handling of disturbances like aerodynamic 
+loads through the DOB mitigates convergence difficulties of 
+the RL algorithm caused by strong disturbances, improving 
+algorithm stability and control performance. 
+The rest of this paper is organized as follows: Section II 
+establishes the single-point levitation system model and 
+formulates it as a Markov Deci sion Process (MDP). Section 
+III introduces the adopted RL algorithm, provides a detailed 
+derivation of the proposed HOCBF-based safe RL control 
+algorithm for the levitation system, and presents the observer 
+design alongside stability proofs. Section IV validates the 
+effectiveness of the proposed method under three different 
+operating conditions, including aerodynamic load 
+disturbances, via simulation. Section V concludes the paper. 
+ 
+ 
+ 
+Fig. 1. Levitation system model 
+II.   LEVITATION SYSTEM MODELING 
+Considering the levitation system model shown in Fig. 1, 
+the electromagnetic force can be expressed as 
+ 
+22
+0 ()
+()4
+e
+N utF c
+S
+t
+  
+ (1) 
+where 0  denotes the magnetic permeability of air, N  
+represents the number of turn s of the electromagnet coil, S  
+denotes the pole area, ui  refers to the control current, 
+and c  denotes the levitation air gap. 
+The force transmitted from the suspension system to the 
+electromagnet can be expressed as 
+ () ()s sf c cf cF kz z kz z    (2) 
+where sk  is the suspension stiffness, ck  is the suspension 
+damping coefficient, fz  is the car body displacement, cz  
+is the electromagnet displacement, czc . 
+Selecting the state vector as 
+ 1234 ffzz zzz c c zz     , the system 
+equation can be written as 
+ 
+12
+2
+34
+4
+es
+sd
+zz
+F Fzg mm
+zz
+F Fzg M M
+
+
+    
+
+ 
+
+
+
+
+ (3) 
+where m  denotes the mass of the electromagnet, M  
+denotes the equivalent mass of the car body mapped to the 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+3 
+> FOR CIYCEE 2025 PAPER < 
+ 
+single-point levitation system, and dF  represents the 
+disturbance force. 
+Defining the levitation cont roller as the agent and the 
+levitation system as the environment, the problem is modeled 
+using a MDP. The MDP is represented by the tuple 
+PR , consisting of: a set   composed of state 
+variables z ; a set  composed of actions ui ; the state 
+transition probability (( 1 ) | ( ) , ( ) )Pzt zt ut  defining the 
+probability of transitioning from the current state to the next 
+state; and the reward function (, )Rr z u . At time step t , 
+the agent generates a control input () ()ut it  via its policy 
+(( ) | ( ) )ut zt  and interacts with the environment, causing 
+the system state to  transition from ()zt  to (1 )zt   and 
+receiving a reward ()Rt . The tuple 
+ () () () ( 1 )zt ut Rt zt   obtained fr om the agent-
+environment interaction is stored in the experience replay 
+buffer  . 
+III.   CONTROL SYSTEM DESIGN 
+A.   RL controller 
+The designed RL controller fo r the levitation system is 
+based on the Soft Actor-Cr itic (SAC) algorithm. Its 
+optimization objective can be written as: 
+ max  ( ( ), ( )) t
+t
+rzt ut
+ 
+  (4) 
+   0s.t. log( ( ( ) | ( )))ut zt   (5) 
+where   is the policy; [0,1]  is the discount factor; 
+and 0  is an entropy threshold used to constrain the 
+stochasticity of the policy. 
+For continuous action spaces , such as th e levitation 
+system, SAC outputs the mean and variance of a Gaussian 
+distribution. Differentiability relative to the policy network is 
+achieved using the reparameterization trick: 
+ () (() , () )ut f t zt    (6) 
+where   is a noise variable samp led from a unit Gaussian 
+distribution  , and f  represents the policy network. 
+The loss function for the policy network is: 
+ 
+1,2
+()
+log( ( ( )| ( )) ] )m i n ( ( ) , )[( )
+jj
+L
+ut zt Q zt ut
+
+
+
+ 
+ (7) 
+where   is the entropy weight coefficient, and Q  is the 
+action-value function (Q-function). To mitigate the 
+overestimation of action values, two Q-function networks are 
+used, and the minimum of their outputs is taken. 
+The loss function for any one Q-function network is: 
+ 21 (( ) , ( ) ) ( ] () ( ( 1 ) ) )[( )2 Qz t u t R t Vz t     (8) 
+where： 
+ 1,2
+(( 1 ) )
+min ( ( 1), ( 1))
+l o g( (1 ) | (1 ) )
+jj
+Vz t
+Qz t u t
+ut zt
+
+
+
+
+
+
+ 
+ 
+ (9) 
+The loss function for the entropy weight coefficient is: 
+  0() l o g ( ( ) |( ) )Lu t z t       (10) 
+B.   Safety layer based on HOCBF 
+Directly applying the above RL algorithm to the levitation 
+system will inevitably lead to  collisions accidents between 
+the electromagnet and the track during the training phase due 
+to random exploratory actions. Therefore, a safety layer is 
+designed to modify the actions generated by the RL agent, 
+ensuring the system always remains within a safe state. 
+Define the safe set 
+n   as: 
+ 
+
+
+ )Int(
+|( ) 0
+|( ) 0
+)| ( 0
+hz
+hz
+hz
+z
+z
+z
+
+ 
+
+
+
+ 
+
+
+
+ (11) 
+where : nh   is a continuously differentiable function 
+used to determine if the syst em is within the safe set;   
+represents the b oundary of the safe set, and Int( )  
+represents the interior of the safe set. 
+For the levitation system, ()hz  can be defined as: 
+ 22
+1
+1() ( ) 2
+dhz z z  (12) 
+where dz  is the target levitation gap. 
+To construct the safety laye r, consider the suspension 
+system and the electromagnet in  system equation (3) as an 
+integrated whole. Linearize th e system near the equilibrium 
+point and express it in affine form: 
+ () ()zf zg z u d   (13) 
+where    12zz z c c    ; ui ; d  represents 
+disturbances; 
+T
+12() cKf zz z mM
+ 
+; 
+T
+() 0 iKgz mM
+ 
+; 
+00
+22
+e0 0
+3
+0(, ) 2ic
+cK F NS i
+c c
+   ; 
+00
+2
+2
+e0 0
+0(, ) 2
+i
+ic
+K F NS i
+i c
+ ; 0c  is the equilibrium gap; and 
+0i  is the equilib rium current. 
+A set is called forward invari ant if the system state, 
+starting from within the safe set, remain s within the set for 
+all future time. The following definition uses ()hz  to 
+construct constraints that guarantee system safety. 
+Definition 1:  Consider the safety function : nh  , 
+with relative degree    . Recursively define a sequence 
+of functions :( 0 , 1 , , )n
+i i  : 
+ 
+0
+11
+() ()
+() () ( () ) , 1 , ,ii i i
+zh z
+zz z i
+
+   
+
+      (14) 
+where :( 1 , , )i i    are class   functions, and 
+i  is () i   times differentiable (   only needs to be a 
+class   function). 
+The corresponding sequence of safety sets is defined as: 
+ 1{( ) 0 } , 1 , ,iiCzi     (15) 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+4 
+> FOR CIYCEE 2025 PAPER < 
+ 
+If there exist class   functions 1{}ii
+   satisfying 
+differentiability requiremen ts, such that for all 
+1
+i
+i
+zC
+
+
+  , 
+there exists a control input u  satisfying: 
+ 1() () (() ) 0fg fLhz LL hzu Dhz    (16) 
+where 
+1
+11
+1
+( ( )) ( ) ( ( ))i
+fii
+i
+Dhz L z z
+
+    
+
+  
+
+  . 
+Then, ()hz  is called a   order HOCBF for the system. 
+This guarantees th e forward invariance of the system, 
+meaning it always remains within the safe set. 
+From (13), the system's relative degree is 2  . Then, 
+from (14), we get: 
+ 
+1
+0
+1
+() ()
+() () (() )
+zh z
+zh z h z
+
+
+    (17) 
+Substituting (17) into (16) yields: 
+ 
+2
+1
+21 0
+((() ()
+(() (() ) )
+))fg f f hz
+z
+Lhz LLhzu L
+hz h
+
+
+
+   (18) 
+Substituting (13) and (12) into (18) gi ves the effective 
+HOCBF condition for the levitation system: 
+ 
+22
+12 1
+22 2
+12 1
+12( ) 0   2
+ci
+d
+KK zz z umM mM
+xx x x
+ 
+   
+ (19) 
+where 2 and 2  serve as class   functions. 
+Integrating with the SAC algo rithm described above, the 
+modification of the RL action by the safety layer can be 
+described as the following constrained optimization problem, 
+solvable via Quadratic Programming (QP): 
+ 
+C
+RL
+R
+*
+CBF
+FL
+2
+B
+(
+g
+(( ) , )
+(
+,)
+ar ( ),m)in
+uz zu
+uu l zz
+
+
+ (20) 
+ 
+22
+12 1 C B F R L
+22 2
+12 1
+s.t. ( )
+1      2 ( ) 2
+ci
+d
+KK zz z u umM mM
+zz z z 
+  
+   
+ (21) 
+where *
+CBFu  denotes the correction quantity solved through 
+the CBF, RLu  represents the control input given by the RL 
+agent, 0l   is the weighting coefficient, and    is the 
+slack variable used to ensure the feasibility of QP. 
+After embedding the safety layer, the loss function for the 
+SAC policy network is modified to: 
+ 
+RL
+1,2 RL
+*
+CBF
+() l o g ( ( ( ) |( ) ) )
+mi ]n( ( ) , ( ) )
+[
+()
+jj
+Lu t z t
+tuQz t ut
+
+
+ 
+
+
+
+
+ (22) 
+The loss function for any one Q-function network 
+becomes: 
+ 
+CRL
+*
+B
+2
+F
+1 (( ( ) , ( ) (
+]
+))2
+(( ) ( ) )
+[
+(1 ) )
+Qz t u t t
+Rt
+u
+Vz t
+
+
+
+ 
+
+ (23) 
+where 
+ 2
+*
+CBF1, RL
+RL
+(( 1 ) )
+min ( ( 1), ( 1) ( 1))
+l o g( (1 ) | (1 ) )
+jj
+Vz t
+Qz t ut t
+u
+u
+tz t
+
+
+
+
+
+   
+ 
+ (24) 
+The control input finally applied to the levitation system is 
+then: 
+ **
+CBF RLuu u  (25) 
+C.   DOB design 
+The disturbance in (13) is handled using a DOB. Let 
+Tdd , then the observer equations are: 
+ 12 2
+ˆ ˆ()Tdz z   (26) 
+ 22 2 2 2
+ˆˆˆ ()ci
+T
+KKzd z u z z mM mM     
+  (27) 
+where ˆ
+Td  is the estimate of the disturbance Td , 2ˆz  is the 
+estimate of the velocity 2z , and 12,0    is the gain 
+coefficient.  
+The algorithm is shown in Fig. 2.  
+ 
+ 
+ 
+Fig. 2. Block diagram of the algorithm. 
+ 
+Stability Analysis: Define the observation errors as: 
+ 
+22 2
+ˆ
+ˆ
+TT Tdd d
+zz z
+  
+
+
+ (28) 
+Define the following Lyapunov function: 
+ 22
+L2
+1
+11
+22
+TVd z     (29) 
+Taking its derivative yields: 
+ 
+L2 2
+1
+22 2
+1
+1
+1 ˆ ˆ() ( )
+T
+TT T
+Vd d z z
+dd d z z z
+
+
+
+  
+ 
+  
+ (30) 
+Considering the aerodynamic load as a slow time-varying 
+signal and noting that the observer gain is generally chosen 
+large, (30) can be rewritten as: 
+ 
+L2 2 2
+1
+1 ˆ ˆ()TTVd d z z z       (31) 
+Substituting (26), (27), and (28) into (31) gives: 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+5 
+> FOR CIYCEE 2025 PAPER < 
+ 
+ 
+12 2
+1
+22
+22 2 2
+22 2 22
+2
+22
+1 ˆ(( ) )
+(
+ˆ ˆ() )
+ˆ ˆ(( ) )
+LT
+ci
+T
+ci
+T
+TT T
+Vd z z
+KKzd z u mM mM
+KKdz u z zmM mM
+dz z d d z z
+z
+
+
+
+
+ 
+  
+   
+  
+
+
+
+ 
+
+ (32) 
+Since 2 0  , then 0V  . Thus, the observer is stable. 
+IV.   SIMULATION ANALYSIS 
+The effectiveness of the p roposed method was validated 
+through numerical simulations based on the parameters of the 
+single-point levitation system model. The model parameters 
+are listed in TABLE I. 
+The RL agent training algorithm was implemented in 
+Python. Both the simulation step and control step were set to 
+0.001 seconds. The maximum number of training steps per 
+episode was set to 1000. Evaluation was performed every 5 
+episodes, and agents achieving episode rewards greater than 
+950 were saved. Both the Ac tor and Critic networks were 
+designed with two hidden layers, each containing 256 
+neurons. The mini-batch size was 256. The reward function 
+is designed as 
+ 
+22
+12(1000 )() 0 . 8 0 . 20 . 8z zrz    (33) 
+The reward convergence curve during training is shown in 
+Fig. 3. 
+TABLE I 
+MODEL PARAMETERS 
+Parameter Value 
+Mass of car body 1500 kg 
+Mass of electromagnet 750 kg 
+Coil turns 270 
+Coil area 0.115 m² 
+Target of gap 10 mm 
+Vacuum permeability 
+7
+41 0  H / m
+
+  
+ 
+Simulation analyses were conducted under three different 
+operating conditions: 1) static levitation without disturbances; 
+2) aerodynamic load disturbance;  3) combined aerodynamic 
+load and track irregularity disturbance. The proposed method 
+is respectively compared with a Proportional-Integral-
+Derivative (PID) controller and PID controller with DOB 
+(PID-DOB). The PID parameters are set as 
+55pk  , 5ik  , 
+1.5pk  . 
+Track irregularity was simulated using a sine wave. The 
+aerodynamic load was modeled as: 
+ 21
+2
+azF AC v  (34) 
+where   is the air density, 312mA  is the frontal area, 
+600km/hv  is the relative wind speed, and zC  is the 
+aerodynamic force coefficient, defined as: 
+ 
+63 42
+3
+4.54 10 7.32 10
+7.55 10 0.7364
+z ww
+w
+Cv v
+v
+
+
+   
+ 
+ (35) 
+where 20m/swv   is the crosswind speed. 
+ 
+Fig. 3. Reward convergence curve 
+A.   Static Levitation 
+Fig. 4 illustrates the response  of the levitation air gap. In 
+the absence of any disturbances, all three methods achieved 
+satisfactory control performance. The responses of PID and 
+PID-DOB were similar, completing static levitation in 
+approximately 0.19 s. The proposed method responded faster, 
+with a settling time of about 0.04  s, but exhibited a slight 
+steady-state error. The electro magnet current response is 
+shown in Fig. 5. The responses of the PID and PID-DOB 
+methods were smoother, while the proposed method showed 
+some oscillation. Overall, und er disturbance-free conditions, 
+all three methods delivered good control performance. 
+ 
+Fig. 4. Case1: air gap response 
+ 
+Fig. 5. Case1: electromagnet current response 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+6 
+> FOR CIYCEE 2025 PAPER < 
+ 
+B.   Aerodynamic load disturbance 
+The levitation air gap response under aerodynamic lift 
+force disturbance is shown in Fig. 6. The PID-controlled gap 
+was significantly affected by the aerodynamic lift 
+disturbance, rapidly decreasing away from the equilibrium 
+point, with a maximum error of 3.26 mm and an RMSE of 
+2.37 mm. The PID-DOB method was noticeably less affected 
+than PID control, achieving a maximum error of 0.83 mm 
+and an RMSE of approximately 0.10 mm. It adjusted rapidly 
+after deviation and stabilized at  the equilibrium point. In 
+comparison, the proposed met hod demonstrated superior 
+resistance to wind load disturbance, with a maximum error of 
+only 0.34 mm and an RMSE of only 0.06 mm. This 
+represents reductions of 58.4% and 42.6%, respectively, 
+compared to PID-DOB. 
+The electromagnet current response is shown in Fig. 7. 
+The proposed method and PID-DOB exhibited similar 
+responses, while the PID method deviated from the 
+equilibrium point due to the disturbance and adjusted slowly. 
+The acceleration response is shown in Fig. 8, where the 
+proposed method exhibited relatively smaller acceleration 
+fluctuations. Overall, under aerodynamic load disturbance, 
+the PID method could not effectiv ely reject the disturbance, 
+causing both the levitation air gap and electromagnet current 
+to deviate from the equilibri um point. Both the PID-DOB 
+method and the proposed method demonstrated good 
+disturbance rejection capabilities, with the proposed method 
+achieving further performance improvements over PID-DOB. 
+ 
+Fig. 6. Case2: air gap response 
+ 
+Fig. 7. Case2: electromagnet current response 
+ 
+Fig. 8. Case2: acceleration response 
+ 
+Fig. 11. Case3: acceleration response 
+ 
+C.   Combined aerodynamic load and track irregularity 
+disturbance 
+The levitation air gap response under aerodynamic lift 
+force and track irregularity disturbances is shown in Fig. 9. 
+PID control was the most affected by the disturbances, 
+deviating from the equilibrium point and exhibiting large gap 
+fluctuations. Both the PID-DOB method and the proposed 
+method stabilized around the equilibrium point. 
+Comparatively, the proposed method was less affected by the 
+irregularities, achieving a maximum error of 0.93 mm and an 
+RMSE of 0.40 mm. This represents reductions of 27.3% and 
+46.1%, respectively, comp ared to PID-DOB. The 
+electromagnet current response is shown in Fig. 10. The 
+current fluctuation of the proposed method was larger. 
+Similarly, as shown in the a cceleration response (Fig. 11), 
+the fluctuation of the proposed method was slightly larger 
+than the other methods. 
+The performance metrics of  the PID, PID-DOB, and 
+proposed methods under the t hree cases are summarized in 
+TABLE II. It is evident that the proposed method 
+outperforms the others across  various operating conditions, 
+demonstrating superior capab ility in rejecting aerodynamic 
+loads and track irregularities. 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+7 
+> FOR CIYCEE 2025 PAPER < 
+ 
+ 
+Fig. 9. Case3: air gap response 
+ 
+Fig. 10. Case3: electromagnet current response 
+ 
+TABLE II 
+SYSTEM PERFORMANCE METRICS 
+ PID PID-DOB Proposed 
+method 
+Case1 
+RMSE (mm) 0.6456 0.6284 0.3975 
+Adjustment 
+Time (s) 0.19 0.19 0.04 
+Case2 RMSE (mm) 2.3686 0.0996 0.0572 
+Max error (mm) 3.2617 0.8270 0.3442 
+Case3 RMSE (mm) 2.5053 0.7400 0.3986 
+Max error (mm) 4.3067 1.2758 0.9276 
+ 
+V.   CONCLUSION 
+Addressing the stability and safety challenges faced by 
+high-speed maglev train levitation systems under complex 
+disturbances such as aerod ynamic lift forces and track 
+irregularities, this paper propo sed a safe RL control method 
+integrating HOCBF and DOB. The method employs a 
+hierarchical design: the RL agent adaptively learns the 
+optimal control policy from data, reducing reliance on 
+precise mathematical models; the safety layer constructed 
+using HOCBF rigorously guarantees system safety by 
+modifying the agent's actions in real-time via differentiable 
+optimization; and the DOB sp ecifically compensates for 
+external disturbances like aer odynamic loads, significantly 
+enhancing the convergence stability and control accuracy of 
+the algorithm under strong disturbances. Simulation results 
+demonstrate that under three typical operating conditions: 
+static levitation, aerodynamic load disturbance alone, and 
+combined aerodynamic load w ith track irregularity, the 
+proposed method significantly  outperforms traditional PID 
+and PID-DOB in key performance metrics such as RMSE 
+and maximum error of the levitation air gap. The advantage 
+is particularly prominent in rejecting aerodynamic load 
+disturbances. This method eff ectively resolves the issues 
+inherent in existing model-ba sed approaches and end-to-end 
+RL methods, providing a reliable control strategy for the safe 
+and stable operation of high-speed maglev trains. Future 
+work could involve Hardware-in-the-Loop testing to further 
+refine the control strategy. 
+VI.  
+ REFERENCES 
+[1] Y. Yang, H. Cuicui, D. Chunhui, a nd L. Zhiqiang, “An active resisting 
+disturbance control method for high-speed maglev train with weak 
+model dependence,” ISA Trans actions, p. S0019057825002368, May 
+2025, doi: 10.1016/j.isatra.2025.05.002. 
+[2] X. Tian, H. Xiang, X. Chen, and Y. Li, “Dynamic response analysis of 
+high-speed maglev train-guideway sy stem under crosswinds,” Journal 
+of Central South University, vol. 30, no. 8, pp. 2757–2771, Aug. 2023, 
+doi: 10.1007/s11771-023-5403-8. 
+[3] W. Ji, X. Lin, Y. Sun, G. Lin,  and A. Vulevic, “Intelligent Fault-
+Tolerant Control for High-Speed Maglev Transportation Based on 
+Error-Driven Adap tive Fuzzy Online Co mpensator,” IEEE 
+Transactions on Intelligent Transportation Systems, pp. 1–10, 2025, doi: 
+10.1109/TITS.2025.3549624. 
+[4] Q. Zhu, S.-M. Wang, and Y.-Q. Ni, “A Review of Levitation Control 
+Methods for Low- and Medium-Speed Maglev Systems,” Buildings, 
+vol. 14, no. 3, Art. no. 3, Mar. 2024, doi: 10.3390/buildings14030837. 
+[5] F. Li, Y. Sun, J. Xu, Z. He, and G. Lin, “Control Methods for 
+Levitation System of EMS-Type Ma glev Vehicles: An Overview,” 
+Energies, vol. 16, no. 7, Art. no. 7, Jan. 2023, doi: 10.3390/en16072995. 
+[6] W. Wang, B. Wang, L. Ma, G. Deng, and S. Xue, “Transverse 
+vibration of high-speed maglev trai n under dual stochastic excitations 
+of crosswinds and maglev track irregularities,” Journal of Wind 
+Engineering and Industrial Aerodynamics, vol. 261, p. 106094, Jun. 
+2025, doi: 10.1016/j.jweia.2025.106094. 
+[7] C. Liu, H. Su, C. Wang, and L. Sun, “Vibration control of disturbance 
+gap for maglev vehicle considering stiffness change under unsteady 
+aerodynamic forces,” Nonlinear Dynamics, vol. 111, no. 5, pp. 4267–
+4282, Mar. 2023, doi: 10.1007/s11071-022-08054-6. 
+[8] W. Wang, B. Wang, G. Deng, and L. Ma, “Research on control 
+parameters of high-speed maglev train under stochastic track 
+irregularities,” Probabilistic Engineering Mechanics, vol. 77, p. 103664, 
+Jul. 2024, doi: 10.1016/j.probengmech.2024.103664. 
+[9] H.-W. Li et al., “Self-Tuning Dual-Layer Sliding Mode Control of 
+Electromagnetic Suspension System,” IEEE Transactions on Intelligent 
+Transportation Systems, pp. 1–15, 2024, doi: 
+10.1109/TITS.2024.3509997. 
+[10] W. Hu, Y. Zhou, Z.  Zhang, and H. Fujita, “Model Predictive Control 
+for Hybrid Levitation Systems of Maglev Trains With State 
+Constraints,” IEEE Transactions on Vehicular Technology, vol. 70, no. 
+10, pp. 9972–9985, Oct. 2021, doi: 10.1109/TVT.2021.3110133. 
+[11] W. Guo et al., “Coupling vibrati on analysis of high-speed maglev train-
+viaduct systems with control loop fa ilure,” Journal of Central South 
+University, vol. 29, no. 8, pp. 2771–2790, Aug. 2022, doi: 
+10.1007/s11771-022-5119-1. 
+[12] J. Shihui, S. Dong, Z. Tianbo, and X. Hongze, “Nonlinear Robust 
+Composite Levitation Control for High-Speed EMS Trains With Input 
+Saturation and Track Irregularities, ” IEEE Transactions on Intelligent 
+Transportation Systems, vol. 23, no. 11, pp. 20323 –20336, Nov. 2022, 
+doi: 10.1109/TITS.2022.3178122. 
+[13] X. Cao, Q. Ge, J. Zhu, G. K ong, B. Zhang, and X. Wang, “Improved 
+Sliding Mode Traction Control Comb ined Sliding Mode Disturbance 
+Observer Strategy for High-Speed Ma glev Train,” IEEE Transactions 
+on Power Electronics, vol. 38, no. 1, pp. 827–838, Jan. 2023, doi: 
+10.1109/TPEL.2022.3201614. 
+[14] Q. Li, P. Leng, P. Yu, D. Zhou, J. Li, and M. Qu, “Decoupling Control 
+for Module Suspension System of Maglev Train Based on Feedback 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 
+
+8 
+> FOR CIYCEE 2025 PAPER < 
+ 
+Linearization and Extended State Obse rver,” Actuators, vol. 12, no. 9, 
+Art. no. 9, Sep. 2023, doi: 10.3390/act12090342. 
+[15] M. Abdollahzadeh and M. Pourgholi, “Adaptive dynamic programming 
+discrete-time LQR optimal control on electromagnetic levitation system 
+with a $$H_\infty $$Kalman filter,” In ternational Journal of Dynamics 
+and Control, vol. 12, no. 3, pp. 813–828, Mar. 2024, doi: 
+10.1007/s40435-023-01178-6. 
+[16] S. Jiang, H. Xu, T. Zhang, X. Yao, and Z. Long, “Lazy Prescribed-
+Time Synchronization Control of Ha lf Bogie for High-Speed Maglev 
+Train Considering Track Irregularities and Input Constraints,” IEEE 
+Transactions on Vehicular Technol ogy, vol. 71, no. 7, pp. 6924–6937, 
+Jul. 2022, doi: 10.1109/TVT.2022.3164945. 
+[17] Y. Zhu, Q. Yang, J. Li, and L. Wang, “Research on Sliding Mode 
+Control Method of Medium and Low Speed Maglev Train Based on 
+Linear Extended State Observer,” Machines, vol. 10, no. 8, Art. no. 8, 
+Aug. 2022, doi: 10.3390/machines10080644. 
+[18] Z. Zhuang, H. Tao, Y. Chen, V. Stojanovic, and W. Paszke, “An 
+Optimal Iterative Learning Control A pproach for Linear Systems With 
+Nonuniform Trial Lengths Unde r Input Constraints,” IEEE 
+Transactions on Systems, Man, and Cybernetics: Systems, vol. 53, no. 
+6, pp. 3461–3473, Jun. 2023, doi: 10.1109/TSMC.2022.3225381. 
+[19] X. Su, Y. Xu, and X. Yang, “N eural network adaptive sliding mode 
+control without overestimation for a maglev system,” Mechanical 
+Systems and Signal Processing, vol. 168, p. 108661, Apr. 2022, doi: 
+10.1016/j.ymssp.2021.108661. 
+[20] Y. Xu, Z. Zhao, Z. Long, and T. Wen, “Performance Optimization of 
+Maglev Train’s Electromagnetic Levitation System: Control Structure 
+and Algorithm,” IEEE Transactions on Automation Science and 
+Engineering, vol. 21, no. 3, pp. 2507–2517, Jul. 2024, doi: 
+10.1109/TASE.2023.3262865. 
+[21] Q. Zhu, S.-M. Wang, and Y.-Q. Ni, “Cooperative Control of Maglev 
+Levitation System via Hamilton–J acobi–Bellman Multi-Agent Deep 
+Reinforcement Learning,” IEEE Transactions on Vehicular Technology, 
+vol. 73, no. 9, pp. 12747–12759, Sep. 2024, doi: 
+10.1109/TVT.2024.3391279. 
+[22] Y. Emam, G. Notomista, P. Glotfelter, Z. Kira, and M. Egerstedt, “Safe 
+Reinforcement Learning Using Robust Control Barrier Functions,” 
+IEEE Robotics and Automation Letters, vol. 10, no. 3, pp. 2886–2893, 
+Mar. 2025, doi: 10.1109/LRA.2022.3216996. 
+[23] M. Han, Y. Tian, L. Zhang, J.  Wang, and W. Pan, “Reinforcement 
+learning control of constrained dynamic systems with uniformly 
+ultimate boundedness stability guarantee,” Automatica, vol. 129, p. 
+109689, Jul. 2021, doi: 10.1016/j.automatica.2021.109689. 
+ 
+ 
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:00 UTC from IEEE Xplore.  Restrictions apply. 

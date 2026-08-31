@@ -1,0 +1,24 @@
+# 公平版 MPC 压力场景（长距离循环制动区）5-seed 随机化初态汇总
+# 日期: 2026-08-30  来源: job-412a0978196c433c9b447c80ec276f93 (exit 0)
+# 命令:
+#   python src/evaluation/evaluate_m1_m3_long.py --mode mpc_dir \
+#     --max_steps 3000 --n_seed 5 --randomize_init --blocks 4 --block_len 8
+# 配置: 朔黄线主剖面(23.8km长大下坡), B=4×8步≈3.2s时域, gap_min=20m, coupler=True
+# 协议: 初态速度55-75km/h随机化(与M1鲁棒性评测一致)
+
+[惰行 baseline 场景=[普通场景 + 初态随机化(初始速度55-75km/h,多种子统计)]] 随机化初态 5 seed
+reward mean=+36577±1372  中位=+37039  [+33984,+37923]
+超80 mean=2.2±0.7%  低40 mean=0.0±0.0%
+车钩力峰值 mean=655±43kN  中位=676kN  [590,703]
+间距min mean=183±0m  间距漂移 mean=389±19m  追尾步数 mean=0.0±0.0  中位=0
+循环制动次数 mean=0.0±0.0  中位=0
+
+[M-MPC 公平版(直接加速,B=4×8步,gap_min=20.0m,coupler=True) 场景=[普通场景 + 初态随机化]] 随机化初态 5 seed
+reward mean=-258831±116023  中位=-287986  [-397080,-120611]
+超80 mean=0.0±0.0%  低40 mean=70.8±1.7%
+车钩力峰值 mean=1431±207kN  中位=1442kN  [1066,1641]
+间距min mean=-9±94m  间距漂移 mean=227±107m  追尾步数 mean=329.6±384.2  中位=151
+循环制动次数 mean=4.2±0.4  中位=4
+每步求解耗时 mean=56.5ms  总求解次数=3000
+
+# 对照(M1 MARL,同协议,已发表基准): reward +35464±966, 追尾 0/seed, 车钩力约束内

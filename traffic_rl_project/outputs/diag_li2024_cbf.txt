@@ -1,0 +1,730 @@
+# SOURCE: D:\Code\MultiAgent\traffic_rl_project\docs\papers\Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf
+# PAGES: 6
+
+Safe Optimal Train Formation Control in Virtual Coupling
+Using Control Barrier Functions
+Yike Li, Yin Tong, Alessandro Giua
+Abstract— This paper investigates the optimal train motion
+control during the Virtual Coupling (VC) convoy formation
+where the following train (simply called the follower) needs
+to timely catch up with the velocity of the leading train
+(simply called the leader) while strictly adhering to the spacing
+principle that is undergoing change. We employ the Control
+Barrier Functions (CBFs) and Control Lyapunov Functions
+(CLFs) to demonstrate the control objectives within the for-
+mation progress, construct a safety control scheme composed
+of two controllers for the follower to achieve the coupling
+goals safely and apply the Quadratic Programming (QP) to
+efficiently compute the optimal constrained control input for
+the follower’s motion control. The effectiveness of the proposed
+control method is demonstrated through numerical simulations
+of different types of convoy formation cases.
+I. INTRODUCTION
+Virtual Coupling (VC) is an advanced signaling concept
+developed to substantially increase the line capacity and
+reduce the train headway, leveraging the advancements in
+Train-to-Train (T2T) communication technology. Rather than
+using the traditional physical coupler made of steering axles,
+trains operated in VC are connected with each other by
+means of a Wi-Fi connection or 5G network, and run together
+at similar speed and shorter distance to form a convoy [1].
+The concept of VC was first introduced in [2] but was
+hindered by the techniques at the time for further develop-
+ment. In recent years, motivated by the growing capacity
+demands and emergent communication technologies, the
+industry and research institutions worldwide have devoted
+to demonstrate its market potentials and application benefits.
+However, technical challenges of using VC in practice still
+exist, and one of them is the research on longitudinal
+motion control in convoys [3]. The convoy formation control
+incorporates a desired intertrain spacing principle and the
+maintenance of a consistent velocity to prevent any risk
+This work has been supported by the project co-funded by the European
+Union – Next Generation Eu - under the National Recovery and Resilience
+Plan (NRRP), Mission 4 Component 1 Investment 4.1 - Decree No.351
+(9th April 2022) of Italian Ministry of University and Research - Concession
+Decree No. 2152 (28th December 2022) of the Italian Ministry of University
+and Research, Project code D93C22000860005, within the Italian National
+Program PhD Programme in Autonomous Systems (DAuSy), by the Project
+SERICS (PE00000014), and by the National Natural Science Foundation of
+China under Grant No. 62373313.
+Y . Li is with the Department of Electrical and Electronic Engineering,
+University of Cagliari, Cagliari 09123, Italy; and the Department of Elec-
+trical and Information Engineering, Polytechnic of Bari, Bari 70125, Italy
+yike.li@unica.it; y.li@phd.poliba.it
+Y . Tong (*Corresponding Author) is with the School of Information
+Science and Technology, Southwest Jiaotong University, Chengdu 611756,
+China yintong@swjtu.edu.cn
+A. Giua is with the Department of Electrical and Electronic Engineering,
+University of Cagliari, Cagliari 09123, Italy giua@unica.it
+of collision. This principle establishes a specific distance
+between trains, guaranteeing that any train operating within
+the speed limits will have sufficient time to stop. Work
+[4] presented a distributed model predictive control (MPC)
+method for maintaining the stable and safety spacing in
+the VC convoy. Considering the measurement errors in the
+velocity and position, Park et al. [5] applied sliding mode
+control, and proposed a robust controller that computes a
+spacing distance reference for a VC convoy of two trains.
+Based on the train-following model of k trains operating in
+the multiple VC scenarios, Quaglietta et al. [6] proposed
+a dynamic safety spacing model that contains various risk
+factors.
+Among the recent studies on VC convoy safety control,
+MPC is widely used as the optimal control method in VC
+studies [7]–[9]. Su et al. [10] focused the centralized control
+for a convoy, using MPC to implement the safety and stable
+spacing policy. Also known as receding horizon control,
+MPC performs the optimization in an iterative way, which
+brings a high computational cost on both time and hardware
+resource. However for the real-world VC operation, real-
+time controllers are essential [9]. Particularly, in the VC, fast
+computing speed is necessary for the follower to calculate
+a safety distance that prevents collisions and regulate the
+train’s speed to maintain that distance.
+To meet the real-time requirements of control, Control
+Barrier Functions (CBF) is used in this paper, to deal with
+the VC train formation control problem. Control Lyapunov
+Function (CLF) is used to enforce exponential stability con-
+trol objectives, turning constrained optimal control problems
+into quadratic programming (QP) problems. CBF inspired by
+and as a direct extension of the CLF [11], has shown great
+promise in providing a computationally efficient method
+for safe control of nonlinear systems in complex scenarios.
+Similar to MPC, CBF is a model-based control design
+method that can be formulated as a sequence of QP problems
+and solved online using real-time capable solvers. Numerous
+recent studies apply CBFs and CLFs to constrained optimal
+control problems, such as the control of Connected and
+Automated Vehicles (CA Vs) in road traffic, as well as the
+control of the bipedal robots, which have shown favorable
+experimental results [12]. To the best of our knowledge, so
+far no studies have applied CBF or CLF in the control for
+VC. In this paper, we propose a spacing principle for the
+VC convoy formation, and adopt CBF and CLF to formulate
+QP problems. These problems are solved to compute the
+optimal control outputs for the train’s motion, offering faster
+computation compared to existing studies that use MPC.
+2024 IEEE 20th International Conference on Automation
+Science and Engineering (CASE)
+August 28 - September 1, 2024. Bari, Italy
+979-8-3503-5851-3/24/$31.00 ©2024 IEEE 647
+2024 IEEE 20th International Conference on Automation Science and Engineering (CASE) | 979-8-3503-5851-3/24/$31.00 ©2024 IEEE | DOI: 10.1109/CASE59546.2024.10711420
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:47 UTC from IEEE Xplore.  Restrictions apply. 
+
+This paper is organized as below. In the second section,
+we recall the notions of the CLF and CBF. In Section III,, we
+introduce the background of VC and then design the spacing
+control principle for the VC convoy formation. Section IV
+will presents the proposed approach that formulates the spac-
+ing control principle to the CBF and CLF as the constraints
+on the control input. Finally, effectiveness of the proposed
+approach is demonstrated through simulations in the cases
+with different initial conditions.
+II. P RELIMINARIES
+In this section, basic notions on CBF and CLF are intro-
+duced. For more details, we refer the reader [13].
+In this paper, we focus on control affine systems, defined
+as
+˙x(t) = f (x(t)) +g(x(t))u(t) (1)
+with t∈ T , f : Rn→ Rn and g : Rn→ Rn×m locally
+Lypschitz, x∈ Rn is the state vector and u∈ U⊂ Rm is
+the control input vector. In the following, unless ambiguity
+arises, we omit explicitly stating the time dependence of
+signals x and u.
+This paper addresses control problems for such a class of
+systems, focusing in particular on stability and safeness.
+A. Control Lyapunov Function
+Generally, Control Lyapunov Functions (CLFs) are de-
+signed for reaching a target state (or set), whereas Control
+Barrier Functions (CBFs) are designed for avoiding an unsafe
+set. CBFs are a direct extension of CLFs and are used to
+enforce stability or state convergence requirements.
+Definition 1: (Lie derivative) Consider a continuous func-
+tion y : Rn→ R, the derivative ˙y along the dynamic of (1)
+is given by
+˙y = ∂y
+∂x [f (x) +g(x)u]
+def
+=Lfy(x) +Lgy(x)u, (2)
+where
+Lfy(x) = ∂y
+∂x·f (x) (3)
+is called the Lie derivative of y with along to f.
+Definition 2: (Control Lyapunov Function) LetV : Rn→
+R be a continuously differentiable, positive definite, and ra-
+dially unbounded function. If there exists a positive constant
+λ such that
+inf
+u∈U
+[LfV (x) +LgV (x)u +λV (x))]≤ 0, (4)
+then V (x) is an exponentially stabilizing Control Lyapunov
+Function (ES-CLF) for system (1).
+And then, any Lipschitz continuous control law u that
+satisfies (4) exponentially stabilizes system (1). Parameter λ
+serves as a decay rate of an upper bound of V (x).
+B. Control Barrier Function
+Definition 3: (ClassK Function) A continuous function
+α : [0,a )→ [0,∞),a > 0 is said to belong to class K if it
+is strictly increasing and α(0) = 0 .
+Definition 4: (Forward Invariant Set) A set C is forward
+invariant for system (1) if its solutions starting at any x(0)∈
+C satisfy x(t)∈C for∀t≥ 0.
+Consider a set C (the safe set) defining by a continuously
+differentiable function b : Rn→ R as follows:
+C :={x∈ Rn :b(x)≥ 0}. (5)
+Definition 5: (Control Barrier Function) Given the set C
+defined by (5), b(x) is a Control Barrier Function (CBF) for
+system (1) if there exists a class K function α such that
+sup
+u∈U
+[Lfb(x) +Lgb(x)u +α(b(x))]≥ 0,∀x∈C . (6)
+It is assumed that Lgb(x)̸= 0 when b(x) = 0 .
+Given a CBF b associated with the set C from (5), any
+Lipschitz continuous controller u(t) with t≥ t0 satisfying
+(6) makes setC forward invariant for (1), which is also called
+control invariant or safe. In practice, K function α usually
+takes the form of a positive coefficient γ. In this case, γ
+serves as a maximal decay rate of b(x(t)), i.e. b(x(t)) is
+not allowed to decay faster than the exponential decay curve
+˙b(x(t)) = −γb(x(t)) so that potentially unsafe behaviour
+smoothes out as it approaches the boundary of set C.
+From the above definitions, it can be seen that both the
+CBF constraints and the CLF constraints are affine in the
+control input u, and thus the CBF and CLF in the optimal
+control problem (OCP) can be used as constraints in the
+minimum specification controller to form the QP problems,
+which are defined as CBF-CLF-QP. The formulation of CBF-
+CLF-QP is given as
+arg min
+u(t)
+∥u(t)∥2 +pδ2, (7)
+subject to:
+Lfb(x) +Lgb(x)u(t) +γ(b(x))≥ 0, (CBF constraint)
+LfV (x) +LgV (x)u(t) +λV (x)≤δ, (CLF constraint)
+and umin≤ u(t)≤ umax, (control constraint)
+where umin and umax respectively represent the lower and
+upper bounds of u, δ is the slack variable that serves as
+the relaxation on the CLF constraint to prevent it from
+conflicting with the CBF constraint, and p is the penalty.
+III. V IRTUAL COUPLING SPACING CONTROL IN
+FORMATION PROCEDURE
+In this section, we first briefly introduce the background
+on VC, including its main idea, and the general scenario of
+VC. Next, we analyse the spacing control principle during
+the convoy formation procedure and establish the spacing
+principle for convoy formal control.
+648
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:47 UTC from IEEE Xplore.  Restrictions apply. 
+
+Fig. 1. A VC convoy of N trains.
+A. Introduction on Virtual Coupling
+1) The VC Convoy Topology: A VC convoy has a typical
+topology shown in Fig. 1. The convoy is formed by N trains,
+one leader, and N− 1 followers. Each train computes its
+driving strategy according to the instant information sent
+from the train ahead via the T2T communication layer, which
+includes speeds, location, acceleration, etc. Meanwhile, the
+trains constantly communicate with the train control center
+to receive operational task orders and realize centralized
+dispatching management. Trains in a VC convoy move
+synchronously at a short distance from each other and work
+together as one in a cooperative manner.
+For the sake of simplicity but without loss of generality,
+in the rest of this paper, we consider a VC convoy with two
+trains, namely one leader and one follower. Their velocities
+are denoted as vl andvf , respectively. Our study focuses on
+the spatial headway D, which is the distance between the
+leader’s rear and the follower’s front. In the next section, the
+spacing principle imposed on D will be discussed.
+2) Virtual Coupling Scenario Analysis: Table I presents
+a general scenario in VC, which consists of four phases in
+terms of convoy status. In the beginning, the two adjacent
+trains operate at the moving block (i.e. trains are running
+in separated blocks that are defined by the latter’s braking
+distance), communicating over the T2T channel. The train
+control center, responsible for dispatching, confirms the cou-
+pling need and sends the coupling order to the trains. Both
+trains must confirm their compliance with the conditions
+necessary for VC. These conditions cover various operational
+aspects, including but not limited to the sufficient overlap in
+their originally planned paths, no ongoing tasks or speed
+limitations that conflict with the coupling order, and sound
+communication with the neighboring train and the train
+control center. If the required conditions are all met, the
+operation mode of both trains transitions from the moving
+block to “Coupling”.
+Once the follower attains a speed close to that of the leader
+within a predefined threshold and remains within a distance
+range from the desired separation, VC is established between
+them. Afterward, the operation mode of the follower and
+leader will transition from “Coupling” to “Coupled”. Sup-
+pose either the follower or the leader receives a separation
+order from the train control center, or any violations against
+conditions for VC such as communication loss or location
+failures occur. In that case, trains in convoy become sepa-
+TABLE I
+VIRTUAL COUPLING TRAIN CONVOY FORMATION , RUNNING AND
+SEPARATION PROCESSES
+PHASE ACTION MODE
+Preparation The follower and leader re-
+ceive the coupling task, and
+check the conditions for cou-
+pling.
+Moving block
+Convoy
+formation
+The follower accelerates, then
+decelerates, while the leader
+maintains its speed or remains
+stationary, until the follower
+matches both the desired dis-
+tance and the leader’s veloc-
+ity.
+VC: Coupling
+Convoy
+running
+The follower and the leader
+run synchronously.
+VC: Coupled
+Convoy
+separation
+Any VC condition is violated. VC: Decoupling
+Fig. 2. Convoy Formation in Virtual Coupling
+rated, known as “Decoupling”. When Decoupling occurs, the
+control mode of both trains is downgraded to the moving
+block.
+The above description provides an overview of the general
+scenario in which VC is established based on the existing
+studies’ common sense. Next, we analyze and define am-
+biguous or undefined key factors in the process of the convoy
+formation and how to determine its completion.
+B. Spacing Control Principle Analysis for Convoy Formation
+As mentioned in Section III.A, the spacing principle de-
+termines the minimum safe distance between the trains. This
+paper focuses on the follower’s motion control, addressing
+the problem of VC convoy formation under the assumption
+that no delay occurs in T2T communication. It is assumed
+that the follower’s velocity vf (t) is time varying while the
+velocityvl of the leader is constant. To form the VC convoy,
+the constraints on the spacing distance are defined as follows.
+First, even if two adjacent trains are both in a standstill,
+they should be separated by a default margin d0 [14].
+To prioritize safety, there should be sufficient distance for
+649
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:47 UTC from IEEE Xplore.  Restrictions apply. 
+
+collision avoidance. In the moving block, apart from d0, the
+distance between two successive trains should be longer than
+the braking distance of the behind train, i.e. the distance it
+travels from the moment when the brake starts until the train
+completely stops, which is termed as the absolute braking
+distance Dab. When calculating the braking distance, we
+assume the final velocity is zero. Based on this, the abso-
+lute braking distance can be calculated using the following
+equation
+Dab(t) =
+v2
+f (t)
+2af
+, (8)
+whereaf is the deceleration rate of the following train, which
+is positive. Therefore, the spatial headway D(t) should be
+greater than the total of d0 and Dab(t) as shown in Fig. 2.
+During the convoy formation phase, the safety distance
+in the spacing principle for collision avoidance turns to the
+relative braking distance Drb, which equals to the difference
+between the braking distances of the two trains. Specifically,
+we consider the worst case where the leading train uses the
+emergency braking rate aeb, while the following train uses
+the service braking rate asb and aeb > asb. Therefore, we
+define the safety spacing principle for the formation phase
+as:
+D(t)>D rb(t) +d0 =
+v2
+f (t)
+2asb
+− v2
+l
+2aeb
++d0. (9)
+Through enforcing (9) as a hard constraint, even if the
+follower’s velocity is much larger than that of the leader
+aiming to catch up with the leader quickly, it is still guaran-
+teed that the follower can avoid rear-end collision in the case
+of emergency braking by the leader, even when the follower
+decelerates in a lower service braking rate.
+The ultimate purpose of VC is to increase line capacity by
+minimizing train spacing distance. If (9) is the only spacing
+principle in the VC convoy formation, this may fail for the
+follower to close up the distance to the leader. Therefore,
+we introduce a desired distance as the target distance that
+guides the follower to quickly shorten the distance with the
+leader and form the convoy. This distance must adhere to the
+safety principle and meets our expectations on the convoy
+running in the ideal status: the trains run synchronously at
+a consistent distance. Consequently, the relative braking dis-
+tanceDrb(vl =vf ) between trains after they are successfully
+coupled and the convoy has an overall consistent velocity, ,
+is chosen as the desired distance, denoted as Dde(t), and
+equals
+Dde(t) = d0 +
+v2
+f (t)
+2asb
+−
+v2
+f (t)
+2aeb
+=d0 +
+(aeb−asb)v2
+f (t)
+2asbaeb
+.
+(10)
+Let
+k = aeb−asb
+aebasb
+,
+consequently (10) can be written as
+Dde(t) = d0 +
+kv2
+f (t)
+2 . (11)
+To determine if the formation of a VC convoy is complete,
+the following two conditions must be met:
+1) The following train attains a desired distance from the
+leading train, i.e. |D−Dde(t)|≤ θd.
+2) The following train matches the speed of the leading
+train, i.e.|vf (t)−vl|≤ θv.
+Error thresholds θd and θv are set to accommodate for
+interference terms such as location errors, communication
+delays, sampling noise, etc. Additionally, we define the time
+of the convoy formation as tC, i.e., the time from the start
+of the formation phase to its completion (when the two
+conditions above are simultaneous fulfilled).
+The spacing principle described by (9) and (10) represents
+the safe constraint and the control objectives of the follower.
+In this section, we combine it with the train dynamics to
+establish the optimal and safe control problem of the follower
+during the convoy formation by applying the CBF-CLF-QP.
+IV. CBF-CLF F ORCED OPTIMAL CONTROLLERS DESIGN
+FOR VC C ONVOY FORMATION
+Before applying the CBF-CLF-QP technique to solve the
+optimal control of the follower for the formation scenario
+in VC, the control-affine nonlinear model of the following
+train’s dynamic is first formalized.
+A. Train Following Model
+The moving train on the track is viewed as a mass point,
+and its longitudinal movement can be described by the
+dynamic model below [15].
+mdv
+dt =Ftb−Fr, (12)
+wherem [kg] is the mass, and v [m/s] denotes the velocity.
+The involved external forces are traction and braking force
+(T/B force) Ftb [N ] and running resistance force Fr [N ].
+The running resistance consists of the two components:
+fundamental resistance and additional resistance. The lat-
+ter refers to the resistance generated by unfavorable track
+conditions including slopes, curves and tunnels. This paper
+concentrates on the general train control method in VC,
+hence we neglect the additional resistance, and assume that
+the trains run on the mainline with relatively desirable
+conditions. The fundamental resistance Fr can be calculated
+by the 2-order empirical equation (13) which is derived from
+experimental data [16].
+Fr(v) = A·m +B·mv +C·mv2, (13)
+where B [Ns/m·kg] and C [Ns 2/m2·kg] are the coeffi-
+cients related to mechanical and aerodynamic characteristics,
+respectively. The parameter A [N/kg] refers to the starting
+resistance, which can be neglected when the speed is greater
+than 3m/s in our case.
+Let x = ( x1,x 2) where x1(t) = D(t) is the distance
+between the leader and the follower, and x2(t) = vf (t) is
+the follower’s velocity. It holds that ˙x1 = vl−x2. Taking
+the T/B force Ftb in (12) as the control input u, based
+on the prototype of the control affine system (1) and the
+650
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:47 UTC from IEEE Xplore.  Restrictions apply. 
+
+longitudinal model (12), we model the VC train following
+model as follows:
+ ˙x1
+˙x2
+
+|{z}
+˙x
+=
+−x2 +vl
+− 1
+mFr
+
+| {z }
+f (x)
++
+ 0
+1
+m
+
+|{z}
+g(x)
+Ftb|{z}
+u
+.
+(14)
+Note that the leader’s velocity vl is considered a known
+constant and thus can be regarded as a parameter rather than
+an input in the model. Besides, although (14) is written in a
+linear form, the model is nonlinear because Fr depends on
+the quadratic form of x2 in (13).
+B. Control Objectives
+As discussed in the previous section, in order to form a
+VC convoy, the follower needs to reach the distance to the
+desired distance as close as possible while strictly adhering
+to the safety distance, meanwhile the two distance depend
+on the velocities of the follower and the leader. Thus, the
+spacing principle is described with respect to the model (14)
+as
+x1→d0 + kx2
+2
+2 , (CO1)
+x1≥d0 + x2
+2
+2asb
+− v2
+l
+2aeb
+. (CO2)
+Note that (CO1) is a soft constraint that aims to stabilizes
+the system (which can be accomplished by a CLF), whereas
+(CO2) is a hard constraint that assures the system’s safety
+(can be achieved by a CBF).
+Meanwhile, the control input u, i.e. the T/B force, is
+naturally constrained by the train mechanics defined as
+−amb·m≤u≤amt·m, (CC)
+where amb > 0 is the maximum braking rate and amt > 0
+is the maximum traction rate.
+C. The CBF-CLF-QP for VC convoy formation control
+We employ CLF constraints satisfying (4) to achieve the
+stability objective (CO1), which can be written as x1−
+Dde(t)→ 0. The Lyapunov functionV (x) = (x1−Dde(t))2
+is chosen, then
+˙V (x) = LfV (x) +LgV (x)u
+= ∂V
+∂x·f (x) + ∂V
+∂x·g(x)u
+(15)
+where
+∂V
+∂x =
+∂V
+∂x1
+, ∂V
+∂x2
+
+=
+
+2
+
+x1− kx2
+2
+2 −d0
+
+, − 2kx2
+
+x1− kx2
+2
+2 −d0
+
+.
+The CLF constraint is
+LfV (x) +LgV (x)u +λV (x)
+=
+
+x1− kx2
+2
+2 −d0
+
+·
+
+2(−x2 +vl) + 2k(Fr−u)x2
+m +λ
+
+x1− kx2
+2
+2 −d0
+
+≤δ.
+(16)
+TABLE II
+THE SIMULATION PARAMETERS
+Meaning Symbol Value
+Train dynamic parameters
+Weight of the train m [kg] 383000
+Resistance coefficient A [N/kg] 0.73
+Resistance coefficient B [Ns/m ·kg] 0.008
+Resistance coefficient C [Ns 2/m2 ·kg] 0.000148
+Emergency braking rate aeb [m/s2] 1.8
+Serving braking rate asb [m/s2] 1.5
+Maximum braking rate amb [m/s2] 3
+Maximum traction rate amt [m/s2] 3
+Default margin d0 [m] 5
+Distance threshold θd [m/s] 10
+Velocity threshold θv [m/s] 0.2
+Control parameters
+CLF constraint coefficient λ 0.1
+CBF constraint coefficient γ 5
+QP penalty function p 2e − 2
+QP slack variable δ 2e − 2
+To construct the inequality constraints that enforce the
+safety control objective (CO2), we consider the CBF derived
+directly from (CO2), i.e. b(x) = x1−Drb(t)−d0 ≥ 0.
+According to (6), the control input should satisfy
+Lfb(x) +Lgb(x)u +γb(x)
+=−x2 +vl + Frx2
+masb
++ −x2
+masb
+·u
++γ(x1− x2
+2asb
++ v2
+l
+2aeb
+−d0)≥ 0
+(17)
+Applying the designed CBF in (17) and CLF in (16),
+the QP for the control of the follower is constructed by
+combining the above constraints as
+u∗(x) = arg min
+ 
+(u−uref)TH(u−uref) +pδ2
+s.t. (16), (17), and (CC) , (18)
+whereuref is the reference value of the control output u, and
+H is the quadratic objective term.
+V. S IMULATION AND RESULTS
+The effectiveness of the proposed control method is
+verified by numerical simulations. Parameters used for the
+simulations are from the Train a Grande Vitesse (TGV)
+France, as listed in Table II.
+We categorize two types of scenarios: 1) Static formation
+(SF), during which the leader’s velocity stays at zero during
+the formation, and 2) Dynamic formation (DF), which refers
+that the leader cruises at a constant speed during the for-
+mation. For each type, two cases (SF-1, SF-2 for the static
+formation, and DF-1, DF-2 for the dynamic formation) with
+varied initial conditions are simulated 1.
+Table III presents the initial conditions and the correspond-
+ing formation time tC. Let uref =Fr, and the cost function
+1The QPs are solved using Matlab toolbox quadprog. The obtained
+closed loop system is simulated using function ode45.
+651
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:47 UTC from IEEE Xplore.  Restrictions apply. 
+
+TABLE III
+DIFFERENT INITIAL CONDITIONS AND SIMULATION RESULTS IN THE
+FOUR CASES
+Case vl x1(0) x2(0) tC
+SF-1 0m 400m 0m/s 28.96s
+SF-2 0m 400m 15m/s 24.98s
+DF-1 18m 400m 15m/s 54.9s
+DF-2 18m 800m 20m/s 69.24s
+H = 2/m2. Performing a simulation of 150s with the step
+size 0.02s, the results of the velocity, distance and control
+input in the case DF-1 are plotted in Fig. 3. The follower
+undergoes acceleration, idling and deceleration to form a
+formation with the preceding train at 54.9s.
+After that, the distance continues to narrow down to 23m,
+which equals the desired distance by (10). And the difference
+in velocity between the follower and the leader stabilizes to
+zero.
+The total time for running the simulation was around
+18.1s, and the average time for implementing one loop
+(7500 loops in total) was around 0.0024s, which meets the
+real-time requirement of automatic operation module in the
+train onboard system [17].
+Fig. 3. Result of Case DF-1
+VI. CONCLUSIONS
+This paper focuses on the following train’s speed control
+problem in the Virtual Coupling. We develop the spacing
+principle for the train convoy formation, and describe the
+control objectives on spacing utilizing the CLF (realizes the
+desired distance) and CBF (maintains the safety distance).
+The QPs are formulated to compute the traction and braking
+force that satisfy all the control objectives and constraints.
+Finally, the simulation results show that the proposed method
+is able to reach the desired distance that enhancing capacity
+while ensuring the safety.
+Future work will extend the proposed control method to
+more complex scenarios in the VC, such as the convoy
+entering or leaving the station, unexpected braking by the
+leader, as well as other realistic line profiles. We are also
+interested in designing a robust convoy controller that is
+resilient to communication delays or losses. Additionally,
+we aim to apply the method to the convoy with N trains
+among which heterogeneity, i.e., different weights, length,
+and braking performance, exists.
+REFERENCES
+[1] C. Di Meo, M. Di Vaio, F. Flammini, R. Nardone, S. Santini, and
+V . Vittorini, “ERTMS/ETCS Virtual Coupling: Proof of Concept and
+Numerical Analysis,” IEEE Transactions on Intelligent Transportation
+Systems, vol. 21, pp. 2545–2556, June 2020.
+[2] U. Bock and G. Bikker, “Design and Development of a Future
+Freight Train Concept – “Virtually Coupled Train Formations”,” IFAC
+Proceedings Volumes, vol. 33, no. 9, pp. 395–400, 2000.
+[3] J. Aoun, E. Quaglietta, and R. M. P. Goverde, “Roadmap Development
+for the Deployment of Virtual Coupling in Railway Signalling,”
+Technological Forecasting and Social Change , vol. 189, p. 122263,
+Apr. 2023.
+[4] Y . Liu, R. Liu, C. Wei, J. Xun, and T. Tang, “Distributed Model
+Predictive Control Strategy for Constrained High-Speed Virtually
+Coupled Train Set,” IEEE Transactions on Vehicular Technology ,
+vol. 71, pp. 171–183, Jan. 2022.
+[5] J. Park, B.-H. Lee, and Y . Eun, “Virtual Coupling of Railway Vehicles:
+Gap Reference for Merge and Separation, Robust Control, and Posi-
+tion Measurement,” IEEE Transactions on Intelligent Transportation
+Systems, vol. 23, pp. 1085–1096, Feb. 2022.
+[6] E. Quaglietta, M. Wang, and R. M. P. Goverde, “A Multi-State
+Train-Following Model for the Analysis of Virtual Coupling Railway
+Operations,” Journal of Rail Transport Planning & Management ,
+vol. 15, p. 100195, Sept. 2020.
+[7] J. Xun, Y . Li, R. Liu, Y . Li, and Y . Liu, “A Survey on Control Methods
+for Virtual Coupling in Railway Operation,” IEEE Open Journal of
+Intelligent Transportation Systems, vol. 3, pp. 838–855, 2022.
+[8] J. Felez and M. A. Vaquero-Serrano, “Virtual Coupling in Railways:
+A Comprehensive Review,” Machines, vol. 11, p. 521, May 2023.
+[9] Q. Wu, X. Ge, Q. Han, and Y . Liu, “Railway Virtual Coupling:
+A Survey of Emerging Control Techniques,” IEEE Transactions on
+Intelligent Vehicles, vol. 8, pp. 3239–3255, May 2023.
+[10] S. Su, J. She, K. Li, X. Wang, and Y . Zhou, “A Nonlinear Safety
+Equilibrium Spacing-Based Model Predictive Control for Virtually
+Coupled Train Set Over Gradient Terrains,” IEEE Transactions on
+Transportation Electrification, vol. 8, pp. 2810–2824, June 2022.
+[11] A. D. Ames, J. W. Grizzle, and P. Tabuada, “Control Barrier Function
+Based Quadratic Programs with Application to Adaptive Cruise Con-
+trol,” in 53rd IEEE Conference on Decision and Control , pp. 6271–
+6278, Dec. 2014.
+[12] A. D. Ames, S. Coogan, M. Egerstedt, G. Notomista, K. Sreenath, and
+P. Tabuada, “Control Barrier Functions: Theory and Applications,” in
+2019 18th European Control Conference (ECC) , pp. 3420–3431, June
+2019.
+[13] W. Xiao, C. G. Cassandras, and C. Belta, Safe Autonomy with Control
+Barrier Functions: Theory and Applications . Synthesis Lectures on
+Computer Science, Cham: Springer International Publishing, 2023.
+[14] D. Emery, “Enhanced ETCS L2/L3 train control system,” in WIT
+Transactions on State of the Art in Science and Engineering (B. Ning,
+ed.), vol. 1, pp. 113–122, WIT Press, 1 ed., June 2010.
+[15] J. Wang and H. A. Rakha, “Longitudinal Train Dynamics Model for
+A Rail Transit Simulation System,” Transportation Research Part C:
+Emerging Technologies, vol. 86, pp. 111–123, Jan. 2018.
+[16] B. P. Rochard and F. Schmid, “A Review of Methods to Measure
+and Calculate Train Resistances,” Proceedings of the Institution of
+Mechanical Engineers, Part F: Journal of Rail and Rapid Transit ,
+vol. 214, no. 4, pp. 185–199, 2000.
+[17] X2Rail-1, “Deliverable D3.1. User & System Requirements
+(Telecommunications),” tech. rep., EU-Rail, 2016. https:
+//ec.europa.eu/research/participants/documents/
+downloadPublic?documentIds=080166e5c0facc5d&
+appId=PPGMS.
+652
+Authorized licensed use limited to: Beijing Jiaotong University. Downloaded on August 30,2026 at 12:14:47 UTC from IEEE Xplore.  Restrictions apply. 

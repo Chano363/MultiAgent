@@ -1,0 +1,590 @@
+
+===== PAGE 1 =====
+交通运输工程与信息学报 
+Journal of Transportation Engineering and Information 
+ISSN 1672-4747,CN 51-1652/U 
+ 
+ 
+ 
+ 
+《交通运输工程与信息学报》网络首发论文 
+ 
+题目： 不同万吨编组列车空气制动特性对纵向动力学性能影响 
+作者： 周占松，王馨悦，王开云 
+DOI： 10.19961/j.cnki.1672-4747.2025.12.003 
+收稿日期： 2025-12-02 
+网络首发日期： 2026-03-27 
+引用格式： 周占松，王馨悦，王开云．不同万吨编组列车空气制动特性对纵向动力学性
+能影响[J/OL]．交通运输工程与信息学报. 
+https://doi.org/10.19961/j.cnki.1672-4747.2025.12.003 
+ 
+ 
+ 
+ 
+ 
+ 
+网络首发：在编辑部工作流程中，稿件从录用到出版要经历录用定稿、排版定稿、整期汇编定稿等阶
+段。录用定稿指内容已经确定，且通过同行评议、主编终审同意刊用的稿件。排版定稿指录用定稿按照期
+刊特定版式（包括网络呈现版式）排版后的稿件，可暂不确定出版年、卷、期和页码。整期汇编定稿指出
+版年、 卷、 期、 页码均已确定的印刷或数字出版的整期汇编稿件。 录用定稿网络首发稿件内容必须符合 《出
+版管理条例》和《期刊出版管理规定》的有关规定；学术研究成果具有创新性、科学性和先进性，符合编
+辑部对刊文的录用要求，不存在学术不端行为及其他侵权行为；稿件内容应基本符合国家有关书刊编辑、
+出版的技术标准，正确使用和统一规范语言文字、符号、数字、外文字母、法定计量单位及地图标注等。
+为确保录用定稿网络首发的严肃性， 录用定稿一经发布， 不得修改论文题目、 作者、 机构名称和学术内容，
+只可基于编辑规范进行少量文字的修改。 
+出版确认：纸质期刊编辑部通过与《中国学术期刊（光盘版） 》电子杂志社有限公司签约，在《中国
+学术期刊 （网络版） 》 出版传播平台上创办与纸质期刊内容一致的网络版，以单篇或整期出版形式， 在印刷
+出版之前刊发论文的录用定稿、排版定稿、整期汇编定稿。因为《中国学术期刊（网络版） 》是国家新闻出
+版广电总局批准的网络连续型出版物（ISSN 2096-4188，CN 11-6037/Z），所以签约期刊的网络版上网络首
+发论文视为正式出版。 
+ 
+
+
+===== PAGE 2 =====
+ 
+收稿日期：2025-12-02                  录用日期：2026-03-16 
+审稿日期：2025-12-02～2025-12-15；2026-02-05～2026-03-16 
+基金项目：中国国家自然科学基金课题（52388102） ，中国国家铁路集团有限公司科技研究开发计划项目（Grant No. N2024J039） 
+作者简介：周占松（1981—） ，男，高级工程师，研究方向为重载列车运营研究，E-mail：11110707@ceic.com 
+通讯作者：王开云（1974—） ，男，博士，研究员，研究方向为轨道交通大系统动力学研究，E-mail：kywang@swjtu.edu.cn 
+不同万吨编组列车空气制动特性对纵向动力学性能影响 
+周占松
+1
+，王馨悦
+2
+，王开云
+*2
+ 
+（1.西南交通大学国能朔黄铁路发展有限责任公司，机辆分公司，沧州 062350； 
+2.西南交通大学，轨道交通运载系统全国重点实验室，成都 610031） 
+摘要：【背景】空气制动系统仿真对万吨编组列车纵向动力学研究至关重要。 【目的】 本文旨在优化列车编组和司机操
+纵，提升万吨重载列车纵向动力学性能。 【方法】针对我国货运列车常见的万吨列车编组形式，基于气体流动理论，
+考虑制动机结构以及控制原理， 建立了万吨编组列车的空气制动仿真模型。 模型中考虑管道气体流动、 制动机中各阀
+体的作用机制及副风缸、 加速缓解风缸、 紧急风缸和制动缸等腔室结构。 基于该模型仿真计算了常用制动、 全制动及
+紧急制动下的列车空气制动系统特性，进一步对比分析了不同空气制动下的万吨重载列车纵向动力学特性。 【结果】
+制动缸稳态压力随减压量增大而增加，紧急制动压力上升速度显著快于全制动；制动缸出闸延时随车辆位数近似线
+性增长，C80 编组列车的制动与缓解时间均最短。【结论】纵向动力学性能对比表明，C80 编组的车钩力与加速度指
+标最小，纵向冲动性能显著优于 C64 和 C70E 编组列车。 
+关键词：铁路运输；纵向动力学；仿真建模；重载列车；空气制动系统 
+中图分类号：U239.4            文献标志码：A             DOI：10.19961/j.cnki.1672-4747.2025.12.003 
+The influence of air braking characteristics of different 10 000-tonne train formations 
+on their longitudinal dynamic performance 
+                 ZHOU Zhansong1, WANG Xinyue2, WANG Kaiyun*2 
+（1.Locomotive Branch, Guoneng Shuohuang Railway Development Co., Ltd., Cangzhou 062350, China; 
+2.State Key Laboratory of Rail Transit Vehicle System, Southwest Jiaotong University, Chengdu 610031, China） 
+Abstract: [Background] The simulation of the air brake system is crucial for studying the longitudinal dynamics of 10 000-
+ton heavy -haul trains. [Objective] This paper aims to optimize train formation and driver operation, and enhance the 
+longitudinal dynamic performance of 10 000-ton heavy-haul trains. [Method] A simulation model is established for such trains 
+based on gas flow theory, incorporating the structure and control logic of the brake valve. The model accounts for pipeline gas 
+flow, valve mechanisms, and chamber structures like the auxiliary reservoirs, accelerated release reservoirs, emergency 
+reservoirs, and brake cylinder. It simulates the braking characteristics under service, full -service, and emergency braking 
+scenarios, followed by a comparative analysis of longitudinal dynamics. [Result] The steady -state pressure of the brake 
+cylinder increases with pressure reduction, with emergency braking exhibiting a much faster pressure rise than full -service 
+braking. The brake application delay increases approximately linearly with the number of veh icles, and the C80 formation 
+demonstrates the shortest braking and releasing times. [Conclusion] The C80 formation shows the smallest coupler forces and 
+accelerations, indicating significantly superior longitudinal impulse performance compared to the C64 and C70E formations. 
+Key words: railway transportation; longitudinal dynamics; simulation; heavy-haul train; air brake system 
+0  引 言 
+近年来，我国重载铁路得到长足发展，万吨级以上重载列车大规模开行标志着我国重载技术日
+臻成熟
+[1]
+。 然而长期运营过程中仍暴露出显著的列车纵向冲动问题， 其中空气制动过程中的纵向冲动
+尤为突出
+[2-4]
+。 因此探明万吨重载列车空气制动特性， 分析其作用下的万吨重载列车纵向动力学性能，
+网络首发时间：2026-03-27 17:57:10       网络首发地址：https://link.cnki.net/urlid/51.1652.U.20260326.2051.002
+
+===== PAGE 3 =====
+对编组优化、改进列车操纵具有重要意义。 
+目前国内外学者对于空气制动系统的仿真主要有两种方法
+[5]
+：一是采用基于试验数据对制动特
+性进行拟合，二是以气体流动理论为基础建立完善的空气制动系统仿真。对于基于试验数据拟合的
+空气制动模型，最常见的方法是通过实测数据拟合单个制动缸的压力变化曲线，并基于恒定制动波
+速的假设计算得到不同位置车辆的制动缸压力曲线，模型中通常不考虑列车编组、机车排风负荷差
+别、列车管泄漏等各种因素引起的空气制动系统的非线性特性
+[6-8]
+。近年来也有研究人员采用更为复
+杂的函数对实测的不同位置车辆制动缸压力变化曲线进行拟合
+[9]
+，拟合得到的模型能较好地反映制
+动波的非匀速传播特性及其压力变化趋势
+[10]
+。基于试验数据拟合的方法有利于简化空气制动模型，
+易于纵向动力学编程计算，同时可提升仿真计算效率。但该方法受限于试验数据本身，无法进行拓
+展研究，且试验数据获取难度大、成本高。 
+对于以气体流动理论为基础的空气制动系统仿真模型
+[11-12]
+，通常将包括列车管、制动缸、副风
+缸、三通阀等在内的空气制动系统考虑为连续流动气体，利用气体流动理论建 立非稳定流动气体状
+态方程以及边界条件，进而通过数值方法计算各个时刻各机车车辆的列车管压力、制动缸压力等，
+并将制动缸压力输入到列车纵向动力学计算主程序中。其中，魏伟
+[13-14]
+认为空气制动系统中的管路
+均为细长管，从而忽略了管内气体的横向流动效应，将其视为一维的、有摩擦的、非等熵不定常流
+动的连续气体。国内外的一些学者
+[15-17]
+基于等温假设将空气制动管路视作一维、有摩擦的等温定常
+流动的连续气体，制动阀内采用节流孔模型确定不同阀之间的气体流动，建立了列车空气制动系统
+模型。 赵鑫等
+[18]
+应用计算流体动力学中的有限体积法建立了货物列车空气管路的三维充气特性模型，
+能够同时求解主管、支管的压力和速度，避免了一维模型中人为解耦不当而出现的问题。 
+现有万吨列车纵向动力学性能分析的研究多采用拟合数据模拟列车的空气制动性能
+[19]
+。因此，
+本文基于气体流动理论模拟制动机管路气体流动，同时考虑制动机详细结构及其作用机理，建立了
+详细的列车空气制动系统模型。模型中列车制动管路考虑为细长管，管内气体流动考虑为一维非正
+常流动，将制动机内各阀体的动作过程简化为控制逻辑，采用节流孔模型计算各腔室之间的气体流
+动。基于该模型计算了常规万吨编组列车在典型常用制动、全制动和紧急制动工况下的制动特性，
+进一步对比了不同空气制动工况下万吨编组列车的纵向动力学特性。 
+1  空气制动系统模型 
+1.1 基本建模原理 
+空气制动系统模型由总风缸、列车管、三通阀、制动支管和制动机组成，如图 1 所示。 
+列车管
+通大气
+加速
+缓解风缸
+下腔室
+上腔室
+制动缸
+ϕ4
+ϕ5
+ϕ2
+ϕ6
+ϕ7
+ϕ8
+ϕ9
+ϕ10
+ϕ11
+ϕ12
+ϕ13
+P6
+P1
+P7
+P4
+P3 P2
+P8
+P5
+主活塞
+三通阀
+等效气室
+ϕ15
+ϕ3
+制动支管
+紧急室
+局减室
+ 
+
+===== PAGE 4 =====
+  
+   
+图 1 货车制动系统机构模型 
+Fig.1 The freight train brake system model 
+货车制动机控制阀的主阀部分由作用部、减速部、加速缓解阀、局减阀、紧急二段阀等五部分
+组成，作用部是利用作用部上下腔连接的列车管和副风缸的压差推动其上下移动，实现充气缓解、
+制动、保压等不同作用。 
+为简化模型，本文不考虑制动机内部的管路，仅以节流孔沟通制动机内部各个腔室和风缸，除
+主阀和滑阀建立单自由度运动模型外，其余阀均由控制逻辑实现动作。制动机模型由局减室、紧急
+室、加速缓解风缸、副风缸、上下腔室及制动缸和多个可控节流孔组成，这些节流孔受制动阀动作
+位控制。制动机共包括充气及缓解位、减速充气及缓解位、常用制动位、制 动保压位、紧急制动位
+等五个作用位，不同作用位之间的切换通过上下腔室压差和复位弹簧及减速弹簧共同作用改变主阀
+杆、 滑阀和节制阀的位移及相对位移实现。 制动机处于初充气时， 总风缸内的压力空气通过列车管、
+制动支管进入制动机，一路进入主阀上部的上腔室和紧急室；另一路进入下腔室，再分别向加速缓
+解风缸和副风缸充气。列车管向制动机充气时，前部车辆由于上下腔室压差过大将推动主阀杆下移
+至与减速弹簧接触，制动机此时处于减速充气及缓解位，此时充气孔变小。 
+列车管减压时上腔室空气通过节流孔流向列车管，此时下腔室压力大于上腔室压力，上下 腔室
+压差推动主阀杆和滑阀上移，此处的节流孔短暂打开，上腔室空气流向局减室再经由常开的节流孔
+排向大气， 此过程中上腔室压力进一步减小， 上下腔室压差进一步增大。 主阀杆上移至一定位置后，
+局减阀打开，上腔室空气流向制动缸直至局减阀压力推动背压弹簧关闭此处的节流孔；在主阀杆动
+作至常用制动位时，副风缸压力空气经由下腔室流向制动缸，制动缸升压。上下腔室压差减小后，
+主阀杆受重力作用带动节制阀向下移动， 滑阀受摩擦力影响保持不动， 此时上下腔室间的缩孔打开，
+制动机进入制动保压位。列车管缓解充气时，上腔室压力增加推动主阀杆及滑阀下移 ，制动缸内压
+力空气由缩孔排向大气，此时加速缓解阀作用，加速缓解风缸经向上腔室充气。当列车管空气压力
+上升并大于加速缓解风缸压力时，由于主阀处于充气及缓解位，列车管压力空气会通过主阀内的通
+路向加速缓解风缸充气，过程与初充气相同。 
+列车紧急制动时，紧急室和上腔室的压力空气经直接排向大气，紧急二段阀动作，使制动缸压
+力分成先快后慢两阶段上升，降低编组列车中前部车辆制动缸充气速度，以减小因后部车辆制动缸
+充气较晚而产生的纵向冲动。 
+1.2 基本制动机建模 
+长大列车列车管沿列车方向长度远长于其他方向长度，本课题组开发了无需迭代的高效管道边
+界条件求解方法，通过对比制动波传播速率仿真值与实测值，在长编组列车条件下，制动波速误差
+控制在 3%以内， 证明一维模型能够准确捕捉压力波在制动管中的传播特性，故而可将列车管内气体
+流动简化为一维气体流动[20]。在 0~600 kPa 的列车制动系统工作压力范围内，制动管壁与空气的热
+交换时间常数远大于制动过程特征时间，且制动管壁热容较大，可有效维持近等温条件。通过对比
+不同减压量工况下制动缸压力仿真与实测数据，压力曲线上升时间、峰值压力及 波动形态均高度吻
+合， 最大相对误差小于5%， 验证了等温假设在工程应用中的合理性， 因此可假设列车制动管内的气
+体为等温的理想气体[15]。列车制动主管的气体流动可由状态方程、连续性方程和动量方程描述。通
+
+===== PAGE 5 =====
+过采用有限差分法可以实现列车管的气体流动求解。 具体流程如下， 将相邻两个三通阀间长度为l 的
+管路离散为 N+1 个节点组成的 N 段单元管路，每节单元的长度为 l/N。将气体流动的状态方程、连
+续性方程和动量方程转化为压力 p 和流速 u 的差分格式，其中压力采用向后差分格式，流速采用向
+前差分格式。由上述差分格式可迭代计算管内各节点处流体 的压力和流速。阀体节流模型采用基于
+等熵流动的声速流修正因子和经验流量系数，通过多工况的制动缸压力曲线对比，压力响应时间误
+差小于 0.5 s， 峰值压力误差小于10 kPa， 验证了节流孔有效面积和流量系数等参数选取的准确性[15,20] 
+列车管中的气体通过三通阀经由支管流入制动机，因此需建立三通阀模型。此处将三通阀考虑
+为多个开口的容积室并作为列车管中空气流动的边界，其压力变化可表示 
+ 
+2
+c
+1 c
+d
+d4
+k
+i
+ci
+i
+pd n p utv
+
+
+  (1) 
+式中：di 为三通阀各个开口的直径；pc 为三通阀内的压力；ui 为三通阀开口处的气体流速；vc 为三通
+阀容积；k 为容积室开口数， 对于三通阀k 为 3；n 表示理想气体的多变指数， 等温假设下n 等于 1。 
+    由于三通阀容积较小，此处假设列车管与三通阀相连边界处的压力变化与三通阀等效容积压力
+变化相同， 进而可得到列车管的速度边界。 支管与制动机上腔室连接边界的速度亦可由此方法得到。 
+采用节流孔模型模拟气体在阀内各个腔室之间的流动。节流孔模型中两腔室之间的流量为 
+ 
+in
+qm
+in
+pm AC C
+T
+
+  (2) 
+式中：
+m
+ 为流量；A 为小孔的截面面积；pin 为入口压力；Tin 为入口温度；Cq 为流量系数；Cm 为修
+正系数。 
+流量系数 Cq 可表示为 
+ 
+2 3 4 5out out out out out
+q
+in in in in in
+=0.814-0.1002( ) 0.8415( ) 3.9( ) 4.6001( ) ( )p p p p pC p p p p p     (3) 
+式中：pout 为出口压力。 
+气体在等熵条件下的修正系数 Cm 为 
+ 
+( 1)2
+out out out
+in in in
+m ( 1)
+( 1)
+out
+in
+2 0.528( 1)
+=
+2 0.5281
+p p p
+R p p p
+C
+p
+Rp
+
+
+
+
+
+
+
+
+
+
+
+
+            
+     (4) 
+式中：R 为气体常数；γ 为热容比系数。 
+对于制动阀内主阀杆和制动缸活塞杆的运动，可基于运动学方程采用一阶欧拉积分进行求解。
+对于容积可变的制动缸，其压力变化率可由式（5）表示，将式（5）以时间步长 dt 的间隔离散，可
+得到制动缸压力的迭代计算公式如式（6）所示。 
+ 
+c
+,
+p
+n
+ti
+i
+p nRT mt A Z
+  
+  (5) 
+ 
+,1
+c c0
+pd
+d1 ()
+n
+tii
+t
+tt
+tnRT mP Z PZA
+
+
+ 
+  (6) 
+
+===== PAGE 6 =====
+  
+   
+式中：Pc 为 t+dt 时刻的制动缸压力；Pc0 为 t 时刻的制动缸压力；Ap 为制动缸截面面积；Z 为制动缸
+活塞杆的行程；Zt+dt 为制动缸 t+dt 时刻的行程；Zt 为制动缸 t 时刻的行程；
+,tim
+ 为流入（流出）制动
+缸的流量；T 为温度。 
+1.3 模型验证 
+为确保模型在实际工程应用中的可信度，本文引入国内某重载线路现场测试试验数据对系统整
+体性能进行验证。通过对比 C70E 万吨编组列车减压 50 kPa 时列车管及制动缸压力的试验与仿真数
+据，如图 2 所示，仿真曲线与试验曲线在制动周期内有相似规律。列车管压力在制动过程中维持在
+550~600 kPa 范围内波动，仿真结果与试验数据偏差较小；制动缸压力在约 10 秒内上升至峰值，并
+在 60 秒后完成缓解，其压力上升速率、峰值压力及缓解时序的仿真误差均控制在工程允许范围内。
+两组对比结果充分表明，基于前述建模假设所构建的空气制动系统模型，能够准确反映制动波传递
+的动态特性，并精确复现制动缸的压力响应过程。 
+   
+（a）1 位货车 （b）116 位货车 
+图 2 C70E 万吨编组列车减压 50 kPa 时空气制动系统内部压力试验与仿真数据对比 
+Fig.2 Comparative analysis of experimental and simulated pressure change within the air brake system of a C70E 10 000-
+tonne heavy-haul train consists during 50 kPa reduction 
+上述结果表明，在列车制动系统典型工况下，本文所建立的模型在理论假设、参数选取及系统
+集成层面均得到充分验证，模型简化带来的误差在工程可接受范围内，模型具备良好的预测精度和
+工程应用价值。 
+2  万吨编组列车空气制动特性对比分析 
+为对比不同万吨编组列车的空气制动特性，本节选取了常见的三种不同型号货车组成的万吨编
+组列车建立其对应的列车空气制动系统模型，各个万吨编组的参数如表 1 所示。 
+表 1 不同货车组成的万吨编组列车 
+Tab.1 10 000-tonne heavy-haul train formed by different wagons 
+中转地 集装箱换装时间/(h/TEU） 集装箱换装费用/（元/TEU） 中转地容量限制/TEU 
+泸州港 0.25 130 200 
+武汉 0.22 120 500 
+上海 0.18 115 1 000 
+2.1 空气制动系统压力变化 
+利用建立的空气制动系统仿真模型，对长大列车制动工况下的制动系统内部压力变化进行仿真
+
+
+===== PAGE 7 =====
+分析。仿真模型中设置列车管定压为 600 kPa，列车管管径为 32 mm。 
+图 3~图 5 分别展示了三种万吨编组列车在施加常用制动减压 50 kPa、全制动减压 170 kPa 和紧
+急制动时部分车辆处的列车管和制动缸压力变化。不同制动工况下三种编组列车的列车管和制动缸
+压力的稳态值基本一致。其中列车管压力由定压降低与操纵指令接近的压力值，而制动缸压力在常
+用制动、全制动和紧急制动下的压力分别稳定在 140 kPa、471 kPa 和 470 kPa。可以看出，随着减压
+量的增大，制动缸的压力也随之增大，但是常用全制动和紧急制动工况下的制动缸压力基本一致，
+两者的区别在于紧急制动下的制动缸压力呈两阶段上升趋势，其压力上升速度要远快于全制动工况
+下的相应值。 
+   
+（a）C64 编组 （b）C70E 编组 （c）C80 编组 
+图 3 万吨编组列车减压 50 kPa 时空气制动系统的内部压力变化 
+Fig.3 Pressure change within the air brake system of a 10 000-tonne heavy-haul train consists during 50 kPa reduction 
+   
+（a）C64 编组 （b）C70E 编组 （c）C80 编组 
+图 4 万吨编组列车减压 170 kPa 时空气制动系统的内部压力变化 
+Fig.4 Pressure change within the air brake system of a 10 000-tonne heavy-haul train consists during 170 kPa reduction 
+   
+（a）C64 编组 （b）C70E 编组 （c）C80 编组 
+图 5 万吨编组列车紧急制动时空气制动系统的内部压力变化 
+Fig.5 Pressure change within the air brake system of a 10 000-tonne heavy-haul train consists during emergency braking 
+2.2 空气制动系统响应时间 
+
+
+===== PAGE 8 =====
+  
+   
+图 6 给出了三种万吨编组列车在施加常用制动减压 50 kPa 时空气制动系统的制动缸出闸延时和
+制动缸缓解响应时间。可以看出，常用制动工况下三种编组列车的制动缸响应时间基本一致，制动
+缸延时随着车辆位数的增加呈近似线性增长。三种编组列车的制动缸制动延时分别为 6.96 s、6.86 s
+和 5.52 s，列车制动波传递至尾车处时的制动波速分别为 250.3 m/s、241.8 m/s 和 236.7 m/s。对于制
+动缸的缓解响应， 三种编组列车的制动缸缓解时间在前50 辆货车处能够保持线性增长的变化， 在车
+辆位数超过 50 后， 三种编组列车的制动缸缓解时间呈现出不同的非线性变化现象， 其中C64 编组和
+C70E 编组列车呈现先慢后快的缓解现象，而 C80 编组列车的尾部列车缓解时间基本一致。三种编组
+列车的最大缓解时间分别为 11.50 s、10.48 s 和 7.92 s。可以看出，C80 编组列车的制动缸的响应速
+度要远快于其余两种编组。 
+  
+（a）制动延时 （b）缓解延时 
+图 6 列车减压 50 kPa 时空气制动系统响应时间 
+Fig.6 Response time within the air brake system of a 10 000-tonne heavy-haul train consists during 50 kPa reduction 
+图 7 和图 8 给出了三种万吨编组在施加全制动减压 170 kPa 和紧急制动时的制动缸制动出闸时
+间。可以看出，三种万吨编组在这两种工况下的制动延时仍然呈近似线性增长。全制动工况下三种
+编组列车的制动缸制动延时分别为 7.28 s、6.86 s 和 5.52 s，列车制动波传递至尾车处时的制动波速
+分别为 239.3 m/s、241.8 m/s 和 236.7 m/s。 紧急制动工况下三种编组列车的制动缸制动延时为6.96 s、
+6.58 s 和 5.26 s，列车制动波传递至尾车处时的制动波速分别为 250.3 m/s、252.1 m/s 和 248.4 m/s。 
+  
+图 7 万吨编组列车减压 170 kPa 时空气制动系统制动
+延时 
+图 8 万吨编组列车紧急制动时空气制动系统制动延时 
+Fig.7 Braking delay within the air brake system of a 
+10 000-tonne heavy-haul train consists during 170 kPa 
+reduction 
+Fig.8 Braking delay within the air brake system of a 
+10 000-tonne heavy-haul train consists during emergency 
+braking 
+3  万吨编组列车纵向动力学性能对比 
+
+
+===== PAGE 9 =====
+3.1 纵向动力学模型 
+空气制动力由压缩空气推动闸瓦与车轮踏面产生摩擦来施加。空气制动系统输出制动缸压力，
+采用实算法计算闸瓦压力产生的列车空气制动力，可表示为列车中每种一块闸瓦实算压力之和与各
+实算压力所对应的实算摩擦系数乘积的总和。如图 9 所示，列车纵向动力学计算需要考虑机车牵引
+制动、 机车车辆空气制动、 车钩缓冲装置、 列车编组、 运行操控、 线路条件、 数值计算方法等多方面
+因素。在建立的包含两台 SS4 机车的列车纵向动力学模型时，每节车辆考虑为只有纵向自由度的质
+点，线路、操纵等因素的影响考虑为作用于车辆上的力，从而构建列车的多质点动力学方程组 ，实
+现列车纵向动力学性能的时域积分仿真。 
+  
+（a）计算示意 
+运行方向
+  
+机车 货车编组
+ 
+ 
+（b）编组示意 
+图 9 万吨重载列车纵向动力学模型 
+Fig.9 Longitudinal dynamics model of 10 000-tonne heavy haul train 
+3.2 纵向冲动时域分析 
+图 10 和图 11 给出了 C70E 万吨编组列车在常用制动、全制动以及紧急制动下的纵向车钩力分
+布和纵向加速度分布。制动波的传播特性直接影响列车的纵向冲动。当相邻两车开始制动的时刻不
+同，后部车辆会对前部车辆产生冲击力，导致车钩力瞬时增大。随着制动波的传播，前部车辆制动
+缸的升压速度较快，制动作用较强，而后部车辆制动缸升压速度较慢，制动作用较弱。此时，后部
+车辆速度较前部车辆高，产生持续的挤压作用，进而形成了挤压力。由于车辆间相对震荡作用，挤
+压过程的持续时间较长[21]。缓解时，由于列车管中的空气增压波由前向后传递，不同位置车辆缓解
+不同步，前方车辆将率先缓解加速，但此时后部车辆处于制动状态，会对列车前进趋势产生一定的
+抑制作用，导致较大拉钩力，而机车后部车辆缓解加速时会挤压前方车辆，形成“拉压转换”现象
+[22]。可以看出，常用制动工况下列车的车钩力主要出现在制动初期和制动缓解阶段，其中制动初期
+的车钩力以压钩力为主 ，制动缓解阶段表现出明显的 “拉压转换 ”现象 ，此过程中拉钩力最大为
+396.0 kN， 压钩力最大为745.9 kN。 常用制动工况下列车的纵向加速度同样主要出现在制动初期和制
+动缓解阶段，列车的最大加速度为 0.588 g。在全制动工况下，列车制动初期的车钩力主要表现为从
+
+
+===== PAGE 10 =====
+  
+   
+前向后方向逐步传递的压钩力，由于空气制动力的延时作用，列车的压 钩力会反复振荡，从而形成
+多次逐级衰减的压钩力波峰，其中压钩力的最大值出现在第一次压钩力波峰处，最大压钩力为
+998.9 kN，最大加速度出现在此阶段处的列车尾部，最大加速度为 0.993 g。在紧急制动工况下，短
+时间内空气制动力快速同步增加，因而列车的车钩力以单个压钩力波峰为主，最大压钩力和最大加
+速度分别为 1285.5 kN 和 0.909 g，随后列车的车钩力和加速度呈小幅度波动状态。 
+   
+（a）常用制动 （b）全制动 （c）紧急制动 
+图 10 C70E 万吨编组列车不同制动工况下的车钩力分布 
+Fig.10 The coupler force distribution of C70E 10 000-tonne heavy-haul train under different braking conditions 
+   
+（a）常用制动 （b）全制动 （c）紧急制动 
+图 11 C70E 万吨编组列车不同制动工况下的纵向加速度分布 
+Fig.11 The longitudinal acceleration distribution of C70E 10 000-tonne heavy-haul train under different braking conditions 
+3.3 纵向冲动性能对比 
+进一步对比三种不同万吨编组列车在常用制动工况下的纵向动力学性能，如图 12 所示。可以看
+出三种编组中 C64 编组万吨列车的各项纵向动力学指标整体上最大，C80 编组万吨列车的各项纵向
+动力学指标整体上最小。 
+  
+（a）压钩力 （b）拉钩力 
+
+
+===== PAGE 11 =====
+ 
+ 
+ 
+ （c）纵向加速度  
+图 12 不同万吨编组列车的纵向动力学性能对比 
+Fig.12 Comparison of longitudinal dynamic performance of different 10 000-tonne heavy-haul trains 
+C64 编组列车的压钩力最大值和中位数分别为 1113.2 kN 和 747.5 kN， 拉钩力的最大值和中位数
+分别为 651.7 kN 和 259.1 kN， 加速度最大值和中位数分别为0.926 g 和 0.597 g；C70E 编组列车的压
+钩力最大值和中位数分别为 745.8 kN 和 654.7 kN，拉钩力的最大值和中位数分别为 396.0 kN 和
+198.9 kN， 加速度的最大值和中位数分别为0.588 g 和 0.372 g；C80 编组列车的压钩力最大值和中位
+数分别为 542.8 kN 和 424.6 kN， 拉钩力的最大值和中位数分别为275.9 kN 和 0 kN， 加速度的最大值
+和中位数分别为 0.544 g 和 0.296 g。从各项统计指标可以看出 C80 编组万吨列车具备更好的纵向动
+力学性能。 
+4 结束语 
+本研究通过建立万吨编组列车空气制动系统仿真模型，深入分析了空气制动系统对列车纵向动
+力学性能的影响。研究结果表明： （1）在不同制动工况下，制动缸压力的稳态值随减压量增大而增
+加，常用制动时稳定在 140 kPa，全制动和紧急制动时均稳定在约 470 kPa。尽管全制动和紧急制动
+的制动缸稳态压力基本一致，但紧急制动下制动缸压力呈两阶段上升趋势，且压力上升速度远快于
+全制动工况。在常用制动、全制动和紧急制动工况下，制动缸的出闸延时均随车辆位数增加呈近似
+线性增长。 同时， 制动波速在不同编组中略有差异。 （2） 对比三种编组列车，C80 编组的制动缸制动
+延时最短，缓解时间也最小，表明其制动系统响应速度显著优于 C64 和 C70E 编组。 （3）通过对比
+三种编组列车在常用制动工况下的纵向车钩力和加速度，C80 编组列车的各项纵向动力学指标均最
+小，而 C64 编组指标最大。这表明 C80 编组列车在制动过程中产生的纵向冲动更小，具备更优的纵
+向动力学性能。 
+本文在既定研究条件下， 开展了万吨编组列车空气制动特性对纵向动力学性能影响的仿真分析，
+研究中仅考虑了一种机车类型及车内位置， 相关结论适用于该典型配置条件下的重载列车运行工况。
+本文未对不同机车类型及其组合形式下的运行特性进行深入讨论，研究结论在适用范围上仍存在一
+定局限。未来研究可在此基础上，进一步引入多种机车类型及不同编组 方案，系统分析不同机车空
+气制动特性对万吨重载列车纵向动力学性能的影响规律，从而为重载列车安全高效运营及操纵策略
+优化提供更为全面的理论依据。 
+参考文献 
+[1] 王开云, 閤鑫, 陈清华, 等. 重载列车系统动力学研究进展 [J]. 应用力学学报 , 2023, 40(5): 973 -
+
+
+===== PAGE 12 =====
+  
+   
+986.  
+WANG Kaiyun, GE Xin, CHEN Qinghua, et al. Review of dynamics research on heavy -haul train 
+system[J]. Chinese Journal of Applied Mechanics, 2023, 40(5): 973-986.  
+[2] RAN X, CHEN S, HU X, et al. Digital twin modelling of heavy -haul train for longitudinal impulse 
+simulation[J]. Vehicle System Dynamics, 2025: 1-22.  
+[3] 胡晓宇, 閤鑫, 周占松, 等. 动力配置对 2 万吨重载列车纵向冲动的影响研究[J]. 四川轻化工大
+学学报(自然科学版), 2022, 35(4): 18-25.  
+HU Xiaoyu, GE Xin, ZHOU Zhansong, et al. Effect of power configurations mode on the longitudinal 
+impulse of 20, 000 -ton heavy-haul trains[J]. Journal of Sichuan University of Science & Engineering 
+(Natural Science Edition), 2022, 35(4): 18-25.  
+[4] ZHANG W, LI W, FAN Y , et al. Influence of cyclic pneumatic brake on the longitudinal dynamics of 
+heavy-haul combined trains[J]. IEEE Transactions on Intelligent Transportation Systems, 2024, 25(3): 
+2545-2557.  
+[5] 张志超, 李谷, 储高峰. 重载列车纵向动力学计算程序综述和研制[J]. 铁道机车车辆, 2014, 34(6): 
+1-7.  
+ZHANG Zhichao, LI Gu, CHU Gaofeng. Summary and development of the longitudinal dynamic 
+calculation program for heavy haul trains[J]. Railway Locomotive & Car, 2014, 34(6): 1-7.  
+[6] 魏伟, 张渊, 张军, 等. 机车充风能力对重载列车缓解性能及车钩力影响研究 [J]. 铁道标准设计, 
+2024, 68(1): 198-203.  
+WEI Wei, ZHANG Yuan, ZHANG Jun, et al. Research on the influence of locomotive air charging 
+capacity on the release performance and coupler force of heavy haul trains[J]. Railway Standard Design, 
+2024, 68(1): 198-203.  
+[7] 耿志修, 李学峰, 张波. 大秦线重载列车运行仿真计算研究[J]. 中国铁道科学, 2008, 29(2): 88-93.  
+GENG Zhixiu, LI Xuefeng, ZHANG Bo. Simulation study of heavy haul train operation on Datong -
+Qinhuangdao railway[J]. China Railway Science, 2008, 29(2): 88-93.  
+[8] 曾周, 胡晓宇, 冉祥瑞, 等. 2 万 t 重载列车车辆数量对纵向冲动的影响研究 [J]. 机车电传动 , 
+2024(1): 22-30.  
+ZENG Zhou, HU Xiaoyu, RAN Xiangrui, et al. Research on the influence of quantity of 20 000 -ton 
+heavy-haul train wagons on longitudinal impulse[J]. Electric Drive for Locomotives, 2024(1): 22-30.  
+[9] SERAJIAN R, MOHAMMADI S, NASR A. Influence of train length on in -train longitudinal forces 
+during brake application[J]. Vehicle System Dynamics, 2019, 57(2): 192-206.  
+[10] 孙树磊, 李芾, 丁军君, 等. 重载列车空气制动特性多参数数学简化方法 [J]. 铁道车辆 , 2017, 
+55(9): 6-9, 4.  
+SUN Shulei, LI Fu, DING Junjun, et al. The multi-parameter mathematic simplification method for air 
+braking features of heavy haul trains[J]. Rolling Stock, 2017, 55(9): 6-9, 4.  
+[11] WU Q, COLE C, SPIRYAGIN M, et al. Freight train air brake models[J]. International Jou rnal of Rail 
+Transportation, 2023, 11(1): 1-49.  
+[12] LIU B Y , WEI W, ZHU J C, et al. Analysis of the influence of brake pipe pressure gradient on heavy 
+haul combined train and optimisation of operation strategy[J]. Vehicle System Dynamics, 2025, 63(12): 
+
+===== PAGE 13 =====
+2271-2295.  
+[13] 魏伟, 于海龙. 制动特性对重载列车纵向冲动影响的比较[J]. 大连交通大学学报, 2013, 34(4): 1-
+6.  
+WEI Wei, YU Hailong. Influence of braking characteristics on longitudinal dynamics of connected 
+train[J]. Journal of Dalian Jiaotong University, 2013, 34(4): 1-6.  
+[14] WEI W, HU Y , WU Q, et al. An air brake model for longitudinal train dynamics studies[J]. Vehicle 
+System Dynamics, 2017, 55(4): 517-533.  
+[15] GE X, CHEN Q H, LING L, et al. An approach for simulating the air brake system of long freight trains 
+based on fluid dynamics[J]. Railway Engineering Science, 2023, 31(2): 122-134.  
+[16] WU Q, COLE C, SPIRYAGIN M, et al. Railway air brake model and pa rallel computing scheme[J]. 
+Journal of Computational and Nonlinear Dynamics, 2017, 12(5): 051017.  
+[17] 刘金朝 , 王成国 , 马大炜 , 等. 长大列车空气管系充气特性数值仿真研究 [J]. 中国铁道科学 , 
+2004, 25(1): 13-19.  
+LIU Jinzhao, WANG Chengguo, MA Dawei, et al. Numerical simulation on charging characteristics of 
+heavy haul train air brake pipe system[J]. China Railway Science, 2004, 25(1): 13-19.  
+[18] 赵鑫, 王成国, 刘金朝, 等. 列车空气管系及副风缸充气特性数值仿真研究 [J]. 铁道机车车辆 , 
+2004, 24(S1): 53-57.  
+ZHAO Xin, WANG Chengguo, LIU Jinzhao, et al. Numerical simulation on air - charging characteristic 
+of heavy haul train air brake pipe system and auxiliary reservoir[J]. Railway Locomotive & Car, 2004, 
+24(S1): 53-57.  
+[19] ZHOU X Y, CHENG S, YU T J, et al. Research on the air brake system of heavy haul trains based on 
+neural network[J]. Vehicle System Dynamics, 2024, 62(8): 2035-2053.  
+[20] CHEN Q H, GE X, CHEN S Q, et al. An air brake model with electronically controlled pneumatic for 
+heavy-haul trains[J]. IEEE Transactions on Intelligent Transportation Systems, 2026, 27(1): 1578-1591.  
+[21]  黎启玄 . 制动系统特性对重载列车纵向动力学性能影响仿真研究 [D]. 大连: 大连交通大学 , 
+2023.  
+LI Qixuan. Simulation research on the influence of braking system characteristics on the longitudinal 
+dynamic performance of heavy haul train[D]. Dalian: Dalian Jiaotong University, 2023. 
+[22] 周占松, 郝佳, 胡晓宇, 等. 关门车对 2 万吨重载列车纵向冲动的影响研究[J]. 铁道标准设计: 1-
+13. (2026-02-03)[2026-02-25]. https://doi.org/10.13238/j.issn.1004-2954.202505120003.  
+ZHOU Zhansong, HAO Jia, HU Xiaoyu, et al. Resea rch on the influence of non -braked wagons on 
+longitudinal impulse  of 20000 -ton heavy -haul train [J]. Railway Standard Design : 1-13. ( 2026-02-
+03)[2026-02-25]. https://doi.org/10.13238/j.issn.1004-2954.202505120003. 

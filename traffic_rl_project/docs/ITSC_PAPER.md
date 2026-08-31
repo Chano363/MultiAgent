@@ -112,17 +112,20 @@ We evaluate deterministically (policy in eval mode) on the Shuozhou profile at f
 - **M-DQN**: a naive DQN baseline (Zhang et al. [1]) trained to learn cyclic braking; in the multi-train scenario each train runs an independent DQN (no inter-train cooperation) and *without* the Layer-1 coupler-force safety layer (aligned with [1], which ignores coupler forces). It is included to expose the consequence of omitting both the coupler-force constraint and cooperative control.
 - **M-DQN-fair**: a *fair* DQN baseline that uses the *same* hierarchical architecture as M1 (Layer-1 rule cyclic braking + coupler-force safety layer) but replaces the Layer-2 MAPPO with a per-train DQN outputting discrete cooperative threshold offsets. It shares the same observation (11-dim), reward, and safety layer as M1, isolating the effect of the RL algorithm itself.
 - **Coast**: throttle = 0 baseline.
+- **M-MPC**: a model-based multi-train MPC (direct per-train acceleration commands, rolling horizon ≈3.2 s, with coupler-force and gap hard constraints) representing the model-driven alternative; see Sec. V-B.
 
 ### B. Main result (fixed initial speed 65 km/h, 3-train)
 
-| Metric | Coast | **M1 (coop)** | M3 (indep) | M4 (rule) | M-DQN-fair | M-DQN |
-|:--|:--|:--|:--|:--|:--|:--|
-| Cumulative reward | +27,950 | **+36,446** | −31,151 | −33,991 | −38,432 | **−606,185** |
-| Overspeed >80 km/h (%) | 5.3 | **1.3** | 0.8 | 0.8 | 0.8 | — |
-| Under-speed <40 km/h (%) | 0.0 | 0.9 | **4.5** | 4.5 | 4.7 | — |
-| Peak coupler force (kN) | 651 | **804** | 734 | 734 | 900 | **2,111 (violated)** |
-| Min inter-train gap (m) | 182 | **182** | −321 | −321 | −347 | −234 |
-| Rear-end collision steps | 0 | **0** | 202 | 202 | 229 | **1,434** |
+| Metric | Coast | **M1 (coop)** | M3 (indep) | M4 (rule) | M-DQN-fair | M-DQN | **M-MPC** |
+|:--|:--|:--|:--|:--|:--|:--|:--|
+| Cumulative reward | +27,950 | **+36,446** | −31,151 | −33,991 | −38,432 | **−606,185** | **−258,831** |
+| Overspeed >80 km/h (%) | 5.3 | **1.3** | 0.8 | 0.8 | 0.8 | — | 0.0 |
+| Under-speed <40 km/h (%) | 0.0 | 0.9 | **4.5** | 4.5 | 4.7 | — | **70.8** |
+| Peak coupler force (kN) | 651 | **804** | 734 | 734 | 900 | **2,111 (violated)** | **1,431 (violated)** |
+| Min inter-train gap (m) | 182 | **182** | −321 | −321 | −347 | −234 | **−9** |
+| Rear-end collision steps | 0 | **0** | 202 | 202 | 229 | **1,434** | **330** |
+
+> *M-MPC* is a model-based multi-train MPC (direct acceleration commands, rolling horizon ≈3.2 s, coupler-force + gap hard constraints) evaluated on the same Shuozhou cyclic-braking profile under the randomized-initialization protocol (5 seeds, mean). Its short rolling window cannot foresee the minute-level cyclic-braking phase, so the train stalls (\<40 km/h 70.8%), the gap collapses (−9 m) and the coupler force violates the 1000 kN limit (1,431 kN).
 
 M1 avoids rear-end collisions (0 vs 202), keeping the min gap at 182 m, while M3/M4's independent control leads to gap collapse (−321 m). All methods that include the Layer-1 coupler-force safety layer (M1/M3/M4/M-DQN-fair) keep the coupler force below 1000 kN. **The two DQN baselines expose two distinct failure modes.** The *fair* DQN (M-DQN-fair), which has the same architecture, safety layer, observation, and reward as M1 but uses DQN instead of MAPPO for the cooperative threshold adjustment, still collides (229 steps) and does not keep the gap — it learns a cooperative policy no more robust than independent control (M3), isolating the limitation to the RL algorithm rather than the architecture. The *naive* DQN (M-DQN), which additionally omits the Layer-1 coupler-force safety layer and inter-train cooperation, violates the coupler-force limit (2,111 kN) and collides far more frequently (1,434 steps) — showing that omitting the coupler-force constraint and cooperative control simultaneously is unsafe in multi-train braking.
 
@@ -205,7 +208,7 @@ The original limitation — training at 300 steps while evaluating over 3000 —
 
 ## VI. Conclusion
 
-We proposed a hierarchical framework for cooperative control of heavy-haul train platoons on long downhill sections: rule-based cyclic braking (micro, with a coupler-force safety layer enforcing ≤1000 kN) + MAPPO cooperative threshold adjustment (macro). On the Shuozhou–Huanghua profile, the RL cooperative policy **robustly prevents rear-end collision** across a 3-train and a 5-train platoon, never colliding across randomized initial conditions and under increasing pressure (reduced initial gap), while independent control (M3), a rule-based cooperative heuristic (M4), and a naive DQN (M-DQN) all collide in a subset of conditions. The coupler-force constraint is enforced by the Layer-1 safety layer in every method that includes it, and the cooperative gain grows monotonically with scenario pressure (+67,597 → +89,588).
+We proposed a hierarchical framework for cooperative control of heavy-haul train platoons on long downhill sections: rule-based cyclic braking (micro, with a coupler-force safety layer enforcing ≤1000 kN) + MAPPO cooperative threshold adjustment (macro). On the Shuozhou–Huanghua profile, the RL cooperative policy **robustly prevents rear-end collision** across a 3-train and a 5-train platoon, never colliding across randomized initial conditions and under increasing pressure (reduced initial gap), while a model-based multi-train MPC (M-MPC), independent control (M3), a rule-based cooperative heuristic (M4), and a naive DQN (M-DQN) all fail or collide in a subset of conditions. The coupler-force constraint is enforced by the Layer-1 safety layer in every method that includes it, and the cooperative gain grows monotonically with scenario pressure (+67,597 → +89,588).
 
 **Key insights.**
 1. **Value = robustness, not large mean gain.** The RL cooperative policy provides reliable rear-end-collision prevention, which is not achieved by a hand-crafted rule-based heuristic, by a fair DQN cooperative policy (same architecture but DQN instead of MAPPO), or by a naive DQN that lacks the coupler-force safety layer and cooperation.

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="940" viewBox="0 0 1240 940" font-family="'Segoe UI','Microsoft YaHei',sans-serif">
+<defs>
+<marker id="archA" markerHeight="13" markerWidth="13" orient="auto-start-reverse" refX="10" refY="10" viewBox="0 0 10 10">
+<path d="M0,1.5 L9,5 L0,8.5 z" fill="#bd6a47"></path>
+</marker>
+</defs>
+<rect width="1240" height="940" fill="#faf9f5"/>
+<rect fill="#f1e1c3" height="122" rx="24" stroke="#d3d1c9" width="960" x="140" y="30"></rect>
+<text fill="#141413" font-size="32" font-weight="600" text-anchor="middle" x="620" y="98">第 2 层 · MAPPO 协同</text>
+<line marker-end="url(#archA)" stroke="#bd6a47" stroke-width="4" x1="620" x2="620" y1="152" y2="188"></line>
+<rect fill="#faf9f5" height="70" rx="24" stroke="#d3d1c9" width="960" x="140" y="188"></rect>
+<text fill="#141413" font-size="26" font-weight="600" text-anchor="middle" x="620" y="232">阈值映射</text>
+<line marker-end="url(#archA)" stroke="#bd6a47" stroke-width="4" x1="620" x2="620" y1="258" y2="294"></line>
+<rect fill="#e9e5da" height="150" rx="24" stroke="#d3d1c9" width="960" x="140" y="294"></rect>
+<text fill="#141413" font-size="32" font-weight="600" text-anchor="middle" x="620" y="362">第 1 层 · 规则循环制动</text>
+<line marker-end="url(#archA)" stroke="#bd6a47" stroke-width="4" x1="620" x2="620" y1="444" y2="480"></line>
+<rect fill="#f6e5c4" height="146" rx="24" stroke="#d3d1c9" width="960" x="140" y="480"></rect>
+<text fill="#141413" font-size="32" font-weight="600" text-anchor="middle" x="620" y="546">安全层 · ATP 硬约束</text>
+<line marker-end="url(#archA)" stroke="#bd6a47" stroke-width="4" x1="620" x2="620" y1="626" y2="662"></line>
+<rect fill="#faf9f5" height="92" rx="24" stroke="#d3d1c9" width="960" x="140" y="662"></rect>
+<text fill="#141413" font-size="26" font-weight="600" text-anchor="middle" x="620" y="716">多体纵向动力学</text>
+<line marker-end="url(#archA)" stroke="#bd6a47" stroke-dasharray="10 8" stroke-width="4" x1="86" x2="86" y1="710" y2="94"></line>
+</svg>

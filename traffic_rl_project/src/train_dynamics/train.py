@@ -99,6 +99,10 @@ class TrainDynamics:
         # 原实现阶跃施加满制动力（波到即满）→ 冲击远超真实（双基准 B 偏差 +1100%）。
         self._brake_pressure = np.zeros(n)   # 每节车制动缸压力系数 0~1
         self.brake_rise_time_s = 10.0        # 制动缸升压时间（秒，紧急制动 ~10s）
+        # Newmark-β Picard 迭代参数（子步进后每控制步迭代 10×此值，是主要算力开销；
+        # 设为可调属性，便于在精度/速度间权衡与实测调优）
+        self.newmark_max_iter = 30
+        self.newmark_tol = 1e-5
         # 【2026-08-30 基线对齐】分档位制动缸升压时间（李蔚2023：常用制动
         # "充气时间长，呈发散式"；周占松2026升压曲线：常用明显慢于紧急）。
         # 常用全制动升压慢 → 头尾制动力差积累更缓 → 前堵后涌峰值更低。
@@ -517,17 +521,19 @@ class TrainDynamics:
         self,
         control_forces: np.ndarray,
         dt: float,
-        max_iter: int = 30,
-        tol: float = 1e-5,
+        max_iter: int = None,
+        tol: float = None,
     ) -> None:
         """Newmark-β（β=1/4, γ=1/2）推进一个时间步，Picard 迭代求解。
 
         Args:
             control_forces: 每车控制力（牵引/制动/电制动），本步固定
             dt: 时间步长（秒）
-            max_iter: 定点迭代上限
-            tol: 位移收敛容差（米）
+            max_iter: 定点迭代上限（None=用 self.newmark_max_iter）
+            tol: 位移收敛容差（米，None=用 self.newmark_tol）
         """
+        max_iter = self.newmark_max_iter if max_iter is None else max_iter
+        tol = self.newmark_tol if tol is None else tol
         m = self.masses_kg
         beta, gamma = 0.25, 0.5
         x_n, v_n, a_n = self.pos.copy(), self.vel.copy(), self._acc0

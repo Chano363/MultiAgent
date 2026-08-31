@@ -16,6 +16,7 @@
 
 import sys
 import os
+import json
 from pathlib import Path
 import time
 import argparse
@@ -147,8 +148,9 @@ def train(
     init_speed_kmh: float = 65.0,   # 固定初始速度（km/h），循环制动场景用 80
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
-    curriculum: str = None,          # 可选：'300-1000-3000' 形式，递增 horizon 分段训练（增强长程泛化）
+    curriculum: str = None,          # 可选：'300-1000-3000'（相对）或 '1000:66,3000:132'（绝对全局ep边界）
     resume: str = None,              # 可选：续训检查点路径（加载策略继续训练，前台分块训练用）
+    start_ep: int = -1,              # 可选：起始全局回合号（-1=从 resume 历史推断；从头训练分块续训用）
 ):
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -211,6 +213,7 @@ def train(
 
     # 【2026-08-30】断点续训：加载已有策略继续训练（前台分块训练用，
     # 优化器状态随 checkpoint 一并保存/恢复，热启动续训不打断学习进程）
+    cp_tag = 'cp' if use_coupler_constraint else 'nocp'
     if resume and Path(resume).exists():
         agent.load(resume)
         logger.info(f"已加载续训检查点: {resume}")
@@ -221,14 +224,49 @@ def train(
     episode_peak_coupler = []
     episode_violations = []
     best_reward = float('-inf')
+    # 【2026-08-30 无缝续训】加载历史与 best（跨块不丢数据、best 全局跟踪）：
+    # 分块训练每块重开 best=-inf 会让 best checkpoint 被后块劣质模型覆盖
+    # （实测导致评估非单调恶化）。续训时从已存 history 恢复累计列表与 best。
+    if resume and Path(resume).exists():
+        hist_path = Path(results_dir) / f"train_history_{cp_tag}_seed{seed}.json"
+        if hist_path.exists():
+            h = json.loads(hist_path.read_text(encoding='utf-8'))
+            episode_rewards = list(h.get('rewards', []))
+            episode_peak_coupler = list(h.get('peak_coupler_kN', []))
+            episode_violations = list(h.get('violations', []))
+            best_reward = float(h.get('meta', {}).get('best_reward', float('-inf')))
+            if start_ep < 0:
+                start_ep = len(episode_rewards)
+            logger.info(f"已恢复历史: {len(episode_rewards)} ep, best={best_reward:.1f}, "
+                        f"从全局 ep{start_ep} 继续")
+    if start_ep < 0:
+        start_ep = 0
 
-    # curriculum 解析：'300-1000-3000' → 分段递增 horizon，每段平均分配 episodes。
-    # 通过动态调整 env.max_steps 实现（env 的 truncated 判断用 self.max_steps）。
-    cur_stages = []
+    # curriculum 解析（支持两种格式，均以【全局回合号】判定阶段）：
+    #   1) 相对格式 '300-1000-3000'：按本块 episodes 均分（兼容旧用法）
+    #   2) 绝对格式 '1000:66,3000:132'：ep66 起 horizon=1000，ep132 起=3000
+    #      （分块续训用绝对格式，各块传相同字符串，阶段边界全局一致）
+    cur_plan = []  # [(global_ep_boundary, max_steps), ...] 升序
     if curriculum:
-        cur_stages = [int(x) for x in curriculum.split('-')]
-        per_stage = max(1, episodes // len(cur_stages))
-        logger.info(f"curriculum 分段: {cur_stages}（每段约 {per_stage} ep）")
+        if ':' in curriculum:
+            for part in curriculum.split(','):
+                h_str, e_str = part.strip().split(':')
+                cur_plan.append((int(e_str), int(h_str)))
+            cur_plan.sort()
+            logger.info(f"curriculum 绝对边界: {cur_plan}")
+        else:
+            stages = [int(x) for x in curriculum.split('-')]
+            per_stage = max(1, episodes // len(stages))
+            cur_plan = [(i * per_stage, h) for i, h in enumerate(stages)]
+            logger.info(f"curriculum 分段: {stages}（每段约 {per_stage} ep）")
+
+    def _resolve_horizon(gep: int) -> int:
+        """按全局回合号返回该回合的 max_steps（curriculum 生效）。"""
+        h = max_steps
+        for e_bound, h_stage in cur_plan:
+            if gep >= e_bound:
+                h = h_stage
+        return h
 
     logger.info("=" * 70)
     logger.info("开始训练")
@@ -236,13 +274,11 @@ def train(
     start_time = time.time()
 
     for ep in range(episodes):
-        # curriculum：按当前 episode 所在阶段设置 env.max_steps（递增 horizon）
-        if cur_stages:
-            stage_idx = min(ep // per_stage, len(cur_stages) - 1)
-            env.max_steps = cur_stages[stage_idx]
-            if 'cur_stage' not in locals() or locals()['cur_stage'] != stage_idx:
-                cur_stage = stage_idx
-                logger.info(f"curriculum 阶段切换: ep{ep+1} → horizon {env.max_steps} 步")
+        gep = start_ep + ep          # 全局回合号（跨块连续）
+        env.max_steps = _resolve_horizon(gep)
+        if 'cur_horizon' not in locals() or locals()['cur_horizon'] != env.max_steps:
+            cur_horizon = env.max_steps
+            logger.info(f"curriculum: 全局 ep{gep+1} → horizon {cur_horizon} 步")
         # 初始速度：默认对齐 Zhang2024 长大下坡循环制动 65 km/h（18.06 m/s）；
         # 若 random_init_speed=True 则随机采样 [init_speed_min, init_speed_max]，
         # 增强策略对多初始条件的鲁棒性（E9 泛化：初始55/75表现差）。
@@ -302,28 +338,30 @@ def train(
             cp_tag = 'cp' if use_coupler_constraint else 'nocp'
             agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_{cp_tag}_seed{seed}.pt"))
 
-        if (ep + 1) % 10 == 0 or ep == episodes - 1:
+        if (gep + 1) % 10 == 0 or ep == episodes - 1:
             recent = np.mean(episode_rewards[-10:]) if len(episode_rewards) >= 10 else np.mean(episode_rewards)
             recent_peak = np.mean(episode_peak_coupler[-10:])
             recent_viol = np.mean(episode_violations[-10:])
             logger.info(
-                f"Ep {ep+1}/{episodes} | Reward {ep_reward:+.1f} (avg {recent:+.1f}) | "
+                f"Ep {gep+1}(块{ep+1}/{episodes}) | Reward {ep_reward:+.1f} (avg {recent:+.1f}) | "
                 f"best {best_reward:+.1f} | peakCoupler {recent_peak:.0f}kN | "
                 f"viol {recent_viol:.1f} | loss {metrics.get('total_loss',0):.3f}"
             )
             sys.stdout.flush()
-            # checkpoint 带 seed + coupler 标识（多种子/消融训练不互相覆盖）
+            # checkpoint 带 seed + coupler 标识 + 【全局回合号】ep{gep+1}
             cp_tag = 'cp' if use_coupler_constraint else 'nocp'
-            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{ep+1}_{cp_tag}_seed{seed}.pt"))
+            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{gep+1}_{cp_tag}_seed{seed}.pt"))
 
         # 【2026-08-30】训练历史落盘 + 学习曲线图（论文/PPT 用，前台中断也不丢数据）
-        if (ep + 1) % 10 == 0 or ep == episodes - 1:
+        if (gep + 1) % 10 == 0 or ep == episodes - 1:
             cp_tag = 'cp' if use_coupler_constraint else 'nocp'
             save_training_artifacts(
                 episode_rewards, episode_peak_coupler, episode_violations,
                 meta={
-                    'seed': seed, 'episodes': episodes, 'num_trains': num_trains,
+                    'seed': seed, 'episodes': len(episode_rewards),
+                    'num_trains': num_trains,
                     'grade_profile': grade_profile, 'max_steps': max_steps,
+                    'curriculum': curriculum, 'start_ep': start_ep,
                     'hierarchical': hierarchical, 'adj_coef': adj_coef,
                     'coupler_constraint': use_coupler_constraint,
                     'best_reward': float(best_reward),
@@ -405,6 +443,8 @@ if __name__ == '__main__':
                         help='curriculum 递增 horizon：如 "300-1000-3000"，分段增强长程泛化（缓解短训过拟合）')
     parser.add_argument('--resume', type=str, default=None,
                         help='续训检查点路径（加载策略+优化器继续训练，前台分块训练用）')
+    parser.add_argument('--start_ep', type=int, default=-1,
+                        help='起始全局回合号（-1=从 resume 历史推断；分块续训时传入已完成回合数）')
 
     args = parser.parse_args()
     train(
@@ -440,4 +480,5 @@ if __name__ == '__main__':
         checkpoint_dir=args.checkpoint_dir,
         results_dir=args.results_dir,
         resume=args.resume,
+        start_ep=args.start_ep,
     )

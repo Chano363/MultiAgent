@@ -10,6 +10,8 @@ venv/
 
 # 训练检查点（大文件）
 traffic_rl_project/outputs/checkpoints/
+traffic_rl_project/outputs/checkpoints_*/
+traffic_rl_project/outputs/results_phys2/checkpoints.dat
 
 # 训练日志和结果
 traffic_rl_project/outputs/logs/
@@ -28,3 +30,4 @@ prompts.md
 
 # IDE MCP 配置（可能含 API key，不进仓库）
 .codebuddy/mcp.json
+.trae/mcp.json

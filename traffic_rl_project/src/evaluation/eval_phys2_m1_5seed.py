@@ -40,6 +40,8 @@ def main():
                     help='评估环境种子（默认固定 0，保证各模型同工况对照）')
     ap.add_argument('--ckpt_dir', default=CKPT_DIR,
                     help='检查点目录（对比不同训练配方时用不同目录）')
+    ap.add_argument('--target_gap', type=float, default=100.0,
+                    help='目标间距（压力消融用，100→40 压力增大）')
     ap.add_argument('--label', default=None,
                     help='结果标签（默认同 mode，用于区分不同配方的汇总）')
     args = ap.parse_args()
@@ -55,7 +57,7 @@ def main():
     for s in seeds:
         env = make_env(65 / 3.6, hierarchical=(args.mode != 'coast'),
                        adj_coef=0.1, grade_profile='shuozhou_23800',
-                       target_gap=100.0, max_steps=args.steps)
+                       target_gap=args.target_gap, max_steps=args.steps)
         agent = None
         if args.mode == 'm1':
             ckpt = f"{args.ckpt_dir}/mappo_fleet_best_cp_seed{s}.pt"
