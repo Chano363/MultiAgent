@@ -49,6 +49,8 @@ python src/main.py --mode train --algorithm MAPPO --episodes 500
 本项目在长大下坡循环制动场景下**显式建模车钩力**，并扩展到多列群组协同。
 自动控制 = MARL 训练出的控制器本身（无额外底层控制器）。
 
+> **⚠️ 智能体分解重构方向（2026-09-02，ADR-009）**：导师批评"3 列 1+0 群组叫多智能体不合适"（单机牵引、把"列车"当智能体名不符实）。方向已决策：**多机车分布式动力 × 电空双制动分工**融合——多机车作"体"（每机车=智能体），每机车独立决策电制动(连续)/空气制动(离散档位)分配 → 列内真多智能体。**待仿真器改动方收尾后实施**。详见 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.3.1、`DECISIONS.md` ADR-009、`PROJECT_PIPELINE.md` P3.5。
+
 分层框架：
 ```
 层级一（多列群组）: 每列万吨级列车=智能体, 安全间距约束, 生成宏观驾驶曲线
@@ -112,9 +114,14 @@ python src/main.py --mode train --algorithm MAPPO --episodes 500
 | **Davis 阻力被放大 w 倍** | 空气阻力必须是标准 Davis 形式 `0.0018*C*A*V²`（独立于车重），不能 `area*cd*v²/w` 再乘 w（会把阻力放大数百倍，平衡速度被低估到 8m/s，20m/s 不可达）。已修复（见 VALIDATION_BASELINE V2） |
 | **制动传播被 dt 吞掉** | 传播延迟按**车辆累计长度/波速**算（真实重载数百米→数秒延迟），不要用车钩 free_length |
 | **安全层修正 → log_prob 失配 → 策略发散** | SafetyLayer 修正动作后必须用**实际执行动作**重算 log_prob 存储（`info['executed_actions']` + `agent.get_log_prob`），否则重要性采样失效，viol 每 10ep 爆 85 倍（V5.1 三层 bug 链之一） |
+| **Newmark 欠松弛污染最终状态 → 动力学整体缩水 25%** | 迭代欠松弛（α<1）只用于防发散，**收敛后必须取未松弛候选解** `(x_cand, v_cand)`。曾把松弛中间量当最终状态，稳态等效 v_{n+1}=0.75·真解（2026-09-02 三层锚交叉测试发现，修复后多体 vs 独立 RK4 差异 8.77%→0.0005%）。**历史训练/验证绝对值都在 75% 动力学下产生，重跑前勿直接引用** |
+| **`ab_command=None` ≠ 缓解** | `None` = 不使用空气制动，须在 `_advance_control_once` 单独分支 `pass`（`None != RELEASE` 为真会把头车挂上 None 档 active 态，静止列车蠕动/能量不守恒） |
+| **静止起步牵引力泄漏** | `tractive_force` 在 `v<=1e-6` 分支必须先判 `throttle<=0 → 0`，否则 throttle=0 也输出满粘着牵引（~882kN@100t），平坡静止列车被推走 |
+| **半隐式 Euler 不能做长时程交叉基准** | 一阶方法数百年时程惰行系统性高估减速 ~9%；独立实现对照（`rigid_multi_particle.py`）用 **RK4** |
+| **缓坡不超限等"规律类"文献判据需复现适用前提** | 张二田"缓坡<1000kN"成立前提=同坡缓解+充分充风+平缓操纵；缓解不同步是单机车编组缓解冲击的主因（与坡度弱相关）。照搬绝对阈值会误报 |
 | **value_loss 爆炸 → 阈值误杀** | 多智能体累计 returns ~1e4-1e5，value 网络初始输出 0 → value_loss ~1e8 → 用 ValueNorm（PopArt）归一化 value 目标，不要用 `total_loss>1000` 硬编码阈值 |
 | **mcp 2.0 崩溃** | scholar-search-mcp 需 `mcp==1.9.3`（2.0 移除 `@app.list_tools`） |
-| **程序化下载论文被 403** | MDPI/Wiley/IEEE/Hindawi 反爬，开放获取论文用浏览器手动下载（见 `docs/PAPER_DOWNLOAD_LINKS.md`） |
+| **程序化下载论文被 403** | MDPI/Wiley/IEEE/Hindawi 反爬，开放获取论文用**浏览器手动下载** |
 | 网络下载 | 用 Windows PowerShell，别用 WSL |
 
 ## Algorithm status（阶段一结论，阶段二复用）
@@ -132,13 +139,17 @@ YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值
 
 ## Project docs（按阅读优先级）
 
+> 文档治理与导航：**`traffic_rl_project/docs/README.md` 是唯一文档索引**；
+> 规范/模板（工作计划、失败教训、历史经验、checklist）在 `docs/rules/`；新诊断→`docs/records/DIAGNOSTICS.md`、新决策→`docs/records/DECISIONS.md`。详见 `docs/rules/README.md`。
+
 - `traffic_rl_project/docs/PROJECT_PIPELINE.md` — **pipeline 总览 + 任务列表（P0/P1/P2/P3，已完成的✅保留不删）+ 下一步，先读这个**
 - `traffic_rl_project/docs/RESEARCH_POSITIONING.md` — **阶段二研究定位 + 创新点 + 文献库（20+ 论文）**
-- `traffic_rl_project/docs/VALIDATION_BASELINE.md` — **论文→项目正确性验证基准**（仿真器公式/数据/算法对照，P1 前必读）
-- `traffic_rl_project/docs/learning_report.md` — 阶段一完整技术报告
-- `traffic_rl_project/docs/training_results_standardized.md` — 阶段一学术成果报告
-- `traffic_rl_project/docs/PAPER_DOWNLOAD_LINKS.md` — 开放获取论文手动下载网址
-- `traffic_rl_project/docs/MCP_DEPLOYMENT.md` — scholar-search-mcp 部署说明
+- `traffic_rl_project/docs/VALIDATION_BASELINE.md` — **论文→项目正确性验证基准**（仿真器公式/数据/算法对照 + 历史诊断留底）
+- `traffic_rl_project/docs/records/DIAGNOSTICS.md` — 新的实验/诊断数据记录（承接文件）
+- `traffic_rl_project/docs/records/DECISIONS.md` — 新的重大决策记录（ADR）
+- `traffic_rl_project/docs/ITSC_PAPER.md` — 阶段二论文（唯一权威）｜`docs/ITSC_PAPER.tex/.pdf`
+- `traffic_rl_project/docs/learning_report.md` — 阶段一报告（archived）
+- `traffic_rl_project/docs/training_results_standardized.md` — 阶段一学术成果（archived）
 - `.learnings/LEARNINGS.md` — 踩坑记录
 
 ## 文献库（docs/papers/）
@@ -149,7 +160,7 @@ YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值
 
 - **PDF（10 篇）**：Tang 2020（多机车 RL+车钩力）、Fu 2019（钩缓约束）、Huang 2025（专家系统+DRL）、Zhang 2025（20kT 制动）、Heineken 2023（最优控制节能）、Yang 2024（蚁群节能）、Guo 2025（MARL 车队）、魏咪（车钩力分层）、樊运新（3万吨纵向冲动）、杨敏（车钩间隙）
 - **arXiv 源码（3 篇）**：2504.19480（LLM 奖励设计）、2003.03327（智能列车运行）、2312.06858_full（车队 MARL）
-- **MCP**：`scholar-search` 已配置（Semantic Scholar + arXiv 双通道），详见 `docs/MCP_DEPLOYMENT.md`
+- **MCP**：`scholar-search` 已配置（Semantic Scholar + arXiv 双通道）
 
 ## Code conventions
 

@@ -27,6 +27,10 @@ from gym import spaces
 from src.environments.train_env import TrainFormationEnv, COUPLER_FORCE_LIMIT_N
 from src.controllers.low_level_controller import TrainLowLevelController
 from src.controllers.hierarchical_controller import HierarchicalController
+from src.train_dynamics.grade_profile import PROFILES
+from src.train_dynamics.etcs_braking import (
+    EtcsBrakingCurve, EbdTarget, braking_build_up_from_train, G_RAIL,
+)
 
 
 class TrainFleetEnv:
@@ -46,6 +50,9 @@ class TrainFleetEnv:
             - max_steps: 每回合最大步数
             - dt: 积分步长
             - action_speed_range: 目标速度动作范围（m/s，相对 target_speed 的偏差范围）
+            - enable_etcs: 是否启用 ETCS 前瞻式超速防护（"真 ATP"，默认 False 向后兼容）。
+                启用后每列安全层对"前列尾车"做 EBD/EBI 监督（防追尾由车载 ATP 保证），
+                线速上限仍由反应式限速兜底（两者共存，见 safety_layer 规则0/规则1）。
     """
 
     def __init__(self, config: dict = None):
@@ -106,6 +113,12 @@ class TrainFleetEnv:
         # 且导致前列/后列缓解持续不同步 → 车钩力持续超限 + M1 训练不收敛。
         # 正确场景 = 普通 reset 布局（各列同坡段起步，见 reset()），协同由场景天然驱动。
 
+        # 【2026-09-02 ETCS 集成】多列"真 ATP"：共享一条 ETCS 制动曲线。
+        # 前列尾车位置作为后列的前方监督目标（防追尾），落地 safety_layer 的规则0。
+        # （曲线依赖 self.trains，故在本处创建后构建）
+        self.enable_etcs = config.get('enable_etcs', False)
+        self.etcs_curve = None
+
         # 每列内部用单列动力学环境（列车内车钩力由此计算）
         # line_speed_limit_mps：场景线路限速（80km/h），传给内层 ATP 安全层作
         # 限速保护 + 超速指标口径（bug修复：原内层用机车物理限速 108km/h）
@@ -118,9 +131,34 @@ class TrainFleetEnv:
                 'line_speed_limit_mps': self.v_max,
                 'dt': self.dt,
                 'max_steps': self.max_steps,
+                'enable_etcs': self.enable_etcs,
+                'etcs_curve': self.etcs_curve,
             })
             for _ in range(self.num_trains)
         ]
+        # ETCS 共享曲线（启用时）：制动建立时间 = 车列总长/紧急制动波速 250m/s
+        # （对齐 braking.py 波速传播，不用 free_length）；建立期内最不利 = 按剖面
+        # 最陡下坡的沿坡加速度继续（最保守）；grade_at 绑定同一条剖面（坡度分量生效）。
+        if self.enable_etcs:
+            profile = PROFILES[self.grade_profile]()
+            train_len = sum(v.length_m for v in self.trains[0].dynamics.consist.vehicles)
+            build_up = braking_build_up_from_train(train_len, propagation_speed_mps=250.0)
+            steepest_down = min(seg.grade_permille for seg in profile.segments)
+            # 【2026-09-03 ATP 修复】原 nominal_emergency_decel=1.6 为旧李蔚法（制动力
+            # 系统性偏强 2-4 倍）继承值，与牵规 β_c 法实际紧急制动减速度（1 万吨 1+0：
+            # 40/60/80 km/h → 0.426/0.401/0.382 m/s²，tmp_etcs_decel_check.py 实测）
+            # 严重不匹配 → EBD/EBI 安全距离仅为实际的 1/4 → ATP 兜不住追尾。
+            # 改用实际减速度速度 profile（速度步进，见 EtcsBrakingCurve.nominal_decel）。
+            self.etcs_curve = EtcsBrakingCurve(
+                speed_profile=[(40.0 / 3.6, 0.426), (60.0 / 3.6, 0.401),
+                               (80.0 / 3.6, 0.382)],
+                k_dry=1.0,
+                brake_build_up_s=build_up,
+                assumed_accel_during_buildup=G_RAIL * abs(steepest_down) / 1000.0,
+                grade_at=profile.grade_at,
+            )
+            for tr in self.trains:
+                tr.etcs_curve = self.etcs_curve
         # 每列的底层控制器（列内：加速度执行 + 车钩力约束，可开关）
         self.controllers = [
             TrainLowLevelController(
@@ -327,6 +365,20 @@ class TrainFleetEnv:
             # 仅适用于"同一动作空间内的安全层修正"，如 train_cyclic_braking）。
             # 此处仅记录实际执行 throttle 供 info 诊断，不覆盖 RL 动作。
             self._executed_actions[i] = executed_throttles[i]
+            # 【2026-09-02 ETCS 集成】后列的前方监督目标 = 前列尾车当前位置（实时），
+            # 目标速度 = 编队巡航参考速度（后列须在到达前列尾前降到该速度 → 防追尾）。
+            # 领航列（i=0）无前列，不设目标；其线速上限由反应式限速兜底。
+            # 【2026-09-02 修复】目标速度用**前列当前实时速度**而非固定 target_speed：
+            # 前列循环制动降速（≤40km/h）时若后列仍被允许按 16.7m/s 逼近前列尾，
+            # EBD 预留距离不足以应对"前列更慢" → 后列穿透前列（35km 长坡实测
+            # 28581/35000 步 gap<5m、min=-5401m）。正确语义：后列须在到达前列尾前
+            # 降到前列当前速度，才真正防追尾。
+            if self.enable_etcs and i > 0:
+                leading_tail = float(self.trains[i - 1].dynamics.pos[-1])
+                lead_speed = float(self.trains[i - 1].dynamics.vel[0])
+                tr.set_etcs_targets([EbdTarget(
+                    position_m=leading_tail, speed_mps=lead_speed, kind='gap',
+                )])
             tr.step(col_actions)
             self._train_heads[i] = float(tr.dynamics.pos[0])
             # 实际加速度 = (新速度 - 旧速度) / dt（舒适性奖励项，对齐 Hua2024 w3·u²）

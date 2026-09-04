@@ -1,3 +1,12 @@
+---
+title: ITSC 论文中文对照（衍生版）
+status: archived
+date: 2026-09-01
+owner: Owner
+supersedes: ''
+# 非投稿权威版本；唯一权威 = docs/ITSC_PAPER.md / .tex / .pdf
+---
+
 # 基于循环制动的多智能体强化学习用于长大下坡重载列车群组协同控制
 
 > 论文题目（英文）：Hierarchical MARL with Cyclic Braking for Cooperative Control of Heavy-Haul Train Platoons on Long Downhill Sections

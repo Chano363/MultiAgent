@@ -1,0 +1,295 @@
+% ============================================================================
+% Traffic RL Project — 阶段二 文献数据库 (单文件 SSOT)
+% ----------------------------------------------------------------------------
+% 用途:
+%   1) Zotero 导入:   Zotero → File → Import → 选本文件，自动建库。
+%      安装 Better BibTeX 插件后，`file` 字段可关联本地 PDF 附件。
+%   2) LaTeX 引用:   \addbibresource / natbib 直接消费本项目论文引用。
+%
+% 维护规则(与 docs/RESEARCH_POSITIONING.md 同步):
+%   新增论文 → 本文件 + RESEARCH_POSITIONING.md 表格 + docs/papers/ PDF 三处同步。
+%   PDF 命名规范: 作者+年份+主题.pdf
+%
+% 验证基准锚点: VALIDATION_BASELINE.md 中 V3.5.x 判据对应的实测/基准文献
+%   用 `note = {VALIDATION: ...}` 标注，防止工具层与验证层脱节。
+% ============================================================================
+
+% ----------------------------------------------------------------------------
+% A. 已下载核心文献 (docs/papers/, 对应 RESEARCH_POSITIONING §2.1)
+% ----------------------------------------------------------------------------
+
+@article{tang2020_doubleswitchq,
+  author  = {Tang, H. and Wang, Y. and Liu, X.},
+  title   = {Reinforcement Learning Approach for Optimal Control of Multiple
+             Electric Locomotives in a Heavy-Haul Freight Train: A
+             Double-Switch-Q-Network Architecture},
+  journal = {Knowledge-Based Systems},
+  year    = {2020},
+  note    = {多机车重载列车RL，车钩力建模+多目标优化，本项目最相关}
+}
+
+@article{fu2019_couplerconstraint,
+  author  = {付雅婷 and 原俊荣 and 李中奇 and 杨辉},
+  title   = {基于钩缓约束的重载列车驾驶过程优化},
+  journal = {自动化学报},
+  volume  = {45},
+  number  = {12},
+  pages   = {2355--2365},
+  year    = {2019},
+  doi     = {10.16383/j.aas.c190223},
+  note    = {钩缓约束+多目标优化+预测控制，开放获取}
+}
+
+@article{huang2025_eito,
+  author  = {Huang, Y. and Lai, H. and Chen, X. and Lin, Y. and Yin, Z.},
+  title   = {Enhanced Intelligent Train Operation Algorithms for Metro Train
+             Based on Expert System and Deep Reinforcement Learning},
+  journal = {PLoS ONE},
+  volume  = {20},
+  number  = {5},
+  eid     = {e0323478},
+  year    = {2025},
+  doi     = {10.1371/journal.pone.0323478}
+}
+
+@misc{song2026_mappo_group,
+  author   = {宋宗莹 and 李烁 and 王兴中 and 杨迎泽},
+  title    = {基于多智能体强化学习的重载列车群组协同控制},
+  howpublished = {中国科技论文在线},
+  year     = {2026},
+  note     = {多列独立列车群组+MAPPO，定位最接近；HTML为元数据存档，全文需登录}
+}
+
+@article{song2026_tubempc,
+  author  = {宋宗莹 and 张韦 and 王兴中 and 张辰东},
+  title   = {基于传统空气制动的重载虚拟编组列车协同控制方法},
+  journal = {北京交通大学学报},
+  volume  = {50},
+  number  = {2},
+  pages   = {116--131},
+  year    = {2026},
+  doi     = {10.11860/j.issn.1673-0291.20250156},
+  note    = {Tube-MPC+电/空制动+车钩力+HHVCTS；fence压缩多质点计算佐证论文Lim 2}
+}
+
+@article{zhang2025_20kt,
+  author  = {Zhang, Y. and Liu, G. and Guo, J. and others},
+  title   = {Research on Longitudinal Dynamics of 20,000-Ton Heavy Haul
+             Trains Considering Braking Characteristics},
+  journal = {Mathematics},
+  volume  = {14},
+  number  = {1},
+  pages   = {158},
+  year    = {2025},
+  doi     = {10.3390/math14010158},
+  note    = {制动特性对纵向冲动定量数据，可验证空气制动波速传播模型}
+}
+
+@article{heineken2023_optimalcontrol,
+  author  = {Heineken, V. and Richter, D. and Birth-Reichert, T.},
+  title   = {Energy-Efficient Train Driving Based on Optimal Control Theory},
+  journal = {Energies},
+  volume  = {16},
+  number  = {18},
+  pages   = {6712},
+  year    = {2023},
+  doi     = {10.3390/en16186712},
+  note    = {Pontryagin极大值原理+再生制动，节能37%}
+}
+
+@article{yang2024_acsd,
+  author  = {Yang, H. and Miao, Q. and Wang, Z.},
+  title   = {Driving Strategy Using an Improved Ant Colony System for
+             Energy-Efficient Train},
+  journal = {Journal of Advanced Transportation},
+  year    = {2024},
+  doi     = {10.1155/2024/5964428}
+}
+
+@article{weimi_hierarchical,
+  author  = {魏咪 and 王青元 and 孙鹏飞 and 冯晓云 and others},
+  title   = {考虑车钩力约束的重载列车运行优化分层框架与迭代求解方法},
+  journal = {中国知网},
+  year    = {2024},
+  note    = {最重要对标：车钩力约束+分层框架，与分层MARL定位几乎同主题}
+}
+
+@article{fanyunxin_consist,
+  author  = {樊运新 and others},
+  title   = {编组方式对3万吨重载列车循环制动工况纵向冲动的影响},
+  journal = {电力机车与城轨车辆},
+  year    = {2024},
+  doi     = {10.3969/j.issn.1001-8360.2024.01.006}
+}
+
+@article{yangmin_gap,
+  author  = {杨敏 and others},
+  title   = {车钩间隙对重载列车纵向冲击动力学的影响},
+  journal = {中国知网},
+  year    = {2024},
+  note    = {车钩间隙→最大车钩力；60km/h时0.01m与0.018m相差52.14kN}
+}
+
+@article{guo2025_marl_platoon,
+  author  = {Guo, J. and Peng, Y. and Pi, X. and Zhang, J. and Wu, Q. and Ma, C.},
+  title   = {Enhanced Consensus Control Architecture for Autonomous Platoon
+             Utilizing {MARL}},
+  journal = {Computer-Aided Civil and Infrastructure Engineering},
+  year    = {2025},
+  doi     = {10.1111/mice.13463},
+  note    = {双向协同优化+LSTM时序，间距误差-8.3%、编队长度-19.1%}
+}
+
+@article{zhang2024_dqn_cyclic,
+  author  = {Zhang, Y. and Zhou, X. and He, D. and others},
+  title   = {Deep {Q}-Network Algorithm-Based Cyclic Air Braking Strategy for
+             Heavy-Haul Trains},
+  journal = {Algorithms},
+  volume  = {17},
+  number  = {5},
+  pages   = {190},
+  year    = {2024},
+  doi     = {10.3390/a17050190},
+  note    = {直接对标：长大下坡循环空气制动DQN，朔黄线验证；明确忽略车钩力——本项目创新空间}
+}
+
+@mastersthesis{zhao2022_airbrake,
+  author = {赵紫宁},
+  title  = {重载列车空气制动精细建模与操纵优化},
+  school = {西南交通大学},
+  year   = {2022},
+  note   = {建模+优化双料基准：2万吨1+1编组、三段式空气制动精细模型；QP使压钩力-29.49%，叠加规则-33.74%；30趟车次/350个制动段实车数据}
+}
+
+% ----------------------------------------------------------------------------
+% B. 车钩力实测数据文献 (RESEARCH_POSITIONING §2.2.1, 验证基准 V3.5.x 锚点)
+% ----------------------------------------------------------------------------
+
+@article{wangding2023_huanghe,
+  author  = {王鼎 and 苗晓雨 and 姜成},
+  title   = {大秦线2万t重载列车货车车钩力跟踪试验研究},
+  journal = {铁道车辆},
+  volume  = {61},
+  number  = {1},
+  pages   = {102--105},
+  year    = {2023},
+  doi     = {10.3969/j.issn.1002-7602.2023.01.021},
+  note    = {46次跟踪试验实测车钩力(测力车钩)；判据D1-D6；2250kN限值与safety_layer一致；验证基准V3.5.7}
+}
+
+@article{zhangertian2021_shuohuang,
+  author  = {张二田},
+  title   = {朔黄铁路2万t重载组合列车纵向车钩力分析及应用研究},
+  journal = {神华科技},
+  volume  = {19},
+  number  = {1},
+  pages   = {74--78},
+  year    = {2021},
+  note    = {朔黄线2万t动力学试验数据(纵向车钩力、纵向加速度分布)；判据S1-S7；验证基准V3.5.5}
+}
+
+@article{liuboyang2022_bull,
+  author  = {刘博阳 and 魏伟 and 豆飞},
+  title   = {重载列车制动力判断标准及纵向冲动研究},
+  journal = {大连交通大学学报},
+  volume  = {43},
+  number  = {6},
+  pages   = {38--44},
+  year    = {2022},
+  doi     = {10.13291/j.cnki.djdxac.2022.06.007},
+  note    = {列尾压强→拉钩力-44.5%/-20.9%定量规律；判据L1-L6；验证基准V3.5.6}
+}
+
+% ----------------------------------------------------------------------------
+% C. 已下载 arXiv 源码 (docs/papers/arxiv_src/)
+% ----------------------------------------------------------------------------
+
+@misc{wei2025_llm_reward,
+  author = {Wei, J. and Yi, K. and Lei, R. and Hong, Z. and Du, H.},
+  title  = {An Automated Reinforcement Learning Reward Design Framework with
+            {LLM} for Cooperative Platoon Coordination},
+  year   = {2025},
+  eprint = {2504.19480},
+  note   = {完整源码28文件：LLM辅助车队协调奖励设计}
+}
+
+@article{zhou_smart_train,
+  author  = {Zhou, X. and Song, S. and Xue, Y. and You, P. and Wu, X.},
+  title   = {Smart Train Operation Algorithms Based on Expert Knowledge and
+             Reinforcement Learning},
+  journal = {IEEE Transactions on Systems, Man, and Cybernetics},
+  year    = {2020},
+  eprint  = {2003.03327},
+  note    = {完整源码：专家知识+RL列车运行}
+}
+
+@misc{abdelrahman2021_platoon,
+  author = {Abdelrahman, M. and Shehata, O. and Basyoni, G. and Morgan, E.},
+  title  = {Scalable Decentralized Cooperative Platoon Using Multi-Agent {DRL}},
+  year   = {2021},
+  note   = {完整源码109文件：车辆车队MARL "sharing and caring"通信框架，arXiv 2312.06858}
+}
+
+% ----------------------------------------------------------------------------
+% D. 高优先级 MCP 检索 / 方向对标 (RESEARCH_POSITIONING §2.3/§2.4)
+% ----------------------------------------------------------------------------
+
+@inproceedings{wang2025_icirt,
+  author    = {Wang, Y. and Wang, Q. and Sun, P.},
+  title     = {Operation Optimization of Heavy Haul Train Considering
+               Longitudinal Impulse Suppression: A {DQN} Approach},
+  booktitle = {IEEE ICIRT},
+  year      = {2025},
+  doi       = {10.1109/ICIRT66379.2025.11216684},
+  note      = {核心对标：DQN+简化动力学+空气制动等效模型；最大拉力-9.64%、最大压力-28.77%}
+}
+
+@article{chen2024_vcts,
+  author  = {Chen, X. and Yang, F. and Jin, M. and Ren, J.},
+  title   = {Distributed Global Composite Learning Cooperative Control of
+             Virtually Coupled Heavy Haul Train Formations},
+  journal = {IEEE Transactions on Intelligent Transportation Systems},
+  year    = {2024},
+  doi     = {10.1109/TITS.2024.3360945},
+  note    = {创新点呼应：虚拟耦合重载列车编队+电空制动+NN逼近不确定}
+}
+
+@inproceedings{li2024_cbf,
+  author    = {Li, Z. and Tong, Weizhong and Giua, A.},
+  title     = {Safe Optimal Train Formation Control in Virtual Coupling Using
+               Control Barrier Functions},
+  booktitle = {IEEE CASE},
+  year      = {2024},
+  doi       = {10.1109/CASE59546.2024.10711420},
+  note    = {CBF/CLF+QP：虚拟耦合编队安全最优控制——CBF理论强化安全层方向}
+}
+
+@inproceedings{zhang2021_madrl_platoon,
+  author    = {Zhang, J. and Nie, Y. and Ni, Y. and Tian, Z.},
+  title     = {Multi-Agent {DRL} Based Consistency Control in Train Platoon
+               Systems},
+  booktitle = {IEEE HPCC-DSS-SmartCity-DependSys},
+  year      = {2021},
+  doi       = {10.1109/HPCC-DSS-SmartCity-DependSys53884.2021.00211},
+  note      = {群组级设计：leader-follower+分布式MADRL+人工势场先验，与层级一设计对应}
+}
+
+@misc{wang2026_cooperative_mpc,
+  author = {Wang, H. and others},
+  title  = {Research on Cooperative Operation Control Methods Based on
+            Improved {MPC}},
+  year   = {2026},
+  note   = {铁路运输与经济, 48(2):88-98, 2026, doi:10.16668/j.cnki.issn.1003-1421.20250530003}
+}
+
+@article{vaquero2025_lmpc,
+  author  = {Vaquero-Serrano, M. A. and others},
+  title   = {A Learning Model Predictive Control for Virtual Coupling in
+             Intelligent Train Control Systems},
+  journal = {Computer-Aided Civil and Infrastructure Engineering},
+  volume  = {40},
+  number  = {31},
+  pages   = {6279--6304},
+  year    = {2025},
+  doi     = {10.1111/mice.70155}
+}

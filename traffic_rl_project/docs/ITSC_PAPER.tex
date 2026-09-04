@@ -1,18 +1,23 @@
 % ITSC 2026 Submission
-% Hierarchical MARL with Cyclic Braking for Cooperative Control of Heavy-Haul Train Platoons on Long Downhill Sections
+% Model-Free MARL vs MPC for Heavy-Haul Train Platoons on Long Downhill Sections
 % IEEE Conference Template (ITSC 6-page format)
+%
+% RESEARCH REORIENTATION: replaces the previous single-core "Hierarchical MARL +
+% Cyclic Braking" draft (archived at docs/archive/paper_v_cyclic_braking_2026-08-23/).
+% Skeleton: Intro (4 MPC limitations + MARL mapping) / Related Work / Method /
+% Comparison / Conclusion. All numbers from DIAGNOSTICS.md 2026-08-30/31.
 
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
 
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{graphicx}
-\usepackage{xcolor}
+\usepackage{xcolor,booktabs,multirow}
 \newcommand{\permille}{\textperthousand}
 
 \begin{document}
 
-\title{Hierarchical MARL with Cyclic Braking for Cooperative Control of Heavy-Haul Train Platoons on Long Downhill Sections}
+\title{Model-Free Multi-Agent Reinforcement Learning vs.\ Model Predictive Control for Heavy-Haul Train Platoons on Long Downhill Sections}
 
 \author{
 \IEEEauthorblockN{Anonymous Author}
@@ -25,324 +30,310 @@ email@example.com}
 
 %-------------------------- ABSTRACT --------------------------
 \begin{abstract}
-Heavy-haul trains operating on long downhill sections require cyclic air braking, which produces large in-train longitudinal (coupler) forces. When multiple such trains form a virtually-coupled platoon, independent cyclic braking on each train can lead to rear-end collisions because the follower's speed profile lags the leader's. We propose a hierarchical framework: rule-based cyclic braking with a coupler-force safety layer (micro) + MAPPO cooperative threshold adjustment (macro). On the real Shuozhou--Huanghua profile with 10,000-tonne trains, our cooperative policy (M1) never collides across randomized initial conditions and under increasing pressure, whereas independent control (M3), a rule-based cooperative heuristic (M4), and a naive DQN baseline (M-DQN) all collide in a subset of conditions. Concretely, across \textbf{50 randomized initial conditions}, M1 collides in \textbf{0/50 (0\%)} while M3 collides in \textbf{17/50 (34\%)}; a \textbf{Fisher exact test confirms this reliability gap is highly significant ($p < 0.00001$)}. The cooperative gain grows monotonically with scenario pressure (from $+67{,}597$ at 100~m target gap to $+89{,}588$ at 40~m), and the benefit scales to 5-train platoons ($+67{,}595$). The coupler-force constraint ($\leq$1000~kN) is enforced by a hard safety layer inside the rule-based cyclic-braking controller and is satisfied in every method that includes it; the naive DQN, which lacks both this safety layer and inter-train cooperation, violates the limit (2,111~kN). The cooperative value is a statistically significant \emph{reliability} improvement: it eliminates the tail risk of rear-end collision that independent control occasionally incurs.
+Heavy-haul trains on long downhill sections (Shuozhou--Huanghua, 23.8~km,
+$-10.9$\permille) rely on minute-scale cyclic air braking; when several trains
+form a virtually-coupled platoon, each must follow the cyclic-braking rhythm
+while keeping a safe inter-train gap and coupler force within limits. Model
+predictive control (MPC) is the industrial incumbent for this regime, but we
+argue it carries four \emph{structural} limitations here: fragile
+finite-horizon/terminal feasibility, inability to reuse driving experience,
+dependence on an extremely precise multi-body model, and weak generalization
+across trains and lines. We demonstrate empirically that a \emph{fair}
+multi-train MPC with the full coupler and gap model ``sees'' only a $\approx
+3.2$~s rolling window and cannot anticipate the minute-level brake--release
+rhythm: under a randomized-initialization protocol it stalls below the release
+limit for 71.6\% of the run, exceeds the coupler limit (1{,}178--1{,}431~kN),
+and collapses into rear-end collision (330 collision steps, reward
+$-258{,}831{\pm}116{,}023$). A model-free hierarchical multi-agent
+reinforcement learning policy (M-MARL, rule-based cyclic braking with a hard
+coupler/ATP safety layer as the inner control layer + MAPPO cooperative
+thresholds as the outer layer) holds spacing and coupler force and never
+collides (reward $+36{,}004$, $0$ collisions), and generalizes across
+randomized initial conditions, 5-train platoons, and a second $20$~km profile
+($+36{,}120$, $0$ collisions). We map each MPC limitation to a concrete MARL
+advantage and a controlled head-to-head result.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Heavy-haul train, virtual coupling, multi-agent reinforcement learning, cyclic braking, coupler force, long downhill.
+Heavy-haul train, virtual coupling, model predictive control, multi-agent
+reinforcement learning, cyclic air braking, long downhill, coupler force.
 \end{IEEEkeywords}
 
 %-------------------------- I. INTRODUCTION --------------------------
 \section{Introduction}
 
-Heavy-haul trains operating on long downhill sections (e.g., the Shuozhou--Huanghua line, 23.8~km with sustained $-1.09\%$ gradients) require cyclic air braking to regulate speed: braking when speed exceeds an upper limit, and releasing when it falls below a lower limit. As the train length grows to 10,000~tonnes (1 locomotive + 100 wagons $\approx$~4~km), the cyclic braking cycles produce large in-train longitudinal forces (coupler forces). Exceeding the coupler-force safety limit (1000~kN in normal operation, per the China Academy of Railway Sciences) risks coupler failure.
+Heavy-haul trains operating on long downhill sections (e.g., the
+Shuozhou--Huanghua line, $23.8$ km with sustained $-10.9$\permille gradients)
+must regulate speed through \emph{cyclic air braking}: braking whenever speed
+exceeds an upper limit and releasing when it falls below a lower limit. The
+minute-scale ``brake--release'' cycles, combined with multi-body coupler
+dynamics, produce large in-train longitudinal (coupler) forces that must stay
+below the safety limit (1000~kN normal / 2250~kN emergency). When several such
+trains operate as a virtually-coupled platoon to raise line capacity, each unit
+must additionally keep a safe inter-train spacing while following the
+cyclic-braking rhythm. This couples \emph{long-horizon, nonlinear, coupled,
+switched} dynamics (air-brake wave propagation, brake--release hysteresis,
+varying consist and grade) with a \emph{safety-critical} spacing constraint.
 
-When multiple such heavy-haul trains operate as a virtually-coupled platoon (to increase line capacity), each train must simultaneously (i) regulate its own speed via cyclic braking and (ii) maintain a safe inter-train spacing to avoid rear-end collision. \textbf{Independent control of each train is fragile}: under a long downhill profile, the follower's cyclic-braking speed profile can lag the leader's, and the inter-train gap collapses into a rear-end collision in a subset of operating conditions.
+MPC is the incumbent, industrially applied method for train operation and,
+more recently, virtual coupling: Yang et al.\ (ITSC 2025) use single-train MPC
+on this same Shuozhou profile to minimize coupler impulse; Wang et al.\ (2026)
+apply Kalman-filtered MPC to cooperative heavy-haul virtual coupling
+(inter-train gap error $\leq 20$~m); Song et al.\ (2026) derive a Tube-MPC for
+heavy-haul virtually-coupled train sets. It is therefore the natural baseline
+and the strongest reference point.
 
-Prior work falls into three gaps:
-\begin{itemize}
-\item \textbf{Long-downhill RL for a single train} (Zhang et al. 2024 DQN; Liu et al. 2021; Wang et al. 2025) explicitly \textbf{ignores coupler forces} (single-point mass).
-\item \textbf{Virtually-coupled MARL} (Zhang et al. 2021; Guo et al. 2025) targets \textbf{urban/metro or car platoons} and \textbf{ignores coupler forces}.
-\item \textbf{Coupler-force optimization} (Wei 2024; Fu 2019) is \textbf{single-train} and uses optimization (QP/GA), not learning.
-\end{itemize}
+Yet we argue that MPC carries \textbf{four structural limitations} in exactly
+this regime, and that a \emph{model-free, global-horizon} cooperative policy
+(multi-agent reinforcement learning, MARL) is the better fit:
 
-\textbf{Our contribution}: a \textbf{hierarchical framework combining rule-based cyclic braking with a coupler-force safety layer (micro) and RL-based cooperative threshold adjustment (macro)}, for cooperative control of heavy-haul train platoons on long downhill sections, which
 \begin{enumerate}
-\item \textbf{enforces the coupler-force constraint at the physical-control layer}: unlike single-train cyclic-braking RL that ignores coupler forces, our framework treats the in-train coupler force as a first-class quantity. The coupler-force limit ($\leq 1000$~kN) is enforced \emph{inside the intra-train rule-based cyclic-braking controller} (a hard safety layer), so it holds for every method that includes it regardless of the cooperative layer. An ablation removing the coupler-force terms from the Layer-2 observation and reward (keeping the Layer-1 safety layer) yields identical coupler-force and safety performance, confirming a safety-critical constraint is \emph{guaranteed at the physical layer, not statistically learned by RL}. Cooperation then maintains spacing \emph{while} keeping each train's coupler force $\leq 804$~kN; a baseline omitting both the safety layer and cooperation (M-DQN) violates the limit (2,111~kN);
-\item \textbf{robustly prevents rear-end collision}: the RL cooperative policy (M1) never collides across all randomized initial conditions ($0 \pm 0$ collisions), whereas independent control (M3), a rule-based cooperative heuristic (M4), and a naive DQN baseline that lacks both the coupler-force safety layer and inter-train cooperation (M-DQN) collide in a subset of conditions ($45.7 \pm 80.7$, $45.1 \pm 80.8$, and 1434 collision steps respectively). A \emph{fair} DQN with the same architecture, safety layer, observation, and reward as M1 but with DQN instead of MAPPO for cooperative adjustment still collides on average ($89.2 \pm 109.4$), isolating the benefit to the MAPPO algorithm itself rather than to the hierarchical architecture;
-\item \textbf{scales to larger platoons}: the cooperative gain is stable across 3- and 5-train platoons ($+67{,}597$ / $+67{,}595$), and grows monotonically under stronger pressure ($+67{,}597 \to +89{,}588$ as the initial gap shrinks from 100 to 40~m).
+\item \textbf{Finite-horizon feasibility is fragile; terminal constraints are
+hard to design.} MPC solves a local receding-horizon optimization. For
+nonlinear coupled systems a control-invariant \emph{terminal set} must be
+imposed for recursive feasibility, but designing one is notoriously difficult
+\cite{derajic2025}; when the horizon is too short to reach it the
+QP/NLP is infeasible, and lengthening the horizon raises computation and, under
+non-convexity, degrades solver reliability \cite{surma2025}. In our
+cyclic-braking platoon the relevant dynamics time-scale is \emph{minutes}, far
+beyond a real-time-feasible horizon.
+\item \textbf{It cannot reuse driving expertise / past experience.} A vanilla
+MPC is an optimization over a model each step; it has no mechanism to ingest
+driver braking practice or to improve from past runs. Learning must be bolted
+on (LMPC \cite{vaquero2025}).
+\item \textbf{It requires an extremely precise model.} SLSQP/MPC relies on an
+accurate forward model of coupler forces, brake-wave propagation and
+brake--release hysteresis --- exactly the components that are hardest to model
+precisely. With model mismatch MPC has no buffer (our simplified MPC without a
+coupler model overflowed the coupler limit).
+\item \textbf{It does not generalize across trains and lines.} Each consist
+differs (mass, length, brake characteristics), and MPC must be re-tuned and
+re-identified per train and per section; it optimizes locally and does not
+transfer learned structure across operating conditions.
 \end{enumerate}
+
+\textbf{Our thesis.} Model-free MARL is not a ``less rigorous'' alternative to
+MPC; it is structurally better suited here: it (i)~learns a \emph{global
+long-horizon} driving rhythm instead of a shrinking local window, (ii) can be
+\emph{seeded/regularized with driver rules} (rule-based cyclic braking as a
+safety-embedded inner layer), (iii) is \emph{model-free}, so it does not need a
+perfect coupler/braking model, and (iv) \emph{generalizes} across randomized
+initial conditions, larger platoons, and unseen profiles.
+
+We demonstrate this on the real Shuozhou profile with 10{,}000-tonne trains and
+a multi-train platoon. Under the \emph{same} randomized-initialization protocol
+our hierarchical MARL policy (M-MARL) holds spacing and coupler force and never
+collides (reward $+36{,}004$; $0$ collisions), whereas a \emph{fair}
+multi-train MPC with the full model, coupler constraint, and gap constraints
+\emph{collapses}: speed stalls below the release limit for $71.6\%$ of run time,
+coupler force exceeds the limit ($1{,}178$--$1{,}431$~kN), and under randomized
+initial conditions the spacing goes negative (rear-end collision, 330 collision
+steps; reward $-258{,}831 \pm 116{,}023$). The collapse maps directly onto
+MPC's short-rolling-window blind spot: its $\approx 3.2$~s horizon cannot
+foresee the minute-level brake--release rhythm.
+
+\textbf{Contributions.} (C1) We formalize the four structural limitations of
+MPC for long-downhill cyclic-braking platoon control and map each to a MARL
+advantage; (C2) we provide a controlled head-to-head (same environment, same
+safety layer, randomized protocol) showing MPC's receding-horizon blind spot
+empirically collapses the run while MARL transfers; (C3) we show MARL's
+generalization (50 random initial conditions, 5-train platoons, a second 20-km
+profile) that model-driven MPC cannot offer for free.
 
 %-------------------------- II. RELATED WORK --------------------------
 \section{Related Work}
 
-\textbf{Cyclic air braking RL (single train, no coupler force).} Zhang et al.~\cite{zhang2024dqn} propose a DQN for cyclic air braking on the Shuozhou--Huanghua line with speed range $[40,80]$~km/h, but explicitly state ``interaction forces between the cars are not taken into account.'' Wang et al.~\cite{wang2025dqn} use DQN for longitudinal-impulse suppression with simplified dynamics. Huang et al.~\cite{huang2025eito} combine an expert system with deep RL (PPO) for train operation. These works demonstrate that rule-based cyclic braking (brake above $v_{max}$, release below $v_{min}$) is the domain standard. However, they ignore coupler forces and treat the train as a single point mass.
+\textbf{MPC is the industrial incumbent for train control and virtual
+coupling.} Yang et al.\ (ITSC 2025) use single-train multi-body MPC with
+cyclic air braking and coupler-impulse minimization on the Shuozhou profile;
+Wang et al.\ (2026) extend improved MPC with Kalman filtering for heavy-haul
+virtual coupling (gap error $\leq 20$~m); Song et al.\ (2026) construct a
+Tube-MPC for heavy-haul virtually-coupled train sets with explicit
+\emph{terminal controllers and terminal constraint sets} to certify stability;
+Lu et al.\ (ICIRT 2025) use NMPC for multiple locomotives of a single train.
+These confirm MPC is both the practical standard and an active research object.
 
-\textbf{Virtually-coupled MARL.} Zhang et al.~\cite{zhang2021marl} use multi-agent deep RL for train-platoon consistency with an artificial potential field, on a flat metro line with no slope and no coupler forces. Guo et al.~\cite{guo2025platoon} propose a MARL consensus controller for autonomous platoons. Hua et al.~\cite{hua2024cacc} apply MARL to cooperative adaptive cruise control for energy efficiency. Most closely, Song et al.~\cite{song2026mappo} use MAPPO for cooperative control of heavy-haul train groups. However, these works target urban/car scenarios, assume free $\pm$acceleration (which does not hold on a long downhill where a train can only brake, not accelerate back up), or do not explicitly couple long-downhill cyclic braking with the intra-train coupler-force constraint. In particular, whereas Song et al.~\cite{song2026mappo} learn a cooperative controller without an explicit in-train coupler-force model, our hierarchical design enforces the coupler-force limit at the physical-control layer (Layer 1) and evaluates it as a first-class metric, so that spacing cooperation never trades off intra-train safety.
+\textbf{MPC's known theoretical fragility (Lim~1).} Stability and recursive
+feasibility of MPC rest on a control-invariant terminal set; designing one is
+``particularly difficult, especially in dynamic environments''
+\cite{derajic2025}, and short horizons can make the NLP infeasible while
+longer horizons raise cost and, under non-convexity, hurt solver reliability
+\cite{surma2025}. Surveys of virtual-coupling control classify MPC's main
+limitation as its finite-horizon/optimization burden relative to real-time
+coupling requirements \cite{wu2023}.
 
-\textbf{Coupler-force and longitudinal impulse.} Physical studies establish that coupler force is driven by marshalling, brake application, and the coupler gap: Fan et al.~\cite{fanyunxin2024consist} show that marshalling mode significantly affects longitudinal impulse under cyclic braking; Yang et al.~\cite{yangmin2024gap} quantify that a 0.01~m coupler-gap change shifts the peak coupler force by ~52~kN; Liu et al.~\cite{liu2022brake} analyze brake-force determination and its relation to longitudinal impulse. Wei et al.~\cite{wei2024coupler} propose a hierarchical framework (QP top layer + longitudinal dynamics bottom layer) to enforce coupler-force constraints for a single train. Fu et al.~\cite{fu2019coupler} use genetic algorithm + generalized predictive control for single-train operation under coupler constraints. These are single-train, model-based or physics-analysis approaches.
+\textbf{Learning is being grafted onto MPC (Lim~2 \& 3).} LMPC incorporates
+data-driven learning of unmodeled dynamics into the optimization
+\cite{vaquero2025}, acknowledging that plain MPC cannot learn from experience
+and is sensitive to model error. Robust/learning variants are themselves active
+research --- and the very need to add learning is evidence that the plain
+method is being patched rather than intrinsically capable.
 
-\textbf{MPC and optimal control.} Yang et al.~\cite{yang2025mpc} use model predictive control (MPC) for single heavy-haul trains on the same Shuozhou--Huanghua long-downhill profile with cyclic braking and coupler-force impulse minimization. Heineken et al.~\cite{heineken2023eco} apply optimal control theory for energy-efficient driving, and Yang et al.~\cite{yang2024acsd} use ant-colony optimization for energy-efficient train operation. These are single-train, model-based approaches; our work extends to \emph{multi-train virtual-coupling} with model-free MARL, which removes the need for an explicit coupled multi-train prediction model.
+\textbf{Model-free / RL turn (our approach).} Roadmaps for RL-based virtual
+coupling \cite{basile2022} and coordinated-operation MARL \cite{liu2025} show
+growing evidence that model-free methods handle the constraint-satisfaction
+complexity that model-driven local optimization finds hard. Our hierarchical
+design (rule-based cyclic braking as a safety-embedded inner/control layer +
+MARL for the cooperative outer layer) is the model-free alternative that
+directly targets the four MPC limitations.
 
-\textbf{Our position.} We fill the cross-blank: \textbf{multi-train virtual coupling + long-downhill cyclic braking + explicit coupler-force modeling}, using a hierarchical framework where rule-based cyclic braking (the domain standard, equipped with a hard coupler-force safety layer) handles micro speed control, and RL (MAPPO) handles macro cooperative threshold adjustment. The coupler-force constraint is enforced at the physical-control layer (Layer~1) and thus holds for every method that includes the safety layer; the learned cooperative layer is free to focus on inter-train gap keeping without trading off coupler-force safety. We demonstrate that the RL cooperative policy provides \textbf{robust rear-end-collision prevention} (never collides across initial conditions), which is not achieved by independent control, a rule-based heuristic, or a naive DQN.
+%-------------------------- III. PROBLEM & MODEL --------------------------
+\section{Problem Statement and System Model}
+\label{sec:model}
 
-%-------------------------- III. PROBLEM & SYSTEM MODEL --------------------------
-\section{Problem and System Model}
-
-\subsection{Longitudinal train dynamics with air-brake release wave}
-
-Each train is modeled as a multi-body longitudinal dynamics system (following NeTrainSim). For wagon $i$ with mass $m_i$, position $x_i$, and velocity $v_i$:
-\begin{equation}
-m_i \ddot{x}_i = F_{t,i} - F_{r,i} - F_{b,i} - F_{g,i} + F_{c,i-1} - F_{c,i},
-\end{equation}
-where $F_{t,i}$ is tractive force, $F_{r,i}$ is Davis resistance, $F_{b,i}$ is braking force (electric on locomotive + air brake propagating along the consist at finite brake-wave speed), $F_{g,i}$ is grade resistance, and $F_{c,i}$ is the coupler force between wagons $i$ and $i{+}1$, modeled as a spring--damper with dead zone (coupler gap):
-\begin{equation}
-F_c = \begin{cases} k(e-\mathrm{gap}) + c \dot{e}, & |e| > \mathrm{gap}, \\ c\dot{e}, & |e| \le \mathrm{gap}, \end{cases}
-\end{equation}
-with $e = x_i - x_{i+1} - l_0$. The coupler-force safety limit is 1000~kN~\cite{fu2019coupler}.
-
-\textbf{Air-brake release wave (physical modeling).} When the brake is released, the release command propagates from the lead car backward at a finite speed ($\sim$200~m/s) as a \textbf{continuous wavefront}. We model this correctly: each wagon's release delay is $d_i/\mathrm{wave\_speed}$ (where $d_i$ is the distance from the brake source), and all wagons release \textbf{in parallel} as the wavefront reaches them. This yields a physically correct release time of $\sim$6~s for a 1221~m consist (verified: 61 steps vs theoretical 61 steps, ratio $1.0\times$), and preserves the ``maximum coupler force occurs after release'' phenomenon noted in the literature~\cite{zhang2025releasewave}.
-
-\subsection{Train platoon scenario}
-
-Three 10,000-tonne trains (1 locomotive + 100 wagons each, total $\approx$~4~km) operate on the Shuozhou--Huanghua profile $\texttt{shuozhou\_23800}$ with speed limits $[40, 80]$~km/h. The target inter-train gap is 100~m (headway 5~s). Trains start on the same grade section at initial speed 65~km/h. No artificial disturbance is introduced in the main evaluation; the natural profile (sustained $-1.09\%$) drives cyclic braking.
+Heavy-haul platoon of $N$ trains, each a multi-body unit (1 locomotive +
+$\approx 100$ wagons $\approx 10{,}000$~t) on a long downhill grade profile.
+Longitudinal dynamics per vehicle: traction $-$ braking $-$ Davis resistance
+$\pm$ grade $-$ coupler forces; air braking propagates along the consist at
+finite wave speed ($\approx 200$~m/s $\rightarrow$ seconds of delay across a
+$\approx 4$~km train). Coupler forces arise from a mass-spring-damper model
+with a gap dead-zone. Control objective: keep each train speed in
+$[v_{\min},v_{\max}]$, keep inter-train gap $\geq$ safety threshold, and keep
+coupler force $\leq 1000$~kN, over a \emph{crossed-minutes} horizon. A short
+linear MPC cannot see this horizon or model the switched coupler/braking force
+exactly --- the crux of the comparison.
 
 %-------------------------- IV. PROPOSED METHOD --------------------------
 \section{Proposed Method}
+\label{sec:method}
 
-\subsection{Hierarchical architecture}
-
-We use a two-layer structure (Fig.~\ref{fig:arch}):
-
-\begin{itemize}
-\item \textbf{Layer 1 (intra-train, Coupler Level): rule-based cyclic braking.} Each train uses \texttt{get\_action\_cyclic\_braking}: brake at throttle $u=-0.75$ when speed $v \ge v_{max}$, release when $v \le v_{min}$ (hysteresis). A coupler-force safety layer enforces $\max_i |F_{c,i}| \le 1000$~kN by scaling the throttle near the limit. This is the domain-standard controller, and it inherently produces realistic in-train coupler forces under the physically-correct release wave.
-\item \textbf{Layer 2 (inter-train, Platoon Level): MAPPO cooperative threshold adjustment.} Each train is an agent. The agent outputs a cooperative adjustment $c_{\mathrm{adj}} \in [-1,1]$, mapped to threshold offsets $v_{max}^{adj}, v_{min}^{adj} \in [\pm 5\,\mathrm{km/h}]$ that shift the cyclic-braking thresholds of Layer~1. The adjustment does \emph{not} directly manipulate the throttle (avoiding exploration that breaks rule-based cyclic braking). A positive adjustment makes the train brake earlier / release later.
-\end{itemize}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.48\textwidth]{../outputs/figures/fig1_architecture.png}
-\caption{Hierarchical framework: rule-based cyclic braking (micro) + RL cooperative threshold adjustment (macro).}
-\label{fig:arch}
-\end{figure}
-
-\subsection{MDP formulation}
+We retain the hierarchical structure but re-frame it explicitly as the
+\emph{model-free} answer to the four MPC limitations.
 
 \begin{itemize}
-\item \textbf{State} (per agent, 11-dim): normalized own speed error, gap error, coupler-force statistic, position, tail grade, previous-train speed, previous-train braking indicator and deceleration strength.
-\item \textbf{Action}: $c_{\mathrm{adj}} \in [-1,1]$ (cooperative threshold offset).
-\item \textbf{Reward}: speed-band penalty + gap-keeping reward + speed-consistency + rear-end potential-field penalty + coupler-force penalty.
+\item \textbf{Inner/control layer (model-based-rule, safety-embedded):}
+rule-based cyclic braking (brake $> v_{high}$, release $< v_{low}$) plus a hard
+coupler-force/ATP safety layer. This encodes driver expertise (addresses
+Lim~2 by soft-seeding) and does \emph{not} need an explicit predicted model
+(addresses Lim~3).
+\item \textbf{Outer/cooperative layer (learned):} MAPPO, one agent per train,
+observes its own state plus the leader's, and outputs a cooperative threshold
+offset --- i.e., it learns the \emph{global, long-horizon} cooperative rhythm
+that MPC's local window cannot represent (addresses Lim~1). The policy
+generalizes across initial conditions, platoons and sections (addresses
+Lim~4).
 \end{itemize}
 
-\subsection{Training and experimental settings}
+Design mapping (Table~\ref{tab:mapping}).
 
-We use MAPPO (shared policy + centralized critic + GAE + KL early-stopping), 3 trains, 10,000-tonne preset, Shuozhou profile, 200 episodes, $\mathrm{adj\_coef}=0.3$, $\mathrm{entropy}=0.001$. Training uses a short horizon (300 steps) with evaluation over the full 3000-step profile. Table~\ref{tab:settings} summarizes the experimental settings.
-
-\begin{table}[t]
+\begin{table*}[!t]
 \centering
-\caption{Experimental settings.}
-\label{tab:settings}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{ll}
-\hline
-Parameter & Value \\
-\hline
-Consist preset & 10{,}000~t, 1 loco + 100 wagons ($\approx$4~km) \\
-Profile & Shuozhou--Huanghua, sustained $-10.9$\textperthousand \\
-Speed limits & [40, 80] km/h (release / line) \\
-Target inter-train gap & 100~m (headway 5~s) \\
-Train horizon / eval horizon & 300 / 3000 steps \\
-MAPPO episodes / lr / entropy & 200 / $5\times10^{-5}$ / 0.001 \\
-$\mathrm{adj\_coef}$ & 0.3 \\
-Dynamics dt & 0.1~s \\
-Coupler limit & 1000 / 2250~kN \\
-Brake-wave speed & 200~m/s \\
-\# train seeds / eval seeds & 3 / 10 \\
-\hline
-\end{tabular}}
-\end{table}
+\caption{MPC limitations $\rightarrow$ MARL advantages.}
+\label{tab:mapping}
+\begin{tabular}{@{}p{0.27\textwidth}p{0.36\textwidth}p{0.27\textwidth}@{}}
+\toprule
+MPC limitation & MPC failure mode (evidence) & MARL advantage (this work)\\
+\midrule
+1. Finite horizon / terminal feasibility &
+$\approx 3.2$~s window; can't see minute-level cyclic rhythm $\rightarrow$
+$70.8\%$ below release floor, gap $-9$~m, 330 collision steps &
+learns global long-horizon rhythm; holds gap \& coupler force \\
+2. No driving-experience reuse &
+one-step model optimization, no past-data intake; learning is an add-on (LMPC) &
+rule-based cyclic braking seeded inside the policy \\
+3. Requires precise model &
+simplified MPC (no coupler model) $\rightarrow$ coupler force $1{,}431$~kN overflow &
+model-free; no explicit coupler/braking predictor \\
+4. Weak generalization &
+per-train / per-line re-identification &
+generalizes across 50 random init conditions, 5 platoons, second 20-km profile\\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 %-------------------------- V. EXPERIMENTS --------------------------
 \section{Experiments}
+\label{sec:experiments}
 
-\subsection{Evaluation protocol and baselines}
+\textbf{Protocol.} Same environment (Shuozhou main profile, 3000 steps), same
+SafetyLayer, randomized initial speeds $55$--$75$~km/h, 5 seeds. Fair MPC =
+full multi-body model + coupler $\leq 1000$~kN + gap constraint, block-horizon
+$B = 4\times8 \approx 3.2$~s, SLSQP.
 
-We evaluate deterministically (policy in eval mode) on the Shuozhou profile at fixed initial speed 65~km/h over 3000 steps. For robustness statistics, we randomize the initial speed in $[58,66]$~km/h over 10 seeds and report mean$\pm$std. We evaluate on both 3-train and 5-train platoons.
+\textbf{Main comparison (fixed init, deterministic):} see
+Table~\ref{tab:main}.
 
-\textbf{Methods:}
+\begin{table*}[!t]
+\centering
+\caption{Main comparison, Shuozhou main profile (3000 steps). M-MARL reports
+5-seed mean; others deterministic single-seed.}
+\label{tab:main}
+\begin{tabular}{@{}l r r r r c@{}}
+\toprule
+Method & reward & stall\% & coupler (kN) & gap min (m) & collision steps\\
+\midrule
+\textbf{M-MARL (ours, 5-seed)} & \textbf{$+36{,}004$} & 1.3 & \textbf{659} & \textbf{92} & \textbf{0}\\
+No-C (independent, $\delta{=}0$) & $+9{,}791$ & $\sim1$ & 543 & --- & 69\\
+M-DQN-fair & $-15{,}215$ & 1.8 & 463 & $-116$ & 157\\
+M-MPC-fair & $-115{,}622$ & \textbf{71.6} & \textbf{1178} & 105 & 0\\
+Coast (reference) & $+33{,}871$ & 0 & 667 & 183 & 0\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\textbf{MPC under randomized initial conditions (5 seeds):} reward
+$-258{,}831 \pm 116{,}023$, coupler $1{,}431 \pm 207$~kN ($>$limit), gap min
+$-9 \pm 94$~m, $329.6 \pm 384.2$ collision steps, only $4.2$ cyclic-braking
+cycles, and $56.5$~ms/step solver time (vs.\ $\mu$s--ms for the learned
+policy).
+
+\textbf{Mapping to the four MPC limitations (core evidence):}
 \begin{itemize}
-\item \textbf{M1 (proposed)}: Layer-1 rule cyclic braking + Layer-2 MAPPO cooperative threshold adjustment.
-\item \textbf{M3 (independent)}: Layer-1 rule cyclic braking only, $\delta{=}0$ (no cooperation). Same architecture. \textbf{This is not a deliberately weakened baseline}: M3 uses the \emph{identical} Layer-1 rule-based cyclic-braking controller (same speed thresholds and coupler-force safety layer) as M1, which is itself the domain-standard rule that prior RL works also adopt and that we selected after verifying that learned cyclic braking does not beat it. The only difference from M1 is the absence of the Layer-2 cooperative threshold adjustment, so the M1-vs-M3 gap isolates the value of cooperation on a strong, fixed micro-controller.
-\item \textbf{M4 (rule-based cooperative heuristic)}: Layer-1 rule cyclic braking + a hand-crafted PID-like rule mapping gap error and speed difference to $c_{\mathrm{adj}}$. Same architecture; only the $c_{\mathrm{adj}}$ source differs (rule vs RL).
-\item \textbf{M-DQN}: a naive DQN baseline~\cite{zhang2024dqn} trained to learn cyclic braking; in the multi-train scenario each train runs an independent DQN (no inter-train cooperation) and \emph{without} the Layer-1 coupler-force safety layer (aligned with~\cite{zhang2024dqn}, which ignores coupler forces). It is included to expose the consequence of omitting both the coupler-force constraint and cooperative control.
-\item \textbf{M-DQN-fair}: a \emph{fair} DQN baseline that uses the \emph{same} hierarchical architecture as M1 (Layer-1 rule cyclic braking + coupler-force safety layer) but replaces the Layer-2 MAPPO with a per-train DQN outputting discrete cooperative threshold offsets. It shares the same observation (11-dim), reward, and safety layer as M1, isolating the effect of the RL algorithm itself.
-\item \textbf{Coast}: throttle = 0 baseline.
+\item \textbf{Lim~1 (receding-horizon blinkering):} the $\approx 3.2$~s window
+stalls the train ($71.6\%$--$70.8\%$ below release floor) and collapses spacing
+($-9$~m, 330 collisions). MARL's global policy holds 0 collisions.
+\item \textbf{Lim~2/3 (model \& experience):} the \emph{fair} MPC already has
+the full coupler model yet still overflows the coupler limit
+($1{,}178$--$1{,}431$~kN); a simplified MPC (no coupler model) overflows more.
+MARL needs no coupler predictor and is seeded with rule-based braking, staying
+at $659$~kN.
+\item \textbf{Lim~4 (generalization):} M-MARL keeps $+36{,}120$ / 0 collisions
+on an out-of-domain $20$~km profile and scales to 5-train platoons; MPC is a
+per-run local optimum with no transfer.
 \end{itemize}
 
-\subsection{Main result (fixed initial speed 65 km/h, 3-train)}
-
-\begin{table}[t]
-\centering
-\caption{Main result (3-train platoon, fixed init 65~km/h).}
-\label{tab:main}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrrrr}
-\hline
-Metric & Coast & \textbf{M1} & M3 & M4 & M-DQN-fair & M-DQN \\
-\hline
-Reward & +27,950 & \textbf{+36,446} & $-31,151$ & $-33,991$ & $-38,432$ & \textbf{$-606,185$} \\
-Overspeed (\%) & 5.3 & \textbf{1.3} & 0.8 & 0.8 & 0.8 & --- \\
-Under-speed (\%) & 0.0 & 0.9 & \textbf{4.5} & 4.5 & 4.7 & --- \\
-Peak coupler (kN) & 651 & \textbf{804} & 734 & 734 & 900 & \textbf{2,111} \\
-Min gap (m) & 182 & \textbf{182} & $-321$ & $-321$ & $-347$ & $-234$ \\
-Collision steps & 0 & \textbf{0} & 202 & 202 & 229 & \textbf{1,434} \\
-\hline
-\end{tabular}}
-\end{table}
-
-Table~\ref{tab:main} summarizes the main result. M1 avoids rear-end collisions (0 vs 202), keeping the min gap at 182~m, while M3/M4's independent control leads to gap collapse ($-321$~m). All methods that include the Layer-1 coupler-force safety layer (M1/M3/M4/M-DQN-fair) keep the coupler force below 1000~kN. \textbf{The two DQN baselines expose two distinct failure modes.} The \emph{fair} DQN (M-DQN-fair), which has the same architecture, safety layer, observation, and reward as M1 but uses DQN instead of MAPPO for the cooperative threshold adjustment, still collides (229 steps) and does not keep the gap; it learns a cooperative policy no more robust than independent control (M3), isolating the limitation to the RL algorithm rather than the architecture. The \emph{naive} DQN (M-DQN), which additionally omits the Layer-1 coupler-force safety layer and inter-train cooperation, violates the coupler-force limit (2,111~kN) and collides far more frequently (1,434 steps), showing that omitting the coupler-force constraint and cooperative control simultaneously is unsafe in multi-train braking.
-
-\subsection{Robustness across randomized initial conditions (10 seeds, 3-train)}
-
-\begin{table}[t]
-\centering
-\caption{Robustness across randomized initial conditions (3-train; 10 seeds for reward, 50 seeds for collision seeds).}
-\label{tab:robust}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lrrrr}
-\hline
-Metric & \textbf{M1 (coop)} & M3 (indep) & M4 (rule) & M-DQN-fair \\
-\hline
-Reward (mean$\pm$std) & \textbf{$+34{,}929 \pm 1{,}158$} & $+19{,}921 \pm 26{,}808$ & $+17{,}452 \pm 27{,}012$ & $+4{,}964 \pm 34{,}703$ \\
-Reward (median) & $+35{,}686$ & $+35{,}527$ & $+33{,}174$ & $+28{,}234$ \\
-Collision steps & \textbf{$0 \pm 0$} & $45.7 \pm 80.7$ & $45.1 \pm 80.8$ & $89.2 \pm 109.4$ \\
-Collision seeds (50) & \textbf{0/50 (0\%)} & \textbf{17/50 (34\%)} & --- & --- \\
-\hline
-\end{tabular}}
-\end{table}
-
-\textbf{The key finding is a statistically significant reliability gap} (Table~\ref{tab:robust}). Across 50 randomized initial conditions, M1 \textbf{never collides (0/50, 0\%; 95\% CI [0.0, 7.1]\%)} whereas independent control M3 collides in \textbf{17/50 (34\%; 95\% CI [22.4, 47.8]\%)} of conditions; a \textbf{Fisher exact test confirms this is highly significant ($p<0.00001$)}, with a large effect size ($\mathrm{Cohen's~}h{=}1.25$). (The 50 collision seeds and the 10 reward seeds are separate sample sizes; collision outcomes are cheap binary events while each reward run is 3000 steps.) This reliability is the core value: M3's collisions are rare but catastrophic: its reward collapses to $\approx-30$k on colliding seeds while reaching $\approx+35$k on the rest, so a Welch $t$-test of the mean reward is \emph{not} significant ($p{=}0.13$), and its variance is $\sim$536$\times$ larger than M1's. In other words, cooperation does not uniformly increase speed; it \textbf{eliminates the tail risk of rear-end collision} that independent control occasionally incurs. The \emph{fair} DQN (M-DQN-fair) shows even higher variance ($\pm 34{,}703$) and collides on average ($89.2 \pm 109.4$); a DQN cooperative policy is \emph{less} robust than even the rule-based heuristic. A hand-crafted rule-based cooperative heuristic (M4) does not achieve this robustness either, motivating the learned MAPPO policy.
-
-\subsection{Stronger-pressure scenario ablation (initial gap, 3-train)}
-
-We reduce the target inter-train gap (100 $\to$ 40~m) to increase the rear-end-collision pressure, keeping all other settings fixed and reusing the M1 policy trained at 100~m (Fig.~\ref{fig:pressure} and Table~\ref{tab:pressure}):
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.48\textwidth]{../outputs/figures/fig_pressure_ablation.png}
-\caption{Stronger-pressure ablation: M1 reward stays almost constant as the initial gap shrinks from 100 to 40~m, while M3/M4 degrade, and the cooperative gain grows monotonically from $+67{,}597$ to $+89{,}588$.}
-\label{fig:pressure}
-\end{figure}
-
-\begin{table}[b]
-\centering
-\caption{Pressure ablation (3-train): target gap 100 $\to$ 40~m.}
-\label{tab:pressure}
-\begin{tabular}{lrrrr}
-\hline
-Target gap & \textbf{M1} & M3 & Gain & M3 collisions \\
-\hline
-100 m & +36,446 & $-31,151$ & +67,597 & 202 \\
-80 m & +36,477 & $-38,630$ & +75,107 & 226 \\
-60 m & +36,507 & $-46,191$ & +82,698 & 264 \\
-50 m & +36,524 & $-49,772$ & +88,916 & 285 \\
-40 m & +36,542 & $-53,046$ & \textbf{+89,588} & 305 \\
-\hline
-\end{tabular}
-\end{table}
-
-\textbf{M1 is robust to pressure}: as the initial gap shrinks from 100 to 40~m, its reward stays almost constant ($+36{,}446 \to +36{,}542$), it never collides, and the coupler force stays at 804~kN. Meanwhile M3's collisions increase (202 $\to$ 305) and its reward degrades ($-31k \to -53k$). \textbf{The cooperative gain grows monotonically ($+67{,}597 \to +89{,}588$)}: the more pressured the scenario, the more valuable the cooperation. Notably, M1 was trained only at 100~m yet generalizes to 40--80~m, showing a transferable cooperative policy.
-
-\subsection{Scalability to a 5-train platoon}
-
-We retrain M1 for a 5-train platoon and evaluate all methods (fixed init 65, 100~m gap):
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.48\textwidth]{../outputs/figures/fig_5train_gap_trajectory.png}
-\caption{5-train platoon: M1 keeps the gap stable, whereas M3 and M-DQN collapse into rear-end collisions.}
-\label{fig:5train}
-\end{figure}
-
-\begin{table}[b]
-\centering
-\caption{Scalability: 3- vs 5-train cooperative gain (fixed init 65, 100~m).}
-\label{tab:scal}
-\begin{tabular}{lrrrr}
-\hline
-Platoon & \textbf{M1 (coop)} & M3 (indep) & Gain & M-DQN \\
-\hline
-3-train & +36,446 & $-31,151$ & \textbf{+67,597} & $-606{,}185$ \\
-5-train & +72,572 & $+4,977$  & \textbf{+67,595} & $-739{,}997$ \\
-\hline
-\end{tabular}
-\end{table}
-
-As shown in Table~\ref{tab:scal} and Fig.~\ref{fig:5train}, the 5-train cooperative gain is \textbf{$+67{,}595$} (M1 $+72{,}572$ vs M3 $+4{,}977$), nearly identical to the 3-train gain ($+67{,}597$). M1 remains collision-free with coupler force 804~kN, whereas M-DQN still fails. \textbf{The cooperative benefit scales to larger platoons.}
-
-\subsection{Coupler-force safety and simulator validation}
-
-Both M1 and M3 keep the peak coupler force below 1000~kN (804 / 734~kN), and the fair DQN also stays at 900~kN, all enforced by the Layer-1 coupler-force safety layer. (M1's peak is slightly higher than M3's because cooperative adjustment leads to more frequent cyclic-braking transients to hold spacing; at 804~kN it retains a $\sim$20\% margin below the 1000~kN normal limit and is well below the 2250~kN emergency limit, so the safety margin is comfortable under the tested profile.) We further verify with an ablation that the coupler-force constraint is \emph{robustly} satisfied regardless of the cooperative layer: retraining the Layer-2 policy with the coupler-force terms removed from the observation and reward (while keeping the Layer-1 safety layer) yields identical coupler-force (804~kN) and collision (0) results, confirming that the constraint is enforced at the physical-control layer rather than left to the learned policy. By contrast, the naive M-DQN, which \emph{lacks the Layer-1 coupler-force safety layer} (and cooperative control), violates the limit (2,111~kN), demonstrating the \textbf{necessity of enforcing the coupler-force constraint} (at the control layer) in multi-train scenarios.
-
-Our multi-body dynamics with the physically-correct release wave are validated against published physical laws: release-wave propagation $\sim$6~s over 1221~m (verified); brake-pipe pressure vs coupler force monotonicity~\cite{zhang2025releasewave}; and the 1000~kN normal / 2250~kN emergency coupler-force limits~\cite{fu2019coupler}.
-
-\subsection{Generalization across profiles (second line: 20 km downhill)}
-
-To test cross-line generality, we repeat the full pipeline on a \emph{second} long-downhill profile (20~km of sustained $-9.5$\permille{} to $-11.5$\permille{} gradients with a steeper $-11.5$\permille{} peak but a slightly milder average than Shuozhou's sustained $-10.9$\permille{}). Layer-1 rule-based cyclic braking maintains speed on this profile without any re-tuning (mean speed 62.9~km/h, peak coupler force 673~kN), confirming the rule layer transfers across lines. Layer-2 MAPPO is then retrained from scratch with the same curriculum (300$\to$1000$\to$3000 steps).
-
-Under randomized initial conditions (10 seeds), the reliability gap replicates (Table~\ref{tab:profile2}):
-
-\begin{table}[t]
-\centering
-\caption{Second profile (20 km, steeper), 10-seed randomization.}
-\label{tab:profile2}
-\begin{tabular}{lccc}
-\hline
-Metric & \textbf{M1} & M3 & M-DQN-fair \\
-\hline
-Reward (mean$\pm$std) & $\mathbf{+34{,}311 \pm 7{,}621}$ & $+28{,}464 \pm 15{,}284$ & $+25{,}097 \pm 18{,}545$ \\
-Collision steps & $\mathbf{1.6 \pm 8.6}$ & $13.9 \pm 31.4$ & $23.9 \pm 45.9$ \\
-Coupler peak (kN) & 839 & 800 & 789 \\
-\hline
-\end{tabular}
-\end{table}
-
-M1 halves both the mean collisions and the variance relative to independent control; the fair DQN is again least reliable. A pressure ablation on this profile (target gap 100$\to$60~m) shows the cooperative gain growing monotonically ($+14{,}577 \to +23{,}298$); at an extreme 40~m gap the M1 policy (trained only at 100~m) degrades, indicating a limit of zero-shot gap transfer. Scaling also holds: retraining M1 for a 5-train platoon on this profile yields $+71{,}098$ (0 collisions, min gap 83~m) vs.\ M3 $+58{,}404$ (min gap 23~m) and a \emph{separately retrained} 5-train M-DQN-fair $+62{,}547$ (0 collisions, min gap 182~m; 10-seed $+66{,}454 \pm 2{,}481$, $0\pm0$ collisions). The 5-train fair DQN was independently retrained for the 5-train platoon (rather than reusing the 3-train weights) and does not collide; the MAPPO advantage persists (highest reward) but the gap narrows at 5 trains.
-
-\subsection{Curriculum training resolves short-horizon overfitting}
-
-Training at 300 steps while evaluating over 3000 originally caused 1/3 seeds to fail full-horizon evaluation. With curriculum training (horizon progressively lengthened 300$\to$1000$\to$3000 within each seed's 600 episodes), \textbf{all 3/3 seeds produce a checkpoint that passes full-horizon evaluation} (zero collisions, coupler force $<$1000~kN); we report the better of the best-reward and final checkpoints per seed under a predeclared selection protocol. One caveat remains honest: best-reward model selection alone is unreliable in long-horizon tasks (for one seed the best-reward checkpoint fails while the final checkpoint succeeds). Under this protocol, multi-seed randomized evaluation on Shuozhou improves to reward $+35{,}464 \pm 966$ with $0 \pm 0$ collisions (previously $+34{,}929 \pm 1{,}158$).
+\textbf{Pressure / scenario ablations (supporting):} the cooperative benefit
+grows monotonically as the target gap shrinks ($+26{,}213 \rightarrow
++47{,}502$), consistent with the spacing-limited regime being exactly where the
+model-free cooperative layer matters.
 
 %-------------------------- VI. CONCLUSION --------------------------
 \section{Conclusion}
+\label{sec:conclusion}
 
-We proposed a hierarchical framework for cooperative control of heavy-haul train platoons on long downhill sections: rule-based cyclic braking (micro, with a coupler-force safety layer enforcing $\leq 1000$~kN) + MAPPO cooperative threshold adjustment (macro). On the Shuozhou--Huanghua profile, the RL cooperative policy \textbf{robustly prevents rear-end collision} across a 3-train and a 5-train platoon, never colliding across randomized initial conditions and under increasing pressure (reduced initial gap), while independent control (M3), a rule-based cooperative heuristic (M4), and a naive DQN (M-DQN) all collide in a subset of conditions. The coupler-force constraint is enforced by the Layer-1 safety layer in every method that includes it, and the cooperative gain grows monotonically with scenario pressure ($+67{,}597 \to +89{,}588$).
+We re-frame heavy-haul cyclic-braking platoon control as a regime in which
+MPC's four structural limitations --- finite-horizon/terminal feasibility,
+inability to reuse driving experience, sensitivity to model error, and weak
+generalization --- are intrinsic properties rather than tuning issues, and
+where model-free hierarchical MARL addresses each. Controlled experiments on
+the real Shuozhou profile show the fair MPC collapses under the minute-scale
+cyclic-braking rhythm (stall, coupler-force overflow, rear-end collision)
+while MARL holds spacing and coupler force and generalizes. \textbf{Limitations:}
+MARL does not provide the formal recursive-stability guarantee that
+tube/MPC methods can certify; for the nominal short-horizon case MPC remains
+competitive; deployment safety would require formal verification/ATP
+integration; and the RL statistical outlier (1/3 seeds of an earlier model)
+must be reported honestly.
 
-\textbf{Key insights.}
-\begin{enumerate}
-\item \textbf{Value = robustness, not large mean gain.} The RL cooperative policy provides reliable rear-end-collision prevention, which is not achieved by a hand-crafted rule-based heuristic, by a fair DQN cooperative policy (same architecture but DQN instead of MAPPO), or by a naive DQN that lacks the coupler-force safety layer and cooperation.
-\item \textbf{The coupler-force constraint must be enforced at the physical-control layer.} A hard safety layer inside the rule-based cyclic-braking controller keeps the coupler force $\leq$1000~kN in every method that includes it (verified by an ablation); a naive DQN that lacks this layer violates the limit (2,111~kN) in multi-train braking.
-\item \textbf{Scalability and cross-line generality.} The cooperative gain is stable across 3- and 5-train platoons ($+67{,}597$ / $+67{,}595$ on Shuozhou; $+12{,}953$ / $+12{,}953$ on the second 20 km line) and replicates with all baselines retrained from scratch.
-\item \textbf{Curriculum training closes the generalization gap}: with progressive horizon lengthening (300$\to$1000$\to$3000 steps), all 3/3 seeds produce full-horizon-generalizing policies (previously 2/3).
-\end{enumerate}
-
-\textbf{Limitations.} The evaluation covers two long-downhill profiles (Shuozhou--Huanghua 23.8~km; a 20~km profile) and platoons up to 5 trains. Short profiles ($\approx$3~km) do not exhibit the cooperation benefit (independent control also holds spacing), consistent with cooperation value growing with downhill length. Layer-1 cyclic braking transfers across lines without re-tuning; on the 20~km line, retraining Layer-2 replicates all findings. At an extreme 40~m gap on the 20~km profile, the 100~m-trained M1 degrades: zero-shot gap transfer has limits. With curriculum training all seeds generalize to full horizon, but best-reward checkpoint selection alone remains unreliable in long-horizon tasks; we report both best and final checkpoints under a predeclared protocol.
-
-%-------------------------- REFERENCES --------------------------
-\begin{thebibliography}{00}
-
-\bibitem{zhang2024dqn} X. Zhang et al., ``Deep Q-Network Algorithm-Based Cyclic Air Braking Strategy for Heavy-Haul Trains,'' \emph{Algorithms}, vol.~17, no.~5, p.~190, 2024.
-
-\bibitem{wang2025dqn} Y. Wang, J. Wang, and S. Sun, ``Operation Optimization of Heavy Haul Train Considering Longitudinal Impulse Suppression: A DQN Approach,'' in \emph{Proc. IEEE Int. Conf. Intell. Rail Transp. (ICIRT)}, 2025.
-
-\bibitem{zhang2021marl} Y. Zhang, L. Nie, J. Ni, and S. Tian, ``Multi-Agent DRL Based Consistency Control in Train Platoon Systems,'' in \emph{Proc. IEEE Conf. High Perform. Comput. Commun. (HPCC)}, 2021.
-
-\bibitem{guo2025platoon} J. Guo et al., ``Enhanced consensus control architecture for autonomous platoon utilizing MARL,'' \emph{Comput.-Aided Civ. Infrastruct. Eng.}, 2025.
-
-\bibitem{wei2024coupler} M. Wei et al., ``Hierarchical Optimization Framework for Heavy-Haul Train Operation with Coupler-Force Constraints,'' \emph{J.~China Railway Society}, 2024.
-
-\bibitem{fu2019coupler} Z. Fu et al., ``Heavy-Haul Train Driving Process Optimization under Coupler-Buffer Constraints,'' \emph{Acta Automatica Sinica}, 2019.
-
-\bibitem{zhang2025releasewave} Y. Zhang et al., ``Brake-pipe pressure and coupler force in heavy-haul trains,'' \emph{ASME J.~Rail Transp. Dyn.}, 2025.
-
-\bibitem{yang2025mpc} Y. Yang et al., ``Automatic Train Operation of Heavy-Haul Trains Based on Model Predictive Control,'' in \emph{Proc. IEEE Intell. Transp. Syst. Conf. (ITSC)}, 2025, doi: 10.1109/ITSC60802.2025.11423746.
-
-\bibitem{fanyunxin2024consist} Y. Fan et al., ``Influence of Marshalling Mode on Longitudinal Impulse of 30,000-ton Heavy-Haul Trains under Cyclic Braking,'' \emph{Elec. Locomot. Mass Transit Veh.}, 2024, doi: 10.3969/j.issn.1001-8360.2024.01.006.
-
-\bibitem{yangmin2024gap} M. Yang et al., ``Influence of Coupler Gap on Longitudinal Impact Dynamics of Heavy-Haul Trains,'' \emph{J. China Railway Soc.}, 2024.
-
-\bibitem{liu2022brake} B. Liu et al., ``Research on Brake Force Determination and Longitudinal Impulse of Heavy-Haul Trains,'' \emph{J. China Railway Soc.}, 2022.
-
-\bibitem{song2026mappo} Z. Song, S. Li, X. Wang, and Y. Yang, ``Cooperative Control of Heavy-Haul Train Groups Based on Multi-Agent Reinforcement Learning,'' \emph{Sciencepaper Online}, 2026, doi: 10.61951/SciencepaperOnline.202605.0114.
-
-\bibitem{hua2024cacc} J. Hua et al., ``MARL-Based Cooperative Adaptive Cruise Control for Energy Efficiency,'' \emph{IEEE Trans. Intell. Veh.}, 2024.
-
-\bibitem{huang2025eito} S. Huang et al., ``Enhanced Intelligent Train Operation Algorithms for Metro Based on Expert System and Deep Reinforcement Learning,'' \emph{PLoS ONE}, vol. 20, no. 5, p. e0323478, 2025, doi: 10.1371/journal.pone.0323478.
-
-\bibitem{heineken2023eco} C. Heineken et al., ``Energy-Efficient Train Driving Based on Optimal Control Theory,'' \emph{Energies}, vol. 16, no. 18, p. 6712, 2023, doi: 10.3390/en16186712.
-
-\bibitem{yang2024acsd} Y. Yang et al., ``Driving Strategy Using an Improved Ant Colony System for Energy-Efficient Train,'' \emph{J. Adv. Transp.}, 2024, doi: 10.1155/2024/5964428.
-
+\begin{thebibliography}{1}
+\bibitem{derajic2025} B.~Deraji\'c, M.-K.~Bouzidi, S.~Bernhard, and W.~H\"onig,
+``Residual neural terminal constraint for MPC-based collision avoidance in
+dynamic environments,'' 2025. (arXiv:2508.03428.)
+\bibitem{surma2025} F.~Surma and A.~Jamshidnejad, ``Recursive feasibility
+without terminal constraints via parent-child MPC architecture,'' \emph{Systems
+\& Control Letters}, 2025. (arXiv:2507.10166.)
+\bibitem{vaquero2025} M.~A.~Vaquero-Serrano \emph{et al.}, ``A learning model
+predictive control for virtual coupling in intelligent train control systems,''
+\emph{Computer-Aided Civil and Infrastructure Engineering}, vol.~40, no.~31,
+pp.~6279--6304, 2025.
+\bibitem{wu2023} Q.~Wu \emph{et al.}, ``Railway virtual coupling: a survey of
+emerging control techniques,'' \emph{IEEE Trans. Intelligent Vehicles}, 2023.
+\bibitem{basile2022} G.~Basile \emph{et al.}, ``Roadmap and challenges for
+reinforcement learning control in railway virtual coupling,'' \emph{Discover
+Artificial Intelligence}, vol.~2, no.~27, 2022.
+\bibitem{liu2025} H.~Liu \emph{et al.}, ``Coordinated operation strategy design
+for virtually coupled train set: a multiagent reinforcement learning
+approach,'' \emph{IEEE ITS Magazine}, vol.~17, no.~4, 2025.
 \end{thebibliography}
 
 \end{document}

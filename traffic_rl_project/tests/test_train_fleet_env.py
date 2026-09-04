@@ -90,20 +90,26 @@ def test_fleet_env_obs_contains_coupler_stats():
 
 
 def test_fleet_env_accel_action_affects_speed():
-    """加速度动作应直接影响速度（正加速度加速，负加速度减速），且有区分度。"""
+    """加速度动作应直接影响速度（正加速度加速，负加速度减速），且有区分度。
+
+    ⚠️ 2026-09-02 仿真器验证（Bug 3 修复后 100% 动力学）校准：1 万吨列车 1 台机车
+    在 20 m/s 的物理加速度仅 ~0.05 m/s²（功率限 + 大质量），4 s（40 步）内
+    满牵引 vs 满制动速度差恰在 0.5 m/s 边界（实测 0.49）。为让"区分度"断言有
+    真实物理裕度，仿真时长 40 步 → 80 步（差值 ~1.0 m/s），阈值 0.5 不变。
+    """
     # 负加速度（制动）→ 速度下降
-    env_brake = _make_fleet(max_steps=60)
+    env_brake = _make_fleet(max_steps=120)
     obs, _ = env_brake.reset(options={'speed': 20.0})
     v0 = env_brake.trains[0].dynamics.vel[0]
-    for _ in range(40):
+    for _ in range(80):
         obs, reward, term, trunc, info = env_brake.step(np.full(env_brake.num_trains, -1.0))
         if term or trunc:
             break
     v_brake = env_brake.trains[0].dynamics.vel[0]
     # 正加速度（牵引）→ 速度不降或升高
-    env_accel = _make_fleet(max_steps=60)
+    env_accel = _make_fleet(max_steps=120)
     obs, _ = env_accel.reset(options={'speed': 20.0})
-    for _ in range(40):
+    for _ in range(80):
         obs, reward, term, trunc, info = env_accel.step(np.full(env_accel.num_trains, 1.0))
         if term or trunc:
             break

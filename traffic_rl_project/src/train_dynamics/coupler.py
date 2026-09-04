@@ -20,6 +20,18 @@ MT-2 为弹簧摩擦式缓冲器，阻抗 = 预压力 + 弹性力 ± 库仑摩�
 import numpy as np
 
 
+def _dead_zone(x: float, gap: float) -> float:
+    """车钩游隙（死区）函数：|x| ≤ gap → 0；超死区返回剩余位移（带符号）。
+
+    对应 MT-2 模型"|e| ≤ gap 游隙内无力"，x 为相对自由位置的位移。
+    gap=0（无游隙）时为恒等映射（向后兼容）。
+    """
+    gap = max(float(gap), 0.0)
+    if abs(x) <= gap:
+        return 0.0
+    return x - gap if x > 0.0 else x + gap
+
+
 def coupler_force(
     x_front: float,
     v_front: float,

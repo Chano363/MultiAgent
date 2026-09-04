@@ -1,3 +1,11 @@
+---
+title: 阶段一学习报告（无人机编队）
+status: archived
+date: 2026-09-01
+owner: Owner
+# 历史成果保留；当前主战场为阶段二，见 PROJECT_PIPELINE.md / RESEARCH_POSITIONING.md
+---
+
 # 多智能体无人机编队控制——基于强化学习的学习报告
 
 学习周期：2026年5月

@@ -24,14 +24,18 @@ from src.controllers.fair_mpc_controller import FairMPCController
 
 V_MAX = 80.0 / 3.6
 V_MIN = 40.0 / 3.6
-MAX_STEPS = 3000
+# 【2026-09-03 协议升级】默认 15000 步 = 完整覆盖朔黄线 23.8km（dt=0.1；按循环制动
+# 实际平均速度 ~50-60km/h，15000 步≈23.8km。原 3000 步≈5km 仅覆盖 ~20%，未跑完整
+# 线路循环制动全周期——见 DIAGNOSTICS 诊断-2026-09-03-完整23.8km协议。35km 剖面
+# 显式传 --max_steps 35000（避免未传时误跑 35000 步 → 间距漂移巨大、reward 假崩溃）。
+MAX_STEPS = 15000
 NUM_TRAINS = 3
 
 
 def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, disturbance_duration=200,
              target_gap=100.0, grade_profile='shuozhou_23800', max_steps=None,
              controller='mpc_simplified', horizon=10, mpc_gap_min=20.0, mpc_enforce_coupler=True,
-             blocks=5, block_len=10, use_coupler_constraint=True):
+             blocks=5, block_len=10, use_coupler_constraint=True, enable_etcs=False):
     # 普通场景（各列同坡段起步，无 start_offset/spacing 人为坡段错开）
     # eval_mode=True：第1层策略用确定性采样（bug修复：消除 M1/M3 评估随机性）
     # disturbance_accel<0：领航车扰动鲁棒性评估（突发减速），默认 0=无扰动。
@@ -39,6 +43,8 @@ def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, dist
     # target_gap：列间目标间距（m），调小=初始间距更近=更大追尾压力场景（压力消融）
     # grade_profile：坡度剖面（默认朔黄线真实剖面；可换 v_shape/long_downhill 等做普适性验证）
     # use_coupler_constraint：安全层消融（--no_coupler）→ False，关掉车钩力 SafetyLayer 钳制
+    # enable_etcs：是否启用 ETCS 目标距离超速防护（"真 ATP"，所有方法一视同仁，
+    #              追尾由 ATP 兜底，聚焦"受约束下的控制质量"而非"谁追尾"）
     enable_disturbance = disturbance_accel < 0
     env = TrainFleetEnv({
         'num_trains': NUM_TRAINS, 'consist_preset': '10kt_1plus0',
@@ -51,15 +57,20 @@ def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, dist
         'disturbance_target_accel': disturbance_accel,
         'use_coupler_constraint': use_coupler_constraint,
         'hierarchical': hierarchical, 'adj_coef': adj_coef,
+        'enable_etcs': enable_etcs,
         'eval_mode': True,
     })
-    # 挂载 MPC 协同控制器（供 'mpc' / 'fairmpc' / 'mpc_dir' 模式使用）
-    if controller in ('fairmpc', 'mpc_dir'):
+    # 挂载 MPC 协同控制器（供 'mpc' / 'fairmpc' / 'mpc_dir' / 'mpc_rule' 模式使用）
+    if controller in ('fairmpc', 'mpc_dir', 'mpc_rule'):
+        # inner_rule_cyclic：P2 公平基线（2026-09-02）。'mpc_rule' = MPC 直接控加速度
+        # + 规则循环制动内层兜底（分层的低层规则控速），与 M-MARL like-for-like，
+        # 消解审稿人"fair-MPC 被剥掉工业 ATO 规则内层"质疑。详见 DIAGNOSTICS 诊断-2026-09-02。
         env._mpc_controller = FairMPCController(
             num_trains=NUM_TRAINS, dt=0.1, v_max=env.v_max, v_min=env.v_min,
             target_speed=env.target_speed, headway_s=env.headway_s,
             gap_min=mpc_gap_min, enforce_coupler=mpc_enforce_coupler,
             horizon_blocks=blocks, block_len=block_len,
+            inner_rule_cyclic=(controller == 'mpc_rule'),
         )
         env._mpc_controller.reset()
     else:
@@ -138,6 +149,11 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
     cum_reward = 0.0
     # 记录每步的 RL 协同动作（M1）供策略分析
     adj_trace = []
+    # 【2026-09-03 指标修正】ATP 紧急制动触发步数（用户要求替代"追尾步数"）：
+    # 统计每步各列 safety_layer 新增的 etcs_ebi（EBI 紧急制动介入）事件。ETCS 真 ATP
+    # 启用（--etcs）下"追尾被 ATP 兜底"，主指标应为"ATP 被触发的步数"而非间距穿透。
+    atp_brake_steps = 0
+    _prev_safety_len = [0] * NUM_TRAINS
     while not done and step < MAX_STEPS:
         if mode == 'coast':
             a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
@@ -173,9 +189,11 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
             coor = env._mpc_controller.compute_actions(obs, spd_arr, acc_arr, gap_arr_mpc, env=env)
             a = coor.reshape(NUM_TRAINS, 1)
             adj_trace.append([float(v) for v in a.flatten()])
-        elif mode == 'mpc_dir':
+        elif mode in ('mpc_dir', 'mpc_rule'):
             # 直接加速控制的公平版 MPC：非分层（hierarchical=False），MPC 直接给每列
             # 目标加速度（连续控制），列内低层 + 车钩力 SafetyLayer 负责 throttle 映射。
+            # 'mpc_rule' = 同直接加速 + 规则循环制动内层兜底（inner_rule_cyclic，
+            # make_env 中按 controller 区分），与 M-MARL like-for-like 公平基线。
             # 与"分层无模型 MARL"（M-MARL）对比——传统模型驱动 vs 无模型分层策略。
             U = env._mpc_controller.compute_actions_from_env(env, obs)
             a = U.reshape(NUM_TRAINS, 1)
@@ -197,6 +215,14 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
             a = np.zeros((NUM_TRAINS, 1), dtype=np.float32)
             adj_trace.append([0.0, 0.0, 0.0])
         obs, r, term, trunc, info = env.step(a)
+        # 【2026-09-03 指标修正】ATP 紧急制动触发步数：本步新增 etcs_ebi 事件 → 记 1 步。
+        # last_events 跨步累积，用每列长度快照取"本步新增段"判断。
+        for i, tr in enumerate(env.trains):
+            evs = tr.safety.last_events
+            cur = len(evs)
+            if any(e.get('rule') == 'etcs_ebi' for e in evs[_prev_safety_len[i]:cur]):
+                atp_brake_steps += 1
+            _prev_safety_len[i] = cur
         done = term or trunc
         for i, tr in enumerate(env.trains):
             speeds_per_train[i].append(float(tr.dynamics.vel[0]))
@@ -239,6 +265,7 @@ def run_episode(env, agent, mode, seed, deterministic=True, randomize_init=False
         'gap_max': float(gap_arr.max()) if len(gap_arr) else None,
         'gap_drift': float(gap_arr.max() - gap_arr.min()) if len(gap_arr) else 0.0,
         'collision_steps': collision_steps,
+        'atp_brake_steps': atp_brake_steps,   # 【2026-09-03】ATP 紧急制动触发步数（主指标）
         'cycles': count_cycles(speeds_per_train),  # 【接入 2026-08-20】循环制动次数指标
         'steps': step,
     }
@@ -258,6 +285,7 @@ def summarize(label, results):
     gap_mins = sorted(r['gap_min'] for r in results)
     drifts = sorted(r['gap_drift'] for r in results)
     colls = sorted(r['collision_steps'] for r in results)
+    atps = sorted(r.get('atp_brake_steps', 0) for r in results)  # 【2026-09-03】ATP 紧急制动步数
     cycles = sorted(r['cycles'] for r in results)
     def med(x): return x[len(x) // 2]
     def mean_std(x):
@@ -271,12 +299,14 @@ def summarize(label, results):
     mg, sg = mean_std(gap_mins)
     md, sd = mean_std(drifts)
     mc, sc = mean_std(colls)
+    matp, satp = mean_std(atps)
     mcyc, scyc = mean_std(cycles)
     print(f"\n[{label}] {'随机化初态' if n > 1 else '确定性'} 评估 {n} seed 汇总 (mean±std / 中位)")
     print(f"  reward mean={mr:+.0f}±{sr:.0f}  中位={med(rewards):+.0f}  [{rewards[0]:+.0f},{rewards[-1]:+.0f}]")
     print(f"  超80 mean={mo:.1f}±{so:.1f}%  低40 mean={mu:.1f}±{su:.1f}%")
     print(f"  车钩力峰值 mean={mp:.0f}±{sp:.0f}kN  中位={med(peaks):.0f}kN  [{peaks[0]:.0f},{peaks[-1]:.0f}]")
-    print(f"  间距min mean={mg:.0f}±{sg:.0f}m  间距漂移 mean={md:.0f}±{sd:.0f}m  追尾步数 mean={mc:.1f}±{sc:.1f}  中位={med(colls)}")
+    print(f"  间距min mean={mg:.0f}±{sg:.0f}m  间距漂移 mean={md:.0f}±{sd:.0f}m")
+    print(f"  ATP紧急制动步数 mean={matp:.1f}±{satp:.1f}  中位={med(atps)}  (追尾步数[辅助] mean={mc:.1f}±{sc:.1f})")
     print(f"  循环制动次数 mean={mcyc:.1f}±{scyc:.1f}  中位={med(cycles)}")
 
 
@@ -322,6 +352,9 @@ def main():
     # 安全层消融：--no_coupler → 关掉车钩力 SafetyLayer 钳制（观察车钩力超限），对齐
     # 设计锁定的"安全层消融（移除安全层观察车钩力和追尾）"，只关车钩力约束（用户 2026-08-30 确认）。
     use_coupler_constraint = '--no_coupler' not in sys.argv
+    # ETCS 真 ATP：--etcs → 所有方法统一启用 ETCS 前瞻式超速防护，追尾由 ATP 兜底，
+    # 对比聚焦"受约束下的控制质量"（车钩力余量/间距漂移/节能/实时性/泛化）。
+    enable_etcs = '--etcs' in sys.argv
     if disturbance_accel < 0:
         tag = (f"场景=[普通场景 + 领航车扰动鲁棒性评估（扰动脉冲 {disturbance_accel:.1f}m/s² "
                f"@step500 持续{disturbance_duration}步）]")
@@ -336,7 +369,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=False, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap)
+                           target_gap=target_gap, enable_etcs=enable_etcs)
             coast_res.append(run_episode(env, None, 'coast', s, deterministic, randomize_init))
         summarize(f"惰行 baseline {tag}", coast_res)
 
@@ -349,7 +382,8 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.1, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, use_coupler_constraint=use_coupler_constraint)
+                           target_gap=target_gap, use_coupler_constraint=use_coupler_constraint,
+                           enable_etcs=enable_etcs)
             m1_res.append(run_episode(env, agent, 'm1', s, deterministic, randomize_init))
         summarize(f"M1 群组协同+车钩力 (coupler_constraint={use_coupler_constraint}) ({ckpt}) {tag}", m1_res)
 
@@ -359,7 +393,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.0, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap)
+                           target_gap=target_gap, enable_etcs=enable_etcs)
             m3_res.append(run_episode(env, None, 'm3', s, deterministic, randomize_init))
         summarize(f"M3 单列独立（δ=0）{tag}", m3_res)
 
@@ -372,7 +406,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap)
+                           target_gap=target_gap, enable_etcs=enable_etcs)
             env._m4_kp = kp
             env._m4_kd = kd
             m4_res.append(run_episode(env, None, 'm4', s, deterministic, randomize_init))
@@ -384,7 +418,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap)
+                           target_gap=target_gap, enable_etcs=enable_etcs)
             mpc_res.append(run_episode(env, None, 'mpc', s, deterministic, randomize_init))
         summarize(f"M-MPC 协同（确定性 MPC，horizon={env._mpc_controller.horizon}）{tag}", mpc_res)
 
@@ -395,7 +429,8 @@ def main():
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
                            target_gap=target_gap, controller='fairmpc', horizon=horizon,
-                           mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler)
+                           mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler,
+                           enable_etcs=enable_etcs)
             fm_res.append(run_episode(env, None, 'fairmpc', s, deterministic, randomize_init))
         times = env._mpc_controller.solve_times
         mean_t = float(np.mean(times)) if times else float('nan')
@@ -411,12 +446,30 @@ def main():
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
                            target_gap=target_gap, controller='mpc_dir',
                            mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler,
-                           blocks=blocks, block_len=block_len)
+                           blocks=blocks, block_len=block_len, enable_etcs=enable_etcs)
             mpc_dir_res.append(run_episode(env, None, 'mpc_dir', s, deterministic, randomize_init))
         times = env._mpc_controller.solve_times
         mean_t = float(np.mean(times)) if times else float('nan')
         summarize(f"M-MPC 公平版（直接加速，B={blocks}×{block_len}步, gap_min={mpc_gap_min}m, "
                   f"coupler={mpc_enforce_coupler}）{tag}", mpc_dir_res)
+        print(f"  每步求解耗时 mean={mean_t*1000:.1f}ms  总求解次数={len(times)}")
+
+    # M-MPC-rule（P2 公平基线，2026-09-02）：MPC 直接控加速度 + 规则循环制动内层兜底。
+    # 与 M-MARL like-for-like（同"规则护盾 + 优化外层"），消解 fair-MPC 是 strawman 质疑。
+    # 详见 records/DIAGNOSTICS 诊断-2026-09-02-ARIS 试点 P2。
+    mpc_rule_res = []
+    if mode in ('all', 'mpc_rule'):
+        for s in range(n_seed):
+            env = make_env(65 / 3.6, hierarchical=False, adj_coef=0.3, disturbance_accel=disturbance_accel,
+                           disturbance_duration=disturbance_duration, grade_profile=grade_profile,
+                           target_gap=target_gap, controller='mpc_rule',
+                           mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler,
+                           blocks=blocks, block_len=block_len, enable_etcs=enable_etcs)
+            mpc_rule_res.append(run_episode(env, None, 'mpc_rule', s, deterministic, randomize_init))
+        times = env._mpc_controller.solve_times
+        mean_t = float(np.mean(times)) if times else float('nan')
+        summarize(f"M-MPC-rule 公平版（直接加速+规则内层兜底，B={blocks}×{block_len}步, "
+                  f"gap_min={mpc_gap_min}m, coupler={mpc_enforce_coupler}）{tag}", mpc_rule_res)
         print(f"  每步求解耗时 mean={mean_t*1000:.1f}ms  总求解次数={len(times)}")
 
     # M-DQN-fair 公平 DQN baseline：分层阈值协同，与 M1 同架构，只换第2层算法（DQN）
@@ -434,7 +487,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap)
+                           target_gap=target_gap, enable_etcs=enable_etcs)
             mdqn_fair_res.append(
                 run_episode(env, None, 'mdqn_fair', s, deterministic, randomize_init, coor_agents=coor_agents))
         summarize(f"M-DQN-fair 公平 DQN 协同 (seed{dqn_seed}) {tag}", mdqn_fair_res)

@@ -63,7 +63,13 @@ def tractive_force(
         f1 = min(f1, max_tractive_n)
 
     if speed_mps <= 1e-6:
-        return f1  # 静止时按粘着极限，与 NeTrainSim 一致
+        # 静止起步：仅在有牵引指令时按粘着极限出力（NeTrainSim 语义）。
+        # 【2026-09-02 bug修复】此前无条件返回 f1，throttle=0 也输出满粘着牵引
+        # （882 kN @100t 机车），导致平坡静止列车被"幽灵牵引力"推走
+        # （第一锚物理硬约束测试 test_rest_stays_still_on_flat 发现）。
+        if throttle <= 0.0:
+            return 0.0
+        return f1
 
     p_eff = transmission_efficiency * throttle * max_power_kw * 1000.0  # W
     f_power = p_eff / speed_mps

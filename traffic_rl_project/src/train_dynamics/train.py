@@ -21,7 +21,8 @@ from .tractive import tractive_force, throttle_coefficient
 from .braking import (
     braking_force, BrakeShoeType, AirBrakeNotch,
     air_brake_force_n, air_brake_force_real, electric_brake_force_n,
-    notch_from_throttle,
+    notch_from_throttle, cyclic_braking_degrade,
+    tail_pressure_to_cyl_ratio, cylinder_pressure_gradient,
 )
 from .coupler import coupler_force
 from .params import TrainConsist, CouplerParams
@@ -50,11 +51,22 @@ class TrainDynamics:
         coupler: CouplerParams = None,
         dt: float = 0.1,
         friction_coef: float = 0.9,
+        enable_cyclic_degrade: bool = False,  # 【2026-09-03 B3】循环制动性能衰减（默认关，不影响训练/验证）
+        tail_pressure_kpa: float = None,      # 【2026-09-03 L1】列尾压强（kPa），None=无平衡压梯度
     ):
         self.consist = consist
         self.coupler = coupler or CouplerParams()
         self.dt = dt
         self.friction_coef = friction_coef
+        # 【2026-09-03 B3 循环制动衰减】赵紫宁表5-5 C_β 段间衰减（0.705/0.676）。
+        # 默认 False：不改变既有制动力量级与全部历史训练/验证数值。
+        self.enable_cyclic_degrade = enable_cyclic_degrade
+        self._brake_segment = 0   # 当前空气制动段序号（从 1 计，0=未制动过）
+        self._brake_was_active = False  # 上一步是否处于制动状态（段切换检测）
+        # 【2026-09-03 L1 列尾压强梯度】刘博阳 L6 平衡压梯度。
+        # None=无梯度（默认，向后兼容）；给定列尾压强 → 后部制动力按比例弱化。
+        self.tail_pressure_kpa = tail_pressure_kpa
+        self._cyl_gradient = None  # 缓存的每车平衡压系数（首次需要时计算）
 
         n = consist.num_vehicles
         self.pos = np.zeros(n)      # 每节车参考点位置（米）
@@ -98,6 +110,11 @@ class TrainDynamics:
         # （周占松 2026："制动缸压力在约 10 秒内上升至峰值"；杨敏用静置试验升压曲线）。
         # 原实现阶跃施加满制动力（波到即满）→ 冲击远超真实（双基准 B 偏差 +1100%）。
         self._brake_pressure = np.zeros(n)   # 每节车制动缸压力系数 0~1
+        # 【2026-09-02 P0-3】连续减压量覆盖（kPa）。None=按档位默认减压量
+        # （BRAKE_NOTCH_REDUCTION_KPA），非 None 时对生效车辆施加该减压量当量。
+        # 仅用于"减压量连续"工况（张二田 S5、赵紫宁循环制动、L1 列尾压强），
+        # 训练/评估流程不传此参数（向后兼容）。
+        self._brake_reduction_override_kpa = None
         self.brake_rise_time_s = 10.0        # 制动缸升压时间（秒，紧急制动 ~10s）
         # Newmark-β Picard 迭代参数（子步进后每控制步迭代 10×此值，是主要算力开销；
         # 设为可调属性，便于在精度/速度间权衡与实测调优）
@@ -153,6 +170,7 @@ class TrainDynamics:
         # Newmark 上一步加速度清零（episode 间不残留）
         self._acc0 = np.zeros(self.num_vehicles)
         self._brake_pressure = np.zeros(self.num_vehicles)
+        self._brake_reduction_override_kpa = None
         self._air_brake_pending = np.full(self.num_vehicles, None, dtype=object)
 
     def set_initial_speed(self, speed_mps: float):
@@ -161,6 +179,7 @@ class TrainDynamics:
         # Newmark 上一步加速度清零（episode 间不残留）
         self._acc0 = np.zeros(self.num_vehicles)
         self._brake_pressure = np.zeros(self.num_vehicles)
+        self._brake_reduction_override_kpa = None
         self._air_brake_pending = np.full(self.num_vehicles, None, dtype=object)
 
     def _coupler_interface_forces_vec(
@@ -295,22 +314,44 @@ class TrainDynamics:
     def _air_braking_forces(self) -> np.ndarray:
         """空气制动力（与速度方向相反），基于传播后生效的离散档位。
 
-        【2026-08-30 基线对齐】改用实算法（李蔚2023式(13)-(15)）：
-        制动缸压力→闸瓦压力→实算摩擦系数。C80 常用全制动 64 kN/车、
-        紧急 160 kN/车，与杨敏/周占松/李蔚量级一致。
+        【2026-09-02 P0-3 重标定】改用牵规 β_c 法（braking.py）：
+        常用制动 B_c = β_c(r)·φ_h(v)·K_h，C80 SERVICE(140kPa)≈31 kN/车、
+        紧急≈42 kN/车（50 km/h）—— 与赵紫宁表3-5/实测一致（原李蔚法偏强 2~4 倍）。
+
+        【2026-09-03 B3】enable_cyclic_degrade=True 时，制动力乘段间衰减因子
+        cyclic_braking_degrade(self._brake_segment)（赵紫宁表5-5 C_β，段2→0.705、
+        段3→0.676，相对首段归一）。默认关闭，不影响既有数值。
+
+        【2026-09-03 L1】tail_pressure_kpa 给定列尾压强时，制动力乘沿列车平衡压
+        梯度（前部满压 → 后部按刘博阳 L6 比例衰减）。默认 None=无梯度。
         """
         n = self.num_vehicles
         forces = np.zeros(n)
+        override = self._brake_reduction_override_kpa
+        # B3 段间衰减乘子（默认 1.0 = 不衰减，向后兼容）
+        degrade = (cyclic_braking_degrade(self._brake_segment)
+                   if self.enable_cyclic_degrade else 1.0)
+        # L1 平衡压梯度（默认 None → 全 1.0，向后兼容）
+        if self.tail_pressure_kpa is not None and self._cyl_gradient is None:
+            ratio = tail_pressure_to_cyl_ratio(self.tail_pressure_kpa)
+            self._cyl_gradient = cylinder_pressure_gradient(n, ratio)
+        cyl_grad = (self._cyl_gradient if self._cyl_gradient is not None
+                    else np.ones(n))
         for i, v in enumerate(self.consist.vehicles):
             if not self._air_brake_active[i]:
                 continue
             f = air_brake_force_real(
                 abs(self.vel[i]), self._air_brake_notch[i], v.is_locomotive,
+                reduction_kpa=override,
             )
             # E7：缓解制动力渐变衰减（真实缓解逐步排风，非瞬间释放），避免掉速
             f *= self._air_brake_release_frac[i]
             # 【2026-08-30】制动缸升压渐入（~10s 上升至峰值，文献标准）
             f *= self._brake_pressure[i]
+            # 【2026-09-03 B3】循环制动段间衰减
+            f *= degrade
+            # 【2026-09-03 L1】列尾压强平衡压梯度（后部制动力弱化）
+            f *= cyl_grad[i]
             forces[i] = -f * np.sign(self.vel[i]) if abs(self.vel[i]) > 1e-6 else -f
         return forces
 
@@ -390,6 +431,7 @@ class TrainDynamics:
         ab_sources: list = None,
         release_sync: bool = False,
         eot: bool = False,
+        reduction_kpa: float = None,
     ):
         """按 电制动（连续）+ 空气制动（离散+波速传播）推进一个时间步。
 
@@ -406,6 +448,8 @@ class TrainDynamics:
             ab_sources: 可选多源空气制动列表 [(index, AirBrakeNotch), ...]。
                 用于验证"尾部动力/分布式制动"降低纵向冲动（樊运新规律）。
                 提供时优先使用多源，忽略 ab_command/brake_origin 的单源逻辑。
+            reduction_kpa: 【2026-09-02 P0-3】可选连续减压量（kPa），
+                覆盖档位默认减压量，对所有生效车辆施加（验证专用，向后兼容）。
         """
         n_sub = max(1, int(np.ceil(self.dt / 0.01)))
         h = self.dt / n_sub
@@ -414,6 +458,7 @@ class TrainDynamics:
             self._advance_control_once(
                 throttle, ed_throttle, ab_command, brake_origin, ab_sources,
                 release_sync, eot, h, apply_command=(k == 0),
+                reduction_kpa=reduction_kpa,
             )
         # 能耗追踪（控制步级）：牵引功率 = 牵引力 × 速度（仅牵引为正时累计）
         tractive = self._tractive_forces_per_vehicle(throttle)
@@ -432,9 +477,21 @@ class TrainDynamics:
         eot: bool,
         h: float,
         apply_command: bool,
+        reduction_kpa: float = None,
     ):
         """推进一个物理子步（步长 h，≤0.01s）。"""
         if apply_command:
+            # 【2026-09-02 P0-3】连续减压量覆盖：每控制步更新（验证专用，None=档位默认）
+            self._brake_reduction_override_kpa = reduction_kpa
+            # 【2026-09-03 B3】段切换检测：上一步无制动 → 这一步有制动指令 → 段号+1。
+            # 段号仅在有新制动段发出时递增（持续制动中不递增，缓解后再制动才 +1）。
+            cmd_now = (ab_sources[0][1] if ab_sources
+                       else (None if ab_command is None else ab_command))
+            is_braking_cmd = (cmd_now is not None
+                              and cmd_now != AirBrakeNotch.RELEASE)
+            if self.enable_cyclic_degrade and is_braking_cmd and not self._brake_was_active:
+                self._brake_segment += 1
+            self._brake_was_active = is_braking_cmd
             if ab_sources:
                 # 多源制动：多个位置同时发出空气制动指令（分布式动力）
                 # 尾部/中部动力源需要双向传播以提升制动同步
@@ -448,6 +505,12 @@ class TrainDynamics:
                     if np.any(self._air_brake_active):
                         self._reset_air_brake_command(
                             0, sync=release_sync, eot=eot)
+            elif ab_command is None:
+                # 【2026-09-02 bug修复】ab_command=None 表示"不使用空气制动"，
+                # 不得触发任何制动/缓解逻辑。此前 None != RELEASE 为真 → 头车被
+                # 错误 _apply_air_brake_command(None) → _air_brake_active[0]=True，
+                # 导致平坡静止列车蠕动、惰行能量不守恒（第一锚物理硬约束测试发现）。
+                pass
             elif ab_command != AirBrakeNotch.RELEASE:
                 # 单源制动（向后兼容）
                 if not self._air_brake_active[brake_origin]:
@@ -543,7 +606,13 @@ class TrainDynamics:
         v_p = v_n + dt * (1.0 - gamma) * a_n
 
         # 欠松弛（α=0.5）稳定 Picard 迭代：刚性限位力剧增时防止发散
+        # 【2026-09-02 bug修复】欠松弛只用于迭代过程，收敛后必须取**未松弛**
+        # 候选解 (x_cand, v_cand)。此前松弛中间量 (x_new, v_new) 被直接当作
+        # 最终状态，稳态下等效 v_{n+1} = v_n + α·(1-γ)·… → 全部动力学响应
+        # 被系统性缩放至 75%（实测单车减速 0.0258 vs 公式 0.0344 m/s²，
+        # 恰为 0.75 倍；惰行末速差 8.8%）。第一锚/第二锚验证测试发现。
         alpha = 0.5
+        x_final, v_final = None, None
         for _ in range(max_iter):
             a_p = (control_forces + self._state_forces(x_p, v_p)) / m
             v_cand = v_n + dt * ((1.0 - gamma) * a_n + gamma * a_p)
@@ -551,12 +620,15 @@ class TrainDynamics:
             v_new = v_p + alpha * (v_cand - v_p)
             x_new = x_p + alpha * (x_cand - x_p)
             if np.max(np.abs(x_new - x_p)) < tol:
+                x_final, v_final = x_cand, v_cand  # 收敛解 = 未松弛候选
                 break
             x_p, v_p = x_new, v_new
+        if x_final is None:  # 未收敛（刚性冲击等）：回退松弛值防爆炸
+            x_final, v_final = x_new, v_new
 
         # 列车不倒车（真实列车无倒车控制）
-        v_new = np.maximum(v_new, 0.0)
-        self.pos, self.vel, self._acc0 = x_new, v_new, a_p
+        v_final = np.maximum(v_final, 0.0)
+        self.pos, self.vel, self._acc0 = x_final, v_final, a_p
         self.time += dt
 
     def reset_energy(self):

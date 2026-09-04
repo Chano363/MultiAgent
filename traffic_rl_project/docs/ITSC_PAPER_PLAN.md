@@ -1,3 +1,12 @@
+---
+title: ITSC 论文方案设计
+status: archived
+date: 2026-09-01
+owner: Owner
+supersedes: 'docs/ITSC_PAPER.md'
+# 写作过程中的方案设计与严谨性补齐记录；被正式论文承接后归档
+---
+
 # ITSC 论文方案设计（严谨性补齐版）
 
 > **目标会议**：IEEE ITSC（Intelligent Transportation Systems Conference）

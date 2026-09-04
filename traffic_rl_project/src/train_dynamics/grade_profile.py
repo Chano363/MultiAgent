@@ -120,10 +120,35 @@ def profile_long_downhill_20km() -> GradeProfile:
     ])
 
 
+def profile_long_downhill_35km() -> GradeProfile:
+    """第三长下坡剖面（≈35km，**全新设计，标注 synthetic**）。
+
+    学长建议验证 30-40km 长大下坡；现有 shuozhou_23800（真实 23.8km）与
+    long_downhill_20km（设计 20km）均不足。故新建设计剖面 ≈35km（35000m）：
+    连续长大下坡 -9.5‰~-11.5‰ 多段变坡（坡度差 ≤10.5‰，樊运新约束），
+    长鼻段制造持续追尾压力，用于第三线路 / 外推 / 压力验证。
+
+    ⚠ 语义标注：**synthetic（设计/外推验证线，非真实线路纵断面）**，不冒充真实数据；
+    用途 = 验证"长坡长度↑ → M3 独立追尾压力↑ → 协同价值↑"的趋势与外推鲁棒性。
+    坡度 sign：负值=下坡（与全局一致）。
+    """
+    return GradeProfile(segments=[
+        GradeSegment(0.0, -2.0),        # 0–1500: 起始缓坡
+        GradeSegment(1500.0, -9.5),     # 1500–8000: 下坡段1
+        GradeSegment(8000.0, -11.0),    # 8000–15000: 陡坡段
+        GradeSegment(15000.0, -10.0),   # 15000–21000: 下坡段
+        GradeSegment(21000.0, -11.5),   # 21000–28000: 最陡段（追尾压力区）
+        GradeSegment(28000.0, -10.8),   # 28000–33000: 下坡段
+        GradeSegment(33000.0, -7.0),    # 33000–34500: 渐缓
+        GradeSegment(34500.0, -2.0),    # 34500+: 出坡缓坡
+    ])
+
+
 PROFILES = {
     'long_downhill': profile_long_downhill,
     'gradual_to_steep': profile_gradual_to_steep,
     'v_shape': profile_v_shape,
     'shuozhou_23800': profile_shuozhou_23800,  # Zhang2024 复现场景
     'long_downhill_20km': profile_long_downhill_20km,  # 第二长下坡剖面（普适性）
+    'long_downhill_35km': profile_long_downhill_35km,  # 第三长下坡剖面（35km，synthetic）
 }

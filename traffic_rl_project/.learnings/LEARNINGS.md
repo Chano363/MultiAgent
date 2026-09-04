@@ -1,4 +1,15 @@
+---
+title: Learnings（踩坑 / 失败教训 / 经验）
+status: active
+owner: Agent + Owner
+---
+
 # Learnings
+
+> 这是项目**失败教训 + 可复用经验**的权威文件。新条目请遵循模板：
+> - 失败/踩坑 → `docs/rules/TEMPLATE_FAILURE.md`（现象/期望vs实际/根因三层/解决/预防）
+> - 可复用经验 → `docs/rules/TEMPLATE_EXPERIENCE.md`（适用/不适用/证据/速记）
+> 既有条目 **append-only 保留**。本文件规范见 `docs/rules/README.md`。
 
 Corrections, insights, and knowledge gaps captured during development.
 

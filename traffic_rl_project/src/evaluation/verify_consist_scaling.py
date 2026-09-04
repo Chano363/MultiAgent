@@ -115,6 +115,7 @@ def run_cyclic(consist_preset, v_init_mps=65.0 / 3.6, max_steps=3000):
         'peak_at_release_kN': peak_at_release,
         'brake_cycles': brake_cycles,
         'dist_km': float(env.dynamics.pos[0]) / 1000.0,
+        'records': records,
     }
 
 

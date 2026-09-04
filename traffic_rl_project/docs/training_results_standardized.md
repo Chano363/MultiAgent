@@ -1,3 +1,11 @@
+---
+title: 阶段一训练成果报告（无人机编队）
+status: archived
+date: 2026-09-01
+owner: Owner
+# 历史成果保留；当前主战场为阶段二
+---
+
 # 基于多智能体强化学习的无人机编队控制训练成果报告
 
 **Training Results Report: Multi-Agent Reinforcement Learning for UAV Formation Control**

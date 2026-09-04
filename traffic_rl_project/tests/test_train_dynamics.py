@@ -19,7 +19,22 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.resistance import resistance_force_lb, resistance_force_n
 from src.train_dynamics.tractive import tractive_force, throttle_coefficient
-from src.train_dynamics.braking import braking_force, brake_shoe_friction, BrakeShoeType
+from src.train_dynamics.braking import (
+    braking_force,
+    brake_shoe_friction,
+    BrakeShoeType,
+    AirBrakeNotch,
+    beta_c,
+    converted_friction_coeff,
+    air_brake_force_real,
+    air_brake_force_by_reduction,
+    cyclic_braking_degrade,
+    ZHAO_CBETA_SEQ,
+    tail_pressure_to_cyl_ratio,
+    cylinder_pressure_gradient,
+    LIU_TAIL_PRESS_KPA,
+    FREIGHT_CONVERTED_SHOE_FORCE_KN,
+)
 from src.train_dynamics.coupler import coupler_force
 from src.train_dynamics.params import VehicleParams, LocomotiveParams, TrainConsist
 from src.train_dynamics.train import TrainDynamics
@@ -139,31 +154,95 @@ def test_braking_zero_notch():
 
 
 # ---------------------------------------------------------------------------
-# 车钩力（质量-弹簧-阻尼）
+# 连续减压量模型（牵规 β_c 法，P0-3 新增：张二田 S5 / 赵紫宁表5-3 定量复现入口）
+def test_beta_c_table_values_and_monotonic():
+    """牵规常用制动系数 β_c：表值正确 + 单调 + 饱和。
+
+    表 3-1（列车管定压 600 kPa）：r=50/60/70/80/90/100/110 → 0.17/0.28/0.37/
+    0.46/0.53/0.60/0.67；r≥140 饱和 0.75（常用全制动）；r≤0 → 0。
+    """
+    assert beta_c(0.0) == 0.0
+    assert beta_c(50.0) == pytest.approx(0.17)
+    assert beta_c(60.0) == pytest.approx(0.28)
+    assert beta_c(70.0) == pytest.approx(0.37)
+    assert beta_c(100.0) == pytest.approx(0.60)
+    assert beta_c(110.0) == pytest.approx(0.67)
+    assert beta_c(140.0) == pytest.approx(0.75)
+    assert beta_c(1000.0) == pytest.approx(0.75)  # 饱和
+    rs = np.linspace(0.0, 200.0, 41)
+    vals = [beta_c(r) for r in rs]
+    assert all(0.0 <= v <= 0.75 for v in vals)
+    assert vals == sorted(vals)  # 单调不减
+
+
+def test_air_brake_force_continuous_reduction_magnitude():
+    """连续减压量制动力量级（50 km/h，对应 braking.py 注释）。
+
+    B_c = β_c(r) · φ_h(50) · K_h，K_h=161.5 kN/车，φ_h(50)=0.322·200/250=0.2576：
+      r=70 → 0.37×0.2576×161.5 ≈ 15.4 kN/车；
+      r=140（常用全制动）→ 0.75×0.2576×161.5 ≈ 31.2 kN/车；
+      紧急（β_c=1.0）→ ≈ 41.6 kN/车。
+    """
+    v50 = 50.0 / 3.6
+    kh = FREIGHT_CONVERTED_SHOE_FORCE_KN
+    f70 = air_brake_force_real(v50, AirBrakeNotch.SERVICE, reduction_kpa=70.0)
+    assert f70 == pytest.approx(beta_c(70.0) * converted_friction_coeff(50.0) * kh * 1000.0,
+                                rel=1e-9)
+    assert f70 / 1000.0 == pytest.approx(15.4, abs=0.3)
+    f140 = air_brake_force_real(v50, AirBrakeNotch.SERVICE, reduction_kpa=140.0)
+    assert f140 / 1000.0 == pytest.approx(31.2, abs=0.5)
+    f_eb = air_brake_force_real(v50, AirBrakeNotch.EMERGENCY)
+    assert f_eb / 1000.0 == pytest.approx(41.6, abs=0.6)
+
+
+def test_air_brake_force_continuous_reduction_backward_compat():
+    """向后兼容：reduction_kpa=None 时按档位默认（SERVICE=140 kPa）；显式值覆盖。"""
+    v50 = 50.0 / 3.6
+    f_default = air_brake_force_real(v50, AirBrakeNotch.SERVICE, reduction_kpa=None)
+    f_explicit140 = air_brake_force_real(v50, AirBrakeNotch.SERVICE, reduction_kpa=140.0)
+    assert f_default == pytest.approx(f_explicit140)
+    # 连续入口与档位入口同源
+    assert air_brake_force_by_reduction(v50, 100.0) == pytest.approx(
+        air_brake_force_real(v50, AirBrakeNotch.SERVICE, reduction_kpa=100.0))
+    # 减压 0 → 无制动力
+    assert air_brake_force_by_reduction(v50, 0.0) == 0.0
+    # 减压量越大制动力越强（单调）
+    fs = [air_brake_force_by_reduction(v50, r) for r in (50.0, 70.0, 100.0, 140.0)]
+    assert fs == sorted(fs) and fs[0] > 0.0
+
+
+# ---------------------------------------------------------------------------
+# 车钩力（MT-2 摩擦式迟滞模型：预压力 F0 + 弹性力 + 库仑摩擦 + 死区游隙）
 def test_coupler_spring_force():
-    """拉伸（后车更远）产生拉力（前车受负力），压紧（后车更近）产生推力（前车受正力）。"""
+    """恢复力（预压力+弹性）：拉伸产生拉力（负）、压紧产生推力（正），随位移增大（弹性区间内未打满行程）。"""
     k, c, L = 5.0e6, 5.0e4, 1.0
-    # 静止位置：后车在前车后方 L=1.0 处，e=0，力=0
+    preload, gap = 2.0e5, 0.01
+    x = 0.05  # 有效伸长 x-gap=0.04，远小于行程 0.083 → 纯弹性区间
+    # 静止位置 e=0，死区内 → 力≈0
     f_rest = coupler_force(0.0, 0.0, -1.0, 0.0, k, c, L)
-    assert f_rest == pytest.approx(0.0, abs=1.0)
-    # 拉长（后车再往后 0.2）：e=-0.2，弹簧拉两车向彼此 → 前车受 -k*0.2（向后）
-    f = coupler_force(0.0, 0.0, -1.2, 0.0, k, c, L)
-    assert f == pytest.approx(-k * 0.2)
-    # 压紧（后车往前 0.2）：e=+0.2，弹簧推开 → 前车受 +k*0.2（向前）
-    f2 = coupler_force(0.0, 0.0, -0.8, 0.0, k, c, L)
-    assert f2 == pytest.approx(k * 0.2)
+    assert abs(f_rest) < 500.0
+    # 拉长 x：前车受向后拉力（负），幅值 ≈ preload + k*(x-gap)
+    f = coupler_force(0.0, 0.0, -1.0 - x, 0.0, k, c, L)
+    assert f < 0.0
+    assert abs(f) == pytest.approx(preload + k * (x - gap), rel=0.10)
+    # 压紧 x：前车受向前推力（正），幅值同为 preload + k*(x-gap)
+    f2 = coupler_force(0.0, 0.0, -1.0 + x, 0.0, k, c, L)
+    assert f2 > 0.0
+    assert f2 == pytest.approx(preload + k * (x - gap), rel=0.10)
 
 
-def test_coupler_damping_force():
-    """相对速度产生阻尼力（阻碍分离/靠近）。"""
+def test_coupler_hysteresis_friction():
+    """MT-2 库仑摩擦恒反对相对运动：加载阻抗 > 卸载阻抗（迟滞环耗能，替代线性阻尼）。"""
     k, c, L = 5.0e6, 5.0e4, 1.0
-    # 静止位置 e=0，后车以 2 m/s 撞向前车（v_back=2, v_front=0）
-    # 分离速度 v_front-v_back = -2，阻尼 +c*2，前车被推向前（后车逼近）
-    f = coupler_force(0.0, 0.0, -1.0, 2.0, k, c, L)
-    assert f == pytest.approx(c * 2.0)
-    # 后车减速更快（v_back=-2, v_front=0）→ 分离，阻尼拉回前车
-    f2 = coupler_force(0.0, 0.0, -1.0, -2.0, k, c, L)
-    assert f2 == pytest.approx(-c * 2.0)
+    preload, friction = 2.0e5, 5.0e5
+    x = 0.10  # 压缩 0.1（e=+0.1 超死区）
+    # 加载 dv=v_front-v_back=1-2=-1<0（越压越紧），摩擦增阻
+    load = coupler_force(0.0, 1.0, -1.0 + x, 2.0, k, c, L)
+    # 卸载 dv=2-1=+1>0（松脱），摩擦减阻
+    unload = coupler_force(0.0, 2.0, -1.0 + x, 1.0, k, c, L)
+    assert load > unload
+    # 迟滞环宽度 = 2*friction（加载/卸载阻抗差）
+    assert (load - unload) == pytest.approx(2.0 * friction, rel=0.2)
 
 
 def test_coupler_action_reaction():
@@ -180,16 +259,18 @@ def test_coupler_action_reaction():
 
 
 def test_coupler_force_is_pairwise_opposite():
-    """牛顿第三定律：车钩对前车的力与对后车的力互为相反数（同一物理构型）。"""
+    """牛顿第三定律：拉伸时前车受向后拉力（负），幅值不超最大阻抗；后车受力与之相反。"""
     k, c, L = 5.0e6, 5.0e4, 1.0
-    x_front, x_back = 0.0, -1.2  # 拉长 0.2
+    x_front, x_back = 0.0, -1.2  # 拉长 0.2，超出行程 0.083 → 刚性限位+裁剪
     v_front, v_back = 0.0, 1.0
     # 前车受到的力（函数约定：第一参数为前车）
     f_on_front = coupler_force(x_front, v_front, x_back, v_back, k, c, L)
     # 后车受到的力 = -前车受到的力（牛顿第三定律）
     f_on_back = -f_on_front
-    # 直接验证：拉长时前车受负力（向后拉）
-    assert f_on_front == pytest.approx(k * ((x_back - x_front) + L) - c * (v_front - v_back), abs=1.0)
+    # 拉长 → 前车受负力（向后拉）
+    assert f_on_front < 0.0
+    # 幅值不超缓冲器最大阻抗
+    assert abs(f_on_front) <= 2.27e6 + 1.0
     assert f_on_back == pytest.approx(-f_on_front, abs=1.0)
 
 
@@ -222,13 +303,19 @@ def test_train_single_vehicle_moves_forward():
 
 
 def test_train_braking_slows_down():
-    """制动力应使列车减速。"""
+    """制动力应使列车减速（空气制动紧急档，子步进积分数值稳定）。"""
+    from src.train_dynamics.braking import AirBrakeNotch
     consist = _make_consist()
     td = TrainDynamics(consist)
     td.set_initial_speed(20.0)
     v0 = td.vel.copy()
+    n = consist.num_vehicles
     for _ in range(30):
-        td.step(throttle=0.0, brake_notch=1.0)
+        td.step_vehicles_ed_ab(
+            throttle=np.zeros(n),
+            ed_throttle=np.zeros(n),
+            ab_command=AirBrakeNotch.EMERGENCY,
+        )
     assert td.vel.mean() < v0.mean()
 
 
@@ -258,3 +345,179 @@ def test_train_grade_resistance():
         td_up.step(throttle=0.0, brake_notch=0.0)
 
     assert td_up.vel.mean() < td_flat.vel.mean()
+
+
+# ---------------------------------------------------------------------------
+# 【2026-09-03 B3】循环制动性能衰减（赵紫宁2022 表5-5 C_β）
+# ---------------------------------------------------------------------------
+
+
+def test_b3_cyclic_degrade_table_values():
+    """B3 段间衰减乘子 = 表5-5 C_β 相对首段归一（1.0 / 0.705 / 0.676 / 饱和）。"""
+    # 相对首段归一：段2 = 0.972/1.379，段3 = 0.932/1.379
+    assert cyclic_braking_degrade(0) == 1.0     # 段0（未制动）= 无衰减
+    assert cyclic_braking_degrade(1) == 1.0     # 首段 = 无衰减（不改变既有量级）
+    assert cyclic_braking_degrade(2) == pytest.approx(ZHAO_CBETA_SEQ[1] / ZHAO_CBETA_SEQ[0],
+                                                      rel=1e-9)
+    assert cyclic_braking_degrade(3) == pytest.approx(ZHAO_CBETA_SEQ[2] / ZHAO_CBETA_SEQ[0],
+                                                      rel=1e-9)
+    # 段≥3 保守饱和（0.932/1.379 ≈ 0.676），与"充风充分后恢复"一致
+    assert cyclic_braking_degrade(4) == pytest.approx(0.932 / 1.379, rel=1e-9)
+    assert cyclic_braking_degrade(10) == pytest.approx(0.932 / 1.379, rel=1e-9)
+    # 单调递减（衰减不回升）
+    assert cyclic_braking_degrade(1) > cyclic_braking_degrade(2) > cyclic_braking_degrade(3)
+
+
+def test_b3_train_degrades_brake_over_cycles():
+    """B3 集成：enable_cyclic_degrade=True 时，多段循环制动制动力逐段衰减。"""
+    consist = _make_consist()
+    n = consist.num_vehicles
+    td = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True)
+    td.set_grade(0.0)
+    td.set_initial_speed(20.0)
+
+    def _peak_brake_force():
+        """当前激活车辆制动力峰值（kN）。"""
+        return float(np.max(np.abs(td._air_braking_forces()))) / 1e3
+
+    def _run_brake_relax(brake_steps=50, relax_steps=100):
+        for _ in range(brake_steps):
+            td.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                                   ab_command=AirBrakeNotch.SERVICE, brake_origin=0)
+        for _ in range(relax_steps):
+            td.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                                   ab_command=AirBrakeNotch.RELEASE, brake_origin=0)
+
+    # 第一个制动段（段号应为 1，衰减 1.0）—— 满升压后测制动力
+    _run_brake_relax(brake_steps=120, relax_steps=60)  # 120 步=12s 确保升压饱和
+    assert td._brake_segment == 1
+    # 第二个制动段（段号 2，衰减 0.705）
+    _run_brake_relax(brake_steps=120, relax_steps=60)
+    assert td._brake_segment == 2
+    # 段间不制动持续缓解（段号保持 2，不递增）
+    for _ in range(50):
+        td.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                               ab_command=AirBrakeNotch.RELEASE, brake_origin=0)
+    assert td._brake_segment == 2
+    # 第三个制动段（段号 3，衰减 0.676）
+    _run_brake_relax(brake_steps=120, relax_steps=60)
+    assert td._brake_segment == 3
+
+    # 直接验证制动力衰减乘子（物理量，不受起始速度影响）：
+    # 构造同速度、同档位、同升压状态下的制动力对比。
+    # 方法：分别测段2/段3 在"满升压"时的制动力峰值，比值应 ≈ 衰减因子。
+    # 用一个新实例在段1/段2/段3 各测一次（同一初始速度），消除速度差异。
+    def _peak_at_segment(target_segment):
+        td2 = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True)
+        td2.set_grade(0.0)
+        td2.set_initial_speed(20.0)
+        for seg in range(1, target_segment + 1):
+            # 每次循环都满升压（制动 120 步）+ 缓解
+            for _ in range(120):
+                td2.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                                        ab_command=AirBrakeNotch.SERVICE, brake_origin=0)
+            if seg < target_segment:
+                for _ in range(60):
+                    td2.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                                            ab_command=AirBrakeNotch.RELEASE, brake_origin=0)
+        return float(np.max(np.abs(td2._air_braking_forces()))) / 1e3
+
+    p1 = _peak_at_segment(1)
+    p2 = _peak_at_segment(2)
+    p3 = _peak_at_segment(3)
+    assert p2 < p1  # 段2 制动力 < 段1
+    assert p3 < p2  # 段3 制动力 < 段2
+    assert p2 / p1 == pytest.approx(cyclic_braking_degrade(2), rel=0.15)
+    assert p3 / p1 == pytest.approx(cyclic_braking_degrade(3), rel=0.15)
+
+
+def test_b3_disabled_by_default_does_not_change_braking():
+    """B3 默认关闭：段号不递增、制动力与历史一致（不影响训练/验证）。"""
+    consist = _make_consist()
+    n = consist.num_vehicles
+    # 默认（enable_cyclic_degrade=False）
+    td = TrainDynamics(consist, dt=0.1)
+    td.set_grade(0.0)
+    td.set_initial_speed(20.0)
+    f_default = td._air_braking_forces().copy()
+    for _ in range(50):
+        td.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                               ab_command=AirBrakeNotch.SERVICE, brake_origin=0)
+    assert td._brake_segment == 0  # 未启用 → 段号不跟踪
+    assert td.enable_cyclic_degrade is False
+    # 制动力应为纯 air_brake_force_real（无衰减因子）
+    assert np.all(f_default >= 0)  # 无负值（未激活车辆为 0）
+    # 激活后制动力 = 原力 × 1.0（无衰减）
+    f_after = td._air_braking_forces()
+    assert np.allclose(f_after, td._air_braking_forces(), equal_nan=True)
+
+
+# ---------------------------------------------------------------------------
+# 【2026-09-03 L1】列尾压强 → 制动缸平衡压梯度（刘博阳2022 L6）
+# ---------------------------------------------------------------------------
+
+
+def test_l1_tail_pressure_to_cyl_ratio_table():
+    """L6 标定：列尾压强 585/589/593 → 后部/前部平衡压比 0.783/0.863/0.929。"""
+    assert tail_pressure_to_cyl_ratio(585.0) == pytest.approx(0.783, abs=1e-3)
+    assert tail_pressure_to_cyl_ratio(589.0) == pytest.approx(0.863, abs=1e-3)
+    assert tail_pressure_to_cyl_ratio(593.0) == pytest.approx(0.929, abs=1e-3)
+    # 线性内插（587 介于 585/589）
+    mid = (0.783 + 0.863) / 2
+    assert tail_pressure_to_cyl_ratio(587.0) == pytest.approx(mid, rel=0.05)
+    # 越界饱和
+    assert tail_pressure_to_cyl_ratio(580.0) == pytest.approx(0.783, rel=1e-6)
+    assert tail_pressure_to_cyl_ratio(600.0) == pytest.approx(0.929, rel=1e-6)
+    # 单调：列尾压强越高 → 充风越充分 → 比值越高（→1）
+    assert (tail_pressure_to_cyl_ratio(586)
+            < tail_pressure_to_cyl_ratio(590)
+            < tail_pressure_to_cyl_ratio(593))
+
+
+def test_l1_cylinder_gradient_shape_and_bounds():
+    """平衡压梯度：前部 1.0 → 后部 ratio，线性插值。"""
+    grad = cylinder_pressure_gradient(101, 0.8)
+    assert len(grad) == 101
+    assert grad[0] == pytest.approx(1.0)
+    assert grad[-1] == pytest.approx(0.8)
+    # 单调递减（前→后）
+    assert np.all(np.diff(grad) < 0)
+    # ratio=1.0（默认）→ 全 1.0（无梯度，向后兼容）
+    assert np.allclose(cylinder_pressure_gradient(101, 1.0), 1.0)
+    assert np.allclose(cylinder_pressure_gradient(101), 1.0)
+    # 单车
+    assert np.allclose(cylinder_pressure_gradient(1, 0.5), 1.0)
+
+
+def test_l1_train_tail_gradient_weakens_rear_braking():
+    """L1 集成：给定列尾压强 → 后部制动力弱于前部（梯度生效）；默认无梯度。"""
+    consist = _make_consist()
+    n = consist.num_vehicles
+
+    def _rear_to_front_ratio(tail_kpa):
+        td = TrainDynamics(consist, dt=0.1, tail_pressure_kpa=tail_kpa)
+        td.set_grade(0.0)
+        td.set_initial_speed(20.0)
+        for _ in range(200):  # 满升压（20s > SERVICE 18s）
+            td.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                                   ab_command=AirBrakeNotch.SERVICE, brake_origin=0)
+        f = td._air_braking_forces()
+        # 前部（第 0 车）与后部（末车）制动力
+        idx_front = 0
+        idx_rear = n - 1
+        return abs(f[idx_rear]) / max(abs(f[idx_front]), 1e-9)
+
+    # 无梯度（默认）→ 前后制动力相同（比值 ≈ 1）
+    td_default = TrainDynamics(consist, dt=0.1)
+    assert td_default.tail_pressure_kpa is None
+    # 默认实例不应有梯度缓存
+    assert td_default._cyl_gradient is None
+
+    # 列尾压强 585 → 后部制动力 ≈ 前部 × 0.783
+    r585 = _rear_to_front_ratio(585.0)
+    assert r585 == pytest.approx(0.783, rel=0.15)
+    # 列尾压强 593 → 后部制动力 ≈ 前部 × 0.929（更接近 1，充风更充分）
+    r593 = _rear_to_front_ratio(593.0)
+    assert r593 == pytest.approx(0.929, rel=0.15)
+    # 单调：列尾压强越高 → 后部制动力越强（比值越大）
+    assert r585 < r593

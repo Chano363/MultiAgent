@@ -142,6 +142,8 @@ def train(
     hierarchical: bool = False,
     layer1_checkpoint: str = 'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',
     adj_coef: float = 0.3,
+    enable_etcs: bool = False,       # 【2026-09-03】训练时启用 ETCS（与评估 --etcs 对齐，
+                                     # 消除"训练无 ETCS / 评估有 ETCS"的分布不一致）
     random_init_speed: bool = False,
     init_speed_min: float = 55.0 / 3.6,
     init_speed_max: float = 75.0 / 3.6,
@@ -174,6 +176,7 @@ def train(
         'hierarchical': hierarchical,
         'layer1_checkpoint': layer1_checkpoint,
         'adj_coef': adj_coef,
+        'enable_etcs': enable_etcs,   # 【2026-09-03】训练/评估 ETCS 对齐
     }
     if target_speed is not None:
         env_cfg['target_speed'] = target_speed
@@ -435,6 +438,8 @@ if __name__ == '__main__':
                         help='第1层单列控速策略 checkpoint（[40,80]限速）')
     parser.add_argument('--adj_coef', type=float, default=0.3,
                         help='协同调整量缩放系数（分层模式）')
+    parser.add_argument('--enable_etcs', action='store_true',
+                        help='训练时启用 ETCS 真 ATP（与评估 --etcs 对齐，消除分布不一致）')
     parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
                         help='checkpoint 输出目录（多 run 并行不互相覆盖）')
     parser.add_argument('--results_dir', type=str, default='outputs/results',
@@ -472,6 +477,7 @@ if __name__ == '__main__':
         hierarchical=args.hierarchical,
         layer1_checkpoint=args.layer1_checkpoint,
         adj_coef=args.adj_coef,
+        enable_etcs=args.enable_etcs,
         random_init_speed=args.random_init_speed,
         init_speed_min=args.init_speed_min,
         init_speed_max=args.init_speed_max,
