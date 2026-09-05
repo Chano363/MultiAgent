@@ -1,0 +1,80 @@
+{
+  "args": {
+    "mode": "all",
+    "checkpoint": "outputs/checkpoints_dec_smoke/mappo_fleet_best_dec_ad2_cp_seed0.pt",
+    "grade": "shuozhou_23800",
+    "max_steps": 3000,
+    "n_seed": 1,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": false
+  },
+  "results": {
+    "decompose_M0_rule": {
+      "reward": 14583.346138437228,
+      "peak_coupler_kN": 716.0126783961036,
+      "viol": 0.0,
+      "safety_events": 289863.0,
+      "ab_steps": 2.0,
+      "mean_ed": 0.4448333333333287,
+      "band_rate": 0.9993333333333333,
+      "final_speed_kmh": 79.23275984888565,
+      "per_seed": [
+        {
+          "reward": 14583.346138437228,
+          "peak_coupler_kN": 716.0126783961036,
+          "viol": 0.0,
+          "safety_events": 289863.0,
+          "ab_steps": 2.0,
+          "mean_ed": 0.4448333333333287,
+          "band_rate": 0.9993333333333333,
+          "final_speed_kmh": 79.23275984888565
+        }
+      ]
+    },
+    "decompose_M1_rl": {
+      "reward": -50852.48366224198,
+      "peak_coupler_kN": 497.9644611188547,
+      "viol": 0.0,
+      "safety_events": 288000.0,
+      "ab_steps": 176.0,
+      "mean_ed": 0.09764332983132977,
+      "band_rate": 0.12366666666666666,
+      "final_speed_kmh": 0.0,
+      "per_seed": [
+        {
+          "reward": -50852.48366224198,
+          "peak_coupler_kN": 497.9644611188547,
+          "viol": 0.0,
+          "safety_events": 288000.0,
+          "ab_steps": 176.0,
+          "mean_ed": 0.09764332983132977,
+          "band_rate": 0.12366666666666666,
+          "final_speed_kmh": 0.0
+        }
+      ]
+    },
+    "single_loco_rule": {
+      "reward": -4622.90576171875,
+      "peak_coupler_kN": 332.2927999457194,
+      "viol": 0.0,
+      "safety_events": 1606698.0,
+      "ab_steps": 616.0,
+      "mean_ed": 0.0,
+      "band_rate": 0.731,
+      "final_speed_kmh": 76.8909786093258,
+      "per_seed": [
+        {
+          "reward": -4622.90576171875,
+          "peak_coupler_kN": 332.2927999457194,
+          "viol": 0.0,
+          "safety_events": 1606698.0,
+          "ab_steps": 616.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.731,
+          "final_speed_kmh": 76.8909786093258
+        }
+      ]
+    }
+  }
+}

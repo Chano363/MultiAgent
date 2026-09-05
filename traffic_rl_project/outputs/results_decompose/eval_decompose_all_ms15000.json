@@ -1,0 +1,141 @@
+{
+  "args": {
+    "mode": "all",
+    "checkpoint": "outputs/checkpoints_dec_full_iv10/mappo_fleet_ep60_dec_ad2_cp_seed0.pt",
+    "grade": "shuozhou_23800",
+    "max_steps": 15000,
+    "n_seed": 3,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": false,
+    "decision_interval": 10
+  },
+  "results": {
+    "decompose_M0_rule": {
+      "reward": 71251.96770766667,
+      "peak_coupler_kN": 720.0948387870336,
+      "viol": 0.0,
+      "safety_events": 43211085.666666664,
+      "ab_steps": 461.0,
+      "mean_ed": 0.6658711111112586,
+      "band_rate": 0.9968444444444445,
+      "final_speed_kmh": 41.735872345374474,
+      "per_seed": [
+        {
+          "reward": 71287.12275625464,
+          "peak_coupler_kN": 721.0341482079508,
+          "viol": 0.0,
+          "safety_events": 43084907.0,
+          "ab_steps": 461.0,
+          "mean_ed": 0.6658333333334808,
+          "band_rate": 0.9969333333333333,
+          "final_speed_kmh": 41.71256812340564
+        },
+        {
+          "reward": 71234.39018337267,
+          "peak_coupler_kN": 719.625184076575,
+          "viol": 0.0,
+          "safety_events": 43274175.0,
+          "ab_steps": 461.0,
+          "mean_ed": 0.6658900000001475,
+          "band_rate": 0.9968,
+          "final_speed_kmh": 41.747524456358896
+        },
+        {
+          "reward": 71234.39018337267,
+          "peak_coupler_kN": 719.625184076575,
+          "viol": 0.0,
+          "safety_events": 43274175.0,
+          "ab_steps": 461.0,
+          "mean_ed": 0.6658900000001475,
+          "band_rate": 0.9968,
+          "final_speed_kmh": 41.747524456358896
+        }
+      ]
+    },
+    "decompose_M1_rl": {
+      "reward": 72743.3886123368,
+      "peak_coupler_kN": 569.7040723160675,
+      "viol": 0.0,
+      "safety_events": 1440000.0,
+      "ab_steps": 4356.666666666667,
+      "mean_ed": 0.3513638780024932,
+      "band_rate": 0.9972222222222222,
+      "final_speed_kmh": 52.89189430168383,
+      "per_seed": [
+        {
+          "reward": 72758.40080303917,
+          "peak_coupler_kN": 569.6431633052431,
+          "viol": 0.0,
+          "safety_events": 1440000.0,
+          "ab_steps": 4350.0,
+          "mean_ed": 0.3519356666490653,
+          "band_rate": 0.9972666666666666,
+          "final_speed_kmh": 52.86178478547921
+        },
+        {
+          "reward": 72735.88251698561,
+          "peak_coupler_kN": 569.7345268214797,
+          "viol": 0.0,
+          "safety_events": 1440000.0,
+          "ab_steps": 4360.0,
+          "mean_ed": 0.3510779836792071,
+          "band_rate": 0.9972,
+          "final_speed_kmh": 52.90694905978613
+        },
+        {
+          "reward": 72735.88251698561,
+          "peak_coupler_kN": 569.7345268214797,
+          "viol": 0.0,
+          "safety_events": 1440000.0,
+          "ab_steps": 4360.0,
+          "mean_ed": 0.3510779836792071,
+          "band_rate": 0.9972,
+          "final_speed_kmh": 52.90694905978613
+        }
+      ]
+    },
+    "single_loco_rule": {
+      "reward": 40955.60546875,
+      "peak_coupler_kN": 456.1276520453821,
+      "viol": 0.0,
+      "safety_events": 467479095.6666667,
+      "ab_steps": 4030.0,
+      "mean_ed": 0.0,
+      "band_rate": 0.902,
+      "final_speed_kmh": 44.903253881357635,
+      "per_seed": [
+        {
+          "reward": 40955.625,
+          "peak_coupler_kN": 469.6084418305263,
+          "viol": 0.0,
+          "safety_events": 467357603.0,
+          "ab_steps": 4030.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.902,
+          "final_speed_kmh": 44.89922135505679
+        },
+        {
+          "reward": 40955.58984375,
+          "peak_coupler_kN": 449.38725715281004,
+          "viol": 0.0,
+          "safety_events": 467539842.0,
+          "ab_steps": 4030.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.902,
+          "final_speed_kmh": 44.90527014450805
+        },
+        {
+          "reward": 40955.58984375,
+          "peak_coupler_kN": 449.38725715281004,
+          "viol": 0.0,
+          "safety_events": 467539842.0,
+          "ab_steps": 4030.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.902,
+          "final_speed_kmh": 44.90527014450805
+        }
+      ]
+    }
+  }
+}

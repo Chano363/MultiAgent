@@ -63,8 +63,34 @@ class HierarchicalController:
             coupler_override='min_brake',
         )
 
+    def get_action_2d(self, train_env, coor_vec) -> np.ndarray:
+        """【方向A 2026-09-04】2 维协同：v_max_adj / v_min_adj 独立偏移（修根因4）。
+
+        原 1 维 `adj` 同时加在 v_max_adj 和 v_min_adj 上 → 只是整带平移、带宽不变
+        （40km/h 恒定），只挪相位、无法压缩/拉伸循环周期。改为 2 维独立偏移后，
+        RL 可"提前制动/延后缓解"（同向=平移）或"收窄/放宽带宽"（反向=压缩定时），
+        让协同真正改变循环周期，扩大可利用的相位自由度。
+
+        Args:
+            train_env: TrainFormationEnv（该列）
+            coor_vec: 长度为 2 的数组 [v_max 偏移原始量, v_min 偏移原始量] ∈ [-1,1]
+        """
+        vmax_raw = float(np.clip(coor_vec[0], -1.0, 1.0))
+        vmin_raw = float(np.clip(coor_vec[1], -1.0, 1.0))
+        v_max_adj = vmax_raw * self.adj_coef * self.COOP_LIMIT
+        v_min_adj = vmin_raw * self.adj_coef * self.COOP_LIMIT
+        return self._low_level.get_action_cyclic_braking(
+            train_env,
+            v_max=self.v_max,
+            v_min=self.v_min,
+            brake_notch=-0.75,
+            release_throttle=0.0,
+            v_max_adj=v_max_adj,
+            v_min_adj=v_min_adj,
+        )
+
     def get_action(self, train_env, coor_adj: float) -> np.ndarray:
-        """最终列级动作：规则循环制动 + 协同阈值偏移 v_max_adj/v_min_adj。
+        """最终列级动作：规则循环制动 + 协同阈值偏移 v_max_adj/v_min_adj（1 维兼容）。
 
         Args:
             train_env: TrainFormationEnv（该列）

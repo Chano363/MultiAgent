@@ -1,0 +1,37 @@
+{
+  "args": {
+    "mode": "decompose_m1",
+    "checkpoint": "outputs/checkpoints_dec_smoke/mappo_fleet_best_dec_ad2_cp_seed0.pt",
+    "grade": "shuozhou_23800",
+    "max_steps": 3000,
+    "n_seed": 1,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": false,
+    "decision_interval": 10
+  },
+  "results": {
+    "decompose_M1_rl": {
+      "reward": 14741.275641935954,
+      "peak_coupler_kN": 551.5655842719459,
+      "viol": 0.0,
+      "safety_events": 288000.0,
+      "ab_steps": 680.0,
+      "mean_ed": 0.28747962507511987,
+      "band_rate": 0.9996666666666667,
+      "final_speed_kmh": 63.72051585491653,
+      "per_seed": [
+        {
+          "reward": 14741.275641935954,
+          "peak_coupler_kN": 551.5655842719459,
+          "viol": 0.0,
+          "safety_events": 288000.0,
+          "ab_steps": 680.0,
+          "mean_ed": 0.28747962507511987,
+          "band_rate": 0.9996666666666667,
+          "final_speed_kmh": 63.72051585491653
+        }
+      ]
+    }
+  }
+}

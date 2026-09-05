@@ -470,8 +470,12 @@ class TrainFormationEnv:
                 if notch != AirBrakeNotch.RELEASE:
                     ab_sources.append((loco_idx, notch))
                     any_ab = True
-        # 全缓时用 ab_command=None（=不使用空气制动，train.py pass 分支），较全 RELEASE 更安全
-        ab_command = AirBrakeNotch.RELEASE if any_ab else None
+        # 【bug修复 2026-09-05】无 AB 源时必须显式发 RELEASE（而非 None）：
+        # None = "不使用空气制动"（train.py pass 分支，不发任何指令），已施加的
+        # SERVICE 制动将永远得不到缓解指令 → 列车被残留制动拖停（15000 步全程评估
+        # 实证：第二循环 AB 缓解后列车在 -10.9‰ 陡坡被拖到 0 km/h 永久卡死）。
+        # RELEASE 对已缓解列车无害（旧架构 train_env.step 即每步默认 RELEASE）。
+        ab_command = AirBrakeNotch.RELEASE
 
         # 车钩力安全钳制：投影为整列逐车 throttle 近似走 SafetyLayer（制动方向保守安全）
         proj_throttle = np.zeros(self.num_vehicles)

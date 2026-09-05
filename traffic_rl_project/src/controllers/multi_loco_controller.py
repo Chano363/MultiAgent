@@ -28,6 +28,7 @@ import numpy as np
 from src.safety_layer import SafetyLayer
 from src.environments.train_env import COUPLER_FORCE_LIMIT_N
 from src.train_dynamics.braking import AirBrakeNotch, notch_from_throttle
+from src.train_dynamics.etcs_braking import G_RAIL
 
 
 class MultiLocoController:
@@ -102,11 +103,37 @@ class MultiLocoController:
             return max(1.0 - (ratio - 0.8) / 0.2, 0.0)
         return 1.0
 
-    def _ed_ab_price(self, v: float) -> float:
-        """ED 地位：速度越高 ED 可用度越高（P_ed/v 约束下高速 ED 功率足）。返回 (~0)."""
-        # 简化：ED 在低速时受功率约束变弱，但电压超低几乎无力制动时需 AB。
-        # 返回 ED 在该速度下的可用度 ∈ [0,1]（0=完全无力，1=足够）。
-        return float(np.clip(v / 5.0, 0.0, 1.0))  # v>=5m/s 时 ED 视为足够
+    def _ed_ab_price(self, train_env) -> float:
+        """ED 可用度 ∈ [0,1.5]：功率约束下 ED 可提供的制动力 / 维持速度所需制动力。
+
+        【2026-09-05 物理化（ADR-009.1 门控前置）】原实现 `_ed_ab_price(v)=clip(v/5)`
+        使 ED 在循环制动带内（40-80km/h）恒"足够" → 规则基线的 AB 兜底实际永不可达，
+        "ED 优先、不足转 AB"无从学起。改为：
+        - ED 可用力 F_ed = min(P_ed 总再生制动功率 / v, 粘着上限 m_loco·g·μ)
+        - 需求力 F_req = m_total·g·|最陡下坡|（Davis 阻力保守忽略 → 倾向多触发 AB）
+        - ed_avail = F_ed / F_req：陡坡高速时 < 1 → 基线真实触发 AB 兜底；
+          缓坡/低速时 ≥ 1 → ED 足够、AB 保持缓解（ED 优先）。
+        """
+        dyn = train_env.dynamics
+        v = max(float(dyn.vel[0]), 1.0)
+        m_total_kg = sum(float(vp.mass_t) for vp in dyn.consist.vehicles) * 1000.0
+        m_loco_kg = sum(
+            float(vp.mass_t) for vp in dyn.consist.vehicles if vp.is_locomotive
+        ) * 1000.0
+        p_ed_w = sum(
+            float(vp.max_power_kw) for vp in dyn.consist.vehicles if vp.is_locomotive
+        ) * 1000.0
+        grades = np.asarray(dyn.grade, dtype=float)
+        prof = getattr(dyn, '_grade_profile', None)
+        if prof is not None:
+            # 坡度从剖面按当前位置实时取（reset 后 dyn.grade 可能尚未刷新）
+            grades = prof.grades_for_positions(dyn.pos)
+        steepest_down = max(0.0, -float(np.min(grades))) if grades.size else 0.0
+        f_ed = min(p_ed_w / v, m_loco_kg * G_RAIL * 0.35)  # 粘着上限 μ=0.35 保守
+        f_req = m_total_kg * G_RAIL * steepest_down
+        if f_req <= 1e-6:
+            return 1.5  # 无下坡需求 → ED 富余
+        return float(np.clip(f_ed / f_req, 0.0, 1.5))
 
     # ------------------------------------------------------------------ #
     # 主接口 1：循环制动
@@ -133,7 +160,7 @@ class MultiLocoController:
         if self._cyclic_braking:
             # 制动：ED 优先打满，但**逐机车错峰**（体现"每机车=独立体"分布式动力）：
             # 队首机车先建立电制动，后部机车延迟错峰加入，避免整列同时制动前涌。
-            ed_avail = self._ed_ab_price(vel)
+            ed_avail = self._ed_ab_price(train_env)
             # 是否需要 AB：ED 可用度不足时才引入空气制动兜底（长大下坡 ED 功率受限）
             ab_nominal = 0.0 if ed_avail >= 0.99 else float(brake_notch)
             scale = self._coupler_throttle_scale(train_env)
@@ -159,6 +186,46 @@ class MultiLocoController:
         # 队首(0)=强，队尾=稍弱（纵向错峰，抑制同步前涌）
         frac = loco_i / max(self.num_locomotives - 1, 1)
         return 0.3 * frac  # 队尾 ED 为队首的 0.7 倍左右
+
+    # ------------------------------------------------------------------ #
+    # 主接口 3：decompose RL 调制（ADR-009.1 空电分工，逐机车 RL 智能体）
+    # ------------------------------------------------------------------ #
+    # RL 提前触发的 AB 兜底档位（MIN 档，负值 → 该机车成为 AB 波源）
+    AB_FALLBACK_NOTCH = -0.4
+    # 距 v_max 不足该裕量（m/s）时禁止抑制 AB（AB 兜底不被轻率关闭 → 防 EB 兜不住超速）
+    AB_SUPPRESS_MARGIN_MPS = 0.5
+
+    def get_action_decomposed(
+        self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
+        v_min: float = 40.0 / 3.6, ed_mod_coef: float = 0.5,
+    ):
+        """规则循环制动基线 + 逐机车 RL 调制 → (final, baseline)，各 (num_loco,2)。
+
+        【ADR-009.1 四层方案】RL 只学宏观分配，不学 AB 连续档位：
+        - 基线 = get_action_cyclic_braking（ED 优先打满 + 逐机车错峰 + ED 不足才 AB 兜底）；
+        - rl_actions (num_loco,2) 每机车 [ed_mod, ab_mod] ∈ [-1,1]：
+          * ed_mod：调整本机车 ED 深度（±ed_mod_coef 绝对量，连续真物理杠杆，
+            直接改变电制动力，区别于旧架构 ±0.5km/h 阈值偏移的 1.25% 杠杆）；
+          * ab_mod > +0.5：抑制本机车 AB 源（仅当 vel < v_max - AB_SUPPRESS_MARGIN_MPS
+            才生效——远离超速才允许关兜底，"ED 优先"可学且安全）；
+          * ab_mod < -0.5：提前触发本机车 MIN 档 AB 兜底（错峰/预判性引入）。
+        """
+        baseline = self.get_action_cyclic_braking(train_env, v_max=v_max, v_min=v_min)
+        final = baseline.copy()
+        vel = float(train_env.dynamics.vel[0])
+        rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
+        for i in range(self.num_locomotives):
+            ed_mod = float(np.clip(rl[i, 0], -1.0, 1.0))
+            ab_mod = float(np.clip(rl[i, 1], -1.0, 1.0))
+            final[i, 0] = float(np.clip(baseline[i, 0] + ed_mod_coef * ed_mod, 0.0, 1.0))
+            if baseline[i, 1] < 0 and ab_mod > 0.5:
+                # 抑制本机车 AB 源：仅当远离超速裕量才生效（保住"AB 兜底"安全性）
+                if vel < v_max - self.AB_SUPPRESS_MARGIN_MPS:
+                    final[i, 1] = 0.0
+            elif baseline[i, 1] >= 0 and ab_mod < -0.5:
+                # 提前触发 MIN 档兜底（RL 学"何时/哪台机车引入 AB"）
+                final[i, 1] = self.AB_FALLBACK_NOTCH
+        return final, baseline
 
     # ------------------------------------------------------------------ #
     # 主接口 2：目标加速度（fleet 非分层模式，与 TrainLowLevelController 同签名）

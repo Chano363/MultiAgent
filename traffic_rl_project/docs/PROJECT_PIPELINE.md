@@ -946,7 +946,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
 ### \[P3.5] 智能体分解重构：多机车分布式动力 × 电空双制动分工 - 2026-09-02
 
-- **状态**：🔄 进行中（**环境能力打通：多机车+电空分工首跑通过 2026-09-03**；逐机车 RL 智能体 = 下一阶段）
+- **状态**：✅ 核心判据完成（2026-09-05，**完整 23.8km 时域全链路验证通过**）：①decompose 规则基线 vs 单机单控 = reward +74%/band +9.5pp/AB -89%；②RL 层（semi-MDP 决策间隔 10 救回）vs 自身规则基线 = reward +2.1%/车钩力 -21%/末速 +11.2km/h/ATP 事件 -97%，全部门控通过、零超限。证据链：单机单控 → decompose 规则 → decompose RL 三层递进全正增量。详见 DIAGNOSTICS 诊断-2026-09-05 三节（冒烟/全量+bug修复/RL层救回）。剩余：多 seed 训练（3 seed 协议）、论文 Methods/Results 改写（ITSC_PAPER 仍为旧架构叙事）
 
 - **归属**：P3 层级一（多列群组）的**列内智能体分解升级** · 对应论文 Methods 问题陈述 / 创新点
 
@@ -962,9 +962,9 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
   - 控制器：✔ `src/controllers/multi_loco_controller.py`（新增）循环制动 ED 优先 + 逐机车 ED 错峰 + 车钩力安全钳
 
-  - 训练（RL 智能体）：⏳ 待——decompose 冒烟用规则 `MultiLocoController`，逐机车 obs/策略 RL 未做
+  - 训练（RL 智能体）：✔ **2026-09-05 逐机车 RL 短训冒烟完成**——`train_fleet_env.py` 新增 `decompose='loco_ed_ab'` 模式（智能体=每机车、11 维 obs 含 AB 状态、电空分工奖励塑形）+ `train_fleet.py --decompose` 入口 + `MultiLocoController.get_action_decomposed`（规则基线 + RL `[ed_mod,ab_mod]` 调制）+ **ED 可用度物理化**（功率约束 F_ed=P/v vs 坡道需求力，修复原模型下基线 AB 兜底永不可达）。两轮冒烟（朔黄线 80km/h 起步 3000 步）：**可学性确认——车钩力 734→559kN（-24%）两轮复现、viol 0、band 99.97%**（RL 学到"逐机车错峰提前 MIN 档 AB"分配）；综合奖励与 M0 打平（-0.2%，差值≈AB 成本塑形项）→ 全量训练前置：①AB 成本/车钩力权重校准（目标定义，需导师拍板）②训练期探索不稳定对策（随机耦合 coupler 1168kN）。详见 `docs/records/DIAGNOSTICS.md` 诊断-2026-09-05-decompose换架构冒烟
 
-- **配置**：`decompose` 默认 None（向后兼容，139 测试全过零回归）
+- **配置**：`decompose` 默认 None（向后兼容，148 测试全过零回归，含 `tests/test_fleet_decompose.py` 9 项）
 
 - **结果（2026-09-03 首跑）**：
 

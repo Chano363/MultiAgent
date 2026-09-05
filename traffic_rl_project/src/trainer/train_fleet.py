@@ -142,6 +142,13 @@ def train(
     hierarchical: bool = False,
     layer1_checkpoint: str = 'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',
     adj_coef: float = 0.3,
+    action_dim: int = 1,               # 【方向A】协同动作维度：1=coor_adj 整带平移；2=v_max/v_min 独立偏移
+    group_obs: bool = False,           # 【方向B】全局一致性观测（obs_dim 11→13），修根因3
+    decompose: str = None,             # 【ADR-009.1 2026-09-05 换架构】'loco_ed_ab'=逐机车 RL
+                                       # 智能体（每机车独立 ED/AB 分配调制），None=旧列级模式
+    decision_interval: int = 1,        # 【2026-09-05 RL 层救回①】decompose 模式 RL 决策间隔
+                                       # （动作保持 N 步，semi-MDP）：砍短超长时域信用链
+                                       # （15000 步→1500 决策），rule 基线仍逐步执行
     enable_etcs: bool = False,       # 【2026-09-03】训练时启用 ETCS（与评估 --etcs 对齐，
                                      # 消除"训练无 ETCS / 评估有 ETCS"的分布不一致）
     random_init_speed: bool = False,
@@ -176,14 +183,20 @@ def train(
         'hierarchical': hierarchical,
         'layer1_checkpoint': layer1_checkpoint,
         'adj_coef': adj_coef,
+        'action_dim': action_dim,   # 【方向A】1=整带平移；2=v_max/v_min 独立偏移
+        'group_obs': group_obs,     # 【方向B】全局一致性观测（修根因3）
+        'decompose': decompose,     # 【ADR-009.1】逐机车电空分工模式（None=向后兼容）
         'enable_etcs': enable_etcs,   # 【2026-09-03】训练/评估 ETCS 对齐
     }
     if target_speed is not None:
         env_cfg['target_speed'] = target_speed
     env = make_env(env_cfg)
 
-    obs_dim = env.obs_dim       # 每列观测维度（6）
-    act_dim = 1                 # 每列动作维度（1）
+    obs_dim = env.obs_dim       # 每智能体观测维度
+    act_dim = env.act_dim       # 每智能体动作维度（decompose=2 [ed_mod,ab_mod]；否则=action_dim）
+    num_agents = env.num_agents  # 智能体数（decompose=Σ每列机车数；否则=列数）
+    if decompose and decision_interval > 1:
+        logger.info(f"RL 决策间隔: {decision_interval} 步/决策（动作保持，rule 基线逐步执行）")
 
     logger.info("=" * 70)
     logger.info("重载列车群组（多列编队）MAPPO 训练")
@@ -197,7 +210,7 @@ def train(
     logger.info(f"设备: {device}")
 
     agent = MAPPOAgent(
-        num_drones=num_trains,   # 智能体 = 列数
+        num_drones=num_agents,   # 智能体 = 每机车（decompose）或每列（旧模式）
         obs_per_drone=obs_dim,
         act_per_drone=act_dim,
         learning_rate=lr,
@@ -216,7 +229,7 @@ def train(
 
     # 【2026-08-30】断点续训：加载已有策略继续训练（前台分块训练用，
     # 优化器状态随 checkpoint 一并保存/恢复，热启动续训不打断学习进程）
-    cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+    cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
     if resume and Path(resume).exists():
         agent.load(resume)
         logger.info(f"已加载续训检查点: {resume}")
@@ -302,10 +315,22 @@ def train(
         while not done and step < env.max_steps:
             flat_obs = obs.flatten()
             actions, log_prob = agent.select_actions(flat_obs)
-            action_for_env = actions.reshape(num_trains, 1)
+            action_for_env = actions.reshape(num_agents, act_dim)
 
             value = agent.get_value(flat_obs)
-            next_obs, reward, terminated, truncated, info = env.step(action_for_env)
+            if decision_interval > 1:
+                # semi-MDP 动作保持：RL 每 N 步决策一次，窗口内奖励求和存一条转移
+                # （信用链 15000 步→max_steps/N 条决策；rule 基线不受影响逐步执行）
+                next_obs, reward, terminated, truncated = obs, 0.0, False, False
+                for _ in range(decision_interval):
+                    next_obs, r_step, terminated, truncated, info = env.step(action_for_env)
+                    reward += r_step
+                    step += 1
+                    if terminated or truncated or step >= env.max_steps:
+                        break
+            else:
+                next_obs, reward, terminated, truncated, info = env.step(action_for_env)
+                step += 1
 
             # 【V5.1 修正的适用范围澄清（2026-08-20 审计）】
             # V5.1 教训（安全层修正后需用实际执行动作重算 log_prob）仅适用于
@@ -319,14 +344,13 @@ def train(
             # 注：旧的 _executed_actions 恒0 + _actions_modified 恒True 导致每步
             # 用全0动作重算 log_prob（PPO 重要性采样完全失效，E19-E24 训练可信度
             # 受质疑），已由 env 修复（executed 正确记录 + actions_modified=False）。
-            done = terminated or truncated
+            done = terminated or truncated or step >= env.max_steps
             agent.store_transition(flat_obs, actions, reward, log_prob, done, value)
 
             ep_reward += reward
             ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))
             ep_viol = info.get('coupler_limit_violations', 0)
             obs = next_obs
-            step += 1
 
         metrics = agent.update()
 
@@ -338,7 +362,7 @@ def train(
             # 保存 best 模型（策略最优时的 checkpoint）——论文评估应报告 best 而非末 ep
             # （V5.14 教训：策略可能后期退化，末 ep 模型性能可能差于早期）
             # 文件名含 coupler 标识（消融实验：有车钩力 _cp / 无车钩力 _nocp）
-            cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
             agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_{cp_tag}_seed{seed}.pt"))
 
         if (gep + 1) % 10 == 0 or ep == episodes - 1:
@@ -352,12 +376,12 @@ def train(
             )
             sys.stdout.flush()
             # checkpoint 带 seed + coupler 标识 + 【全局回合号】ep{gep+1}
-            cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
             agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{gep+1}_{cp_tag}_seed{seed}.pt"))
 
         # 【2026-08-30】训练历史落盘 + 学习曲线图（论文/PPT 用，前台中断也不丢数据）
         if (gep + 1) % 10 == 0 or ep == episodes - 1:
-            cp_tag = 'cp' if use_coupler_constraint else 'nocp'
+            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
             save_training_artifacts(
                 episode_rewards, episode_peak_coupler, episode_violations,
                 meta={
@@ -366,6 +390,9 @@ def train(
                     'grade_profile': grade_profile, 'max_steps': max_steps,
                     'curriculum': curriculum, 'start_ep': start_ep,
                     'hierarchical': hierarchical, 'adj_coef': adj_coef,
+                    'action_dim': action_dim,   # 【方向A】1=整带平移；2=v_max/v_min 独立偏移
+                    'group_obs': group_obs,     # 【方向B】全局一致性观测
+                    'decompose': decompose,     # 【ADR-009.1】逐机车电空分工模式
                     'coupler_constraint': use_coupler_constraint,
                     'best_reward': float(best_reward),
                     'physics': 'MT2-hysteresis+real-brake+parallel-wave (2026-08-30 基线对齐)',
@@ -438,6 +465,16 @@ if __name__ == '__main__':
                         help='第1层单列控速策略 checkpoint（[40,80]限速）')
     parser.add_argument('--adj_coef', type=float, default=0.3,
                         help='协同调整量缩放系数（分层模式）')
+    parser.add_argument('--action_dim', type=int, default=1,
+                        help='【方向A】协同动作维度：1=coor_adj 整带平移（兼容旧）；2=v_max/v_min 独立偏移(压缩带宽)')
+    parser.add_argument('--group_obs', action='store_true',
+                        help='【方向B】启用全局一致性观测（obs_dim 11→13，修根因3）')
+    parser.add_argument('--decompose', type=str, default=None, choices=['loco_ed_ab'],
+                        help='【ADR-009.1 换架构】loco_ed_ab=逐机车 RL 智能体（每机车独立 ED/AB 分配'
+                             '调制，需配 10kt_1plus1 等多机车编组）；默认 None=旧列级模式')
+    parser.add_argument('--decision_interval', type=int, default=1,
+                        help='【RL 层救回①】decompose 模式 RL 决策间隔 N（动作保持 N 步，'
+                             'semi-MDP 砍短信用链；rule 基线仍逐步执行），建议 10')
     parser.add_argument('--enable_etcs', action='store_true',
                         help='训练时启用 ETCS 真 ATP（与评估 --etcs 对齐，消除分布不一致）')
     parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
@@ -477,6 +514,10 @@ if __name__ == '__main__':
         hierarchical=args.hierarchical,
         layer1_checkpoint=args.layer1_checkpoint,
         adj_coef=args.adj_coef,
+        action_dim=args.action_dim,
+        group_obs=args.group_obs,
+        decompose=args.decompose,
+        decision_interval=args.decision_interval,
         enable_etcs=args.enable_etcs,
         random_init_speed=args.random_init_speed,
         init_speed_min=args.init_speed_min,

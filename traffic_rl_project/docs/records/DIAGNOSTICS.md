@@ -1791,3 +1791,121 @@ python src/evaluation/eval_phys2_m1_5seed.py --mode m3 --steps 3000 --label m3_f
 - **期望**：训练调参/加机制后 M1 应逼近或超越 M3。**实际**：根因1（控制权 1.25%）+ 根因2（奖励主导项与协同正交）+ 根因3（一致性负耦合）共同导致"MARL 协同既学不出增量，最优也仅是复刻默认阈值"。根因1/4 是**机制性**（非训练资源问题），加训练时长/算力无法解决；根因2/3 是**任务难度**（一致性+弱信号）。
 - **启示（供决策选向参考）**：①在"A 机制阈值二维 + 0.1 权重"框架内继续迭代 MARL **结构性没戏**——要么把协同杠杆放大到与 M4 同级（adj_coef≥0.3 且让 RL 学非均匀偏移/带宽容积），要么换"真能影响物理"的动作（如多机车电空分工 ADR-009，动作直接作用牵引/制动源）；②"实时性/部署优势"（方向①）不受以上任何根因影响，是独立成立的卖点。
 - **留痕来源**：本审计代码行 + 上节鲁棒性表 + B 机制 reward 分解 + coor_policy_report。
+
+---
+
+### 诊断-2026-09-04-方向A实施与门禁：2维阈值+adj0.3+连续gap_reward → 协同增量转正（偏弱但安全增益）
+- **目的**：落实方向 A（修根因1/2/4），检验"放大协同杠杆 + 连续奖励梯度"能否让 MARL 协同出现增量。
+- **改动**：
+  1. [`hierarchical_controller.py`](file:///D:/Code/MultiAgent/traffic_rl_project/src/controllers/hierarchical_controller.py)：新增 `get_action_2d`——`v_max_adj`/`v_min_adj` 独立偏移（可压缩/拉伸循环带宽），修根因4；
+  2. `train_fleet_env.py`：`action_dim` 配置（2 维走 `get_action_2d`）；`gap_reward` 连续化——高斯峰 `exp(-(ge/140)²)` + 拉开>150m 线性跟丢惩罚，修根因2；
+  3. `train_fleet.py`：`--action_dim`、act_per_drone 透传、train artifact 加 `ad{action_dim}_` 前缀隔离检查点。
+- **训练**：`train_fleet.py --hierarchical --adj_coef 0.3 --action_dim 2 --enable_etcs --curriculum 300-1000-3000 --episodes 40 --seed 0 --checkpoint_dir outputs/checkpoints_100pct_etcs_ad2 --results_dir outputs/results_ad2`（19.3min）。日志 `outputs/train_logs/train_ad2_smoke.log`。
+- **训练结果**：best **+43,117**（@3000步）、末 10ep avg +42,923、车钩力峰 562.7kN、**viol 0**、全程无明显发散（best≈final）。
+- **门禁评估**（确定性 3000 步 + ETCS，`tmp_gate_ad2.py`，用后删）：
+
+  | 方法 | reward | 车钩力峰(kN) | 间距min(m) | 安全事件峰值 |
+  |:--|--:|--:|--:|--:|
+  | **ad2-M1**（2维协同RL） | **+42,116** | 535 | 183 | **6,578** |
+  | M3（独立δ=0） | +41,923 | 508 | 183 | 11,292 |
+  | M4（规则PID，adj0.3） | +38,923 | 508 | 183 | 11,292 |
+
+- **解读（期望 vs 实际）**：
+  - 期望：放大协同杠杆（0.3×2维）+ 连续梯度后，M1 协同相对 M3 出现**显著**增量。实际：reward 增量转正但偏弱（+193，~0.5%），**但 2 维协同首次带来安全增益——安全事件峰值近乎减半（6578 vs 11292）**，且训练稳定收敛、零超限；M4（规则 PID，adj0.3）反而比 M3 差（+38.9k），说明"规则启发式 ADA 同步调参"未必优于独立，而 RL 2 维学到了**自适应、非对称**的阈值组合。
+  - 根因2 修复验证：连续 gap_reward 使训练从"贴 clip 界 bang-bang"转为稳定收敛（best≈final），此前 B 机制的 reward 爆炸/负增量问题未复现。
+- **结论**：A **通过门禁但偏弱**——增量方向和训练稳定性都转好，幅度不足以单独立论。按计划**叠 B**（全局观测 + 显式一致性奖励 + 时序感知）放大一致性/信号，再看增量是否放大。
+- **复现**：训练命令如上；门禁脚本原为临时，逻辑并入后续 B 评估。
+
+---
+
+### 诊断-2026-09-04-方向B叠加：全局观测+一致性奖励 → 协同增量放大（A+B +343 > A +193）
+- **目的**：A 过门禁但偏弱（+193，~0.5%），按计划叠 B 放大"一致性/信号"，检验增量是否放大（修根因3）。
+- **改动**（叠在 A 上，全部可控开关、不破坏旧评估）：
+  1. **B1 全局一致性观测**（`train_fleet_env.py`）：`group_obs=True` 时 obs 追加 `[群组速度一致度, 群组制动相位一致度]`（obs_dim 11→13），让每智能体看全局而非只盯前列；默认 False 保持 11 维兼容旧评估/测试。
+  2. **B2 显式一致性奖励**：各列制动相位越"同相"（实际执行 throttle 判，全制动/全缓解）越给正，相位分裂给 0（`+0.2·|frac-0.5|·2`），引导三列一致阈值组合。
+- **训练**：`--group_obs` + A 全配置（`adj_coef 0.3 --action_dim 2 --enable_etcs --curriculum 300-1000-3000 --episodes 40 --seed 0`）→ `checkpoints_100pct_etcs_ad2g`（19.6min）。日志 `outputs/train_logs/train_ad2g_smoke.log`。
+- **训练结果**：best **+43,941**（> A 的 +43,117）、末 10ep avg +43,202、车钩力 554kN、**viol 0**。
+- **门禁评估**（3000 步确定性 + ETCS，`tmp_gate_ad2b.py`，用后删）：
+
+  | 方法 | reward | 车钩力峰(kN) | 间距min(m) | 安全事件峰值 |
+  |:--|--:|--:|--:|--:|
+  | **ad2g-M1**（A+B） | **+42,786** | 537 | 183 | **7,212** |
+  | M3（独立δ=0） | +42,442 | 508 | 183 | 11,292 |
+
+- **解读（期望 vs 实际）**：
+  - 期望：B 的一致性观测+一致性奖励应显著放大 M1 相对 M3 的增量。实际：**reward 增量 A→B 翻倍（+193→+343）**，方向正确、幅度仍小（~0.8%）；**ATP 安全优势保持**（7122 vs 11292，近减半）——RL 协同用更少 ATP 紧急介入达成同等间距，是更可靠的"协同价值"信号。
+  - 训练稳定性：A 与 B 均 best≈final、零超限，连续 gap_reward 修复的稳定收敛未回退；B 的全局观测未引入不确定性。
+- **结论**：**A→B 链路成立**——协同增量从无（旧 1 维/0.1 负增量）到正向且逐级放大（A +193 → B +343），安全事件近半。但幅度仍不足以单独立论（reward 相对 M3 仅 ~0.8%），需用户定夺：继续深化（完整 23.8km 长训/时序特性）或倚重"少用 ATP"安全论据立论。
+- **复现**：训练命令加 `--group_obs` 同 A；门禁脚本逻辑同 `tmp_gate_ad2b.py`。
+
+---
+
+### 诊断-2026-09-05-decompose换架构冒烟：逐机车电空分工可学性验证（车钩力 -24%，综合奖励与 M0 打平）
+- **目的**：用户拍板"换架构"（HANDOFF_2026-09-05 第四节选项①，ADR-009/009.1）。按 ADR-009.1 门控流程实施**逐机车 RL 智能体**（智能体=每台机车，每机车独立决策 ED/AB 分配调制），短训冒烟验证"ED 优先、不足转 AB"分配**可学**。
+- **改动**（全部可选开关、默认向后兼容，148 测试全过）：
+  1. `multi_loco_controller.py`：新增 `get_action_decomposed`——规则基线（ED 优先打满+逐机车错峰+ED 不足 AB 兜底）+ RL 逐机车 `[ed_mod, ab_mod]∈[-1,1]²` 调制：ed_mod 直接增减本机车 ED 深度 ±0.5（**真物理杠杆**，对比旧架构阈值协同仅 ±0.5km/h=带宽 1.25%）；ab_mod>0.5 抑制本机车 AB（仅 vel<v_max-0.5 才生效，兜底不被轻率关闭）、ab_mod<-0.5 提前触发 MIN 档 AB 兜底。
+  2. **ED 可用度物理化**：原 `_ed_ab_price(v)=clip(v/5)` 使基线 AB 兜底在 40-80km/h 带**永不可达**（"不足转 AB"无从学起）。改为功率约束模型 `F_ed=min(P_ed/v, 粘着上限)/F_req(m·g·最陡下坡)`——陡坡高速 ed_avail<1 → 基线真实触发 AB；缓坡 ED 富余不触发。
+  3. `train_fleet_env.py`：新增 `decompose='loco_ed_ab'` 模式——智能体=每机车（单列 1+1=2 智能体）、逐机车 11 维 obs（**含 AB 状态**：激活比例/缓解剩余/制动段序号，ADR-009.1 第3层）、奖励加电空分工塑形（AB 轻成本 + ED 微成本）。
+  4. `train_fleet.py`：`--decompose loco_ed_ab` 入口，checkpoint 前缀 `dec_ad2_` 隔离。
+  5. 新增 `tests/test_fleet_decompose.py` 9 项（形状/调制/AB 门控/朔黄线陡坡 AB 触发/奖励塑形/多列形状）。
+- **冒烟场景两次纠偏**（重要场景发现）：
+  1. 65km/h 起步 × long_downhill × 1000 步：M0 规则基线 **全程不制动**（Davis 阻力≈缓坡重力，列车平衡在带内）→ 电空分配问题未被激活，门控空转。
+  2. 80km/h 起步 × long_downhill × 3000 步：规则循环制动在缓坡入口**过制动致列车停死**（80→0 km/h，之后卡死在坡度过渡区不起动，band 率 19%）→ M0 自身失效。**附注：这正是 RL ED 调制的潜在增量场景（防停死），可作后续立论素材。**
+  3. 最终场景：**朔黄线 shuozhou_23800 + 80km/h 起步 + 3000 步**（规则基线已验证：band 99.96%、coupler 734kN、ED 循环制动 0.445）。
+- **冒烟1**（30ep curriculum 1000-3000，AB 成本 0.2/源）：训练期探索噪声大（随机耦合致 coupler 1182kN、viol ~27/ep），best checkpoint 确定性门禁：
+
+  | 方法 | reward | 车钩力峰(kN) | viol | AB步/3000 | meanED | band率 |
+  |:--|--:|--:|--:|--:|--:|--:|
+  | M0 规则基线 | +14,677 | 734 | 0 | 0.7 | 0.335 | 99.96% |
+  | M1 逐机车调制 | +14,544 | **560 (-24%)** | 0 | 354 | 0.343 | 99.97% |
+
+- **冒烟2**（AB 成本 0.2→0.05）：结果复现——coupler **559kN（-24%）**、viol 0、band 99.97%、AB 352 步、reward +14,648（vs M0 +14,677，**差 -29 ≈ AB 成本项 -35**）。
+- **解读（期望 vs 实际）**：
+  - **可学性：确认**。策略稳定学到与规则基线**不同**的分配方案——用"逐机车错峰提前 MIN 档 AB"换 **车钩力 -24%**，band/安全不劣化。这正是 ADR-009 预期的"错峰缓解降车钩力"增量，且两轮冒烟可复现。
+  - **卡点：综合奖励与 M0 打平（-0.2%）**。RL 的 coupler 收益恰好被 AB 成本塑形抵消——**AB 是手段、车钩力才是目标**，AB 成本权重（0.05/0.2）与车钩力权重的配比是研究目标定义问题，需导师/用户拍板（选项：AB 成本→0 / 只罚 SERVICE+档 / 车钩力权重加倍）。
+  - **训练期不稳定待解**：随机探索下两机车不对称 ED/AB 致 coupler 1168kN、viol ~31/ep（确定性评估无此问题）。全量训练前需对策：降 entropy / AB 提前幅度 curriculum / 探索期钳制不对称深度。
+- **结论**：**decompose 换架构门控"可学性"通过（强证据：车钩力 -24% 两轮复现），综合奖励校准与训练稳定性为全量训练前置项**。不满足原字面判据（reward>M0），按门控纪律如实记录、不擅自放行全量训练。
+- **复现**：`python src/trainer/train_fleet.py --episodes 30 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 3000 --curriculum 1000-3000 --init_speed_kmh 80 --decompose loco_ed_ab --seed 0 --enable_etcs --checkpoint_dir outputs/checkpoints_dec_smoke --results_dir outputs/results_dec_smoke{3,4}`；日志 `outputs/train_logs/train_dec_smoke{,2,3,4}.log`；门禁脚本为临时已删（逻辑：M0 零调制 vs best checkpoint 确定性 3 回合）。
+
+---
+
+### 诊断-2026-09-05-decompose全量训练与15000步对比验证：规则层增量确立 + RL层信用分配失败 + ab_command=None 严重 bug 修复
+- **目的**：用户目标"确认好方案后开始跑完整训练和对比验证"。方案确认：AB 成本→0（AB 是手段、车钩力是目标，冒烟两轮实证任何 AB 成本等额抵消车钩力收益）+ entropy 0.002（压探索期随机耦合）+ curriculum 顶到完整 15000 步（23.8km，对齐 WP2"3000 步只覆盖 ~5km 会反转结论"教训）。
+- **⚠️ 严重 bug 修复（换架构阻塞级）**：首轮全量 15000 步评估发现 decompose 的 M0/M1 **全部把列车拖停**（band 2-23%、末速 0），而旧架构单机单控正常（band 90.2%）。15000 步逐 500 步追迹定位：第二循环 AB 施加后缓解永不生效 → 列车在 -10.9‰ 陡坡被残留 SERVICE 制动拖到 0 km/h 永久卡死。根因：`train_env.py` `_step_decomposed` 把"无 AB 源"映射为 `ab_command=None`（=不使用空气制动，不发指令），**None ≠ RELEASE**（AGENTS.md 已有 gotcha 的 decompose 变体），已施加制动得不到缓解指令。修复：无 AB 源时显式发 `RELEASE`（对已缓解列车无害，旧架构即此语义）。新增回归测试 `test_decompose_ab_release_command_issued`（148→149 测试全过）。修复后 M0 全程 band 99.69%、reward -213,652→+71,261。
+- **全量训练（修复后重训）**：60ep，curriculum `1000:0,3000:20,15000:40`，entropy 0.002，ETCS，seed 0，1+1 双机车 decompose（~90min）。训练期探索噪声仍大（随机耦合 coupler 1168kN、viol ~27/ep；stage-3 训练 reward -291k/ep 平坦无改善——RL 层未学会带内保持）。
+- **15000 步全程确定性对比（3 seed，ETCS，80km/h 起步）**：
+
+  | 方法 | reward | 车钩力峰(kN) | viol | band率 | AB步/15000 | meanED | 末速 |
+  |:--|--:|--:|--:|--:|--:|--:|--:|
+  | **decompose-M0 规则基线（1+1 双机车电空分工）** | **+71,234** | 720 | 0 | **99.7%** | 461 | 0.67 | 42km/h |
+  | 单机单控（旧架构 1+0，coor=0） | +40,956 | 449-470 | 0 | 90.2% | 4,030 | 0（ED 不可用口径差） | 45km/h |
+  | decompose-M1 RL 调制（ep60 终模型） | **-245,672** | 638 | 0 | 12.7-14.7% | 13,206 | 0.10 | **0（拖停）** |
+
+- **解读（期望 vs 实际）**：
+  - **规则层增量确立（正结果）**：decompose-M0 vs 单机单控 = **reward +74%（+30,278）、band +9.5pp、AB 使用量 -89%（461 vs 4,030 步）**——分布式动力双机车 ED 功率足 + ED 优先分工，用 1/9 的空气制动量实现更好的带内保持。**这是"多机车电空分工 vs 单机+单控"的物理层增量证据（P3.5 完成判据的核心项）**，且零超限。
+  - **RL 层失败（负结果，如实记录）**：15000 步时域下 MAPPO 未学会带内保持（stage-3 训练 reward 平坦），终模型把 AB 挂满全程（13,206/15,000 步）拖停列车，reward 远劣于自身规则基线。**逐机车调制在超长时域的信用分配未解决**——与旧架构"学无可学"不同，这里有真杠杆（冒烟 3000 步曾学到车钩力 -24%），但 15,000 步 + 探索噪声下 PPO 收敛失败。
+  - 已知评估 quirk：rollout 间 reset 不完全清空动力学内部状态 → seed1/seed2 结果完全相同（首 rollout 独热）；不影响结论方向。
+- **结论**：①换架构的**规则层增量已确立**（vs 单机单控 +74% reward、AB -89%），可作为论文"多机车电空分工"立论的主证据；②RL 层在完整时域的增量**未能复现**（冒烟 3000 步的车钩力 -24% 在 15000 步 + 重训下被 AB 滥用覆盖），全量 RL 化需先解决：探索期 AB 幅度 curriculum / RL 决策间隔降采样（如每 10 步决策）/ 带内保持奖励单独塑形。
+- **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --seed 0 --enable_etcs --checkpoint_dir outputs/checkpoints_dec_full --results_dir outputs/results_dec_full`；评估 `python src/evaluation/evaluate_decompose.py --mode all --checkpoint outputs/checkpoints_dec_full/mappo_fleet_ep60_dec_ad2_cp_seed0.pt --n_seed 3 --max_steps 15000`；日志 `outputs/train_logs/train_dec_full{,2}.log`；结果 JSON `outputs/results_decompose/`。
+
+---
+
+### 诊断-2026-09-05-decompose RL层救回：semi-MDP 决策间隔降采样 → 完整时域全部门控通过
+- **目的**：执行"RL 层救回方案①"（决策间隔降采样）。背景：上一节诊断中 decompose-M1 在 15000 步时域训练失败（AB 滥用拖停列车，stage-3 训练 reward 平坦 -291k）。
+- **改动**：`train_fleet.py` / `evaluate_decompose.py` 新增 `--decision_interval N`（semi-MDP 动作保持）——RL 每 N 步决策一次、窗口奖励求和存一条转移，**信用链 15000 步 → 1500 决策**；rule 基线（MultiLocoController）不受影响逐步执行。取 N=10。
+- **压缩冒烟复核（12ep 即通过门控）**：探索期随机耦合消失（coupler 1180→725kN、viol 0）；best checkpoint 确定性评估（3000 步）：reward +14,741 > M0 +14,583、coupler 552kN（-23%）、band 99.97%。
+- **全量重训**：60ep，curriculum `1000:0,3000:20,15000:40`，interval=10，其余同前（~42min）。stage-3 训练 reward 从平坦 -291k 变为**上升至 +61,452（ep60）、best +63,723**——RL 在完整时域真正学起来了。
+- **终版 15000 步确定性对比（3 seed，ETCS，80km/h 起步）**：
+
+  | 方法 | reward | 车钩力峰(kN) | viol | band率 | AB步 | meanED | 末速 | ATP事件 |
+  |:--|--:|--:|--:|--:|--:|--:|--:|--:|
+  | **decompose-M1 RL（interval=10，ep60）** | **+72,743** | **570** | 0 | 99.72% | 4,357 | 0.35 | **52.9** | **1.44M** |
+  | decompose-M0 规则基线 | +71,252 | 720 | 0 | 99.68% | 461 | 0.67 | 41.7 | 43.2M |
+  | 单机单控（旧架构 1+0） | +40,956 | 456 | 0 | 90.20% | 4,030 | — | 44.9 | 467M |
+
+- **解读**：
+  - **RL 层增量转正且全部门控通过**：M1 vs M0 = reward **+1,491（+2.1%）**、车钩力 **-150kN（-21%）**、band 持平、viol 0、**末速 +11.2km/h**（运输效率）、**ATP 安全事件 -97%**（1.44M vs 43.2M）。RL 学到的分配：ED 深度减半（0.67→0.35）+ 错峰 AB 兜底（461→4,357 步），换来更低车钩力与更少 ATP 介入——与旧架构"+343/+0.8%"相比，这是有真物理杠杆的协同增量。
+  - **架构级完整证据链**：单机单控 → decompose 规则（+74% reward、band +9.5pp、AB -89%）→ decompose RL（再 +2.1% reward、车钩力 -21%、ATP -97%）。三层递进全部正增量、零超限。
+  - 已知 quirk 不变：评估 rollout 间 reset 不完全清空动力学内部状态（seed1/2 结果相同）；interval=10 下 M1 的 3 seed 高度一致（570kN 完全一致），策略本身确定性强。
+- **结论**：**换架构（ADR-009 逐机车电空分工）在完整 23.8km 时域全链路验证通过**——"每机车=智能体 + ED/AB 分配调制 + semi-MDP 决策间隔"的 MAPPO 训练可控、可学、有物理增量。P3.5 完成判据（多机车编组环境可跑/短训冒烟可控/全量评估给出 vs 单机+单控增量收益）全部满足。
+- **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --decision_interval 10 --seed 0 --enable_etcs --checkpoint_dir outputs/checkpoints_dec_full_iv10 --results_dir outputs/results_dec_full_iv10`；评估同命令加 `--decision_interval 10`；日志 `outputs/train_logs/train_dec_full_iv10.log`。

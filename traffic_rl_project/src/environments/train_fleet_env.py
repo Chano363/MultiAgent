@@ -27,7 +27,9 @@ from gym import spaces
 from src.environments.train_env import TrainFormationEnv, COUPLER_FORCE_LIMIT_N
 from src.controllers.low_level_controller import TrainLowLevelController
 from src.controllers.hierarchical_controller import HierarchicalController
+from src.controllers.multi_loco_controller import MultiLocoController
 from src.train_dynamics.grade_profile import PROFILES
+from src.train_dynamics.braking import AirBrakeNotch
 from src.train_dynamics.etcs_braking import (
     EtcsBrakingCurve, EbdTarget, braking_build_up_from_train, G_RAIL,
 )
@@ -100,6 +102,21 @@ class TrainFleetEnv:
         # 依据：论文分层框架（层级一生成宏观决策 + 层级二执行）+ 物理诊断（第2层从零学
         # 控速+协同过重，第1层已验证能控速车钩力150kN/速度71km/h）。
         self.hierarchical = config.get('hierarchical', False)
+        # 【方向A 2026-09-04】协同动作维度：1 = 单维 coor_adj（v_max/v_min 同向平移，兼容旧）；
+        # 2 = v_max_adj/v_min_adj 独立偏移（可压缩/拉伸循环带宽）。见 HierarchicalController.get_action_2d。
+        self.action_dim = config.get('action_dim', 1)
+        # 【方向B 2026-09-04】group_obs：全局一致性观测（修根因3）。开启则 obs 追加
+        # [群组速度一致度, 群组制动相位一致度] 两个全局特征（obs_dim 11→13），
+        # 让每个智能体看到整个群组的一致性状态，而非只看到前列。默认 False 保持兼容。
+        self.group_obs = config.get('group_obs', False)
+        # 【ADR-009.1 2026-09-05 换架构】decompose='loco_ed_ab'：智能体 = 每台机车
+        # （列内真多智能体），每机车独立决策 电制动(连续调制) / 空气制动(兜底触发)。
+        # 层级二 = MultiLocoController 规则基线（ED优先+错峰+AB兜底），
+        # RL 输出逐机车 [ed_mod, ab_mod] 调制（真物理杠杆，区别于阈值协同 ±0.5km/h）。
+        # 默认 None 完全走旧路径（列=智能体），向后兼容。
+        self.decompose = config.get('decompose', None)
+        if self.decompose:
+            self.hierarchical = False  # decompose 模式自带规则基线，不与阈值协同混用
         self.layer1_checkpoint = config.get(
             'layer1_checkpoint',
             'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',  # [40,80]第1层策略（初始80循环制动）
@@ -133,6 +150,7 @@ class TrainFleetEnv:
                 'max_steps': self.max_steps,
                 'enable_etcs': self.enable_etcs,
                 'etcs_curve': self.etcs_curve,
+                'decompose': self.decompose,   # decompose 模式下单列 step 走 _step_decomposed
             })
             for _ in range(self.num_trains)
         ]
@@ -187,6 +205,24 @@ class TrainFleetEnv:
                 )
                 for tr in self.trains
             ]
+        # 【ADR-009.1 2026-09-05 换架构】decompose 模式：每列一个 MultiLocoController
+        # 作规则基线（ED 优先 + 逐机车错峰 + AB 兜底），RL 逐机车调制分配。
+        self.multi_loco_controllers = None
+        if self.decompose:
+            self.multi_loco_controllers = [
+                MultiLocoController(
+                    num_vehicles=tr.num_vehicles,
+                    loco_indices=tr.loco_indices,
+                    dt=self.dt,
+                    max_accel=self.max_accel,
+                    coupler_force_limit_n=self.coupler_force_limit_n,
+                    enforce_coupler=self.use_coupler_constraint,
+                )
+                for tr in self.trains
+            ]
+            self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
+        else:
+            self.num_agents = self.num_trains
         # 记录每列参考点位置（队首位置，用于列间间距）
         self._train_heads = np.zeros(self.num_trains)
         # 每列初始基准位置（reset 时据此重建，避免跨 reset 累积平移）
@@ -196,17 +232,34 @@ class TrainFleetEnv:
         # [0]=速度误差 [1]=间距误差 [2]=前方坡度(队首) [3]=车钩力均值 [4]=车钩力峰值 [5]=超限数
         # [6]=本列队首位置(归一化,推断坡度剖面) [7]=本列队尾坡度(前方坡度变化)
         # [8]=前列队首速度 [9]=前列是否制动 [10]=前列减速度强度（协同制动预判，E4 新增）
-        self.obs_dim = 11
-        # 记录每列上一步实际目标加速度（供 obs 的"前列制动状态"使用）
+        # [11] [12]=方向B group_obs 追加的全局一致性特征（仅 group_obs=True 时存在）
         self._last_target_accels = np.zeros(self.num_trains)
-        self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf,
-            shape=(self.num_trains, self.obs_dim), dtype=np.float32,
-        )
-        # 列级动作：每列目标速度偏差 ∈ [-1,1]（RL 输出），映射到实际目标速度
-        self.action_space = spaces.Box(
-            low=-1.0, high=1.0, shape=(self.num_trains,), dtype=np.float32,
-        )
+        if self.decompose:
+            # 逐机车观测（ADR-009.1 第3层：AB 状态作观测）——见 _get_obs_decomposed：
+            # [0]速度误差 [1]超上限裕量 [2]低下限裕量 [3]规则基线ED [4]规则基线AB
+            # [5]本机车局部车钩力 [6]AB激活比例 [7]AB缓解剩余比例 [8]制动段序号
+            # [9]本机车位置(归一化) [10]本列列间间距误差（单列=0）
+            self.obs_dim = 11
+            self.act_dim = 2
+            self.observation_space = spaces.Box(
+                low=-np.inf, high=np.inf,
+                shape=(self.num_agents, self.obs_dim), dtype=np.float32,
+            )
+            self.action_space = spaces.Box(
+                low=-1.0, high=1.0, shape=(self.num_agents, 2), dtype=np.float32,
+            )
+        else:
+            self.obs_dim = 11 + (2 if self.group_obs else 0)
+            self.act_dim = self.action_dim
+            # 列级动作：每列目标速度偏差 ∈ [-1,1]（RL 输出），映射到实际目标速度
+            self.observation_space = spaces.Box(
+                low=-np.inf, high=np.inf,
+                shape=(self.num_trains, self.obs_dim), dtype=np.float32,
+            )
+            # 列级动作：每列目标速度偏差 ∈ [-1,1]（RL 输出），映射到实际目标速度
+            self.action_space = spaces.Box(
+                low=-1.0, high=1.0, shape=(self.num_trains,), dtype=np.float32,
+            )
 
         self.steps = 0
         self._peak_coupler_n = 0.0
@@ -222,7 +275,11 @@ class TrainFleetEnv:
         self._safety_events = 0
         self._last_target_accels = np.zeros(self.num_trains)
         self._prev_gap_err = None
-        self._executed_actions = np.zeros(self.num_trains)
+        # decompose 模式：每机车 (ED,AB) 2 维；旧模式：每列 1 维 throttle
+        self._executed_actions = (
+            np.zeros((self.num_agents, 2)) if self.decompose
+            else np.zeros(self.num_agents)
+        )
 
         # 记录每列参考点位置（队首位置，用于列间间距）
         cumulative_offset = 0.0
@@ -231,6 +288,8 @@ class TrainFleetEnv:
         for i, (tr, ctrl) in enumerate(zip(self.trains, self.controllers)):
             tr.reset(options={'speed': init_speed})
             ctrl.reset()
+            if self.multi_loco_controllers is not None:
+                self.multi_loco_controllers[i].reset()
             tr.dynamics.reset_energy()  # 重置能耗累计（避免跨回合累积）
             # 从基准初始位置重建（避免跨 reset 的累积平移）
             base_pos = self._base_pos[i].copy()
@@ -250,6 +309,8 @@ class TrainFleetEnv:
                     vel=tr.dynamics.vel,
                 )
             self._train_heads[i] = float(tr.dynamics.pos[0])
+        if self.decompose:
+            return self._get_obs_decomposed(), {}
         return self._get_obs(), {}
 
     def _dynamic_gap(self) -> float:
@@ -312,19 +373,32 @@ class TrainFleetEnv:
             obs[i, 8] = prev_speed / self.v_max                    # 前列速度（协同预判，归一化）
             obs[i, 9] = prev_braking                               # 前列是否制动（E4 协同预判）
             obs[i, 10] = prev_decel                                # 前列减速度强度（E4 协同预判）
+
+        # 【方向B 2026-09-04】全局一致性观测（修根因3）：群组速度一致度 + 制动相位一致度。
+        # 让每个智能体都能感知整个群组是否"拧成一股绳"（速度齐、制不制动同步），
+        # 而非只盯前列——帮助 RL 学习一致协同而非各自为政。
+        if self.group_obs:
+            head_speed_std = float(np.std(head_speeds)) / max(self.v_max, 1e-6)
+            braking = (np.abs(self._last_target_accels) > 0.05).astype(float)
+            frac_braking = float(np.mean(braking)) if len(braking) else 0.0
+            obs[:, 11] = head_speed_std
+            obs[:, 12] = frac_braking
         return obs
 
     def step(self, actions: np.ndarray):
         """推进所有列车一步。
 
         Args:
-            actions: 每列目标速度偏差 ∈ [-1,1]，长度 = num_trains。
-                映射到该列目标速度 = target_speed + action * action_speed_range，
-                由列内底层控制器跟踪（保证车钩力 ≤1000kN）。
+            actions: decompose 模式 = 每机车 [ed_mod, ab_mod] ∈ [-1,1]²（(num_agents,2)）；
+                否则为每列目标速度偏差 ∈ [-1,1]，长度 = num_trains。
         """
-        actions = np.asarray(actions, dtype=float).flatten()
-        if actions.shape[0] != self.num_trains:
-            raise ValueError(f"动作维度应为 {self.num_trains}, 实际 {actions.shape[0]}")
+        if self.decompose:
+            return self._step_decomposed_fleet(actions)
+        actions = np.asarray(actions, dtype=float).reshape(self.num_trains, self.action_dim)
+        if actions.size != self.num_trains * self.action_dim:
+            raise ValueError(
+                f"动作元素数应为 {self.num_trains * self.action_dim}, 实际 {actions.size}"
+            )
 
         reward = 0.0
         self._safety_events = 0
@@ -336,20 +410,25 @@ class TrainFleetEnv:
             v_before = float(tr.dynamics.vel[0])
 
             if self.hierarchical:
-                # 分层模式：层级一 RL 输出"协同调整量" δ ∈ [-1,1]，
-                # 层级二（第1层策略）负责列内控速，叠加 δ 得到最终 throttle。
-                coor_adj = float(actions[i])
+                # 分层模式：层级一 RL 输出"协同调整量"，层级二规则循环制动负责列内控速。
+                # 【方向A 2026-09-04】action_dim>=2 时输出 [v_max偏移, v_min偏移]（独立带宽压缩），
+                # 1 维时输出单 coor_adj（整带平移，兼容旧策略/评估）。
                 if self.enable_disturbance and i == 0 and self.disturbance_step <= self.steps < self.disturbance_step + self.disturbance_duration:
                     # 【扰动鲁棒性评估 2026-08-22】领航车突发强制制动（模拟前方临时限速/障碍），
                     # 走底层控制器（含车钩力钳制），驱动后列协同响应。默认 enable_disturbance=False 不受影响。
                     col_actions = ctrl.get_action_accel(tr, self.disturbance_target_accel)
+                    target_accel = self.disturbance_target_accel
+                elif self.action_dim >= 2:
+                    col_actions = self.hier_controllers[i].get_action_2d(tr, actions[i])
+                    target_accel = float(actions[i, 0]) * self.max_accel  # 供 obs 的前列制动状态用
                 else:
+                    coor_adj = float(actions[i, 0])
                     col_actions = self.hier_controllers[i].get_action(tr, coor_adj)
-                target_accel = float(coor_adj) * self.max_accel  # 供奖励/obs 用
+                    target_accel = float(coor_adj) * self.max_accel  # 供奖励/obs 用
                 target_accels[i] = target_accel
             else:
                 # 非分层模式：层级一动作 → 该列目标加速度（动作直接影响物理）
-                target_accel = float(actions[i]) * self.max_accel
+                target_accel = float(actions[i, 0]) * self.max_accel
                 # 领航车（第0列）扰动：突发强制制动（模拟前方障碍/限速），
                 if self.enable_disturbance and i == 0 and self.disturbance_step <= self.steps < self.disturbance_step + self.disturbance_duration:
                     target_accel = self.disturbance_target_accel
@@ -394,7 +473,7 @@ class TrainFleetEnv:
         self._last_target_accels = target_accels.copy()
 
         obs = self._get_obs()
-        reward = self._calculate_reward(obs, target_accels, accels)
+        reward = self._calculate_reward(obs, target_accels, accels, executed_throttles)
 
         self.steps += 1
         terminated = False
@@ -415,8 +494,172 @@ class TrainFleetEnv:
         }
         return obs, reward, terminated, truncated, info
 
+    # ------------------------------------------------------------------ #
+    # 【ADR-009.1 2026-09-05 换架构】decompose='loco_ed_ab'：逐机车 RL 智能体
+    # ------------------------------------------------------------------ #
+    def _get_obs_decomposed(self) -> np.ndarray:
+        """逐机车观测（含 AB 状态，ADR-009.1 第3层：让策略"感知"AB 动态而非预测）。
+
+        每台机车（智能体）11 维：
+        [0]速度误差 [1]超上限裕量(vel-v_max) [2]低下限裕量(vel-v_min)
+        [3]规则基线ED [4]规则基线AB(0/1) [5]本机车局部车钩力(归一化)
+        [6]AB激活比例 [7]AB缓解剩余比例 [8]制动段序号(缩放)
+        [9]本机车位置(归一化) [10]本列列间间距误差（单列=0）
+        """
+        obs = np.zeros((self.num_agents, self.obs_dim), dtype=np.float32)
+        a = 0
+        for ti, (tr, ctrl) in enumerate(zip(self.trains, self.multi_loco_controllers)):
+            dyn = tr.dynamics
+            vel = float(dyn.vel[0])
+            gap_err = 0.0
+            if ti > 0:
+                prev_tail = self.trains[ti - 1].dynamics.pos[-1]
+                gap_err = (prev_tail - self._train_heads[ti]) - self._dynamic_gap()
+            # 规则基线（ED 优先 + 错峰 + AB 兜底）——观测告诉 RL"规则本步想做什么"
+            base = ctrl.get_action_cyclic_braking(tr, v_max=self.v_max, v_min=self.v_min)
+            coupler = np.abs(dyn._coupler_forces())
+            ab_state = dyn.air_brake_state()
+            ab_active_frac = float(np.mean([x != AirBrakeNotch.RELEASE for x in ab_state]))
+            ab_release_frac = float(np.mean(np.asarray(dyn._air_brake_release_frac, dtype=float)))
+            for k, loco_idx in enumerate(tr.loco_indices):
+                obs[a, 0] = vel - self.target_speed
+                obs[a, 1] = vel - self.v_max
+                obs[a, 2] = vel - self.v_min
+                obs[a, 3] = float(base[k, 0])
+                obs[a, 4] = 1.0 if base[k, 1] < 0 else 0.0
+                obs[a, 5] = float(coupler[loco_idx]) / self.coupler_force_limit_n
+                obs[a, 6] = ab_active_frac
+                obs[a, 7] = ab_release_frac
+                obs[a, 8] = float(dyn._brake_segment) / 10.0
+                obs[a, 9] = float(dyn.pos[loco_idx]) * 0.0001
+                obs[a, 10] = gap_err
+                a += 1
+        return obs
+
+    def _step_decomposed_fleet(self, actions: np.ndarray):
+        """decompose 模式 step：每机车 RL 调制 [ed_mod, ab_mod] → 规则基线+调制 → 单列 _step_decomposed。"""
+        actions = np.asarray(actions, dtype=float)
+        if actions.shape != (self.num_agents, 2):
+            raise ValueError(
+                f"decompose 动作形状应为 {(self.num_agents, 2)}, 实际 {actions.shape}"
+            )
+        self._safety_events = 0
+        accels = np.zeros(self.num_trains)
+        ab_count = 0       # 本步激活的 AB 源总数（奖励塑形：AB 贵）
+        ed_sum = 0.0       # 本步 ED 深度合计（ED 便宜，鼓励 ED 优先）
+        a = 0
+        for ti, (tr, ctrl) in enumerate(zip(self.trains, self.multi_loco_controllers)):
+            v_before = float(tr.dynamics.vel[0])
+            n_loco = len(tr.loco_indices)
+            rl = actions[a:a + n_loco]
+            final_edab, _ = ctrl.get_action_decomposed(
+                tr, rl, v_max=self.v_max, v_min=self.v_min,
+            )
+            self._executed_actions[a:a + n_loco] = final_edab
+            a += n_loco
+            ab_count += int(np.sum(final_edab[:, 1] < 0))
+            ed_sum += float(np.sum(final_edab[:, 0]))
+            # ETCS 前列尾车监督（与旧模式同语义；decompose 下安全层经投影钳 ED）
+            if self.enable_etcs and ti > 0:
+                leading_tail = float(self.trains[ti - 1].dynamics.pos[-1])
+                lead_speed = float(self.trains[ti - 1].dynamics.vel[0])
+                tr.set_etcs_targets([EbdTarget(
+                    position_m=leading_tail, speed_mps=lead_speed, kind='gap',
+                )])
+            tr.step(final_edab)
+            self._train_heads[ti] = float(tr.dynamics.pos[0])
+            accels[ti] = (float(tr.dynamics.vel[0]) - v_before) / max(self.dt, 1e-6)
+            coupler = np.abs(tr.dynamics._coupler_forces())
+            self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(coupler)) if len(coupler) else 0.0)
+            self._coupler_limit_violations += int(np.sum(coupler > self.coupler_force_limit_n))
+            self._safety_events += tr._safety_events
+
+        obs = self._get_obs_decomposed()
+        reward = self._calculate_reward_decomposed(obs, accels, ab_count, ed_sum)
+        self.steps += 1
+        terminated = False
+        truncated = self.steps >= self.max_steps
+        info = {
+            'reward': reward,
+            'coupler_force_peak': float(self._peak_coupler_n),
+            'coupler_force_limit': float(self.coupler_force_limit_n),
+            'coupler_limit_violations': int(self._coupler_limit_violations),
+            'safety_events': int(self._safety_events),
+            'executed_actions': self._executed_actions.copy(),
+            'actions_modified': False,
+            'ab_source_count': ab_count,          # 本步 AB 源数（ED 优先/AB 兜底 分配诊断）
+            'mean_ed_frac': ed_sum / max(self.num_agents, 1),
+            'decomposed_actions': self._executed_actions.copy(),
+        }
+        return obs, reward, terminated, truncated, info
+
+    def _calculate_reward_decomposed(self, obs: np.ndarray, accels: np.ndarray,
+                                     ab_count: int, ed_sum: float) -> float:
+        """decompose 模式奖励：限速区间 + 车钩力 + 舒适 + 电空分工塑形。
+
+        与旧模式共享的语义（speed_band/车钩力/舒适/列间间距）沿用原权重；
+        新增电空分工塑形（ADR-009.1 第2层"ED 优先 + AB 兜底"）：
+        - AB 使用成本 -0.2/源/步：AB 是车钩力（纵向冲动）主源且难恢复（充风时间长），
+          让 RL 学"ED 打满、AB 只在 ED 不足时兜底"——这是本架构给 RL 的真物理杠杆；
+        - ED 轻成本 -0.02/深度：防无谓满 ED（如低速滑行），但远低于 AB 成本。
+        """
+        # 限速区间（循环制动核心，同旧模式 ±5/-20 per train）
+        speed_band_reward = 0.0
+        for tr in self.trains:
+            vel = float(tr.dynamics.vel[0])
+            speed_band_reward += 5.0 if self.v_min <= vel <= self.v_max else -20.0
+
+        # 车钩力约束（创新点，同旧模式权重）
+        coupler_means = obs[:, 5] if self.num_agents else np.zeros(1)
+        coupler_peak = float(np.max(coupler_means)) if len(coupler_means) else 0.0
+        violation_penalty = 0.0
+        if coupler_peak > 1.0:
+            violation_penalty = -5.0 * (coupler_peak - 1.0)
+        coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * coupler_peak + violation_penalty
+
+        # 舒适性（同旧模式）
+        comfort_penalty = -0.3 * float(np.mean(accels ** 2)) if len(accels) else 0.0
+
+        # 列间间距（多列 decompose 后叠阶段复用；单列时无项）
+        gap_reward = 0.0
+        potential_field = 0.0
+        collision_penalty = 0.0
+        if self.num_trains > 1:
+            for i in range(1, self.num_trains):
+                ge = (self.trains[i - 1].dynamics.pos[-1] - self._train_heads[i]) - self._dynamic_gap()
+                gap_reward += 1.0 * float(np.exp(-(ge / 140.0) ** 2))
+                if ge > 150.0:
+                    gap_reward -= 0.02 * (ge - 150.0)
+                dyn_gap = self._dynamic_gap()
+                actual_gap = dyn_gap + ge
+                min_gap = dyn_gap * 0.4
+                if actual_gap < min_gap:
+                    potential_field += -2.0 * (min_gap - actual_gap) ** 2
+                if actual_gap < 5.0:
+                    collision_penalty -= 50.0
+            potential_field = max(potential_field, -200.0)
+
+        # 电空分工塑形（本架构核心）：AB 是手段、车钩力才是目标——冒烟实证 RL 用
+        # "错峰 MIN 档 AB"降车钩力 24%，任何 AB 成本都会等额抵消该收益
+        # （诊断-2026-09-05-decompose 冒烟两轮），故 AB 成本归零、仅保留 ED 微成本
+        # 防无谓满 ED（如巡航段深度制动）。
+        ab_cost = 0.0
+        ed_cost = -0.02 * float(ed_sum)
+
+        return (
+            + speed_band_reward
+            + gap_reward
+            + potential_field
+            + collision_penalty
+            + comfort_penalty
+            + coupler_term
+            + ab_cost
+            + ed_cost
+        )
+
     def _calculate_reward(self, obs: np.ndarray, target_accels: np.ndarray = None,
-                          accels: np.ndarray = None) -> float:
+                          accels: np.ndarray = None,
+                          executed_throttles: np.ndarray = None) -> float:
         """列间奖励（聚焦协同制动策略 + 舒适性）：避免追尾 + 平稳驾驶 + 车钩力 + 间距。
 
         领域认知（2026-08-14）：长大下坡本质是制动控制问题——列车无法牵引超速，
@@ -505,18 +748,18 @@ class TrainFleetEnv:
         # 追车（v4 间距拉到1106m）。改为"安全跟车"：间距误差在安全区间内无惩罚（跟住了），
         # 拉开过大（跟丢，协同失败）→ 硬惩罚。过近由势场处理（避免追尾）。
         # 依据：VCTS 用安全间隔而非精确间距；Chen2024 虚拟耦合重载列车 = 安全间隔约束。
+        # 【方向A 2026-09-04】gap_reward 连续化（修根因2）：原分桶（±1 区间 / >200m 惩罚）
+        # 使微小协同偏移产生不了平滑梯度，RL 学不到"微调协同步伐→间距渐变"的映射。
+        # 改为以 ge=0 为中心的高斯峰（任意 ge 有连续梯度）+ 拉开超 150m 的线性跟丢惩罚。
         gap_reward = 0.0
         if self.num_trains > 1:
             for i in range(1, self.num_trains):
                 ge = obs[i, 1]  # 该跟随列间距误差（带符号：正=拉大，负=逼近）
-                # 过近由势场/碰撞惩罚处理；这里给"协同保持间距"正向 + "拉开跟丢"惩罚。
-                # E25 方案A（坡段错开）：各列因坡段不同前列加速/后列缓坡，间距天然易拉开，
-                # 需给 RL"协同保持间距"正向信号（而非纯惩罚），引导后列主动跟进。
-                # 安全区间内（-100~100m）给 +1.0/列 正向；拉开过大（>200m）→ 惩罚。
-                if -100.0 <= ge <= 100.0:
-                    gap_reward += 1.0
-                elif ge > 200.0:
-                    gap_reward -= 2.0 * (ge - 200.0) / 100.0  # 跟丢硬惩罚（随拉大加重）
+                # 高斯峰奖励（ge=0 处 +1/列，σ=140，渐消失）：连续、平滑、处处有梯度
+                gap_reward += 1.0 * float(np.exp(-(ge / 140.0) ** 2))
+                # 线性跟丢惩罚：拉开超过 150m 后梯度增强，引导"别跟丢"
+                if ge > 150.0:
+                    gap_reward -= 0.02 * (ge - 150.0)
 
         # 舒适性（加速度惩罚，对齐 Hua2024 w3·u²）：惩罚剧烈加减速 → RL 学平稳驾驶。
         # 这是底层 PID 不优化的目标，是列间 RL 的增量价值（解决"学无可学"）。
@@ -535,6 +778,16 @@ class TrainFleetEnv:
         else:
             coupler_term = 0.0  # 忽略车钩力（奖励不含车钩力项）
 
+        # 【方向B 2026-09-04】显式一致性奖励（修根因3）：各列制动相位越"同相"
+        # （全都在制动 / 全都在缓解）越给正奖励，相位分裂（一半制动一半缓解）给 0。
+        # 引导 RL 找三列一致的阈值组合，缓解"多智能体一致性难收敛 → 间距拉开跟丢"。
+        # 用实际执行 throttle 判制动相位（鲁棒），量级轻（+0.2）不干扰主奖励尺度。
+        consistency_reward = 0.0
+        if executed_throttles is not None and len(executed_throttles) > 0:
+            braking = (np.asarray(executed_throttles) < -0.01).astype(float)
+            frac = float(np.mean(braking))
+            consistency_reward = 0.2 * abs(frac - 0.5) * 2.0  # frac=0或1→+0.2，frac=0.5→0
+
         reward = (
             + speed_band_reward        # 限速区间内+5/超限-20（E3 重构，第1层哲学）
             - 0.1 * speed_consistency  # 速度一致性（E4 降低权重：真实剖面多坡段各列速度天然不同，且追车需速度差）
@@ -545,6 +798,7 @@ class TrainFleetEnv:
             + brake_cost               # 制动成本（E3 新增，鼓励循环制动）
             + comfort_penalty          # 舒适性
             + coupler_term             # 车钩力约束（可关闭）
+            + consistency_reward       # 方向B：制动相位一致性奖励（微弱正塑形）
         )
         return reward
 
