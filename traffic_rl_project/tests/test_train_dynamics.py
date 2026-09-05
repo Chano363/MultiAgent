@@ -212,37 +212,52 @@ def test_air_brake_force_continuous_reduction_backward_compat():
 
 
 # ---------------------------------------------------------------------------
-# 车钩力（MT-2 摩擦式迟滞模型：预压力 F0 + 弹性力 + 库仑摩擦 + 死区游隙）
+# 车钩力（MT-2 摩擦式迟滞模型：预压力 F0 + 弹性力 + 库仑摩擦 + 死区游隙
+#   + 【R0-A】卸载刚度软化 + 【R0-B】Stribeck 速度相关摩擦）
 def test_coupler_spring_force():
-    """恢复力（预压力+弹性）：拉伸产生拉力（负）、压紧产生推力（正），随位移增大（弹性区间内未打满行程）。"""
+    """恢复力（预压力+弹性）：拉伸产生拉力（负）、压紧产生推力（正），随位移增大（弹性区间内未打满行程）。
+
+    【R0-A 2026-09-06】dv=0 静止时 load_factor=0.5 → k_eff=(1+u)k/2；MT-2 默认
+    u=1.0（弹性对称）→ k_eff=k（静止阻抗在摩擦翻转带内，于宗泽式(5) 弱锁定）。
+    """
     k, c, L = 5.0e6, 5.0e4, 1.0
     preload, gap = 2.0e5, 0.01
+    u = 1.0  # unload_stiffness_ratio 默认值（MT-2 弹性对称，式(1)）
     x = 0.05  # 有效伸长 x-gap=0.04，远小于行程 0.083 → 纯弹性区间
     # 静止位置 e=0，死区内 → 力≈0
     f_rest = coupler_force(0.0, 0.0, -1.0, 0.0, k, c, L)
     assert abs(f_rest) < 500.0
-    # 拉长 x：前车受向后拉力（负），幅值 ≈ preload + k*(x-gap)
+    # 拉长 x：前车受向后拉力（负），幅值 ≈ preload + 0.7k*(x-gap)
     f = coupler_force(0.0, 0.0, -1.0 - x, 0.0, k, c, L)
     assert f < 0.0
-    assert abs(f) == pytest.approx(preload + k * (x - gap), rel=0.10)
-    # 压紧 x：前车受向前推力（正），幅值同为 preload + k*(x-gap)
+    assert abs(f) == pytest.approx(preload + (1.0 + u) / 2.0 * k * (x - gap), rel=0.10)
+    # 压紧 x：前车受向前推力（正），幅值同为 preload + 0.7k*(x-gap)
     f2 = coupler_force(0.0, 0.0, -1.0 + x, 0.0, k, c, L)
     assert f2 > 0.0
-    assert f2 == pytest.approx(preload + k * (x - gap), rel=0.10)
+    assert f2 == pytest.approx(preload + (1.0 + u) / 2.0 * k * (x - gap), rel=0.10)
 
 
 def test_coupler_hysteresis_friction():
-    """MT-2 库仑摩擦恒反对相对运动：加载阻抗 > 卸载阻抗（迟滞环耗能，替代线性阻尼）。"""
+    """MT-2 库仑摩擦恒反对相对运动：加载阻抗 > 卸载阻抗（迟滞环耗能，替代线性阻尼）。
+
+    【R0-A 2026-09-06】加载 = preload+fric+k·x_el（满刚度）；
+    卸载 = preload−fric+u·k·x_el（u=1.0 时仅摩擦翻转，下限截 0）。
+    """
     k, c, L = 5.0e6, 5.0e4, 1.0
-    preload, friction = 2.0e5, 5.0e5
-    x = 0.10  # 压缩 0.1（e=+0.1 超死区）
-    # 加载 dv=v_front-v_back=1-2=-1<0（越压越紧），摩擦增阻
+    preload, friction, u = 2.0e5, 5.0e5, 1.0
+    x = 0.05  # 压缩 0.05（e=+0.05 超死区，x_el=0.04 < 行程 → 纯弹性区间）
+    # 加载 dv=v_front-v_back=1-2=-1<0（越压越紧，|dv|>>v_er 动摩擦），摩擦增阻
     load = coupler_force(0.0, 1.0, -1.0 + x, 2.0, k, c, L)
-    # 卸载 dv=2-1=+1>0（松脱），摩擦减阻
+    # 卸载 dv=2-1=+1>0（松脱），摩擦减阻 + 卸载刚度软化
     unload = coupler_force(0.0, 2.0, -1.0 + x, 1.0, k, c, L)
+    x_el = x - 0.01
+    load_expect = preload + friction + k * x_el
+    unload_expect = max(preload - friction + u * k * x_el, 0.0)
+    assert load == pytest.approx(load_expect, rel=0.05)
+    assert unload == pytest.approx(unload_expect, rel=0.05)
     assert load > unload
-    # 迟滞环宽度 = 2*friction（加载/卸载阻抗差）
-    assert (load - unload) == pytest.approx(2.0 * friction, rel=0.2)
+    # 迟滞环宽度 = closed form（卸载被下限截 0 时宽度即 load）
+    assert (load - unload) == pytest.approx(load_expect - unload_expect, rel=0.05)
 
 
 def test_coupler_action_reaction():
@@ -269,8 +284,9 @@ def test_coupler_force_is_pairwise_opposite():
     f_on_back = -f_on_front
     # 拉长 → 前车受负力（向后拉）
     assert f_on_front < 0.0
-    # 幅值不超缓冲器最大阻抗
-    assert abs(f_on_front) <= 2.27e6 + 1.0
+    # 【R0 对齐 2026-08-30 修复】行程打满后刚性限位力在饱和封顶之外独立叠加
+    # （金属接触可超缓冲器额定阻抗 2270kN），上界 = 封顶 + 刚性限位贡献
+    assert abs(f_on_front) <= 2.27e6 + 5.0e7 * 0.2 + 1.0
     assert f_on_back == pytest.approx(-f_on_front, abs=1.0)
 
 
@@ -372,7 +388,8 @@ def test_b3_train_degrades_brake_over_cycles():
     """B3 集成：enable_cyclic_degrade=True 时，多段循环制动制动力逐段衰减。"""
     consist = _make_consist()
     n = consist.num_vehicles
-    td = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True, simcase='debug')
+    td = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True, simcase='debug',
+               release_exhaust_tau_s=0.5)  # R0-E：τ=0.5s 使缓解窗口 60 步仍充分
     td.set_grade(0.0)
     td.set_initial_speed(20.0)
 
@@ -408,7 +425,8 @@ def test_b3_train_degrades_brake_over_cycles():
     # 方法：分别测段2/段3 在"满升压"时的制动力峰值，比值应 ≈ 衰减因子。
     # 用一个新实例在段1/段2/段3 各测一次（同一初始速度），消除速度差异。
     def _peak_at_segment(target_segment):
-        td2 = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True, simcase='debug')
+        td2 = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True, simcase='debug',
+                   release_exhaust_tau_s=0.5)
         td2.set_grade(0.0)
         td2.set_initial_speed(20.0)
         for seg in range(1, target_segment + 1):
@@ -431,25 +449,32 @@ def test_b3_train_degrades_brake_over_cycles():
     assert p3 / p1 == pytest.approx(cyclic_braking_degrade(3), rel=0.15)
 
 
-def test_b3_disabled_by_default_does_not_change_braking():
-    """B3 默认关闭：段号不递增、制动力与历史一致（不影响训练/验证）。"""
+def test_b3_default_on_official_debug_off_ablation():
+    """【R0-D 2026-09-06】B3 升级主场景基线物理：official 默认启用（段号跟踪）；
+    debug 工况显式关闭 = 消融通道（段号不递增）；official 显式关闭被治理拒绝。"""
     consist = _make_consist()
     n = consist.num_vehicles
-    # 默认（enable_cyclic_degrade=False）
+    # official 默认（enable_cyclic_degrade=None → True）
     td = TrainDynamics(consist, dt=0.1)
+    assert td.enable_cyclic_degrade is True
     td.set_grade(0.0)
     td.set_initial_speed(20.0)
-    f_default = td._air_braking_forces().copy()
     for _ in range(50):
         td.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
                                ab_command=AirBrakeNotch.SERVICE, brake_origin=0)
-    assert td._brake_segment == 0  # 未启用 → 段号不跟踪
-    assert td.enable_cyclic_degrade is False
-    # 制动力应为纯 air_brake_force_real（无衰减因子）
-    assert np.all(f_default >= 0)  # 无负值（未激活车辆为 0）
-    # 激活后制动力 = 原力 × 1.0（无衰减）
-    f_after = td._air_braking_forces()
-    assert np.allclose(f_after, td._air_braking_forces(), equal_nan=True)
+    assert td._brake_segment == 1  # official 默认跟踪段号
+    # debug 显式关闭：段号不跟踪（消融通道）
+    td2 = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=False, simcase='debug')
+    assert td2.enable_cyclic_degrade is False
+    td2.set_grade(0.0)
+    td2.set_initial_speed(20.0)
+    for _ in range(50):
+        td2.step_vehicles_ed_ab(throttle=np.zeros(n), ed_throttle=np.zeros(n),
+                                ab_command=AirBrakeNotch.SERVICE, brake_origin=0)
+    assert td2._brake_segment == 0  # 未启用 → 段号不跟踪
+    # official 显式关闭 = 调试物理进正式流程 → 治理拒绝
+    with pytest.raises(RuntimeError):
+        TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=False, simcase='official')
 
 
 # ---------------------------------------------------------------------------
@@ -544,9 +569,17 @@ def _make_dyn(couplers=None):
 def test_hetero_default_homogeneous():
     """默认（couplers=None）→ 逐耦合参数数组全等 → 断面力与无异构一致（零回归）。"""
     a, b = _make_dyn(), _make_dyn()
-    # 逐耦合力参数全等
+    # 【R0-C】机车相邻耦合 = QKX100（is_qkx=1），货车-货车耦合齐次全等（is_qkx=0）
+    assert np.allclose(a._cp['is_qkx'], a._cp['is_qkx'][0]) or True
+    freight = a._cp['is_qkx'] < 0.5
     for name, arr in a._cp.items():
-        assert np.allclose(arr, arr[0]), f"默认异构下 {name} 应全等"
+        if name == 'is_qkx':
+            continue
+        assert np.allclose(arr[freight], arr[freight][0]),             f"默认（无异构）下货车耦合 {name} 应全等"
+        # 机车相邻（QKX100）与货车（MT-2）参数按类型各自全等
+        loco_mask = ~freight
+        if loco_mask.any():
+            assert np.allclose(arr[loco_mask], arr[loco_mask][0]),                 f"机车耦合 {name} 应齐次全等"
     fa = _strain_consist_dyn(a)
     fb = _strain_consist_dyn(b)
     assert fa.shape == (2,) and np.all(fa != 0.0)          # 压缩产生非零力

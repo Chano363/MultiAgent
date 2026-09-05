@@ -16,9 +16,11 @@ class SimCase(Enum):
 
 
 # 调试物理开关的"正式工况合法值"（黑名单外的都必须是这些值才放行）
+# 【2026-09-06 R0-D】enable_cyclic_degrade 升级为主场景基线物理（赵紫宁表5-5
+# C_β 段间衰减，首段=1.0），正式工况必须启用；显式关闭属调试物理（debug 工况）。
 _OFFICIAL_LEGAL = {
-    "enable_cyclic_degrade": False,   # AB 循环制动段间衰减 B3
-    "tail_pressure_kpa": None,        # 列尾压强平衡梯度 L1
+    "enable_cyclic_degrade": True,    # AB 循环制动段间衰减 B3（R0-D 起基线物理）
+    "tail_pressure_kpa": None,        # 列尾压强平衡梯度 L1（仍为调试物理）
     "brake_reduction_override_kpa": None,  # 连续减压量覆盖 P0-3
 }
 

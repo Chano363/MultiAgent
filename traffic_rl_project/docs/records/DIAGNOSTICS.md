@@ -2398,3 +2398,29 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 | 牵引/电制动 | 1660 / 1411 kN | 粘着极限 ✓ |
 
 **"如何验证图正确性"方法（已沉淀）**：①量纲一致（值=数组直接映射，kN/3.6/1e3 换算正确）；②图值↔日志同源（图曲线即某数组并打印关键数）；③对理论/文献锚点（尾车6s、SERVICE~31kN/车、MT-2 常数、粘着1660）；④物理趋势（S型建立/缓解单调衰减/迟滞/双曲线）；⑤自校验断言。视觉：annotate 用 axes fraction 防飞出、无图例重叠、每子图独立轴语义（防 sharex 串轴）。规范：投稿用英文、Figure caption 放图下。范例参照 docs/papers 英文论文 Figures 与 matplotlib 论文样式。
+
+### 诊断-2026-09-06-R0车钩地基改进落地：文献复核标定 + 归因实验 + 主实验全量重跑
+
+- **任务**：执行 HANDOFF_2026-09-06_ModelBasisReview 的 R0（A–E 车钩/制动物理地基改进），两处实现同步（`coupler.py` 标量 + `train.py` 向量化），全部文献锚点测试化（新增 `tests/test_coupler_model_refined.py` 18 项），随后按"仿真器是基座"纪律重跑全部主实验。
+
+- **实施与文献复核（详见 VALIDATION_BASELINE「地基级建模体检 R0」节）**：
+  - **A 卸载刚度**：机制落地，但**文献复核推翻 HANDOFF 建议值 0.4**——于宗泽式(1) 加载/卸载共用同一 k，"卸载初期阻抗较小"是摩擦项翻转；经典分段构造恰对应 u=1.0。归因实验：u=0.4 使 1万吨循环制动峰值 +894 kN（1372→2266），突破王鼎 2250/四源 1800 带 → **MT-2 标定 u=1.0**（QKX100 胶泥 0.6）。
+  - **B Stribeck**（式(2)）：静摩擦 750kN（1.5×动摩擦）+ v_er=0.2 m/s 线性过渡；动摩擦 500kN 锚不变。归因贡献 +89 kN（次要）。
+  - **C QKX100 机车分区**（式(3)(4)）：月牙形两段刚度 + 胶泥幂律阻尼 C|v|^0.55；2500kN/83mm/小压缩量<MT-2/速度越快阻尼越大 全部测试化。**C/n/F_d/f/k1/k2 为形状标定值**（文献未给拟合常数，诚实边界）。齐次默认按机车相邻耦合自动派发，E4-H 显式 couplers 优先。
+  - **D 段间衰减启用**：升级为 official 基线物理（None→True；显式 False 被治理拒绝，debug 保留消融）。归因：**D 降低循环制动峰值 −783 kN**（与实车"充风不足逐段衰减"方向一致）。
+  - **E 缓解排气两段式**：缓解波传播期保持满制动（管压波未到不排风），波到达后 exp(−t/τ) 排风。**τ 非单调敏感**（快排→前车脱开更快→拉钩力更大）：τ=1→2172、τ=2→1714、τ=4→1328、τ=6→1065 kN（L1 r=50 拉钩力）→ **τ=6.0 按刘博阳 L1 锚标定**（742/1058/1337 → 1065/~1150/1281，全部落 [400,1500] 带且单调）。
+
+- **归因实验**（fig3 朔黄 23.8km 规则循环制动，1万吨 1+0）：初版(A0.4+B+D+Eτ4)=2266 kN 突破实测带 → 逐项关闭：−A=1372、−B=2177、−D=3049、−E=1881 → **终版（u1.0+B+D+τ6）= 1258 kN**（旧物理 1141 的 +10%，Stribeck+两段缓解真实化的代价，带内）。
+
+- **终版物理锚点复核**（全部 ✅）：fig1 制动波尾车延迟 6.10s、SERVICE 总制动力 3259kN；fig3 循环制动 1258kN/7段；S4 缓坡 −6‰ = 319kN < 1000；L1 单调带内；MT-2 2270/QKX100 2500/迟滞环 2×500/月牙形割线单调/Stribeck 方向。物理图终版：`outputs/phys_validation/run_20260906_042552/`、`profiles_20260906_043017/`。
+
+- **附带修复**：①标量 coupler.py 把刚性限位力一起 clip 的存量 bug（与向量化 2026-08-30 修复不一致），已对齐并以 1e-9 一致性测试锁定；②`set_initial` 复位 `_brake_segment/_brake_was_active/_air_brake_exhaust_t`（D 启用后防跨 episode 段号残留）。
+
+- **治理/口径**：`_OFFICIAL_LEGAL.enable_cyclic_degrade=True`、`PhysicsConfig` 新增同名字段；`run_meta` 自动记录新物理版本。**R0 前全部车钩力绝对值口径作废**（历史 checkpoint/评估 JSON/fig3-6 数值），非车钩模块锚点不受影响。
+
+- **重跑记录（终版物理）**：
+  - decompose 主实验（1+1 空电分离，ADR-009 协议）：3 seed 重训 `outputs/checkpoints_r0_dec`（curriculum 1000:0,3000:20,15000:40、interval=10、ETCS、80km/h），日志 `outputs/logs_r0/train_dec_seed{0,1,2}.log`。
+  - 杠杆消融：mask_ab（仅 ED 杠杆）/mask_ed（仅 AB 杠杆）seed0 重训 `outputs/checkpoints_r0_dec_abl/`。
+  - M0 规则基线 + 单机单控评估：`outputs/results_decompose/eval_decompose_*_r0.json`（R0 物理下重跑）。
+  - MPC（mpc_rule，3 列车，ETCS，300 步冒烟协议）：reward +4813、车钩力峰 583kN、间距 min 173m、0 ATP 急刹、**每步求解 260.5ms（仍超 100ms 实时预算，Lim-2 保持）**。
+  - 全量 pytest：见 `outputs/logs_r0/pytest_final.log`。

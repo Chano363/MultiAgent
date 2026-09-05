@@ -22,6 +22,7 @@ class PhysicsConfig:
     grade_profile: str = 'shuozhou_23800'   # 主评估真实剖面
     coupler_force_limit_n: float = 1.0e6    # 1000 kN 底线
     enable_etcs: bool = True                # 训练/评估 ETCS 对齐
+    enable_cyclic_degrade: bool = True      # 【R0-D 2026-09-06】B3 段间衰减=基线物理
 
     def to_dict(self) -> dict:
         return asdict(self)
