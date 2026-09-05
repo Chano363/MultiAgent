@@ -9,6 +9,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.environments.train_env import TrainFormationEnv
 from src.algorithms.mappo_agent import MAPPOAgent
 from src.trainer.train_cyclic_braking import quantize_to_notch  # 与训练同一次量化
+from src.physics_governance import official_entry_guard  # 【治理】评估入口工况断言
 
 V_MAX = 80.0/3.6
 V_MIN = 40.0/3.6
@@ -63,6 +64,7 @@ def run(agent, seed):
 
 
 def main():
+    official_entry_guard(__file__)
     ckpt = sys.argv[1] if len(sys.argv) > 1 else 'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init65.pt'
     print(f"模型: {ckpt}")
     agent = MAPPOAgent(num_drones=1, obs_per_drone=4, act_per_drone=1, device='cuda')

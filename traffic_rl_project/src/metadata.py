@@ -25,11 +25,9 @@ def physics_version(world_cfg: dict) -> str:
     return h.hexdigest()[:12]
 
 
-def save_metadata(exp_dir: str, *, project_root: str, case: str,
-                  world_cfg: dict, seed, entry: str,
-                  extra: dict = None) -> str:
-    """写 metadata.json 到 exp_dir（不存在则创建），返回写入路径。"""
-    os.makedirs(exp_dir, exist_ok=True)
+def build_metadata(project_root: str, case: str, world_cfg: dict, seed, entry: str,
+                   extra: dict = None) -> dict:
+    """构造元数据字典（供 save_metadata 落盘，或评估脚本内嵌进结果 JSON）。"""
     meta = {
         "git_commit": git_commit(project_root),
         "physics_version": physics_version(world_cfg),
@@ -41,6 +39,16 @@ def save_metadata(exp_dir: str, *, project_root: str, case: str,
     }
     if extra:
         meta.update(extra)
+    return meta
+
+
+def save_metadata(exp_dir: str, *, project_root: str, case: str,
+                  world_cfg: dict, seed, entry: str,
+                  extra: dict = None) -> str:
+    """写 metadata.json 到 exp_dir（不存在则创建），返回写入路径。"""
+    os.makedirs(exp_dir, exist_ok=True)
+    meta = build_metadata(project_root=project_root, case=case, world_cfg=world_cfg,
+                          seed=seed, entry=entry, extra=extra)
     path = os.path.join(exp_dir, "metadata.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)

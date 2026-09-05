@@ -26,6 +26,9 @@ import torch
 
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.physics_governance import official_entry_guard, official_world_config
+from src.physics_config import PhysicsConfig
+from src.metadata import build_metadata
 
 DEFAULT_CKPT = 'outputs/checkpoints_dec_full/mappo_fleet_best_dec_ad2_cp_seed0.pt'
 RESULTS_DIR = 'outputs/results_decompose'
@@ -130,7 +133,17 @@ def main():
                    help='【E4-H】评估在逐车钩异构参数分布上（held-out 用另一组 hetero_seed）')
     p.add_argument('--hetero_seed', type=int, default=0,
                    help='车钩异构抽样 seed（训练固定；held-out 用另一组，如 1000）')
+    p.add_argument('--out_suffix', type=str, default='',
+                   help='输出文件名后缀（区分 seed/interval/场景，防覆盖），如 "_s0_iv5"')
     args = p.parse_args()
+
+    # 【治理】评估入口工况断言 + 元数据内嵌结果 JSON（评估一律 OFFICIAL，无调试物理）
+    official_entry_guard(__file__)
+    _PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
+    _meta = build_metadata(project_root=_PROJECT_ROOT, case='official',
+                           world_cfg=official_world_config(PhysicsConfig()),
+                           seed=args.eval_seed, entry=__file__,
+                           extra={'eval_args': vars(args)})
 
     torch.manual_seed(args.eval_seed)
     np.random.seed(args.eval_seed)
@@ -174,9 +187,11 @@ def main():
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
     out = os.path.join(RESULTS_DIR, f"eval_decompose_{args.mode}_ms{args.max_steps}"
-                                    f"{'_rand' if args.random_init_speed else ''}.json")
+                                    f"{'_rand' if args.random_init_speed else ''}"
+                                    f"{args.out_suffix}.json")
     with open(out, 'w', encoding='utf-8') as f:
-        json.dump({'args': vars(args), 'results': results}, f, ensure_ascii=False, indent=2)
+        json.dump({'metadata': _meta, 'args': vars(args), 'results': results},
+                  f, ensure_ascii=False, indent=2)
     print(f"已保存: {out}")
 
 

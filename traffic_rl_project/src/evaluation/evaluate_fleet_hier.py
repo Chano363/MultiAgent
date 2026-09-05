@@ -50,6 +50,8 @@ def run(env, agent, init_speed):
 
 
 def main():
+    from src.physics_governance import official_entry_guard  # 【治理】评估入口工况断言
+    official_entry_guard(__file__)
     ckpt = sys.argv[1] if len(sys.argv) > 1 else 'outputs/checkpoints/mappo_fleet_best_cp_seed0.pt'
     agent = MAPPOAgent(num_drones=3, obs_per_drone=11, act_per_drone=1, device='cuda')
     agent.load(ckpt)

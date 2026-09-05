@@ -18,6 +18,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 import torch
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.physics_governance import official_entry_guard  # 【治理】评估入口工况断言
 from src.algorithms.coor_dqn_agent import CoorDQNAgent
 from src.controllers.mpc_controller import MPCController
 from src.controllers.fair_mpc_controller import FairMPCController
@@ -311,6 +312,7 @@ def summarize(label, results):
 
 
 def main():
+    official_entry_guard(__file__)
     # CLI: mode [ckpt] [--disturbance <accel>] [--disturbance_duration N] [--n_seed N] [--randomize_init] [--num_trains N]
     global NUM_TRAINS, MAX_STEPS
     mode = sys.argv[1] if len(sys.argv) > 1 else 'all'

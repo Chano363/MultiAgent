@@ -406,24 +406,24 @@ def main():
     ab_force = np.abs(data['forces'])
     peak_apply = float(np.max(np.sum(ab_force[:, :n_apply], axis=1))) / 1e3
     data['t_apply'] = data['t'][:n_apply]
-    fig_brake_wave(data, outdir / 'fig_phys1_brake_wave.png')
+    fig_brake_wave(data, outdir / '图1-空气制动波传播.png')
     # self-check: brake-wave tail activation delay vs theory L/200 m/s ≈ 6.1 s
     on = np.where(data['active'][:, -1] > 0)[0]
     if len(on):
         logger.info('[self-check] brake-wave tail activation delay = %.2f s (theory L/200 ≈ 6.1 s)',
                     float(data['t'][on[0]]))
-    fig_brake_build(data, outdir / 'fig_phys2_brake_build.png')
-    fig_release_curve(data, outdir / 'fig_phys5_release_curve.png')
+    fig_brake_build(data, outdir / '图2-制动力建立.png')
+    fig_release_curve(data, outdir / '图5-缓解曲线.png')
 
     # --- 图3/4：朔黄线循环制动 ---
     logger.info('== 场景B：朔黄线 23.8km 长大下坡循环制动 ==')
     cyc = run_cyclic_shuozhou()
-    fig_cyclic(cyc, outdir / 'fig_phys3_cyclic_shuozhou.png')
-    fig_release_impulse(cyc, outdir / 'fig_phys4_release_impulse.png')
+    fig_cyclic(cyc, outdir / '图3-朔黄线循环制动.png')
+    fig_release_impulse(cyc, outdir / '图4-纵向冲动时间窗.png')
 
     # --- 图6/7：静态曲线 ---
-    fig_mt2_hysteresis(outdir / 'fig_phys6_mt2_hysteresis.png')
-    fig_loco_characteristics(outdir / 'fig_phys7_loco_characteristics.png')
+    fig_mt2_hysteresis(outdir / '图6-MT2缓冲器迟滞环.png')
+    fig_loco_characteristics(outdir / '图7-机车牵引电制动特性.png')
 
     # --- CSV + 元数据留痕 ---
     import pandas as pd
@@ -444,7 +444,7 @@ def main():
                       'v_range_kmh': [40, 80], 'brake_notch': -0.8, 'release_throttle': 0.5},
         'physics': 'MT2-hysteresis + 牵规β_c制动力 + 并行波速传播 + Newmark-β 积分',
         'adhesion_limit_kn': float(0.9 * 188.0 * 9.81),
-        'figures': [p.name for p in outdir.glob('fig_phys*.png')],
+        'figures': [p.name for p in outdir.glob('*.png')],
         'note': '对向导师的物理曲线验证；不改仿真器代码，仅新增展示脚本。',
     }
     (outdir / 'run_meta.json').write_text(json.dumps(meta, ensure_ascii=False, indent=2),

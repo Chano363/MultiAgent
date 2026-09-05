@@ -44,3 +44,8 @@ def assert_case_allows(case: SimCase, world_cfg: dict, entry: str):
             raise RuntimeError(
                 f"[case-guard] 调试物理进入正式流程被拒 (entry={entry}): {'; '.join(bad)}")
     # DEBUG_SIMULATION 不拦（用于探针/消融）
+
+
+def official_entry_guard(entry: str):
+    """轻量入口守卫：评估/验证脚本 main 入口一行接入（official 工况断言）。"""
+    assert_case_allows(SimCase.OFFICIAL, official_world_config(PhysicsConfig()), entry)

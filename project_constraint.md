@@ -44,8 +44,19 @@
    - 随机种子（训练/评估 seed）；是否调试模式；入口脚本文件（`__file__`）。
 3. **引用历史结论前**：先核对 `metadata` 的物理工况版本与当前一致；产出于建模变更前的结论须在当前物理上重跑或标 superseded（`docs/rules/EXECUTION_RULES.md`）。
 4. **资产目录**：`experiments/official/`=正式可论文；`outputs/deprecated_results/`=错误物理历史资产（README 声明"仅回溯、论文禁止引用"）。
+5. **评估 JSON 内嵌元数据**（2026-09-06）：评估脚本（如 `evaluate_decompose.py`）把 `build_metadata()`（git commit + 物理哈希 + simcase + seed + eval_args）直接内嵌进每次运行的结果 JSON（`metadata` 字段）——评估每次运行独立成文件，比共享 `metadata.json` 更可溯源。
 
-## 四、工程范式速记
+## 四、训练/评估入口规范（2026-09-06 补录）
+
+| 用途                                       | 唯一正式入口                                                                                | 说明                                       |
+| :--------------------------------------- | :------------------------------------------------------------------------------------ | :--------------------------------------- |
+| decompose 训练（ADR-009 正式架构）               | `python src/trainer/train_fleet.py --decompose loco_ed_ab --decision_interval 10`     | 已接 SimCase 门禁 + metadata 落盘              |
+| decompose 评估                             | `python src/evaluation/evaluate_decompose.py`                                         | 已接入口守卫 + 元数据内嵌结果 JSON                    |
+| 旧架构评估（l1_long / m1\_m3\_long / fleet\_hier） | 仅供回溯对比，论文不引用                                                                          | 已插入 `official_entry_guard`，结论引用前须核对物理版本   |
+
+> **原则**：decompose 是唯一正式架构入口；其余训练脚本（train\_cyclic\_braking / train\_dqn\_cyclic / train\_fleet\_dqn）与旧评估脚本属于历史架构，产出仅供回溯，不得作为论文结论来源。
+
+## 五、工程范式速记
 
 - **工况枚举**：`SimCase.OFFICIAL / DEBUG_SIMULATION`，以物理配置对象驱动，不做布尔关闭开关。
 
