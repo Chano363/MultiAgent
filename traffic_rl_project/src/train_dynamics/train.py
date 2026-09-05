@@ -51,11 +51,23 @@ class TrainDynamics:
         coupler: CouplerParams = None,
         dt: float = 0.1,
         friction_coef: float = 0.9,
-        enable_cyclic_degrade: bool = False,  # 【2026-09-03 B3】循环制动性能衰减（默认关，不影响训练/验证）
-        tail_pressure_kpa: float = None,      # 【2026-09-03 L1】列尾压强（kPa），None=无平衡压梯度
+        enable_cyclic_degrade: bool = False,  # 【2026-09-03 B3】循环制动性能衰减（仅 DEBUG 工况）
+        tail_pressure_kpa: float = None,      # 【2026-09-03 L1】列尾压强（kPa）（仅 DEBUG 工况）
+        couplers: list = None,                # 【E4-H 异构】逐耦合 CouplerParams（len=n-1）或 None=齐次共用 self.coupler
+        simcase: str = 'official',            # 【治理】official 禁止调试物理；debug 才允许 B3/L1
     ):
         self.consist = consist
         self.coupler = coupler or CouplerParams()
+        self.couplers = couplers
+        self.simcase = simcase
+        # 【治理】枚举门禁：official 下任何调试物理开关都直接抛异常（不做静默布尔关闭）
+        if simcase == 'official':
+            if enable_cyclic_degrade or tail_pressure_kpa is not None:
+                raise RuntimeError(
+                    "[case-guard] 调试物理(B3循环衰减/L1列尾压)不能进入 official TrainDynamics "
+                    "simcase='official'")
+            enable_cyclic_degrade, tail_pressure_kpa = False, None
+        self._cp = self._build_coupler_param_arrays()   # 逐耦合力参数字典（长度 n-1）
         self.dt = dt
         self.friction_coef = friction_coef
         # 【2026-09-03 B3 循环制动衰减】赵紫宁表5-5 C_β 段间衰减（0.705/0.676）。
@@ -209,12 +221,13 @@ class TrainDynamics:
         Returns:
             单钩断面力数组（长度 n−1，正=前车受向前力）
         """
-        p = self.coupler
+        fl = self.coupler.free_length_m          # 布局用自由长度（齐次，保持编组尺度）
+        cp = self._cp                            # 逐耦合力参数字典（长度 n-1；齐次时全等，零回归）
         if e is None:
-            e = (self.pos[1:] - self.pos[:-1]) + p.free_length_m
+            e = (self.pos[1:] - self.pos[:-1]) + fl
         if dv is None:
             dv = self.vel[:-1] - self.vel[1:]
-        gap = max(p.coupler_gap_m, 1e-9)
+        gap = np.maximum(cp['coupler_gap_m'], 1e-9)
 
         # 平滑方向函数：间隙内≈0，接触后≈±1（避免 |e|≈0 处 sign 硬切换）
         s_e = np.tanh(e / gap)
@@ -225,18 +238,41 @@ class TrainDynamics:
         # 有效弹性变形（游隙内为 0）
         x_el = np.maximum(d, 0.0)
         # 行程限位：缓冲器打满后金属接触，力剧增约束位移
-        rigid = p.rigid_stiffness_nm * np.maximum(x_el - p.stroke_m, 0.0)
+        rigid = cp['rigid_stiffness_nm'] * np.maximum(x_el - cp['stroke_m'], 0.0)
         # 库仑摩擦（幅值）：恒反对相对运动 → 纯耗散
-        fric_mag = -p.friction_n * np.tanh(s_e * dv / p.friction_v_eps)
+        fric_mag = -cp['friction_n'] * np.tanh(s_e * dv / cp['friction_v_eps'])
         # 阻抗幅值（可饱和部分）：预压力+摩擦（接触渐入门控）+ 弹性，
         # 封顶于缓冲器最大阻抗力 2270 kN
-        f_imp = contact * (p.preload_n + fric_mag) + p.stiffness * x_el
-        f_imp = np.clip(f_imp, 0.0, p.max_impulse_n)
+        f_imp = contact * (cp['preload_n'] + fric_mag) + cp['stiffness'] * x_el
+        f_imp = np.clip(f_imp, 0.0, cp['max_impulse_n'])
         # 【bug修复 2026-08-30】刚性限位力必须在饱和封顶之外独立叠加！
         # 若一起 clip 到 2270 kN，行程打满后限位力被封顶削弱 → 无法约束
         # 位移 → 车钩相对位移漂移到 16m+（实测），全列力雪崩饱和。
         f_mag = f_imp + rigid
         return s_e * f_mag
+
+    def set_couplers(self, couplers: list = None) -> None:
+        """运行时替换逐耦合 CouplerParams 并重建力参数字典。
+
+        【E4-H domain randomization】训练期每个 episode reset 时据此换一组新的
+        逐车钩异构参数（None=回退齐次）。评估（held-out）用构造时的 fix 抽取不动。
+        """
+        self.couplers = couplers
+        self._cp = self._build_coupler_param_arrays()
+
+    def _build_coupler_param_arrays(self) -> dict:
+        """把逐耦合 CouplerParams 编译为力参数字典（每项都是长度 n-1 的数组）。
+
+        默认（self.couplers 为 None 或长度不匹配）退化为齐次：每个耦合都用
+        self.coupler → 数组全等 → 与旧标量实现数值逐位一致（零回归）。
+        异构时（self.couplers 长度 = n-1）逐耦合不同。
+        """
+        m = max(self.consist.num_vehicles - 1, 0)
+        ps = self.couplers if (self.couplers is not None and len(self.couplers) == m) \
+            else [self.coupler] * m
+        names = ('stiffness', 'preload_n', 'friction_n', 'friction_v_eps',
+                 'coupler_gap_m', 'max_impulse_n', 'stroke_m', 'rigid_stiffness_nm')
+        return {name: np.array([float(getattr(p, name)) for p in ps]) for name in names}
 
     def _coupler_forces(self) -> np.ndarray:
         """计算每节车受到的车钩合力（正=向前）。
@@ -429,7 +465,6 @@ class TrainDynamics:
         ab_command: AirBrakeNotch,
         brake_origin: int = 0,
         ab_sources: list = None,
-        release_sync: bool = False,
         eot: bool = False,
         reduction_kpa: float = None,
     ):
@@ -457,7 +492,7 @@ class TrainDynamics:
             # 指令施加只在第一个子步执行（每控制步一次）
             self._advance_control_once(
                 throttle, ed_throttle, ab_command, brake_origin, ab_sources,
-                release_sync, eot, h, apply_command=(k == 0),
+                eot, h, apply_command=(k == 0),
                 reduction_kpa=reduction_kpa,
             )
         # 能耗追踪（控制步级）：牵引功率 = 牵引力 × 速度（仅牵引为正时累计）
@@ -473,7 +508,6 @@ class TrainDynamics:
         ab_command: AirBrakeNotch,
         brake_origin: int,
         ab_sources: list,
-        release_sync: bool,
         eot: bool,
         h: float,
         apply_command: bool,
@@ -503,8 +537,7 @@ class TrainDynamics:
                                 notch, idx, bidirectional=True)
                 else:
                     if np.any(self._air_brake_active):
-                        self._reset_air_brake_command(
-                            0, sync=release_sync, eot=eot)
+                        self._reset_air_brake_command(0, eot=eot)
             elif ab_command is None:
                 # 【2026-09-02 bug修复】ab_command=None 表示"不使用空气制动"，
                 # 不得触发任何制动/缓解逻辑。此前 None != RELEASE 为真 → 头车被
@@ -523,8 +556,7 @@ class TrainDynamics:
                 # 缓解后 active 4→14、delay 恒定6.0）。首次缓解才触发缓解波。
                 if (np.any(self._air_brake_active)
                         and not self._air_brake_releasing[brake_origin]):
-                    self._reset_air_brake_command(
-                        brake_origin, sync=release_sync, eot=eot)
+                    self._reset_air_brake_command(brake_origin, eot=eot)
 
         # 推进空气制动波速传播
         self._advance_air_brake_propagation(h)
@@ -776,17 +808,12 @@ class TrainDynamics:
                 for j in range(vehicle_idx - 1, -1, -1):
                     _enqueue(j, cum_len[vehicle_idx] - cum_len[j])
 
-    def _reset_air_brake_command(self, vehicle_idx: int = 0, sync: bool = False, eot: bool = False):
+    def _reset_air_brake_command(self, vehicle_idx: int = 0, eot: bool = False):
         """缓解空气制动。
 
-        真实缓解（sync=False，默认）：缓解波按波速（~200m/s）从车头向后传播，
-        车头先缓、车尾后缓，不同步导致"缓解后车钩力最大"（张二田等一致）。
-        仅释放源头车辆，后方由 `_advance_air_brake_propagation` 逐节延迟释放。
-
-        同步缓解（sync=True）：所有车厢立即同时释放（简化物理）。
-        E7 分层：第1层（单列控速，train_cyclic_braking）用 sync=True 简化缓解，
-        避免缓解波延迟导致 RL 训练掉速+车钩力爆炸学不会；第2层（多列协同）用
-        缓解波（sync=False）保留"缓解后车钩力最大"物理机制。
+        真实缓解：缓解波按波速（~200m/s）从车头向后传播，车头先缓、车尾后缓，
+        不同步导致"缓解后车钩力最大"（张二田等一致）。仅释放源头车辆，
+        由 `_advance_air_brake_propagation` 逐节延迟释放。
 
         EOT（eot=True，论文解决方案）：缓解时**尾部同时触发缓解波**（双向缓解）。
         真实重载列车配 EOT（可控尾车），缓解时尾部同步排风加速缓解波传播，
@@ -796,15 +823,6 @@ class TrainDynamics:
         显著降低，车钩力可守住 1000kN。
         """
         n = self.num_vehicles
-        if sync:
-            # 同步缓解：所有车厢立即释放
-            self._air_brake_active[:] = False
-            self._air_brake_notch[:] = AirBrakeNotch.RELEASE
-            self._air_brake_releasing[:] = False
-            self._air_brake_release_frac[:] = 1.0
-            self._air_brake_delay_remaining[:] = 0.0
-            self._air_brake_pending[:] = None
-            return
         # 【配套修复 2026-08-30】缓解时撤销所有未达的制动波 pending：
         # 否则缓解波传播中，尚在倒计时的制动波会继续激活车辆 → 缓解后
         # 残留车辆被延迟激活满制动 → 列车永远刹住不缓解。

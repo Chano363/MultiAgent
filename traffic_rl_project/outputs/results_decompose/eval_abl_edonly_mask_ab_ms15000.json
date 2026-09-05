@@ -1,0 +1,58 @@
+{
+  "args": {
+    "mode": "decompose_m1",
+    "checkpoint": "outputs/abl_checkpoints/mask_ab/mappo_fleet_best_dec_ad2_mab_cp_seed0.pt",
+    "grade": "shuozhou_23800",
+    "max_steps": 15000,
+    "n_seed": 3,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": false,
+    "decision_interval": 10,
+    "mask_lever": "ab"
+  },
+  "results": {
+    "decompose_M1_rl": {
+      "reward": 71932.10915002367,
+      "peak_coupler_kN": 528.4308494712812,
+      "viol": 0.0,
+      "safety_events": 1440000.0,
+      "ab_steps": 0.0,
+      "mean_ed": 0.703715263457569,
+      "band_rate": 1.0,
+      "final_speed_kmh": 45.05104343713444,
+      "per_seed": [
+        {
+          "reward": 71938.54444861725,
+          "peak_coupler_kN": 528.0527246087437,
+          "viol": 0.0,
+          "safety_events": 1440000.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.7037155060581485,
+          "band_rate": 1.0,
+          "final_speed_kmh": 45.052042517890015
+        },
+        {
+          "reward": 71928.89150072688,
+          "peak_coupler_kN": 528.6199119025499,
+          "viol": 0.0,
+          "safety_events": 1440000.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.7037151421572791,
+          "band_rate": 1.0,
+          "final_speed_kmh": 45.05054389675665
+        },
+        {
+          "reward": 71928.89150072688,
+          "peak_coupler_kN": 528.6199119025499,
+          "viol": 0.0,
+          "safety_events": 1440000.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.7037151421572791,
+          "band_rate": 1.0,
+          "final_speed_kmh": 45.05054389675665
+        }
+      ]
+    }
+  }
+}

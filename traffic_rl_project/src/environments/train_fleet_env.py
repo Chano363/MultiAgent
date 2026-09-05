@@ -24,12 +24,13 @@
 import numpy as np
 from gym import spaces
 
-from src.environments.train_env import TrainFormationEnv, COUPLER_FORCE_LIMIT_N
+from src.environments.train_env import TrainFormationEnv, COUPLER_FORCE_LIMIT_N, CONSIST_PRESETS
 from src.controllers.low_level_controller import TrainLowLevelController
 from src.controllers.hierarchical_controller import HierarchicalController
 from src.controllers.multi_loco_controller import MultiLocoController
 from src.train_dynamics.grade_profile import PROFILES
 from src.train_dynamics.braking import AirBrakeNotch
+from src.train_dynamics.params import sample_coupler_params
 from src.train_dynamics.etcs_braking import (
     EtcsBrakingCurve, EbdTarget, braking_build_up_from_train, G_RAIL,
 )
@@ -120,6 +121,11 @@ class TrainFleetEnv:
         # 【杠杆隔离消融】mask_lever∈{'none','ed','ab'}：decompose 模式下禁用对应 RL 调制
         # （'ed'=仅 AB 杠杆生效；'ab'=仅 ED 杠杆生效）。须与训练/评估一致。
         self.mask_lever = config.get('mask_lever', 'none')
+        # 【E4-H 车钩异构】hetero=True 时逐车钩/逐列独立物理参数（sample_coupler_params），
+        # hetero_seed 固定保证可复现；held-out 评估用另一组 seed（训练未见）。
+        self.hetero = config.get('hetero', False)
+        self.hetero_seed = config.get('hetero_seed', 0)
+        self._hetero_rng = np.random.default_rng(self.hetero_seed) if self.hetero else None
         self.layer1_checkpoint = config.get(
             'layer1_checkpoint',
             'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',  # [40,80]第1层策略（初始80循环制动）
@@ -142,8 +148,10 @@ class TrainFleetEnv:
         # 每列内部用单列动力学环境（列车内车钩力由此计算）
         # line_speed_limit_mps：场景线路限速（80km/h），传给内层 ATP 安全层作
         # 限速保护 + 超速指标口径（bug修复：原内层用机车物理限速 108km/h）
-        self.trains = [
-            TrainFormationEnv({
+        self.trains = []
+        hetero_rng = np.random.default_rng(self.hetero_seed) if self.hetero else None
+        for _ in range(self.num_trains):
+            tr_cfg = {
                 'consist_preset': self.consist_preset,
                 'grade_profile': self.grade_profile,
                 'target_speed': self.target_speed,
@@ -154,9 +162,15 @@ class TrainFleetEnv:
                 'enable_etcs': self.enable_etcs,
                 'etcs_curve': self.etcs_curve,
                 'decompose': self.decompose,   # decompose 模式下单列 step 走 _step_decomposed
-            })
-            for _ in range(self.num_trains)
-        ]
+            }
+            if self.hetero:
+                # 逐车钩异构：先用该列一致性预设得到车辆数，再按 (n-1) 个耦合逐钩抽样
+                base_consist = CONSIST_PRESETS[self.consist_preset]()
+                n_coupling = max(base_consist.num_vehicles - 1, 0)
+                tr_cfg['couplers'] = [
+                    sample_coupler_params(hetero_rng) for _ in range(n_coupling)
+                ]
+            self.trains.append(TrainFormationEnv(tr_cfg))
         # ETCS 共享曲线（启用时）：制动建立时间 = 车列总长/紧急制动波速 250m/s
         # （对齐 braking.py 波速传播，不用 free_length）；建立期内最不利 = 按剖面
         # 最陡下坡的沿坡加速度继续（最保守）；grade_at 绑定同一条剖面（坡度分量生效）。
@@ -279,6 +293,15 @@ class TrainFleetEnv:
         self._safety_events = 0
         self._last_target_accels = np.zeros(self.num_trains)
         self._prev_gap_err = None
+        # 【E4-H domain randomization】训练态（非 eval_mode）每 episode reset 重新抽取
+        # 逐车钩异构参数，让策略在分布上训练；评估（held-out）用构造时 fix 抽取保持不变。
+        if self.hetero and not self.eval_mode and self._hetero_rng is not None:
+            base_consist = CONSIST_PRESETS[self.consist_preset]()
+            n_coupling = max(base_consist.num_vehicles - 1, 0)
+            for tr in self.trains:
+                tr.dynamics.set_couplers(
+                    [sample_coupler_params(self._hetero_rng) for _ in range(n_coupling)]
+                )
         # decompose 模式：每机车 (ED,AB) 2 维；旧模式：每列 1 维 throttle
         self._executed_actions = (
             np.zeros((self.num_agents, 2)) if self.decompose

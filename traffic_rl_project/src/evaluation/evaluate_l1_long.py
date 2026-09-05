@@ -8,10 +8,13 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.environments.train_env import TrainFormationEnv
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.trainer.train_cyclic_braking import quantize_to_notch  # 与训练同一次量化
 
 V_MAX = 80.0/3.6
 V_MIN = 40.0/3.6
-MAX_STEPS = 3000
+# 完整协议（与多列 MARL 评估对齐，控制变量）：dt=0.1 × 15000 步 = 1500s ≈ 朔黄 23.8km。
+# 此前 3000 步≈5km，未跑完整线路，作对比基线不公平、无意义。
+MAX_STEPS = 15000
 INIT = 65.0/3.6
 
 
@@ -27,7 +30,6 @@ def run(agent, seed):
     env = TrainFormationEnv({
         'consist_preset': '10kt_1plus0', 'grade_profile': 'shuozhou_23800',
         'target_speed': 20.0, 'max_steps': MAX_STEPS, 'enable_safety': True, 'dt': 0.1,
-        'release_sync': False,
     })
     env.reset(options={'speed': INIT})
     obs = cyclic_obs(env)
@@ -39,8 +41,8 @@ def run(agent, seed):
     n_brakes = 0
     prev = None
     while not done and step < MAX_STEPS:
-        a, _ = agent.select_actions(obs.flatten(), deterministic=False)
-        throttle = float(np.clip(a[0], -1, 1))
+        a, _ = agent.select_actions(obs.flatten(), deterministic=True)
+        throttle = quantize_to_notch(float(np.clip(a[0], -1, 1)))   # 与训练一致：离散档位
         obs, r, term, trunc, info = env.step(np.full(env.num_vehicles, throttle))
         done = term or trunc
         speeds.append(float(env.dynamics.vel[0]))

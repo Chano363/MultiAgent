@@ -236,3 +236,41 @@ def test_decompose_mask_lever_isolates_modulation():
     # AB 提前触发在规则基线非 AB 态下生效（ab_mod 杠杆可用）
     if np.all(base[:, 1] >= 0):
         assert np.all(final_ed_masked[:, 1] == MultiLocoController.AB_FALLBACK_NOTCH)
+
+
+def test_hetero_domain_randomization_resample():
+    """【E4-H】hetero 训练态每 episode reset 重新抽取逐车钩参数；eval 态/齐次保持固定。"""
+    def _stiff(env):
+        # 汇总所有列首车钩刚度数组的样本（浮点唯一值计数）
+        return [round(float(a), 3) for tr in env.trains for a in tr.dynamics._cp['stiffness'][:3]]
+    # 训练态（eval_mode=False）：两次 reset 参数应不同（domain randomization）
+    env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                         'grade_profile': 'long_downhill', 'max_steps': 10,
+                         'decompose': 'loco_ed_ab', 'hetero': True, 'hetero_seed': 3})
+    env.reset(options={'speed': 65.0 / 3.6})
+    s1 = _stiff(env)
+    env.reset(options={'speed': 65.0 / 3.6})
+    s2 = _stiff(env)
+    assert len(set(s1) & set(s2)) != len(s1), "训练态 reset 应重新抽样（参数每 episode 变化）"
+    env.close()
+    # eval 态（eval_mode=True）：构造时 fix 抽取，多次 reset 保持固定（held-out 可复现）
+    env_e = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                           'grade_profile': 'long_downhill', 'max_steps': 10,
+                           'decompose': 'loco_ed_ab', 'hetero': True, 'hetero_seed': 7,
+                           'eval_mode': True})
+    env_e.reset(options={'speed': 65.0 / 3.6})
+    e1 = _stiff(env_e)
+    env_e.reset(options={'speed': 65.0 / 3.6})
+    e2 = _stiff(env_e)
+    assert (e1 == e2), f"eval 态 reset 应保持固定参数，实际变化 {e1} -> {e2}"
+    env_e.close()
+    # 齐次（hetero=False）：默认零回归，reset 不改变参数
+    env_h = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                           'grade_profile': 'long_downhill', 'max_steps': 10,
+                           'decompose': 'loco_ed_ab'})
+    env_h.reset(options={'speed': 65.0 / 3.6})
+    h1 = _stiff(env_h)
+    env_h.reset(options={'speed': 65.0 / 3.6})
+    h2 = _stiff(env_h)
+    assert h1 == h2 and all(abs(x - 1.89e7) < 1e-9 for x in h1), "齐次 reset 参数不变且为基值"
+    env_h.close()

@@ -1,0 +1,636 @@
+ERA, 33(2): 582–599. 
+DOI: 10.3934/era.2025027 
+Received: 03 November 2024
+ 
+Revised: 19 December 2024 
+Accepted: 02 January 2025 
+Published: 08 February 2025 
+http://www.aimspress.com/journal/ERA 
+ 
+Theory article 
+Analysis of the nonlinear dynami c behavior of longitudinal syst ems in 
+heavy-haul trains 
+Leiting Wang1, Yang Jin2, Wangxiang Li1,* and Chenyang Tang1 
+1 School of Mechanical Engineering, Lanzhou Jiaotong University, Lanzhou 730070, China 
+2 National Key Laboratory of Rail Transit Carrying Systems, South west Jiaotong University, 
+Chengdu 610031, China 
+* Correspondence:  Email: wanxiangli@mail.lzjtu.cn. 
+Abstract: The payload, coupler slack, and buffer device performance in heavy-haul trains substantially 
+affect their longitudinal dynamic systems under operational con ditions. These factors result in the 
+bifurcation of the system, consequently leading to chaos. To st udy this phenomenon in depth, a two-
+degrees-of-freedom longitudinal dyn amics model of the train is established. The system is analyzed 
+using the fourth-order Runge–Kutta (R-K_4) numerical integration method, incorporating bifurcation 
+diagrams, phase planes, Poincaré mapping, and time-domain analysis to elucidate the trajectory of the 
+system as it transitions into a chaotic state of motion via per iod-doubling bifurcations and quasi-
+periodic motions. A co mprehensive analysis of the complex nonli near dynamics of the train’s 
+longitudinal system can estab lish a theoretical foundation for forecasting and regul ating the chaotic 
+motion of the train system. 
+Keywords: heavy-haul trains; coupler buffer device; periodic motion; bifurcation; chaos 
+ 
+1. Introduction 
+The strategy employed by heavy-haul trains to augment freight c apacity mostly involves 
+extending the length of the train formation and increasing the load; nevertheless, this approach results 
+in elevated axle weight and longitudinal force [1]. The augment ation of a train’s longitudinal force 
+would directly influence the smoothness and safety of the vehic le’s operation, indicating that the 
+technological advancement of heavy-haul trains is intricately linked to the study of trains’ longitudinal 
+583 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+dynamics. A train has multiple vehicles linked by coupler buffer devices. The buffer device serves as 
+a spring damping mechanism and plays a crucial role in absorbin g impact energy; the stability of the 
+train’s longitudinal dynamics is significantly reliant on the coupler buffer system. 
+The longitudinal dynamics system o f heavy-haul trains contains several nonlinear factors, 
+typically the main coupler’s slack, the nonlinear impedance cha racteristics of the buffer, and the 
+nonlinear operating characteristics of traction and braking. Currently, the nonlinear characterization of 
+heavy-haul train systems has mainly focused on fault diagnosis [2–4], coupler strength analysis [5,6], 
+fatigue life studies [7–9], and ma thematical modeling of buffer  devices [10–15]. Although different 
+models of buffer devices have different structural and material  properties and different mathematical 
+models have been constructed, the hysteresis phenomenon exists in friction-type buffer devices. To 
+address the hysteresis phenomenon of buffer devices, Yang et al. [16] used a hysteresis coupler force 
+model based on regularized velocity, Zhang et al. [17] used a s egmented nonlinear function to fit the 
+hysteresis curve of the coupler force versus displacement, and Liu [18] and Yang et al. [19] utilized a 
+slant wedge spring model using the look-up table method to construct the hysteresis curve of the buffer 
+device. The couplers used in heavy-haul trains have a connectin g slack, where collisions and dry 
+friction are often associated with the phenomenon. Therefore, the effects of the coupler slack and dry 
+friction on the longitudinal dynamics of the train are getting more and more attention, among which 
+some research [1] has fully considered the effects of the internal and linkage slack of the couplers, as 
+well as the friction at the couplers’ contact points on the imp act acceleration of the system. The 
+polynomial exponential fitting model proposed by Ward and Leona rd [20] fits the dry friction of 
+friction-type coupler buffer devices well. Zhang et al. [21] in corporated the role of the friction on the 
+coupler’s tail arc surface on th e coupler’s deflection angle in  the model, whereby the effect of this 
+factor on the axle’s transverse system was explored. Wu et al. [22] comprehensively considered the 
+effect of friction between the coupler head and the friction pair on the coupler’s inclination angle and 
+then analyzed the stability of the train’s operation. 
+In the mechanical power system,  with a change in the nonlinear factors, the system may have 
+nonlinear dynamic characteristics  such as doubling bifurcation,  Hopf bifurcation, and grazing 
+bifurcation, showing periodic os cillation, quasi-periodic oscil lation, and chaos [23,24]. Numerous 
+nonlinear elements inside the heavy-haul train system can induce diverse characteristics in the system’s 
+solutions, including crisis, which will appear in the form of bifurcation and chaos. On the basis of the 
+current research results of bifurcation and chaos in collision systems with slacks, some scholars have 
+begun to explore the influence of coupler buffers on train systems from the perspective of bifurcation 
+and chaos. Popp and Stelter [25] studied the path of a single-degree-of-freedom dry friction oscillator 
+to periodic bifurcation and ch aos under harmonic excitation. Lv  et al. [26] discussed the transition 
+between the single-impact periodi c motion and the sliding bifur cation of a two-degrees-of-freedom 
+collision system with slack. Ya dav et al. [27,28], on the basis  of the coupler buffer system of the 
+Association of American Railroads train, studied the influence of the coupler’s inertia, slack, and dry 
+friction on the longitudinal dynamics of trains. 
+In this paper, a kind of heavy-haul train coupler and an MT-2 b uffer device commonly used in 
+China were selected as the research objects. On the basis of ex isting research, a mathematical model 
+of the MT-2 friction buffer device with hysteresis characteristics was established. From the perspective 
+of bifurcation and chaos, the i nfluence of nonlinear factors on  the longitudinal dynamic response of 
+heavy-haul trains under straight-line operating conditions was explored. The path of the system from 
+period-doubling and almost periodic motion to chaos through a p hase-locked transition under 584 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+parameter changes was observed. 
+2. The two-degrees-of-freedom model of a heavy-haul train 
+The couplings between the carriag es of the train are realized b y coupler locking. A schematic 
+diagram of the connection between carriages is shown in Figure 1(a); the structure of the coupler buffer 
+device is shown in Figure 1(b). 
+ 
+Figure 1. (a) Connection diagram of adjacent carriages. (b) Amplification  diagram of a 
+coupler buffer device.  Knuckle pivot pin;  coupler head;  draft sill;  spring;  impact 
+seat;  striking casting;  front draft lug;  backboard;  rear draft lug;  draft sill.  
+Under the condition of locomotive traction or braking, the right coupler buffer device is subjected 
+to the traction or braking force of the locomotive, and the for ce is transmitted to the left coupler (2) 
+through the device (1) after buffering. The left coupler buffer device exhibits impedance characteristics 
+under the action of this force, realizes buffering, reduces the impact of traction or braking force on the 
+carriage, and realizes the stability of the train running in the longitudinal direction. 
+In addition to the rolling stoc k, the structure between the car riages of freight trains has obvious 
+parameter symmetry. In studies, it is a common method to take t wo of the carriages for research. 
+Therefore, according to the diagram of the train model in Figure 1, the left two carriages were selected 
+as the research object, and the following physical model shown in Figure 2 was established. 
+ 
+Figure 2. Physical model of the coupler buffer device. 
+In order to investigate the effect of the vehicle’s longitudinal force on the system’s response on a straight 
+road section, the following equations for the longitudinal dynamics of the train are established according to 
+585 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+D’Alembert’s law: 
+ ቐ
+𝑀௅
+ௗమ௑భ
+ௗ௧ −𝐹௘௤(𝑌, 𝑌ሶ )−𝐹 ஽ீ௅(𝑋ଵ,𝑋ሶଵ)−𝐹 ௣(𝑇) = 0
+𝑀ோ
+ௗమ௑మ
+ௗ௧ +𝐹௘௤(𝑌, 𝑌ሶ )+𝐹 ஽ீோ(𝑋ଶ,𝑋ሶଶ)−𝐹 ௣(𝑇) = 0
+, (1) 
+where FP is the traction or braking force provided by the right-hand rolling stock (hereinafter referred 
+to as the external excitation force), ML is the equivalent mass of the left carriage and the coupler buffer 
+device, and MR is the equivalent mass of the right carriage and the coupler buffer device. The equivalent 
+contact force at the coupler head is Feq, and the longitudinal impedance forces of the buffer devices on 
+the left and right sides are FDGL and FDGR, respectively.  
+The displacements of the right and left coupler buffer devices are X2 and X1, respectively. 
+Assuming that the rightward movement is positive, the relative displacement and relative velocity are: 
+ ൜𝑌=𝑋 ଵ −𝑋 ଶ
+𝑌ሶ =𝑋 ሶଵ −𝑋 ሶଶ
+. (2) 
+The traction force or braking force of the train under operation conditions is a random force, but 
+this paper mainly discusses the influence of the structural characteristics of the coupler buffer device 
+on the response of the longitudi nal system of the train during the impact. Therefore, the harmonic 
+excitation force is used as the external excitation of the system [28]. 
+ 𝐹௣ =𝐹 ௧ 𝑠𝑖𝑛( 𝛺𝑡 + 𝜑) (3) 
+2.1. Longitudinal equivalent contact force of the coupler 
+There are two main reasons for the existence of free slack in c oupler crisis: structural needs and 
+wear during use. There are three relative positions of the coup ler heads and the knuckle pivot pins in 
+the free slack, as shown in Figure 3. 
+ 
+Figure 3. Relative position of coupler knuckles and the coupler heads. 
+When the relative position of the  couplers is as shown in Figur e 3(b), the couplers’ state is free, 
+and there is no significant for ce transfer in the longitudinal direction of the couplers. Therefore, the 
+collision forces Fc =  0 ,  Ff = 0 can be considered at this stage. Figure 3(c) states that th e relative 
+displacement between the coupler (B2) and the knuckle pivot pin  ( B 1 )  i s  l e s s  t h a n  t h e  c o m p l e t e  
+clearance d, and the collision and friction occur between the coupler (B1)  and the knuckle pivot pin 
+(A2). At this time, the equivalent contact force at the coupler is Feq: 
+ 𝐹௘௤ =𝐹௖ +𝐹௙, (4) 
+586 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+where Fc and Ff are components in the longitudinal direction. 
+ 𝐹௖ =
+⎩
+⎨
+⎧𝑐𝑜𝑠 𝜓 (𝐾௖
+௒ିௗ
+௖௢௦ ట+𝐶 ௖𝑌ሶ )𝑌 ≥ 𝑑
+0− 𝑑 < 𝑌 < 𝑑
+𝑐𝑜𝑠 𝜓 (𝐾௖
+௒ାௗ
+௖௢௦ ట+𝐶 ௖𝑌ሶ )𝑌 ≤ − 𝑑
+. (5) 
+The friction models mainly include the Coulomb model, the stati c–dynamic model, and the 
+exponential model [29]. The friction model of the coupler gener ally adopts the Coulomb friction 
+model [30]. Therefore, the formula for calculating the longitudinal component of the friction force is 
+ 𝐹௙ =ቊ 𝜇௞(𝐾௖
+௒ିௗ
+௖௢௦ ట+𝐶 ௖𝑌ሶ ) 𝑠 𝑖 𝑛𝜓 𝑌≥𝑑 , 𝑌≤− 𝑑
+0− 𝑑 < 𝑌 < 𝑑
+. (6) 
+In Eqs (5) and (6), Kc and Cc are the stiffness and damping of the coupler, respectively; Ψ is the 
+contact angle of the coupler, as shown in Figure 4. Assuming that R is the surface profile radius of the 
+coupler, the contact angle can b e calculated according to the r elationship between the surface profile 
+radius of the coupler and the coupler’s slack: 
+ 𝜓 = 𝑐𝑜𝑠ିଵ[( 𝑅−𝑑 / 𝑅 ) ]. (7) 
+ 
+Figure 4. Contact angle between the coupler head and the knuckle pivot pin. 
+2.2. Buffer model 
+At present, there are three main modeling methods for the buffer devices, namely the ‘black box 
+model’, the ‘gray box model’, and the ‘white box model’. In this paper, the black box model strategy 
+is used to model the MT-2 buffer device by means of experimenta l data fitting. The experimental 
+impact data of the buffer device are mainly from the literature [30]. After smoothing and denoising of 
+the experimental data, the MT-2 buffer’s stroke and impedance c haracteristic curves under the initial 
+impact velocity of 3–9 km/h were obtained, as shown in Figure 5 (a). The characteristic curves of the 
+buffer device under different initial impact velocities were fitted. Referring to the modeling method of 
+Hsu and Peters [31], and Cole et al. [32] for the buffer device, a polynomial exponential fitting model 
+was constructed, as shown in Eq (8). The mathematical model was  simulated and verified, and the 
+hysteresis curves thus obtained were compared with the original  impedance characteristic curves, as 
+shown in Figure 5(b)–(h). According to the comparison diagrams, the simulation model can reproduce 
+the impedance characteristics of the buffer, and it shows excel lent consistency with the actual 
+impedance characteristic curves of the buffer device, so the mo del has certain rationality and 
+accuracy. 
+587 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+      
+( a )  I m p a c t  t e s t :  s m o o t h  c u r v e               ( b ) 3 km/h model validation 
+      
+(c) 4 km/h model validation              ( d )  5 km/h model validation 
+      
+(e) 6 km/h model validation              ( f )  7 km/h model validation 
+      
+(g) 8 km/h model validation              ( h )  9 km/h model validation 
+Figure 5. Force–displacement characteristic curves. 
+0 2 04 06 08 0
+Displacement (x/mm)
+0
+500
+1000
+1500
+2000
+2500Force (FDG/kN)
+3km/h
+4km/h
+5km/h
+6km/h
+7km/h
+8km/h
+9km/h
+0 5 10 15 20 25
+Displacement x (mm)
+0
+200
+400
+600
+800
+1000
+1200Force FDG (kN)
+characteristic curve
+verification curve
+0 1 02 03 04 0
+Displacement x (mm)
+0
+200
+400
+600
+800
+1000
+1200Force FDG (kN)
+characteristic curve
+verification curve
+0 1 02 03 04 05 0
+Displacement x (mm)
+0
+500
+1000
+1500Force FDG (kN)
+characteristic curve
+verification curve
+0 2 04 06 0
+Displacement x (mm)
+0
+500
+1000
+1500Force FDG (kN)
+characteristic curve
+verification curve
+0 2 04 06 0
+Displacement x (mm)
+0
+500
+1000
+1500
+2000Force FDG (kN)
+characteristic curve
+verification curve
+0 2 04 06 08 0
+Displacement x (mm)
+0
+500
+1000
+1500
+2000Force FDG (kN)
+characteristic curve
+verification curve
+02 0 4 0 6 0 8 0
+Displacement x (mm)
+0
+500
+1000
+1500
+2000
+2500Force FDG (kN)
+characteristic curve
+verification curve588 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+The characteristic curve of the buffer device at different impact velocities satisfies the following 
+polynomial mathematical model: 
+ 𝐹஽ீ =𝐹 ଴ +𝐹ଵ𝑒ఊభ௑భ +𝐹 ଶ𝑒ఊమ௑భ +𝐹 ଷ +𝐹ସ ቚ
+௑భ
+௫೘ೌೣ
+ቚ
+௣
+∙𝑒 𝑥 𝑝൬−𝛾ଷ ∙ቚ
+௑ሶభ
+௫ሶ೘ೌೣ
+ቚ
+௥
+൰ (8) 
+where 𝐹଴,𝐹ଵ,𝐹ଶ,𝛾ଵ,𝛾 ଶ are the tuning parameters of the static components; and 𝐹ସ,𝑝 ,𝛾ଷ,𝑥 ௠௔௫,𝑥ሶ௠௔௫ 
+are the tuning parameters of th e dynamic components. These tuni ng parameters are determined by 
+fitting the force–displacement characteristic curves of the buf fer device using a curve fitting tool. In 
+this paper, the coupler buffer system model established when th e initial impact velocity is 7 km/h is 
+selected as the main research object, and some tuning parameters thus obtained are shown in Table 1. 
+Table 1. Fitting parameters of coupler buffer device. 
+Parameter 𝑌ሶ ≥0  𝑌ሶ <0  
+0≤𝑌<𝐷  𝑌≥𝐷  
+F0 –3.6 × 10 4 –2.699 × 10 4 
+F1 3.6 × 10 4 2.699 × 10 4 
+F2 0.0103 –0.2033 
+F4 1.5 × 10
+4 1.2 × 10 4 
+γ1 16.00 0.03279 
+xmax 0.20 0.20 
+p 1.12 1.45 
+The damping of the rigid impact system is generally Rayleigh-ty pe proportional damping, and 
+the instantaneous change in velocity before and after the colli sion should be determined by the 
+recovery coefficient R. However, the mass matrix and stiffness matrix in this study d o not satisfy the 
+condition of orthogonality and do not belong to the category of Rayleigh proportional damping, so the 
+collision coefficient is not considered. However, since FDGL is considered to be the force transmitted 
+to the left vehicle, the simulated acceleration can be calculated by the following equation: 
+ 𝑋ሷଵ =
+ிವಸಽ
+ଶெೡ
+, (9) 
+where Mv is the total weight of self-weight and load. Some parameters of the current heavy-haul trains 
+in China are shown in Table 2. 
+Table 2. Parameters of heavy-haul trains. 
+Parameter Symbol Values 
+Train weight M 0(t) 20 
+The effective mass of the coupler system M L = MR (kg) 415 
+Contact angle cosψ 0.9775 
+Coupler’s coupling clearance d/mm 10 589 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+3. The path of the system to chaos through bifurcation 
+3.1. The influence of excitation frequency on the system’ s response 
+Referring to the simulation results of the coupler force of hea vy-haul trains in [33], this paper 
+assumes that the initial state of the train is X0 = [0.05; –0.05; 0.01; 0.05], the amplitude of the external 
+excitation force Ft = 5 × 1e5, and the friction coefficient μ = 0.2. The fixed-step fourth-order Runge–
+Kutta [34] numerical integration method is used to solve the im pact vibration system. Taking the 
+external excitation frequency ω a s the bifurcation parameter, t he local bifurcation diagram of the 
+system is as shown in Figure 6. In order to better reflect the response characteristics of the system, this 
+study constructed Poincaré maps T of the periodic collision of the  system, and analyzes the chang es 
+and existing areas of the periodic motion of the system. 
+ 𝑇= ሼ(𝑋ଵ,𝑋 ଶ,𝑋ሶଵ,𝑋ሶଶ,𝜏 ) ∈ 𝑅ସ × 𝑆 ,𝜏 = 0 ,𝑋ଵ −𝑋 ଶ =𝑑 , 𝑋ሶଵ −𝑋 ሶଶ >0 ሽ. (10) 
+In Figure 6, P represents the period of the process, 1 P represents the fundamental vibration, the 
+period is T, and 2nP represents n times the period of the fundamental vibration (n = 0, 1, 2, …) [35,36]. 
+It can be seen from Figure 6 that when ω ∈ [5.536, 5.654], inverse doubling bifurcation occurs with a 
+decrease in the excitation frequency of the system. 
+ 
+Figure 6. Bifurcation diagram (ω ∈ [4, 5.5]). 
+According to the Poincaré map in Figure 7(a), it can be seen th at the system’s motion is 4 P 
+when ω = 5.654. It can also be see n from Figure 8(a) that the p hase plane oscillates due to the 
+system’s friction. 
+For the case when the excitation frequency is reduced to the cr ossing frequency ω = 5.536, the 
+Poincaré section diagram is shown in Figure 7(b). The system undergoes inverse doubling bifurcation. 
+The stable fixed points of the P oincaré map of the system are r educed from 4 to 2, and the attractor 
+590 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+changes from Period 4 to Period 2. When ω continues to decrease  to ω = 5.452, the number of stable 
+fixed points of the system change s from 2 to 8 after two doubli ng bifurcations, and the 2-periodic 
+attractor evolves into an 8-periodic attractor. As ω continues to decrease, the system’s instability briefly 
+enters the chaotic state. 
+ 
+( a )  ω  =  5 .  6 5 4         ( b )  ω  =  5 .  5 3 6          ( c )  ω  =  5 .  4 5 2         ( d )  ω  =  5 .  4 0 2  
+Figure 7. Poincaré maps. 
+ 
+( a )  ω  =  5 .  6 5 4          ( b )  ω  =  5 .  5 3 6           ( c )  ω  =  5 .  4 5 2         ( d )  ω  =  5 .  402 
+Figure 8. Phase plane diagrams. 
+When the excitation frequency continues to decrease to ω = 5.18, the system enters the 3P periodic 
+window from the chaotic state, as it is shown in Figure 9(a). T hen it is transformed into a 6 P state at 
+ω = 5.178 and enters a chaotic state. According to the bifurcat ion diagram in Figure 6, it can be 
+observed that the boundary crisis occurs at the excitation frequency ω = 4.34, and the system transitions 
+from an unstable chaotic state to a 1P stable motion state. 
+From the changes in displacement  and velocity in the phase diag rams above, it can be seen that 
+there is a gradual change in velocity during the collision, i.e., the velocity of the coupler does not jump 
+immediately when the collision occurs, and the impedance charac teristics of the buffer will make the 
+velocity undergo a gradual buffer response process after the im pact force is applied. Due to the 
+continuously applied external force FP, the speed will gradually reverse. With a change in ω, the system 
+exhibits rich nonlinear dynamic characteristics. 
+-0.4 -0.2 0 0.2 0.4
+-1
+-0.5
+0
+0.5
+1
+591 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+ 
+( a )  ω  =  5 .  1 8           ( b )  ω  =  5 . 1 7 8          ( c )  ω  =  4 .  3 9 9           ( d )  ω  =  4 . 2  
+ 
+( e )  ω  =  5 .  1 8           (f) ω = 5.178         ( g )  ω  =  4 .  3 9 9           ( h )  ω  =  4 . 2  
+Figure 9. Poincaré maps (a)–(d); phase plane diagrams (e)–(h). 
+3.2. The influence of the amplitude of external excitation force on the system’ s response 
+After changing the amplitude of the external excitation force Ft, the bifurcation diagrams of the 
+two chaotic paths shown in Figure 10 are obtained. 
+ 
+(a) Excitation force Ft =  4  ×  1 e 5 .               ( b )  E x c i t a t i o n  f o r c e  Ft = 4 × 1e6. 
+Figure 10. Local bifurcation diagrams. 
+In Figure 10(a), when ω = 0.50, the system is quasi-periodic. T he bifurcation diagram of the 
+system changes from the oscillation state to the single periodi c motion state at ω = 0.535, and then at 
+ω = 0.98, the system enters the phase-locked oscillation state with a rational multiple of the external 
+592 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+excitation period. The phase diagram of the system is shown as a quasi-periodic oscillation state in 
+Figure 11(d). When ω ∈ [1.384, 2.5], it is also a period-doubling and phase-locked osc illation state, 
+and the Poincaré maps are shown in Figure 11(e)–(h). 
+ 
+(a) ω = 0. 500         ( b )  ω  = 0. 535         ( c )  ω  = 0.70         ( d )  ω  = 0.98 
+ 
+(e) ω = 1.384         (f) ω = 1.500          ( g )  ω  =  2.10         ( h )  ω  = 2.40 
+Figure 11. Poincaré maps (Ft = 4 × 1e5). 
+In Figure 10(b), the classical cascade phenomenon is depicted, which shows successive doubling 
+bifurcation as the external excitation frequency decreases. The system transitions from a single period 
+to multiple periods, and finally to chaos. The Poincaré maps, p hase diagrams, and time history 
+diagrams of the system can be seen in Figures 12 to 14. 
+ 
+(a) ω = 5.65          ( b )  ω  =  5.20          ( c )  ω  =  5.01         ( d )  ω  = 4.70 
+Figure 12. Poincaré maps (Ft = 4 × 1e6). 
+593 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+ 
+(a) ω = 5.65          ( b )  ω  =  5.20          ( c )  ω  =  5.01          ( d )  ω  =  4.70 
+Figure 13. Phase plane diagrams (Ft = 4 × 1e6). 
+ 
+(a) ω = 5.65          ( b )  ω  =  5.20          ( c )  ω  =  5.01         ( d )  ω  = 4.70 
+Figure 14. Time-domain diagrams (Ft = 4 × 1e6). 
+3.3. The influence of load and damping on the system’ s response 
+Keeping the bifurcation parameter ω ∈ [4, 10] unchanged, the numeri cal simulation analysis of 
+the system was carried out after changing the train’s load, and  the bifurcation diagrams are shown in 
+Figure 15. In Figure 15, the Z coordinate axis represents the relative displacement of ML when it is 
+impacted during operation, the Y coordinate axis represents the change in the ML load, Mv = P × 105, 
+and the X coordinate axis represents the frequency of the external excitation force of ML.  
+ 
+Figure 15. Bifurcation diagrams of the system under different loads. 
+-1.5 -1 -0.5 0 0.5
+-4
+-2
+0
+2
+4
+-2 -1 0
+-4
+-2
+0
+2
+4
+-3 -2 -1 0
+-4
+-2
+0
+2
+4
+-4 -3 -2 -1 0
+-4
+-2
+0
+2
+4
+500 505 510 515 520
+-1.5
+-1
+-0.5
+0
+0.5
+500 505 510 515 520
+-2
+-1
+0
+1
+505 510 515 520
+-2
+-1
+0
+1
+594 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+When the train load Mv is increased and when the external excitation frequency ω = 8. 20, the 
+system’s response gradually shifts from the initial two-period stable motion to the quasi-periodic 
+motion. The Poincaré maps, phase diagrams, and time history diagrams are shown in Figures 16 to 18. 
+ 
+(a) Mv = 50 t         ( b )  Mv = 65 t          ( c )  Mv = 70 t          ( d )  Mv = 80 t 
+Figure 16. Poincaré maps of the system under different loads (ω = 8.20). 
+  
+(a) Mv = 50 t        ( b )  Mv = 65 t          ( c )  Mv = 70 t          ( d )  Mv = 80 t 
+Figure 17. The phase diagrams of the system under different loads (ω = 8.20). 
+  
+(a) Mv = 50 t         ( b )  Mv = 65 t          ( c )  Mv = 70 t          ( d )  Mv = 80 t 
+Figure 18. The time-domain diagrams of the system under different loads (ω = 8.20). 
+Keeping the bifurcation parameter ω ∈ [4, 10] unchanged and changing the train damping, the 
+bifurcation diagram of the system is shown in Figure 19. In Figure 19, the Z coordinate axis represents 
+the relative motion displacement of ML when it is impacted during operation, the Y coordinate axis 
+represents the change in the damping coefficient xmax, and the X coordinate axis represents the 
+frequency of external excitation force on ML. 
+Since the damping coefficient xmax is the denominator of a coefficient of the buffer’s mathematical 
+595 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+model, increasing xmax reduces the system’s damping, and then the simulated damping value decreases. 
+A comparison of the system’s response when the tuning parameter  xmax increases from 0.2 to 0.35 is 
+shown in Figure 19. When the external excitation frequency ω = 9.0, the response of the system 
+changes from three-period stable motion to quasi-periodic motio n and finally to chaos. The Poincaré 
+diagrams and time history diagrams are shown in Figures 20 and 21. 
+ 
+Figure 19. Dynamic responses under different levels of damping. 
+ 
+(a) xmax =  0 . 2          ( b )  xmax =  0 . 2 5          ( c )  xmax =  0 . 3         ( d )  xmax = 0.35 
+Figure 20. Poincaré maps of the system under different levels of damping (ω = 9.0). 
+ 
+(a) xmax =  0 . 2          ( b )  xmax =  0 . 2 5          ( c )  xmax =  0 . 3         ( d )  xmax = 0.35 
+Figure 21. Poincaré maps of the system under different levels of damping (ω = 9.0). 
+-0.1 -0.05 0 0.05 0.1
+-0.2
+-0.1
+0
+0.1
+0.2
+596 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+By analyzing Figures 15 and 19, it can be found that the system’s response changes significantly 
+when the load and damping coefficient are changed. Under the ac tion of different external excitation 
+amplitudes, the system is still dominated by period-doubling bi furcation, but with an increase in Mv, 
+the bifurcation diagrams show quasi-periodic and saddle-node bifurcation phenomena. 
+With an increase in the load parameters and a decrease in the d amping coefficient, the chaotic 
+region of the system’s bifurcation diagrams is obviously expanded. During the actual movement, the 
+long-term operation of the train  under these parameters will ag gravate the ‘slack action’ and the 
+longitudinal vibration of the train, so that the components are  more likely to age, affecting the safety 
+and stability of the train’s operation.  
+4. Conclusions 
+In this paper, the mathematical m odel was established and verif ied according to the impedance 
+characteristics of the buffer device. By means of numerical ana lysis, the two-degrees-of-freedom 
+system of a heavy-haul train was studied. Under the change in t hree states of the external excitation 
+forces, train loads, and the coupler buffer system’s performanc es, the system shows rich nonlinear 
+characteristics such as period-doubling bifurcation, quasi-periodic, phase-locked oscillation, and chaos.  
+The amplitude of the external excitation force Fp will change the path of the system entering the 
+chaotic state. Excessive load and reduced damping performance w ill lead to the expansion of the 
+chaotic region. Selecting the appropriate load and appropriate capacity of the buffer to make the train 
+avoid the chaotic region is conduc ive to the safety and stabili ty of the train’s operation. By studying 
+the bifurcation characteristics and chaos of the system, accord i n g  t o  t h e  s e t  c h a r a c t e r i s t i c s  o f  t h e  
+attractor, engineers can be assisted in diagnosing faults in the vehicle in time to prevent accidents. 
+Use of AI tools declaration  
+The authors declare they have not used artificial intelligence (AI) tools in the creation of this article. 
+Acknowledgments 
+This work was supported by the Special Funds for Guiding Local Scientific and Technological 
+Development by the Central Gove rnment of China (22ZY1QA005). Th e authors are grateful for the 
+financial support. The authors would also like to thank the edi tor and reviewers for their valuable 
+comments. Finally, we would like to thank Dr. Jin, who helped with the writing of this paper. 
+Conflict of interest 
+The authors declare there is no conflict of interest. 597 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+References 
+1. O. P. Yadav, N. S. Vyas, Influence of slack of automatic AAR couplers on longitudinal dynamics 
+and jerk behavior of rail vehicles, Veh. Syst. Dyn. , 61 (2023), 2317–2337. 
+https://doi.org/10.1080/00423114.2022.2107546 
+2. C. Feng, Cause analysis and prevention of a series of faults in  the lower action coupler-lift rod 
+seat of railway freight cars (in Chinese), J. Technol. Wind , 19 (2021), 187–189. 
+https://doi.org/10.19392/j.cnki.1671-7341.202119084 
+3. S. Zhao, Failure analysis and solutions of coupler buffer device of railway freight car (in Chinese), 
+Harbin Railway Technol., 04 (2020), 7–8+32. 
+4. J. Wang, C. Gong, Analysis and treatment of common faults of coupler buffer device for railway 
+freight cars (in Chinese), J. Technol. Wind , 20 (2019), 174–175. 
+https://doi.org/10.19392/j.cnki.1671-7341.201920149 
+5. J. Xu, T. Zhu, M. Yin, C. Wang, S. Xiao, G. Yang, et al., An analytical method for coupler strength 
+of heavy-haul trucks (in Chinese), Mach. Build. Autom. , 51 (2022), 29–33. 
+https://doi.org/10.19344/j.cnki.issn1671-5276.2022.02.009 
+6. P. Li, T. Zhu, C. Wang, S. Xiao, Nonlinear finite element simulation analysis of coupler strength 
+of heavy haul trucks (in Chinese), Mach. Build. Autom. , 50 (2021), 90–94. 
+https://doi.org/10.19344/j.cnki.issn1671-5276.2021.03.023 
+7. T. Qin, X. Ren, F. Hu, Y . Liu, N. Ao, Q. Kan, et al., Residual life prediction of coupler yoke of 
+heavy haul railway freight car based on measured load spectrum (in Chinese), Chin. J. Theor. 
+Appl. Mech., 54 (2022), 1830–1838. 
+8. X. Tian, T. Zhu, C. Wang, M. Yin, J. Xu, S. Shou, et al., Research on fatigue life of coupler knuckle 
+of railway heavy haul freight car based on equivalent crack method (in Chinese), J. Mech. Strength, 
+44 (2022), 696–704. https://doi.org/10.16579/j.issn.1001.9669.2022.03.026 
+9. M. Yin, Research on Data-Driven Prediction Method of  Full Life and Residual Life of Freight 
+Car Couplers  (in Chinese) , Master thesis, Southwest Jiaotong University, 2021. 
+https://doi.org/10.27414/d.cnki.gxnju.2021.002143 
+10. H. Yang, J. Yuan, Y . Fu, Z. Li, Dynamic characteristics of heavy haul train QKX100 and MT-2 
+buffer (in Chinese), J. Beijing Univ. Technol., 46 (2020), 1018–1026. 
+11. X. Zhao, Research on Dynamic Model of HM-1 Buffer Based on Impact Test (in Chinese), Master 
+thesis, Dalian Jiaotong University, 2018. 
+12. X. Wang, Research on the Modeling of MT-2 Buffer with Compression Speed Characteristics (in 
+Chinese), Master thesis, Dalian Jiaotong University, 2023. 
+13. W. Wei, Y . Hu, Q. Wu, X. Zhao, J. Zhang, Y . Zhang, An air brake model for longitudinal train 
+dynamics studies, Veh. Syst. Dyn. , 55 (2017), 517–533. 
+https://doi.org/10.1080/00423114.2016.1254261 
+14. O. P. Yadav, N. S. Vyas, The influence of AAR coupler features on estimation of in-train forces, 
+Railway Eng. Sci., 31 (2023), 233–251. https://doi.org/10.1007/S40534-022-00297-8 
+15. T. Zhu, J. Zhang, Q. Wu, R. Lv, X. Wang, S. Xiao, et al., Review of the influence of coupler buffer 
+device on the collision safety of rail train (in Chinese), J. Traffic Transp. Eng., 21 (2021), 233–
+249. https://doi.org/10.19818/j.cnki.1671-1637.2021.01.011 
+16. C. Yang, Q. Li, X. Wang, Application of generalized multi-step explicit integration algorithm for 
+nonlinear rail vehicle dynamics (in Chinese), J. Dyn. Control, 18 (2020), 51–55. 598 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+17. Z. Zhang, G. Li, G. Chu, H. Zu, D. Kennedy, Compressed stabilit y analysis of the coupler and 
+buffer system of heavy-haul locomotives, Veh. Syst. Dyn. , 53 (2015), 833–855. 
+https://doi.org/10.1080/00423114.2015.1023318 
+18. J. Liu, Research on the Influence of Buffer Modeling on Train Longitudinal Dynamics Simulation 
+(in Chinese) , Master thesis, Southwest Jiaotong University, 2019. 
+https://doi.org/10.27414/d.cnki.gxnju.2019.001564 
+19. L. Yang, S. Luo, M. Fu, W. Zeng, Numerical simulation of impeda nce characteristics of friction 
+buffer in service (in Chinese), J. China Railway Soc., 46 (2024), 57–65. 
+20. E. D. Ward, R. G. Leonard, Automatic parameter identification applied to a railroad car dynamic 
+draft gear model, J. Dyn. Syst. Meas. Control , 96 (1974), 460–465. 
+https://doi.org/10.1115/1.3426846 
+21. Z. Zhang, K. Lv, G. Chu, H. Qi, F. Wang, Research on dynamic simulation method and dynamic 
+performance of 102 type coupler and  draft gear for heavy haul l ocomotive (in Chinese), J. Vibr. 
+Shock, 43 (2024), 12–21+59. https://doi.org/10.13465/j.cnki.jvs.2024.02.002 
+22. Q. Wu, S. Luo, Z. Xu, W. Ma, Coupler jackknifing and derailment s of locomotives on tangent 
+track, Veh. Syst. Dyn., 51 (2013), 1784–1800. https://doi.org/10.1080/00423114.2013.830184 
+23. J. Duan, W. Zhou, D. Li, C. Grebogi, Birth of strange nonchaotic attractors in a piecewise linear 
+oscillator, Chaos, 32 (2022), 103106. https://doi.org/10.1063/5.0096959 
+24. Z. Wei, Y . Li, T. Kapitaniak, W. Zhang, Analysis of chaos and capsizing of a class of nonlinear 
+ship rolling systems under excitation of random waves,  Chaos , 34 (2024), 043106. 
+https://doi.org/10.1063/5.0187362 
+25. K. Popp, P. Stelter, Stick–slip vibrations and chaos, Philos. Trans. R. Soc. London, Ser. A , 332 
+(1990), 89–105. https://doi.org/10.1098/rsta.1990.0102 
+26. X. Lv, K. Zhang, X. Zhu, G. Luo, Two-parameter non-smooth bifur cation of a two-degree-of-
+freedom vibro-impact system,  J. Vib. Eng. , 36 (2023), 107–115. 
+https://doi.org/10.16385/j.cnki.issn.1004-4523.2023.01.012 
+27. O. P. Yadav, S. R. Balaga, N. S. Vyas, Forced vibrations of a spring–dashpot mechanism with dry 
+friction and backlash, Int. J. Non-Linear Mech. , 124 (2020), 103500. 
+https://doi.org/10.1016/j.ijnonlinmec.2020.103500 
+28. O. P. Yadav, N. S. Vyas, Stick–slips and jerks in an SDOF system with dry friction and clearance, 
+Int. J. Non-Linear Mech., 137 (2021), 103790. https://doi.org/10.1016/j.ijnonlinmec.2021.103790 
+29. P. Korondi, J. Halas, K. Samu, A. Bojtos, P. Tamás, Robot Applications, BME MOGI, 2014.  
+30. Q. Wu, M. Spiryagin, C. Cole, Advanced dynamic modelling for fr iction draft gears, Veh. Syst. 
+Dyn., 53 (2015), 475–492. https://doi.org/10.1080/00423114.2014.1002504 
+31. T. Hsu, D. A. Peters, A simple dynamic model for simulating dra ft-gear behavior in rail-car 
+impacts, J. Eng. Ind., 100 (1978), 492–496. https://doi.org/10.1115/1.3439467 
+32. C. Cole, M. Spiryagin, Q. Wu, C. Bosomworth, Practical modellin g and simulation of polymer 
+draft gear connections, in First International Conference on Rail Transportation 2017, American 
+Society of Civil Engineers, (2018), 413–423. https://doi.org/10.1061/9780784481257.041 
+33. Z. Fu, Research on the Dynamic Model of MT-2 Buffer Based on Impact Test (in Chinese), Master 
+thesis, Dalian Jiaotong University, 2018. 
+34. Y . Chu, Y . Chang, J. Zhang, Numerical Calculation Method (in Chinese), Science Press, 2016.  599 
+Electronic Research Archive  V olume 33, Issue 2, 582–599. 
+35. G. Luo, J. Xie, Periodic Motion and Bifurcation of  Vibro-Impact System (in Chinese) , Science 
+Press, 2004. 
+36. B. Liu, J. Peng, Nonlinear Dynamics (in Chinese), Higher Education Press, 2004. 
+©2025 the Author(s), licensee AIMS Press. This is an open acces s 
+article distributed under the terms of the Creative Commons 
+Attribution License (http://creativecommons.org/licenses/by/4.0) 

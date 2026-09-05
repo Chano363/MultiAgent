@@ -17,6 +17,7 @@ Zhang2024（Algorithms 2024,17,190）在朔黄线真实线路上用 DQN 学**单
 
 用法（WSL）：
     python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_23800
+    # 默认 max_steps=15000（≈23.8km 完整协议），与多列 MARL 评估对齐（控制变量）
 """
 
 import sys
@@ -192,7 +193,7 @@ def train(
     episodes: int = 300,
     consist_preset: str = '10kt_1plus0',
     grade_profile: str = 'shuozhou_23800',
-    max_steps: int = 1500,     # Zhang2024 计划运行 1500s
+    max_steps: int = 15000,   # 完整协议（对齐 MARL 评估 15000 步≈23.8km，控制变量；原 1500 步≈2.5km 太短）
     init_speed: float = 65.0 / 3.6,
     warm_start: bool = False,  # 用规则循环制动做行为克隆预训练（E15修复持续牵引问题）
     lr: float = 5e-5,
@@ -201,7 +202,6 @@ def train(
     batch_size: int = 64,
     device: str = None,
     seed: int = 0,
-    release_sync: bool = True,
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
 ):
@@ -215,9 +215,6 @@ def train(
         'max_steps': max_steps,
         'enable_safety': True,
         'dt': 0.1,
-        # E7：第1层用同步缓解（简化物理），RL 能学会循环制动不掉速。
-        # 第2层用缓解波（物理真实，保留"缓解后车钩力最大"机制）。
-        'release_sync': release_sync,
     }
     env = TrainFormationEnv(env_cfg)
     num_vehicles = env.num_vehicles
@@ -394,7 +391,8 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', type=int, default=300)
     parser.add_argument('--preset', type=str, default='10kt_1plus0')
     parser.add_argument('--grade', type=str, default='shuozhou_23800')
-    parser.add_argument('--max_steps', type=int, default=1500)
+    parser.add_argument('--max_steps', type=int, default=15000,
+                        help='训练回合步数（15000≈23.8km完整协议，与 MARL 评估对齐控制变量）')
     parser.add_argument('--lr', type=float, default=5e-5)
     parser.add_argument('--entropy', type=float, default=0.005)
     parser.add_argument('--device', type=str, default=None)
@@ -403,8 +401,6 @@ if __name__ == '__main__':
                         help='限速上限 m/s（默认 80 km/h，对齐 Zhang2024）')
     parser.add_argument('--v_min', type=float, default=40.0 / 3.6,
                         help='限速下限 m/s（默认 40 km/h，对齐 Zhang2024）')
-    parser.add_argument('--no_release_sync', action='store_true',
-                        help='使用缓解波传播（物理真实，默认关闭=同步缓解；第2层用缓解波）')
     parser.add_argument('--init_speed_kmh', type=float, default=65.0,
                         help='初始速度 km/h（默认 65，Zhang2024；80=立即触发循环制动）')
     parser.add_argument('--warm_start', action='store_true',
@@ -428,7 +424,6 @@ if __name__ == '__main__':
         entropy=args.entropy,
         device=args.device,
         seed=args.seed,
-        release_sync=not args.no_release_sync,
         checkpoint_dir=args.checkpoint_dir,
         results_dir=args.results_dir,
     )

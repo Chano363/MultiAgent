@@ -31,3 +31,14 @@ prompts.md
 # IDE MCP 配置（可能含 API key，不进仓库）
 .codebuddy/mcp.json
 .trae/mcp.json
+
+# AI 工具产物（非项目代码，2026-09-06 治理）
+Auto-claude-code-research-in-sleep/
+.trae/documents/
+.trae/memory/
+.trae/skills/
+.codebuddy/skills/
+.workbuddy/
+memory/
+# 记忆库当日滚动文件（已由 memory/sync_memory.py 统一归档）
+.codebuddy/memory/2026-09-*.md

@@ -1,0 +1,1238 @@
+Original Article
+An integrated numerical framework
+to investigate the running safety of
+overlong freight trains
+Visakh V Krishna 1 , Daniel Jobstfinke 2, Stefano Melzi 3 and
+Mats Berg 1
+Abstract
+Long freight trains up to 1500 m in length are currently not in regular operation in Europe. One of the important reasons
+for the same is high inter-wagon forces generated during the operation, especially when pneumatic (P-type) brake
+systems are used. For long trains with multiple locomotives at different positions along the train, radio communication
+with necessary fail-safe mechanisms can be used to apply the brakes. Long freight train operation on a given line is
+subjected to various attributes such as braking/traction scenarios, loading patterns, wagon geometries, brake-block
+materials, buffer types, track design geometries, etc., which are referred to as heterogeneities. The complex longitudinal
+train dynamics arising in the train due to various heterogeneities play a major role in determining its running safety. In this
+context, the maximum in-train force refers to the maximum force developed between any two wagons along the train
+during operation. The tolerable longitudinal compressive force is the maximum compressive force that can be exerted
+on a wagon without resulting in its derailment. Here, the authors adopt a bottom-up approach to model pneumatic
+braking systems and inter-wagon interactions in multibody simulation environments to study the complex longitudinal
+train dynamics behavior and estimate maximum in-train forces and tolerable longitudinal compressive forces, subjected
+to various heterogeneities. These two force quantities intend to facilitate a given freight train operation by providing
+guidelines regarding the critical heterogeneities, that currently limit its safe operation. In doing so, the authors propose
+the notion to have an operation-based approval for long freight trains using the simulations-based tool.
+Keywords
+Longitudinal train dynamics, pneumatic braking, in-train forces, longitudinal compressive forces, long trains, multibody
+simulation
+Date received: 28 June 2019; accepted: 3 January 2020
+Introduction
+For extensive rail freight transportation, one action to
+improve its capacity and eﬃciency is to run long
+trains. From a European perspective, this typically
+means running freight trains longer than 800–900 m.
+However, there are technical challenges associated
+with the same, especially with the usage of more trad-
+itional pneumatic (P-type) braking systems, side buf-
+fers, and screw-coupling systems. For instance, during
+traction (acceleration) the longitudinal tensile coupler
+forces can be signiﬁcant, in particular if all locomo-
+tives are positioned in the front of the train. This
+might cause coupler breakage and thus loss of train
+integrity and safety risks. At the same time, during
+braking, the longitudinal compressive forces (LCF)
+between the wagons can become very large, especially
+when the braking is applied only from the front and
+when the braking signal is propagating slowly by the
+pneumatics in the main braking pipe (MBP).
+Additionally, there are issues emanating from the
+way trains are built as well, for instance when pay-
+load-dependent braking devices of the wagons and the
+type of brake block materials result in application of
+diﬀerent braking forces along the train. The large
+compressive forces arising from one or a combination
+of these issues may cause derailment when the train
+negotiates curves, in particular tight S-curves with
+radii such as 150 m, 170 m, etc.
+1Department of Engineering Mechanics, KTH Royal Institute of
+T echnology, Sweden
+2Department of Rail Vehicles, T echnische Universita¨t Berlin, Germany
+3Department of Mechanical Engineering, Polytecnico di Milano, Italy
+Corresponding author:
+Visakh V Krishna, Department of Engineering Mechanics, KTH Royal
+Institute of T echnology, Stockholm, Sweden.
+Email: visakh@kth.se
+Proc IMechE Part F:
+J Rail and Rapid T ransit
+2021, V ol. 235(1) 47–60
+! IMechE 2020
+Article reuse guidelines:
+sagepub.com/journals-permissions
+DOI: 10.1177/0954409720905203
+journals.sagepub.com/home/pif
+The complex longitudinal train dynamics (LTD)
+for long freight trains, subjected to various operating
+attributes, referred to as heterogeneities are studied
+through numerical simulations. A lot of prior work
+exist in this ﬁeld. An extensive review on LTD is given
+by Wu et al.
+1 and Cole et al. 2 regarding modeling
+methods for wagon connection systems, numerical
+solvers, and potential research directions. LTD is
+nonlinear and there exist several longitudinal
+train simulators (LTS) that simulate the same.
+Cantone
+3 in his work introduces TrainDy that is
+used to calculate the inter-wagon interaction in long
+trains, the braking systems modeled after the
+UIC pneumatic brake. The model calculates the
+braking pressure time histories along the train
+and the forces exchanged in the longitudinal direction
+and was validated for use by the UIC. Similar
+software packages have been developed elsewhere
+such as CRE-LTS,
+2 UM,4 TSDYN,5 and ATTIF. 6
+Many of the simulation packages usually provide
+time histories of longitudinal in-train forces that
+develop along a long freight train, subjected to
+various vehicle attributes, gradients and operating
+scenarios such as braking, traction, etc. An inter-
+national initiative for benchmarking of LTS was
+undertaken by Spiryagin et al.
+7 in which nine inter-
+national institutions participated, the results being
+published in Wu et al.
+8 With increased computational
+capabilities, three-dimensional (3D) simulations,
+coupled along with 1D in-train force calculations of
+long trains for analyzing derailment risks in sharp
+curves are also being undertaken as seen in the
+works of Pogorelov et al.,
+9 Belforte et al., 5 and
+the MARATHON project. 10 Additionally, from
+wagon certiﬁcation’s point of view, standards such
+as UIC 530-2
+11 and EN1583912 exist that specify con-
+ditions to carry out propelling tests that determine
+the running safety of the wagon when subjected to
+high LCF.
+DYNAFREIGHT,
+13 a Shift2Rail project was
+tasked with the proposal of safety precautions in
+train conﬁguration and brake application by simulat-
+ing and analyzing the longitudinal forces and the
+derailment risks in long freight train operation. The
+safety precautions are to be used to deﬁne and imple-
+ment functional, technical, and homologation require-
+ments for a radio remote-controlled traction and
+braking system, in order to be ready for certiﬁcation.
+Also, it would aid in proposing adaptations needed in
+the infrastructure for the operation of long freight
+trains up to 1500 m. The task was undertaken jointly
+by the three academic institutions
+1–3 in collaboration
+with industrial partners. The work builds upon the
+activities undertaken in the European project
+MARATHON.
+10 The braking pneumatics, 1D LTD
+(actual in-train forces), and 3D derailment analysis
+(tolerable LCF) are the three key elements of this
+work for which individual simulation tools have
+been further developed. For in particular long
+trains, there are many possible heterogeneities in the
+train conﬁguration such as wagon classes, running
+gear design, coupler design, brake block material,
+brake rigging eﬃciency, brake regime, brake perform-
+ance dependent on payload, actual payload, and
+actual position of each wagon along the train.
+The second (or third, etc.) locomotive can also be
+positioned diﬀerently. Further, the trains run at
+diﬀerent (initial) speeds and negotiate diﬀerent track
+layouts with gradients and horizontal curves.
+This complex parameter space has been systematically
+analyzed with the help of tools developed by the
+authors and main safety precautions that should
+be taken in long-train operation are found. This is
+done with the calculation of inter-wagon forces
+along the train. The radio communication proto-
+cols through which traction and braking actions are
+transmitted between multiple locomotives, are pro-
+vided by the FFL4E consortium
+14 for diﬀerent
+scenarios.
+This paper is structured in the following way. The
+next section describes the overall framework, explain-
+ing how the diﬀerent simulation tools are aligned in
+the workﬂow. ‘‘Train selection and braking scen-
+arios’’ describes the overlong train conﬁgurations,
+vehicle compositions, and braking scenarios, studied
+in the context of providing in-train forces and toler-
+able LCF for relevant cases. ‘‘Modeling methodolo-
+gies’’ brieﬂy describes the diﬀerent tools used in the
+work, whereas ‘‘Simulation results and discussions’’
+discusses key factors enabling a safe operation of
+overlong trains. Finally, conclusions and suggestions
+for further work are put forward.
+Numerical framework
+Workflow
+The workﬂow to obtain safety precautions for the
+operation of long freight trains is described in
+Figure 1. For decision on approval of a given long
+freight train operation, the two quantities maximum
+in-train forces and tolerable LCF are calculated.
+. The maximum in-train forces refer to the max-
+imum forces developed between any two vehicles
+along the train. They are longitudinal tensile forces
+(LTF) and LCFs. For this:
+/C14 The braking and traction inputs were used to
+calculate the time histories of the brake cylinder
+pressures in the braking pneumatic tool.
+/C14 Using the time histories of the braking cylinder
+pressures from the braking pneumatic tool as
+input, the braking forces are calculated in the
+1D simulation tool. Further, the braking forces
+are applied to a 1D, multibody simulation
+(MBS) model of the freight train and the in-
+train forces are calculated for each inter-wagon
+connection along the train.
+48 Proc IMechE Part F: J Rail and Rapid Transit 235(1)Both the braking pneumatics and 1D simulation
+tools simulate the whole train.
+. The tolerable LCF is the maximum compressive
+force exerted on a wagon without resulting in its
+derailment. Unlike the braking pneumatic and 1D
+simulation tools, it is currently too computation-
+ally time consuming to simulate the whole train.
+Therefore, a smaller three-wagon train with static
+LCF applied on either ends is simulated in the 3D
+simulation tool. The tool was introduced and
+applied for coal wagons of the wagon class Falns
+by Krishna et al.
+15
+The two force quantities would help judge
+the safety of the long freight train operation.
+However, it is not possible to account all possible
+combinations of trains and track infrastructure
+points as will be seen in the next subsection. Hence,
+only critical combination of diﬀerent heterogeneities
+will be checked.
+Heterogeneities
+Long freight trains (deﬁned by total payload or
+length) can vastly diﬀer from each other in terms of
+their construction and sometimes also be a combin-
+ation of two dissimilar smaller trains. For example, an
+iron-ore train has a vastly diﬀerent load distribution
+along the train (and hence traction/ braking require-
+ments) as compared to a similarly long train com-
+posed of long and ﬂat intermodal freight wagons.
+Further, within a long freight train there can be vari-
+ous heterogeneities such as wagon dimensions, brake
+block materials, loading, buﬀer types, distance from
+the locomotive, and as a consequence also diﬀerent
+braking forces at a given instant. Further, depending
+on the kind of infrastructure and the route of
+operation, the long freight train could also be sub-
+jected to diﬀerent lateral/vertical forces. Some key
+heterogeneities that are important from the freight
+train’s longitudinal dynamics point of view have
+been identiﬁed and listed in Figure 2. The heterogene-
+ities are accounted diﬀerently across the diﬀerent
+simulation tools as seen in the ﬁgure.
+The heterogeneities could vary greatly from train
+to train. A single train could be composed of two or
+more diﬀerent types of wagons, each having diﬀerent
+types of brake blocks and buﬀers. For example, ﬂeet
+data for Falns-type wagons obtained for freight
+wagon traﬃc in Germany show that the majority of
+them are equipped with K-brake blocks while the
+remaining are equipped with cast-iron blocks. There
+exist similar diﬀerences in terms of other heterogene-
+ities such as buﬀer types, braking regimes, etc. as well.
+These heterogeneities are emphasized in the further
+sections.
+T rain selection and braking scenarios
+Variation amongst diﬀerent heterogeneities can gen-
+erate an almost inﬁnite number of diﬀerent freight
+trains. Hence, building a ‘‘truly’’ random train to
+represent any possible set of combinations is not pos-
+sible, especially not in the bottom-up methodology
+being used. Therefore, the approach used in
+DYNAFREIGHT is to analyze a limited number of
+trains, where diﬀerent heterogeneities are studied in
+discrete steps and the critical ones retained for further
+variation throughout diﬀerent tools in the procedure.
+At the same time, since the inference from the simu-
+lations should be as big and universal as possible,
+extreme heterogeneity values (minimum and max-
+imum values in the heterogeneity range) and some-
+times also intermediate values are used for the
+variations.
+Figure 1. Overall conceptual framework.
+Krishna et al. 49Keeping these points in mind, the two contrasting
+wagon classes Falns and Sggns(s) are considered.
+While the Falns wagons represent the shorter and stif-
+fer wagons used for transporting coal, iron-ore, etc.,
+the Sggns(s) wagons are longer and torsionally ﬂex-
+ible intermodal container wagons. Both the wagons
+have similar tare weight and the same maximum
+load (90 tons) but signiﬁcantly diﬀer in terms of
+length (see Table 2). While Falns-type wagons are
+amongst the shortest four-axle wagons, Sggns(s) are
+amongst the longest. Therefore, for a given train
+length, the number of wagons will be diﬀerent
+depending on the wagon types being used. (In add-
+ition, the Sggns(s) wagon displays a very low tor-
+sional stiﬀness, especially in tare operation.)
+Several freight trains made up of either of these two
+wagon types were generated, according to the param-
+eters listed in Table 1 for the calculation of in-train
+forces along the train. Each train is assumed to be
+composed of the same wagon type but with diﬀerent
+payload distributions for the braking pneumatics and
+1D in-train force MBS tools. Once the wagon type is
+selected, trains of the three lengths, 1000 m, 1250 m,
+and 1500 m are generated respectively. These repre-
+sent overlong trains from a European context. Each
+train is divided into front and rear halves, with diﬀer-
+ent payload distributions assigned. For instance, in
+Table 1, load distribution f–h means that the front
+half of the train is fully-loaded and the rear half of
+the train is loaded to half of the maximum permitted
+axle load. In a similar way, e–f means that the front
+half of the train is empty (tare condition) and the rear
+half is fully-loaded. In addition to the controlling
+master locomotive in the front, several positions for
+slave locomotives are also studied. When a single
+slave locomotive is present, it can be located at
+either 25%, 50%, 75%, or 100% of the train length.
+When two slave locomotives are present, they are
+located at 50% and 100% of the train length respect-
+ively. Altogether, 270 diﬀerent trains were considered
+in the long train simulation in the 1D simulation and
+braking pneumatic tools. This allows to address the
+eﬀect of heterogeneities related to: wagon type ( /C2 2),
+train length ( /C2 3), payload distribution ( /C2 9), slave
+locomotive(s) placements ( /C2 5) in the calculation of
+in-train forces. Other variations were also investigated
+for the more critical cases.
+The brake application’s eﬀect on running safety
+was analyzed for three emergency braking maneuvers:
+. Maneuver A: Emergency braking commanded from
+only the master locomotive from when it was run-
+ning at 30 km/h (communication-loss between
+locomotives).
+. Maneuver B: Emergency braking commanded from
+all the locomotives from when it was running at
+30 km/h.
+Figure 2. Heterogeneities and the simulation tools to assess their effect.
+T able 1. Parameter variations for freight train generations to
+calculate in-train forces and tolerable LCF .
+Long freight train for in-train forces
+Description Single slave loco/T wo slave locos
+T rain length L 1000 m, 1250 m, 1500 m
+Load distribution f–f, f –h, f –e, h –f, h –h, h –e, e –f, e –h, e –e
+(front-rear) f – full, h – half, e – empty
+Slave loco position
+(/C2 train length L) [0.25 L, 0.5 L, 0.75 L,o r L] / [0.5 L and L]
+3-wagon train for tolerable LCFs
+Compositions Falns–Falns–Falns;
+Falns–Sggns(s)–Falns;
+Sggns(s)–Falns–Sggns(s);
+Sggns(s)–Sggns(s)–Sggns(s)
+Radii of 150, 170, 190, 200, 210, 220
+S-curves (m)
+Load distribution Full–Empty–Full (Critical)
+(/C2 3 wagons) Full–Full–Full (Nominal)
+50 Proc IMechE Part F: J Rail and Rapid Transit 235(1). Maneuver C: Emergency braking commanded from
+all the locomotives while applying traction from an
+initial speed of 30 km/h.
+The emergency brake applications from low speeds
+constitute the more critical scenarios as reported by
+Cantone et al.
+16 Accordingly, an initial speed of
+30 km/h has been used. Simulating maneuvers A and
+B aim at investigating the eﬀect of additional venting
+points (due to the presence of multiple locomotives
+along the train). In maneuver A, slave locomotives
+behave like wagons since they only brake when the
+triple valve detects a pressure drop in the MBP. In
+other words, the slave loco does not actively control
+the MBP pressure as the command comes only from
+the master loco. Even if it is not very realistic, it can
+still be a reference case where the braking operation of
+the shorter standard freight trains is directly trans-
+ferred on to overlong ones. Maneuver C is more crit-
+ical due to the sudden switch from traction to
+braking, thus aﬀecting the LTD. Furthermore, man-
+euver A also simulates a communication loss between
+master and slave locomotive(s) (degraded operating
+condition). A two-second delay was assumed between
+the brake applying command of the master locomo-
+tive and that of the slave locomotive(s) when the com-
+munication functions normally. Braking operations of
+freight trains equipped with pneumatic braking sys-
+tems follow speciﬁc braking regimes
+13 that deﬁne the
+rate of pressure drop of the main braking pipe along
+the train length. All the simulations were carried out
+with all the vehicles operating in the G-braking
+regime.
+17
+The calculation of the tolerable LCF, however,
+considers a three-wagon train, inspired by the
+UIC 530-based simulation methodology developed
+in a previous study.
+15 The methodology focuses
+on heterogeneities from a more local inter-wagon
+interaction level as illustrated by Figure 2. The
+previous study identiﬁed the high inﬂuence of
+carbody torsional stiﬀness, horizontal track curva-
+tures, loading patterns, and wagon arrangements
+on the tolerable LCF. Among the three wagons, the
+leading and the last vehicles are kept the same for
+simpliﬁcation ( Falns or Sggns(s)), while the middle
+wagons are varied between the two wagon classes.
+In this way, it also counts the heterogeneities attrib-
+uted to neighboring wagons. The critical load distribu-
+tion where an empty wagon is surrounded by two
+loaded wagons, and the nominal load distribution
+where all the wagons are loaded have been considered
+(see Table 1).
+Modeling methodologies
+This section describes the modeling procedures of
+the tools. As described in Figure 2, diﬀerent hetero-
+geneities are addressed in diﬀerent simulation
+environments.
+T olerable forces
+The 3D MBS tool for the calculation of tolerable LCF
+values was developed by KTH in the GENSYS
+18
+environment. A detailed description of the modeling
+procedure, methodology, and the critical heterogene-
+ities that inﬂuence the derailment risk of a wagon due
+to additional lateral forces when it passes through
+infrastructure bottlenecks such as ﬂat S-curves was
+discussed by Krishna et al.
+15
+The simulation methodology to calculate tolerable
+LCF draws inspiration from the UIC 530-2 and the
+EN 15839 based on-track propelling tests. The empty
+test wagon is surrounded by two loaded barrier
+wagons, resulting in a height diﬀerence between the
+side-buﬀers. This three-wagon assembly is propelled
+on a tight S-curve ( R ¼ 150 m) by a locomotive at a
+low speed from the behind while the wagons ahead of
+it brakes simultaneously, giving rise to inter-wagon
+compressive forces. The wheel lift and the lateral
+track shift forces among other criteria are checked
+for derailment safety and the corresponding compres-
+sive force measured, giving the permissible compressive
+force for the test wagon. The three-wagon assembly
+system here is implemented in a 3D simulation envir-
+onment while the propelling forces are applied as con-
+stant forces acting on either ends of the three-wagon
+train. This methodology simulates derailment condi-
+tions arising due to lateral forces in complex curves,
+which is otherwise not possible in the 1D simulation
+environment. Simulations are performed iteratively
+with increasing static LCFs to the point one of the
+wagons derails. The maximum applied static LCF is
+kept as 2000 kN, below which the tolerable LCF is
+usually found. This gives the tolerable LCF for the
+middle wagon of the three-wagon train. This contrasts
+the propelling test procedure
+11,12 that only checks up
+to a maximum LCF of 280 kN. An example of a three-
+wagon train simulation model with both Sggns(s)
+and Falns wagon classes on an S-curve is presented
+in Figure 3(c).
+The numerical modeling procedure was categorized
+into three parts: wagon, wagon connections, and track
+design geometry. The Falns and Sggns(s) wagon
+classes were modeled in the 3D simulation environ-
+ment with all the nonlinear characteristics of the sus-
+pensions taken into account. Two primary types of
+running gear, link suspension bogie ( Falns) and Y25
+bogie ( Sggns(s)), were modeled. The detailed model-
+ing procedure of running gear is described by
+Jo¨nsson
+19 and Stichel. 20 Since the torsional stiﬀness
+of the carbody plays a crucial role in determining
+the tolerable LCF, the carbodies are modeled as
+lumped mass elements, connected in the middle with
+a force element acting along six degrees of freedom.
+Some key parameters and variations in heterogene-
+ities of these wagons are presented in Table 2.
+The wagons are equipped with a pair of side buﬀers
+and a draw gear on either ends. A polymer-type buﬀer
+Krishna et al. 51with standard loading and unloading characteristics
+used commonly in Europe has been modeled. The
+force exchanged are calculated as a function of the
+relative velocities, i.e. loading or unloading velocities
+to model the transition between the loading and
+unloading curves.
+3
+Flat S-curves of varying radii were designed with
+parabolic variation of track curvature along the tran-
+sition between the straight and the circular sections.
+The transition length is 2 m while an intermediate
+straight section of 10 m was provided between the
+reverse curves. The S-curves were chosen because of
+the wagons’ high vulnerability to derail due to simul-
+taneously high LCFs. The empty wagon in the middle
+was seen to mostly derail near the point when it aligns
+with maximum yaw angle, exerted from its neighbor-
+ing wagons on either side. This gives rise to high
+understeering yaw moment
+21 and high moments due
+to opposing lateral buﬀer forces on either side of the
+wagon. The tightest S-curve (S150) represents the S-
+curve used in the on-track propelling tests while S190
+represent the tightest S-curves found in the German
+railway network. The track cases for which the toler-
+able LCFs were calculated are given in Table 2.
+Braking pneumatics
+The brake model describes the dynamics of com-
+pressed air inside the main brake pipe (MBP) and
+the transient pressure build-up in the brake cylinders.
+The MBP is a long pipe with pressurized air that runs
+across the length of the train. The venting of the MBP
+at venting point(s) results in a pressure drop across
+(a)
+(b) (c)
+Figure 3. Modeling schematics of the present tools: (a) lumped parameter scheme of the braking pipe (MBP); (b) generation of
+25 random one-dimensional 40-vehicle trains with variation in total wagon mass to calculate in-train forces; (c) three-dimensional
+simulation model of a three-wagon train passing through a S-curve to calculate tolerable LCF .
+T able 2. Wagon construction parameters and track design
+geometries.
+Description Falns121/Sggns(s)
+Pivot length (m) 7.7/9.3
+T otal length (m) 13.04/25.94
+Bogie design Link suspension/Y25
+T are mass (tons) 24.5/21.5
+T orsional stiffness (/C2 10
+6 Nm2/rad) 40/5.5
+Wheelbase length (m) 1.8
+Buffer length (m) 0.62
+Buffer head friction ( /C0 ) 0.1
+Wheel–rail friction ( /C0 ) 0.4
+Maximum axle load (tons) 22.5
+Buffer head radius (m) 1.5
+Wheel profile ENS1002t32.5
+Rail profile UIC60i40
+T rack design geometry S curves
+Radii (m) 150, 170, 190
+200, 210, 220
+Intermediate straight section (m) 10
+Curve transition length (m) 2
+52 Proc IMechE Part F: J Rail and Rapid Transit 235(1)the wagons, leading to brake application by engaging
+the braking cylinders. A drop in MBP pressure
+engages the auxiliary reservoir located in each vehicle
+that pressurizes the braking cylinders, leading up to
+brake application. The detailed mathematical model-
+ing procedure of the UIC brake along with its experi-
+mental validation is provided by Melzi and Grasso.
+22
+The analytical model of the MBP is based on
+an equivalent electrical scheme as described in
+Figure 3(a).
+The MBP is divided into several segments where
+resistors are used to model the dissipations associated
+with ﬂuid internal friction, inductors represent the
+ﬂuid inertia while capacitors are introduced to
+account for ﬂuid compressibility. Each wagon’s brak-
+ing system is divided into two parts comprising a resis-
+tor and an inductor, representing two segments of the
+pipe. Each vehicle is also provided with three capaci-
+tors. One is at the wagon centre while the others are at
+the wagon extremities and can be shared with the
+adjacent vehicles. As reported in Melzi and
+Grasso,
+22 the values of inductances, capacitances,
+and resistances are derived on the basis of semi-
+empirical models and depend on geometrical param-
+eters of the pipe (cross sections, length) and on the
+temperature of the ﬂuid (which is computed assuming
+adiabatic ﬂow). Additionally, the resistances are non-
+linear functions of mass ﬂow and their value is
+increased by 7.5% to account for the eﬀect of connec-
+tions that join pipe segments at the wagon extremities.
+Altogether, the MBP is described through a lumped
+parameter model where pressures at nodal points (i.e.
+voltages) and mass ﬂows in various segments (i.e. cur-
+rents) represent the independent variables.
+Several valves are distributed along the pipe con-
+necting it with the air at atmospheric pressure P
+0 as
+depicted in Figure 3(a). The venting process from
+multiple points of the MBP at the same time can be
+simulated. Mass ﬂows across the valves are nonlinear
+functions of the braking type and the pressure drops
+across them. The valve cross-section used to simulate
+an emergency braking maneuver is signiﬁcantly larger
+than the one used for service braking. Each wagon is
+also provided with an accelerating chamber, a volume
+maintained at atmospheric pressure that is automat-
+ically connected to the MBP as soon as pressure drop
+is detected. The ﬂux is therefore unidirectional and
+only stops when the pressure inside the accelerating
+chamber is equal to the pressure in the MBP.
+The pressure drop in the MBP at the central node
+of each wagon represents the input for the brake dis-
+tributor model. Distributors connect the auxiliary res-
+ervoir with the braking cylinders in the wagon and
+inﬂuence the pressure build-up process in the latter.
+In particular, MBP pressure drops between 0.3 and
+1.5 bars are considered since: (a) connection between
+the auxiliary reservoir and the braking cylinder
+requires a pressure drop of 0.3 bar to open and (b)
+a pressure drop of 1.5 bars corresponds to the
+maximum force developed by the braking cylinder.
+To summarize, the pressure drop signals between 0.3
+and 1.5 bars are used as command signals for the
+brake cylinder. This signal is processed considering
+the crossing of thresholds associated with the inter-
+vention of the ﬁrst-phase device. This activates as
+soon as the connection between auxiliary reservoir
+and braking cylinder is established and allows for pas-
+sage of compressed air through a large-opening valve,
+thus speeding-up the ﬁlling of cylinder. As the pres-
+sure in the braking cylinder reaches 0.7 bar, the large-
+opening valve is excluded and the pressure increases
+with the gradient associated with the braking regime
+(P or G) up to a level determined by the pressure drop
+in main braking pipe.
+In-train forces
+The time histories of pressure in the brake cylinders
+and MBP obtained from the previous section are
+input data for the 1D simulation tool. This tool was
+developed by TU Berlin and is based on the commer-
+cial MBS software Simpack
+23 and MATLAB. The
+MBS software solves the equations of motion of the
+1D train model while MATLAB is used for simula-
+tion setup, simulation control, and result evaluation.
+The MATLAB tool generates models for locomotives,
+wagons and couplers from base models. The train
+models then combine the individual vehicle models
+and also operating conditions such as topography,
+initial speed, etc.
+The individual vehicle’s 1D MBS models consist of
+masses and diﬀerent force elements depending on the
+vehicle type. All vehicle models consist of additional
+force elements that model the friction brake force and
+the running resistance forces. The locomotive models
+also use a force element for the traction forces. By
+default, rotational eﬀects of wheelsets or traction
+motors have not been modeled. The kinetic energy
+of the rotational motion of such elements is, however,
+considered in the longitudinal motion of the vehicle
+by means of a factor. However, more detailed vehicle
+models along with wheel–rail–contact may be added
+at any position along the train. Bosso and Zampieri
+24
+show such an application.
+The force element representing the friction brake
+takes various parameters as input. Besides the type of
+brake (block brake vs. disc brake), its technical par-
+ameters such as the brake cylinder pressures, friction
+law of the brake block/disc material, and the type of
+empty/load devices are essential. Diﬀerent friction
+laws are added, ranging from the well-known
+Karwartzki law
+3 for cast-iron brake blocks to polyno-
+mial expressions for composite brake block materials,
+derived from measured data. The models for the
+empty/load device represent the ones used in
+European freight wagons, according to requirements
+given by UIC.
+25 There are two types to be distin-
+guished. The ﬁrst type is a manual device that adjusts
+Krishna et al. 53the brake force discretely between the empty and
+loaded conditions. The second type is an ‘‘auto-con-
+tinuous’’ system that proportionally increases the
+brake force with the wagon load of up to 65% of
+the total wagon mass. Beyond this point, the brake
+force stays constant.
+Models of the European buﬀers and screw couplers
+link the vehicle models in the train. The coupler
+models use hysteresis curves from quasi-static meas-
+urements of buﬀers and draw gears. Previous inves-
+tigations by UIC
+26 and Wu et al. 27 show that
+quasi-static curves are suitable for the simulation of
+(maximum) in-train forces during a train run.
+However, other scopes of investigation, e.g. collisions
+or fatigue simulations require other and/or more com-
+plex models. Wu et al.
+27 give a good overview on this
+matter.
+All parameters that deﬁne the diﬀerent vehicle
+models (e.g. mass, resistance coeﬃcients, and force
+element characteristics) and the entire train setup
+are listed in a parameter ﬁle and controlled using
+the MATLAB tool. A train setup consists of a vari-
+able number of vehicles n (both locomotives and
+wagons) and n-1 inter-wagon connections.
+Furthermore, the tool allows for varying values of
+diﬀerent heterogeneities. This facilitates the investiga-
+tion of inﬂuences of the heterogeneity value scatter
+which is inevitable in a real train operation. The scat-
+ter can be normally or randomly distributed and be
+varied in sequence or at the same time. For example,
+Figure 3(b) shows a variation with 50 cases of ran-
+domly distributed total vehicle masses within the
+range of 85 to 95 tons. The x-axis shows train vari-
+ations and the y-axis shows the corresponding loading
+status of vehicles in each variation. Variation number
+one on the far left is the standard (unvaried) train
+where each wagon has a nominal total mass of
+90 tons (vertical green/grey bar). As the weight of
+the locomotives in the train is not varied, it stays at
+the nominal value of 84 tons for all variations (hori-
+zontal blue/black bars). However, it should be noted
+that setting up a train in reality is not a random pro-
+cess. Cantone and Ottati
+28 describe a method to gen-
+erate trains that resemble typical train conﬁgurations
+in a real operation.
+The MATLAB tool initializes the parameter values
+for the MBS environment and starts the solver. After
+the simulation, the MATLAB tool fetches the raw
+output data of the MBS environment for post-
+processing. This procedure enables a new scenario
+to be automatically set up, depending on the results
+of previous scenarios. Besides the time histories of
+kinematic quantities and coupler forces, maximum
+absolute values of in-train forces (LCF and LTF)
+along with the position(s) of their occurrence are
+obtained. The in-train forces hence obtained
+from the workﬂow consists of the inﬂuences of
+heterogeneities ranging from the brake pneumatics
+to the vehicle- and track-based heterogeneities
+covered during the modeling process in this section.
+The calculated tolerable LCFs are static in nature as
+opposed to the dynamic nature of the in-train forces.
+Moreover, the in-train forces are calculated at higher
+running speeds. Hence, the maximum value of the in-
+train forces averaged for a 1 s time interval was chosen
+to compare with the tolerable LCF in the current
+work. This is only intended to be a reference LCF
+value to understand the relative criticality with respect
+to (w.r.t.) major heterogeneities such as braking man-
+euvers and train length, and not necessarily as an abso-
+lute comparison between two quantities.
+Simulation results and discussions
+A 1250 m long train operation, comprising Sggns(s)
+wagons is used to exemplify combined results from all
+the three simulation tools. However, the inﬂuence of
+individual heterogeneities can be separately seen in
+each of the following subsections in diﬀerent tools.
+T olerable LCF
+The tolerable LCFs provide a measure of the wagons’
+resistance towards derailment due to the high longi-
+tudinal forces acting when negotiating tight S-curves.
+They reﬂect the inﬂuence of the more localized hetero-
+geneities in the train formation, such as the neighbor-
+ing wagons, buﬀer types, wagon construction, etc. In
+this context, the buﬀer angle (  
+ij) is the yaw angle
+between the buﬀers of two adjacent wagons i and j.
+The diﬀerence in buﬀer angles made by the jth wagon
+with its neighboring wagons denotes the buﬀer angle
+diﬀerence ( /C1 j). The maximum buﬀer angle diﬀer-
+ence j/C1 2jmax for the middle wagon is a parameter
+that gives a measure of the maximum yaw moments
+experienced by the wagon due to forces in the hori-
+zontal plane. The simulations performed to calculate
+the tolerable LCF showed that the middle wagon
+mostly derailed a few meters after the maximum
+buﬀer angle diﬀerence was achieved for the middle
+wagon. The buﬀer angle diﬀerence ( /C1 
+2) for the
+three-wagon train compositions mentioned in
+Table 1 are plotted against the position of the
+middle wagon’s center of mass along a S-curve of
+radius 190 m in Figure 4(a). The j/C1 
+2jmax values for
+all the trains occur at the center of the intermediate
+section, when the rear part of the middle wagon com-
+pletes the ﬁrst curve and the front part enters the
+second curve. The asterisk and cross symbols denote
+homogeneous combinations of the Sggns(s) and
+Falns wagons respectively, marking the upper and
+lower bounds of j/C1 
+2jmax values. The circles
+and squares on the other hand denote mixed wagon
+compositions with j/C1 
+2jmax values in between.
+The tolerable LCFs for the three-wagon train com-
+positions on all six S-curves with the j/C1 2jmax values
+are plotted in Figure 4(b). The critical load pattern
+(refer Table 1) has only been considered. Two distinct
+54 Proc IMechE Part F: J Rail and Rapid Transit 235(1)tolerable LCF trends w.r.t. j/C1 2jmax can be identiﬁed
+in the plot. While the asterisks and squares both have
+Sggns(s) wagons at the ends, the crosses and circles
+have Falns wagons at the ends instead. In an other-
+wise homogeneous train, the substitution by a com-
+paratively stiﬀ and short wagon in the middle seemed
+to increase the tolerable LCF (asterisks to squares)
+while a comparatively ﬂexible and longer wagon in
+the middle seemed to decrease the tolerable LCF
+(crosses to circles). However, the increase/decrease
+in the tolerable LCF values still ﬁt along the trends
+w.r.t. j/C1 
+2jmax set by the homogeneous train compos-
+itions (asterisks and crosses). This shows that w.r.t.
+tolerable LCF, the running gear has a lesser eﬀect
+since the cause for the derailment is more due to the
+carbody length and ﬂexibility. The derailment mode
+for most cases were similar where the middle wagon
+rolled over laterally in an outward direction after the
+occurrence of j/C1 
+2jmax.
+The trends in Figure 4 isolate the inﬂuence of car-
+body torsional stiﬀness, wagon geometry, wagon
+arrangements, and track curvature on the tolerable
+LCF. For a given freight train operation with know-
+ledge of the critical track section along its route and
+train composition, it is possible to utilize similar
+trends to ﬁnd the tolerable LCF. This coupled along
+with the knowledge of the location of the maximum
+occurrence of the in-train LCFs obtained from the in-
+train force tool, the critical neighboring wagon com-
+positions w.r.t. payload can be positioned along the
+train where minimum in-train forces occur.
+For comparison with the in-train force in the forth-
+coming sections, LCF limit value of 536 kN is con-
+sidered for the Sggns(s) train compositions with
+empty/ half-loaded wagons. This value corresponds
+to the tolerable LCF obtained for the Sggns(s) /C2 3
+trains for the critical loading distribution on an
+S220M10 curve (see Figure 4(b)). For the nominal
+loading distribution, however, the train did not
+derail on the S-curve up to the 2000 kN upper limit
+considered in the simulation methodology. So this
+value was considered as the LCF limit for the loading
+pattern f–f.
+Braking pneumatics
+Manoeuvres A and B from the braking scenarios
+above were considered for the simulation of pneu-
+matics since the tractive operation in maneuver C is
+modeled in the in-train force tool. Simulation of the
+braking pneumatics allows to compare the perform-
+ances of the system w.r.t. delay in braking command
+and application of braking force. Reduction of the
+delays has a positive eﬀect on stopping distances.
+From an ideal viewpoint, the braking forces should
+be applied simultaneously along the train to reduce
+the peaks of both LTF and LCF values as demon-
+strated by the 1D in-train force tool.
+Considering the case of 1250 m long train made up
+of Sggns(s) wagons only, Figure 5(a) shows the time
+required to achieve a pressure drop of 1.5 bar in the
+MBP for all the vehicles along the trains. The ﬁgure
+presents three train conﬁgurations for maneuver B.
+Along with the master locomotive in the front, there
+is/are:
+1. a slave locomotive at the train center,
+2. a slave locomotive at the train end,
+3. two slave locomotives each at the centre and at the
+end of the train.
+The ﬁgure clearly illustrates the advantage of adding a
+venting point at the train center using a second slave
+locomotive. The maximum time delay required to
+produce a pressure drop of 1.5 bar is around 9 s at
+the 35th vehicle. Using a single slave locomotive
+allows for a simpler train layout but increases the
+delay in the pneumatic propagation of the braking
+(a) (b)
+Figure 4. (a) Buffer angle difference ( /C1 2) for the middle wagon for four three-wagon train compositions involving Falns and
+Sggns(s); (b) tolerable LCF w.r.t. maximum buffer angle difference ( j/C1 2jmax) for different train compositions ( /C2 4) and track
+curvatures ( /C2 6). Size of the marker is an indicator of curvature (1/R) of the S-curve as indicated for Sggns(s) /C2 3.
+Krishna et al. 55command. With the slave locomotive at the train’s
+end, the maximum time delay between the brake
+application at the locomotives and at the wagons is
+18 s and the last wagon to apply brakes is located at
+the train centre (indicated by dashed lines in Figure
+5(a)). However, when the slave locomotive is located
+in the middle of the train, the maximum delay rises to
+well above 20 s and its distribution is strongly asym-
+metrical w.r.t. the train centre (indicated by the solid
+line). Figure 5(b) shows the time required to reach
+99% of the maximum pressure in brake cylinders as a
+function of vehicle position along the train. The con-
+ﬁguration with two slave locomotives leads to time
+delays between 24.5 s and 27.5 s with a rather uniform
+distribution (illustrated by solid lines with points).
+When a single slave locomotive at the train end is
+used, the delays are between 24.5 and 29.2 s. Using a
+single slave locomotive at the train centre however
+causes the maximum time delay to rise up to 30.5 sec-
+onds. Therefore, the build-up to maximum braking
+force application along the train is very far from an
+ideal simultaneous activation, required to minimize
+the generated in-train forces.
+The MBP and the brake cylinder pressure
+time-histories were calculated in this way for both
+the braking maneuvers (A and B) in diﬀerent train
+conﬁgurations. The longest time period required
+(after the emergency braking command) to achieve a
+pressure drop of 1.5 bar in the MBP and to reach at
+least 99% of the maximum pressure in the braking
+cylinders amongst all vehicles are summarized in
+Table 3 (the cases illustrated in Figure 5 marked in
+bold). The table provides a fuller picture of the per-
+formance of the pneumatic system, subjected to dif-
+ferent numbers and positions (i.e. 25%, 50%, 75%,
+and 100% of train length) of the slave locomotives. It
+is possible to notice how the conﬁguration with
+a single slave locomotive introduces beneﬁts with
+respect to the case with venting point only at the
+master locomotive. When a single slave locomotive
+is introduced, its best location among the four con-
+sidered positions is 75% of the train length since this
+positioning minimizes the delays in brake application.
+The introduction of a second slave locomotive leads
+to signiﬁcant advantages w.r.t. the propagation of
+the pneumatic braking command and smaller gains
+w.r.t. the time required to complete the braking
+force build up.
+In-train forces
+The 1D in-train force simulations have two main
+goals, after turning pneumatics into 1D forces. The
+ﬁrst goal is to compare the maximum values of LCF
+and LTF against their limit values obtained from the
+tolerable LCF tool earlier, thus identifying suitable
+train conﬁgurations. The second goal is to identify
+major inﬂuences of the heterogeneities in train conﬁg-
+urations on the resulting LCF and LTF values. As
+illustrated in Figure 2, the 1D in-train force tool accu-
+mulates the eﬀect of maximum heterogeneities and on
+further comparison with the outputs coming from the
+3D tolerable LCF tool, a complex parameter space of
+heterogeneities would have been accounted for. The
+results for a 1250 m long train composed of Sggns(s)
+wagons with a single slave locomotive is discussed in
+detail as an exemplary case.
+Figure 6 illustrates a 4D matrix (4 /C2 9/C2 2 /C2 3) of in-
+train forces. The larger 2D array of bar plots (4 /C2 9)
+illustrates variations for four slave locomotive pos-
+itions (indicated by the larger vertical axis) and nine
+loading patterns (indicated by the larger horizontal
+axis). Each cell in the larger array comprises a barplot
+each for the maximum LCF (white background) and
+LTF (grey background) values ( /C2 2), respectively.
+Each barplot further has three bars representing
+(a) (b)
+Figure 5. For wagons across the 1250 m Sggns(s) train: (a) time required for a 1.5 bar pressure drop in MBP; (b) time required to
+reach 99% of the maximum pressure in braking cylinders; cases marked bold in T able 3.
+56 Proc IMechE Part F: J Rail and Rapid Transit 235(1)Figure 6. In-train force summary for 1250 m long Sggns(s) trains with a single slave locomotive. Horizontal direction – variation in
+loading patterns; vertical direction – variation in slave locomotive positions.
+LCF: maximum longitudinal compressive force; L TF: maximum longitudinal tensile force.
+T able 3. Venting durations to reach maximum pressure in braking cylinders of all wagons, resulting in maximum brake application.
+Maximum venting duration for
+1.5 bar drop in MBP (s)
+Maximum venting duration to reach 99%
+of maximum pressure in braking cylinder (s)
+T rain length
+L (m)
+Slave loco
+posn ( /C2 L)
+(A) Master
+loco only
+(B) Master &
+slave locos
+(A) Master
+loco only
+(B) Master &
+slave locos
+1000 0.25 L 33.9 24.4 35.1 31.6
+1000 0.5 L 33.9 16.5 35.1 29
+1000 0.5 L and L 33.9 9.1 35.1 27.3
+1000 0.75 L 33.9 10 35.1 27.5
+1000 L 33.9 13 35.1 28.1
+1250 0.25 L 48 34.5 48.9 35.9
+1250 0.5 L 48 22.2 48.9 30.5
+1250 0.5 L and L 48 7.1 48.9 27.7
+1250 0.75 L 48 13.2 48.9 27.9
+1250 L 48 17.9 48.9 29.2
+1500 0.25 L 60.5 44.4 62.7 45.5
+1500 0.5 L 60.5 27.1 62.7 32.0
+1500 0.5 L and L 60.5 11.2 62.7 28
+1500 0.75 L 60.5 16.6 62.7 28.8
+1500 L 60.5 22.8 62.7 30.6
+Krishna et al. 57diﬀerent braking maneuvers A, B, and C ( /C2 3), indi-
+cated on their individual vertical axes. The values are
+normalized w.r.t. respective limit values. The letters
+lim:e, lim:h , and lim:f indicate the relevant limit
+values for empty, half and fully loaded train sections
+respectively. A LTF limit value of 850 kN was chosen
+since it denotes the minimum breaking load of the
+screw-coupling as given by EN 15566.
+29 The relevant
+limit values are provided at the bottom of the ﬁgure.
+When the value is below the limit, the bar is white/
+yellow (less than 1) and is black/blue when above the
+limit (greater than 1). The vertical black line at unity
+indicates the normalized limit. Grey/green bars indi-
+cate LTF values, which are below the limit but may be
+in the range where fatigue might occur.
+Furthermore, a white, grey or black frame around
+cells of LCF and LTF bar plots summarizes the
+results. A white frame indicates that all bars for all
+maneuvers for a speciﬁc combination of loading
+status, slave locomotive position, and braking maneu-
+vers are below the limit. A grey frame means that the
+bars for maneuvers B and C for a speciﬁc combin-
+ation of loading pattern and slave locomotive position
+are below the limit but not those of maneuver A
+(degraded braking mode). A black frame indicates a
+combination where at least one of maneuvers B and C
+exceeds a limit.
+Such plots allow for identifying suitable train con-
+ﬁgurations in a very compact way, which is the ﬁrst
+goal. Also, the second goal of identifying the inﬂuence
+of the heterogeneities in train conﬁgurations is
+achieved by these plots. As expected, Figure 6 shows
+that braking maneuver A always leads to high LCF
+values for loading patterns e–f, h–e, h–h, and h–f (cf.
+Table 1). The results for maneuvers B and C with the
+same loading patterns meanwhile strongly depend on
+the slave locomotive positions. The slave locomotive
+positions at 0.25L, 0.5 L, and L appear to be less
+favorable than the 0.75 L position, which concurs
+with the results from Table 3. An important observa-
+tion is that all the trains with the highest LCF values
+have the h–f loading pattern. This is due to the large
+diﬀerences in the brake force to mass ratio. A half-
+laden wagon has the same brake force as a fully laden
+wagon for both manual and auto-continuous empty/
+load devices (see the modeling section). The same
+brake force acting on wagons with signiﬁcantly diﬀer-
+ent masses leads to large diﬀerences in deceleration,
+and thus results in high in-train forces. The loading
+pattern h–f is the most critical for in-train LCF since
+the faster decelerating portion of the train is at the
+front. The converse loading pattern f–h therefore is
+the most critical w.r.t. LTF values, as the faster decel-
+erating part of the train is in the rear portion of the
+train as Jobstﬁnke
+30 explains in detail. These are some
+examples of inﬂuences of heterogeneities in train con-
+ﬁgurations such as loading patterns, braking maneu-
+vers, locomotive positions, empty/load devices, etc.
+that were identiﬁed as a part of the second goal.
+Conclusions and future work
+A numerical framework to explore the large and com-
+plex heterogeneity space in the operation of long
+freight trains has been put forward in this work. An
+exemplary overlong freight train operation was dis-
+cussed and guidelines proposed w.r.t numerous het-
+erogeneities in the same, using diﬀerent tools. This
+multimodular approach allows for studying long
+freight train operation while justifying its overall het-
+erogeneous nature. It is diﬃcult, however, to account
+for all heterogeneities in a single tool, owing to the
+scale and complexity of the heterogeneity parameter
+space and computational requirements. In addition to
+this, certain heterogeneities are also correlated (e.g.
+payload and empty/load devices in in-train force
+tool; torsional stiﬀnesses and wagon geometries in tol-
+erable LCF tool). Therefore, the integrated frame-
+work comprising these three tools allows to better
+study the correlated heterogeneity space.
+The 3D simulation tool is better suited for studying
+more localized heterogeneities that could result in
+wagon derailment. The results indicate the criticality
+of placing empty, long and ﬂexible wagons in a het-
+erogeneous train setup. Also, the neighboring wagons’
+characteristics, rather than the derailing wagon itself
+(middle) governed the trend w.r.t the geometric par-
+ameter ( j/C1 
+2jmax). Similar trends along with results
+obtained from the in-train force tool can guide place-
+ment of wagons along a train. In the present work, a
+critical derailing mode due to high lateral forces in
+tight curvatures and high LCFs was considered. The
+trends w.r.t j/C1 
+2jmax only applies to this derailing
+mode. Other modes such as wagon-lift that happen
+at much higher LCFs were not presented in the cur-
+rent work. Application of dynamic in-train LCFs on
+the three-wagon train, with the LCF peaking at dif-
+ferent points along the S-curve at higher speeds
+should be carried out to bridge further the in-train
+force and tolerable LCF tools.
+A validated pneumatic brake model was used to
+obtain reliable predictions of pressure build-up in
+brake cylinders, consequent to braking applications
+along the entire train length. It is well-suited to inves-
+tigate the eﬀect of heterogeneities that concern the
+train composition like length, number, and position
+of wagons. Additionally, the more intrinsic features of
+the braking system such as the time delays between
+venting activations from multiple points due to diﬀer-
+ent maneuvers can be analyzed. This is particularly
+important when designing the communication sys-
+tems for remote-controlled traction/braking. The
+advantages of placing the slave locomotive at three-
+fourths of the total train length and the additional
+beneﬁts obtained with a second slave locomotive are
+reported alike for both the braking pneumatics and
+the in-train force tools. The 1D LTD simulation tool
+analyzed a variety of train conﬁgurations and oper-
+ational scenarios. This module was able to account for
+maximum heterogeneities and formed the bridge
+58 Proc IMechE Part F: J Rail and Rapid Transit 235(1)between the braking pneumatics and the tolerable
+LCF tool. The result visualization utilized a matrix
+of bar plots to give a compact yet detailed overview
+of a large amount of individual simulations. This
+allowed for the identiﬁcation of an advantageous
+slave locomotive position (75% in most cases), chal-
+lenging loading patterns and most critical operational
+braking/traction maneuvers w.r.t both LCF and LTF
+values. In-train force summaries similar to the ones in
+Figure 6 for more train compositions are reported in
+Berg et al.
+13 The characteristic of the auto-continuous
+empty/load devices was identiﬁed as disadvantageous,
+especially when it comes to the loading pattern h–f
+that resulted in higher values of in-train LCFs.
+The tool is ﬂexible and allows for a variety of hetero-
+geneities, the examination of which is only limited
+by the available computational power. Taking the
+work further, future analysis should consider
+more slave locomotive positions and more loading
+patterns (e.g. more than two diﬀerent loading
+sections across the train) and more operational
+maneuvers. However, the challenge is to identify gen-
+erally working concepts rather than possible individ-
+ual train conﬁgurations. Also, for the braking
+maneuvers studied, LCF seemed to be a more severe
+problem than LTF.
+An integrated framework such as the one presented
+in the current work should ideally be able to identify
+the feasibility of a long freight train operation, con-
+sidering the whole system comprising the vehicles,
+infrastructure, and operating maneuvers, leading to
+proposing operation-based approval for long freight
+trains.
+Acknowledgements
+A vote of thanks goes to Deutsche Bahn (DB) for providing
+valuable information and support.
+Declaration of Conflicting Interests
+The author(s) declared no potential conﬂicts of interest with
+respect to the research, authorship, and/or publication of
+this article.
+Funding
+The author(s) disclosed receipt of the following ﬁnancial
+support for the research, authorship, and/or publication
+of this article: The authors thank the European
+Commission and members of the DYNAFREIGHT con-
+sortium (Grant agreement no. 730811) for the support
+received over the course of the study.
+ORCID iD
+Visakh V Krishna https://orcid.org/0000-0002-4477-
+971X
+References
+1. Wu Q, Spiryagin M and Cole C. Longitudinal train
+dynamics: an overview. Veh Syst Dyn 2016; 54:
+1688–1714.
+2. Cole C, Spiryagin M, Wu Q, et al. Modelling, simula-
+tion and applications of longitudinal train dynamics.
+Veh Syst Dyn 2017; 55: 1498–1571.
+3. Cantone L. TrainDy: the new Union Internationale des
+Chemins de Fer software for freight train interoperabil-
+ity. Proc IMechE, Part F: J Rail and Rapid Transit
+2011; 225: 57–70.
+4. Kovalev R, Sakalo A, Yazykov V, et al. Simulation of
+longitudinal dynamics of a freight train operating
+through a car dumper. Veh Syst Dyn 2016; 54: 707–722.
+5. Belforte P, Cheli F, Diana G, et al. Numerical and
+experimental approach for the evaluation of severe lon-
+gitudinal dynamics of heavy freight trains. Veh Syst
+Dyn 2008; 46: 937–955.
+6. Shabana AA, Ding L and Aboubakr A. Use of non-
+inertial coordinates in the analysis of train longitudinal
+forces. J Comput Nonlin Dyn 2011; 7011001–011001–10.
+7. Spiryagin M, Wu Q and Cole C. International bench-
+marking of longitudinal train dynamics simulators:
+benchmarking questions. Veh Syst Dyn 2017; 55:
+450–463.
+8. Wu Q, Spiryagin M, Cole C, et al. International bench-
+marking of longitudinal train dynamics simulators:
+results. Veh Syst Dyn 2018; 56: 343–365.
+9. Pogorelov D, Yazykov V, Lysikov N, et al. Train 3D:
+the technique for inclusion of three-dimensional models
+in longitudinal train dynamics and its application in
+derailment studies and train simulators. Veh Syst Dyn
+2017; 55: 583–600.
+10. Persson I and Berg M. Deliverable 3.3 MARATHON
+project. Technical report, 2013.
+11. UIC Code 530-2. Wagons – running safety. Technical
+report, 2008.
+12. SS-EN 15839:2012 þA1:2015. Railway applications –
+testing for the acceptance of running characteristics
+of railway vehicles – freight wagons – testing of run-
+ning safety under longitudinal compressive forces.
+Technical report, European Committee for
+Standardization, 2016.
+13. Berg M, Marsilla M, Gisbert R, et al. Deliverable 3.2.
+Safety precautions in train configuration and brake
+application. Technical report, DYNAFREIGHT,
+2018. www.dynafreight-rail.eu/Page.aspx?CAT ¼DELI
+VERABLES&IdPage¼8c21c0d4-2deb-43d8-ba78-3918
+7166b2f9.
+14. Shift2Rail. FFL4E - future freight locomotive for
+Europe, 2019. https://projects.shift2rail.org/s2r_ip5_n.
+aspx?p=FFL4E (accessed 17 January 2020).
+15. Krishna VV, Berg M and Stichel S. Tolerable longitu-
+dinal forces for freight trains in tight S-curves using
+three-dimensional multi-body simulations. Proc
+IMechE, Part F: J Rail and Rapid Transit 2019; DOI:
+10.1177/0954409719841794.
+16. Cantone L and Ottati A. Methodologies for the hauled
+mass increase of freight trains in accordance with Fiche
+UIC 421. Ingegneria Ferroviaria 2015; 70: 109–128.
+17. SS-EN 14198:2016 þA1:2018. Railway applications –
+braking – requirements for the brake system of trains
+hauled by locomotives. Technical report, European
+Committee for Standardization, 2018.
+18. Persson I. GENSYS, 2018. www.gensys.se (accessed 17
+January 2020).
+19. Jo¨nsson PA. Dynamic vehicle-track interaction of
+European standard freight wagons with link suspension .
+Krishna et al. 59Doctoral Thesis, KTH Royal Institute of Technology,
+Stockholm, 2007.
+20. Stichel S. On freight wagon dynamics and track deteri-
+oration. Proc IMechE, Part F: J Rail and Rapid Transit
+1999; 213: 243–254.
+21. Di Gialleonardo E, Cazzulani G, Melzi S, et al. The
+effect of train composition on the running safety of
+low-flatcar wagons in braking and curving manoeuvres.
+Proc IMechE, Part F: J Rail and Rapid Transit 2017;
+231: 666–677.
+22. Melzi S and Grasso A. Development of a numerical
+model of railway air brake and validation against
+experimental data. J Adv Veh Eng 2018; 5: 10–17.
+23. Simpack. Dassault Syste ` mes, 2019. www.simpack.com/
+(accessed 17 January 2020).
+24. Bosso N and Zampieri N. Long train simulation using a
+multibody code. Veh Syst Dyn 2017; 55: 552–570.
+25. UIC Code 541-04. Brakes – regulations concerning
+the manufacture of brake components – self-adjusting
+load-proportional braking system and automatic
+‘‘empty-loaded’’ control device. Technical report, 2014.
+26. UIC. Simulation programme for longitudinal dynamics
+in trains – report on the development of the Traindy
+simulation programme. Technical report, 2010.
+27. Wu Q, Yang X, Cole C, et al. Modelling polymer draft
+gears. Veh Syst Dyn 2016; 54: 1208–1225.
+28. Cantone L and Ottati A. Longitudinal forces reference
+system of Trenitalia freight trains. In: Proceedings of the
+11th world congress on railway research , Milan, 2016.
+29. SS-EN 15566:2016. Railway applications – railway roll-
+ing stock – draw gear and screw coupling. Technical
+report, European Committee for Standardisation, 2016.
+30. Jobstfinke D. Overlong freight trains – challenges from
+the brake and longitudinal dynamics point of view
+(in German). ZEVrail 2019; 143: 92–100.
+60 Proc IMechE Part F: J Rail and Rapid Transit 235(1)

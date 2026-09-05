@@ -59,7 +59,7 @@ def test_fleet_env_initial_spacing():
 def test_fleet_env_step_closed_loop():
     """reset/step 闭环能跑通，且车钩力在正常量级（用温和控制，非随机动作）。
 
-    注意：缓解波（release_sync=False）下随机动作会爆车钩力（物理现象——快速切换
+    注意：缓解波下随机动作会爆车钩力（物理现象——快速切换
     制动/缓解，缓解波来不及传播，实测峰值可达19860kN），不代表真实控制。真实控制
     （第1层策略/分层）车钩力守住452kN。故用温和恒定牵引验证闭环与量级。
     """

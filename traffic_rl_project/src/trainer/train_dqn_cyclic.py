@@ -52,7 +52,6 @@ def train(
         'grade_profile': grade_profile,
         'max_steps': max_steps,
         'dt': 0.1,
-        'release_sync': True,   # DQN 学循环制动用同步缓解（与 MAPPO 第1层一致，可学）
     })
     obs_dim = 4   # [速度, 速度误差, 位置, 车钩力峰值]（对齐 Zhang2024 + 车钩力）
     agent = DQNAgent(obs_dim=obs_dim, num_actions=4, lr=lr, device='cuda')

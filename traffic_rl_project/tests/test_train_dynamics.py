@@ -36,7 +36,7 @@ from src.train_dynamics.braking import (
     FREIGHT_CONVERTED_SHOE_FORCE_KN,
 )
 from src.train_dynamics.coupler import coupler_force
-from src.train_dynamics.params import VehicleParams, LocomotiveParams, TrainConsist
+from src.train_dynamics.params import VehicleParams, LocomotiveParams, TrainConsist, sample_coupler_params
 from src.train_dynamics.train import TrainDynamics
 
 G = 9.8066
@@ -372,7 +372,7 @@ def test_b3_train_degrades_brake_over_cycles():
     """B3 集成：enable_cyclic_degrade=True 时，多段循环制动制动力逐段衰减。"""
     consist = _make_consist()
     n = consist.num_vehicles
-    td = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True)
+    td = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True, simcase='debug')
     td.set_grade(0.0)
     td.set_initial_speed(20.0)
 
@@ -408,7 +408,7 @@ def test_b3_train_degrades_brake_over_cycles():
     # 方法：分别测段2/段3 在"满升压"时的制动力峰值，比值应 ≈ 衰减因子。
     # 用一个新实例在段1/段2/段3 各测一次（同一初始速度），消除速度差异。
     def _peak_at_segment(target_segment):
-        td2 = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True)
+        td2 = TrainDynamics(consist, dt=0.1, enable_cyclic_degrade=True, simcase='debug')
         td2.set_grade(0.0)
         td2.set_initial_speed(20.0)
         for seg in range(1, target_segment + 1):
@@ -495,7 +495,7 @@ def test_l1_train_tail_gradient_weakens_rear_braking():
     n = consist.num_vehicles
 
     def _rear_to_front_ratio(tail_kpa):
-        td = TrainDynamics(consist, dt=0.1, tail_pressure_kpa=tail_kpa)
+        td = TrainDynamics(consist, dt=0.1, tail_pressure_kpa=tail_kpa, simcase='debug')
         td.set_grade(0.0)
         td.set_initial_speed(20.0)
         for _ in range(200):  # 满升压（20s > SERVICE 18s）
@@ -521,3 +521,46 @@ def test_l1_train_tail_gradient_weakens_rear_braking():
     assert r593 == pytest.approx(0.929, rel=0.15)
     # 单调：列尾压强越高 → 后部制动力越强（比值越大）
     assert r585 < r593
+
+
+# ---------------------------------------------------------------------------
+# 【E4-H 车钩异构】逐耦合 CouplerParams + sample 抽样
+def _strain_consist_dyn(dyn):
+    """给动力学造一个车钩压缩应变（压缩两耦合），使断面力非零、逐钩敏感。"""
+    n = dyn.consist.num_vehicles
+    # 压缩：每耦合 e=(back-front)+free_length = +0.1m（>死区 0.01），压缩态
+    dyn.pos = -np.arange(n) * (dyn.coupler.free_length_m - 0.1)
+    dyn.vel[:] = 5.0 / 3.6
+    return dyn.coupler_interface_forces()
+
+
+def _make_dyn(couplers=None):
+    loco = LocomotiveParams(mass_t=200.0, length_m=20.0)
+    wag = VehicleParams(mass_t=100.0, length_m=20.0)
+    consist = TrainConsist(vehicles=[loco, wag, wag])  # 3 车 → 2 耦合
+    return TrainDynamics(consist, couplers=couplers)
+
+
+def test_hetero_default_homogeneous():
+    """默认（couplers=None）→ 逐耦合参数数组全等 → 断面力与无异构一致（零回归）。"""
+    a, b = _make_dyn(), _make_dyn()
+    # 逐耦合力参数全等
+    for name, arr in a._cp.items():
+        assert np.allclose(arr, arr[0]), f"默认异构下 {name} 应全等"
+    fa = _strain_consist_dyn(a)
+    fb = _strain_consist_dyn(b)
+    assert fa.shape == (2,) and np.all(fa != 0.0)          # 压缩产生非零力
+    assert np.allclose(fa, fb)                             # 两次齐次构造力逐位一致
+
+
+def test_hetero_coupler_changes_force():
+    """同一几何/控制器下，逐车钩异构抽样 → 断面力与齐次不同（异构真实生效）。"""
+    hom = _make_dyn()
+    rng = np.random.default_rng(7)
+    het = _make_dyn(couplers=[sample_coupler_params(rng), sample_coupler_params(rng)])
+    # 异构参数确实不同
+    assert not np.allclose(het._cp['stiffness'], het._cp['stiffness'][0])
+    fh = _strain_consist_dyn(hom)
+    fv = _strain_consist_dyn(het)
+    assert np.all(fv != 0.0)
+    assert float(np.abs(fv - fh).max()) > 1e3   # 至少一个耦合力因异构显著变化（>1kN）

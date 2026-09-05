@@ -33,6 +33,9 @@ logger = logging.getLogger('TrainFleet')
 
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.physics_config import PhysicsConfig
+from src.physics_governance import SimCase, official_world_config, assert_case_allows
+from src.metadata import save_metadata
 
 
 def save_training_artifacts(
@@ -125,15 +128,16 @@ def train(
     target_speed: float = None,
     target_gap: float = 100.0,
     max_steps: int = 300,
-    v_max: float = 80.0 / 3.6,
-    v_min: float = 40.0 / 3.6,
+    v_max: float = PhysicsConfig.v_max_mps,      # 参数中心化：统一取 physics_config
+    v_min: float = PhysicsConfig.v_min_mps,
     lr: float = 5e-5,
     entropy: float = 0.005,
     batch_size: int = 64,
     epochs: int = 4,
     device: str = None,
     seed: int = 42,
-    max_accel: float = 1.0,
+    case: str = 'official',          # 【治理】SimCase.official/debug；调试物理进正式训练会被拒
+    max_accel: float = PhysicsConfig.max_accel,
     enable_disturbance: bool = False,
     disturbance_step: int = 150,
     disturbance_duration: int = 300,
@@ -151,6 +155,8 @@ def train(
                                        # （15000 步→1500 决策），rule 基线仍逐步执行
     mask_lever: str = 'none',          # 【2026-09-05 杠杆隔离消融】'none'/'ed'/'ab'：
                                        # 禁用 ed_mod（仅 AB 杠杆）或 ab_mod（仅 ED 杠杆）
+    hetero: bool = False,              # 【E4-H 车钩异构】训练在逐车钩独立参数分布上（分布内）
+    hetero_seed: int = 0,              # 车钩异构抽样 seed（训练固定；评估 held-out 用另一组）
     enable_etcs: bool = False,       # 【2026-09-03】训练时启用 ETCS（与评估 --etcs 对齐，
                                      # 消除"训练无 ETCS / 评估有 ETCS"的分布不一致）
     random_init_speed: bool = False,
@@ -189,11 +195,20 @@ def train(
         'group_obs': group_obs,     # 【方向B】全局一致性观测（修根因3）
         'decompose': decompose,     # 【ADR-009.1】逐机车电空分工模式（None=向后兼容）
         'mask_lever': mask_lever,   # 【杠杆隔离消融】'none'/'ed'/'ab'
+        'hetero': hetero,           # 【E4-H 车钩异构】True=逐车钩独立参数
+        'hetero_seed': hetero_seed,
         'enable_etcs': enable_etcs,   # 【2026-09-03】训练/评估 ETCS 对齐
     }
     if target_speed is not None:
         env_cfg['target_speed'] = target_speed
     env = make_env(env_cfg)
+
+    # 【治理】工况断言 + 元数据落盘：调试物理(衰减/列尾压/减压覆盖)进入正式训练即抛异常
+    _case = SimCase(case)
+    assert_case_allows(_case, official_world_config(PhysicsConfig()), __file__)
+    save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
+                  case=_case.value, world_cfg=official_world_config(PhysicsConfig()), seed=seed,
+                  entry=__file__)
 
     obs_dim = env.obs_dim       # 每智能体观测维度
     act_dim = env.act_dim       # 每智能体动作维度（decompose=2 [ed_mod,ab_mod]；否则=action_dim）
@@ -446,6 +461,8 @@ if __name__ == '__main__':
     parser.add_argument('--epochs', type=int, default=4)
     parser.add_argument('--device', type=str, default=None)
     parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--simcase', type=str, default='official', choices=['official', 'debug'],
+                        help='【治理】official=正式(调试物理禁入训练)；debug=调试/探针(不落正式结论)')
     parser.add_argument('--max_accel', type=float, default=1.0)
     parser.add_argument('--enable_disturbance', action='store_true',
                         help='开启领航车突发减速扰动（协同制动场景）')
@@ -481,6 +498,10 @@ if __name__ == '__main__':
     parser.add_argument('--mask_lever', type=str, default='none', choices=['none', 'ed', 'ab'],
                         help='【杠杆隔离消融】none=双杠杆；ed=禁用 ed_mod(仅 AB 杠杆)；'
                              'ab=禁用 ab_mod(仅 ED 杠杆)。训练与评估须一致。')
+    parser.add_argument('--hetero', action='store_true',
+                        help='【E4-H 车钩异构】训练在逐车钩独立参数分布上（分布内）；评估 held-out 用另一组 hetero_seed')
+    parser.add_argument('--hetero_seed', type=int, default=0,
+                        help='车钩异构抽样 seed（训练固定；评估 held-out 用另一组）')
     parser.add_argument('--enable_etcs', action='store_true',
                         help='训练时启用 ETCS 真 ATP（与评估 --etcs 对齐，消除分布不一致）')
     parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
@@ -511,6 +532,7 @@ if __name__ == '__main__':
         epochs=args.epochs,
         device=args.device,
         seed=args.seed,
+        case=args.simcase,
         max_accel=args.max_accel,
         enable_disturbance=args.enable_disturbance,
         disturbance_step=args.disturbance_step,
@@ -525,6 +547,8 @@ if __name__ == '__main__':
         decompose=args.decompose,
         decision_interval=args.decision_interval,
         mask_lever=args.mask_lever,
+        hetero=args.hetero,
+        hetero_seed=args.hetero_seed,
         enable_etcs=args.enable_etcs,
         random_init_speed=args.random_init_speed,
         init_speed_min=args.init_speed_min,

@@ -169,9 +169,6 @@ class TrainFormationEnv:
         self.grade_profile_name = config.get('grade_profile', None)  # 'long_downhill'/'gradual_to_steep'/'v_shape'
         self.enable_safety = config.get('enable_safety', True)
         self.coupler_force_limit_n = config.get('coupler_force_limit_n', COUPLER_FORCE_LIMIT_N)
-        # E7：缓解空气制动用同步（True，第1层简化物理，RL能学循环制动不掉速）
-        # 还是缓解波传播（False，第2层物理真实，保留"缓解后车钩力最大"机制）
-        self.release_sync = config.get('release_sync', False)
         # E8：可控尾车 EOT（缓解时尾部同步排风，双向缓解波，提升缓解同步性）。
         # 论文依据：Zhang2025 大秦线 20kT EOT 使最大拉钩力 780→489kN（-37%）。
         # 用于缓解波下把"缓解后车钩力"峰值降到 1000kN 以内。
@@ -189,7 +186,7 @@ class TrainFormationEnv:
             self.num_vehicles = consist.num_vehicles
         else:
             consist = default_consist(self.num_vehicles, self.num_locomotives)
-        self.dynamics = TrainDynamics(consist, dt=self.dt)
+        self.dynamics = TrainDynamics(consist, dt=self.dt, couplers=config.get('couplers'))
         # 优先使用坡度剖面（长大下坡场景），否则用恒定坡度
         if self.grade_profile_name:
             from src.train_dynamics.grade_profile import PROFILES
@@ -401,8 +398,8 @@ class TrainFormationEnv:
                 if v.is_locomotive
             ]
         self.dynamics.step_vehicles_ed_ab(
-            throttle, ed_throttle, ab_command, release_sync=self.release_sync,
-            eot=self.eot, ab_sources=ab_sources,
+            throttle, ed_throttle, ab_command, eot=self.eot,
+            ab_sources=ab_sources,
         )
 
         obs = self._get_obs()
@@ -496,8 +493,8 @@ class TrainFormationEnv:
                                         max(-proj_throttle[loco_idx], 0.0))
 
         self.dynamics.step_vehicles_ed_ab(
-            throttle, ed_throttle, ab_command, release_sync=self.release_sync,
-            eot=self.eot, ab_sources=ab_sources if ab_sources else None,
+            throttle, ed_throttle, ab_command, eot=self.eot,
+            ab_sources=ab_sources if ab_sources else None,
         )
 
         obs = self._get_obs()

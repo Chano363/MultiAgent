@@ -144,6 +144,34 @@ def profile_long_downhill_35km() -> GradeProfile:
     ])
 
 
+def profile_long_downhill_50km() -> GradeProfile:
+    """第四长下坡剖面（≈50km，**设计/边界合成线，标注 synthetic**）。
+
+    用途：第三线路/泛化/边界压力验证的**长侧边界点**，与 20km/35km 构成
+    "长度-协同增益"的多点扫掠（短 shuozhou23.8/20km → 中 35km → 长 50km）。
+
+    【关键设计：坡度剧变点】变坡点是纵向冲动/车钩力最凸显处（Wan2025 JVC、
+    常崇义2023：前后车辆坡度阻力差 → 变坡点纵向冲动/压钩力↑）。
+    - 进坡剧变点：首缀缓坡 -2‰ → 立即进入最陡 -11.5‰（坡度差 9.5‰，≤10.5‰ 樊运新约束）
+    - 出坡剧变点：最陡段 -11‰ → 凸形坡出坡 -2‰（坡度差 9.0‰，缓解时拉钩力压力区）
+    - 中部 -9.5~-11.5 多段缓变（差 ≤1.5‰），形成持续追尾压力长鼻段。
+
+    ⚠ 语义标注：synthetic（设计/外推验证线，非真实线路纵断面），不冒充真实数据。
+    坡度 sign：负值=下坡（与全局一致）。
+    """
+    return GradeProfile(segments=[
+        GradeSegment(0.0, -2.0),        # 0–1500: 起始缓坡
+        GradeSegment(1500.0, -11.5),    # 1500–6000: 剧变点①剧降进入最陡段（差9.5‰）
+        GradeSegment(6000.0, -10.0),    # 6000–14000: 下坡段
+        GradeSegment(14000.0, -11.5),   # 14000–24000: 最陡段（长鼻追尾压力区）
+        GradeSegment(24000.0, -10.5),   # 24000–36000: 下坡长段
+        GradeSegment(36000.0, -9.5),    # 36000–44000: 缓下中段
+        GradeSegment(44000.0, -11.0),   # 44000–48000: 出坡前再陡段
+        GradeSegment(48000.0, -2.0),    # 剧变点②凸形坡出坡（差9.0‰）
+        GradeSegment(50000.0, -2.0),    # 50000: 出坡尾部
+    ])
+
+
 PROFILES = {
     'long_downhill': profile_long_downhill,
     'gradual_to_steep': profile_gradual_to_steep,
@@ -151,4 +179,5 @@ PROFILES = {
     'shuozhou_23800': profile_shuozhou_23800,  # Zhang2024 复现场景
     'long_downhill_20km': profile_long_downhill_20km,  # 第二长下坡剖面（普适性）
     'long_downhill_35km': profile_long_downhill_35km,  # 第三长下坡剖面（35km，synthetic）
+    'long_downhill_50km': profile_long_downhill_50km,  # 第四长下坡剖面（50km，synthetic，剧变点/边界）
 }

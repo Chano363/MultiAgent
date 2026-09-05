@@ -88,7 +88,18 @@ Control objective: keep each locomotive's speed in $\[v\_\min, v\_\max] = \[40,8
 
 **Why this is the decisive comparison.** The three rows share the environment, the safety layer, and the rule baseline; only whether (i) power is distributed, and (ii) ED/AB are RL-modulated per locomotive changes. Every layer adds a positive, *measured* increment with zero violations — decomposing the source of the gain (architecture vs learning) rather than reporting a single black-box number. This is the diagnostic train-level "nothing-to-learn" framework could not show: the same simulator, given a real lever, transitions from "flat $-291$ k" to "+61 k train reward / +72.7 k rollout".
 
-**Generalization / recentring.** Because the policy acts on per-locomotive ED/AB (not on a train-wide band), it transfers structurally to longer sections and larger numbers of distributed-power locomotives without re-tuning the band; ablations over $N\in{5,10,20}$ and AB-cost $\in{0,0.05}$ (planned) establish the margins of the semi-MDP and the reward shape.
+**Generalization / recentring.** Because the policy acts on per-locomotive ED/AB (not on a train-wide band), it transfers structurally to longer sections and larger numbers of distributed-power locomotives without re-tuning the band; ablations over $N\in\{5,10,20\}$ and AB-cost $\in\{0,0.05\}$ (planned) establish the margins of the semi-MDP and the reward shape.
+
+**Ablation — lever isolation (which lever carries the gain).** We reran full training (seed0, same protocol) with one modulation masked during training (`mask_lever`), isolating the causal contribution of each lever (best-checkpoint eval; all zero violations, band ≈ 100 %):
+
+| Method | reward | coupler peak (kN) | AB steps | mean ED | final (km/h) |
+| :----- | -----: | ----------------: | -------: | ------: | ------------: |
+| **M1 both levers** (seed0 best) | +73,733 | 578 | 4,807 | 0.34 | 53.5 |
+| only-ED lever (mask ab) | +71,932 | **528** | **0** | 0.70 | 45.1 |
+| only-AB lever (mask ed) | **+74,634** | 702 | **5,960** | 0.05 | **71.0** |
+| M0 rule (no levers) | +71,252 | 720 | 461 | 0.67 | 41.7 |
+
+The two levers serve distinct objectives: the **ED lever is the coupler-safety lever** — ED-only reaches the *lowest* coupler peak (**528 kN**, 27 % below M0) with zero AB and band 100 %, so the coupler reduction of M1 vs M0 comes chiefly from ED-depth shaping, not from AB. The **AB lever is the throughput lever** — AB-only rides the speed-band ceiling (final **71.0 km/h**, heavy phased AB ~5,960 steps, near-zero ED) and scores the *highest* scalar reward (+74,634), at the cost of higher coupler (702 kN). M1 (both levers) is the compromise — 578 kN, +73,733, final 53.5 km/h — jointly minimizing coupler and holding throughput. **Honest caveat:** only-AB outperforms M1 on the raw scalar reward, i.e. the current reward-shaping rewards high-speed band-riding air-braking; we therefore do *not* claim M1 is the scalar-reward optimum, but the best **coupler–throughput balance** among safe (zero-violation) editors. Reshaping to penalize heavy AB (impulse/energy, not a linear cost) is a stated follow-up.
 
 ***
 

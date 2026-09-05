@@ -126,3 +126,33 @@ class TrainConsist:
     @property
     def locomotive_indices(self) -> list:
         return [i for i, v in enumerate(self.vehicles) if v.is_locomotive]
+
+
+def sample_coupler_params(rng, base: CouplerParams = None,
+                          force_scale: tuple = (0.85, 1.15)) -> CouplerParams:
+    """逐车钩物理参数异构抽样（实例异构，E4-H 泛化卖点）。
+
+    在一个车钩内独立扰动**力相关的物理参数**：stiffness/preload_n/friction_n/
+    coupler_gap_m/stroke_m/rigid_stiffness_nm 各乘 [force_scale] 内的均匀抽样因子。
+    布局与饱和不扰动：free_length_m（决定静止间距/编组尺度）与 max_impulse_n
+    （缓冲器饱和上限）保持不变，避免破坏编组布局与安全。
+
+    rng：numpy random Generator（调用方须传已 seed 的 rng，如 np.random.default_rng(seed)，
+    保证评估可复现；held-out 用不同 seed 即可得到训练未见参数）。
+    base：None 用文献标定基值 CouplerParams()。
+    """
+    b = base if base is not None else CouplerParams()
+    lo, hi = force_scale
+    f = lambda x: float(x * rng.uniform(lo, hi))
+    return CouplerParams(
+        stiffness=f(b.stiffness),
+        preload_n=f(b.preload_n),
+        friction_n=f(b.friction_n),
+        coupler_gap_m=f(b.coupler_gap_m),
+        stroke_m=f(b.stroke_m),
+        rigid_stiffness_nm=f(b.rigid_stiffness_nm),
+        friction_v_eps=b.friction_v_eps,
+        damping=b.damping,
+        free_length_m=b.free_length_m,
+        max_impulse_n=b.max_impulse_n,
+    )

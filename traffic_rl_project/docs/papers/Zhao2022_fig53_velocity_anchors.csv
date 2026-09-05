@@ -1,0 +1,5 @@
+section,start_km,start_speed_kmh,release_km,release_speed_kmh,grade_max,brake_time_s,release_time_s
+0_test,20.52,65,23.69,38,-10,212,183
+1,25.93,62,42.34,42,-12,946,226
+2,44.93,45,66.41,40,-12,1358,219
+3,68.69,46,83.79,57,-12,918,273
