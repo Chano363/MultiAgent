@@ -43,6 +43,7 @@ class MultiLocoController:
         coupler_force_limit_n: float = COUPLER_FORCE_LIMIT_N,
         enforce_coupler: bool = True,
         ed_priority: bool = True,
+        mask_lever: str = 'none',
     ):
         self.num_vehicles = num_vehicles
         self.loco_indices = list(loco_indices)
@@ -52,6 +53,13 @@ class MultiLocoController:
         self.coupler_force_limit_n = coupler_force_limit_n
         self.enforce_coupler = enforce_coupler
         self.ed_priority = ed_priority  # 电空分工：ED 优先打满，ED 不足才引 AB
+        # 【2026-09-05 杠杆隔离消融】mask_lever∈{'none','ed','ab'}：
+        #   - 'none'：两根杠杆（ed_mod/ab_mod）都生效（默认，一致性不变）
+        #   - 'ed'  ：禁用 ed_mod（仅 ab_mod 生效）→ 验证"AB 错峰杠杆"的独立贡献
+        #   - 'ab'  ：禁用 ab_mod（仅 ed_mod 生效）→ 验证"ED 深度杠杆"的独立贡献
+        # 训练与评估须用同一 mask（train_fleet --mask_lever / evaluate_decompose
+        # --mask_lever），否则策略与掩码失配。
+        self.mask_lever = mask_lever
         self._safety = SafetyLayer(
             num_vehicles=num_vehicles,
             coupler_force_limit_n=coupler_force_limit_n,
@@ -217,6 +225,11 @@ class MultiLocoController:
         for i in range(self.num_locomotives):
             ed_mod = float(np.clip(rl[i, 0], -1.0, 1.0))
             ab_mod = float(np.clip(rl[i, 1], -1.0, 1.0))
+            # 【杠杆隔离消融】按 mask 禁用对应调制（值为 0 → 该维度不可改变基线）：
+            if self.mask_lever == 'ed':
+                ed_mod = 0.0   # 仅 AB 杠杆生效（ab_mod-only）
+            elif self.mask_lever == 'ab':
+                ab_mod = 0.0   # 仅 ED 杠杆生效（ed_mod-only）
             final[i, 0] = float(np.clip(baseline[i, 0] + ed_mod_coef * ed_mod, 0.0, 1.0))
             if baseline[i, 1] < 0 and ab_mod > 0.5:
                 # 抑制本机车 AB 源：仅当远离超速裕量才生效（保住"AB 兜底"安全性）

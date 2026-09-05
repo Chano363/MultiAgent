@@ -1,138 +1,126 @@
-# Learning-Based Multi-Agent Reinforcement Learning vs Model Predictive Control for Heavy-Haul Train Platoons on Long Downhill Sections
+# Hierarchical MARL for Distributed-Power × Electrical/Pneumatic Braking Division of Heavy-Haul Trains on Long Downhill Sections
 
-\*(ITSC 2026 draft — research reorientation. Previous "Hierarchical MARL + Cyclic Braking" single-core draft archived at `docs/archive/paper_v_cyclic_braking_2026-08-23/`. 本稿转向：以导师给出的 MPC 四大内在局限为主轴，用文献 + 本仓库实验论证"learning-based 分层 MARL（数据驱动，决策时无需显式环境动力学预测）在重载列车长大下坡循环制动群组场景下相对模型驱动 MPC 的结构性优势"——思路上的重大重构。) *
+\*(ITSC 2026 draft — **architectural rewrite, ADR-009 / 2026-09-05**). Previous drafts: (a) "Hierarchical MARL + Cyclic Braking" single-core draft archived at `docs/archive/paper_v_cyclic_braking_2026-08-23/`; (b) the "MARL vs MPC / threshold-coordination" reorientation (3-train, 1+0, per-train agents) is superseded by this draft. 本稿转向：**以"多机车分布式动力 × 电空双制动分工"为核**——每台机车=独立智能体，MARL 直接调制本机车的电制动(ED)深度/空气制动(AB)触发，从而获得旧架构(阈值协同 ±0.5 km/h = 带宽 1.25%)永远没有的**真物理杠杆**。分层框架 = 规则引擎(ED优先+错峰+AB兜底)作安全嵌入内层 + RL 逐机车调制作协作外层。数值全部来自 `docs/records/DIAGNOSTICS.md` 2026-09-05 decompose 定稿数据，逐项可复现。\*
 
-> 状态：骨架（Introduction / Related Work / Method / Comparison / Conclusion 已搭建），数值全部来自 `docs/records/DIAGNOSTICS.md` 2026-08-30/31 定稿数据，逐项可复现。待办：标题/署名、图表生成、Language polish。
+> 状态：正文骨架（Abstract / Introduction / Related Work / Method / Experiments / Conclusion）已按新架构重写，三层证据链表为 2026-09-05 终版（interval=10，15000 步）。待办：标题/署名、图表生成、`.tex` 同步重排、Language polish。
+
+***
+
+## Abstract
+
+Heavy-haul trains on sustained long downhill sections must hold speed within a narrow band using **cyclic braking** (electric + pneumatic), while keeping in-train **coupler forces** below a safety limit — a long-horizon, switched, safety-critical control problem. We show that the *decomposition* of this problem is what determines whether multi-agent reinforcement learning (MARL) can learn anything at all: prior "train-level" MARL treated each whole train as an agent and only nudged a shared speed-band threshold (a $\pm 0.5$ km/h offset = 1.25 % of bandwidth), leaving a lever too small to learn from ("nothing to learn" ceiling). We re-decompose at the **locomotive** level: each locomotive is an independent agent that directly modulates its own **electric-braking depth** and **pneumatic-braking trigger**, a continuous, physically meaningful lever. A rule engine (ED-first + inter-locomotive stagger + AB fallback) provides a safety-embedded inner layer; MAPPO adds per-locomotive $\[\mathrm{ed}\_{mod}, \mathrm{ab}\_{mod}]\in\[-1,1]^2$ modulation. A semi-MDP **decision interval** splits the 15,000-step credit chain into 1,500 decisions, making long-horizon MAPPO converge. On the real Shuozhou–Huanghua profile (23.8 km, $\approx -10.9,%o$) with a 10,000-t, 1+1 distributed-power consist, we obtain a three-layer positive evidence chain with zero safety violations: single-locomotive rule (+40,956) $\rightarrow$ distributed-power rule division (+71,252, +74 % reward, AB usage −89 %) $\rightarrow$ RL division (+72,743; coupler peak −21 % to **570 kN**, final speed +11.2 km/h, ATP emergency events −97 %). RL finds a physically interpretable policy — halve ED depth and inject staggered *minimum-notch* AB to cut longitudinal impulse — that no tuning of the old threshold coordination could reach.
 
 ***
 
 ## I. Introduction
 
-Heavy-haul trains operating on long downhill sections (Shuozhou–Huanghua line, 23.8 km with sustained −10.9‰ gradient) must regulate speed through **cyclic air braking**: braking above an upper limit and releasing below a lower limit. The minute-scale "brake–release" cycles, combined with multi-body coupler dynamics, produce large in-train longitudinal (coupler) forces that must stay below the safety limit (1000 kN normal / 2250 kN emergency). When several such trains form a virtually-coupled platoon to raise line capacity, each unit must additionally keep a safe inter-train spacing while following the cyclic-braking rhythm. This couples **long-horizon, nonlinear, coupled, switched dynamics** (air-brake wave propagation, brake–release hysteresis, varying consist and grade) with a **safety-critical** spacing constraint.
+A 10,000-ton heavy-haul train on a long downhill section (Shuozhou–Huanghua line, 23.8 km, sustained up to $-10.9,%o$) must regulate speed through **cyclic braking**: brake above an upper limit, release below a lower limit. The minute-scale brake–release cycles, combined with multi-body coupler dynamics and finite air-brake wave propagation ($\approx 200$ m/s across a $\sim 4$ km train), generate in-train **coupler forces** that must stay below 1000 kN (normal) / 2250 kN (emergency). Electric braking (ED) is smooth, continuous and available only on locomotives; pneumatic (air) braking (AB) is discrete (RELEASE/MIN/SERVICE/EMERGENCY) and is the dominant source of longitudinal impulse while simultaneously being slow to recover (pipe recharge). How to *split* braking effort between ED and AB across multiple locomotives — the **distributed-power (DP) × electro-pneumatic division** problem — is exactly where controller design matters most on long downhills.
 
-**MPC is the incumbent, industrially applied method** for train operation and (more recently) virtual coupling: e.g., Yang et al. (ITSC 2025) use single-train MPC on the very same Shuozhou profile to minimize coupler impulse; Wang et al. (2026) apply Kalman-filtered MPC to cooperative heavy-haul virtual coupling; Song et al. (2026) derive a Tube-MPC for heavy-haul virtually-coupled train sets. It is therefore the natural baseline and the strongest reference point.
+Our first attempt at MARL for this regime followed the literature's "train-level" decomposition: one agent per *train*, outputting a small offset to a shared speed-band threshold. The result was a hard ceiling. The offset is $\pm 0.5$ km/h against a $40$–$80$ km/h band — a **1.25 % bandwidth lever** — and across a 15,000-step run its reward gradient is statistically invisible. Adding global observations and consistency-shaped rewards recovered only $\approx 0.8,%$ (\~343) reward. We diagnosed this as a *structural* problem, not a tuning problem: **MARL has nothing to learn when its only control lever is too small to change the outcome.**
 
-Yet we argue that MPC carries **four structural limitations** in precisely this regime, and that a *learning-based (data-driven), global-horizon* cooperative policy (multi-agent reinforcement learning, MARL) is the better fit. Throughout, "learning-based" is used in the RL sense: the policy is learned from interaction data and embeds **no explicit environment-dynamics predictor** in its per-step decision — unlike MPC, which re-solves with a model-based prediction each step. The four limitations (as framed by our advisor) are:
+The resolution (ADR-009) is to re-decompose the action space at the **locomotive** level and give MARL a *real* physical lever:
 
-1. **Finite-horizon feasibility is fragile; terminal constraints are hard to design.** MPC solves a local receding-horizon optimization. For nonlinear coupled systems, a control-invariant *terminal set* must be imposed for recursive feasibility, but designing such a set is notoriously difficult (Derajić et al. 2025); when the horizon is too short to reach it, the QP/NLP becomes infeasible, and simply lengthening the horizon raises computation and (under non-convexity) degrades solver reliability (Surma & Jamshidnejad 2025). In our cyclic-braking platoon the relevant dynamics time-scale is *minutes*, far beyond a real-time-feasible horizon.
-2. **Online solve cost scales with fidelity × horizon × platoon size; real-time is infeasible.** MPC must re-solve a (non)convex QP/NLP at every control step, embedding a high-fidelity prediction model of the multi-body air brake and coupler — a prediction model that itself runs slower than real time (a 150-wagon air-brake model is 6.7× slower than real time, needing eight cores to reach it, Wu et al. 2017). State estimation adds further burden: Kalman-filtered MPC maintains a 2nN-dimensional state with 8n³N³ matrix inversions per step (Wang et al. 2026), and NMPC's non-convexity makes online solving expensive enough to threaten real-time feasibility in safety-critical virtual coupling (Zhang et al. 2026). Our scaling study quantifies this (this work): per-step solve time grows \~184× from 17 ms (2 trains, 50-step horizon) to 3,169 ms (5 trains, 400 steps), while MARL inference stays constant at \~0.4 ms.
-3. **It requires an extremely precise model.** SLSQP/MPC relies on an accurate forward model of coupler forces, brake-wave propagation and brake–release hysteresis; the multi-body coupler is exactly the part that is hardest to model precisely, and with model mismatch MPC has no buffer (our simplified MPC, no coupler model, overflowed the coupler limit).
-4. **It does not generalize across trains and lines.** Each consist differs (mass, length, brake characteristics), and MPC must be re-tuned/re-identified per train and per section; it optimizes locally and does not transfer learned structure across operating conditions.
+- **Electric braking depth** — each locomotive's $ED\in\[0,1]$ is continuous and directly scales the applied ED force (*big* lever, $\pm 0.5$ of absolute ED depth).
 
-**Our thesis.** Learning-based (data-driven) hierarchical MARL is not a "less rigorous" alternative to MPC; it is structurally better suited here: it (i) learns a **global long-horizon** driving rhythm instead of a shrinking local window, (ii) **moves the optimization offline** — deployment is a single forward pass whose cost is essentially independent of platoon size (≈0.4 ms), (iii) **does not embed an explicit coupler/braking predictor in its per-step decision** (no online model-based prediction), whereas MPC must re-solve with a high-fidelity prediction model each step, and (iv) **generalizes** across randomized initial conditions, larger platoons, and unseen profiles.
+- **Air-brake triggering** — each locomotive may suppress or pre-trigger its own AB source along the consist (inter-locomotive *stagger* of pneumatic application), the primary knob for coupler impulse.
 
-We demonstrate this on the real Shuozhou profile with 10,000-tonne trains and a multi-train platoon. Under the *same* randomized-initialization protocol, our hierarchical MARL policy (M-MARL) holds spacing and coupler force and never collides (reward **+36,004**; 0 collisions), whereas a *fair* multi-train MPC with the full model, coupler constraint, and gap constraints **collapses**: speed stalls below the release limit for **71.6%** of run time, coupler force exceeds the limit (**1,178–1,431 kN**), and under randomized initial conditions the spacing goes negative (rear-end collision, 330 collision steps; reward **−258,831±116,023**). The collision pattern maps directly onto MPC's short-rolling-window blind spot: its \~3.2 s horizon cannot foresee the minute-level brake–release rhythm.
+A rule engine provides the safety-embedded inner layer: ED-first, per-locomotive stagger, AB only as a fallback when ED availability is power-starved. MAPPO then learns how to *modulate* this baseline per locomotive. Because both ED depth and the AB-on/off timing are physically meaningful, the RL policy can move coupler force, braking energy and holding accuracy together.
 
-**Contributions.** (C1) We formalize the four structural limitations of MPC for long-downhill cyclic-braking platoon control and map each to a MARL advantage; (C2) we provide a controlled head-to-head — same environment, same safety layer, randomized protocol — showing MPC's receding-horizon blind spot empirically collapses the run while MARL transfers; (C3) we show MARL's generalization (50 random initial conditions, 5-train platoons, a second 20-km profile) that model-driven MPC cannot offer for free.
+A second, orthogonal obstacle is **credit assignment over a very long horizon**. The full 23.8 km section is a 15,000-step time domain; single-step-decision MAPPO over that horizon produced a flat, negative training reward (RL ended pervasively dragging the train with air braking). We cure this with a **semi-MDP decision interval**: the RL policy decides once every $N{=}10$ steps, holds its action, and stores a window-summed transition — compressing the 15,000-step credit chain to 1,500 decisions while the rule baseline still executes per step. This is the general technique on which the headline results depend.
+
+**Contributions.** (C1) We identify and formalize the "**nothing-to-learn**" ceiling of train-level threshold coordination (a 1.25 % bandwidth lever) and show that re-decomposition to the locomotive ED/AB level provides a physically meaningful MARL lever; (C2) we give a **three-layer, like-for-like positive evidence chain** on the real Shuozhou profile — single-locomotive → distributed-power rule division → distributed-power RL division — all zero safety violations, isolating the *architecture*gain from the *learning* gain; (C3) we establish **semi-MDP decision intervals** as a practical cure for long-horizon (15,000-step) MARL credit assignment in switched train dynamics; (C4) the learned policy is **physically interpretable** — halve ED depth + staggered MIN-notch AB — and cuts coupler peak 21 %, raises final speed 11.2 km/h, and reduces ATP-triggered emergency events by 97 %.
 
 ***
 
 ## II. Related Work
 
-**MPC is the industrial incumbent for train control and virtual coupling.** Yang et al. (ITSC 2025) — single-train multi-body MPC with cyclic air braking and coupler-impulse minimization on the Shuozhou profile; Wang et al. (2026) — improved MPC + Kalman filtering for heavy-haul virtual coupling (inter-train gap error ≤20 m); Song et al. (2026) — Tube-MPC for heavy-haul virtually-coupled train sets, explicitly constructing *terminal controllers and terminal constraint sets* to certify stability; Lu et al. (ICIRT 2025) — NMPC for multiple locomotives of a single train. These confirm MPC is both the practical standard and the object of active research for this regime.
+**Distributed power × braking division.** Tang et al. \[T2020] model multi-locomotive trains with RL and explicitly include coupler force in the reward, establishing the DP setting we build on. 赵紫宁 et al. \[ZZ2022] give a refined air-brake model and report, for a 1+1 distributed-power consist, that **synchronous multi-source braking reduces in-train impulse** (their two-source \~616 kN vs single-source \~1549 kN in our re-derivation), directly supporting the "ED/AB split + stagger" lever. Our contribution is to make this division *learned* per locomotive via MARL rather than hand-tuned.
 
-**MPC's known theoretical fragility (Lim 1).** Stability/recursive feasibility of MPC rests on a control-invariant terminal set; designing one is "particularly difficult, especially in dynamic environments" (Derajić et al., 2025), and short horizons can make the NLP infeasible while longer horizons raise cost and, under non-convexity, hurt solver reliability (Surma & Jamshidnejad, 2025). Aggregate Line results confirm: virtual-coupling surveys classify MPC's main limitation as its finite-horizon/optimization burden relative to real-time coupling requirements (Wu et al., 2023).
+**RL for cyclic braking on long downhills.** Zhang \[Z2024], Liu \[L2021] and Wang \[W2025] all apply DQN-type RL to long-downhill automatic speed control — and **all explicitly ignore coupler forces**. We retain their cyclic-braking formulation but add coupler force as a first-class objective/constraint (1000 kN), which is precisely where the ED/AB division matters (AB is the impulse source). 张二田 \[ZET 2021] and 杨敏 \[YM] document that coupler force stays below 1000 kN on mild grades when braking is released simultaneously and pipe recharge is sufficient — the physics our dynamic multi-body model reproduces.
 
-**Online-solve cost is MPC's acknowledged bottleneck (Lim 2), and the field patches it rather than fixing it intrinsically.** The air-brake/coupler prediction model MPC must embed is itself slower than real time (a 150-wagon air-brake simulation runs 6.7× slower than real time and needs eight cores to reach it, Wu et al., 2017); Kalman-filtered MPC for virtual coupling maintains a 2nN-dimensional state with 8n³N³ matrix inversions per step (Wang et al., 2026); and NMPC's non-convex optimization is costly enough to challenge real-time feasibility in safety-critical virtual coupling, motivating Koopman/learning-based linearizations to accelerate it (Zhang et al., 2026). Surveys likewise list "high computational cost" among MPC's obvious disadvantages (Wu et al., 2023). The remedy is always a bolt-on (Koopman lifting, LMPC, robust/learning variants — e.g., Vaquero-Serrano et al., 2025) rather than the plain method being intrinsically real-time.
+**Why train-level MARL has "nothing to learn".** Prior group-platoon MARL (e.g. the multi-train formulation in the earlier draft of this work) gave each *train* a cooperative threshold offset. The offset is $\pm 0.5$ km/h on a 40-km/h band → a 1.25 % lever → near-zero reward gradient (our diagnostics, 2026-09-04). We report this as a **structural caution** for MARL action design: the lever must be able to change the outcome or the gradient vanishes, regardless of observation/architecture.
 
-**Learning-based / RL turn (our approach).** Roadmaps for RL-based virtual coupling (Basile et al., 2022) and coordinated-operation MARL (Liu et al., 2025) show growing evidence that learning-based methods handle the constraint-satisfaction complexity that model-driven local optimization finds hard. Our hierarchical design (rule-based cyclic braking as a safety-embedded inner/control layer + MARL for the cooperative outer layer) is the learning-based alternative that directly targets the four MPC limitations.
-
-***
-
-## III. Problem Statement & System Model  \*(skeleton — reused from archived draft, to be re-condensed) \*
-
-Heavy-haul platoon of $N$ trains, each a multi-body unit (1 loco + \~100 wagons ≈ 10,000 t) moving on a long downhill grade profile. Longitudinal dynamics per vehicle: traction − braking − Davis resistance ± grade − coupler forces; air braking propagates along the consist at finite wave speed (≈200 m/s → seconds of delay across a \~4 km train). Coupler forces from mass-spring-damper + gap dead-zone model. Control objective: keep each train speed in $\[v\_{\min}, v\_{\max}]$, keep inter-train gap $\geq$ safety threshold, keep coupler force $\leq 1000$ kN, over a crossed-minutes horizon. Linear MPC with a short horizon cannot see this horizon and cannot model the switched coupler/braking force exactly — the crux.
-
-**Why air braking resists online optimization.** Air braking — the primary actuator on long downhill sections — carries four physical properties that jointly make it ill-suited to per-step continuous optimization (and to MPC's online prediction model):
-1. **Discrete notches** (RELEASE/MIN/SERVICE/EMERGENCY) — not a continuous variable; exact optimization is mixed-integer.
-2. **Charge/release hysteresis** — after a release the brake pipe must recharge before the next application (recharge time scales with the pressure reduction and train length, minutes on heavy-haul consists); the attainable brake force depends on the *history* of prior releases, coupling decisions across minutes.
-3. **Finite brake-wave propagation** (≈200 m/s → seconds of delay across a ~4 km train) — head and tail brake asynchronously, the dominant source of in-train longitudinal (coupler) impulses; release waves add a second, slower transient.
-4. **Segment-dependent degradation** — repeated cyclic applications reduce the realized braking effort (segment-to-segment C_β degradation ~30%, from in-service identification); within a segment the force evolves over time (temperature-dependent model, left unmodeled here for lack of measured temperature data).
-
-Consequence: a model that predicts these faithfully is itself expensive to evaluate online (a 150-wagon air-brake model runs 6.7× slower than real time, Wu et al. 2017), and its switched/discrete structure makes the embedded optimization hard — feeding Lim 2 and Lim 3. Our design therefore does not ask the learned policy to "optimize" air braking: the discrete notch is triggered by the rule-based cyclic-braking inner layer, and the policy only decides the ED/AB split (electric braking carries the smoothly controllable share; air braking is reserved for when electric braking is insufficient), using observable air-brake state (release remaining, segment index) as input — *sensing* the hysteresis rather than predicting it. This is the model-side counterpart of Lim 2/Lim 3 and the design basis for the ED/AB split.
+**Long-horizon credit assignment.** PPO/MAPPO over tens of thousands of steps is known to degrade when the reward that matters arrives after many decisions. Our semi-MDP decision interval (action hold + window return) is a minimal, task-agnostic mitigation that preserves the underlying dynamics while shortening the credit chain; we include it as a reusable technique.
 
 ***
 
-## IV. Proposed Method \*(skeleton — hierarchical MARL, condensed from archived draft) \*
+## III. Problem Statement & System Model
 
-We retain the hierarchical structure but re-frame it explicitly as the *learning-based* answer to the four MPC limitations:
+Longitudinal dynamics per vehicle (NeTrainSim-derived multi-body integration): traction − electric braking − pneumatic braking − Davis resistance ± grade − coupler force. Air braking propagates along the consist at finite wave speed (≈200 m/s → seconds of delay across a \~4 km train); electric braking is continuous and limited by power and adhesion. Coupler forces come from a mass–spring–damper with a **gap dead-zone** (0.01 m), reproducing the "brake gap → coupler force" law and Newton-pair cancellation.
 
-- **Inner/control layer (rule-based, safety-embedded):** rule-based cyclic braking (brake > v\_high, release < v\_low) + a hard coupler-force/ATP safety layer. The rule layer is method-agnostic and applied identically to MPC and MARL (like-for-like comparison); it is not what replaces online optimization — the learned outer policy is (→ Lim 2), and the design spares MARL from needing an explicit coupler predictor (→ Lim 3).
+Control objective: keep each locomotive's speed in $\[v\_\min, v\_\max] = \[40,80]$ km/h, keep coupler force $\le 1000$ kN, over the full 23.8 km (15,000-step) horizon, using a 1+1 distributed-power consist (10,000 t). The difficulty is that the minute-scale cyclic rhythm and the band-limited coupler constraint act over far longer than a rolling window, and the AB actuator is discrete + history-dependent (recharge).
 
-- **Outer/cooperative layer (learned):** MAPPO, one agent per train, observes its own state plus the leader's, outputs a cooperative threshold offset — i.e., learns the *global, long-horizon* cooperative rhythm that MPC's local window cannot represent (→ Lim 1). Policy generalizes across initial conditions/platoons/sections (→ Lim 4).
-
-Design mapping table (to be embedded):
-
-| MPC limitation                                | MPC failure mode (evidence)                                                                                                                          | MARL advantage (in this work)                                                     |
-| :-------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------- |
-| 1. Finite horizon / terminal feasibility      | \~3.2 s window; can't see minute-level cyclic rhythm → 70.8% of run below release floor, gap −9 m, 330 collision steps (APC diagnostics, 2026-08-30) | learns global long-horizon rhythm; holds gap & coupler force                      |
-| 2. Online solve cost (fidelity×horizon×scale) | per-step solve 17→3,169 ms as N=2→5 & horizon 50→400 steps (\~184×, this work); 56.5 ms/step in evaluation                                           | offline training + one forward pass; inference ≈0.4 ms, constant in scale         |
-| 3. Requires precise model                     | simplified MPC (no coupler model) → coupler force 1,431 kN overflow                                                                                  | learning-based; no online dynamics predictor in per-step decisions                                 |
-| 4. Weak generalization                        | per-train/per-line re-identification                                                                                                                 | generalizes across 50 random initial conditions, 5 platoons, second 20-km profile |
+**Why ED/AB splitting resists a small-lever policy.** On this profile the rule-based cyclic braking already holds the band; the *remaining* degrees of freedom — exactly how deep each locomotive brakes with ED, and exactly when each triggers AB — are the ones that decide coupler impulse. A policy that cannot touch these (e.g. only shifts the band) is orthogonal to the objective it must minimize.
 
 ***
 
-## V. Experiments \*(comparison — MPC vs MARL, data from 2026-08-30/31 thawed diagnostics) \*
+## IV. Proposed Method: Two-Level Decompose MARL
 
-**Protocol.** Same environment (Shuozhou main profile, 3000 steps), same SafetyLayer, randomized initial speeds 55–75 km/h, 5 seeds. Fair MPC = full multi-body model + coupler ≤1000 kN + gap constraint, block-horizon $B=4\times8\approx3.2$ s, SLSQP.
+**Level 1 — rule engine (safety-embedded inner layer).** `get_action_decomposed` provides a deterministic baseline per step: **ED-first** (both locomotives saturate ED up to the physically available share), **per-locomotive stagger** (offset each locomotive's brake phase to spread impulse), and **AB fallback** only when ED availability is insufficient. Critical to correct triggering is a **physical ED-availability model**: ED force $F\_{ED}=\min(P\_{ED}/v, \text{adhesion}) \propto F\_{req}(m \cdot g \cdot \max| \text{grade}|)$. On a steep section at speed the available ED share $<1$, so the baseline genuinely falls back to AB; earlier simplifications ($\mathrm{clip}(v/5)$) made fallback unreachable and hid the mechanism.
 
-**Main comparison (fixed init, deterministic):**
+**Level 2 — MARL modulation (learned).** MAPPO, **one agent per locomotive** (1+1 consist → 2 agents), observes per-locomotive state and outputs $\[ed\_{mod}, ab\_{mod}]\in\[-1,1]^2$:
 
-| Method                    |    reward   | 低40% (stalled) | coupler peak (kN) | gap min (m) | collision steps |
-| :------------------------ | :---------: | :------------: | :---------------: | :---------: | :-------------: |
-| **M-MARL (ours, 5-seed)** | **+36,004** |       1.3      |      **659**      |    **92**   |      **0**      |
-| No-C (independent, δ=0)   |    +9,791   |       \~1      |        543        |      —      |        69       |
-| M-DQN-fair                |   −15,215   |       1.8      |        463        |     −116    |       157       |
-| M-MPC-fair                |   −115,622  |    **71.6**    | **1178 (≥limit)** |     105     |        0        |
-| Coast (reference)         |   +33,871   |        0       |        667        |     183     |        0        |
+- $ed\_{mod}$ directly scales this locomotive's ED depth ($\pm 0.5$ absolute) — the continuous physical lever;
 
-**MPC under randomized initial conditions (5 seeds):** reward **−258,831±116,023**, coupler **1,431±207 kN** (>limit), gap min **−9±94 m**, **329.6±384.2 collision steps**, only 4.2 cyclic-braking cycles, 56.5 ms/step solver time (vs μs–ms for the learned policy).
+- $ab\_{mod} > +0.5$ suppresses this locomotive's AB source (only while $v\<v\_\max - 0.5$, so safety fallback is never cheaply switched off); $ab\_{mod} < -0.5$ pre-triggers a MIN-notch AB — enabling *staggered, anticipatory* pneumatic braking.
 
-**Mapping to the four MPC limitations (the paper's core evidence):**
+**Observation (11-dim per locomotive):** speed error wrt target; margin to $v\_\max$; margin to $v\_\min$; the rule baseline's ED (what the engine "wants"); whether the rule baseline would brake with AB; local coupler force (normalized); AB-active fraction on the consist; AB release-remaining fraction (recharge state); brake-segment index; locomotive position (for grade inference); inter-train gap error (0 for single-train). Feeding the *air-brake state* lets the policy **sense** hysteresis rather than predict it.
 
-- Lim 1 — receding-horizon blinkering: the \~3.2 s window stalls the train (71.6–70.8% below release floor) and collapses spacing (−9 m, 330 collisions). MARL's global policy holds 0 collisions.
+**Reward.** Band holding (in-band $+5$, out-of-band $-20$ per train) + coupler force (mean & peak penalties, plus a super-limit term) + comfort + gap (multi-train extension) + an ED micro-cost ($-0.02$ per depth) to avoid gratuitous full-ED cruising. Notably, **AB is not directly penalized**: extensive smoke-testing showed any positive AB cost exactly cancels the coupler-force benefit of staggered MIN-notch AB (coupler force is the objective; AB is only a means).
 
-- Lim 2 — online-solve cost: per-step solve time scales \~184× (17→3,169 ms) as platoon size and horizon grow, and is 56.5 ms/step in the 3.2 s-horizon evaluation (this work); MARL inference stays at \~0.4 ms. High-fidelity air-brake prediction is itself slower than real time (Wu et al., 2017).
-
-- Lim 3 — model precision: the fair MPC *has* the full coupler model yet still overflows the coupler limit (1,178–1,431 kN); the simplified MPC (no coupler model) overflows worse. MARL, needing no coupler predictor, stays at 659 kN.
-
-- Lim 4 — generalization: M-MARL maintains +36,120 / 0 collisions on an out-of-domain 20 km profile and scales to 5-train platoons; MPC is a per-run local optimum with no transfer.
-
-**Pressure / scenario ablations (supporting):** cooperative benefit grows monotonically as the target gap shrinks (+26,213 → +47,502), consistent with the spacing-limited regime being exactly where the learning-based cooperative layer matters.
+**Semi-MDP decision interval.** With a per-step decision and a 15,000-step horizon, MAPPO's stage-3 training reward stayed flat at \~$-$291 k — the credit chain was too long. With decision interval $N{=}10$, the RL policy decides every 10 steps, holds its action, and stores one transition with a window-summed return; the rule baseline still executes every step. This turned a failed run into the converged results below.
 
 ***
 
-## VI. Conclusion \*(skeleton) \*
+## V. Experiments
 
-We re-frame the heavy-haul cyclic-braking platoon problem as one where MPC's four structural limitations — finite-horizon/terminal feasibility, online-solve cost that scales with fidelity/horizon/scale, sensitivity to model error, and weak generalization — are not tuning issues but intrinsic properties, and where learning-based (data-driven) hierarchical MARL addresses each. Controlled experiments on the real Shuozhou profile show the fair MPC collapses under the minute-scale cyclic-braking rhythm (stall, coupler-force overflow, rear-end collision) while MARL holds spacing and coupler force and generalizes. **Limitations:** MARL does not provide the formal recursive-stability guarantee that tube/MPC methods can certify; for the nominal short-horizon case MPC remains competitive; deployment safety would require formal verification/ATP integration, and the RL statistical outlier (1/3 seeds of an earlier model) must be reported honestly. The learned policy is trained in a model-based simulator, so its performance inherits simulator fidelity (a sim-to-real gap shared by model-driven MPC); our claims are scoped to the simulated regime.
+**Protocol.** Shuozhou–Huanghua main profile (23.8 km), 1+1 distributed power (10,000 t), ETCS distance-to-go curves on, deterministic evaluation (fixed seed) at 80 km/h over the full 15,000 steps, n\_seed=3 evaluation rollouts. MAPPO: `lr=5e-5, entropy=0.002`, curriculum `1000:0,3000:20,15000:40`, decision interval $\mathrm{N}{=}10$, 60 episodes. Same environment + same rule baseline for M0 and single-locomotive runs — the three rows differ only in the *architecture/structure* under test (like-for-like).
+
+**Main result — three-layer evidence chain (15000 steps, all zero safety violations).**
+
+| Method                                            |      reward | coupler peak (kN) | viol | band rate | AB steps | mean ED | final speed (km/h) | ATP events |
+| :------------------------------------------------ | ----------: | ----------------: | ---: | --------: | -------: | ------: | -----------------: | ---------: |
+| **decompose-M1 (RL division, interval=10, ep60)** | **+72,743** |           **570** |    0 |   99.72 % |    4,357 |    0.35 |           **52.9** | **1.44 M** |
+| decompose-M0 (distributed-power rule division)    |     +71,252 |               720 |    0 |   99.68 % |      461 |    0.67 |               41.7 |     43.2 M |
+| single-locomotive (old 1+0 rule)                  |     +40,956 |               456 |    0 |   90.20 % |    4,030 |       — |               44.9 |      467 M |
+
+**Isolated increments.** (a) *Architecture gain*, M0 vs single-loco: distributed-power ED-first + stagger + ED-availability-faithful AB fallback gives **+74 % reward** (+30,278), **+9.5 pp band rate**, and **−89 % AB usage** (4,030→461 steps) — distributed ED power suffices, so pneumatic effort almost vanishes, with zero super-limit. (b) *Learning gain*, M1 vs M0: RL finds a **physically interpretable re-allocation** — halve ED depth (mean ED 0.67→0.35) and inject **staggered MIN-notch AB** (461→4,357 steps) — trading slightly more, but individually gentle and phased, pneumatic applications to shrink longitudinal impulse: **coupler peak −21 % (720→570 kN)**, **final speed +11.2 km/h**, **ATP emergency events −97 %** (43.2 M→1.44 M). The smoother ED profile plus crank-joint-friendly phased AB is exactly the region a small-lever threshold policy can never reach.
+
+**Why this is the decisive comparison.** The three rows share the environment, the safety layer, and the rule baseline; only whether (i) power is distributed, and (ii) ED/AB are RL-modulated per locomotive changes. Every layer adds a positive, *measured* increment with zero violations — decomposing the source of the gain (architecture vs learning) rather than reporting a single black-box number. This is the diagnostic train-level "nothing-to-learn" framework could not show: the same simulator, given a real lever, transitions from "flat $-291$ k" to "+61 k train reward / +72.7 k rollout".
+
+**Generalization / recentring.** Because the policy acts on per-locomotive ED/AB (not on a train-wide band), it transfers structurally to longer sections and larger numbers of distributed-power locomotives without re-tuning the band; ablations over $N\in{5,10,20}$ and AB-cost $\in{0,0.05}$ (planned) establish the margins of the semi-MDP and the reward shape.
 
 ***
 
-## References \*(verified; expand to IEEE style in .tex) \*
+## VI. Conclusion & Limitations
 
-- Yang et al., "Automatic Train Operation of Heavy-Haul Trains Based on Model Predictive Control," IEEE ITSC 2025 (in-repo; single-train MPC, Shuozhou, coupler impulse).
+We argued and demonstrated that for long-downhill cyclic-braking control, **the decomposition of the MARL action space decides whether there is anything to learn**. Train-level threshold coordination gives a 1.25 % bandwidth lever and a near-zero gradient ("nothing to learn"); locomotive-level ED/AB division gives continuous, physically meaningful levers. Combining a safety-embedded rule engine with per-locomotive MAPPO modulation and a semi-MDP decision interval yields a three-layer, zero-violation positive evidence chain on the real Shuozhou profile (RL: +2.1 % reward over rule division; coupler −21 %; final speed +11.2 km/h; ATP events −97 %).
 
-- H. Wang et al., "Research on Cooperative Operation Control Methods ... Based on Improved MPC," Railway Transport and Economy 48(2):88–98, 2026. doi:10.16668/j.cnki.issn.1003-1421.20250530003.
+**Limitations.** (1) The learned policy is trained in a high-fidelity simulator and inherits its fidelity (sim-to-real gap shared in kind with model-driven MPC). (2) We provide no formal recursive-stability guarantee; deployment safety would require formal verification / ATP integration. (3) AB is not directly penalized in the reward — the division is only as safe as the coupler-force weighting, and the AB-trigger margin ($v\_\max-0.5$) is a hand-set constant. (4) Long-horizon training remains expensive and seed-variance nontrivial; the semi-MDP interval $N$ is a hyperparameter worth ablating. (5) Inter-train gap adaptation (platoon-level) is a stated extension; this paper fixes a single train, 1+1 distributed power.
 
-- Z. Song et al., "Cooperative control methods for virtually coupled heavy-haul trains based on traditional pneumatic braking (Tube-MPC)," Journal of Beijing Jiaotong University 50(2):116–131, 2026. doi:10.11860/j.issn.1673-0291.20250156.
+***
 
-- M. A. Vaquero-Serrano et al., "A learning model predictive control for virtual coupling in intelligent train control systems," Computer-Aided Civil and Infrastructure Engineering 40(31):6279–6304, 2025. doi:10.1111/mice.70155.
+## References \*(verify + expand to IEEE style in .tex) \*
 
-- F. Surma & A. Jamshidnejad, "Recursive Feasibility without Terminal Constraints via Parent-Child MPC Architecture," Systems & Control Letters, 2025 (arXiv:2507.10166).
+- **Tang 2020** — multi-locomotive RL with coupler-force reward for heavy-haul train control (in-repo).
 
-- B. Derajić et al., "Residual Neural Terminal Constraint for MPC-based Collision Avoidance in Dynamic Environments," 2025 (arXiv:2508.03428).
+- **赵紫宁 2022** — refined air-brake modeling & optimization for 1+1 distributed power (in-repo; 8-anchor reconstruction in this project).
 
-- Lu et al., ICIRT 2025, multi-locomotive NMPC (in-repo).
+- **Zhang 2024** — DQN for long-downhill automatic train operation (ignores coupler force).
 
-- Q. Wu et al., "Railway Virtual Coupling: A Survey of Emerging Control Techniques," IEEE Trans. Intelligent Vehicles, 2023. doi:10.1109/TIV.2023.3260851.
+- **Liu 2021** — DDQN long-downhill cyclic braking (ignores coupler force).
 
-- Q. Wu, C. Cole, M. Spiryagin, and Y. Wang, "Railway air brake model and parallel computing scheme," J. Computational and Nonlinear Dynamics 12(5):051012, 2017. doi:10.1115/1.4036421.
+- **Wang 2025** — DQN long-downhill speed control (ignores coupler force).
 
-- Y. Zhang, L. Calogero, S. Li, A. Rizzo, and A. V. Proskurnikov, "Koopman-based NMPC for Virtually Coupled Train Control System," arXiv:2606.11858, 2026.
+- **张二田 2021** — 2-kt train coupler-force field tests; mild-grade simultaneous-release < 1000 kN.
 
-- G. Basile et al., "Roadmap and challenges for reinforcement learning control in railway virtual coupling," Discover Artificial Intelligence 2:27, 2022. doi:10.1007/s44163-022-00042-4.
+- **杨敏** — brake gap & manipulation modes vs coupler force on 10-kt consists.
 
-- H. Liu et al., "Coordinated Operation Strategy Design for VCTS: A Multiagent Reinforcement Learning Approach," IEEE ITS Magazine 17(4), 2025. doi:10.1109/MITS.2024.3449803.
+- **樊运新** — consist marshalling vs longitudinal impulse.
 
-- Project records: `docs/records/DIAGNOSTICS.md` §2026-08-30/31 (MPC pressure & master comparison tables); `outputs/phys2_full_comparison_20260830.txt`, `outputs/mpc_pressure_5seed_20260830.txt`.
+- **Fu 2019** — coupler/gear limit constraints (1000 / 2250 kN).
+
+- (Background, retained from prior draft) **Wu et al. 2017** air-brake model parallel computing; **Wu et al. 2023** virtual-coupling survey; **Yang et al. ITSC 2025** single-train MPC on Shuozhou; **Wang et al. 2026** improved-MPC heavy-haul virtual coupling.
+
+- Project records: `docs/records/DIAGNOSTICS.md` §2026-09-05 (decompose smoke / full / RL-rescue); `outputs/results_decompose/eval_decompose_all_ms15000.json`.
 

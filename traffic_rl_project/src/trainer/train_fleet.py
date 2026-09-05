@@ -149,6 +149,8 @@ def train(
     decision_interval: int = 1,        # 【2026-09-05 RL 层救回①】decompose 模式 RL 决策间隔
                                        # （动作保持 N 步，semi-MDP）：砍短超长时域信用链
                                        # （15000 步→1500 决策），rule 基线仍逐步执行
+    mask_lever: str = 'none',          # 【2026-09-05 杠杆隔离消融】'none'/'ed'/'ab'：
+                                       # 禁用 ed_mod（仅 AB 杠杆）或 ab_mod（仅 ED 杠杆）
     enable_etcs: bool = False,       # 【2026-09-03】训练时启用 ETCS（与评估 --etcs 对齐，
                                      # 消除"训练无 ETCS / 评估有 ETCS"的分布不一致）
     random_init_speed: bool = False,
@@ -186,6 +188,7 @@ def train(
         'action_dim': action_dim,   # 【方向A】1=整带平移；2=v_max/v_min 独立偏移
         'group_obs': group_obs,     # 【方向B】全局一致性观测（修根因3）
         'decompose': decompose,     # 【ADR-009.1】逐机车电空分工模式（None=向后兼容）
+        'mask_lever': mask_lever,   # 【杠杆隔离消融】'none'/'ed'/'ab'
         'enable_etcs': enable_etcs,   # 【2026-09-03】训练/评估 ETCS 对齐
     }
     if target_speed is not None:
@@ -229,7 +232,7 @@ def train(
 
     # 【2026-08-30】断点续训：加载已有策略继续训练（前台分块训练用，
     # 优化器状态随 checkpoint 一并保存/恢复，热启动续训不打断学习进程）
-    cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
+    cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'m'+mask_lever if mask_lever and mask_lever != 'none' else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
     if resume and Path(resume).exists():
         agent.load(resume)
         logger.info(f"已加载续训检查点: {resume}")
@@ -362,7 +365,7 @@ def train(
             # 保存 best 模型（策略最优时的 checkpoint）——论文评估应报告 best 而非末 ep
             # （V5.14 教训：策略可能后期退化，末 ep 模型性能可能差于早期）
             # 文件名含 coupler 标识（消融实验：有车钩力 _cp / 无车钩力 _nocp）
-            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
+            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'m'+mask_lever if mask_lever and mask_lever != 'none' else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
             agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_{cp_tag}_seed{seed}.pt"))
 
         if (gep + 1) % 10 == 0 or ep == episodes - 1:
@@ -376,12 +379,12 @@ def train(
             )
             sys.stdout.flush()
             # checkpoint 带 seed + coupler 标识 + 【全局回合号】ep{gep+1}
-            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
+            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'m'+mask_lever if mask_lever and mask_lever != 'none' else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
             agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{gep+1}_{cp_tag}_seed{seed}.pt"))
 
         # 【2026-08-30】训练历史落盘 + 学习曲线图（论文/PPT 用，前台中断也不丢数据）
         if (gep + 1) % 10 == 0 or ep == episodes - 1:
-            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
+            cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'m'+mask_lever if mask_lever and mask_lever != 'none' else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
             save_training_artifacts(
                 episode_rewards, episode_peak_coupler, episode_violations,
                 meta={
@@ -475,6 +478,9 @@ if __name__ == '__main__':
     parser.add_argument('--decision_interval', type=int, default=1,
                         help='【RL 层救回①】decompose 模式 RL 决策间隔 N（动作保持 N 步，'
                              'semi-MDP 砍短信用链；rule 基线仍逐步执行），建议 10')
+    parser.add_argument('--mask_lever', type=str, default='none', choices=['none', 'ed', 'ab'],
+                        help='【杠杆隔离消融】none=双杠杆；ed=禁用 ed_mod(仅 AB 杠杆)；'
+                             'ab=禁用 ab_mod(仅 ED 杠杆)。训练与评估须一致。')
     parser.add_argument('--enable_etcs', action='store_true',
                         help='训练时启用 ETCS 真 ATP（与评估 --etcs 对齐，消除分布不一致）')
     parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
@@ -518,6 +524,7 @@ if __name__ == '__main__':
         group_obs=args.group_obs,
         decompose=args.decompose,
         decision_interval=args.decision_interval,
+        mask_lever=args.mask_lever,
         enable_etcs=args.enable_etcs,
         random_init_speed=args.random_init_speed,
         init_speed_min=args.init_speed_min,

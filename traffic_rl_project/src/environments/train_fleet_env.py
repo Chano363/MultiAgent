@@ -117,6 +117,9 @@ class TrainFleetEnv:
         self.decompose = config.get('decompose', None)
         if self.decompose:
             self.hierarchical = False  # decompose 模式自带规则基线，不与阈值协同混用
+        # 【杠杆隔离消融】mask_lever∈{'none','ed','ab'}：decompose 模式下禁用对应 RL 调制
+        # （'ed'=仅 AB 杠杆生效；'ab'=仅 ED 杠杆生效）。须与训练/评估一致。
+        self.mask_lever = config.get('mask_lever', 'none')
         self.layer1_checkpoint = config.get(
             'layer1_checkpoint',
             'outputs/checkpoints/cyclic_mappo_best_seed0_v40-80_init80.pt',  # [40,80]第1层策略（初始80循环制动）
@@ -217,6 +220,7 @@ class TrainFleetEnv:
                     max_accel=self.max_accel,
                     coupler_force_limit_n=self.coupler_force_limit_n,
                     enforce_coupler=self.use_coupler_constraint,
+                    mask_lever=self.mask_lever,
                 )
                 for tr in self.trains
             ]

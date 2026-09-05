@@ -44,6 +44,8 @@ def make_env(mode, args):
     }
     if mode == 'decompose':
         cfg['decompose'] = 'loco_ed_ab'
+        if args.mask_lever and args.mask_lever != 'none':
+            cfg['mask_lever'] = args.mask_lever   # 杠杆隔离消融：须与训练一致
     else:
         cfg['hierarchical'] = True
         cfg['adj_coef'] = 0.3
@@ -117,8 +119,10 @@ def main():
     p.add_argument('--init_speed_kmh', type=float, default=80.0)
     p.add_argument('--random_init_speed', action='store_true',
                    help='每回合随机初始速度 [55,75]km/h（鲁棒性协议）')
-    p.add_argument('--decision_interval', type=int, default=1,
+    parser.add_argument('--decision_interval', type=int, default=1,
                    help='RL 决策间隔 N（动作保持，须与训练一致）')
+    parser.add_argument('--mask_lever', type=str, default='none', choices=['none', 'ed', 'ab'],
+                   help='【杠杆隔离消融】ed=禁用 ed_mod(仅AB杠杆)；ab=禁用 ab_mod(仅ED杠杆)。须与训练一致。')
     args = p.parse_args()
 
     torch.manual_seed(args.eval_seed)

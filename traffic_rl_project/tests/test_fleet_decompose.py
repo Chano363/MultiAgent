@@ -206,3 +206,33 @@ def test_decompose_ab_release_command_issued():
     for _ in range(50):
         tr.step(release)
     assert float(tr.dynamics.vel[0]) > v0
+
+
+def test_decompose_mask_lever_isolates_modulation():
+    """【杠杆隔离消融 2026-09-05】mask_lever 禁用对应调制，训练与评估机制一致。
+
+    - mask='ab'：禁用 ab_mod（仅 ED 杠杆生效）→ ED 仍随 ed_mod 变化、AB 分支锁基线；
+    - mask='ed'：禁用 ed_mod（仅 AB 杠杆生效）→ ED 锁基线、AB 仍随 ab_mod 触发兜底。
+    """
+    env = _make_decompose_fleet()
+    env.reset(options={'speed': 81.0 / 3.6})   # 超上限 → 制动态
+    tr = env.trains[0]
+    ctrl = env.multi_loco_controllers[0]
+    zero = np.zeros((2, 2))
+    base, _ = ctrl.get_action_decomposed(tr, zero, v_max=env.v_max, v_min=env.v_min)
+
+    # --- mask='ab'：仅 ED 杠杆生效（ab_mod 被禁用）---
+    ctrl.mask_lever = 'ab'
+    actions = np.array([[1.0, -1.0], [0.5, -1.0]])   # ed_mod>0 加深 ED；ab_mod<-0.5 应被禁用
+    final_ab_masked, _ = ctrl.get_action_decomposed(tr, actions, v_max=env.v_max, v_min=env.v_min)
+    assert np.all(final_ab_masked[:, 0] >= base[:, 0] - 1e-9)      # ED 仍被加深（ED 杠杆生效）
+    assert np.all(final_ab_masked[:, 1] <= base[:, 1] + 1e-9)      # AB 兜底未被提前触发（ab_mod=0）
+
+    # --- mask='ed'：仅 AB 杠杆生效（ed_mod 被禁用）---
+    ctrl.mask_lever = 'ed'
+    actions2 = np.array([[1.0, -1.0], [1.0, -1.0]])
+    final_ed_masked, _ = ctrl.get_action_decomposed(tr, actions2, v_max=env.v_max, v_min=env.v_min)
+    assert np.all(np.abs(final_ed_masked[:, 0] - base[:, 0]) < 1e-9)  # ED 锁基线（ed_mod=0）
+    # AB 提前触发在规则基线非 AB 态下生效（ab_mod 杠杆可用）
+    if np.all(base[:, 1] >= 0):
+        assert np.all(final_ed_masked[:, 1] == MultiLocoController.AB_FALLBACK_NOTCH)

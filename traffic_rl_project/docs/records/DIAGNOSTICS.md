@@ -1909,3 +1909,27 @@ python src/evaluation/eval_phys2_m1_5seed.py --mode m3 --steps 3000 --label m3_f
   - 已知 quirk 不变：评估 rollout 间 reset 不完全清空动力学内部状态（seed1/2 结果相同）；interval=10 下 M1 的 3 seed 高度一致（570kN 完全一致），策略本身确定性强。
 - **结论**：**换架构（ADR-009 逐机车电空分工）在完整 23.8km 时域全链路验证通过**——"每机车=智能体 + ED/AB 分配调制 + semi-MDP 决策间隔"的 MAPPO 训练可控、可学、有物理增量。P3.5 完成判据（多机车编组环境可跑/短训冒烟可控/全量评估给出 vs 单机+单控增量收益）全部满足。
 - **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --decision_interval 10 --seed 0 --enable_etcs --checkpoint_dir outputs/checkpoints_dec_full_iv10 --results_dir outputs/results_dec_full_iv10`；评估同命令加 `--decision_interval 10`；日志 `outputs/train_logs/train_dec_full_iv10.log`。
+
+### 诊断-2026-09-05-decompose 3-seed 补训与 best-checkpoint 方差验证（论文级 seed 协议）
+
+- **背景**：上述 RL 层结论仅 seed0（60ep）。补 seed1/seed2 到 60ep 形成论文级 3-seed。seed1 原仅训到 40ep、seed2 原仅 30ep（2026-09-05b HANDOFF 收尾时中断），本诊断用 `--resume <best> --episodes <剩余>` 无缝续训。
+- **续训命令**（WSL，GPU，`decision_interval=10`、curriculum 绝对边界 `1000:0,3000:20,15000:40`，与 seed0 完全一致）：
+  - seed1：`python src/trainer/train_fleet.py --episodes 20 ... --seed 1 --resume outputs/checkpoints_dec_full_iv10/mappo_fleet_best_dec_ad2_cp_seed1.pt --checkpoint_dir outputs/checkpoints_dec_full_iv10 --results_dir outputs/results_dec_full_iv10` → 40→60ep（~40min，best +25,305）。
+  - seed2：`--episodes 30 ... --seed 2 --resume ...mappo_fleet_best_dec_ad2_cp_seed2.pt ...` → 40→70ep（因历史实为 40ep，`--episodes 30` 使 global 到 70；best +71,944）。**留痕警示：resume 续训的 `--episodes` 必须按 resume-checkpoint 对应的真实历史集数算剩余，不能凭印象（seed2 曾误按 30 起算，实际历史为 40，导致超跑到 ep70；评估用 best checkpoint 不受影响）。**
+- **训练期噪声 vs best-checkpoint**：两个续训 seed 的"最终平均奖励"均为负（seed1 -7,087、seed2 -26,673）、平均超限 94–128 次/集，**这是高探索噪声的平均态**，不代表最终模型；best-checkpoint 协议（全局 best_reward 跟踪、存 `mappo_fleet_best_dec_ad2_cp_seed*.pt`）保留最优模型，评估必须用 best 而非 ep 末位。**经验教训：decompose 长时域训练单看 episode 平均值会被噪声带偏，best-checkpoint 才是论文指标。**
+- **3-seed best-checkpoint 评估**（`--mode decompose_m1 --checkpoint <best> --n_seed 3 --max_steps 15000 --decision_interval 10`，ETCS，80km/h，全部零超限）：
+
+  | seed | reward | 车钩力峰(kN) | viol | band率 | AB步 | meanED | 末速 | ATP事件 |
+  |:--|--:|--:|--:|--:|--:|--:|--:|--:|
+  | seed0(best) | +73,733 | 578 | 0 | 99.98% | 4,807 | 0.34 | 53.5 | 1.44M |
+  | seed1(best) | +72,451 | 435 | 0 | 99.95% | 868 | 0.67 | 44.0 | 1.44M |
+  | seed2(best) | +69,247 | 718 | 0 | 99.10% | 182 | 0.70 | 40.2 | 25.5M |
+  | **均值±std** | **+71,810±2,311** | **577 [435–718]** | 0 | **99.68%** | 1,952 | 0.57 | 45.9 | 1.44–25.5M |
+
+- **解读**：
+  - **reward 跨 seed 强复现**：std（±2,311）< 均值的 3.3%，3 seed 皆落入 69–74k，且**全部零超限、band≥99.1%**——论文"多机车电空分工 RL 稳定收敛"claim 成立。
+  - **策略存在局部最优多样性（如实上报，不 cherry-pick）**：seed0/1 学到"减半 ED + 错峰 MIN 档 AB"（ED 0.34/0.67、AB 868–4807 步、车钩力 435/578kN、ATP 极低 1.44M）；seed2 保持"ED 打满 + 几乎不用 AB"（ED 0.70、AB 182 步）→ 车钩力 718kN、ATP 25.5M，但仍零超限且 reward +69k。即：ED/AB 分配的具体实现方式有真实离散多样性，但"安全 + 高 reward"是 3 seed 的公共属性。
+  - 相对 M0/单机结论不变：架构层（M0 vs 单机）+74%、AB -89%；学习层（M1 3-seed 均值 vs M0）reward +0.8%、车钩力均值 -20%、ATP 显著下降。seed2 的 ED-heavy 分支更接近"规则分工的优化版"，未走错峰 AB 路线但同样零超限。
+- **留痕文件**：`outputs/results_decompose/eval_decompose_m1_{seed0,seed1,seed2}_best_ms15000.json`（逐 seed 保留，避免固定文件名互相覆盖——脚本写 `eval_decompose_decompose_m1_ms15000.json`，跑每个 seed 后须改名保存）；训练日志 `train_dec_full_iv10_seed{1,2}_resume.log`；续训 history 并入 `train_history_dec_ad2_cp_seed{1,2}.json`。
+- **复现**：seed1/2 训练命令见上；评估命令（逐 seed 各跑一次并改名）：`python src/evaluation/evaluate_decompose.py --mode decompose_m1 --checkpoint outputs/checkpoints_dec_full_iv10/mappo_fleet_best_dec_ad2_cp_seed{N}.pt --n_seed 3 --max_steps 15000 --decision_interval 10`。
+- **步数与剖面完整性核实（探针，temporarily script, 后删）**：`shuozhou_23800` = 朔黄线真实 0–23800m 剖面（Zhang2024 复现）；`dt=0.1s`，15000 步=1500s。探针复用 M1 seed0 best 跑满 15000 步：车头里程**25,438m（剖面的 106.9%，末速 53.8km/h）**——车**完整走完 23.8km 并超跑 1.6km**（grade_at 对超出终点按最后 −3.3‰ 段续算）。故"完整 23.8km/15000 步评估"成立：评估与 ep40+ 全时域训练均用满 15000 步、完整剖面。
