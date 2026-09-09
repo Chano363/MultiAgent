@@ -7,12 +7,12 @@
 # ═══════════════════════════════════════════════════════════════════════════
 name: formation_ed_ab_3train_1plus1
 algorithm: mappo
-algo_params:                  # MAPPO（阶段一唯一收敛算法，迁移复用）
-  learning_rate: 0.00005
+algo_params:                  # 【2026-09-09 发散调参 run2】降lr/收clip/提entropy 治 KL 早停频发 + best 冻结 + reward 深负
+  learning_rate: 0.00002      # 0.00005→0.00002：抑制每批更新过激（原 KL 频繁 epoch2-5 早停）
   gamma: 0.99
   gae_lambda: 0.95
-  clip_epsilon: 0.2
-  entropy_coef: 0.002
+  clip_epsilon: 0.15          # 0.2→0.15：更保守的策略更新步长
+  entropy_coef: 0.005         # 0.002→0.005：原 best 冻结在 ep1(+8638)再也逃不出坏的确定性行为，提熵促探索
   value_coef: 0.5
   epochs: 10
   batch_size: 128
@@ -40,7 +40,7 @@ reward: env_default            # decompose 模式奖励口径 = _calculate_rewar
 num_trains: 3
 decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短 15000 步信用链）
 episodes: 120                  # 6 机车编队探索难，20ep 远不够（曾发散）；加大到 120
-curriculum: 1000:0,3000:15,5000:30,8000:45,12000:60,18000:75,24000:85,30000:95,36000:105   # 【2026-09-09 53km 全程】长程渐变递进至 36000 步；最终锚点 36000@ep105 确保全程覆盖
+curriculum: 500:0,1000:10,2000:20,3000:30,5000:42,8000:55,12000:70,18000:82,24000:90,30000:98,36000:110   # 【2026-09-09 run2 调参】起始 500 步 + 更密渐变，最终锚点 36000@ep110 确保 53.2km 全程覆盖
 init_speed_kmh: 80.0
 simcase: official
 ckpt_policy: fleet
