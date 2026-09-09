@@ -22,11 +22,11 @@ env_type: fleet                # TrainFleetEnv（多列编队环境，3 列）
 env_cfg:
   num_trains: 3
   consist_preset: 10kt_1plus1  # 每列 1机车+94货车+1机车（多机车分布式动力，index [0,95]）
-  grade_profile: shuozhou_23800          # 【A1-final 回退 2026-09-09】主剖面暂留 23.8km，先让 leader-迁就协同在既有 15000 步协议上坐实收敛；53km(shuozhou_real_53km) 为收敛后新主线场景
+  grade_profile: shuozhou_real_53km       # 【2026-09-09 新主主线】朔黄线真实纵断面 53.2km（58 实测坡段）；23.8km 仅作历史复现
   v_max: 22.222                # 80 km/h
   v_min: 11.111                # 40 km/h（编队目标速度带）
   target_gap: 100.0            # 安全列距目标
-  max_steps: 15000
+  max_steps: 36000             # 【53km 全程全覆盖】=3600s；avg≥~14.8m/s 即跑满 53.2km（原 15000 步仅~24km）
   max_accel: 1.0
   use_coupler_constraint: true
   hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
@@ -40,7 +40,7 @@ reward: env_default            # decompose 模式奖励口径 = _calculate_rewar
 num_trains: 3
 decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短 15000 步信用链）
 episodes: 120                  # 6 机车编队探索难，20ep 远不够（曾发散）；加大到 120
-curriculum: 1000:0,2000:20,3000:30,5000:40,8000:60,12000:75,15000:90   # 【2026-09-09 修复】长程渐变递进：1000→2000→3000→5000→8000→12000→15000。原 1000→5000 步 5 倍跳变导致 seed0 首个 5000 步段（ep41）手风琴振荡崩塌（reward -43万/coupler 1405kN/viol 267，见 DIAGNOSTICS.md）。锚点保留：5000@ep40、15000@ep90
+curriculum: 1000:0,3000:15,5000:30,8000:45,12000:60,18000:75,24000:85,30000:95,36000:105   # 【2026-09-09 53km 全程】长程渐变递进至 36000 步；最终锚点 36000@ep105 确保全程覆盖
 init_speed_kmh: 80.0
 simcase: official
 ckpt_policy: fleet
