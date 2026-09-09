@@ -68,13 +68,13 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：`traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5 + `docs/records/DECISIONS.md` ADR-010。这里只放一句话要点，细看原文。
+> **权威出处（SSOT）**：`traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5 + `docs/logs/decisions/DECISIONS.md` ADR-010。这里只放一句话要点，细看原文。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/做消融/加对比。
 
 - **主轴**：多列编队 + 队内车钩力≤1000kN + 安全列距 = 不可逾越底线；AB+ED 分工、1+1 = 锦上添花（不当主线）。
 - **MPC 对比 Regime A/B**：不按坡道换 MPC 模型；A=每线重喂 grade_at（公平，main/E1/E3）、B=不重辨识演不泛化（E4/E4-H，须声明 no-re-identification）。Protocol 逐实验标 A/B。
 - **车钩异构**：每车钩/每列车物理不同（实例异构≠离散），是泛化卖点（E4-H，需 `--hetero` 逐参数抽样 + held-out）。
-- 细看：`docs/RESEARCH_POSITIONING.md` §1.5；决策：`docs/records/DECISIONS.md` ADR-010。
+- 细看：`docs/RESEARCH_POSITIONING.md` §1.5；决策：`docs/logs/decisions/DECISIONS.md` ADR-010。
 
 ## 阶段二当前进度
 
@@ -176,8 +176,8 @@ YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值
 ## Project docs（按阅读优先级）
 
 > 文档治理与导航：**`traffic_rl_project/docs/README.md` 是唯一文档索引入口**——里面既有"按文档角色"的快导航，也有"**核心思想→文档**"的反向映射（找不到时先查它）。
-> 规范/模板（工作计划、失败教训、历史经验、checklist）在 `docs/rules/`；新诊断→`docs/records/DIAGNOSTICS.md`、新决策→`docs/records/DECISIONS.md`。详见 `docs/rules/README.md`。
-> **立论性规范（SSOT）**：主轴/MPC-Regime/车钩异构的权威出处 = `docs/RESEARCH_POSITIONING.md` §1.5 + `docs/records/DECISIONS.md` ADR-010（本文件「规范性问题」只保留要点指针）。
+> 规范/模板（工作计划、失败教训、历史经验、checklist）在 `docs/rules/`；新诊断→`docs/logs/diagnostics/`、新决策→`docs/logs/decisions/DECISIONS.md`。详见 `docs/rules/README.md`。
+> **立论性规范（SSOT）**：主轴/MPC-Regime/车钩异构的权威出处 = `docs/RESEARCH_POSITIONING.md` §1.5 + `docs/logs/decisions/DECISIONS.md` ADR-010（本文件「规范性问题」只保留要点指针）。
 
 - `traffic_rl_project/docs/README.md` — **唯一文档索引入口**（文档角色导航 + 核心思想→文档映射）；先看这个
 - `traffic_rl_project/docs/PROJECT_PIPELINE.md` — **pipeline 总览 + 任务列表（P0/P1/P2/P3，已完成的✅保留不删）+ 下一步，先读这个**
@@ -185,9 +185,9 @@ YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值
 
 - `traffic_rl_project/docs/VALIDATION_BASELINE.md` — **论文→项目正确性验证基准**（仿真器公式/数据/算法对照 + 历史诊断留底）
 
-- `traffic_rl_project/docs/records/DIAGNOSTICS.md` — 新的实验/诊断数据记录（承接文件）
+- `traffic_rl_project/docs/logs/diagnostics/` — 新的实验/诊断数据记录（按月拆分）
 
-- `traffic_rl_project/docs/records/DECISIONS.md` — 新的重大决策记录（ADR）
+- `traffic_rl_project/docs/logs/decisions/DECISIONS.md` — 新的重大决策记录（ADR）
 
 - `traffic_rl_project/docs/ITSC_PAPER.md` — 阶段二论文（唯一权威）｜`docs/ITSC_PAPER.tex/.pdf`
 
@@ -195,7 +195,31 @@ YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值
 
 - `traffic_rl_project/docs/training_results_standardized.md` — 阶段一学术成果（archived）
 
-- `.learnings/LEARNINGS.md` — 踩坑记录
+- `traffic_rl_project/docs/logs/learnings/LEARNINGS.md` — 踩坑记录
+
+## 修改 / 追加文档方法论（强，Docs-as-Code）
+
+> 目标：文档不膨胀、不误导、SSOT 不破坏。日志类一律 **append-only**。
+
+**4 条判断规则（改/增前先问）**
+
+1. **这条信息属于哪个角色？** 实验/诊断数据 → `logs/diagnostics/`（按月文件）；重大决策 → `logs/decisions/DECISIONS.md`；踩坑/教训 → `logs/learnings/LEARNINGS.md`；工作计划 → `PROJECT_PIPELINE.md`；流水 → `.codebuddy/memory/`。判断树见 `docs/rules/README.md` 第四节。
+2. **核心立论 vs 流水？** 立论（RESEARCH_POSITIONING/论文/规范）因观点演进可**覆盖式修订**（动机存档进 ADR）；流水（诊断/决策/教训）**只追加**，历史结论绝不篡改，被推翻就在原位标 `superseded` 并指向新结果。
+3. **文件会不会过大？** 单文件接近 ~200KB 必须**物理拆分**：日志类按 `类型/时间` 分子目录新文件（如 `DIAGNOSTICS_YYYY-MM.md`、`VERIFICATION_LOGS_V*.md`）；**删除文档时不留 stub，而是一次性 Grep 全仓改写所有旧路径**（2026-09-10 已删 `docs/records/`、`docs/guides/`、`docs/archive/`，`docs/` 现仅含 logs/ papers/ rules/ + 顶层核心文档）。
+4. **导航是否登记？** 新建/移动/拆分任何文档必须同步 `docs/README.md`（唯一索引入口）；若移动了引用集中的文件，用 Grep 全仓改一遍指向它的旧路径，指向仍存在的文件（跳现存文件而非留 stub 或断链）。
+
+**日志类文件操作纪律**
+
+- **追加**：文件末尾加 `### 小节-日期`，保留全部历史，不覆盖、不删除既有行。
+- **移动/拆分**：物理挪文件至新位置，跨文件引用改指新路径；`docs/README` 更新角色表；涉及路径变更的历史留痕在原文标 `supersedes`。
+- **删除旧文档**：不留 stub，一次性 Grep 全仓把旧路径改指向现存等价文件（或删违规引用行），确保无断链。
+- **禁止**：为不存在的文档建空白占位页；把多条信息堆进同一文件不拆分；移动文件后留下断链。
+
+**反冗余三铁律（每次改动自查，2026-09-10 沉淀）**
+
+1. **孤儿文件即删**：不被任何文档索引、与其他文件字节相同（可 `Get-FileHash` 核对）且零引用的重复副本，无保留价值（实例：历史 `logs/dianostics_backup.md`）。
+2. **构建垃圾进 .gitignore**：LaTeX `*.aux` / `*.log`、`tmp_*` 脚本一律不提交；根 `.gitignore` 已含 `*.aux` / `*.log`，遇到新型构建产物先补规则再删文件。
+3. **备份可用 git 历史替代**：大文件一旦被 git 跟踪（`git log` 可恢复），拆分后的旧整文件快照即可删除；不要长期囤"手工整文件备份"。区分：绝不可删的是**曾被提交过、现在仍是 SSOT 的原始大文件**；可删的是**拆分/改版时复制的临时快照**。
 
 ## 文献库（docs/papers/）
 

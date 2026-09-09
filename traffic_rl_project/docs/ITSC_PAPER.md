@@ -1,6 +1,6 @@
 # Hierarchical MARL for Distributed-Power × Electrical/Pneumatic Braking Division of Heavy-Haul Trains on Long Downhill Sections
 
-\*(ITSC 2026 draft — **architectural rewrite, ADR-009 / 2026-09-05**). Previous drafts: (a) "Hierarchical MARL + Cyclic Braking" single-core draft (已清理 2026-09-08); (b) the "MARL vs MPC / threshold-coordination" reorientation (3-train, 1+0, per-train agents) is superseded by this draft. 本稿转向：**以"多机车分布式动力 × 电空双制动分工"为核**——每台机车=独立智能体，MARL 直接调制本机车的电制动(ED)深度/空气制动(AB)触发，从而获得旧架构(阈值协同 ±0.5 km/h = 带宽 1.25%)永远没有的**真物理杠杆**。分层框架 = 规则引擎(ED优先+错峰+AB兜底)作安全嵌入内层 + RL 逐机车调制作协作外层。数值全部来自 `docs/records/DIAGNOSTICS.md` 2026-09-05 decompose 定稿数据，逐项可复现。\*
+\*(ITSC 2026 draft — **architectural rewrite, ADR-009 / 2026-09-05**). Previous drafts: (a) "Hierarchical MARL + Cyclic Braking" single-core draft (已清理 2026-09-08); (b) the "MARL vs MPC / threshold-coordination" reorientation (3-train, 1+0, per-train agents) is superseded by this draft. 本稿转向：**以"多机车分布式动力 × 电空双制动分工"为核**——每台机车=独立智能体，MARL 直接调制本机车的电制动(ED)深度/空气制动(AB)触发，从而获得旧架构(阈值协同 ±0.5 km/h = 带宽 1.25%)永远没有的**真物理杠杆**。分层框架 = 规则引擎(ED优先+错峰+AB兜底)作安全嵌入内层 + RL 逐机车调制作协作外层。数值全部来自 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 2026-09-05 decompose 定稿数据，逐项可复现。\*
 
 > **⚠️【2026-09-08 主轴对齐·定位偏差声明】**
 > 本稿以「**单列车 standalone decompose**（1+1 机车级 ED/AB 分工）」为核心，已由项目侧判定为**方向性偏差**——它脱离了**列车编队**语境，把单列车当成了论文主线。
@@ -138,5 +138,5 @@ We argued and demonstrated that for long-downhill cyclic-braking control, **the 
 
 - (Background, retained from prior draft) **Wu et al. 2017** air-brake model parallel computing; **Wu et al. 2023** virtual-coupling survey; **Yang et al. ITSC 2025** single-train MPC on Shuozhou; **Wang et al. 2026** improved-MPC heavy-haul virtual coupling.
 
-- Project records: `docs/records/DIAGNOSTICS.md` §2026-09-05 (decompose smoke / full / RL-rescue); `outputs/results_decompose/eval_decompose_all_ms15000.json`.
+- Project records: `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` §2026-09-05 (decompose smoke / full / RL-rescue); `outputs/results_decompose/eval_decompose_all_ms15000.json`.
 

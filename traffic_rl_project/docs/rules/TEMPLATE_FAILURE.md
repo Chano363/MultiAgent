@@ -1,4 +1,4 @@
-# 模板：记录失败 / 踩坑（进 `.learnings/LEARNINGS.md`）
+# 模板：记录失败 / 踩坑（进 `docs/logs/learnings/LEARNINGS.md`）
 
 > **追加规则**：append-only，新格在文件末尾。越挫越勇的缓解，格式越统一越有用——
 > 审稿/复现/交接都靠它。复制模板替换 `[...]`。

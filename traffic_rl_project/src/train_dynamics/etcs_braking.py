@@ -375,11 +375,24 @@ class EtcsBrakingCurve:
         lead_sbi = 0.25 * self.driver_time_p_to_ebi
         any_target = False
         for tgt in targets:
-            if position_m >= tgt.position_m:
-                continue
+            # 【2026-09-09 防追尾修复】原 `if position_m >= tgt.position_m: continue`
+            # 在"后列越过前列尾"后直接豁免该目标 → 越过瞬间 ETCS 失去保护，后列不受控
+            # 穿透前列（53km 长时域实测 gaps→-951m）。现改为越过后**不豁免**：
+            # avail<=0 → 允许速度压到目标速度下方（必须减速回 target.speed，堵住穿透）。
+            # 仍保留"前方无约束（目标在很后/全在身后另有更远目标）"时不误伤。
             any_target = True
-            vs, fs = self._distance_table(tgt, position_m)
             avail = tgt.position_m - position_m
+            if avail <= 0.0:
+                # 已到达/越过目标：不允许再以高于目标速度继续逼近 → 压到 target.speed。
+                # （对 gap 防追尾，target.speed=前列速度；越过即要求降到前列速度以下，
+                #   由后续成本/停止目标进一步收紧。最小干预：避免越过瞬间零约束。）
+                V_past = float(tgt.speed_mps)
+                if V_past < ebi:
+                    ebi = V_past
+                if V_past < sbi:
+                    sbi = V_past
+                continue
+            vs, fs = self._distance_table(tgt, position_m)
             # EBI：无额外反应提前量
             v_ebi = self._allowed_at_budget(vs, fs, avail, v_cur) - self.speed_err_mps
             # SBI：扣反应距离，取更严

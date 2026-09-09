@@ -31,4 +31,4 @@
 ## 收尾
 - [ ] `docs/README.md` 导航同步更新
 - [ ] `AGENTS.md` 的文档清单章节同步（若引用被改）
-- [ ] 旧临时副本（如 tmp_*.py）已删或移 `archive/scripts/`
+- [ ] 旧临时副本（如 tmp_*.py）已删或移 `outputs/`

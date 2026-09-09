@@ -16,12 +16,11 @@ Source of Truth），他处用链接引用，绝不复制粘贴。**
 | `docs/README.md` | **导航地图**：所有文档入口，唯一索引 | 增删文档时同步 | 项目 Owner |
 | `docs/PROJECT_PIPELINE.md` | 总览 + 工作计划清单（任务追加走 TEMPLATE_WORKPLAN） | append-only，历史✅保留 | Owner + Agent |
 | `docs/VALIDATION_BASELINE.md` | 论文↔项目**验证基准**（公式/数据对照）；历史诊断已留此处 | append-only | Owner + Agent |
-| `docs/records/DIAGNOSTICS.md` | **新的**实验/诊断数据记录（数据决策） | append-only | Agent + Owner |
-| `docs/records/DECISIONS.md` | **新的**重大决策记录（ADR：背景→选项→结论→后果） | append-only，废弃标 superseded | Owner + Agent |
-| `.learnings/LEARNINGS.md` | 踩坑/失败教训（走 TEMPLATE_FAILURE） | append-only | Agent |
+| `docs/logs/diagnostics/DIAGNOSTICS_YYYY-MM.md` | **新的**实验/诊断数据记录（按月拆分，append-only） | append-only | Agent + Owner |
+| `docs/logs/decisions/DECISIONS.md` | **新的**重大决策记录（ADR：背景→选项→结论→后果） | append-only，废弃标 superseded | Owner + Agent |
+| `docs/logs/learnings/LEARNINGS.md` | 踩坑/失败教训（走 TEMPLATE_FAILURE） | append-only | Agent |
 | `.codebuddy/memory/YYYY-MM-DD.md` | 每日工作日志（timeline，见 `docs/logs/README.md`） | 每日一篇，不覆盖 | Agent |
 | `docs/papers/` | 文献 PDF + 提取数据（`RESEARCH_POSITIONING.md` 索引） | 新增 | Owner |
-| `docs/archive/` | 已归档/废弃文档（阶段一、历史版本），标 `status: archived` | 冻结 | Owner |
 | `docs/ITSC_PAPER.md/.tex/.pdf` | 论文（唯一权威版本），其余版本移 archive | 冻结后进 archive | Owner |
 
 ## 二、八条最佳实践纪律（大厂对齐）
@@ -33,14 +32,14 @@ Source of Truth），他处用链接引用，绝不复制粘贴。**
 5. **少即多**：单文件超阈值(约 200KB)必须拆分或新建承接文件；旧内容保留，新内容进新文件。
 6. **append-only 留痕**：工作/诊断/决策都只追加小节，历史命令/结论是论文溯源基础，绝不覆盖。
 7. **导航登记**：新建文档必须登记进 `docs/README.md`，否则等于没建。
-8. **临时物即生即清**：临时脚本用后即删或移 `docs/archive/scripts/`，不留在根目录。
+8. **临时物即生即清**：临时脚本用后即删或移 `outputs/`，不留在根目录。
 
 ## 三、三类核心模板（追加/总结/记录）
 
 | 场景 | 用哪个模板 |
 |---|---|
 | 追加工作计划到 `PROJECT_PIPELINE.md` | `TEMPLATE_WORKPLAN.md` |
-| 记录一次失败/踩坑到 `.learnings/LEARNINGS.md` | `TEMPLATE_FAILURE.md` |
+| 记录一次失败/踩坑到 `docs/logs/learnings/LEARNINGS.md` | `TEMPLATE_FAILURE.md` |
 | 沉淀一条可复用历史经验（区别于一次性教训） | `TEMPLATE_EXPERIENCE.md` |
 | 新建任何文档前 | `CHECKLIST_NEW_DOC.md`（必读） |
 
@@ -48,9 +47,9 @@ Source of Truth），他处用链接引用，绝不复制粘贴。**
 
 ```
 我要记录的是？
-├─ 一个实验/诊断跑出的数据 + 复现命令          → records/DIAGNOSTICS.md（新）或 VALIDATION_BASELINE 诊断节（历史存量）
-├─ 我做了个重要技术/方向决策                     → records/DECISIONS.md
-├─ 我踩坑了、修了、怎么避免复发                  → .learnings/LEARNINGS.md
+├─ 一个实验/诊断跑出的数据 + 复现命令          → logs/diagnostics/DIAGNOSTICS_YYYY-MM.md（按月，append）
+├─ 我做了个重要技术/方向决策                     → logs/decisions/DECISIONS.md
+├─ 我踩坑了、修了、怎么避免复发                  → logs/learnings/LEARNINGS.md
 ├─ 我新增一个要做的任务/计划                      → PROJECT_PIPELINE.md（TEMPLATE_WORKPLAN）
 ├─ 今天的工作流水（做了什么/卡在哪）              → .codebuddy/memory/YYYY-MM-DD.md（每日日志）
 ├─ 一条能复用的方法论/知识（有出处、有反例）       → TEMPLATE_EXPERIENCE 沉淀

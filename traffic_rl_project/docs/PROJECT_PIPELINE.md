@@ -860,9 +860,9 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
 ## 附：索引与规范（2026-09-01 抽出为独立文件，内容零丢失）
 
-- 五、代码与配置索引 → `docs/guides/CODE_INDEX.md`
+- 五、代码与配置索引 → 见 `docs/README.md`（导航唯一入口）
 
-- 六、文档索引 → 历史留底 `docs/guides/DOC_INDEX.md`；**查找以** **`docs/README.md`** **为准**
+- 六、文档索引 → 查找以 **`docs/README.md`** **为准**
 
 - 七、执行规范 → `docs/rules/EXECUTION_RULES.md`
 
@@ -914,7 +914,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
 - **命令/配置**：待定（实现后补，遵循 `docs/rules/TEMPLATE_WORKPLAN`）
 
-- **产出文件**：`src/safety_layer.py`（或新 `atp.py`）＋ 单元测试 ＋ `VALIDATION_BASELINE.md` ETCS 节 ＋ 诊断记录 (`records/DIAGNOSTICS.md`)
+- **产出文件**：`src/safety_layer.py`（或新 `atp.py`）＋ 单元测试 ＋ `VALIDATION_BASELINE.md` ETCS 节 ＋ 诊断记录 (`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`)
 
 - **关键边界（诚实声明）**：本复现聚焦**车载超速/限速防护曲线**（速度监督），非闭塞/信号层的授权防护（Movement Authority）；"防追尾属 ATP 职权，我们补充车钩力+缩短安全间隔"的叙述据此成立。
 
@@ -944,7 +944,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
   - **P3 partially-fixed**：20km 剖面 + 5 列仅提及 → 升级独立小节补全量指标
 
-- **留痕**：`docs/records/DIAGNOSTICS.md`（诊断-2026-09-02-ARIS 试点）+ `docs/records/DECISIONS.md` ADR-008
+- **留痕**：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（诊断-2026-09-02-ARIS 试点）+ `docs/logs/decisions/DECISIONS.md` ADR-008
 
 - **下一步**：按 P1-P3 改论文 Abstract/Contributions、补 MPC+规则内层 baseline 实验；如需更严格独立，部署私有 ump/challenge 端点（`independence_verified` 目前 unverified）
 
@@ -968,7 +968,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
   - 控制器：✔ `src/controllers/multi_loco_controller.py`（新增）循环制动 ED 优先 + 逐机车 ED 错峰 + 车钩力安全钳
 
-  - 训练（RL 智能体）：✔ **2026-09-05 逐机车 RL 短训冒烟完成**——`train_fleet_env.py` 新增 `decompose='loco_ed_ab'` 模式（智能体=每机车、11 维 obs 含 AB 状态、电空分工奖励塑形）+ `train_fleet.py --decompose` 入口 + `MultiLocoController.get_action_decomposed`（规则基线 + RL `[ed_mod,ab_mod]` 调制）+ **ED 可用度物理化**（功率约束 F_ed=P/v vs 坡道需求力，修复原模型下基线 AB 兜底永不可达）。两轮冒烟（朔黄线 80km/h 起步 3000 步）：**可学性确认——车钩力 734→559kN（-24%）两轮复现、viol 0、band 99.97%**（RL 学到"逐机车错峰提前 MIN 档 AB"分配）；综合奖励与 M0 打平（-0.2%，差值≈AB 成本塑形项）→ 全量训练前置：①AB 成本/车钩力权重校准（目标定义，需导师拍板）②训练期探索不稳定对策（随机耦合 coupler 1168kN）。详见 `docs/records/DIAGNOSTICS.md` 诊断-2026-09-05-decompose换架构冒烟
+  - 训练（RL 智能体）：✔ **2026-09-05 逐机车 RL 短训冒烟完成**——`train_fleet_env.py` 新增 `decompose='loco_ed_ab'` 模式（智能体=每机车、11 维 obs 含 AB 状态、电空分工奖励塑形）+ `train_fleet.py --decompose` 入口 + `MultiLocoController.get_action_decomposed`（规则基线 + RL `[ed_mod,ab_mod]` 调制）+ **ED 可用度物理化**（功率约束 F_ed=P/v vs 坡道需求力，修复原模型下基线 AB 兜底永不可达）。两轮冒烟（朔黄线 80km/h 起步 3000 步）：**可学性确认——车钩力 734→559kN（-24%）两轮复现、viol 0、band 99.97%**（RL 学到"逐机车错峰提前 MIN 档 AB"分配）；综合奖励与 M0 打平（-0.2%，差值≈AB 成本塑形项）→ 全量训练前置：①AB 成本/车钩力权重校准（目标定义，需导师拍板）②训练期探索不稳定对策（随机耦合 coupler 1168kN）。详见 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 诊断-2026-09-05-decompose换架构冒烟
 
 - **配置**：`decompose` 默认 None（向后兼容，148 测试全过零回归，含 `tests/test_fleet_decompose.py` 9 项）
 
@@ -978,11 +978,11 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
   - ✅ 139 测试全通过（`decompose=None` 零回归）
 
-  - 📄 留痕：`docs/records/DIAGNOSTICS.md` 诊断-2026-09-03-多机车电空分工（decompose 首跑）
+  - 📄 留痕：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 诊断-2026-09-03-多机车电空分工（decompose 首跑）
 
   - ⏳ 待补：逐机车 RL 短训冒烟证明可控性、全量评估 vs 单机增量收益（错峰缓解降车钩力）
 
-- **关联**：文档立论 `docs/RESEARCH_POSITIONING.md` §1.3.1；决策 `docs/records/DECISIONS.md` ADR-009；诊断 `docs/records/DIAGNOSTICS.md`
+- **关联**：文档立论 `docs/RESEARCH_POSITIONING.md` §1.3.1；决策 `docs/logs/decisions/DECISIONS.md` ADR-009；诊断 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`
 
 ***
 
@@ -1004,7 +1004,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
   - **P1-4/5/6**：五编组长度效应绿（232>216）、S4 解除 xfail（659 kN）、历史数值断言审计（fleet 区分度测试 100% 动力学校准）。
 
-- **留痕**：`docs/VALIDATION_BASELINE.md` V3.5.8 + `docs/records/DIAGNOSTICS.md`「诊断-2026-09-02-P0-2/3 + P1-4/5/6」+ 工作日志 `.codebuddy/memory/2026-09-02.md`。
+- **留痕**：`docs/VALIDATION_BASELINE.md` V3.5.8 + `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`「诊断-2026-09-02-P0-2/3 + P1-4/5/6」+ 工作日志 `.codebuddy/memory/2026-09-02.md`。
 
 - **遗留（用户手动执行，WSL conda）**：M1/M3/MPC 论文表 MARL 评估在 100% 动力学下重跑（相对结论预计不变，绝对值待更新）。
 
@@ -1026,7 +1026,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
   - **缩放实验**：`outputs/exp_mpc_complexity_scale.py` → 公平 MPC 每步求解 17ms（N=2,B=5）→ 3169ms（N=5,B=40）\~184×，MARL 推理恒定 0.39ms（最小配置即快 44×）。
 
-- **留痕**：`docs/records/DIAGNOSTICS.md` 两条「诊断-2026-09-03-标准RL未涌现错峰」「诊断-2026-09-03-MPC求解复杂度缩放」；数据 `outputs/exp_emergence_standard_rl_results_20260903_182352.json`、`outputs/exp_mpc_complexity_scale_20260903_190913.json`。
+- **留痕**：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 两条「诊断-2026-09-03-标准RL未涌现错峰」「诊断-2026-09-03-MPC求解复杂度缩放」；数据 `outputs/exp_emergence_standard_rl_results_20260903_182352.json`、`outputs/exp_mpc_complexity_scale_20260903_190913.json`。
 
 - **关联**：`.trae/documents/plan_2026-09-03_立论司机经验涌现协同.md` 已标注废弃（方向推翻）；ADR-009 多机车电空分工方向不受影响（其"错峰"是规则预设，非本立论）。
 
@@ -1054,7 +1054,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   2. 我们 = 3 列独立输出 v\_coop 需自发一致 + 车钩力多体耦合 + ATP 安全约束 → 多智能体一致性问题，信号弱（gap\_reward +1/步 vs speed\_band +5/步）→ 探索即不一致 → 间距崩；
   3. 分层框架本身无问题（M3 也是分层且 +235k），问题在"协同层 RL 可学性"与"规则基线已近最优（学无可学）"。
 
-- **留痕**：`docs/records/DIAGNOSTICS.md` 诊断-2026-09-04-B机制目标速度协同（含 reward 分解表）；数据 `outputs/results/train_history_cp_seed0.json`、`outputs/train_logs/eval_vcoop_vcoop_*.log`。
+- **留痕**：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 诊断-2026-09-04-B机制目标速度协同（含 reward 分解表）；数据 `outputs/results/train_history_cp_seed0.json`、`outputs/train_logs/eval_vcoop_vcoop_*.log`。
 
 - **待决策（下一步方向）**：①回 A 机制长时域重训至 15000 步（消除 OOD，公平验证协同价值，2-3h GPU）；②修正 B（限 v\_coop 幅度/平滑正则/列间相对速度/拉长训练时域）；③调整论文立论为"稳定场景规则基线已近最优 + 协同增量在扰动/压力边界场景"（利用已有 M1 鲁棒性证据，无需重训）。
 
@@ -1065,5 +1065,5 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **触发**：承接 R0-C 的 QKX100 胶泥缓冲器分区 + 敏感性扫描；用户决策"还是统一用 A"（A = 成熟论文主流"分车型归一对"）。
 - **内容**：全列（含机车-货车连挂钩）统一 MT-2 摩擦式缓冲器（Stribeck 750/500 kN、v_er=0.2、2270 kN 饱和），彻底移除机车 QKX100 弹性胶泥实现（消除 5 个无正文拟合常数的标定参数）。
 - **落实**：源码 `params.py`/`coupler.py`/`train.py`、测试 `test_coupler_model_refined`/`test_fleet_decompose`/`test_train_dynamics`、绘图 `plot_physical_curves.py`（图 6 改单面板 MT-2）、训练 metadata physics 串均去 QKX100。
-- **留痕**：ADR-011（`docs/records/DECISIONS.md`）；`VALIDATION_BASELINE.md` R0-C superseded 标注 + 「诊断-2026-09-07」节；`ITSC_PAPER.md/.tex` Limitation (6) 改写 + tectonic 重编译 PDF；`AGENTS.md` 车钩描述与 R0 gotcha 更新；HANDOFF 补 superseded 声明。
+- **留痕**：ADR-011（`docs/logs/decisions/DECISIONS.md`）；`VALIDATION_BASELINE.md` R0-C superseded 标注 + 「诊断-2026-09-07」节；`ITSC_PAPER.md/.tex` Limitation (6) 改写 + tectonic 重编译 PDF；`AGENTS.md` 车钩描述与 R0 gotcha 更新；HANDOFF 补 superseded 声明。
 

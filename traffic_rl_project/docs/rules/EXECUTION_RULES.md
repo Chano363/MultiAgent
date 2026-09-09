@@ -53,3 +53,13 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 5. **实验数值一律以 `metadata.json` / 评估 JSON 为准**，禁止从代码注释或记忆粘贴实验数值当结论。
 
+## 免重辨识 claim 实验执行规范（2026-09-09，覆盖式修订，当前口径）
+
+> **本节为当前实验体系运行时口径（覆盖式修订，不追加历史）**。SSOT 见 `RESEARCH_POSITIONING.md` §1.6 + `DECISIONS.md` ADR-014。旧口径（如主剖面默认 23.8、跨线方向 23→35km）已过时，以本节为准。
+
+1. **主训练剖面颗粒**：主训练走 `grade_profile: shuozhou_real_53km`（真实朔黄）；跨线域外目标 = `long_downhill_20km` / `long_downhill_35km`；`shuozhou_23800` 仅作已知基线锚，**不作跨线泛化证明**。
+2. **跨线免调参协议**：RL 跨线零微调直接评估；MPC 跨线**不重喂 `grade_at`**，并**必须声明 `no-re-identification`**（否则当 strawman）。
+3. **指标口径**：主指标 = **跨线免调参级联失败率** / **MPC 求解失败/终端无解次数** / **ATP 触发次数**（替代"追尾"——安全层已杜绝物理追尾，ATP 触发=策略踩线兜底依赖度）。补遗口径：车钩力峰/超限、列距误差、速度带落地率、求解耗时（MPC 每步记录 `solve_times`）。
+4. **protocol 标注**：每实验表逐行标 MPC 是否 re-identification / `inner_rule_cyclic`、seed、`simulator_model` 版本（`coupler=MT-2 | braking=ED+AB-relief-wave`）。
+5. **全部走 `metadata` 守卫**（`training_metadata_guard`/`save_metadata`）+ 结果 JSON 按时间戳归档到 `outputs/`，**不覆盖旧文件**（复用既有 `metadata.py` / `evaluate_m1_m3_long.py` M-MPC 模式入口）。
+

@@ -3,14 +3,14 @@ title: 验证基准：论文 → 项目正确性对照
 date: 2026-09-01
 status: active
 owner: Owner + Agent
-# 文档规范化拆分：验证执行日志 → docs/records/VERIFICATION_LOGS.md；诊断序列 → docs/records/DIAGNOSTICS.md
+# 文档规范化拆分：验证执行日志 → docs/logs/verification/；诊断序列 → docs/logs/diagnostics/
 ---
 
 > **本文档内容分层**：前段 = 论文→项目**验证基准**（公式/数据/规律，权威对照）；
 > 后段 = 历史「诊断-日期」序列（工作留痕，append-only **原样保留**）。
 >
-> **新增内容去哪儿**：从 2026-09-01 起，**新实验/诊断数据**写 `docs/records/DIAGNOSTICS.md`，
-> **新决策**写 `docs/records/DECISIONS.md`，**踩坑**写 `.learnings/LEARNINGS.md`。
+> **新增内容去哪儿**：从 2026-09-01 起，**新实验/诊断数据**写 `docs/logs/diagnostics/`（按月文件），
+> **新决策**写 `docs/logs/decisions/DECISIONS.md`，**踩坑**写 `docs/logs/learnings/LEARNINGS.md`。
 > 本文档只长期维护"验证基准"部分，避免继续膨胀（曾达 177KB）。
 
 > 本文件把已下载文献转化为**可执行的验证基准**，用于验证仿真器设计与算法建立的正确性。
@@ -280,7 +280,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 ### V3.5.8 论文工况定量复现（2026-09-02，P0-2/3 + P1-4/5/6 执行）
 
 > 从"机制符合文献"推进到"论文工况对论文数字"的定量复现。全部在 Windows Anaconda 上完成，
-> 全量测试 **125 passed**。详细诊断与探针数据 → [`docs/records/DIAGNOSTICS.md`](records/DIAGNOSTICS.md)
+> 全量测试 **125 passed**。详细诊断与探针数据 → [`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`](logs/diagnostics/DIAGNOSTICS_2026-09.md)
 > 「诊断-2026-09-02-P0-2/3 + P1-4/5/6」。
 
 | 判据 | 论文值 | 本仿真器复现 | 判定 |
@@ -330,7 +330,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 > ✅ **P0.75 数据提取阶段全部完成**（6 篇论文数据均已提取）。剩验证测试补全。
 >
 > ✅ **2026-09-02 定量复现阶段全部完成**（P0-2/3 + P1-4/5/6）：全量测试 125 passed。
-> 结果见 **V3.5.8** 与 [`docs/records/DIAGNOSTICS.md`](records/DIAGNOSTICS.md)「诊断-2026-09-02-P0-2/3 + P1-4/5/6」。
+> 结果见 **V3.5.8** 与 [`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`](logs/diagnostics/DIAGNOSTICS_2026-09.md)「诊断-2026-09-02-P0-2/3 + P1-4/5/6」。
 
 ---
 
@@ -341,11 +341,11 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 
 本文档原先混装三部分，已按职责拆分，**原文按行精确迁移，无遗漏**：
 
-- 验证执行日志（V 系列：仿真器/算法验证过程记录）→ `docs/records/VERIFICATION_LOGS.md`
-- 历史诊断序列（`诊断-日期`）→ `docs/records/DIAGNOSTICS.md`
+- 验证执行日志（V 系列：仿真器/算法验证过程记录）→ `docs/logs/verification/`（按 V 块拆为 V1–V6）
+- 历史诊断序列（`诊断-日期`）→ `docs/logs/diagnostics/`（按月拆分）
 - 本文档 = **验证基准对照**（论文↔项目公式/数据/规律），长期只维护此部分
 
-拆分执行见 `docs/records/DECISIONS.md`（ADR-001）与工具脚本 `docs/archive/scripts/`。
+拆分执行见 `docs/logs/decisions/DECISIONS.md`（ADR-001，当年迁移工具脚本已随 `archive/` 一并清理）。
 
 
 ## 旧文档索引（历史保留，2026-09-01）
@@ -556,7 +556,7 @@ I（提示，留给司机反应） → P（许可速度，超限预警） → W�
 
 ## 地基级建模体检 R0：车钩/制动物理五项改进（2026-09-06，文献核对 + 实测带标定 + 全量重跑）
 
-> **【2026-09-07 superseded（仅限 R0-C 之 QKX100）】** 经 ADR-011（`docs/records/DECISIONS.md`）统一回 MT-2：机车 QKX100 弹性胶泥分区已**彻底移除**，全列（含机车-货车连挂钩）一律 MT-2（Stribeck 750/500、v_er=0.2、2270 kN 饱和）。R0-A/B/D/E 的物理（卸载刚度复核=1.0、Stribeck、段间衰减、两段式缓解）**保留不变并继续生效**；此 superseded 只针对 R0-C。历史 QKX100 的 C/n/F_d/f 标定值（诊断-2026-09-06 检索结论）仅作文献/决策追溯，**不再用于当前仿真**。详见 ADR-011。
+> **【2026-09-07 superseded（仅限 R0-C 之 QKX100）】** 经 ADR-011（`docs/logs/decisions/DECISIONS.md`）统一回 MT-2：机车 QKX100 弹性胶泥分区已**彻底移除**，全列（含机车-货车连挂钩）一律 MT-2（Stribeck 750/500、v_er=0.2、2270 kN 饱和）。R0-A/B/D/E 的物理（卸载刚度复核=1.0、Stribeck、段间衰减、两段式缓解）**保留不变并继续生效**；此 superseded 只针对 R0-C。历史 QKX100 的 C/n/F_d/f 标定值（诊断-2026-09-06 检索结论）仅作文献/决策追溯，**不再用于当前仿真**。详见 ADR-011。
 
 > **任务定位**：HANDOFF_2026-09-06_ModelBasisReview 的 R0 交付。此前车钩模型只被"特征锚点（峰值/延迟/2270kN）"验证，缺"整段物理曲线 + 跨工况覆盖"；本轮按于宗泽2025《重载列车车钩缓冲装置纵向动力学精细化模型》（中国铁道科学 46(2):192-202）+ 李蔚2023 系统性补齐，**两处实现（`coupler.py` 标量 + `train.py` 向量化）同步改**，全部文献锚点测试化（`tests/test_coupler_model_refined.py`，18 项）。
 
@@ -678,7 +678,7 @@ python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1pl
 
 ### 诊断-2026-09-07-车钩缓冲器统一回 MT-2（移除机车 QKX100，ADR-011）
 
-**触发**：承接 R0-C 的 QKX100 胶泥缓冲器分区 + 诊断-2026-09-06 的敏感性扫描。用户决策"还是统一用 A"（A = 成熟论文主流"分车型归一对"），把机车 QKX100 弹性胶泥实现**彻底移除**，全列（含机车-货车连挂钩）统一 MT-2 摩擦式。决策全文：`docs/records/DECISIONS.md` ADR-011。
+**触发**：承接 R0-C 的 QKX100 胶泥缓冲器分区 + 诊断-2026-09-06 的敏感性扫描。用户决策"还是统一用 A"（A = 成熟论文主流"分车型归一对"），把机车 QKX100 弹性胶泥实现**彻底移除**，全列（含机车-货车连挂钩）统一 MT-2 摩擦式。决策全文：`docs/logs/decisions/DECISIONS.md` ADR-011。
 
 **改动范围（已实施 + 验证）**：
 | 层 | 文件 | 改动 |
@@ -811,3 +811,60 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 - **验证**：`pytest tests/test_fleet_decompose.py tests/test_train_fleet_env.py` → **19 passed**；冒烟（3列 500 步规则基线动作）avg +17.0/步、NaN=0、peakCoupler 1kN、viol 0。
 - **留痕**：发散 seed0 产物归档至 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（含 metadata/csv/模型/fig，只回溯不引用）；修复后重跑由 relay v2 接管（`tmp_formation_relay.sh`，显式传每 seed 独立 dirs，5 seed 串行），日志 `outputs/checkpoints_formation/seed{N}_train.log` + relay.log。
 - **附注（relay v1 缺陷）**：v1 只传 `--seed N` 不传 dirs，而 config `dirs.checkpoint_dir` 写死 seed0 → seed1-4 会覆盖写进 seed0 目录且 metadata 检查 MISSING；v2 已改为逐 seed 显式 `--checkpoint_dir/--results_dir/--override dirs.figures_dir`。
+
+### 诊断-2026-09-09-53km 双线发散定根因（规则裸跑 + RL run2）【物理：MT-2 统一 ADR-011 + Newmark-β + 两段式缓解 τ=6s；剖面 shuozhou_real_53km】
+
+**触发**：主训练剖面切至 53km（`outputs/checkpoints_formation_53km/`）后，RL(run2, lr5e-5→2e-5/clip0.15/entropy0.005) 与纯规则裸跑双线均发散。为剥离"RL 调制越界 vs 规则层骨架失效"，跑纯规则零调制 trace（仿 HANDOFF_2026-09-09 D4，但换 53km 长时域）。
+
+**A. 规则裸跑 trace（决定根因）**
+- 命令：`TRACE_HORIZON=15000 TRACE_OUT=outputs/trace_53km_rule python -u tmp_53km_rule_trace.py`（临时脚本，3列×1+1，零调制量喂 get_action_decomposed，init 60km/h 同步）
+- 结果：**`RULE_TRACE_DIVERGES`**。`final_coupler_peak_N=793536（793.5kN，未破1000kN）`、`n_over_1000kN=0`、`final_gaps=[-580.9, -144.1]`、`final_vstd=2.330`。
+- 关键数据（300 步采样）：
+  | step | vstd | col1-col2 gap(m) | coupler(N) |
+  |:--|:--|:--|:--|
+  | 3000 | 2.386 | -254.4 | 793k |
+  | 13500 | 0.875 | -961.7 | 793k |
+  | final | 2.330 | **-580.9, -144.1** | 793.5k |
+- **判读（期望 vs 实际）**：期望规则骨架在 53km 仍闭环；实际 **车钩力全程安全（≤793.5kN）**，但**列间间距全程为负**（-254→-978 又到 -581）＝ follower 头车追进前列尾车区间（负间距/追尾趋势），且 vstd 在 0.7~3.1 **高频振荡不锁死**。→ **规则层在 53km 长时域的缺陷是"间距无法保证有界 + 列间速度未锁死"，而非车钩力超限**。这正是 A1-final/v2+chase"vstd 未锁死、末列 still 漂移"隐患在更长里程+58 坡段（<--11.5‰）上的放大。**结论：规则骨架在 53km 需要升级（级联迁就/间距有界），这不是 RL 调参能解的。**
+
+**B. RL(run2) 结果（run2 目录，lr 调参版，seed0）**
+- 命令：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --override dirs.checkpoint_dir=outputs/checkpoints_formation_53km/run2/seed0 ...`（run2 调参 = lr2e-5/clip0.15/entropy0.005/curriculum 密）
+- 数据：ep20 Reward -116524.5 / best +12012.3 / peakCoupler 805kN / viol 0；**ep30 Reward -83033 / peakCoupler 1392kN / viol 389.8**；KL 早停仍频发；job 被 SIGTERM(exit15) 中断。
+- **判读**：相比规则裸跑（coupler 793kN 超限 0），**RL 调制把车钩力顶到 1392kN / viol 389 破安全线**——RL 在"规则骨架本身间距都未锁死"前提上学到的 ed/ab 分配越界。**反向佐证：规则层反而更安全。**
+
+**C. 综合结论（双定根因）**
+1. **规则层在 53km 必须先修"间距有界 + 列间速度锁死"**（级联迁就到每一列、封末列漂移），否则任何 RL 都站在一个会纵向坍缩的骨架上。
+2. **即便骨架修好，也要约束 RL 的 ed/ab 调制幅度/车钩力越界**（规则层裸跑 793kN 说明安全底线在规则侧，RL 的目标是"在骨架内学精细调制"而非"越界顶车钩力"）。
+3. 呼应你"规则层泛化弱 + 该不该留"的讨论：**拆层职责**——规则层负责"安全底线 + 间距物理骨架"（不可学、必须留、必须结构完备化）；RL 负责"骨架内的精细调制与跨场景泛化"（可学）。**"规则还必须存在"得到实证**（它的车钩力比 RL 更稳）。
+
+**留痕对象**：裸跑 `outputs/trace_53km_rule/trace.log + metadata`；run2 产物 `outputs/checkpoints_formation_53km/run2/seed0/`。
+**临时脚本** `tmp_53km_rule_trace.py` 用后即删（本诊断结论已留此处）。监测定时任务已暂停。
+
+### 诊断-2026-09-09-53km 追尾真根因：ETCS 紧急制动未传导为空气制动（安全层修复）【物理：MT-2 统一 + Newmark-β + 两段式缓解；剖面 shuozhou_real_53km】
+
+**触发**：「诊断-2026-09-09-53km 双线发散」判规则层在 53km 负间距追尾，用户质疑"ATP 已完善不会追尾，是调用错或 ATP 被破坏"。据此定位到**安全层调用路径**，实证推翻"规则层缺陷"假设、锁定真正根因。
+
+**根因（三层层递进）**
+1. **表象层**：53km 规则裸跑（`enable_etcs=[True,True,True]`）仍 `RULE_TRACE_DIVERGES`，final_gaps=[-580.9,-144.1]。
+2. **ETCS 触发实证**：在 trace 中统计 safety_events，结果 **`etcs_ebi=3643 / etcs_permitted=286`（6000 步内）**——ETCS 饱和触发紧急制动，但列车照样穿透前列（gaps→-776）。**ATP 逻辑在跑、报 EBI，却拦不住**。
+3. **翻译层根因**：[train_env.py `_step_decomposed`](src/environments/train_env.py) 中安全层 EBI 的"紧急制动"**只被翻译成机车 ED 加深**（`proj_throttle`→L498-500 压 `ed_throttle`），而 `ab_command` 恒 RELEASE（L482）、`ab_sources` 由 RL 动作决定。→ 长大下坡上 2 台机车的电制动**刹不住 100 节万吨列车**（电制动无全列传播、功率受粘着约束），ETCS 拼命报 EBI 但列车仍溜坡穿透。**这就是"ATP 被破坏"的本质：不是没调，而是紧急制动没真正传导到空气制动。**
+
+**修复（`src/environments/train_env.py` L497-505 + `src/train_dynamics/etcs_braking.py` L377-394）**
+- **主修复（真制动）**：`safety.protect` 后，若 `last_events` 含 `etcs_ebi`，把 `ab_command` 提升为 `AirBrakeNotch.EMERGENCY` → ETCS EBI 真正施加**全列空气紧急制动**（沿波速传播），才能对抗下坡重力拖住列车。
+- **配套（越过后豁免）**：`supervise_targets` 原 `if position_m >= target.position_m: continue` 越过前列尾即豁免 ×。改为越过后（avail≤0）允许速度压到 `target.speed` 下方，避免越过瞬间零约束。
+
+**实证结果（53km 纯规则 trace，`tmp_53km_rule_trace.py` 加 ETCS 事件统计）**
+| 指标 | 修复前 | 修复后（6000 步） | 修复后（完整 15000 步） |
+|:--|:--|:--|:--|
+| verdict | `DIVERGES` | `RULE_TRACE_OK` | `RULE_TRACE_OK` |
+| final_gaps_m | **-580.9, -144.1**（穿透≈400m） | -72.8, -39.0（未穿透） | **-36.5, -1.4**（实际间距≈110~146m） |
+| final_vstd | 2.330 | 0.384 | 1.745 |
+| ETCS 触发 | 3643/286 | 1149/731 | 4461/1606 |
+| coupler 峰值(kN) | 793.5 | 778.6（超限 0） | **778.6（超限 0）** |
+
+**结论（物理/机制）**
+1. **ATP 从未失效，是"紧急制动信号没传导到空气制动"**——之前只加深 ED。用户直觉（ATP 会防追尾）属实；被破坏的是**制动执行链**，不是监督逻辑。
+2. 修复后 **53km 全程 15000 步不追尾**（vstd=1.745 在发散阈值 2.0 边缘下），车钩力 778kN 全程≤1000kN。**安全层职能（绝不允许追尾）已达标。**
+3. **遗留**：vstd=1.745 仍偏高——安全层兜住"不追尾"，但**规则层速度协同仍未锁死**是独立的收敛问题（对应上一诊断的"规则骨架 53km 需升级"），需另修，不属安全层职责。
+
+**留痕对象**：trace 日志 `outputs/trace_53km_rule_etcs_ab_full/`；修复代码 `src/environments/train_env.py` + `src/train_dynamics/etcs_braking.py`；ETCS+safety 单测 50 passed + 全量回归 167 passed（2026-09-09）。

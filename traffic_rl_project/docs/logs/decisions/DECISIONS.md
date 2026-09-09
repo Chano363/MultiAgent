@@ -58,7 +58,7 @@ owner: Owner
 
   - 新依赖约束：OpenRouter 公端点 `independence_verified=unverified`；更严格独立需私有部署 ump/challenge 端点
 
-- 相关：`docs/records/DIAGNOSTICS.md`（诊断-2026-09-02-ARIS 试点）；`docs/PROJECT_PIPELINE.md` ARIS 条目；ARIS 仓库 `docs/TRAE_ARIS_RUNBOOK_CN.md`
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（诊断-2026-09-02-ARIS 试点）；`docs/PROJECT_PIPELINE.md` ARIS 条目；ARIS 仓库 `docs/TRAE_ARIS_RUNBOOK_CN.md`
 
 ## 条目区
 
@@ -105,7 +105,7 @@ owner: Owner
 
 - 后果：`train_fleet_env.py` v\_max 65→80、v\_min 45→40；82 测试过。
 
-- 相关：`docs/records/VERIFICATION_LOGS.md`（V5.24）
+- 相关：`docs/logs/verification/VERIFICATION_LOGS_V5.md`（V5.24）
 
 ## ADR-003 动作空间：目标速度 → 目标加速度 - 2026-08-15
 
@@ -123,7 +123,7 @@ owner: Owner
 
 - 代价：加速度更激进致 peakCoupler 偶尔超 1000kN（viol\~1）。
 
-- 相关：`docs/records/VERIFICATION_LOGS.md`（V5.10）
+- 相关：`docs/logs/verification/VERIFICATION_LOGS_V5.md`（V5.10）
 
 ## ADR-004 最终架构：放弃"RL 学单列循环制动"→ 分层（第1层规则 + 第2层 RL 阈值协同）- 2026-08-22
 
@@ -141,7 +141,7 @@ owner: Owner
 
 - 后果：成为论文核心创新点；83 测试过。
 
-- 相关：`docs/records/DIAGNOSTICS.md`（诊断-2026-08-22 最终战略分层重构）
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-08.md`（诊断-2026-08-22 最终战略分层重构）
 
 ## ADR-005 方案A 人为坡段错开 → 回退；废弃 APF 势场控制器 - 2026-08-20
 
@@ -157,7 +157,7 @@ owner: Owner
 
 - 结论：废弃 APF，回退移除 `start_offset_m`/`spacing_m`。正确分层 = 列间 RL 宏观协同 + 列内规则循环制动 + 车钩力安全层。35 测试过，无回归。
 
-- 相关：`docs/records/DIAGNOSTICS.md`（诊断-2026-08-20 E25 方案A / 回退方案A）
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-08.md`（诊断-2026-08-20 E25 方案A / 回退方案A）
 
 ## ADR-006 引入公平 DQN baseline（M-DQN-fair）消解审稿质疑 - 2026-08-23
 
@@ -173,7 +173,7 @@ owner: Owner
 
 - 结论：引入 M-DQN-fair。完整评估仍追尾229步(固定65)/89.2±109.4(随机化)，与 M3 相当、远不如 M1(MAPPO, 0追尾)；车钩力守住900kN（证明安全层生效，排除干扰）。
 
-- 相关：`docs/records/DIAGNOSTICS.md`（诊断-2026-08-23 公平DQN baseline）
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-08.md`（诊断-2026-08-23 公平DQN baseline）
 
 ## ADR-007 简化 MPC baseline 双策略（Yang2025 参考线 + 公平 DQN 主基线）- 2026-08-23
 
@@ -189,7 +189,7 @@ owner: Owner
 
 - 结论：采用双策略。诚实呈现简化 MPC 在多列协同的固有挑战（需精确车钩力预测模型），但不冒充公平对比。
 
-- 相关：`docs/records/DIAGNOSTICS.md`（诊断-2026-08-23 简化 MPC 协同 baseline）
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-08.md`（诊断-2026-08-23 简化 MPC 协同 baseline）
 
 ## ADR-009 智能体分解重构：多机车分布式动力 × 电空双制动分工（融合） - 2026-09-02
 
@@ -215,7 +215,7 @@ owner: Owner
 
 - 暂缓原因：`train_env.py`/`train.py`/`coupler.py`/`tractive.py` 为他人改仿真的未提交（M）状态，不冲突不改造。
 
-- 相关：`docs/RESEARCH_POSITIONING.md`（1.3.1 立论）；`docs/PROJECT_PIPELINE.md`（立项）；`docs/records/DIAGNOSTICS.md`
+- 相关：`docs/RESEARCH_POSITIONING.md`（1.3.1 立论）；`docs/PROJECT_PIPELINE.md`（立项）；`docs/logs/diagnostics/`
 
 ## ADR-009.1 阶段方案修订：空电分工（B）先行、多机车（A）后叠 - 2026-09-03
 
@@ -236,7 +236,7 @@ owner: Owner
 
 - 门控：环境冒烟 → 短训验证"ED 优先、不足转 AB"分配可学 → 通过才全量训练；失败止损并记录（DIAGNOSTICS）。
 
-- 相关：`docs/records/DIAGNOSTICS.md`（emergence 证伪 / MPC 缩放）；`.trae/documents/plan_2026-09-03_空气制动难优化解决-空电分工.md`
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（emergence 证伪 / MPC 缩放）；`.trae/documents/plan_2026-09-03_空气制动难优化解决-空电分工.md`
 
 ## ADR-010 主轴回调：多列 platoon + 车钩力为底线，ED/AB 分工与 1+1 降级为增强；MPC 对比采用 Regime A/B - 2026-09-05
 
@@ -339,4 +339,21 @@ owner: Owner
   - 旧叙事（编队层阈值 RL、两套 RL 叠加、"编队协同增量 +110042 由编队层 RL 承载"）不再作为当前主线证据引用；编队协同结果改由 formation-aware 机车级 RL 承载后重跑（MT-2 物理）。
 
 - 相关：ADR-012（T-MARL，本 ADR 修订其"两层"框架、保留其列内机制与语义代号/可复现机制）；ADR-010（多列 platoon + 车钩力 + 列距 = 底线，与本 ADR 一致）；ADR-009/009.1（列内层分布式动力 × 电空分工机制）；`docs/RESEARCH_POSITIONING.md` §1.3 / `docs/ITSC_PAPER.md` / `docs/PROJECT_PIPELINE.md`；根 `AGENTS.md`
+
+## ADR-014 立论定调：免重辨识 claim + 车钩力=约束 + 动作结构 Q 固化 - 2026-09-09
+
+- 状态：决策
+- 背景：论文立论需一个"扛部署"的可量刑差异化 claim。导师口径"把车钩力保持在 1000kN 以内"经辨析 = "约束"而非"优化目标"；claim 不应与 MPC 比"控制品质"（MPC 在保真车钩+长大下坡已证明能把车钩力压到 330kN，宋宗莹 2026，正面拼品质基本会输），而应比"谁扛得住部署"（免调参迁移 vs 每线重标定+在线求解）。
+- 选项与权衡：
+  - 选项 A 车钩力=优化目标（reward）：→ 必须与 MPC 在车钩力品质上正面竞争，面对有 330kN 实证的 MPC 基本会输，claim 动摇。
+  - 选项 B 车钩力=安全约束+观测上下文：→ 不与 MPC 拼品质、拼"免重辨识部署"，claim 站得住。**【选此】**
+  - 泛化方向：主训练已切 53km 真实朔黄；跨线目标应为**域外真实剖面（20/35km）**而非 23.8（23.8 是已拟合过的合成锚、"见过"了，无跨线泛化证明力）。
+- 结论：
+  - **claim**：同一环境/安全层/53km 下，免重辨识 D-RL 跨线守住底线（车钩力≤1000kN、不越 ATP、列距不破界），对公平 MPC=需重标定/失配/耦合区求解失败。不与 MPC 比控制品质，只比扛部署。
+  - **车钩力 = 硬安全层 + 观测上下文，不进 reward**（约束语言，原则性定稿）。
+  - **动作结构 Q 固化**：`get_action_decomposed` 规则循环制动 + 逐机车 RL 调制 `[ed_mod,ab_mod]`。claim 落"协同调制"层；规则层管单车安全制动、RL 管多车编队协同。
+  - **主指标**：跨线免调参级联失败率 / MPC 求解失败次数 / **ATP 触发次数**（替代"追尾"——安全层已杜绝物理追尾）。补遗：车钩力/列距/速度带/求解耗时。
+  - **放弃 SAC/QMIX/DQN-fair 主表**（claim 不依赖 RL 算法选择，仅 Related Work 一句）；ED/AB 隔离、No-ETCS、No-C 不进正文（接续 ADR-013 删除项）。
+- 后果：立论口径写入 `RESEARCH_POSITIONING.md` §1.6（**覆盖式修订** ADR-010 已过时"23→35km"假设）；运行时规范待落到 `EXECUTION_RULES.md`；`ITSC_PAPER.md` 手感及主表待对齐。
+- 相关：ADR-013（formation-aware 机车级 ED/AB=唯一 RL 手段）；ADR-010（多列 platoon+车钩力+列距=底线）；§1.6；宋宗莹 2026（MPC 330kN 靶点）
 

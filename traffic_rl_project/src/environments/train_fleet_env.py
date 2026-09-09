@@ -26,7 +26,6 @@ from gym import spaces
 
 from src.environments.train_env import TrainFormationEnv, COUPLER_FORCE_LIMIT_N, CONSIST_PRESETS
 from src.controllers.low_level_controller import TrainLowLevelController
-from src.controllers.hierarchical_controller import HierarchicalController
 from src.controllers.multi_loco_controller import MultiLocoController
 from src.train_dynamics.grade_profile import PROFILES
 from src.train_dynamics.braking import AirBrakeNotch
@@ -225,21 +224,10 @@ class TrainFleetEnv:
         # 分层控制器（2026-08-19 定位确认）：层级二用 RL 第1层策略控速
         # （warm start 自规则循环制动，缓解波下循环制动稳定，E16实测训练稳定avg+2.1万），
         # 层级一 RL 输出协同阈值偏移（v_max_adj/v_min_adj），层级二规则循环制动控速。
-        # 【重构 2026-08-22】HierarchicalController 不再用 RL 第1层策略（RL 学单列
-        # 循环制动结构性失败），改用规则循环制动 + 阈值协同。
+        # 【重构 2026-08-22→ADR-013】HierarchicalController 阈值协同（列=智能体的第2层）
+        # 已废止：RL 落位收敛为机车级 ED/AB（decompose），不再实例化 HierarchicalController。
+        # 保留 self.hierarchical 布尔仅为兼容旧 config 解析；执行统一走非分层/decompose 路径。
         self.hier_controllers = None
-        if self.hierarchical:
-            self.hier_controllers = [
-                HierarchicalController(
-                    num_vehicles=tr.num_vehicles,
-                    coupler_force_limit_n=self.coupler_force_limit_n,
-                    target_speed=self.target_speed,
-                    v_max=self.v_max,  # 规则循环制动限速上限
-                    v_min=self.v_min,  # 规则循环制动限速下限
-                    adj_coef=self.adj_coef,
-                )
-                for tr in self.trains
-            ]
         # 【ADR-009.1 2026-09-05 换架构】decompose 模式：每列一个 MultiLocoController
         # 作规则基线（ED 优先 + 逐机车错峰 + AB 兜底），RL 逐机车调制分配。
         self.multi_loco_controllers = None
@@ -455,22 +443,14 @@ class TrainFleetEnv:
             v_before = float(tr.dynamics.vel[0])
 
             if self.hierarchical:
-                # 分层模式：层级一 RL 输出"协同调整量"，层级二规则循环制动负责列内控速。
-                # 【方向A 2026-09-04】action_dim>=2 时输出 [v_max偏移, v_min偏移]（独立带宽压缩），
-                # 1 维时输出单 coor_adj（整带平移，兼容旧策略/评估）。
+                # 【ADR-013 已废止】HierarchicalController 阈值协同（列=智能体的第2层）
+                # 不再使用。hierarchical=True 旧 config 退化为"目标加速度直控"（与第1层
+                # 底层控制器 get_action_accel 一致），避免旧配置崩溃、主路径不残留废止代码。
+                target_accel = float(actions[i, 0]) * self.max_accel
                 if self.enable_disturbance and i == 0 and self.disturbance_step <= self.steps < self.disturbance_step + self.disturbance_duration:
-                    # 【扰动鲁棒性评估 2026-08-22】领航车突发强制制动（模拟前方临时限速/障碍），
-                    # 走底层控制器（含车钩力钳制），驱动后列协同响应。默认 enable_disturbance=False 不受影响。
-                    col_actions = ctrl.get_action_accel(tr, self.disturbance_target_accel)
                     target_accel = self.disturbance_target_accel
-                elif self.action_dim >= 2:
-                    col_actions = self.hier_controllers[i].get_action_2d(tr, actions[i])
-                    target_accel = float(actions[i, 0]) * self.max_accel  # 供 obs 的前列制动状态用
-                else:
-                    coor_adj = float(actions[i, 0])
-                    col_actions = self.hier_controllers[i].get_action(tr, coor_adj)
-                    target_accel = float(coor_adj) * self.max_accel  # 供奖励/obs 用
                 target_accels[i] = target_accel
+                col_actions = ctrl.get_action_accel(tr, target_accel)
             else:
                 # 非分层模式：层级一动作 → 该列目标加速度（动作直接影响物理）
                 target_accel = float(actions[i, 0]) * self.max_accel

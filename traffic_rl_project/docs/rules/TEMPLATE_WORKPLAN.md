@@ -20,7 +20,7 @@
   - ❌ 失败：失败原因、期望 vs 实际、如何解决 ——**失败的痕迹同等重要，不删**
 - **产出文件**：
   - 结果/图表/日志：`computer://d:\Code\MultiAgent\traffic_rl_project\outputs\...`
-  - 数据记录：`docs/records/DIAGNOSTICS.md` 中「### 诊断-日期-主题」
+  - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_YYYY-MM.md` 中「### 诊断-日期-主题」
 
 ---
 

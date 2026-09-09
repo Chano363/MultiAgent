@@ -2,7 +2,7 @@
 
 > **定位区分**：`TEMPLATE_FAILURE` 记"这次踩坑→怎么修"（事件）；本模板记"这背后
 > 哪条方法论/知识下次还能用，哪里不能乱用"（规律）。一条经验通常伴随一次失败或
-> 一次成功而得出。append-only，进 `.learnings/LEARNINGS.md` 或 `docs/records/DECISIONS.md`。
+> 一次成功而得出。append-only，进 `docs/logs/learnings/LEARNINGS.md` 或 `docs/logs/decisions/DECISIONS.md`。
 
 ---
 

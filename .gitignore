@@ -16,10 +16,12 @@ traffic_rl_project/outputs/results_phys2/checkpoints.dat
 # 训练日志和结果
 traffic_rl_project/outputs/logs/
 traffic_rl_project/outputs/results/
+traffic_rl_project/outputs/trace_*/
 
 # 临时文件
 *.tmp
 *.log
+*.aux
 tmp_*.py
 tmp_*.sh
 tmp_*.ps1

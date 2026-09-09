@@ -494,6 +494,15 @@ class TrainFormationEnv:
             proj_throttle = self.safety.protect(proj_throttle, self._state_snapshot())
             actions_modified = not np.allclose(proj_throttle, original, atol=1e-9)
             self._safety_events += len(self.safety.last_events)
+            # 【2026-09-09 安全层真制动修复】ETCS EBI 触发的"紧急制动"此前只翻译成
+            # 机车 ED 加深，ab_command 恒 RELEASE → 长大下坡上万瓦列车仅 2 台机车
+            # 电制动刹不住，67 实证 ETCS 疯狂报 EBI(3643次)仍穿透前列(gaps→-776)。
+            # 安全层 EBI 必须真正施加空气紧急制动：把 ab_command 提升为 EMERGENCY，
+            # 空气制动沿波速传播到全列，才能对抗下坡重力拖住列车。
+            for ev in self.safety.last_events:
+                if ev.get('rule') == 'etcs_ebi':
+                    ab_command = AirBrakeNotch.EMERGENCY
+                    break
         # 依据安全层修正，更新每机车 ED（安全层钳降则同步降 ED）
         for k, loco_idx in enumerate(self.loco_indices):
             ed_throttle[loco_idx] = min(ed_throttle[loco_idx],
