@@ -135,7 +135,7 @@ owner: Owner + Agent
 
 - 证明 M1 相对 M3 的**增量价值**（间距保持 + 安全，车钩力作为贯穿约束）
 
-- 场景：朔黄线 `shuozhou_23800` 真实剖面 + 多列虚拟耦合 + 长大下坡循环制动
+- 场景：**主训练剖面 = 朔黄线 `shuozhou_real_53km`（宁武西→北大牛真实纵断面 53.2km，取自真实线路数据，替代原手写 `shuozhou_23800` 23.8km）** + 多列虚拟耦合 + 长大下坡循环制动
 
 **已完成的关键积累（支撑本方针，勿推翻）**：
 
@@ -187,8 +187,14 @@ owner: Owner + Agent
 | **E19-E24 长距离场景攻坚（循环制动价值体现 + 车钩力/loss 爆炸解决）**     | ✅ 已完成（车钩力517kN守住 + loss 31.2）         |
 | **E25-E25C 方案A（坡段错开）+ 车钩力安全钳制修复 + 核心定位澄清**        | ✅ 已完成（结论见 4.0 与 VALIDATION\_BASELINE） |
 | **全项目审计修复（free\_length尺度 + 训练链路 + 安全层 + 一致性，7项）** | ✅ 已完成（2026-08-20，83 测试通过，见 4.2.5）     |
-| **下一阶段核心：M1(协同+车钩力) vs M3(单列独立) 增量验证**            | 🔄 **进行中（修复后需重训重评估，见 4.2.5）**         |
+| **编队协同（历史：编队层阈值 RL，M-MARL vs No-C）**            | ✅ 历史完成，但 2026-09-08 ADR-013 下线（R0 旧物理 +110042 不作当前主结果） |
+| **机车级 ED/AB 分工（唯一 formation-aware RL，编队上下文内重构）**   | ⏳ 训练中（2026-09-08 启动）：新训练线 `formation_ed_ab_3train_1plus1`（3列×1+1，6 agents）后台 60ep 全量 5 seed；冒烟已验证链路+reward 收敛趋势（见 DIAGNOSTICS-2026-09-08-formation） |
 | 对比分析（无人机 vs 列车）                                   | ⬜ 未开始                                 |
+
+> **【代号图例（2026-09-08，M-数字→语义代号；2026-09-08 ADR-013 修订）】**：
+> **M-MARL**＝编队层协同（原 M1）；**No-C**＝编队无协同/单列独立（原 M3，δ=0）；**车钩力擦除消融**＝原 M2（已并入安全层消融，结构性无差异）；**DQN-fair**＝原 M-DQN-fair。
+> **主轴修订（ADR-013）：最终目的＝编队；手段＝唯一 formation-aware 机车级 ED/AB MARL（每机车=agent，以编队为上下文）。废止**"编队层(列车级)RL + 列内层(机车级)RL 两层叠加 = T-MARL"表述；编队层阈值 RL 已下线，其 +110042 不作当前主结果。
+> 以下 4.2.x 历史小节中的 M1/M3/M2 按此映射读取；新增内容一律用语义代号，不再用 M-数字。
 
 ### 4.2 完整计划 Pipeline
 
@@ -480,7 +486,7 @@ owner: Owner + Agent
 
 ### 4.3 明确的下一步行动清单（按优先级）
 
-**当前执行（2026-08-22，论文发表冲刺计划，见下方 4.3.1）**：
+**当前执行（2026-09-08，主轴对齐后）**：主轴锁定为**列车编队 + 两层融合 MARL（T-MARL）**——编队层（每列车=智能体，多列安全列距协同，核心已闭环）+ 列内层（每机车=智能体 ED/AB 分工，§1.3.1 融合，待编队语境重构）。单列车 standalone decompose 判为方向性偏差，移出主轴。具体补齐阶段见 `.trae/documents/MT2多列编队M1与消融实验补齐规划.md`（阶段0–3）；下文 4.3.1 冲刺计划为多列协同主线的历史计划，按代号图例读取。
 
 ### 4.3.1 论文发表冲刺计划（2026-08-22 写入，基于缓解波 bug 修复后诚实数据）
 
@@ -714,7 +720,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
    - Reward 平线 + best 不更新（"学无可学"）→ 需回决策层重设计列间 obs/reward
 
    - 数据落盘：`outputs/diagnostics/` 带时间戳 csv，逐列记录（单列 vs 群组各自车钩力峰值），不覆盖旧文件
-5. ✅ **ITSC 论文方案定型**（2026-08-16）：`docs/ITSC_PAPER_PLAN.md`
+5. ✅ **ITSC 论文方案定型**（2026-08-16；旧 `docs/ITSC_PAPER_PLAN.md` 已于 2026-09-08 清理，方案并入 `docs/ITSC_PAPER.tex`）
 
    - 目标会议 ITSC，聚焦单一核心创新点"车钩力 + 多列虚拟编组分层 MARL"
 
@@ -829,7 +835,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
 3. ⬜ 重排论文对比表 III/V、稳健性表、消融表：主表列收敛为 M-MARL / No-C / MPC / DQN-fair / Coast；M4 移附录；朴素 DQN 只进入安全层消融对照
 
-4. ⬜ 更新 `ITSC_PAPER.md/.tex/中文对照` 的 Methods-F（对比方法）、五-实验-B/D 与消融小节；同步 PPT（train-marl-talk.html）第 10/13 页对比与消融
+4. ⬜ 更新 `ITSC_PAPER.md/.tex` 的 Methods-F（对比方法）、五-实验-B/D 与消融小节；同步 PPT（train-marl-talk.html）第 10/13 页对比与消融
 
 5. ✅ `VALIDATION_BASELINE`「诊断-2026-08-30 MPC压力场景对比」已追加（含数据表 + M-MPC/M1/Coast 同协议对比 + 物理机理）；`outputs/m1m3_comparison.md` 待后续统一并入新表
 
@@ -1051,4 +1057,13 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **留痕**：`docs/records/DIAGNOSTICS.md` 诊断-2026-09-04-B机制目标速度协同（含 reward 分解表）；数据 `outputs/results/train_history_cp_seed0.json`、`outputs/train_logs/eval_vcoop_vcoop_*.log`。
 
 - **待决策（下一步方向）**：①回 A 机制长时域重训至 15000 步（消除 OOD，公平验证协同价值，2-3h GPU）；②修正 B（限 v\_coop 幅度/平滑正则/列间相对速度/拉长训练时域）；③调整论文立论为"稳定场景规则基线已近最优 + 协同增量在扰动/压力边界场景"（利用已有 M1 鲁棒性证据，无需重训）。
+
+## 车钩缓冲器统一回 MT-2（移除机车 QKX100）- 2026-09-07（ADR-011）
+
+- **状态**：✅ 已完成（2026-09-07，相关 55 测试通过）
+- **归属**：P0.75 验证基准 / R0 车钩地基改进的**收口简化**。
+- **触发**：承接 R0-C 的 QKX100 胶泥缓冲器分区 + 敏感性扫描；用户决策"还是统一用 A"（A = 成熟论文主流"分车型归一对"）。
+- **内容**：全列（含机车-货车连挂钩）统一 MT-2 摩擦式缓冲器（Stribeck 750/500 kN、v_er=0.2、2270 kN 饱和），彻底移除机车 QKX100 弹性胶泥实现（消除 5 个无正文拟合常数的标定参数）。
+- **落实**：源码 `params.py`/`coupler.py`/`train.py`、测试 `test_coupler_model_refined`/`test_fleet_decompose`/`test_train_dynamics`、绘图 `plot_physical_curves.py`（图 6 改单面板 MT-2）、训练 metadata physics 串均去 QKX100。
+- **留痕**：ADR-011（`docs/records/DECISIONS.md`）；`VALIDATION_BASELINE.md` R0-C superseded 标注 + 「诊断-2026-09-07」节；`ITSC_PAPER.md/.tex` Limitation (6) 改写 + tectonic 重编译 PDF；`AGENTS.md` 车钩描述与 R0 gotcha 更新；HANDOFF 补 superseded 声明。
 

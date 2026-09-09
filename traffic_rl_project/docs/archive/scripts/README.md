@@ -9,6 +9,6 @@
 | `tmp_fill.py` | PPT 数据回填临时脚本 |
 | `tmp_grep.py` | 临时文本检索 |
 | `_extract_mt2.py` | MT-2 车钩参数提取 |
-| `_md2tex.py` | Markdown→LaTeX 转换 |
+| ~~`_md2tex.py`~~ | ~~Markdown→LaTeX 转换~~（2026-09-08 删除：仅用于旧中文对照 `ITSC_PAPER_中文对照.md`→`ITSC_PAPER_CN.tex`，源与产物均已清理） |
 
 > 若后续确认某脚本需长期保留复现，迁到 `src/evaluation/` 或 `tools/` 并注明用途；否则保持冻结。

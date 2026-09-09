@@ -264,3 +264,79 @@ owner: Owner
 
 - 相关：`docs/research/RESEARCH_POSITIONING.md`（SSOT：主轴与底线 / MPC Regime A/B / 车钩异构）；ADR-009 / 009.1（机制决策，地位降级为增强）；根 `AGENTS.md`「规范性问题」
 
+## ADR-011 车钩缓冲器统一回 MT-2（移除机车 QKX100 弹性胶泥分区）- 2026-09-07
+
+- 状态：决策（已完成实施）
+
+- 背景：R0 建模（2026-09-06）为机车引入 QKX100 弹性胶泥缓冲器分区（月牙形两段刚度 + 胶泥幂律阻尼 C|v|^n + F_d + f），与货车 MT-2 摩擦式并置。但：① 成熟论文主流是"分车型归一对"（同一编组常用单一缓冲器类型，如 MT-2 + 个体差异），机车叠 QKX100 属简化研究域里少见的双类型并置；② QKX100 的 C/n/F_d/f/k1/k2 为形状标定值（文献未给正文拟合常数），引入 5 个无独立敏感性扫描的标定参数，审稿人会质疑边界与诚实性；③ 车钩异构（E4-H）卖点本就走"逐车钩物理参数抽样"，统一回 MT-2 后仍保留个体差异空间。
+
+- 选项与权衡：
+
+  - A. **统一回 MT-2（选用）**：全列（含机车-货车连挂钩）均用 MT-2 摩擦式（Stribeck 750/500 kN、v_er=0.2、2270 kN 饱和），彻底移除 QKX100。贴合成熟论文范式、消除 5 个无解析值标定参数、降低可投性风险；代价是放弃对机车胶泥缓冲器特性的显式刻画（对 1 万吨单机牵引编组的车钩力主轴影响有限）。
+  - B. 保留双类型并置：保留更多物理细节，但引入难以诚实标定的参数、偏离主流范式，被审稿拷问风险高。
+
+- 结论：选 A，统一回 MT-2。这是对 R0（2026-09-06）车钩地基改进的**收口简化**：保留 R0 的 Stribeck 摩擦、卸载刚度复核（MT-2=1.0）、循环段间衰减、两段式缓解排气等有效物理，仅移除机车胶泥分区。
+
+- 后果：
+
+  - 代码层：`params.py`（移除 buffer_type/k2_nm/knee_x_m/viscous_c/viscous_n_exp/static_damp_n 与 qkx100_params）、`coupler.py`、`train.py`（齐次默认全列 MT-2，含机车-货车连挂钩）已同步清理；训练/绘图 metadata physics 串更新。
+  - 测试层：删除 QKX100 相关测试，派发断言改为"全列统一 MT-2（2270 kN）"。
+  - 文档层：`VALIDATION_BASELINE.md` 对 R0 之 C（QKX100）小节打 superseded 标注；本 ADR 为该决策的出处。
+  - 历史产物：R0 后（2026-09-06）产出的含 QKX100 分区的结果（若存在）须附建模版本声明，不得与统一后直接混比。
+
+- 相关：R0 建模（`docs/VALIDATION_BASELINE.md`「地基级建模体检 R0」）；ADR-010（车钩异构泛化 E4-H，个体差异空间保留）
+
+## ADR-012 主轴收敛为「列车编队 + 两层融合 MARL（T-MARL）」；单列车 decompose 降级为列内层机制 - 2026-09-08
+
+- 状态：决策（已立项实施）
+
+- 背景：规划文档一度把**单列车 decompose 换架构**当成主线，与项目主轴（**列车编队 + 多智能体强化学习**）冲突（用户明确纠正：主战场是重载列车群组协同控制，t-marl 两层融合才是正题，我完全没提过单列车作为主轴）。同时历史代号（M1/M2/M3）含义歧义（M2=车钩力擦除已被移除并并入安全层消融），必须换成语义代号，统一全项目口径。
+
+- 主轴定义（T-MARL，两层融合）：
+  - **编队层（列车级）**：多列 MARL 协同，每列万吨级列车=智能体，保持安全列距 → 生成宏观驾驶曲线。编队层**已历史跑通**（2026-08 协同增量 +110042、10 seed 稳定），但属 R0 旧物理、checkpoint 空 → **真实缺口 = MT-2 统一物理重跑/重评**（不是"从未跑通"）。
+  - **列内层（机车级）**：列内多机车分布式动力，每机车=智能体，ED（连续）/AB（离散档位）分工（详见 ADR-009/009.1 机制）。
+  - **单列车 1+0 独立分解 = 方向性偏差**，从主战场移除，降级为"列内层机制"的实验记录，不承担论文主线证据链。
+
+- 语义代号统一（SSOT，全项目文档/沟通用）：
+  - **D-RL**：分布式动力 + MAPPO 决策；**D-Rule**：分布式动力 + 规则控制；**S-Loco**：单机车规则基线（纯规则 0 训练，仅 MT-2 重评，作架构增量锚点 M0 vs single=+74%）。
+  - **M-MARL**（编队协同，旧 M1）、**No-C**（无协同，旧 M3）、车钩力擦除消融（旧 M2，已并入安全层消融）、**ED-only/AB-only**（杠杆隔离消融）、**1+0 MAPPO**（mt2_l1，非主证据链，不引用）。
+  - **M1/M2/M3 数字代号全部废止**，文档/实验/沟通一律语义代号。
+
+- 选项与权衡：A. 维持单列车 decompose 主线（能快速产出单列结果，但与"群组协同"研究定位相悖、无法回应导师"多智能体名不符实"批评）；B. **回调两层融合主轴（选用）**（对齐 AGENTS.md / RESEARCH_POSITIONING 既有定位，编队层历史资产可复用，单列车仅留机制证据）。
+
+- 结论：选 B。两大可复现落地（本文档为出处）：
+  1. **文档对齐**：`RESEARCH_POSITIONING.md` 加主轴共识 banner、`ITSC_PAPER.md` 加定位偏差声明（单列车降级）、`PROJECT_PIPELINE.md` 加代号图例（M1/M3/M2 → M-MARL/No-C/车钩力擦除消融，历史章节按图例读、不批量改写）、`DECISIONS.md` 本 ADR 立项。
+  2. **结果可复现**：`src/metadata.py` 新增 `simulator_model` 型号串（NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave + simcase/编组/坡度/cyclic_degrade）；`train_runner/train_fleet/train_cyclic_braking` 经 `extra` 落超参；`evaluate_decompose/evaluate_l1_long/evaluate_l1_rule_baseline` 评估结果 JSON 内嵌 metadata（git_commit/physics_version/simulator_model/全物理配置/seed/checkpoint），按时间戳归档不覆盖旧文件。凡是产出论文数据的脚本都必须走该机制，实验数值以 metadata.json 为准。
+
+- 后果：① 训练/评估脚本统一仿真实型号 + 超参可复现（已完成并 smoke 验证，见 ADR-011 后 metadata 机制）；② 后续新增实验线一律语义代号 + 走 `metadata`；③ 编队层 MT-2 重跑为当前真实执行起点（空 checkpoint 补齐）。
+
+- 相关：ADR-010（主轴回调多列 platoon + 车钩力底线）；ADR-009/009.1（列内层分布式动力 × 电空分工机制）；`docs/RESEARCH_POSITIONING.md` / `docs/ITSC_PAPER.md` / `docs/PROJECT_PIPELINE.md`；根 `AGENTS.md`「阶段二研究定位 / 规范性问题」
+
+> **修订（2026-09-08，ADR-013）**：ADR-012 将主线表述为"编队层 RL + 列内层 RL **两层叠加**（T-MARL）"——该"两套 RL 层叠加"框架被 ADR-013 废止/修订（编队=唯一目的、单套 formation-aware RL=唯一手段）。本 ADR 其余内容（语义代号统一 SSOT、metadata 可复现机制）延续有效。
+
+## ADR-013 主线回归「编队=最终目的，MARL=手段」；仅保留单套 formation-aware RL（机车级 ED/AB），废止"两层 RL 叠加" - 2026-09-08
+
+- 状态：决策（立项实施）
+
+- 背景：ADR-012 把主线表述为"两层融合 MARL（T-MARL）= 编队层 RL（列车级）+ 列内层 RL（机车级）叠加"，导致**两套 RL 长期并存**（`platoon_mappo` 编队层阈值 RL + `decompose_loco_ed_ab` 机车级 ED/AB RL），规范与代码互相矛盾：
+  - 主线表述（曾见于 `RESEARCH_POSITIONING` §1.3）把两个 RL 层当"要叠加融合"的目标 → **主动制造**两套并存；
+  - 同时 `decompose_loco_ed_ab.yaml` 为 `num_trains:1` 单列车、无编队上下文，文档却已判其为"方向性偏差"（脱离编队语境）→ 代码与文档不同步。
+  用户明确纠偏：**论文主线是"编队"（多列重载列车群组协同控制），多智能体只是实现编队的手段**；长期把"多智能体"当目的、或同时保留两套 RL，是方向性错误。
+
+- 选项与权衡：
+  - A. 保留"编队层 RL + 列内层 RL 两层叠加"：两个 RL 权威点抢同一批牵引/制动执行器 → 信用分配模糊、编队失稳（已观测列间串级震荡），且论文讲不清"智能体到底是谁"。
+  - B. **编队=唯一目的，单套 formation-aware RL=唯一手段（选用）**：目的 = 多列编队在长大下坡保持安全列距 + 速度带一致 + 车钩力 ≤1000kN；手段 = 机车级 ED/AB 分工（每机车=agent，ED 连续 / AB 离散档位），但 RL 以**编队为上下文**（每机车 obs 含前列间距误差/相对速度/前方坡度/群组车钩力，reward 以编队目标为主）—— 编队目标由这一套 RL 承载，不再设第二套"编队层阈值 RL"层。
+
+- 结论：选 B。具体落地（本 ADR 为出处）：
+  1. **废止**"编队层（列车级）RL + 列内层（机车级）RL 叠加"表述；编队层阈值 RL（`hierarchical`，每列车输出 `coor_adj`）下线废弃。
+  2. **一套 RL**：formation-aware 机车级 ED/AB decompose（`num_trains≥3` 编队上下文 × 每列机车=agent）。
+  3. **现存单列车 R0 decompose**（`decompose_loco_ed_ab.yaml`, num_trains=1）＝偏差产物，仅作"列内分工机制"实验记录保留、不承主线、不得当主结果；config 标 deprecated。
+  4. 终止后台 `platoon_mappo`（编队层阈值 RL）训练并清理残留（已执行）。
+
+- 后果：
+  - 文档统一：`RESEARCH_POSITIONING.md` 主线段落去"两层叠加"表述+banner 对齐"编队=目的、MARL=手段"；统一"层级"命名反转为一套；`ITSC_PAPER.md` / `PROJECT_PIPELINE.md` 同步措辞；根 `AGENTS.md` 同步单 RL 落位。
+  - 代码：`decompose_loco_ed_ab.yaml` 标 deprecated；后续只训 formation-aware 变体（并入编队上下文）。
+  - 旧叙事（编队层阈值 RL、两套 RL 叠加、"编队协同增量 +110042 由编队层 RL 承载"）不再作为当前主线证据引用；编队协同结果改由 formation-aware 机车级 RL 承载后重跑（MT-2 物理）。
+
+- 相关：ADR-012（T-MARL，本 ADR 修订其"两层"框架、保留其列内机制与语义代号/可复现机制）；ADR-010（多列 platoon + 车钩力 + 列距 = 底线，与本 ADR 一致）；ADR-009/009.1（列内层分布式动力 × 电空分工机制）；`docs/RESEARCH_POSITIONING.md` §1.3 / `docs/ITSC_PAPER.md` / `docs/PROJECT_PIPELINE.md`；根 `AGENTS.md`
+

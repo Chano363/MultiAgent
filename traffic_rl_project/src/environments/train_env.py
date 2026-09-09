@@ -459,9 +459,16 @@ class TrainFormationEnv:
         ab_sources = []
         any_ab = False
         for k, loco_idx in enumerate(self.loco_indices):
-            ed_frac = float(np.clip(act[k, 0], 0.0, 1.0))
+            ed_frac = float(act[k, 0])
             ab_frac = float(act[k, 1])
-            ed_throttle[loco_idx] = ed_frac
+            # 【A1 列间协同，2026-09-09】ed_frac < 0 → 机车正牵引（带内主动追逐，
+            # 仅跟随列在协调偏置下触发）。ed_frac ∈ [0,1] 仍为电制动深度（原语义）。
+            if ed_frac < 0:
+                throttle[loco_idx] = float(np.clip(-ed_frac, 0.0, 1.0))
+                ed_throttle[loco_idx] = 0.0
+            else:
+                ed_frac = float(np.clip(ed_frac, 0.0, 1.0))
+                ed_throttle[loco_idx] = ed_frac
             if ab_frac < 0:
                 notch = notch_from_throttle(ab_frac)
                 if notch != AirBrakeNotch.RELEASE:

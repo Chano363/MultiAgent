@@ -25,7 +25,7 @@ from .braking import (
     tail_pressure_to_cyl_ratio, cylinder_pressure_gradient,
 )
 from .coupler import coupler_force, friction_magnitude_n
-from .params import TrainConsist, CouplerParams, qkx100_params
+from .params import TrainConsist, CouplerParams
 
 
 # 空气制动波速（米/秒），沿车列从机车向后传播。
@@ -53,7 +53,7 @@ class TrainDynamics:
         friction_coef: float = 0.9,
         enable_cyclic_degrade: bool = None,   # 【2026-09-06 R0-D】None=默认启用（主场景基线物理）
         tail_pressure_kpa: float = None,      # 【2026-09-03 L1】列尾压强（kPa）（仅 DEBUG 工况）
-        couplers: list = None,                # 【E4-H 异构】逐耦合 CouplerParams（len=n-1）或 None=按机车分区自动派发 QKX100/MT-2
+        couplers: list = None,                # 【E4-H 异构】逐耦合 CouplerParams（len=n-1）或 None=齐次 self.coupler（MT-2，全列统一）
         simcase: str = 'official',            # 【治理】official 禁止调试物理；debug 才允许关闭 B3/L1
         release_exhaust_tau_s: float = 6.0,   # 【2026-09-06 R0-E】缓解排气时间常数（秒，
                                               # 按刘博阳 L1 拉钩力锚 742/1058/1337 kN 标定，文献无解析值）
@@ -225,15 +225,13 @@ class TrainDynamics:
     def _coupler_interface_forces_vec(
         self, e: np.ndarray = None, dv: np.ndarray = None
     ) -> np.ndarray:
-        """相邻车钩断面力（向量化核心，MT-2 / QKX100 迟滞模型）。
+        """相邻车钩断面力（向量化核心，MT-2 迟滞模型）。
 
-        模型结构（于宗泽2025式(1)-(4)，杨敏2023图2-6，李蔚2023多段线性同构）：
+        模型结构（于宗泽2025式(1)(2)，杨敏2023图2-6，李蔚2023多段线性同构）：
 
             MT-2:   F_mag = contact·(F0 ± F_fric(|dv|)) + k_eff·x_el + 刚性限位
-            QKX100: F_mag = contact·(F0 ± F_r(|dv|)) + k两段·x_el + 刚性限位
-                    F_r = C|dv|^n + F_d + f（速度幂律，n<1）
             加载(s_e·dv<0)取 +摩擦、满刚度；卸载取 −摩擦、刚度×unload_ratio
-            → 迟滞环耗能（【R0-A/B/C 2026-09-06】卸载软化 + Stribeck + QKX100）
+            → 迟滞环耗能（【R0-A/B】卸载软化 + Stribeck）
             F_on_front = sgn(e)·F_mag，|F_mag| ∈ [0, F_max]
 
         实现要点（数值稳健性）：
@@ -242,10 +240,8 @@ class TrainDynamics:
         - 加载/卸载方向因子与摩擦共用同一 tanh(s_e·dv/ε) 平滑：加载 ⟺
           s_e·dv<0；dv→0 时摩擦→0、k_eff→(1+u)k/2（静止阻抗介于加载/卸载
           曲线之间，于宗泽式(5) 弱锁定），连续无硬切换。
-        - 摩擦幅值按缓冲器类型：MT-2 用 Stribeck（|v|=0 静摩擦 → |v|≥v_er
-          动摩擦，于宗泽式(2)线性过渡）；QKX100 用 C|v|^n+F_d+f（式(4)）。
-          方向恒反对相对运动 → 纯耗散，低速反弹不消失（MT-2 耗能主机制）。
-        - QKX100 月牙形两段刚度（k1>k2 凹形，初期陡升后期趋缓）。
+        - 摩擦幅值用 MT-2 Stribeck（|v|=0 静摩擦 → |v|≥v_er 动摩擦，
+          于宗泽式(2)线性过渡）。方向恒反对相对运动 → 纯耗散。
         - 行程限位：x_el > stroke 后叠加刚性接触力（金属打满不可压缩），
           且在饱和封顶之外独立叠加（否则限位力被封顶削弱 → 位移漂移）。
 
@@ -279,34 +275,23 @@ class TrainDynamics:
         dir_sm = np.tanh(s_e * dv / cp['friction_v_eps'])
         load_factor = 0.5 * (1.0 - dir_sm)
 
-        # 【R0-A】卸载刚度软化 + 【R0-C】月牙形两段刚度
-        # k_eff = u + (1−u)·load_factor：加载=满刚度、卸载=u、静止=(1+u)/2
-        # MT-2 文献标定 u=1.0（式(1) 弹性对称，迟滞全由摩擦产生）；QKX100 u=0.6
+        # 【R0-A】卸载刚度软化：k_eff = u + (1−u)·load_factor
+        # 加载=满刚度、卸载=u、静止=(1+u)/2；MT-2 文献标定 u=1.0（式(1) 弹性对称）
         u = np.clip(cp['unload_stiffness_ratio'], 0.0, 1.0)
         k_eff = u + (1.0 - u) * load_factor          # 逐耦合刚度比例（u~1.0）
-        knee = cp['knee_x_m']
-        has_k2 = cp['k2_nm'] > 0.0
-        k1_seg = cp['stiffness'] * np.minimum(x_el, knee)
-        k2_seg = cp['k2_nm'] * np.maximum(x_el - knee, 0.0)
-        k_term = np.where(has_k2, (k1_seg + k2_seg) * k_eff,
-                          cp['stiffness'] * x_el * k_eff)
+        # 刚度乘弹性变形（单段，全列 MT-2）
+        k_term = cp['stiffness'] * x_el * k_eff
 
-        # 摩擦/移动阻力幅值（恒 ≥0）：MT-2 Stribeck / QKX100 胶泥幂律
-        is_qkx = cp['is_qkx'] > 0.5
+        # 摩擦幅值（恒 ≥0）：MT-2 Stribeck（于宗泽式(2)）
         abs_dv = np.abs(dv)
-        # Stribeck（于宗泽式(2)）：|v|=0 静摩擦 → |v|≥v_er 动摩擦，线性过渡；
-        # v_er<=0 视为禁用（r≡1 → 恒动摩擦，向后兼容旧常数摩擦）
+        # |v|=0 静摩擦 → |v|≥v_er 动摩擦，线性过渡；v_er<=0 视为禁用（恒动摩擦）
         er_on = cp['friction_v_er'] > 0.0
         r = np.where(er_on, np.minimum(abs_dv / np.maximum(cp['friction_v_er'], 1e-12), 1.0), 1.0)
-        fric_mt2 = cp['friction_static_n'] + (cp['friction_n'] - cp['friction_static_n']) * r
-        # 胶泥（于宗泽式(4)）：F_r = C|v|^n + F_d + f
-        fric_qkx = (cp['friction_n'] + cp['static_damp_n']
-                    + cp['viscous_c'] * abs_dv ** cp['viscous_n_exp'])
-        fric_amp = np.where(is_qkx, fric_qkx, fric_mt2)
+        fric_amp = cp['friction_static_n'] + (cp['friction_n'] - cp['friction_static_n']) * r
         fric_mag = -fric_amp * dir_sm   # 恒反对相对运动 → 纯耗散
 
         # 阻抗幅值（可饱和部分）：预压力+摩擦（接触渐入门控）+ 弹性，
-        # 封顶于缓冲器最大阻抗力（MT-2 2270 / QKX100 2500 kN）
+        # 封顶于缓冲器最大阻抗力（MT-2 2270 kN）
         f_imp = contact * (cp['preload_n'] + fric_mag) + k_term
         f_imp = np.clip(f_imp, 0.0, cp['max_impulse_n'])
         # 【bug修复 2026-08-30】刚性限位力必须在饱和封顶之外独立叠加！
@@ -327,32 +312,20 @@ class TrainDynamics:
     def _build_coupler_param_arrays(self) -> dict:
         """把逐耦合 CouplerParams 编译为力参数字典（每项都是长度 n-1 的数组）。
 
-        【R0-C 2026-09-06】机车缓冲器分区：齐次默认（self.couplers 为 None）
-        下，按"机车用 QKX100 弹性胶泥、货车用 MT-2"（于宗泽2025/李蔚2023表1，
-        HXD1+QKX100 / C80+MT-2）自动派发：与机车相邻的耦合（机车-货车连挂）
-        用 qkx100_params()，其余用 self.coupler（MT-2）。
-        显式 couplers 列表（E4-H 货车异构研究域）优先于自动派发，逐耦合照用。
-
-        串联简化说明：机车-货车连挂实为"机车 QKX100 + 货车 MT-2"两缓冲器串联，
-        本模型取单一等效缓冲器=软侧 QKX100（于宗泽图9：小压缩量下 QKX100 阻抗
-        低于 MT-2、位移更大，串联冲击由软侧主导吸收）。
+        【2026-09-07 ADR】统一 MT-2（A 范式）：齐次默认（self.couplers 为 None）
+        下所有耦合一律用 self.coupler（MT-2），含机车-货车连挂。原 R0-C 机车用
+        QKX100 自动派发已彻底移除。显式 couplers 列表（E4-H 货车异构研究域）
+        优先于齐次默认，逐耦合照用。
         """
         m = max(self.consist.num_vehicles - 1, 0)
         if self.couplers is not None and len(self.couplers) == m:
             ps = list(self.couplers)
         else:
-            vs = self.consist.vehicles
-            ps = [
-                qkx100_params() if (vs[j].is_locomotive or vs[j + 1].is_locomotive)
-                else self.coupler
-                for j in range(m)
-            ]
+            ps = [self.coupler] * m
         names = ('stiffness', 'preload_n', 'friction_n', 'friction_static_n',
                  'friction_v_er', 'friction_v_eps', 'unload_stiffness_ratio',
-                 'coupler_gap_m', 'max_impulse_n', 'stroke_m', 'rigid_stiffness_nm',
-                 'k2_nm', 'knee_x_m', 'viscous_c', 'viscous_n_exp', 'static_damp_n')
+                 'coupler_gap_m', 'max_impulse_n', 'stroke_m', 'rigid_stiffness_nm')
         out = {name: np.array([float(getattr(p, name)) for p in ps]) for name in names}
-        out['is_qkx'] = np.array([1.0 if p.buffer_type == 'qkx100' else 0.0 for p in ps])
         return out
 
     def _coupler_forces(self) -> np.ndarray:

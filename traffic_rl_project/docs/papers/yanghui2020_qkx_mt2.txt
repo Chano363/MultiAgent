@@ -1,0 +1,660 @@
+第 46 卷 第 9 期
+2020 年 9 月
+北 京 工 业 大 学 学 报
+JOURNAL OF BEIJING UNIVERSITY OF TECHNOLOGY
+Vol. 46 No. 9
+Sept. 2020
+重
+载列车 QKX100 与 MT鄄2 缓冲器动态特性
+杨摇 辉1,2 , 原俊荣1,2 , 付雅婷1,2 , 李中奇1,2
+(1郾 华东交通大学电气与自动化工程学院, 南昌摇 330013; 2郾 江西省先进控制与优化重点实验室, 南昌摇 330013)
+摘摇 要: 为了了解不同缓冲器装置对重载列车运行安全性与舒适性的影响,研究了重载列车车钩缓冲器装置的动
+态特性. 依据大秦线重载列车运行数据和列车实际运行环境,建立列车运行过程动态纵向动力学模型与钩缓装置
+模型,并根据模型对大秦线上运行列车装备的 QKX100 与 MT鄄2 缓冲器进行动态特性研究. 将列车纵向动力学模型
+与钩缓装置模型的建模仿真结果与国内外多家机构的重载列车仿真实验结果进行比对,结果较为接近,表明所建
+列车运行模型的准确性. 并对大秦线上装备 2 种缓冲器的重载列车进行紧急制动、循环制动与牵引运行仿真验证,
+结果显示装备了 QKX100 缓冲器的列车在多个工况运行时的最大车钩力与最大加速度都较小,远低于规定的安全
+限制值,表明该车钩对列车运行的安全性与舒适性提升较大.
+关键词: 纵向动力学; 钩缓装置; 车钩力; 重载列车; 安全性; 舒适性
+中图分类号: U 461; TP 308 文献标志码: A 文章编号: 0254 - 0037(2020)09 - 1018 - 09
+doi: 10. 11936 / bjutxb2018110009
+收稿日期: 2018鄄11鄄06
+基金项目: 国家自然科学基金资助项目(61673172,61733005,61803155) ; 江西省科技计划资助项目(20171BCB24010) ; 江西
+省青年科学基金重点资助项目(20192ACBL21005)
+作者简介: 杨摇 辉(1965—) , 教授, 主要从事复杂工业过程建模、控制与优化及轨道交通自动化与运行优化方面的研究,
+E鄄mail: yhshuo@ 163. com
+Dynamic Characteristics of QKX100 and MT鄄2
+Buffers for Heavy Haul Trains
+YANG Hui1,2 , YUAN Junrong1,2 , FU Yating1,2 , LI Zhongqi1,2
+(1郾 School of Electrical and Automation Engineering, East China Jiaotong University, Nanchang 330013, China;
+2郾 Key Laboratory of Advanced Control and Optimization of Jiangxi Province, Nanchang 330013, China)
+Abstract: To understand the influence of different coupler buffer devices on the safety and comfort of the
+operation of heavy haul train, and study the dynamic characteristics of coupler buffer device of heavy haul
+trains. In this paper, the dynamic longitudinal dynamics model of the train operation process and the
+coupler and draft gears model were established based on the train operation data of the Daqin Railway and
+the actual operating environment of the train. According to the models, the dynamic characteristics of
+trains equipped with QKX100 and MT鄄2 buffers operating on the Daqin Line were studied. The simulation
+results show the longitudinal dynamic model of train, the model of coupler and draft gears are close to the
+experimental results of many institutions at home and abroad, which demonstrates the accuracy of the
+train operation model established in this paper. Contrast simulations of heavy haul train with two kinds of
+buffers on Daqin line in terms of emergency braking, cyclic braking and traction operations were carried
+out. Results show that the maximum coupler force and maximum acceleration of the train equipped with
+the QKX100 buffer are smaller, far lower than the prescribed safety limit, and the safety and comfort of
+the train are greatly improved.
+Key words: longitudinal dynamics; coupler and draft gears; coupler force; heavy haul train; safety;
+comfort
+摇 第 9 期 杨摇 辉, 等: 重载列车 QKX100 与 MT鄄2 缓冲器动态特性
+摇 摇 列车的钩缓装置对重载列车动力学性能有较大
+影响,对列 车 的 运 行 安 全 性 也 有 着 举 足 轻 重 的 作
+用[1鄄2] . 随着运输量的不断增加,重载铁路朝高运量
+与高密度的方向发展,曾发生多次机车脱轨事故,这
+些事故与钩缓装置的横向分力过大、钩体转角过大
+有直接关系[3鄄5] ,以上事故在国外也时有发生[6鄄8] ,
+因此,众多学者对钩缓结构进行了深入的研究.
+Ansari 等[9] 基于不同的非线性时域模型对货运
+列车的纵向动力进行全面的参数研究,研究了混编
+模式下车钩力的特性,讨论了空车及其位置对整个
+纵向列车动力学的影响;Wu 等[10鄄11] 考虑了车钩的
+钩尾摩擦现象,完善了传统的摩擦型缓冲器模型,并
+基于此模型分析了车钩偏转对列车动力学性能的影
+响,结果表明减小最大车钩自由角可以提高机车的
+运行性能和安全性;Zhao 等[12] 使用基于接触和冲击
+力学的模型取代传统的具有非线性弹簧和线性阻尼
+的缓冲器模型,使传统的纵向列车动力学模型更加
+适用于重载列车的研究;Yao 等[13] 对缓冲器的受力
+状态进行了不同角度的分析,在此基础上对车钩、缓
+冲器的建模进行了创新改进,缓冲器的建模稳定性
+有了较大改进.
+然而,由于牵引质量的增加和列车运行速度的
+提高,导致车钩缓冲器结构承受非常大的冲击力.
+脱钩、断钩问题在大秦线上依然时有发生,这主要是
+在坡道运行时,在纵向动力学作用下,钩缓装置的承
+受纵向压力能力不足. 目前,国内外大多数的纵向
+动力学研究是在平直道的理想路况下进行的,而结
+合真实线路,模拟坡道对列车纵向冲动影响的研究
+相对较少.
+本文综合以上建模方法,结合大秦线实际路况,
+考虑优秀司机的操纵方法,针对大秦线运行的重载
+列车运行过程进行动力学分析. 模拟 1 台 HXD1 机
+车 + 105 辆 C80 货车的万吨编组运行在大秦线操作
+难点的路况上,建立列车运行动态纵向动力学模型,
+并考虑列车运行约束条件,结合列车制动缸的充气
+特性和机车的牵引特性,吸收优秀司机的操纵经验,
+对大秦线运行列车所采用的具体车钩建立了钩缓结
+构模型. 通过模拟计算装备不同钩缓结构的列车在
+各工况特别是紧急制动工况下运行时的车钩力,对
+QKX100 与 MT鄄2 两种缓冲器在列车运行中对列车
+纵向冲动的影响进行了研究.
+1摇 列车纵向动力学
+重载列车由 n 台车辆组成,其中机车 1 台和货
+车 n - 1 台,车辆间由车钩和缓冲器连接,列车纵向
+动力学分析模型如图 1 所示. 列车纵向动力学是用
+来分析列车在不同工况及不同线路条件下以不同操
+纵方法运行时各车辆间的相互作用与受力情况.
+图 1摇 列车纵向动力学模型
+Fig. 1摇 Longitudinal dynamic model of train
+摇
+以多质点模型分析列车运行的情况时,当列车
+在连续坡道上运行,机车受到空气制动力或电制动
+力、牵引力的作用,货车受到空气制动力、车钩力等
+的作用,则单节车辆纵向动力学微分方程可以写成
+mi x
+··
+i = FT + FCL - FCR - FB - FD - FW - FWc - FWr
+(1)
+式中:mi 为车辆的质量; x
+··
+i 为车辆的加速度; FT 为
+牵引力,FD 为电制动力;FCL 为前车钩力;FCR 为后车
+钩力;FB 为空气制动力;FW 为车辆运行基本阻力;
+FWc为曲线阻力;FWr为坡道阻力.
+1郾 1摇 牵引力、电制动力
+机车牵引力是指由列车牵引传动装置产生的推
+动列车运行的动力.
+电制动力是牵引的逆过程,把牵引电动机变为
+发电机,将列车的动能转化为电能,最终转变为电阻
+的热能,消散在空气中或者以电能形式回馈电网,供
+其他列车使用.
+大秦铁路使用的 HXD1 电力机车的牵引、电制
+动特性曲线如图 2 所示.
+施加于机车的牵引力的牵引特性曲线表示为
+FT =
+760, v沂[0,5]
+779 - 3郾 8v, v沂(5,65]
+34 560 / v, v沂(65,100
+ì
+î
+íï
+ïï
+ï ]
+(2)
+电制动力的制动特性曲线表示为
+FD =
+153郾 3v, v沂[0,3]
+461, v沂(3,75]
+34 560 / v, v沂(75,100
+ì
+î
+íï
+ïï
+ï ]
+(3)
+式中 v 为列车运行速度,km / h.
+1郾 2摇 运行阻力
+列车运行阻力主要分为基本运行阻力与附加阻
+力以及起动阻力三部分,这 3 种阻力值都与机车、车
+辆的质量成正比. 基本阻力是指列车在空旷地段沿
+平直轨道运行时所遇到的阻力. 列车在运行过程
+中,由于线路坡度、曲率的变化,可能会导致车辆所
+9101
+北摇 京摇 工摇 业摇 大摇 学摇 学摇 报 2020 年
+图 2摇 HXD1 列车牵引 / 制动特性曲线
+Fig. 2摇 HXD1 train traction / braking characteristic curve
+摇
+受阻力的变化,这些阻力称之为附加阻力.
+大秦 线 重 载 列 车 运 行 编 组 的 基 本 阻 力 公 式
+如下.
+HXD1 机车运行阻力
+FW = 0郾 001 伊 (1郾 20 + 0郾 006 5 伊 v +
+0郾 000 279 伊 v2 ) 伊 M 伊 g (4)
+C80 货车运行阻力
+FW = 0郾 001 伊 (0郾 92 + 0郾 004 8 伊 v +
+0郾 000 125 伊 v2 ) 伊 M 伊 g (5)
+机车车辆的单位坡道附加阻力 FWr 的数值等于
+坡道坡度的千分数,即
+FWr = i (6)
+机车车辆的单位曲线附加阻力为
+FWc = 0郾 001 伊 (600 / R) 伊 M 伊 g (7)
+式中:M 为质点质量,t; g 为重力加速度,m / s2 ;i 为
+坡道坡度,上坡取正值,下坡取负值;R 为曲线半径,
+m.
+列车起动阻力是指从列车由静态向动态转变所
+产生的阻力.
+机车单位起动基本阻力取 5郾 0 N / t.
+货车单位起动基本阻力取 3郾 5 N / t.
+1郾 3摇 空气制动力
+大秦线重载货运车辆采用传统的闸瓦制动方
+式,以压缩 空 气 为 动 力,通 过 制 动 缸 活 塞 推 力, 经
+制动杠杆将 闸 瓦 压 紧 车 轮 踏 面,通 过 闸 瓦 与 车 轮
+踏面的机械 摩 擦,把 列 车 动 能 转 变 为 热 能 消 散 于
+大气,并产生制动力. HXD1 机车制动力计算公式
+如下.
+高摩合成闸瓦换算摩擦因数 渍h 的计算式为
+渍h = 0郾 378 伊 2 伊 v + 150
+3 伊 v + 150 (8)
+列车紧急制动力 FB 的计算式为
+FB = 渍 (h 移 K忆h + 移 K义 )h (9)
+式中 K忆h、 K义h分 别 为 机 车、 车 辆 紧 急 制 动 换 算 闸 瓦
+压力.
+列车换算制动率 谆h 是列车总换算闸瓦压力与
+列车重力之比,即
+谆h = 移K忆h + 移K义h
+( Mp + Mg) ·g (10)
+式中 Mp、Mg 分别为机车、车辆的质量,t.
+列车紧急制动时,单位制动力 b 的计算式为
+b = FB·103
+( Mp + Mg)·g = 谆h·渍h·103 (11)
+列车常用制动时,单位制动力 bc 的计算式为
+bc = 茁c·b (12)
+式中 茁c 为常用制动系数,其值与减压量有关.
+建立重载列车运行过程动态动力学模型,有助
+于分析重载列车在运行过程中机车车辆与线路、机
+车车辆之间的相互关系和相互作用,并与钩缓结构
+模型相结合,从而设定重载列车操纵方法,保证运行
+过程中符合车钩力和纵向冲动的限制要求,确保重
+载列车安全运行.
+2摇 缓冲器模型
+车钩与缓冲器连接着相邻的列车车辆,是列车
+的重要组成部分,起到传递并缓和纵向力的作用,钩
+缓结构建模的准确程度对列车纵向动力学的仿真结
+果有着决定性的作用. 在大秦线上运行着的车辆,
+部分装备着 QKX100 缓冲器,另外一些则采用 MT鄄2
+缓冲器.
+2郾 1摇 QKX100 缓冲器模型
+缓冲器在不同工况下有着不同的特性曲线,无
+法精确获得各种工况下的车钩缓冲器模型. 在动力
+学仿真中常用缓冲器落锤与冲车实验所得特性曲线
+来进行计算.
+将实验过程中所采集的同一时刻缓冲器的位移
+与车钩力的数值绘制在一张图表上,即得到缓冲器
+的特性曲线. QKX100 型弹性胶泥缓冲器数学模型
+示意图如图 3 所示.
+利用特性曲线,同时通过研究 QKX100 缓冲器
+的结构特性,发现 QKX100 缓冲器的车钩力计算不
+仅与缓冲器的位移有关,还受到缓冲器的切换速度
+的影响. 在已有的缓冲器模型中,只考虑了车钩力
+与缓冲器的位移关系,本文则同时将缓冲器的位移、
+0201
+摇 第 9 期 杨摇 辉, 等: 重载列车 QKX100 与 MT鄄2 缓冲器动态特性
+图 3摇 QKX100 型弹性胶泥缓冲器数学模型
+Fig. 3摇 QKX100 elastic clay buffer mathematical model
+摇
+缓冲器的切换速度与缓冲器前后两车的速度差都考
+虑为缓冲器车钩力的影响因素,因此,本文建立的
+QKX100 缓冲器模型可以用
+FC =
+fu, (驻x·驻v逸0)疑( | 驻v| 逸ve)
+f3 + (fu - f3 )驻v
+ve
+sign(驻v), - ve < 驻v < ve
+fL, (驻x·驻v <0)疑( | 驻v| 逸ve
+ì
+î
+íï
+ï
+ïï
+ï
+ )
+f3 = fu + fL
+2 (13)
+描述车钩力. 式中:FC 为车钩力;fu 为缓冲器加载
+时的阻抗力;fL 为缓冲器卸载时的阻抗力;f3 为缓冲
+器阻抗力的均值;驻v 为相邻两车的速度之差;驻x 为
+相邻两车的位移之差;ve 为缓冲器转换速度.
+2郾 2摇 MT鄄2 缓冲器模型
+MT鄄2 是仿照美国 Mark鄄50 型缓冲器研制的弹
+簧摩擦式缓冲器. 在列车纵向动力学分析中,通常
+将相邻的一对车钩缓冲器联合起来研究,考虑车钩
+间隙及一对缓冲器串联阻抗特性[14] . 基于大量缓
+冲器的冲击实验结果,绘制如图 4 所示的 MT鄄2 型
+缓冲器数学模型.
+结合 MT鄄2 缓冲器的结构特性,将缓冲器的位
+移、前一时刻缓冲器的车钩力值与前一时刻缓冲器
+的状态都作为缓冲器车钩力计算的影响因素,建立
+的 MT鄄2 缓冲器的模型描述式如下:
+FC( xt,vt) =
+fu( xt) , | xt | 逸 | xt - 驻t |
+fL( xt) , | xt | < | xt - 驻t
+{ | (14)
+FC( xt,vt) = FC( xt - 驻t,vt - 驻t) + k( xt - xt - 驻t)
+(15)
+| fL( xt) | 臆 | FC( xt,xt) | 臆 | fu( xt) | (16)
+式中:xt、xt - 驻t分别为缓冲器前后两车当前步长和前
+图 4摇 MT鄄2 型缓冲器数学模型
+Fig. 4摇 MT鄄2 buffer mathematical model
+摇
+一步长的相对位移;vt、vt - 驻t 分别为缓冲器前后两车
+当前步长和前一步长的相对速度;k 为缓冲器的刚
+度. 计 算 MT鄄2 缓 冲 器 的 车 钩 力 值, 首 先 按 照 式
+(14) 利用缓冲器的位移计算缓冲器加载或卸载时
+的车钩力,然后按照式(15) 结合前一步长缓冲器的
+车钩力与缓冲器状态计算当前步长缓冲器的车钩
+力,最后按照式(16) 的判断条件选择式(14) 或式
+(15) 计算当前步长的车钩力.
+缓冲器在装载和卸载阶段转换过程中存在一个
+过渡特性,最常用是将中间斜率( F = kx) 作为过渡
+特性. 文献[15] 通过列车运行现场测试提出缓冲器
+的刚度 k 的取值为 80 kN / mm.
+根据列车运行数据和列车实际运行环境,建立
+了 2 种缓冲器的数学模型,并将缓冲器的数学模型
+与列车纵向动力学模型相结合,对大秦线重载列车
+运行编组进行实验仿真.
+3摇 实验结果与分析
+3郾 1摇 模型仿真验证
+澳大利亚中央昆士兰大学 Spiryagin 等参加国
+际铁路会议期间,通过各种学术交流,征求了一些可
+能的参与者的意见,发起了重载列车纵向动力学模
+拟器的国际基准测试. 并在 2016 年 4 月,邀请包括
+中国铁道科学研究院、西南交通大学与大连交通大
+学等来自 7 个国家的 13 个机构参与仿真测试,最终
+来自 6 个 国 家 的 9 个 机 构 提 交 了 结 果. 2017 年,
+Spiryagin 等[16鄄17] 将重载列车纵向动力学模拟器国际
+基准测试结果、问题与数据整理后在期刊上发表,方
+便其他研究人员将来能够重复仿真测试.
+在建立列车运行过程动态纵向动力学模型与钩
+缓装置模型后,为了验证本文所建立模型的准确性,
+1201
+北摇 京摇 工摇 业摇 大摇 学摇 学摇 报 2020 年
+按照文献[17] 中的线路条件与控制要求进行了仿
+真测试. 文献[17] 中 9 个机构的最大车钩力结果如
+图 5 所示,选取了第 10 号车钩的车钩力变化趋势的
+仿真结果进行比对,各软件的仿真结果如图 6 所示,
+本文仿真的最大车钩力的结果如图 7 所示,第 10 号
+车钩的车钩力变化趋势如图 8 所示.
+图 5摇 文献[17] 中 9 个机构仿真的最大车钩力
+Fig. 5摇 Maximum coupler force of nine mechanisms
+simulated in Ref. [17]
+摇
+图 6摇 文献[17] 中第 10 号车钩车钩力变化趋势
+Fig. 6摇 Tendency of coupler force change of coupler
+No. 10 in Ref. [17]
+摇
+图 5 中效果较好的几种仿真器的实验结果的最
+大压钩力大多集中在 350 kN,拉钩力都为 540 kN 左
+右. 图 6 中本文仿真时最大压钩力同样为 350 kN,
+拉钩力则为 530 kN,本文仿真出的最大压钩力与最
+大拉钩力值与文献[17] 中效果较好的实验结果相
+近,误差较小.
+图 6 为 9 种软件仿真出的第 10 号车钩车钩力
+变化趋 势, 图 6 最 底 部 的 TABLDSS 仿 真 曲 线 为
+TABLDSS 机构实际仿真曲线,TABLDSS 曲线上面的
+图 7摇 本文仿真的最大车钩力
+Fig. 7摇 Maximum coupler force simulated in this paper
+摇
+图 8摇 本文仿真的第 10 号车钩车钩力变化趋势
+Fig. 8摇 Tendency of coupler force change of coupler
+No. 10 simulated in this paper
+摇
+几条车钩力变化曲线为在不同软件仿真的真实车钩
+力变化曲线上加了 200,400,…,1 600 kN 的效果,方
+便对不同软件的仿真结果进行比对. 图 6 中前 7 种
+软件的仿真效果较好,趋势与具体数值都大体一致.
+通过对比图 6 与图 8,可以发现无论是车钩力变化
+趋势,还是具体的车钩力数值,本文仿真的效果与 9
+种软件 中 效 果 较 好 的 7 种 软 件 的 实 验 结 果 极 为
+相近.
+通过仿真重载列车纵向列车动力学模拟器的
+国际基准测 试,与 国 内 外 多 家 机 构 的 仿 真 结 果 进
+行比对,本文仿真的效果较好,与国内外多家机构
+的优秀仿真 结 果 一 样,可 以 证 明 本 文 建 立 的 列 车
+运行过程动态纵向动力学模型与钩缓装置模型的
+准确性.
+3郾 2摇 缓冲器的动态特性对比实验
+为了研究 2 种不同结构缓冲器对万吨重载列车
+运行过程中性能的影响,以 HXD1 + C80 伊 105 辆的
+列车编组形式进行了列车运行模拟仿真计算. 仿真
+了全列装备 MT鄄2 型缓冲器和全列装备 QKX100 型
+缓冲器的列车分别在平道与 - 1郾 2% 坡度的下坡道
+进行紧急制动的场景、在连续坡道进行循环制动的
+场景以及受到机车全力牵引运行的场景.
+3郾 2郾 1摇 紧急制动
+重载列车在运行过程中如遇到紧急事件,则需
+2201
+摇 第 9 期 杨摇 辉, 等: 重载列车 QKX100 与 MT鄄2 缓冲器动态特性
+要在规定的时间与距离内将列车安全地停下. 紧急
+制动工况下,重载列车的制动缸压力上升极快,空气
+制动力传播速度达到 300 m / s,车辆受到严重冲击,
+造成相邻车厢间出现较大的相对速度与相对位移,
+导致列车在紧急制动工况下的车钩力接近阈值,对
+列车的纵向动力学性能影响很大.
+列车紧急制动仿真工况设为:1) 重载组合列车
+以 80郾 3 km / h 的速度运行到大秦线 K357 + 163 ( 坡
+度 0% ) 处进行紧急制动,紧急制动时空气制动力传
+播速度为 300 m / s,制动缸升压时间为 15 s. 2) 列车
+以 80郾 4 km / h 的速度运行到大秦线 K64 + 114( 坡度
+- 1郾 2% 的下坡道) 处进行紧急制动. 基于以上工
+况, 仿真得到了在紧急制动过程中第 20、40、60、80
+号车钩的车钩纵向力变化图,如图 9 所示.
+图 9摇 MT鄄2 缓冲器平道紧急制动车钩纵向力变化
+Fig. 9摇 Change of longitudinal force of coupler on MT鄄2
+buffer蒺s straight road emergency braking system
+摇
+图 10摇 QKX100 缓冲器平道紧急制动车钩纵向力变化
+Fig. 10摇 Change of longitudinal force of coupler on QKX100
+buffer蒺s straight road emergency braking system
+摇
+同时记录了列车紧急制动的制动距离与时间,
+以及制动过程中出现的最大车钩力与最大加速度,
+如表 1 所示.
+图 11摇 MT鄄2 缓冲器坡道紧急制动车钩纵向力变化
+Fig. 11摇 Change of longitudinal force of coupler on MT鄄2
+buffer蒺s ramp road emergency braking system
+摇
+图 12摇 QKX100 缓冲器坡道紧急制动车钩纵向力变化
+Fig. 12摇 Change of longitudinal force of coupler on QKX100
+buffer蒺s ramp road emergency braking system
+摇
+表 1摇 紧急制动工况仿真计算结果
+Table 1摇 Simulation results of emergency
+braking conditions
+坡度 /
+%
+初速度 缓冲器
+运行
+距离 /
+m
+运行
+时间 /
+s
+最大车
+钩力 /
+MN
+最大加
+速度 /
+g
+0 80郾 3
+MT鄄2 456郾 38 37郾 0 - 1郾 474 - 0郾 84
+QKX100 455郾 91 36郾 3 - 1郾 290 - 0郾 49
+- 1郾 2 80郾 4
+MT鄄2 556郾 58 45郾 0 - 1郾 361 - 0郾 77
+QKX100 553郾 61 44郾 3 - 1郾 234 - 0郾 53
+摇 摇 从 表 1 中 可 以 看 出, 相 比 于 0% 的 坡 度,
+- 1郾 2% 坡度下列车紧急制动的最大车钩力、最大加
+速度都较小,而制动的时间与距离则是相应地有所
+增加. 列车在 - 1郾 2% 的坡道运行,遇到突发情况,
+可能无法在较短时间与距离内进行紧急停车,因此,
+3201
+北摇 京摇 工摇 业摇 大摇 学摇 学摇 报 2020 年
+列车需要在进入大坡道前先将列车降到一个较低的
+速度.
+对表 1 进 行 分 析 比 较, 发 现 无 论 是 0% 还 是
+- 1郾 2% 的坡道,装备 QKX100 缓冲器的列车相比于
+装备 MT鄄2 缓冲器的列车在运行时间与运行距离上
+都有所减小,而在 0% 坡道上最大车钩力与最大加
+速度则更是分别减少了 12郾 5% 、41郾 7% ,不但可以
+保障列车的运行安全,同时也减少了对列车车辆的
+冲击,减缓了对车钩、缓冲器的磨耗. 全列装备 MT鄄
+2 缓冲器的列车在平道紧急制动时的最大加速度已
+经接近 1 g,即将超出安全限制,而 QKX100 缓冲器
+的效果则远好于 MT鄄2 缓冲器. 同时由图 9 ~ 12 发
+现,装备 MT鄄2 缓冲器的列车的车钩纵向力常出现
+“ 抖动冶 ,变化频繁,而装备 QKX100 缓冲器的列车
+的纵向车钩力变化曲线较为平缓,这对列车的安全
+性与舒适性都有极大的提高.
+中国铁道科学研究院从 2004 年开始在大秦线
+进行万吨重载组合列车运行测试实验[18鄄19] ,在 0%
+与 - 1郾 2% 坡度的下坡道进行紧急制动时,最大车钩
+力分别为 - 1郾 160、 - 1郾 074 MN,并且制动时最大车
+钩力出现在列车的中后段,本文建立的模型在仿真
+紧急制动时的结果如图 13 所示,与测试实验结果在
+最大车钩力数值上相近,最大车钩力分布曲线的趋
+势也相同,列车前段车钩力较小,列车的中后段 60
+钩位至 90 钩位间的车钩力较大.
+图 13摇 平道紧急制动最大车钩力分布曲线
+Fig. 13摇 Maximum coupler force curves along train of
+emergency brake on straight road
+摇
+3郾 2郾 2摇 循环制动
+为了保证列车在长大下坡运行的安全性,在长
+大下坡区段对列车的操作有着严格的要求,一般采
+用循环制动. 循环制动是小减压量的空气制动加电
+制动,本文通过模拟交替进行减压量为 50 kPa 的空
+气初制动与惰行运行的操纵方式进行循环制动以通
+过长大下坡,初制动速度为 75郾 9 km / h.
+列车循环制动仿真工况设为:重载组合列车以
+75郾 9 km / h 的速度运行到大秦线 K140 + 017 ( 坡度
+- 1郾 1% ) 时进行初制动( 减压量 50 kPa) ,初制动时
+空气制动力传播速度为 200 m / s,列车紧急制动时制
+动缸升压时间为 35 s,列车运行到 K145 + 0 ( 坡度
+- 1郾 1% ,大秦线初制动运行距离限制为 5 km) 时进
+行缓解,等机车运行到 K148 + 017( 坡度 - 1郾 0% ) 时
+再次进行初制动,运行至 K152 + 066 再次缓解. 基
+于以上工况, 仿真得到了如图 14、15 在循环制动过
+程中第 20、40、60、80 号车钩的车钩纵向力变化图.
+图 14摇 MT鄄2 缓冲器循环制动车钩纵向力变化
+Fig. 14摇 Longitudinal force variation diagram of
+MT鄄2 buffer braking cycle coupler
+摇
+图 15摇 QKX100 缓冲器循环制动车钩纵向力变化
+Fig. 15摇 Longitudinal force variation diagram of
+QKX100 buffer braking cycle coupler
+摇
+循环制动过程中的距离与时间以及出现的最大
+车钩力与最大加速度如表 2 所示.
+对表 2 进行分析比较,发现运行相同的距离,装
+备 QKX100 缓冲器的列车与装备 MT鄄2 缓冲器的列
+车运行相同的距离,它们的运行时间相同,但在最大
+车 钩 力 与 最 大 加 速 度 方 面 差 距 较 为 明 显. 装 备
+QKX100 缓冲器的列车最大车钩力为正值且相比装
+4201
+摇 第 9 期 杨摇 辉, 等: 重载列车 QKX100 与 MT鄄2 缓冲器动态特性
+备 MT鄄2 缓冲器的列车减少了 10郾 1% ,最大加速度
+更是减少 17郾 3% . 从 图 14、15 可 以 看 出, QKX100
+缓冲器循环制动时,车钩纵向力变化较多,车钩力在
+正负之间循环变化. 列车在长大坡道运行时,在优
+秀司机的操纵下,车钩力与加速度都可以处于一个
+安全的范围,但要注意循环制动时,空气制动需要有
+充足的缓解时间与较大的缓解速度.
+表 2摇 循环制动工况仿真计算结果
+Table 2摇 Simulation results of cyclic braking condition
+初速度 缓冲器
+运行
+距离 /
+km
+运行
+时间 /
+s
+最大
+车钩
+力 / kN
+最大
+加速
+度 / g
+75郾 9
+MT鄄2 12郾 964 808郾 9 - 516( 压钩) - 0郾 52
+QKX100 12郾 964 808郾 9 摇 464( 拉勾) - 0郾 43
+3郾 2郾 3摇 起伏坡道全牵引
+大秦线地形复杂,坡道起伏多变,而随着列车运
+量的 增 大, 列 车 长 度 加 长, 万 吨 列 车 的 长 度 可 达
+1郾 500 km,列车常常处于前车在上坡、后车却在下坡
+的状态,列车在起伏坡道线路上运行,所处的位置将
+更加多变,运行过程中受力分析更加复杂.
+列车全牵引仿真工况设为:重载组合列车从大
+秦线 K25 + 200( 坡度 - 0郾 25% ) 时以 760 kN 的牵引
+力牵引启动,一直以大牵引运行经过连续的下坡道
+与上坡道,运行过程中列车可能同时处于下坡道、平
+道、上坡道这样的复杂区间. 基于以上工况, 仿真
+得到了在循环制动过程中第 20、40、60、80 号车钩的
+车钩纵向力变化图,如图 16、17 所示.
+图 16摇 MT鄄2 缓冲器牵引过程车钩纵向力变化
+Fig. 16摇 Longitudinal force change of the hook of
+MT鄄2 buffer traction process
+摇
+坡道全牵引过程中的距离与时间以及出现的最
+图 17摇 QKX100 缓冲器牵引过程车钩纵向力变化
+Fig. 17摇 Longitudinal force change of the hook of
+QKX100 buffer traction process
+摇
+大车钩力与最大加速度如表 3 所示.
+表 3摇 牵引工况仿真计算结果
+Table 3摇 Simulation results of traction condition
+速度 /
+( km·h - 1 )
+缓冲器
+运行
+距离 /
+m
+运行
+时间 /
+s
+最大
+车钩
+力 / kN
+最大
+加速
+度 / g
+76 MT鄄2 16 198 1 155 772 0郾 36
+75 QKX100 16 198 1 150 759 0郾 36
+摇 摇 对表 3 进行分析比较,发现运行相同的距离,装
+备 QKX100 缓冲器的列车相比于装备 MT鄄2 缓冲器
+的列车在运行时间上相近,在最大车钩力与最大加
+速度等方面也相近,列车最终速度也同样接近. 对
+于牵引工况而言,不同缓冲器的影响较小,但从图
+16、17 可以看出,装备 MT鄄2 缓冲器的列车的车钩纵
+向力变化曲线不够平滑,抖动较大,缓冲器的吸能性
+能不够理想.
+4摇 结论
+1) 将仿真结果与中国铁道科学研究院进行的
+重载列车运行测试试验结果进行了比对,发现本文
+建立的列车动态纵向动力学模型与钩缓装置模型紧
+急制动工况下的运行仿真结果与试验结果较为相
+近,本文建立的模型可以较准确地仿真重载列车实
+际运行的状态.
+2) 针对缓冲器对列车纵向冲动的影响进行了
+分析,发现列车在进行紧急制动、循环制动与牵引运
+行时,QKX100 缓冲器的最大车钩力与最大加速度
+都较小,特别是紧急制动工况下,QKX100 缓冲器的
+效果则远好于 MT鄄2 缓冲器,对列车的安全性与舒
+适性有极大的提高.
+5201
+北摇 京摇 工摇 业摇 大摇 学摇 学摇 报 2020 年
+参考文献:
+[1] COLE C, MCCLANACHAN M, SPIRYAGIN M, et al.
+Wagon instability in long trains [ J ] . Vehicle System
+Dynamics, 2012, 50( Suppl 1) : 303鄄317.
+[2] MA W, LUO S, SONG R, et al. Coupler dynamic
+performance analysis of heavy haul locomotives [ J ] .
+Vehicle System Dynamics, 2012, 50(9) : 1435鄄1452.
+[3] 杨俊杰, 刘建新, 罗世辉, 等. 重载组合列车机车车钩
+稳定控制试验[ J] . 西南交通大学学报, 2009, 44(6) :
+882鄄886.
+YANG J J, LIU J X, LUO S H, et al. Test study on
+stability control of locomotive coupler in heavy haul
+combined train [ J ] . Journal of Southwest Jiaotong
+University, 2009, 44(6) : 882鄄886. ( in Chinese)
+[4] 杨辉, 付 雅 婷. 列 车 运 行 建 模 与 速 度 控 制 方 法 综 述
+[ J] . 华东交通大学学报, 2018, 35(5) : 5鄄12.
+YANG H, FU Y T. Overview of train operation modeling
+and speed control methods [ J ] . Journal of East China
+Jiaotong University, 2018, 35(5) : 5鄄12. ( in Chinese)
+[5] 王倩辰. C80 货车关键部位损伤与线路状况对应关系
+的研究[ D] . 北京: 北京交通大学, 2017.
+WANG Q C. Study on the relationship between the damage
+of C80 truck蒺s key parts and the line condition [ D ] .
+Beijing : Beijing Jiaotong University, 2017. ( in Chinese)
+[6] MARIJON E, BOVEDA S, BULAVA A, et al. Nonlinear
+analysis of train derailment in severe braking[ J] . Journal
+of Dynamic Systems Measurement & Control, 2003, 125
+(1) : 48鄄53.
+[7] CHERKASHIN U M, ZAKHAROV S M, SEMECHKIN A
+E. An overview of rolling stock and track monitoring
+systems and guidelines to provide safety of heavy and long
+train operation in the Russian railways[ J] . Proceedings of
+the Institution of Mechanical Engineers Part F: Journal of
+Rail & Rapid Transit, 2009, 223(2) : 199鄄208.
+[8] LI H. Indian railway investigation report [ J ] . Railway
+Economics Research, 2009(2) : 1鄄6.
+[9] ANSARI M 1. Longitudinal dynamics of freight trains[ J] .
+International Journal of Heavy Vehicle Systems, 2009, 16
+(1 / 2) : 102鄄131.
+[10] WU Q, LUO S, XU Z, et al. Coupler jackknifing and
+derailments of locomotives on tangent track[ J] . Vehicle
+System Dynamics, 2013, 51(11) : 1784鄄1800.
+[11] XU Z Q, MA W H, WU Q, et al. Coupler rotation
+behaviour and its effect on heavy haul trains[ J] . Vehicle
+System Dynamics, 2013, 51(12) : 1818鄄1838.
+[12] ZHAO H Q, ZHI H H, XIAN C K. Simulation of
+longitudinal dynamics of long freight trains in positioning
+operations [ J ] . Vehicle System Dynamics, 2012, 50
+(9) : 1409鄄1433.
+[13] YAO Y, LIU X, ZHANG H, et al. The stability and
+mechanical characteristics of heavy haul couplers with
+restoring bumpstop [ J ] . Vehicle System Dynamics,
+2014, 52(1) : 26鄄44.
+[14] WU Q, LUO S, XU Z, et al. Coupler jackknifing and
+derailments of locomotives on tangent track[ J] . Vehicle
+System Dynamics, 2013, 51(11) : 1784鄄1800.
+[15] WU Q, COLE C, SPIRYAGIN M, et al. Preload on draft
+gear in freight trains[ J] . Proceedings of the Institution of
+Mechanical Engineers Part F: Journal of Rail & Rapid
+Transit, 2017: 095440971773884.
+[16] SPIRYAGIN M, WU Q, COLE C. International
+benchmarking of longitudinal train dynamics simulators:
+benchmarking questions [ J] . Vehicle System Dynamics,
+2017, 55(4) : 450鄄463.
+[17] WU Q, SPIRYAGIN M, COLE C, et al. International
+benchmarking of longitudinal train dynamics simulators:
+results[ J] . Vehicle System Dynamics, 2018(1) : 1鄄23.
+[18] 张波. 重载组合列车牵引及制动系统的试验与仿真研
+究[ D] . 北京: 中国铁道科学研究院, 2009.
+ZHANG B. Test and simulation on traction and brake
+system of combined heavy haul train [ D] . Beijing: China
+Academy of Railway Sciences, 2009. ( in Chinese)
+[19] 徐倩, 王悦明, 倪纯双. 重载列车纵向冲动分布试验
+研究[ J] . 中国铁道科学, 2013, 34(4) : 77鄄83.
+XU Q, WANG Y M, NI C S. Experimental study on
+longitudinal impulse distribution of heavy haul train [ J] .
+China Railway Science, 2013, 34 ( 4 ) : 77鄄83. ( in
+Chinese)
+( 责任编辑摇 梁摇 洁)
+6201

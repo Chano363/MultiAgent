@@ -1,0 +1,48 @@
+# ⚠️ DEPRECATED（2026-09-08，ADR-013）：本配置 = 单列车 standalone decompose（num_trains:1，无编队上下文），
+# 已被判为【方向性偏差】，不承论文主线、不得当作主结果引用。仅保留作"列内分工机制"的历史实验记录。
+# 唯一 RL 落位 = formation-aware 机车级 ED/AB（以【编队】为上下文，num_trains≥3 × 每列机车=agent）。
+# 后续新训请用编队上下文变体（decompose + num_trains≥3），不要直接跑本单列配置。
+# 多机车 × 电空双制动分解（ADR-009）：逐机车独立决策 ED/AB 分工，15000步完整时域
+# [历史注释] R0 decompose 主实验线：--decompose loco_ed_ab --decision_interval 10 --max_steps 15000
+name: decompose_loco_ed_ab_DEPRECATED_single_train
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00005
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.002
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+env_type: fleet
+env_cfg:
+  num_trains: 1
+  consist_preset: 10kt_1plus0
+  grade_profile: shuozhou_23800
+  v_max: 22.222
+  v_min: 11.111
+  target_gap: 100.0
+  max_steps: 15000
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: true
+  adj_coef: 0.1
+  decompose: loco_ed_ab
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+num_trains: 1
+decision_interval: 10
+episodes: 60
+curriculum: 1000:0,3000:20,15000:40
+init_speed_kmh: 80.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 10
+dirs:
+  checkpoint_dir: outputs/checkpoints
+  results_dir: outputs/results
+  figures_dir: outputs/figures

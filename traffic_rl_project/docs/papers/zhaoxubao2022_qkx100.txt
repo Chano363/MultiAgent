@@ -1,0 +1,2924 @@
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+振 动 与 冲 击
+第
+41
+卷第
+5
+期
+JOUＲNAL OF VIBＲATION AND SHOCK Vol． 41 No． 5 2022
+基金项目
+:
+国家重点研发计划课题资助项目
+(
+2017YFB1201302-11
+)
+收稿日期
+:
+2020 － 11 － 02
+修改稿收到日期
+:
+2020 － 12 － 29
+第一作者 赵旭宝 男
+，
+博士生
+，
+讲师
+，
+1978
+年生
+通信作者 魏伟 男
+，
+博士
+，
+教授
+，
+1963
+年生
+弹性胶泥缓冲器关键参数对快捷列车纵向冲动的影响
+赵旭宝
+1
+，
+魏 伟
+2
+，
+董靓瑜
+1
+，
+李 静
+1
+(
+1．
+大连交通大学 计算机与通讯工程学院
+，
+大连
+116028
+;
+2．
+大连交通大学 机车车辆工程学院
+，
+大连
+116028
+)
+摘 要
+:
+根据弹性胶泥缓冲器的结构原理
+，
+构建了基于速度型的弹性胶泥缓冲器模型
+，
+利用空气制动和纵向动力
+学联合仿真系统
+，
+分析了弹性胶泥缓冲器关键参数对快捷列车纵向冲动的影响
+。
+仿真结果表明
+:
+缓冲器的初压力和弹性
+胶泥的流动指数对列车的纵向冲动影响较大
+，
+而与机构相关的综合等效刚度对列车的纵向冲动影响较小
+。
+随着缓冲器初
+压力的不断增大
+，
+车钩力和加速度最大值均逐渐增大
+;
+初压力由
+20 kN
+增 大 到
+100 kN
+时
+，
+列车车钩力最大值增长了
+14． 4%
+;
+加速度最大值增长了
+32． 9%
+;
+胶泥流动指数在
+0． 1 ～ 0． 5
+内变化时
+，
+车钩力和加速度最大值变化较小
+;
+胶泥指数在
+0． 5 ～ 0． 9
+内变化时
+，
+车钩力和加速度最大值均随胶泥流动指数的增加呈指数级增长
+。
+胶泥流动指数在
+0． 5 ～ 0． 9
+内变化
+时
+，
+车钩力最大值增大了
+51． 7%
+;
+加速度最大值增幅为
+59． 5%
+。
+这为新型弹性胶泥缓冲器结构参数的设计提供了理论
+指导
+。
+关键词
+:
+弹性胶泥缓冲器
+;
+快捷货车
+;
+纵向冲动
+;
+动力学建模
+中图分类号
+:
+U270
+文献标志码
+:
+A DOI
+:
+10． 13465 / j． cnki． jvs． 2022． 05． 014
+Effects of key parameters of elastic polymer draft gear on
+longitudinal impulse of rapid speed wagon
+ZHAO Xubao
+1
+，
+WEI Wei
+2
+，
+DONG Liangyu
+1
+，
+LI Jing
+1
+(
+1． School of Computer and Communication Engineering
+，
+Dalian Jiaotong University
+，
+Dalian 116028
+，
+China
+;
+2． College of Locomotive and Ｒolling Stock Engineering
+，
+Dalian Jiaotong University
+，
+Dalian 116028
+，
+China
+)
+Abstract
+:
+Here
+，
+according to structural principle of elastic polymer draft gear
+，
+a speed-based elastic polymer draft
+gear model was established
+，
+and the joint simulation system of air braking and longitudinal dynamics was used to analyze
+effects of key parameters of elastic polymer draft gear on longitudinal impulse of rapid speed wagon． The simulation results
+showed that initial pressure of draft gear and flow index of elastic polymer more largely affect longitudinal impulse of rapid
+speed wagon
+，
+while comprehensive equivalent stiffness related to mechanisms affects longitudinal impulse of rapid speed
+wagon less
+;
+with increase in initial pressure of draft gear
+，
+the maximum values of coupler force and acceleration increase
+gradually
+;
+when initial pressure increases from 20 kN to 100 kN
+，
+the maximum value of rapid speed wagon coupler force
+increases by 14． 4%
+，
+the maximum acceleration increases by 32． 9%
+;
+when polymer flow index varies in the range of
+0． 1 － 0． 5
+，
+the maximum values of coupler force and acceleration vary less
+;
+when polymer index changes in the range of
+0． 5 － 0． 9
+，
+the maximum values of coupler force and acceleration increase exponentially with increase in polymer flow
+index
+;
+when polymer flow index changes in the range of 0． 5 － 0． 9
+，
+the maximum coupler force increases by 51． 7%
+，
+the
+maximum acceleration increases by 59． 5%
+;
+the study results can provide a theoretical guidance for designing structural
+parameters of new elastic polymer draft gear．
+Key words
+:
+elastic polymer draft gear
+;
+rapid speed wagon
+;
+longitudinal impulse
+;
+dynamic modeling
+随着我国改革的不断深入
+，
+产业结构不断优化升
+级
+，
+“
+互联网
++
+”
+及电商的快速发展
+，
+推动了以网络购物
+为代表的新型商务模式
+。
+以时效性
+、
+多样化
+、
+高附加值
+等特征的货物运输需求急剧增长
+。
+铁路货物运输模式
+正经历由数量需求向速度需求转变
+。
+快捷运输组织模
+式逐渐成为了当今世界铁路运输发展的重要方向
+。
+快
+捷货车以集装箱运输
+，
+日用百货
+、
+精密仪器
+、
+电子电器
+等高附加值货物运输为主
+，
+因此对运输的质量和速度
+有较高的要求
+。
+快捷铁路货车运行时速一般为
+140 ～
+160 km / h
+，
+列车编组
+20
+辆左右
+，
+牵引吨位为
+1 400 ～
+1 800 t
+［
+1
+］
+。
+从
+20
+世纪
+80
+年代开始
+，
+欧洲各发达国家
+，
+如德国
+、
+法国等
+，
+先后开发使用快捷货车
+。
+欧洲主要采
+用
+“
+编组短
+、
+质量轻
+、
+速度快
+”
+的轻捷快运模式
+。
+法国国
+家铁路公司
+，
+通过对货运繁忙干线全面提速和发展高
+速铁路货运等措施发展快捷运输
+。
+美国的快捷货运服
+务系统几乎覆盖了整个美洲大陆
+［
+2
+］
+。
+由于快捷运输以运送高附加值货物为主
+，
+因此对
+其运输质量有较高的要求
+。
+缓冲器作为连接车辆的重
+要部件
+，
+在列车运行中起到了缓冲和耗散车辆纵向冲
+击动能的作用
+。
+缓冲器性能的优劣
+，
+直接影响着车辆
+间纵向力的大小
+，
+进而影响列车的纵向冲动
+。
+目前
+，
+在
+国内快捷货车上普遍使用的是弹性胶泥缓冲器
+，
+因此
+深入研究弹性胶泥缓冲器的关键参数对快捷列车纵向
+冲动的影响
+，
+对保障快捷货车运行的平稳性和安全性
+具有重要的意义
+。
+Olshevskiy
+等
+［
+3
+］
+建立了改进的摩擦式缓冲器动力
+学模型和调车冲击的仿真模型
+。
+模拟了货车组的调车
+冲击工况
+，
+讨论分析了一车冲一车和多车冲多车工况
+下的缓冲器刚度和车钩力特性方面的主要区别
+。
+Wu
+等
+［
+4-5
+］
+建立了摩擦缓冲器
+、
+胶泥缓冲器和摩擦胶泥缓冲
+器三种具有不同阻尼机理的缓冲器模型
+，
+分析比较了
+三种缓冲器在货车冲击试验工况下的冲击特性
+、
+频率
+响应和疲劳损伤
+。
+Zhu
+等
+［
+6
+］
+建立了车钩缓冲器的力学
+模型
+，
+研究了城际列车冲击碰撞的机理
+。
+分析了车钩
+缓冲器对列车冲击碰撞行为的影响
+。
+研究了在碰撞过
+程中
+，
+车钩俯仰偏角的影响因素
+。
+Cole
+等
+［
+7-8
+］
+对货车用
+缓冲器进行了数学分析
+，
+建立了简化的缓冲器模型
+，
+研
+究了不同载荷下的重载列车纵向动力学性能
+。
+黄运华
+等
+［
+9
+］
+通过附加阻尼的方法构建摩擦式缓冲器模型
+，
+详
+细地研究了缓冲器的阻抗特性和列车纵向冲击机理
+;
+马卫华等
+［
+10
+］
+研究了摩擦胶泥型和弹性胶泥型缓冲器静
+态与动态阻抗特性对万吨重载列车动力学性能的影
+响
+;
+Chang
+等
+［
+11
+］
+利用描述悬挂系统中悬挂力的数学方
+程模拟了钢摩擦缓冲器实际的干摩擦阻尼迟滞特性
+，
+构建了重载列车纵向动力学模型
+。
+仿真分析了
+2
+万吨
+重载列车的纵向动力学特性
+，
+并用试验数据对仿真结
+果进行了验证
+。
+孙树磊等
+［
+12
+］
+以缓冲器动力学模型及空
+气制动系统模型为基础
+，
+建立了列车纵向冲击动力学
+模型
+，
+仿真分析重载组合列车在不同线路条件和制动
+作用下的纵向动力学行为
+。
+杨亮亮等
+［
+13
+］
+根据铁路货车
+纵向受力特点
+，
+利用
+MATLAB
+软件建立铁路货车调车
+冲击的动力学模型
+，
+研究了不同轴重车型
+，
+不同缓冲器
+特性
+、
+不同制动阻力状态及不同冲击模式对车辆纵向
+冲击特性的影响
+。
+张渊等
+［
+14
+］
+使用空气制动与纵向动力
+学联合仿真系统
+，
+计算万吨重载列车在回送运行施行
+紧急制动的列车纵向冲动
+。
+但上述研究仅是针对重载列车纵向冲动
+，
+对快捷
+列车纵向冲动的分析
+，
+尤其是针对弹性胶泥缓冲器对
+列车纵向冲动研究较少
+，
+因此
+，
+本文根据弹性胶泥缓冲
+器的结构原理
+，
+构建一种基于速度型的弹性胶泥缓冲
+器动力学模型
+，
+利用空气制动与纵向动力学联合仿真
+系统
+，
+分析弹性胶泥缓冲器的各关键结构参数对列车
+纵向冲动的影响
+，
+找出其变化规律
+。
+1
+弹性胶泥缓冲器动力学模型
+当前
+，
+在运行时速
+160 km / h
+的快捷货车上以
+JN30
+型弹性胶泥缓冲器应用最为广泛
+。
+该缓冲器主要是由
+缸体
+、
+环簧组件和弹性胶泥芯体等部分构成
+。
+总体结
+构如图
+1
+所示
+。
+图
+1
+弹性胶泥缓冲器总体结构图
+Fig． 1 Structure diagram of elastic polymer draft gear
+弹性胶泥芯体是采用活塞杆导向
+、
+带高压室的双
+室结构
+，
+主要由缸体
+、
+活塞杆组件
+、
+弹性胶泥及密封装
+置等部分构成
+。
+其中弹性胶泥是由聚有机硅氧烷
+(
+简
+称聚硅氧烷
+)
+、
+填充剂等材料混炼而成
+，
+其主体材料聚
+硅氧烷 是 未 经 交 联 的
+，
+它决定了弹性胶泥的基本性
+能
+［
+15
+］
+。
+弹性胶泥芯体结构如图
+2
+所示
+。
+图
+2
+弹性胶泥芯体结构图
+Fig． 2 Structural diagram of elastic polymer core
+弹性胶泥缓冲器在工作过程中是通过活塞杆的往
+复运动
+，
+弹性胶泥流体高速通过环状节流缝隙而产生
+阻尼作用力
+，
+利用弹性胶泥芯体和环簧组共同作用以
+缓和
+、
+吸收冲击能量
+。
+缓冲器在使用前会根据需要设
+置一定的预压力
+。
+缓冲器在受外力压缩时
+，
+活塞杆逐
+步压入活塞缸内
+，
+各环簧组开始相互挤压
+，
+产生弹性形
+变
+，
+环簧接触面间相互摩擦会消耗一定的冲击能量
+;
+同
+时活塞杆被压入缸体内
+，
+使得弹性胶泥体积压缩
+，
+增大
+了缸体内胶泥压力
+，
+从而给活塞杆提供了较大的反力
+，
+001
+振 动 与 冲 击
+2022
+年第
+41
+卷
+达到储能效果
+。
+由于胶泥具有良好的流动性
+，
+胶泥在
+活塞和缸体内壁间的环状缝隙内流动产生了阻尼力
+，
+同时吸收了大部分的冲击能量
+。
+缓冲器在复位时
+，
+环
+簧组作用力通过导套组成带动胶泥芯体同步复位
+。
+同
+时
+，
+胶泥从单向节流阀和活塞与缸体内壁间的环状缝
+隙回流到原来的腔室内
+，
+使得缓冲器回弹速度快
+、
+阻力
+小
+，
+保证了缓冲器及时复位
+。
+由于缓冲器是由环簧组和弹性胶泥共同作用缓和
+列车纵向冲击能量
+。
+因此
+，
+缓冲器既具有黏滞耗能特
+性
+，
+又具有弹性储能特性
+，
+能够自复位
+。
+因此
+，
+本文假
+设缓冲器阻抗力仅由弹性力和胶泥阻尼力构成
+。
+缓冲
+器的动力学模型看作是由一带刚度的弹性元件和一随
+速度变化的阻尼元件组成
+。
+缓冲器动力学模型方程可
+表示为式
+(
+1
+)
+F = F
+0
++ F
+k
++ F
+d
+(
+1
+)
+式中
+:
+F
+为缓冲器总的阻抗力
+;
+F
+0
+为缓冲器的初压力
+;
+F
+k
+为弹性元件的弹性力
+;
+F
+d
+为阻尼元件的阻尼力
+。
+在缓冲器的工作过程中
+，
+缓冲器的弹性回复力
+，
+主
+要来自两个方面
+，
+其一是环簧组的弹性回复力
+;
+其二是
+缸体内胶泥的弹性回复力
+。
+等效的弹性回复力表示为
+式
+(
+2
+)
+F
+k
+= a
+1
+·
+Δ
+x
+(
+2
+)
+式中
+:
+α
+1
+为缓冲器加载过程中弹性力对应的综合等效
+刚度
+;
+Δ
+x
+为缓冲器位移
+。
+另外
+，
+由于弹性胶泥属于一种剪切稀化流体
+［
+16
+］
+，
+根
+据其本构关系方程和活塞杆的结构
+，
+推导出胶泥的阻
+尼力如式
+(
+3
+)
+F
+d
+= c
+·
+v
+n
+(
+3
+)
+式中
+:
+c
+为与活塞杆结构相关的系数
+;
+n
+为胶泥的流动
+指数
+，
+反映胶泥材料非牛顿流体性质的强弱
+，
+其取值范
+围为
+0 ～ 1
+，
+对于某一固定型号的胶泥
+n
+为常数
+，
+n
+值可
+以通过试验测得
+。
+2
+空气制动与纵向动力学联合仿真系统
+根据列车纵向动力学原理和气体流动理论
+，
+大连
+交通大学开发了列车空气制动与纵向动力学联合仿真
+系统
+(
+TABLDSS
+)
+［
+17
+］
+。
+该系统具有同步仿真列车制动
+特性和纵向动力学特性的功能
+。
+系统还具有良好的牵
+引特性
+、
+制动特性
+、
+车钩力
+、
+加速度等性能参数同步计
+算及图形化显示功能
+。
+系统可模拟司机根据线路状
+况
+、
+运行速度
+、
+列车限速等因素控制列车真实的运行过
+程
+。
+该系统为分析列车纵向冲动机理
+、
+优化制动特性
+、
+优化缓冲器特性
+、
+模拟列车驾驶提供了基本理论和实
+用工具
+。
+该仿真系统曾参加了国际列车纵向动力学模
+拟器的基准测试
+［
+18
+］
+。
+此项活动共有
+6
+个国家的
+9
+款仿
+真系统参与测试
+，
+TABLDSS
+仿真系统针对每个算例的
+计算精度和计算速度都名列前茅
+。
+3
+弹性胶泥缓冲器关键参数对快捷列车纵向
+冲动的影响分析
+在列车正常运行状态下
+，
+列车以实施紧急制动时
+产生的纵向冲动最为严重
+。
+因此
+，
+本文重点分析列车
+在紧急制动情况下
+，
+列车的纵向加速度和车钩力两个
+性能参数的变化
+。
+以此来分析缓冲器关键参数对列车
+纵向冲动的影响
+。
+仿真计算条件
+:
+列车组成为
+1 + 20
+(
+1
+辆
+SS
+9
+电力机
+车
++ 20
+辆
+P160
+D
+快运棚车
+) ，
+单节车重
+72 t
+。
+在平直线
+路上
+，
+以
+160 km / h
+初速度实施紧急制动
+。
+制动系统采
+用
+KZ
+1
+快充分配阀
+，
+10 mm
+车钩间隙
+。
+3． 1
+初压的影响
+根据本文建立的弹性胶泥缓冲器模型
+，
+当其他参
+数不变时
+，
+将式
+(
+1
+)
+中缓冲器模型的初压力值分别调整
+为
+20 kN
+，
+40 kN
+，
+60 kN
+，
+80 kN
+，
+100 kN
+等值
+。
+考察缓冲
+器初压力变化对列车纵向冲动的影响
+。
+仿真计算结果
+如图
+3
+和图
+4
+所示
+。
+图
+3
+初压力对最大车钩力的影响
+Fig． 3 Effect of the mounting preload on maximum coupler force
+图
+4
+初压力对最大加速度的影响
+Fig． 4 Effect of the mounting preload on maximum acceleration
+图
+3
+，
+4
+分别给出了在不同初压力情况下列车最大
+车钩力
+(
+压钩力
+)
+和最大加速度值的变化
+。
+由图
+3
+可以
+看出随着初压力的不断增大
+，
+车钩力呈非线性增大
+，
+但
+在初压力小于
+60 kN
+范围内
+，
+车钩力变化较小
+。
+在初
+压力为
+20 kN
+时
+，
+列车中最大车钩力为
+－ 159． 1 kN
+;
+初
+压力为
+100 kN
+时
+，
+列车中最大车钩力为
+－ 185． 9 kN
+。
+初 压 力 由
+20 kN
+增 大 到
+100 kN
+时
+，
+车 钩 力 增 长
+101
+第
+5
+期 赵旭宝等
+:
+弹性胶泥缓冲器关键参数对快捷列车纵向冲动的影响
+14． 4%
+。
+由图
+4
+可知
+，
+在初压力小于
+40 kN
+范围内
+，
+加
+速度值随着初压的增大有逐渐变小的趋势
+，
+但变化幅
+度较小
+;
+在初压力大于
+40 kN
+范围内
+，
+加速度值随初压
+力增加而增大
+。
+初压力为
+100 kN
+时
+，
+列车中最大加速
+度为
+－ 2． 43 m / s
+2
+。
+初压力由
+20 kN
+增大到
+100 kN
+时
+，
+加速度增长了
+32． 9%
+。
+由此表明
+，
+缓冲器的初压力设
+置过大将会增大列车的纵向冲动
+。
+分析其原因是增大
+初压相当于增大缓冲器的初始阻抗
+，
+在车钩力由前向
+后传递过程中
+，
+使得相邻两车辆间的车钩力差增大
+，
+最
+终导致车钩力和加速度随初压的增加而增大
+。
+综合车
+钩力与加速度的变化趋势可知
+，
+缓冲器的初压力设置
+在
+40 kN
+左右较为合理
+。
+图
+5
+和图
+6
+进一步给出了列
+车在不同初压情况下最大车钩力与加速度沿车长的
+分布
+。
+图
+5
+车钩力最大值沿车长的分布
+Fig． 5 Distribution of the maximum coupler force along the train
+图
+6
+加速度最大值沿车长的分布
+Fig． 6 Distribution of the maximum acceleration along the train
+3． 2
+综合等效刚度的影响
+根据环簧组的静压试验可知
+，
+环簧的等效刚度约
+为
+2． 4 kN / mm
+，
+环簧组静压试验结果如图
+7
+所示
+。
+同
+时考虑弹性胶泥在流动过程中也具有一定的刚度
+，
+因
+此本文在弹性胶泥缓冲器模型中
+，
+将式
+(
+2
+)
+中综合等效
+刚度分别设定为
+3
+，
+4
+，
+5
+，
+…
+，
+10
+等值
+。
+考察缓冲器环簧
+机构等对应综合等效刚度的变化对列车纵向冲动的影
+响
+。
+仿真计算结果如图
+8
+和图
+9
+所示
+。
+图
+8
+，
+9
+给出了不同综合等效刚度下的列车车钩力
+(
+压钩力
+)
+和加速度的最大值的变化规律
+。
+由图
+8
+，
+9
+可
+以看出
+，
+随着综合等效刚度的增大
+，
+列车车钩力最大值
+有逐渐增大的趋势
+，
+当等效刚度设定为
+3 kN / mm
+时
+，
+车
+钩力最大值为
+－ 131． 18 kN
+;
+当等效刚度设定为
+10 kN /
+mm
+时
+，
+车钩力最大值为
+－ 174． 92 kN
+，
+但变化幅度仅为
+43 kN
+。
+在综合等效刚度逐渐增大的过程中
+，
+列车加速
+度最大值呈现了先变小后逐渐增大的变化过程
+，
+但变
+化的幅度为仅为
+7． 2%
+，
+最大的加速度值为
+－ 1． 83 m /
+s
+2
+。
+由此表明
+，
+综合等效刚度对列车纵向冲动有一定的
+影响
+，
+但影响较小
+。
+分析其原因是综合等效刚度大小
+仅影响缓冲器的弹性回复力
+，
+而根据缓冲的工作原理
+可知
+，
+在弹性胶泥缓冲器中
+，
+缓冲器的性能主要是由弹
+性胶泥的性质所决定
+，
+弹性回复力对缓冲器的性能影
+响较小
+，
+因此车钩力和加速度受其影响较小
+。
+图
+10
+，
+11
+给 出了不同等效刚度下沿车长分布的车钩力和加
+速度
+。
+图
+7
+环簧组静压试验结果
+Fig． 7 Static pressure test result of ring spring group
+图
+8
+综合等效刚度对列车最大车钩力的影响
+Fig． 8 The effect of comprehensive equivalent stiffness
+on maximum coupler force
+图
+9
+综合等效刚度对列车最大加速度的影响
+Fig． 9 The effect of comprehensive equivalent stiffness
+on maximum acceleration
+201
+振 动 与 冲 击
+2022
+年第
+41
+卷
+图
+10
+车钩力最大值沿车长分布
+Fig． 10 Distribution of the maximum coupler force along the train
+图
+11
+加速度最大值沿车长分布
+Fig． 11 Distribution of the maximum acceleration along the train
+3． 3
+胶泥流动指数的影响
+在缓冲器模型中
+，
+在保持其他参数不变的情况下
+，
+将式
+(
+3
+)
+中胶泥流动指数
+n
+分别调整为
+0． 1
+，
+0． 2
+，
+…
+，
+0． 9
+等值进行仿真计算
+，
+分析流动指数对列车纵向车钩
+力和加 速 度 的 影 响
+。
+仿真计算结果如图
+12
+和 图
+13
+所示
+。
+图
+12
+胶泥流动指数对最大车钩力的影响
+Fig． 12 Influence of the flow index of elastic polymer
+on maximum coupler force
+图
+13
+胶泥流动指数对加速度的影响
+Fig． 13 Influence of the flow index of elastic polymer on
+maximum acceleration
+图
+12
+，
+13
+给出了在不同胶泥流动指数情况下的列
+车车钩力
+(
+压钩力
+)
+和加速度最大值的变化趋势
+。
+由图
+可
+12
+，
+13
+可知
+，
+胶泥流动指数对列车的车钩力和加速
+度影响较大
+。
+尤其是当
+n
+大于
+0． 5
+时
+，
+车钩力和加速
+度呈指数级增长
+。
+当胶泥指数在
+0． 1 ～ 0． 5
+内变化时
+，
+车钩力随流动指数的增大呈逐渐减小的趋势
+，
+但车钩
+力整体变化幅度较小
+，
+仅为
+20． 1 kN
+。
+在这个范围内列
+车加速度最大值基本无变化
+。
+当胶泥指数在
+0． 5 ～ 0． 9
+内变化时
+，
+车钩力和加速度都随流动指数的增加而增
+大
+。
+在
+n
+值 为
+0． 5
+和
+0． 9
+时
+，
+车钩力最大值分别为
+－ 156． 8 kN
+和
+－ 324． 9 kN
+，
+增幅为
+51． 7%
+;
+加速度最大
+值分 别 为
+－ 1． 7 m / s
+2
+和
+－ 4． 2 m / s
+2
+，
+变 化 幅 度 为
+59． 5%
+。
+其原因是弹性胶泥缓冲器属于速度型耗能
+器
+。
+由式
+(
+3
+)
+可知
+，
+阻尼力的大小与冲击速度的幂次方
+(
+即流动指数
+n
+)
+成正比
+，
+因流动指数为正数且小于
+1
+，
+所以阻尼力随活塞杆移动速度的增大而增加
+，
+但增长
+幅度逐渐减小
+。
+这正是胶泥缓冲器优点的体现
+。
+当冲
+击速度较小时
+，
+缓冲器能提供较大的阻尼力
+，
+而冲击速
+度较大时
+，
+又能较好的抑制阻尼力的最大值
+。
+这样对
+车辆起到了很好的保护作用
+。
+但根据式
+(
+3
+) ，
+当流动指
+数
+n
+较小时
+，
+提供的阻尼力也相对较小
+;
+相反
+，
+当
+n
+较
+大时
+，
+提供的阻尼力相对也较大
+。
+最终导致车钩力和
+加速度受流动指数
+n
+影响较大
+。
+由上述分析可知
+，
+胶
+泥的流动指数限定在
+0． 5
+附近时
+，
+将有助于降低列车
+的纵向冲动
+。
+图
+14
+，
+15
+给出了在不同胶泥流动指数情
+况下车钩力和加速度沿车长变化情况
+。
+图
+14
+车钩力最大值沿车长分布
+Fig． 14 Distribution of the maximum coupler force along the train
+图
+15
+加速度最大值沿车长分布
+Fig． 15 Distribution of the maximum acceleration along the train
+301
+第
+5
+期 赵旭宝等
+:
+弹性胶泥缓冲器关键参数对快捷列车纵向冲动的影响
+4
+结 论
+本文根据弹性胶泥缓冲器的结构原理
+，
+建立了基
+于速度型的弹性胶泥缓冲器模型
+，
+利用空气制动与纵
+向动力学联合仿真系统
+，
+分析了快捷货车在初速度为
+160 km / h
+时的平道紧急制动工况下
+，
+缓冲器模型关键
+参 数变化对列车纵向冲动的影响规律
+。
+得 出 结 论
+如下
+:
+(
+1
+)
+随着缓冲器初压力的不断增大
+，
+车钩力和加
+速度均呈非线性增大趋势
+。
+初压力由
+20 kN
+增 大 到
+100 kN
+时
+，
+列车车钩力最大值增长了
+14． 4%
+;
+加速度最
+大值增长了
+32． 9%
+。
+综合车钩力与加速度的变化趋势
+可知
+，
+过大的缓冲器初压力将会增大列车的纵向冲动
+。
+缓冲器的初压力设置在
+40 kN
+左右较为合理
+。
+(
+2
+)
+与缓冲器环簧组相关的综合等效刚度对列车
+的纵向冲动有一定的影响
+，
+但影响较小
+。
+(
+3
+)
+弹性胶泥的流动指数对列车的最大车钩力和
+最大加速度影响最大
+。
+尤其是当
+n
+大于
+0． 5
+时
+，
+车钩
+力和加速度呈指数级增长
+。
+当胶泥指数在
+0． 1 ～ 0． 5
+内变化时
+，
+车钩力随流动指数的变化幅度较小
+，
+而在这
+个范围内列车加速度最大值也基本无变化
+。
+但当胶泥
+指数在
+0． 5 ～ 0． 9
+内变化时
+，
+车钩力和加速度均随流动
+指数的增加呈指数级增长
+。
+胶泥流动指数在
+0． 5 ～ 0． 9
+内变化时
+，
+车钩力最大值增大为
+51． 7%
+;
+加速度最大值
+增幅为
+59． 5%
+。
+根据仿真结果
+，
+将胶泥的流动指数限
+定在
+0． 5
+左右为宜
+，
+既可以保障缓冲器有足够大的缓
+冲能力
+，
+又能降低快捷列车的纵向冲动
+。
+参 考 文 献
+［
+1
+］
+周晓坤
+，
+贺茂盛
+，
+邵文东
+，
+等
+．
+快捷运输新技术发展与展望
+［
+J
+］
+．
+铁道车辆
+，
+2020
+，
+58
+(
+8
+) :
+6 － 9．
+ZHOU Xiaokun
+，
+HE Maosheng
+，
+SHAO Wendong
+，
+et al．
+Development and prospects of new technology in rapid
+transport
+［
+J
+］
+． Ｒolling Stock
+，
+2020
+，
+58
+(
+8
+) :
+6 － 9．
+［
+2
+］
+田葆栓
+．
+国内外铁路快捷运输货车技术发展分析
+［
+J
+］
+．
+铁
+道车辆
+，
+2017
+，
+55
+(
+4
+) :
+1 － 5．
+TIAN Baoshuan． Analysis of technical development of railway
+rapid transport freight cars in China and abroad
+［
+J
+］
+． Ｒolling
+Stock
+，
+2017
+，
+55
+(
+4
+) :
+1 － 5．
+［
+3
+］
+OLSHEVSKIY A
+，
+OLSHEVSKIY A
+，
+SVETLANA I
+，
+et al．
+Freight cars shunting impacts analysis using an improved
+dynamic model of friction draft gear
+［
+J
+］
+． Vehicle System
+Dynamics
+，
+2018
+，
+56
+(
+10
+) :
+1492 － 1507．
+［
+4
+］
+WU Qing
+，
+LUO Shihui
+，
+QU Tianwei
+，
+et al． Comparisons of
+draft gear damping mechanisms
+［
+J
+］
+． Vehicle System
+Dynamics
+，
+2017
+，
+55
+(
+4
+) :
+501 － 516．
+［
+5
+］
+WU Q
+，
+YANG X
+，
+COLE C
+，
+et al． Modelling polymer draft
+gears
+［
+J
+］
+． Vehicle System Dynamic
+，
+2016
+，
+54
+(
+9
+) :
+1208 －
+1225．
+［
+6
+］
+ZHU Tao
+，
+YANG Baozhu
+，
+YANG Chao
+，
+et al． The mechanism
+for the coupler and draft gear and its influence on safety
+during a train collision
+［
+J
+］
+． Vehicle System Dynamics
+，
+2018
+，
+56
+(
+9
+) :
+1375 － 1393．
+［
+7
+］
+COLE C
+，
+SUN Y Q． Simulated comparisons of wagon coupler
+systems in heavy haul trains
+［
+J
+］
+． Proceedings of the
+Institution of Mechanical Engineers
+，
+Part F
+:
+Journal of Ｒail
+and Ｒapid Transit
+，
+2006
+，
+220
+(
+3
+) :
+247 － 256．
+［
+8
+］
+COLE C
+，
+MCCLANACHAN M
+，
+SPIＲYAGIN M
+，
+et al． Wagon
+instability in long train
+［
+J
+］
+． Vehicle System Dynamic
+，
+2012
+，
+50
+(
+Suppl． 1
+) :
+303 － 317．
+［
+9
+］
+黄运华
+，
+李芾
+，
+傅茂海
+．
+车辆缓冲器特性研究
+［
+J
+］
+．
+中国铁
+道科学
+，
+2005
+，
+26
+(
+1
+) :
+95 － 99．
+HUANG Yunhua
+，
+LI Fu
+，
+FU Maohai． Ｒesearch on the
+characteristics of vehicle buffers
+［
+J
+］
+． China Ｒailway Science
+，
+2005
+，
+26
+(
+1
+) :
+95 － 99．
+［
+10
+］
+马卫华
+，
+宋荣荣
+，
+揭长安
+，
+等
+．
+缓冲器阻抗特性对重载列车
+动力学性 能 的 影 响
+［
+J
+］
+．
+交 通 运 输 工 程 学 报
+，
+2011
+，
+11
+(
+2
+) :
+59 － 64．
+MA Weihua
+，
+SONG Ｒongrong
+，
+JIE Chang
+’
+an
+，
+et al．
+Influences of buffer impedance characteristics on dynamics
+performances for heavy haul train
+［
+J
+］
+． Journal of Traffic and
+Transportation Engineering
+，
+2011
+，
+11
+(
+2
+) :
+59 － 64．
+［
+11
+］
+CHANG Chongyi
+，
+GUO Gang
+，
+WANG Junbiao
+，
+et al． Study
+on longitudinal force simulation of heavy-haul train
+［
+J
+］
+．
+Vehicle System Dynamics
+，
+2017
+，
+55
+(
+4
+) :
+571 － 582．
+［
+12
+］
+孙树磊
+，
+丁军君
+，
+周张义
+，
+等
+．
+重载列车纵向冲动动力学分
+析及试验研究
+［
+J
+］
+．
+机械工程学报
+，
+2017
+，
+53
+(
+8
+) :
+138 － 146．
+SUN Shulei
+，
+DING Junjun
+，
+ZHOU Zhangyi
+，
+et al． Analysis
+and test of heavy haul train longitudinal impulse dynamics
+［
+J
+］
+． Journal of Mechanical Engineering
+，
+2017
+，
+53
+(
+8
+) :
+138 － 146．
+［
+13
+］
+杨亮亮
+，
+罗世辉
+，
+傅茂海
+，
+等
+．
+基于调车工况的车辆纵向冲
+击数值 模 拟 研 究
+［
+J
+］
+．
+机 械 工 程 学 报
+，
+2016
+，
+52
+(
+4
+) :
+126 － 132．
+YANG Liangliang
+，
+LUO Shihui
+，
+FU Maohai
+，
+et al． Numerical
+simulation study on longitudinal impact of vehicle unde
+shunting condition
+［
+J
+］
+． Journal of Mechanical Engineering
+，
+2016
+，
+52
+(
+4
+) :
+126 － 132．
+［
+14
+］
+张渊
+，
+赵志鹏
+，
+王厂
+．
+长大货物车回送时混编列车纵向冲
+动分析
+［
+J
+］
+．
+大连交通大学学报
+，
+2014
+，
+35
+(
+增 刊
+1
+) :
+22 － 27．
+ZHANG Yuan
+，
+ZHAO Zhipeng
+，
+WANG Chang． Analysis of
+mixed marshalling train longitudinal impulse during oversize
+commodity car delivery
+［
+J
+］
+． Journal of Dalian Jiaotong
+University
+，
+2014
+，
+35
+(
+Suppl． 1
+) :
+22 － 27．
+［
+15
+］
+周光强
+，
+杨丽娜
+，
+杨爱军
+，
+等
+．
+弹性胶泥特性及其缓冲器的
+研究进展
+［
+J
+］
+．
+有机硅材料
+，
+2011
+，
+25
+(
+1
+) :
+40 － 43．
+ZHOU Guangqiang
+，
+YANG Lina
+，
+YANG Aijun
+，
+et al．
+Ｒesearch progress on characteristics of elastic rubber and its
+buffer
+［
+J
+］
+． Silicone Material
+，
+2011
+，
+25
+(
+1
+) :
+40 － 43．
+［
+16
+］
+徐忠四
+，
+苏铁熊
+，
+刘晓栋
+．
+基于冲击环境下黏弹性胶泥缓
+冲器的动 力 学 建 模
+［
+J
+］
+．
+应 用 力 学 学 报
+，
+2013
+，
+30
+(
+3
+) :
+384 － 389．
+XU Zhongsi
+，
+SU Tiexiong
+，
+LIU Xiaodong． Dynamics modeling
+of viscoelastic elastomer damper based on the shock
+environment
+［
+J
+］
+． Chinese Journal of Applied Mechanics
+，
+2013
+，
+30
+(
+3
+) :
+384 － 389．
+(
+下转第
+113
+页
+)
+401
+振 动 与 冲 击
+2022
+年第
+41
+卷
+［
+2
+］
+周建庭
+，
+李晓庆
+，
+辛景舟
+，
+等
+．
+基于
+Kalman-GAＲCH
+模型的
+结构损伤识别
+［
+J
+］
+．
+振动与冲击
+，
+2020
+，
+39
+(
+6
+) :
+1 － 7．
+ZHOU Jianting
+，
+LI Xiaoqing
+，
+XIN Jingzhou
+，
+et al． Structural
+damage identification based on Kalman-GAＲCH model
+［
+J
+］
+．
+Journal of Vibration and Shock
+，
+2020
+，
+39
+(
+6
+) :
+1 － 7．
+［
+3
+］
+梁宗保
+．
+基于监测信息统计分析的桥梁结构安全评价研
+究
+［
+D
+］
+．
+重庆
+:
+重庆大学
+，
+2006．
+［
+4
+］
+刘纲
+，
+邵毅敏
+，
+黄宗明
+，
+等
+．
+长期监测中结构温度效应分离
+的一种新方法
+［
+J
+］
+．
+工程力学
+，
+2010
+，
+27
+(
+3
+) :
+55 － 61．
+LIU Gang
+，
+SHAO Yimin
+，
+HUANG Zongming
+，
+et al． A new
+method for separating structure temperature effects in long-
+term monitoring
+［
+J
+］
+． Engineering Mechanics
+，
+2010
+，
+27
+(
+3
+) :
+55 － 61．
+［
+5
+］
+刘夏平
+，
+杨红
+，
+孙卓
+，
+等
+．
+基于
+LS-SVM
+的桥梁挠度监测中
+温度效应分离
+［
+J
+］
+．
+铁道学报
+，
+2012
+，
+34
+(
+10
+) :
+91 － 96．
+LIU Xiaping
+，
+YANG Hong
+，
+SUN Zhuo
+，
+et al． Separation of
+temperature effect in bridge deflection monitoring based on
+LS-SVM
+［
+J
+］
+． Journal of the China Ｒailway Society
+，
+2012
+，
+34
+(
+10
+) :
+91 － 96．
+［
+6
+］
+杨红
+，
+孙卓
+，
+刘夏平
+，
+等
+．
+基于多最小二乘支持向量机的桥
+梁温度挠度效应的分离
+［
+J
+］
+．
+振动与冲击
+，
+2014
+，
+33
+(
+1
+) :
+71 － 76．
+YANG Hong
+，
+SUN Zhuo
+，
+LIU Xiaping
+，
+et al． Separation of
+bridge temperature deflection effects based on multiple least
+squares support vector machines
+［
+J
+］
+． Journal of Vibration and
+Shock
+，
+2014
+，
+33
+(
+1
+) :
+71 － 76．
+［
+7
+］
+黄侨
+，
+赵丹阳
+，
+任远
+，
+等
+．
+温度作用下斜拉桥挠度的时间多
+尺度分析
+［
+J
+］
+．
+哈尔滨工业大学学报
+，
+2020
+，
+52
+(
+3
+) :
+18 －
+25．
+HUANG Qiao
+，
+ZHAO Danyang
+，
+ＲEN Yuan
+，
+et al． Time
+multi-scale analysis of cable-stayed bridge deflection under
+temperature
+［
+J
+］
+． Journal of Harbin Institute of Technology
+，
+2020
+，
+52
+(
+3
+) :
+18 － 25．
+［
+8
+］
+陈国良
+，
+林训根
+，
+岳青
+，
+等
+．
+基于时间序列分析的桥梁长期
+挠度分离与预测
+［
+J
+］
+．
+同济大学学报
+(
+自然科学版
+) ，
+2016
+，
+44
+(
+6
+) :
+962 － 968．
+CHEN Guoliang
+，
+LIN Xungen
+，
+YUE Qing
+，
+et al． Separation
+and prediction of long-term bridge deflection based on time
+series analysis
+［
+J
+］
+． Journal of Tongji University
+(
+Natural
+Science Edition
+) ，
+2016
+，
+44
+(
+6
+) :
+962 － 968．
+［
+9
+］
+李明
+，
+钟继卫
+，
+严凤
+．
+结构温度与悬索桥主梁挠度的关联性
+分析
+［
+J
+］
+．
+振动与冲击
+，
+2018
+，
+37
+(
+11
+) :
+237 － 245．
+LI Ming
+，
+ZHONG Jiwei
+，
+YAN Feng． Analysis of the
+correlation between structure temperature and main girder
+deflection of suspension bridge
+［
+J
+］
+． Journal of Vibration and
+Shock
+，
+2018
+，
+37
+(
+11
+) :
+237 － 245．
+［
+10
+］
+唐春会
+．
+大跨径
+PC
+梁桥挠度信号分离研究
+［
+D
+］
+．
+广州
+:
+广州大学
+，
+2012．
+［
+11
+］
+LI H
+，
+LIU T
+，
+WU X
+，
+et al． An optimized VMD method and
+its applications in bearing fault diagnosis
+［
+J
+］
+． Measurement
+，
+2020
+，
+166
+:
+108185．
+［
+12
+］
+LI Ｒ H
+，
+LUO J
+，
+HU B． Lamb wave-based damage
+localization feature enhancement and extraction method for
+stator insulation of large generators using VMD and wavelet
+transform
+［
+J
+］
+． Sensors
+，
+2020
+，
+20
+(
+15
+) :
+4205．
+［
+13
+］
+DＲAGOMIＲETSKIY K
+，
+ZOSSO D． Variational mode
+decomposition
+［
+J
+］
+． IEEE Transactions on Signal Processing
+，
+2014
+，
+62
+(
+3
+) :
+531 － 544．
+［
+14
+］
+赵亚军
+，
+窦远明
+，
+张明杰
+．
+基于变分模态分解的模态参数
+识别研究
+［
+J
+］
+．
+振动与冲击
+，
+2020
+，
+39
+(
+2
+) :
+115 － 122．
+ZHAO Yajun
+，
+DOU Yuanming
+，
+ZHANG Mingjie． Ｒesearch
+on modal parameter identification based on variational mode
+decomposition
+［
+J
+］
+． Journal of Vibration and Shock
+，
+2020
+，
+39
+(
+2
+) :
+115 － 122．
+［
+15
+］
+JIANG Y
+，
+HUANG G
+，
+YANG Q
+，
+et al． A novel probabilistic
+wind speed prediction approach using real time refined
+variational model decomposition and conditional kernel density
+estimation
+［
+J
+］
+． Energy Conversion and Management
+，
+2019
+，
+185
+:
+758 － 773．
+［
+16
+］
+WANG Ｒ
+，
+XU L
+，
+LIU F K． Bearing fault diagnosis based on
+improved VMD and DCNN
+［
+J
+］
+． Journal of Vibroengineering
+，
+2020
+，
+22
+(
+5
+) :
+1055 － 1068．
+［
+17
+］
+HAO D
+，
+LI Q M
+，
+LI C W． Digital image stabilization method
+based on variational mode decomposition and relative entropy
+［
+J
+］
+． Entropy
+，
+2017
+，
+19
+(
+11
+) :
+623．
+［
+18
+］
+ZHANG F
+，
+LIU Y
+，
+CHEN C J
+，
+et al． Fault diagnosis of
+rotating machinery based on kernel density estimation and
+Kullback-Leibler divergence
+［
+J
+］
+． Journal of Mechanical
+Science and Technology
+，
+2014
+，
+28
+(
+11
+) :
+4441 － 4454．
+［
+19
+］
+DAGMAＲ M C
+，
+BELOSLAV Ｒ． K-L divergence
+，
+entropy
+and mutual information of experiments in the intuitionistic
+fuzzy case
+［
+J
+］
+． Journal of Intelligent and Fuzzy Systems
+，
+2019
+，
+36
+(
+4
+) :
+3857 － 3867．
+［
+20
+］
+JIANG Y
+，
+HUANG G． Short-term wind speed prediction
+:
+Hybrid of ensemble empirical mode decomposition
+，
+feature
+selection and error correction
+［
+J
+］
+． Energy Conversion and
+Management
+，
+2017
+，
+144
+:
+340 － 350．
+［
+21
+］
+YAN Ｒ
+，
+GAO Ｒ X． Ｒotary machine health diagnosis based
+on empirical mode decomposition
+［
+J
+］
+． Journal of Vibration ＆
+Acoustics
+，
+2008
+，
+130
+(
+2
+) :
+111 － 120．
+［
+22
+］
+韩中和
+，
+李文华
+．
+基于
+K-L
+散度的
+EMD
+虚假分量识别方法
+［
+J
+］
+．
+中国电机工程学报
+，
+2012
+，
+32
+(
+11
+) :
+112 － 117．
+HAN Zhonghe
+，
+LI Wenhua． EMD false component
+recognition method based on K-L divergence
+［
+J
+］
+．
+Proceedings of the Chinese Society of Electrical Engineering
+，
+2012
+，
+32
+(
+11
+) :
+112 － 117．
+［
+23
+］
+SONI A
+，
+SＲEEJETH N
+，
+SAXENA V
+，
+et al． Series optimized
+fractional order low pass butterworth filter
+［
+J
+］
+． Arabian
+Journal for Science and Engineering
+，
+2020
+，
+45
+(
+4
+) :
+1733 －
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+1747．
+(
+上接第
+104
+页
+)
+［
+17
+］
+魏伟
+，
+赵旭宝
+，
+姜岩
+，
+等
+．
+列车空气制动与纵向动力学集成
+仿真
+［
+J
+］
+．
+铁道学报
+，
+2012
+，
+34
+(
+4
+) :
+39 － 46．
+WEI Wei
+，
+ZHAO Xubao
+，
+JIANG Yan
+，
+et al． The integrated
+model of train air brake and longitudinal dynamics
+［
+J
+］
+．
+Journal of the China Ｒailway Society
+，
+2012
+，
+34
+(
+4
+) :
+39 － 46．
+［
+18
+］
+WU Q
+，
+SPIＲYAGIN M
+，
+COLE C
+，
+et al． International
+benchmarking of longitudinal train dynamics simulators
+:
+results
+［
+J
+］
+． Vehicle System Dynamics
+，
+2018
+，
+56
+(
+3
+) :
+343 － 365．
+311
+第
+5
+期 李双江等
+:
+基于
+VMD-KLD
+的桥梁挠度监测数据温度效应分离方法

@@ -28,7 +28,9 @@ supersedes: partial (承接 VALIDATION\_BASELINE 的"诊断-"序列)
 
 - 迁移入：诊断-2026-08-20\~08-31 系列（自 VALIDATION\_BASELINE.md）
 
-- 新条目：暂无（在此追加）
+- 新条目：
+  - 诊断-2026-09-08-formation-aware-启动（registry 多机车 agent 数 bug 修复 + 新训练线冒烟）
+  - 诊断-2026-09-09-formation-5seed-发散根因（decompose 调制绕过车钩力投影，reward-fix 未及根本）
 
 ***
 
@@ -2441,3 +2443,71 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **M1 3-seed：+73,602/+69,008/+71,345（训练 best）→ 评估均值 +68,656±6,694**；seed1 收敛较弱（band 95.9%）拉低均值，2/3 seed 超 M0（+4.3%/+0.9%）；车钩力均值 571 vs M0 713 = **−20% 保持**。
 - **消融机制结论保持**：ED 杠杆=车钩力安全杠杆（仅 ED：546kN 全场最低、比 M0 −23%）；AB 杠杆=吞吐杠杆（仅 AB：末速 61.6、车钩力 707）。**旧物理下"仅 AB 杠杆 reward 反超双杠杆"的异常消失**（+69.1k < M1 seed0 +74.5k）——双杠杆 M1 在新物理下同时是标量 reward 与"车钩力-吞吐平衡"的最优，原奖励设计隐患解除。
 - 训练日志 `outputs/logs_r0/train_dec_*.log`；训练 best 与历史对照：seed0 +73,602（旧 +73,733）、mask_ed +74,708（旧 +74,702）——**换基座不改可学性结论**。
+
+### 诊断-2026-09-08-formation-aware-启动（ADR-013 唯一 RL 落位；registry 多机车 agent 数 bug + 新训练线冒烟）
+
+- **目的**：落地 ADR-013「唯一 formation-aware 机车级 ED/AB」（每机车=agent，以编队为上下文，num_trains≥3），跑通统一框架链路 + 验证可学性，为 60ep×5seed 全量开路。
+- **关键 bug（registry 多机车 agent 数错配）**
+  - **现象**：用 3列×1+1（6 台机车）decompose 训练时，`run_training.py` 报 `ValueError: cannot reshape array of size 66 into shape (3,11)`。
+  - **根因**：`src/trainer/registry.py` 的 `_build_agents`/`_build_interaction` 与 `train_runner.py` 均用 `env.num_trains`（=3 列）作为 MAPPO 的 `num_drones`/`num_agents`；而 decompose 模式下 agent = Σ每列机车 = 6（`env.num_agents`）。66 = 6agent×11obs，被按 3×11 reshape。
+  - **期望 vs 实际**：期望 6 agent 框架能跑；实际框架只支持"每列=1 agent"的旧列级/阈值模式，从未支持多机车编队 decompose。
+  - **修复**：三处统一改为 `getattr(env,'num_agents',0) or getattr(env,'num_trains',cfg.num_trains)`。decompose 自动取 6，非 decompose 取 num_trains（保持旧 platoon 行为不变）。
+- **能力就绪**：环境早已支持编队上下文——`train_fleet_env.py` decompose 模式观测 `obs[10]`=列间间距误差（L527-L562）、奖励 `_calculate_reward_decomposed` 含 `gap_reward` 编队项（L650-L659）；仅 agent 数在框架侧没接上。
+- **新训练线**：`configs/experiments/formation_ed_ab_3train_1plus1.yaml`（3列×1+1，6 agents，decompose=loco_ed_ab，60ep，curriculum `1000:0,3000:20,15000:40`，R2+decompose 混合奖励）。
+- **冒烟数据（300 步段 6ep seed0，旧 60 步冒烟被覆盖）**：
+
+| 指标 | 值 |
+| :--- | :-- |
+| obs / act 维度 | (6,11) / (6,2) |
+| peakCoupler | 904 kN（≤1000 达标） |
+| loss（末段） | 0.106（正常更新） |
+| best reward | −6,481（6ep 随机策略，长程 tail 惩罚占主导，属预期） |
+| 耗时 | 8.5min/6ep 300步 ≈ 0.28s/动力学步 |
+
+- **全量预算**：按 0.28s/步 × curriculum 累积约 38 万步/seed ≈ **29h/seed，5 seed ≈ 150h 量级**。已按用户决策 60ep×5seed 启动，每 seed 独立目录 `outputs/checkpoints_formation/seedN` + metadata.json（不互相覆盖）。
+- **已知项（metadata 局限）**：`simulator_model` 串的 `consist=` 取自 `official_world_config(PhysicsConfig())` 默认（1plus0），而 multi-train 编组由 `env_cfg.consist_preset` 控制。对 platoon(1plus0) 恰好正确，对本次 1plus1 会标 1plus0；同文件 `hyperparameters.env_cfg.consist_preset=1plus1` 已正确记录，可追溯性不受影响。**待修**：让 world_cfg 复用实际编组 preset。
+- **待办**：多列编队 decompose 的正式评估还缺——`evaluate_decompose.py` 目前仅支持单列（num_trains:1），需改造成按 train_fleet_env 编队上下文评估。
+
+### 诊断-2026-09-09-formation-5seed-发散根因（decompose 调制绕过车钩力投影，reward-fix 未及根本）
+
+- **目的**：ADR-013 唯一 RL（3列×1+1，6 agents）多 seed 串行训练（5×120ep，curriculum `1000:0,5000:40,15000:90`）。seed0 两轮均在 **ep41-50 发散**，定位根因并修复。
+
+- **复现命令（两轮发散均此入口）**：
+
+  ```bash
+  python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
+      --seed 0 --episodes 120 --checkpoint_dir outputs/checkpoints_formation/seed0 \
+      --results_dir outputs/checkpoints_formation/seed0/results \
+      --override dirs.figures_dir=outputs/checkpoints_formation/seed0/figures
+  ```
+
+- **两轮发散数据（seed0，5000 步段起）**：
+
+  | 轮次 | Ep40(健康末) | Ep50 | Ep60 | Ep70 | best(卡死) |
+  | :--- | :--- | :--- | :--- | :--- | :--- |
+  | 修复前（reward-fix 前，01:34 起） | +16639 / viol 0 / 768kN | −791921 / viol 332 / 1371kN | −498533 / viol 450 / 1387kN | −696176 / viol 315 / 1362kN | +16713 |
+  | reward-fix 后（03:20 起） | +16534 / viol 0 / 765kN | −970913 / viol 359 / 1399kN | —（已暂停） | — | +16682 |
+
+  reward-fix 版 ep41-49 明细（train_history JSON）：viol 138→794，peakCoupler 1366-1417kN，reward −28万→−126万。**与修复前完全同型**（Ep50 前后 viol 300-800 / 车钩力 ~1370-1420kN / best 卡在 +1.67 万）。
+
+- **根因（代码级，两轮共因）**：`src/controllers/multi_loco_controller.py` `get_action_decomposed`（L206-249）——**RL 调制后的 `final` 动作没有过 `_coupler_throttle_scale`（车钩力安全投影）**：
+  - 基线 `get_action_cyclic_braking`（L174）与 `get_action_accel`（L258）都 `*= scale`，唯独 decompose 调制路径漏了；
+  - RL 可在车钩力接近上限时把 ED 顶满（`+ed_mod_coef`）或触发 AB（`AB_FALLBACK_NOTCH`），突破 1000kN 底线 → 车钩力 1366-1417kN。
+  - **期望 vs 实际**：期望"车钩力≤1000kN 不可逾越"（ADR-013 铁律）由控制器钳制兜底；实际 decompose 下 RL 可绕过 → 峰值超限 40%。
+- **助推因素（奖励失衡）**：`_calculate_reward_decomposed` 车钩力惩罚太弱——coupler_peak=1.4（1400kN）时 penalty≈−2.3/步，而速度带（群组均速在带内）+15/步。激进制动"带内 +15"收益 >> 车钩力代价，RL 学到暴力制动进入手风琴失稳（gap/collision 项再叠加 → −100 万级奖励）。
+- **修复（2026-09-09 04:2x）**：`get_action_decomposed` 返回前对 `final[:,0]/[:,1]` 同样 `*= _coupler_throttle_scale(train_env)`（对齐 get_action_accel）。验证：`pytest tests/test_fleet_decompose.py tests/test_train_dynamics.py` 41 passed；5ep 冒烟 `outputs/checkpoints_formation/_smoke.log` + `_smoke/results/train_history_*.json`。
+- **冒烟结论（修复部分生效，硬保证仍需注意）**：peakCoupler=[832, 928, **1208**, 757, 819]，viol=[0,0,9,0,0]（旧版同位置 ep3 1343kN/13 viol → 修复后 1208/9）。说明：控制器前馈投影能压小超限但**不能硬性保证 ≤1000kN**（车钩力是动力学瞬态量，制动/缓解波传播与坡度突变可在单步内推高，而 scale 基于步前力）——发散的主要形态是**持续** 1400kN（scale=0 → 制动归零 → 持续超限应自愈），本轮修复目标是打破持续发散；探索期单步瞬态超限（~1200kN）由奖励惩罚塑形。**若 ep41-50 仍发散 → 需上更硬手段（如提高惩罚量级/早触发阈值 0.5×limit/或动力学层硬限，需用户决策）**。
+- **数据落盘**：两轮发散证据归档 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（01:34 轮，ep10-70 全量检查点+results）与 `outputs/checkpoints_formation/seed0_DIVERGED_after_reward_fix_20260909_042456/`（03:20 轮，ep10-50 全量+results+log）。旧发散日志（临时 toolhost 路径）尾行 `Terminated` 系旧轮被终止所致。
+- **进度（自动化机制）**：relay v2（`tmp_formation_relay.sh` 串行 0→4）+ patrol v2（`tmp_formation_patrol.sh` 每 30min 快照+异常检测）已修复 active_seed 检测 bug（`grep -oE '--seed [0-9]'` 被当作 grep 选项 → 加 `--` 分隔符），并新增 coupler>1000/viol>50/reward<-200000 发散检测项。修复确认后重启 relay 续跑 0→4。
+- **待办**：多列编队 decompose 的正式评估仍缺（承接 09-08 待办）。
+
+### 诊断-2026-09-09-formation-5seed-续诊（curriculum 5倍跳变 = ep41 崩塌第二共因；渐变 curriculum 修复）
+
+- **背景**：承接上一节。04:34:56 relay v2 第三次拉起 seed0（已含控制器投影修复）。巡检发现：①控制器修复确认在代码中（`multi_loco_controller.py` L241-249 `final[:,0]/[:,1] *= scale`）；②run#2（03:20，仅 reward-fix、无控制器修复）在 ep41-50 仍发散，同型证据已归档；③run#3（04:34，含控制器修复）刚启动即被本会话接管观察。
+- **ep 级证据（run#2，train_history CSV）**：ep39/40（1000 步段）健康 +16.5k / 776-884kN / viol 0 → **ep41（首个 5000 步 episode）瞬间崩塌 −431127 / 1405kN / viol 267**，ep42-50 持续 −28万~−126万 / 1366-1417kN / viol 138-794。1000→5000 步 **5 倍跳变**为独立于控制器 bug 的**第二共因**：手风琴振荡在 3000+ 步才充分发展，策略从未在 >1000 步时域受过训，首个 5000 步段必然失稳。
+- **修复（2026-09-09 04:45 落地）**：
+  1. `configs/experiments/formation_ed_ab_3train_1plus1.yaml` curriculum：`1000:0,5000:40,15000:90` → **`1000:0,2000:20,3000:30,5000:40,8000:60,12000:75,15000:90`**（渐变递进，锚点 5000@ep40、15000@ep90 保留，跳变均 ≤2x）。
+  2. `train_fleet_env.py` `_calculate_reward_decomposed`：rel_vel_penalty **0.1→0.25**（强化级联稳定信号，供中间时域窗口学习）；gap_trend 触发窗放宽 **cur<30→60m、shrink>1→0.5m/步**（原窗在手风琴建立前几乎不触发）。
+  - 未动的"更硬手段"（车钩力惩罚量级提升 / 0.5×limit 早触发 / 动力学硬限）按上一节结论**保留待用户决策**——先看渐变 curriculum 轮能否过 ep41-50，不再叠加未验证改动。
+- **运行状态（04:45 重启）**：seed0 全新开训（seed0 目录已清空重建，旧发散资产保留于 `seed0_DIVERGED_*`），relay+patrol 已重启。curriculum 边界日志确认生效：`[(0, 1000), (20, 2000), (30, 3000), (40, 5000), (60, 8000), (75, 12000), (90, 15000)]`。
+- **判定窗口**：ep21-30（2000 步）≈05:20 起、ep31-40（3000 步）≈05:55 起、**ep41-60（5000 步）≈06:25-07:45** —— 若该窗口仍出现 coupler>1000 / viol>50 / reward<-20万 即触发 patrol 报警并转入用户决策。数据留痕：`outputs/checkpoints_formation/seedN_train.log` + `relay.log` + `patrol.log`（append-only）。

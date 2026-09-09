@@ -1,0 +1,1185 @@
+===== PAGE 1 =====
+ResearchArticle
+Influence of Draft Gear Modeling on Dynamics Simulation for
+Heavy-Haul Train
+Cheng Lei
+ ,1,2,3 Jia Liu,2 Lisheng Dong,1 and Weihua Ma
+ 2
+1Henan Engineering Research Center of Rail Transit Intelligent Security, Zhengzhou Railway Vocational & Technical College,
+Zhengzhou, China
+2Traction Power State Key Laboratory, Southwest Jiaotong University, Chengdu, China
+3CRRC Qishuyan Co.Ltd., Changzhou, China
+CorrespondenceshouldbeaddressedtoWeihuaMa;mwh@swjtu.edu.cn
+Received 26 March 2019; Accepted 3 July 2019; Published 28 July 2019
+AcademicEditor:
+GabrieleCazzulani
+Copyright©2019ChengLeietal.fT_hisisanopenaccessarticledistributedundertheCreativeCommonsAttributionLicense,
+whichpermitsunrestricteduse,distribution,andreproductioninanymedium,providedtheoriginalworkisproperlycited.
+In order to study the impedance characteristics of the frictional draft gear, MT-2 draft gear is studied, and its mechanical
+properties are analyzed ﬁrstly. fT_hen, the mathematical models of two common draft gears are established based on the data
+collected from the vehicle impact test, and the eﬀects of the two modeling methods on the simulation results are compared
+throughtheshuntingimpacttestandthebenchtestsimulation.Researchesshowthat,undervariousexperimentalconditions,the
+simulateddraftgearcharacteristiccurveofthelookuptablemodelmovesalongaﬁxedtrajectoryregardlessofthechangerateof
+thedraftgearstroke,whilesimulationresultsofthewedge-springmodeldependonthechangerateofthedraftgearstrokeandare
+more consistent with the experimental results, reﬂecting the dynamic characteristics of the draft gear and suggesting better
+adaptabilityandwiderapplication.Finally,the“1+1”grouped20,000-tonheavy-haulcombinedtrainmodelisestablished,with
+itsdraftgearcharacteristicsunderthefull-brakingconditiononﬂatstraighttrackanalyzed.Calculationresultsandtestresultsof
+thelookuptablemodelandthewedge-springmodelarecompared,indicatingthatusingthewedge-springmodeltocalculatethe
+longitudinaldynamicsperformanceismoreaccurate.fT_heinﬂuenceofthemodelingonthelongitudinalimpulsesimulationofthe
+trainafterairbrakingisalsostudied,revealingthatthevariationtrendsofthecouplerforcecurvesoftwomodelsarebasicallythe
+same, but the amplitude and frequency of the longitudinal impulse are diﬀerent.
+1. Introduction
+fT_hemotionstateofdraftgearduringtheactualoperationof
+train is complex and variable, and some models cannot
+describe the dynamic characteristics of draft gear. Most of
+thecurrentresearchesonlongitudinaldynamicsonlyfocus
+ontheresultoftheimpedanceofdraftgear.Inthispaper,by
+thesimulationofrelevantdraftgeartests,thecharacteristics
+ofimpedanceforce-strokefordraftgearsarestudied,andthe
+detailed analysis is carried out in combination with the
+various stages of the characteristic curve. fT_he model is
+veriﬁedbytests,whichcanprovidethebasisforthedynamic
+characteristics of draft gear and the accurate model of vi-
+bration characteristics of coupler force.
+Withtheincreaseofitsrunningspeedandtheincreaseof
+axleweightandgrouplength,thelongitudinalimpactforce
+between the rolling stocks increases accordingly, and the
+running behavior of the coupler and draft gear devices
+becomes more and more complicated.
+Massa et al. applied the linear draft gear model with
+coupler clearance to the coupler model of multibody dy-
+namicssystem[1].Colecarriedoutsimulationsandpointed
+outthediﬀerenceindraftgearperformancecharacteristics
+between train conditions and drop weight tests [2]. fT_he
+modelofCheliconsistsofalinearspringthatsimulatesthe
+initial pressure, a fourth-order nonlinear spring that sim-
+ulatesthequasistaticresponseoftheelastomer,twoMaxwell
+components,andthefrictioncomponentsthatsimulatesthe
+eﬀects of dynamic loads and high-frequency excitation as
+well as the eﬀects of internal friction [3]. Geike and Melzi
+used the lookup table method and the ﬁxed stiﬀness
+transition method to establish a draft gear model [4]. Hu
+Hindawi
+Shock and Vibration
+Volume 2019, Article ID 2547318, 11 pages
+https://doi.org/10.1155/2019/2547318
+===== PAGE 2 =====
+proposedanintelligentsystemmodeloffriction-typedraft
+gear which uses neural network technology to derive the
+coupler force by measurement data [5]. Jin and Luo
+established a draft gear model containing the peak eﬀect
+measured in the shunting condition [6].
+Longitudinal impulsescan have diﬀerent eﬀects on the
+dynamicsbehaviorofthecoupleranddraftgeardevicesas
+well as the dynamics performance of the train. Due to the
+longgroupingofheavy-haultrains,thecoveredroadsection
+is much more complicated and the forces acting on each
+rollingstockarealsomuchmorecomplicatedthanthoseof
+ordinarytrains.fT_herefore,manycountrieswithheavy-haul
+transporthavecarriedoutextensiveandin-depthresearches
+on its longitudinal dynamics.
+Zhai studied the calculation method of train dynamics
+andproposedaprediction-correctionintegrationmethodand
+Newmark fast explicit integration method [7]; Zhang et al.
+proposedanewmethodfordynamicsmodelingbasedonthe
+cyclic variable method, which considered the dynamics
+coupling relationship in longitudinal, lateral, and vertical
+directions, and used this model to analyze the dynamics
+performance of the heavy-haul trains under traction, idle
+running,andbrakingconditions,respectively[8,9];Sunetal.
+realized the numerical simulation of vehicle impact by
+cosimulationmethod[10];WeiandLincarriedoutstudieson
+the longitudinal dynamics of the train by using air-braking
+characteristicssimulationbasedongasﬂowtheoryandusing
+longitudinal dynamics simulation based on rigid body dy-
+namics and proposed a series of measures to improve the
+longitudinal impulse of the train [11]; Belforte et al. estab-
+lishedamoresimpliﬁedair-brakingmodelinordertobetter
+combine the ﬂuid system model and the longitudinal dy-
+namics model of the train [12]; Wu et al. optimized the
+modeling of the draft gear and studied the inﬂuence of
+longitudinal impulse on heavy-haul trains from the per-
+spectiveofcouplerfatiguebasedonthecharacteristicsofthe
+draft gear [13, 14]; and Sun et al. studied the energy con-
+sumption of trains on a typical heavy-haul line[15].
+Recently, the international benchmarking of longitudinal
+train dynamics simulators evaluated nine longitudinal dy-
+namics simulation software from six countries [16]. Results
+show that all software simulations of locomotive traction/
+brakingforce,trainresistance,andtrackgradientarebasically
+thesame,whilethemaindiﬀerenceliesintheuseofthedraft
+gearmodel,whichleadstosubtlediﬀerencesinthesimulation
+results of the longitudinal forces, but in general, similar lon-
+gitudinalforceresultscanbeobtained.fT_hesimulationofboth
+thedynamicandstaticcharacteristicsofthedraftgearisofgreat
+signiﬁcance,anditalsohasagreatinﬂuenceonthereliabilityof
+the longitudinal dynamics model. fT_herefore, attention should
+bepaidtotheresponseaccuracyoftheimpedancecharacteristic
+of the draftgear duringmodeling. Traditionally, it isbelieved
+that diﬀerent draft gear modeling has a signiﬁcant impact on
+thelongitudinaldynamicssimulationoftrains.However,only
+thelongitudinalforcesareexaminedintheevaluation,andthe
+performancesofthedraftgear modelinshuntingimpacttest
+andbenchtestsarenotconsidered.fT_hus,itisnecessarytodoa
+more in-depth comparative analysis on this basis.
+2.Draft Gear Modeling
+2.1. Working Principle of Frictional Draft Gear.Draft gear
+combining MT-2 steel spring and dry friction absorbs the
+impactmainlybythefrictionwedge,thedamperspring,and
+the return spring. According to the assembly and motion
+relationshipofeachcomponentofthedraftgear,itsworking
+process can be simpliﬁed into four stages [17], namely,
+loading phase I, loading phase II, unloading phase I, and
+unloading phase II, as shown in Figure 1.
+DuringtheloadingphaseI,theslaveplateandthecenter
+wedgemoveundercompression,butthemovingplateisnot
+yetinmotion.Atthisphase,theenergyconsumptionofdraft
+gearismainlycausedbythefrictionbetweenthewedgeand
+the center wedge, the ﬁxed inclined plate as well as the
+centering spring seat. During the loading phase II, the slave
+plate, the center wedge, and the moving plate will move to-
+gether,andthefrictionconsistsoftherelativefrictionbetween
+themovingplateandtheﬁxedouterplateaswellastheﬁxed
+inclined plate in addition to the abovementioned wedge
+friction. During the unloading phases, the working mecha-
+nismofthedraftgearissimilartothatoftheloadingphases.
+2.2. Analysis of Mechanical Properties of the Draft Gear.
+Analysisisconductedontherelativemotionofandapplied
+forceonthefrictionsurfacesofthewedge.Whenthecenter
+wedge moves in the longitudinal direction relative to the
+box, the wedge has relative displacement to the center
+wedge,theﬁxedinclinedplateaswellasthecenteringspring
+seat. If the center wedge movesx
+1 in the longitudinal di-
+rection, the wedge movesx2 in the longitudinal direction,
+and the centering spring seat movesx3 in the longitudinal
+direction,whiletherelativedisplacementbetweenthewedge
+andtheﬁxedinclinedplateis δ
+1,therelativedisplacement
+between the center wedge and the wedge isδ2, and the
+relativedisplacementbetweenthewedgeandthecentering
+spring seat isδ
+3. fT_he relationship between the angle and
+displacementofeachfrictionsurfaceisshowninFigure2.
+According to the displacement vector triangle of each
+friction surface shown in Figure 2(b), the displacement
+relationship between the center wedge, the wedge, and the
+centering spring seat can be obtained:
+x
+2� 1
+1 −tanαtan cx1,
+x3�1+tanβtan c
+1 −tanαtan cx1,
+δ1� cosα
+cos(α+ c)x1,
+δ2� sin c
+cos(α+ c)x1,
+δ3� cosαsin c
+cos(α+ c)cosβx1,
+⎧⎪⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪
+⎪⎪⎨
+⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎪⎪
+⎪
+⎪⎩
+(1)
+2 ShockandVibration
+===== PAGE 3 =====
+whereαistheanglebetweenthefrictionsurfaceofthecenter
+wedgeandthecrosssectionofthedraftgear; βistheangle
+betweenthefrictionsurfaceofthewedgeandthecentering
+springseatandthecrosssectionofthedraftgear;and cisthe
+angle between the friction surface of the wedge and ﬁxed
+inclinedplateandthelongitudinalsectionofthedraftgear.
+Itcanbeseenthatthedisplacementofeachcomponent
+ofthedraftgearandtherelativedisplacementofthefriction
+surfaces can be expressed byx
+1, and the tensile or com-
+pressive displacement of the main spring and the return
+spring can also be expressed as
+xsm�1+tanβtan c
+1 −tanαtan cx1,
+xsr� 1 −1+tanβtan c
+1 −tanαtan c􏼠 􏼡x1,
+⎧ ⎪⎪⎪
+⎪⎪⎨
+⎪⎪
+⎪
+⎪⎪⎩
+(2)
+where x
+sm isthetensileorcompressivedisplacementofthe
+main spring, namely, the longitudinal displacement of the
+centeringspringseatrelativetothebox,and xsristhetensile
+or compressive displacement of the return spring, namely,
+thelongitudinaldisplacementofthecentralwedgeandthe
+centering spring seat.
+Assumingthattherelativemotionofthefrictionsurfaces
+insidethedraftgearisalwaysinaslowandstabledynamic
+friction state, the quasistatic analysis of the four typical
+working phases of the draft gear can be conducted by the
+forcebalancecondition.Whenthedraftgearisunderstatic
+pressure, the relationship between forces acting on it and
+displacementisshowninFigure3,where α,β,and care37
+°,
+26°,and4 °,respectively,andthefrictioncoeﬃcientofeach
+friction surface is 0.3.
+2.3. Model of the Coupler and Draft Gear.In actual train
+shunting or working conditions, the draft gear often has a
+spike eﬀect at the end of loading and at the beginning of
+unloading, which is caused by the change of friction co-
+eﬃcientwithspeed.Inthesetwophases,therelativesliding
+1
+24
+5
+3
+(a)
+ (b)
+ (c)
+ (d)
+Figure1:WorkingprincipleofMT-2draftgear.(a)LoadingphaseI.(b)LoadingphaseII.(c)UnloadingphaseI.(d)UnloadingphaseII.1,
+center wedge; 2, wedge; 3, centering spring seat; 4, moving plate; 5, slave plate.
+α
+β
+γ
+(a)
+γ
+α
+x2
+x1
+δ1
+δ2 (b)
+β
+γ
+x3
+δ1
+δ3 (c)
+Figure2: (a) Angle and (b) displacement of each friction surface.
+ShockandVibration 3
+===== PAGE 4 =====
+speed of each friction surface is low, that is, the frictional
+motionisinaweaklylockedstate,andthefrictioncoeﬃcient
+after locking is signiﬁcantly larger than that at the time of
+sliding,therebycausinganabruptchangeintheresistance
+force of the draft gear, which makes its modeling more
+diﬃcult.
+For the sake of longitudinal dynamics simulation, the
+vehicle connection system is usually simpliﬁed to a unit
+model, so the draft gears of two adjacent vehicles are
+modeledinseriesasoneunit.Inaddition,acompletemodel
+shouldalsoincludethegapelement,theinitialpressure,and
+the transition characteristics of the loading and unloading
+curves.
+2.3.1.LookupTableModel. fT_helookuptablemethodisthe
+mostwidelyusedmethodtoestablishtheimpedanceofthe
+draft gear stroke characteristics. fT_he loading and the
+unloadingcharacteristiccurvescanbeobtainedaccording
+to the ﬁtting results of the draft gear-related experiment
+(drophammerorshuntingimpact),whilethegapelement,
+the initial pressure, and the rigid contact are simulta-
+neouslytakenintoaccount.fT_hegapbetweenloadingand
+unloadingishandledbyaﬁxedstiﬀness.fT_hemathematical
+expressionofthemodelisgivenbythefollowingequations
+[18]:
+F x
+t,vt  􏼁 �
+fl xt  􏼁 xtvt ≥0,
+fu xt  􏼁 xtvt ≤0,
+􏼨 (3)
+F xt,vt  􏼁 �F xt−Δt,vt−Δt  􏼁 +k xt −xt−Δt  􏼁 , (4)
+fu xt  􏼁
+􏼌􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌 ≤ F x
+t,vt  􏼁
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌 ≤ f
+1 xt  􏼁
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌
+􏼌, (5)
+whereFistheimpedanceforceofthedraftgear; θandθare
+the stroke of the current step and the previous step of the
+draftgear,respectively; θandθarethedeformationspeedof
+the current step and the previous step of the draft gear,
+respectively; f
+l and fu are the loading and unloading char-
+acteristicfunctionsofthedraftgear;and kisthetransitional
+characteristic stiﬀness.
+Equation (3) is obtained by directly interpolating from
+the loading or unloading curve according to diﬀerent
+conditions,andequation(4)isusedtocalculatetherestoring
+force of the draft gear on the transition curve. fT_he value
+obtainedfromthetransitioncurvemustbecorrectedbythe
+loadingandunloadingcurvesofthedraftgearasaboundary
+condition according to equation (5) in order to obtain the
+correct impedance of the draft gear.
+2.3.2. Wedge-Spring Model.fT_he frictional draft gear can be
+simpliﬁedintoasystemconsistingofaspringandawedgeas
+showninFigure4,whereinthewedgeangle θactstoconvertthe
+longitudinalforceofthedraftgearintoanormalforceonthe
+frictionsurface,therebyintroducingfrictionintothemodel[2].
+According to the analysis of forces acting on the draft
+gearduringoperation,thematrixequationsforloadingand
+unloading can be obtained:
+loading:
+cosθ 0 −sinθ 0 0
+sinθ −1 cos θ 0 0
+0 sin θ 0 0 −1
+0 cos θ 0 −1 0
+0 0 0 μ −1
+⎡⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎣
+⎤⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎦
+F
+F
+N1
+FN2
+FN3
+f
+⎡⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎣
+⎤⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎦
+�
+0
+0
+F
+s
+0
+0
+⎡⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎣
+⎤⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎦
+,
+unloading:
+cosθ 0 −sinθ 0 0
+sinθ −1 cos θ 0 0
+0 sin θ 0 0 1
+0 cos θ 0 −1 0
+0 0 0 μ −1
+⎡⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎣
+⎤⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎦
+F
+F
+N1
+FN2
+FN3
+f
+⎡⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢
+⎣
+⎤⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥
+⎦
+�
+0
+0
+F
+s
+0
+0
+⎡⎢⎢⎢⎢
+⎢⎢⎢⎢
+⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢⎢⎢⎢⎢
+⎢⎢⎢
+⎢
+⎢⎢⎢
+⎢⎢⎢⎣
+⎤⎥⎥⎥⎥
+⎥⎥⎥⎥
+⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥⎥⎥⎥⎥
+⎥⎥⎥
+⎥
+⎥⎥⎥
+⎥⎥⎥⎦
+,
+(6)
+whereF
+N1
+isthepressurebetweenthetwowedges, FN2
+and
+FN3
+arethepressuresoftheboxtothewedge, fisthefriction
+of the wedge,θ is the angle of the wedge,μ is the friction
+coeﬃcient, Δxisthestrokechangeofthedraftgear,and Fsis
+the spring force.
+fT_he draft gear impedance force-stroke characteristics
+includingthecouplergap,initialpressure,andrigidcontact
+canbeﬁttedbythenonlinearspringforce Fstoestablishthe
+wedge-spring model, and the expression of its impedance
+can be obtained by
+F x
+t,vt  􏼁 �
+Fs(Δx) tanθ
+tanθ −μ vt  􏼁 Δx ≥0,
+Fs(Δx) tanθ
+tanθ+μ vt  􏼁 Δx <0.
+⎧ ⎪⎪⎪
+⎪⎪⎪
+⎨
+⎪⎪
+⎪⎪⎪
+⎪
+⎩
+(7)
+Curve for loading
+phase I
+Curve for unloading
+phase I
+Curve for loading
+phase II
+Curve for unloading
+phase II
+Transition curve
+0
+200
+400
+600
+800
+1000
+1200Coupler force (KN)
+40 6008 020
+Stroke of draft gear (mm)
+Figure3: Draft gear characteristic curve under static pressure.
+4 ShockandVibration
+===== PAGE 5 =====
+Based on the abovementioned, impact test data are
+collectedandalookuptablemodelisestablishedbyhavinga
+93twagonimpactinganotherstationarywagonofthesame
+quality at an initial speed of 8km/h, and then the main
+spring force of the wedge-spring model is corrected. fT_he
+comparison between the simulation results of the two
+models and the experimental results is shown in Figure 5.
+Accordingtotheexpressionofthewedge-springmodel,
+the friction angle of the draft gear,θ, and the friction pa-
+rameter, etc., are input in the TDEAS software before the
+simulation. fT_he friction coeﬃcient can be expressed as
+μ�h
+1+h2exp −h3abs(v)􏼂 􏼃 . (8)
+In the expression,h1 determines the dynamic friction
+coeﬃcient; h1+h2 determinesthestaticfrictioncoeﬃcient;
+and h3 determines the conversion process from static fric-
+tiontodynamicfriction.fT_hediﬀerencebetweencalculating
+speeds of the two models is not signiﬁcant.
+3.Simulation of the Draft Gear Characteristics
+3.1. Shunting Impact Test. fT_he vehicle impact test can
+simulatetheworkingconditionsofthevehiclesimpactingat
+diﬀerent relative coupling speeds. fT_hrough this test, the
+cushioning and energy absorption limits of the draft gear
+and the longitudinal bearing capacity of the vehicle body
+structurecanbeevaluated.Boththeimpactvehicleandthe
+impactedvehiclearewagonswithaweightof93t,equipped
+with MT-2 frictional draft gear. fT_he impact vehicle slides
+downfromacertainslopeandheighttoobtaintherequired
+initialspeedandimpactstheothervehicleparkedonaﬂat
+straight road.
+fT_hesimulationoftheshuntingimpactisbasedonthe
+establishment of the dynamics diﬀerential equations of
+bothvehicles.Sincethewagonhasnotractionandelectric
+braking force, air braking is excluded from consideration
+and only the basic resistance of the vehicle and the draft
+gear at the impact end needs modeling. fT_he longitudinal
+dynamic diﬀerential equations of the two vehicles are as
+follows:
+m
+1€δ1� −F1 −F1r,
+m2€δ2� −F2 −F2r,
+⎧⎨
+⎩ (9)
+wherem1 andm2 arethemassoftheimpactvehicleandthe
+impactedvehicle, €δ1 and €δ2aretheaccelerationoftheimpact
+vehicle and the impacted vehicle,F1 and F2 are the im-
+pedance force of draft gears of the impact vehicle and the
+impactedvehicle,and F1r and F2r arerunningresistanceof
+the impact vehicle and the impacted vehicle, respectively.
+3.1.1.ShuntingImpactSimulationwithLookupTableModel.
+fT_hedraftgearsofthetwoimpactwagonsareallbasedonthe
+lookup table models, which are simulated with diﬀerent
+initialvelocities.fT_hecomparisonofsimulationandtestdata
+fromtheﬁrstcompleteloadingandunloadingcycleisshown
+in Figures 6(a)–6(c).
+Wedge
+Friction face
+Spring
+Loading Unloading
+θ
+θ θ
+FN2
+FS
+FN1
+FN1
+FN3f
+F
+θ
+FS
+FN1
+FN3f
+Figure4: Simpliﬁed model of frictional draft gear and analysis of forces applied.
+Look-up table model
+Wedge-spring model
+Experimental results
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600
+1800
+2000
+2200Coupler force (kN)
+20 4006 0 80
+Stroke of draft gear (mm)
+Figure5:Simulationresultsofthetwomodelsandcomparisonof
+experimental results.
+ShockandVibration 5
+===== PAGE 6 =====
+It can be seen from the experimental data that as the
+impact velocity increases, the coupler force and the draft
+gear stroke of the impacted vehicle increase; the loading
+processofthedraftgearisobviouslydividedintotwophases,
+withdiﬀerentstiﬀnessatdiﬀerentphasesandaspikeeﬀectat
+theendoftheloadingcurve,allofwhichareconsistentwith
+theresultsobtainedbytheoreticalanalysis.fT_hesimulations
+agree well with the experimental curves at diﬀerent initial
+velocities,andthestrokesofthedraftgearsarebasicallythe
+same,butthesimulationcurvesatthreeimpactvelocitiesof
+4km/h,6km/h,and7km/hdonotshowspikesattheendof
+the loading process, with the maximum coupler force
+smallerthantheactualvalue.fT_he8km/hshuntingimpactis
+ﬁtted to the experimental data according to the impact
+velocity, and the curve can better reﬂect all the character-
+istics of the draft gear. fT_he analysis shows that the lookup
+table model can reﬂect the behavior of the frictional draft
+gear within a certain range, despite some limitations.
+Figure6(d)showsacomparisonofthesimulationresults
+oflookuptablemodelsatthediﬀerentinitialvelocitiesunder
+the shunting impact conditions. It can be seen that the
+loadingandunloadingofthedraftgeararedevelopedalong
+thesame trajectory ateachspeed, theimpact velocityonly
+aﬀectsthestrokeofthedraftgear,andthereisaspikeeﬀect
+only at an impact velocity of 8km/h.
+3.1.2. Shunting Impact Simulation with the Wedge-Spring
+Model. fT_he draft gear model is changed into the wedge-
+spring model, and the same wagon with a mass of 93t is
+simulated and conducted to impact the other stationary
+wagon of the same mass at diﬀerent initial velocities. fT_he
+comparison between the simulation results of the models
+andtheexperimentalresultsfromtheﬁrstcompleteloading
+and unloading cycle is shown in Figures 7(a)–7(c).
+Comparing the simulation results of the wedge-spring
+modelwiththeexperimentalvalues,wecanseethatboththe
+draftgearstrokeandthemaximumcouplerforceareclose
+otheratdiﬀerentinitialimpactvelocities,andthecurvesare
+ingoodagreement,indicatingthatthewedge-springmodel
+can well reﬂect the behavior of frictional draft gear.
+Figure7(d)showsacomparisonofthesimulationresultsat
+diﬀerent initial velocities under the shunting impact con-
+dition, indicating that the trajectories are diﬀerent at dif-
+ferent velocities, suggesting the relationship between the
+draft gear impedance force-stroke characteristics and the
+relative speed of the vehicle. fT_he simulation results of this
+modelaremoreinlinewiththedynamicnatureofthedraft
+gear, with spikes all reﬂected at the end of the loading
+process.
+3.2.BenchTestSimulation. Benchtestisconductedbyﬁxing
+the draft gear on the experimental bench, with sinusoidal
+excitation of a certain amplitude and frequency applied to
+the draft gear. fT_he expression is as follows:
+y�Asin(2πf·t),
+_y�2πfAcos(2πf·t),
+􏼨 (10)
+whereyisthedisplacementofthedraftgear, _yisthechange
+rateofthedraftgearstroke, Aistheamplitude,and fisthe
+frequency.
+Diﬀerent draft gear models are used to simulate bench
+testswithﬁxedfrequencyof10Hzanddiﬀerentamplitudes,
+and with ﬁxed amplitude of 20mm and diﬀerent frequen-
+cies,respectively.fT_heexperimentalparametersareshownin
+Table1.Atthesamefrequency,thelargertheamplitudeis,
+thelargerthemaximumchangerateofthedraftgearstroke
+is,andatthesameamplitude,thelargerthefrequencyis,the
+largerthemaximumchangerateofthedraftgearstrokeis.
+3.2.1. Bench Test Simulation with Lookup Table Model.
+fT_helookuptablemodelisadopted.fT_heinitialdisplacement
+issetat40mmandfrequencyat10Hz,andthesimulation
+results of diﬀerent amplitudes are shown in Figure 8(a). It
+canbeseenfromtheﬁgurethatthecharacteristiccurvesof
+thedraftgearatdiﬀerentamplitudesinonecycleallforma
+closedloop.fT_helargertheamplitudeis,thelargertheloop
+is, and the characteristic curves at diﬀerent amplitudes
+follow the same trajectory while loading and unloading.
+Adjust the simulation parameters: the initial displace-
+ment is also 40mm, yet the amplitude is 20mm, and the
+simulation results of diﬀerent frequencies are shown in
+Figure8(b).Asshownintheﬁgure,thecharacteristiccurves
+of the four frequencies coincide, indicating that the simu-
+lationresultsofthebenchtestusinglookuptablemodelare
+independentofthevibrationfrequency,andthesimulation
+results are basically in line with the curve of the 8km/h
+shunting impact test.
+3.2.2. Bench Test Simulation with the Wedge-Spring Model.
+Simulation parameters are set as follows: the initial dis-
+placement is 40mm and the frequency is 10Hz, and the
+simulation results of diﬀerent amplitudes are shown in
+Figure9(a).Aswecanseefromtheﬁgure,astheamplitude
+increases, the coupler force of the draft gear characteristic
+curve decreases in the same displacement interval. fT_his is
+becausethelargertheamplitudeis,thelargerthemaximum
+changerateofthedraftgearstrokeis,andthecharacteristic
+curve of the draft gear changes.
+Adjustthesimulationparameters:theﬁxedamplitudeis
+20mm, and the simulation results of diﬀerent frequencies
+areshowninFigure9(b).Itcanbeseenfromtheﬁgurethat
+inthestrokeinterval(20mmand60mm),thecouplerforce
+of the draft gear characteristic curve decreases with the
+increase of frequency; the smaller the frequency is, the
+smootherthecurveis;butthesimulationresultsofdiﬀerent
+frequencies reveal the same maximum coupler force at
+stroke of 60mm. fT_he draft gear characteristic curve at the
+frequency of 15Hz is closest to the curve of the 8km/h
+impacttestbecausethedynamicbehaviorsofthedraftgears
+are the closest in the simulated stroke interval.
+4.Analysis of Train Braking Conditions
+fT_hispaperestablishesalongitudinaldynamicsmodelbased
+on the HXD1“1+1” grouped 20,000-ton heavy-haul
+6 ShockandVibration
+===== PAGE 7 =====
+combined train of Shuohuang Railway, namely, 1 main
+control locomotive +105 C80 wagons +1 slave locomotive
++105 C80 trucks+controllable train tail, with the wagon
+equipped with MT-2-type draft gear, and the locomotive
+adopting QKX-100 draft gear. fT_he main parameters are
+shown in Table 2.
+4.1.FullBrakingonFlatStraightTrack. 170kPaisappliedto
+20,000-ton heavy-haultrain to have full-braking stop on ﬂat
+straighttrack.SimulationresultsareshowninFigure10.Itcan
+beseenfromFigure10(a)thatthetwomodelssharesimilarity
+inthatthecalculatedtrainspeedischangingwiththebraking
+time and the distance. fT_he braking time and distance calcu-
+latedfromthewedge-springmodelaresmaller,althoughitis
+notasigniﬁcantdiﬀerence.ItcanbeseenfromFigure10(b)
+that calculation results of the two models both show a large
+coupler force in the middle-rear part of the train and a
+consistency in the number of wagon where the maximum
+couplerforceisgenerated,butforthelookuptablemodel,the
+coupler force acting on the train is relatively smaller.
+Table3showsacomparisonofthe170kPafull-braking
+simulationresultsandthetestresults.Itcanbeseenfromthe
+data in the table that the calculation results of the train
+brakingtime,themaximumcouplerforce,andthenumber
+of wagon where the maximum coupler force is generated
+Simulation results
+Experimental results
+200
+400
+600
+800
+1000
+1200Coupler force (kN)
+0
+2010 300
+Stroke of dra/f_t gear (mm)
+(a)
+Simulation results
+Experimental results
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600Coupler force (kN)
+10 20 30 40 500
+Stroke of dra/f_t gear (mm) (b)
+Simulation results
+Experimental results
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600Coupler force (kN)
+10 20 30 40 50 600
+Stroke of dra/f_t gear (mm)
+(c)
+4km/h
+6km/h
+7km/h
+8km/h
+70 8030 40 50 6010 200
+Stroke of draft gear (mm)
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600
+1800
+2200
+2000Coupler force (kN) (d)
+Figure6:Shunting impactsimulationwiththe lookuptablemodelandcomparisons ofsimulationresults.(a) 4km/hshuntingimpact
+simulationandtestresults.(b)6km/hshuntingimpactsimulationandtestresults.(c)7km/hshuntingimpactsimulationandtestresults.
+(d) Comparison of the simulation results at diﬀerent initial velocities.
+ShockandVibration 7
+===== PAGE 8 =====
+from the wedge-spring model are closer to the test values,
+whilethebrakingdistanceofthelookuptablemodeliscloser
+to the test value, although the two models are not much
+diﬀerent. It follows that for the simulation of full-braking
+conditions,usingthewedge-springmodelismoreaccurate
+to calculate the longitudinal dynamics performance.
+4.2.DownhillCycleBraking. fT_hetimecourseofthecoupler
+force within the 250s before and after the air brake is ini-
+tiated is analyzed to study the vibration characteristics of
+coupler force during the longitudinal impulse of the train.
+Figure11showsthetimecourseofthecouplerforceofthe
+108thwagonaftera50kPadecompressionairbrake.When
+Table1: Experimental parameters.
+Frequency, 10Hz Amplitude (mm) 5 10 15 20
+Maximum velocity of draft gear (km/h) 1.13 2.26 3.29 4.52
+Amplitude, 20mm Frequency (Hz) 1 5 10 15
+Maximum velocity of draft gear (km/h) 0.45 2.26 4.52 6.79
+Simulation results
+Experimental results
+200
+400
+600
+800
+1000
+1200
+1400Coupler force (kN)
+0
+2010 300
+Stroke of dra/f_t gear (mm)
+(a)
+Simulation results
+Experimental results
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600Coupler force (kN)
+10 20 30 40 500
+Stroke of dra/f_t gear (mm) (b)
+Simulation results
+Experimental results
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600Coupler force (kN)
+10 20 30 40 50 600
+Stroke of dra/f_t gear (mm)
+(c)
+4km/h
+6km/h
+7km/h
+8km/h
+70 8030 40 50 6010 200
+Stroke of draft gear (mm)
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600
+1800
+2000Coupler force (kN) (d)
+Figure7:Shuntingimpactsimulationwiththewedge-springmodelandcomparisonsofsimulationresults.(a)4km/hshuntingimpact
+simulationandtestresults.(b)6km/hshuntingimpactsimulationandtestresults.(c)7km/hshuntingimpactsimulationandtestresults.
+(d) Comparison of the simulation results at diﬀerent initial velocities.
+8 ShockandVibration
+===== PAGE 9 =====
+0
+200
+400
+600
+800
+1000Coupler force (kN)
+1200
+1400
+1600
+20 30 40
+Stroke of dra/f_t gear (mm)
+50 60
+Amplitude at 5mm
+Amplitude at 10mm
+Amplitude at 15mm
+Amplitude at 20mm
+(a)
+0
+200
+400
+600
+800
+1000Coupler force (kN)
+1200
+1400
+1600
+1800
+2000
+Stroke of dra/f_t gear (mm)
+20 100 3 04 05 06 07 0 80
+Frequency at 1Hz
+Frequency at 5Hz 8km/h shunting
+impact testFrequency at 10Hz
+Frequency at 15Hz (b)
+Figure8:Benchtestsimulationwiththelookuptablemodel.(a)Benchtestsimulationatdiﬀerentamplitudes.(b)Benchtestsimulationat
+diﬀerent frequencies.
+0
+200
+400
+600
+800
+1000Coupler force (kN)
+1200
+1400
+1600
+1800
+2000
+20 30 40
+Stroke of draft gear (mm)
+50 60
+Amplitude at 5mm
+Amplitude at 10mm
+Amplitude at 15mm
+Amplitude at 20mm
+(a)
+0
+200
+400
+600
+800
+1000Coupler force (kN)
+1200
+1400
+1600
+1800
+2000
+Stroke of dra/f_t gear (mm)
+20 100 3 04 05 06 07 0 80
+Frequency at 1Hz
+Frequency at 5Hz 8km/h sh u t tin g
+impact testFrequency at 10Hz
+Frequency at 15Hz (b)
+Figure9:Benchtestsimulationwiththewedge-springmodel.(a)Benchtestsimulationatdiﬀerentamplitudes.(b)Benchtestsimulationat
+diﬀerent frequencies.
+Table2: Main parameters of the model.
+Main parameters
+Wagon weight 100t
+Locomotive weight 2×100t
+Wagon number 210
+Lag time of slave locomotive 3.5s
+Coupler gap 10mm
+Locomotive dynamic braking force 461kN
+Locomotive starting traction force 760kN
+Track adhesion coeﬃcient 0.35
+ShockandVibration 9
+===== PAGE 10 =====
+thelongitudinalimpulseoccurs,thecouplerforcedecreases
+ﬁrstandthenincreasesrapidlytothemaximumvalue.fT_he
+maximum coupler force calculated from the lookup table
+modelis670.3kN,whilethatfromthewedge-springmodel
+issmaller,withthemaximumvalueat580.6kN.However,
+thecouplerforceofthelookuptablemodeldecreasesrapidly
+after the maximum value appears, and then the small vi-
+bration occurs and gradually converges, whereas after the
+coupler force of the wedge-spring model reaches the max-
+imumvalue,theamplitudeofthevibrationbecomeslarger
+andtheconvergencevelocitybecomesslower.fT_hisfeatureis
+mainlycausedbythefrictioncharacteristicsofthedraftgear
+model.
+5.Conclusions
+(1) fT_hedraftgearisdividedintofourphasesduringthe
+loading and unloading processes. fT_he quasistatic
+analysis can be conducted by the force balance
+condition.fT_heforce-displacementcurvesinthefour
+workingphasesarelinearandcontinuous,butthere
+0
+20
+40
+60
+80
+0
+20
+40
+60
+80
+0
+0 200 400 600 800 1000
+20
+Velocity (km/h)
+Velocity (km/h)
+40
+Braking distance (m)
+Braking time (s)
+Velocity-time curve (lookup table model)
+Velocity-time curve (wedge-spring model)
+Velocity-distance curve (lookup table model)
+Velocity-distance curve (wedge-spring model)
+60 80
+(a)
+1400
+1200
+1000
+800
+600
+400
+200
+0 50 100
+Number of wagon (no.)
+150 200
+1600
+1800
+Coupler force (kN)
+Lookup table model
+Wedge-spring model (b)
+Figure10:Simulationresultsof170kPaappliedfull-brakingcondition.(a)Velocityvariationcurve.(b)Numberofwagonwithmaximum
+coupler force.
+Table3:170kPa applied full-braking experiment and simulation results.
+Experiment Lookup table model Wedge-spring model
+Initial braking velocity (km/h) 79.6 79.6 79.6
+Braking distance (m) 1083 939 922
+Braking time (s) 72.4 79.6 73.1
+Maximum coupler force (kN) 1631 1482 1592
+Wagon number with maximum coupler force 157 147 156
+700
+600
+500
+400Coupler force (kN)300
+200
+100
+0 50 100
+Lookup table model
+Wedge-spring model
+150
+Time (s)
+200 250
+Figure11:Timecourseofthe couplerforceofthe108thwagon.
+10 ShockandVibration
+===== PAGE 11 =====
+isdiscontinuityfromoneworkingphasetoanother.
+Inactual shuntingor workingconditions, thedraft
+gearoftenhasaspikeeﬀectattheendofloadingand
+atthebeginningofunloadingprocess.fT_hedraftgear
+modelcanbeestablishedbythelookuptablemethod
+and the simpliﬁed wedge-spring method.
+(2) Forthelookuptablemodel,thesimulateddraftgear
+characteristiccurvedevelopsalongaﬁxedtrajectory
+undervariousexperimentalconditions,regardlessof
+thechangerateofthedraftgearstroke,whileforthe
+wedge-spring model, simulation results depend on
+thechangerateofthedraftgearstroke,reﬂectingthe
+dynamic characteristics of the draft gear and con-
+forming to the law that the friction coeﬃcient is
+aﬀected by the velocity. Researches show that sim-
+ulation results of the wedge-spring model in each
+working condition are more consistent with the
+experimentalresults,andthus,thismodelhasbetter
+adaptability and wider application.
+(3) Forthesimulationofthefull-brakingconditionon
+ﬂat straight road, the longitudinal dynamics per-
+formancecalculatedfromthewedge-springmodelis
+more accurate. As for the simulation of the longi-
+tudinalimpulsegeneratedaftertheairbrakeofthe
+train,thevariationtrendsofthecouplerforcecurve
+calculated from diﬀerent models are basically the
+same, but the amplitude and frequency of the lon-
+gitudinal impulse are diﬀerent.
+Data Availability
+fT_he data used to support the ﬁndings of this study are
+available from the corresponding author upon request.
+Conflicts of Interest
+fT_he authors declare that they have no conﬂicts of interest.
+Acknowledgments
+fT_heauthorsthanktheNationalNaturalScienceFoundation
+of China (grant no. 51575458) for their aid and support.
+References
+[1] A. Massa, L. Stronati, A. K. Aboubakr, A. A. Shabana, and
+N. Bosso, “Numerical study of the noninertial systems: ap-
+plication to train coupler systems,”Nonlinear Dynamics,
+vol. 68, no.1-2, pp. 215–233, 2012.
+[2] C.Cole,“Improvementstowagonconnectionmodellingfor
+longitudinal train simulation,” inProceedings of the Confer-
+ence on Railway Engineering Proceedings: Engineering In-
+novation for a Competitive Edge, pp. 187–194, Central
+Queensland University, Rockhampton, Australia, September
+1998.
+[3] F. Cheli and S. Melzi, “Experimental characterization and
+modellingofasidebuﬀerforfreighttrains,” Proceedingsofthe
+InstitutionofMechanicalEngineers,PartF:JournalofRailand
+Rapid Transit, vol. 224, no. 6, pp. 535–546, 2010.
+[4] T. Geike, “Understanding high coupler forces at metro ve-
+hicles,”Vehicle System Dynamics,vol.45,no.4,pp.389–396,
+2007.
+[5] Y.Hu,W.Wei,andX.Qi-Wen,“Studyofheavyhaulfreight
+wagonbuﬀermodelbasedonBPneuralnetwork,” Journal of
+Dalian Jiaotong University, vol. 33, no. 6, pp. 1–5, 2012, in
+Chinese.
+[6] X.JinandY.Luo,“fT_hemathematicdescriptionoffeaturesof
+the friction type draft gears,”Rolling Stock, vol. 49, no. 6,
+pp.1–4, 2011, in Chinese.
+[7] W.-M.Zhai,“Twosimplefastintegrationmethodsforlarge-
+scaledynamicproblemsinengineering,” InternationalJournal
+for Numerical Methods in Engineering, vol. 39, no. 24,
+pp. 4199–4214, 1996.
+[8] W.-H. Zhang, M. R. Chi, and J. Zeng, “A new simulation
+method for the train dynamics,” inProceedings of the 8th
+International Heave Haul Conference, pp. 773–778, Rio de
+Janeiro, Brazil, June 2005.
+[9] M.R.Chi,Y.-P.Jiang,W.-H.Zhang,andY.Wang,“System
+dynamicsoflongandheavyhaultrain,” JournalofTraﬃcand
+Transportation Engineering, vol.11, no. 3, pp. 34–40, 2011.
+[10] S.-L.Sun,L.Fu,Y.-H.Huangetal.,“Numericalsimulationof
+railway vehicle impacts,”Journal of Southwest Jiaotong Uni-
+versity, vol. 48, no. 3, pp. 507–512, 2013.
+[11] W.WeiandY.Lin,“Simulationofafreighttrainbrakesystem
+with120valves,” Proceedings of the Institution of Mechanical
+Engineers, Part F: Journal of Rail and Rapid Transit,vol.223,
+no.1, pp. 85–92, 2009.
+[12] P.Belforte,F.Cheli,G.Diana,andS.Melzi,“Numericaland
+experimental approach for the evaluation of severe longitu-
+dinal dynamics of heavy freight trains,”Vehicle System Dy-
+namics, vol. 46, pp. 937–955, 2008.
+[13] Q. Wu, M. Spiryagin, and C. Cole, “Advanced dynamic
+modellingforfrictiondraftgears,” Vehicle System Dynamics,
+vol. 53, no. 4, pp. 475–492, 2015.
+[14] Q.Wu,S.Luo,T.Qu,andX.Yang,“Comparisonsofdraftgear
+damping mechanisms,” Vehicle System Dynamics, vol. 55,
+no. 4, pp. 501–516, 2017.
+[15] Y. Sun, C. Cole, M. Spiryagin, T. Godber, S. Hames, and
+M. Rasul, “Longitudinal heavy haul train simulations and
+energy analysis for typical Australian track routes,”Pro-
+ceedings of the Institution of Mechanical Engineers, Part F:
+JournalofRailandRapidTransit,vol.228,no.4,pp.355–366,
+2013.
+[16] Q. Wu, M. Spiryagin, C. Cole et al., “International bench-
+marking of longitudinal train dynamics simulators: results,”
+Vehicle System Dynamics, vol. 56, no. 3, pp. 343–365, 2018.
+[17] Q.-T. Qi,Analysis and Application of Frictional Draft Gear
+Dynamic characteristics, Southwest Jiaotong University,
+Chengdu, China, 1994.
+[18] X. Sun,Principle and Explanation for Accurate Calculation
+Program of Train dynamics, Locomotive and Car Research
+Institute ofSouthwestJiaotong University, Chengdu,China,
+1989.
+ShockandVibration 11

@@ -1,0 +1,26 @@
+{
+  "git_commit": "474af97ed42a1974ddc5bcd81445770e3334256b",
+  "physics_version": "437504e2f8c0",
+  "simcase": "official",
+  "seed": 1,
+  "entry": "train_fleet.py",
+  "physics": {
+    "enable_cyclic_degrade": true,
+    "tail_pressure_kpa": null,
+    "brake_reduction_override_kpa": null,
+    "physics": {
+      "v_max_mps": 22.22222222222222,
+      "v_min_mps": 11.11111111111111,
+      "dt": 0.1,
+      "max_accel": 1.0,
+      "target_speed_mps": 20.0,
+      "target_gap_m": 100.0,
+      "consist_preset": "10kt_1plus0",
+      "grade_profile": "shuozhou_23800",
+      "coupler_force_limit_n": 1000000.0,
+      "enable_etcs": true,
+      "enable_cyclic_degrade": true
+    }
+  },
+  "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]"
+}

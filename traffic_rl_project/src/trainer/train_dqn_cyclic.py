@@ -1,4 +1,5 @@
 """
+【legacy 2026-09-06】已被 run_training.py 统一框架替代（configs/experiments/dqn_cyclic.yaml），保留 append-only。
 单列 DQN 训练：学循环制动（对齐 Zhang2024 DQN），用作论文 baseline（M-DQN）。
 
 Zhang2024（Algorithms 2024,17,190）用 DQN 在朔黄线学单列循环制动（忽略车钩力）。
@@ -142,7 +143,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--episodes', type=int, default=300)
     parser.add_argument('--preset', type=str, default='10kt_1plus0')
-    parser.add_argument('--grade', type=str, default='shuozhou_23800')
+    parser.add_argument('--grade', type=str, default='shuozhou_real_53km')
     parser.add_argument('--max_steps', type=int, default=3000)
     parser.add_argument('--lr', type=float, default=1e-4)
     parser.add_argument('--seed', type=int, default=0)

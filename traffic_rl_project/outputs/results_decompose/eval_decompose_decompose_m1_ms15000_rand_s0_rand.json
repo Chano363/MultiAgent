@@ -1,0 +1,121 @@
+{
+  "metadata": {
+    "git_commit": "474af97ed42a1974ddc5bcd81445770e3334256b",
+    "physics_version": "806196e38ba9",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "evaluate_decompose.py",
+    "physics": {
+      "enable_cyclic_degrade": false,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus0",
+        "grade_profile": "shuozhou_23800",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_etcs": true
+      }
+    },
+    "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
+    "eval_args": {
+      "mode": "decompose_m1",
+      "checkpoint": "outputs/checkpoints_dec_full_iv10/mappo_fleet_best_dec_ad2_cp_seed0.pt",
+      "grade": "shuozhou_23800",
+      "max_steps": 15000,
+      "n_seed": 5,
+      "eval_seed": 0,
+      "init_speed_kmh": 80.0,
+      "random_init_speed": true,
+      "decision_interval": 10,
+      "mask_lever": "none",
+      "hetero": false,
+      "hetero_seed": 0,
+      "out_suffix": "_s0_rand"
+    }
+  },
+  "args": {
+    "mode": "decompose_m1",
+    "checkpoint": "outputs/checkpoints_dec_full_iv10/mappo_fleet_best_dec_ad2_cp_seed0.pt",
+    "grade": "shuozhou_23800",
+    "max_steps": 15000,
+    "n_seed": 5,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": true,
+    "decision_interval": 10,
+    "mask_lever": "none",
+    "hetero": false,
+    "hetero_seed": 0,
+    "out_suffix": "_s0_rand"
+  },
+  "results": {
+    "decompose_M1_rl": {
+      "reward": 73938.39369779968,
+      "peak_coupler_kN": 424.64086956444015,
+      "viol": 0.0,
+      "safety_events": 0.0,
+      "ab_steps": 4780.0,
+      "mean_ed": 0.30809278521703476,
+      "band_rate": 1.0,
+      "final_speed_kmh": 53.26422494649821,
+      "per_seed": [
+        {
+          "reward": 73916.936384812,
+          "peak_coupler_kN": 428.74844903626996,
+          "viol": 0.0,
+          "safety_events": 0.0,
+          "ab_steps": 4760.0,
+          "mean_ed": 0.3147529371157289,
+          "band_rate": 1.0,
+          "final_speed_kmh": 53.220236548550275
+        },
+        {
+          "reward": 73929.41621831236,
+          "peak_coupler_kN": 422.19661985145274,
+          "viol": 0.0,
+          "safety_events": 0.0,
+          "ab_steps": 4660.0,
+          "mean_ed": 0.31100010450339566,
+          "band_rate": 1.0,
+          "final_speed_kmh": 53.378957744591055
+        },
+        {
+          "reward": 73954.0291269662,
+          "peak_coupler_kN": 438.464972590327,
+          "viol": 0.0,
+          "safety_events": 0.0,
+          "ab_steps": 4860.0,
+          "mean_ed": 0.3032328385570436,
+          "band_rate": 1.0,
+          "final_speed_kmh": 53.39540042815372
+        },
+        {
+          "reward": 73972.33286981206,
+          "peak_coupler_kN": 418.99347827771726,
+          "viol": 0.0,
+          "safety_events": 0.0,
+          "ab_steps": 4700.0,
+          "mean_ed": 0.2981130380068207,
+          "band_rate": 1.0,
+          "final_speed_kmh": 53.19186040104211
+        },
+        {
+          "reward": 73919.25388909571,
+          "peak_coupler_kN": 414.8008280664339,
+          "viol": 0.0,
+          "safety_events": 0.0,
+          "ab_steps": 4920.0,
+          "mean_ed": 0.31336500790218513,
+          "band_rate": 1.0,
+          "final_speed_kmh": 53.13466961015392
+        }
+      ]
+    }
+  }
+}

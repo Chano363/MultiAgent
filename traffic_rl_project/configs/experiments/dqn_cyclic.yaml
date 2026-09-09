@@ -1,0 +1,35 @@
+# 单列 DQN 循环制动（Zhang2024 式 baseline，M-DQN）
+name: dqn_cyclic
+algorithm: dqn
+algo_params:
+  lr: 0.0001
+  num_actions: 4
+  gamma: 0.99
+  tau: 0.005
+  buffer_size: 100000
+  batch_size: 128
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay: 0.995
+env_type: single
+env_cfg:
+  consist_preset: 10kt_1plus0
+  grade_profile: shuozhou_23800
+  max_steps: 3000
+  dt: 0.1
+  v_max: 22.222
+  v_min: 11.111
+obs: cyclic
+action: notch
+interaction: dqn_single
+reward: cyclic
+num_trains: 1
+episodes: 300
+init_speed_kmh: 65.0
+simcase: official
+ckpt_policy: dqn_cyclic
+log_interval: 10
+dirs:
+  checkpoint_dir: outputs/checkpoints
+  results_dir: outputs/results
+  figures_dir: outputs/figures

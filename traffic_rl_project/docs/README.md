@@ -66,8 +66,7 @@
 | ----------------------------------------------------------- | -------------------------------------- |
 | `learning_report.md`                                        | 阶段一完整技术报告（历史成果）                        |
 | `training_results_standardized.md`                          | 阶段一学术成果报告                              |
-| `ITSC_PAPER_PLAN.md`                                        | 论文写作计划（被 `ITSC_PAPER.*` 承接）            |
-| `ITSC_PAPER_CN.md` / `ITSC_PAPER_中文对照.md`                   | 中文版/对照（非投稿权威版本，衍生）                     |
+| `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
 | `HANDOFF_*.md`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md` | 阶段性交接/会议/备忘（任务已转移到 `PROJECT_PIPELINE`） |
 
 ### 归档区（已有，保持）

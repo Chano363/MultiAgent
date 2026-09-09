@@ -35,3 +35,21 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 2. **引用任何历史结论前**：先确认该结论产出于当前建模集合之后；否则**不得直接引用**，须在当前物理上重跑确认后才可引用或引用时显式标注"旧建模下产物，待重跑"。
 3. **不得删除**含建模差异的历史记录；但若历史结论被当前建模推翻，在所引处**追加一条 superseded 标注**（不篡改旧文），并指向重跑结果。
 
+## 训练/评估入口必须落权威元数据 metadata（2026-09-08 强制）
+
+> **背景**：实验数值必须可复现（结论来自 metadata.json / 评估 JSON，禁止从代码注释抽数据）。为保证"规范入口下 100% 自动落盘"，把是否走 metadata 硬化为入门口令。
+
+1. **训练入口只有两条合法路径，缺一不可，否则该次训练结论视为不成立、不许引用**：
+
+   - **统一框架（推荐，新实验线一律走此）**：`run_training.py` + `TrainRunner.run`，用 `training_metadata_guard`（`with` 包裹含训练循环的全过程）→ 进入自动写 `metadata.json`，训练结束 `finally` 强制 `assert_training_metadata`（缺失抛错）+ 每 ep 自动 best/periodic checkpoint。
+
+   - **legacy 独立入口（仅存量）**：`train_fleet.py` / `train_cyclic_braking.py`，循环前 `save_metadata`（含超参 + 仿真器型号）+ 结尾 `assert_training_metadata` 兜底。
+
+2. **裸写训练循环 / 自定义入口不调 `save_metadata` 或 `training_metadata_guard` 的，一律不认可其结论**；必须补 metadata 落盘后才可采信。
+
+3. **产出论文数据的评估脚本**：必须把 `build_metadata`（git_commit / physics_version / simulator_model 型号 + 全物理配置 / seed / checkpoint 等）内嵌进结果 JSON，并按时间戳归档到 `outputs/`，**不覆盖旧文件**；评估一律 `official_entry_guard`（工况 OFFICIAL，无调试物理）。
+
+4. **新增实验线/新算法** = 写 `configs/experiments/*.yaml` + 注册（自动继承统一框架的 metadata/checkpoint 保护）；不在此框架外的训练结果不得写入论文证据链。
+
+5. **实验数值一律以 `metadata.json` / 评估 JSON 为准**，禁止从代码注释或记忆粘贴实验数值当结论。
+

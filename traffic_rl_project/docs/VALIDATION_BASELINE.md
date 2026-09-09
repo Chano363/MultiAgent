@@ -122,6 +122,40 @@ owner: Owner + Agent
 - **场景对齐**：朔黄线长大下坡 + 循环制动，你的环境已支持（`grade_profile: 'long_downhill'` + 万吨级编组）
 - **奖励设计对照**：Zhang2024 用"安全 + 空气制动距离"，你的奖励（速度同步+间距+冲动）可参考其安全约束设计
 
+### V3.5.3b 编队/列车群组 RL 奖励设计文献基准（2026-09-09，多列编队 reward 重构依据）
+
+**背景**：formation-aware 机车级 ED/AB（3列×1+1=6 agents）训练发散（ep20 前 −11万~−12万，进 5000 步段 violations 暴增 213~247、peakCoupler 涨破 1000kN）。复盘发现：上一版把 `_calculate_reward_decomposed` 的 speed_band 从"逐列 ±5/-20"改成"群组均速带二值门槛 +5×3/-20"——3 列异步动力学下几乎不可能同时进带，探索期长期只有惩罚、无正 shaping，策略学不出来。据此从文献库提取多列/列车 RL 奖励设计的权威范式作为重构依据（出处见各条）。
+
+**① Zhang2021 MADRL 列车编队（多列协同，最贴近本项目）**：`docs/papers/Zhang2021_MADRL_TrainPlatoon.txt`（Zhang, Zhao et al., IEEE Access 2021）
+- 逐 agent 奖励：`r_n = f(e_{n-1,n}, v_{n-1,n})`，由**距离势场 r_e** 与**速度差势场 r_v** 叠加
+- 连续 APF（artificial potential field）编码，非二值：**越靠近目标奖励越大**（零势点最大）
+- **负项优先、正项隐藏**：只要距离/速度任一项为负（偏离目标），正项被隐藏，输出负；双项皆正才叠加
+- 参数：固定奖励 R=400，距离边界 D=10m，动作 3 档 {a⁺,0,a⁻}
+- 编队定义：**leader-follower**，follower 只对相邻前车 `e_{n-1,n}` + `v_{n-1,n}` 负责（无需全列齐步）
+- 通信：单向→双向，虚拟 leader 调控规定运行线与路线
+
+**② Guo2025 LSTM-MAPPO 车队（同 MAPPO 算法）**：`docs/papers/Guo2025_MARL_PlatoonConsensus.txt`（Guo et al., Computer-Aided Civil & Infrastructure Engineering 2025）
+- 双向协同优化机制，LSTM 捕捉车队长时动态
+- 目标函数显式 minimize 共识误差：间距误差 `eᵈ_{i,i-1}(t)` + 相对速度 `eᵛ_{i,i-1}(t)` + 加速度差 `eᵃ_{i,i-1}(t)`
+- 代价 = leader 与前 `eᵈ_{i,0}`/`eᵛ_{i,0}` trade-off + follower 舒适度
+- **舒适度项**：`R_c = jerk·(a(t)−a(t−1))/Δt`（jerk = 加速度变化率）
+- **大负值惩罚 −15**：速度低于目标时触发的强惩罚，促使 agent 决策正确方向
+- 效果：平均间距误差 −8.3%、编队平均长度 −19.1%（vs 共识控制）
+
+**③ Zhang2024 DQN 循环制动（长大下坡逼近工况）**：`docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt`（见 V3.5.3）
+- 长大下坡唯一减速手段 = 循环空气制动（与本项目一致）
+- 奖励直接在**车辆运行约束**（限速 V_min ≤ V ≤ V̄）+ **性能指标**（制动距离）上构建，DQN 可收敛
+- 单列、**忽略车钩力**——本项目在此基础上的增量 = 建模车钩力 + 扩展到多列编队
+
+**三篇共性结论（→ `_calculate_reward_decomposed` 重构原则）**：
+1. **逐 agent 势场**：每 agent 只对自身相对前车的距离误差 + 速度差负责，用连续 APF（非二值门槛）
+2. **负优先但"可达"**：负项只在真偏离目标时出现；奖励标到让 agent 能学出正向行为，避免探索期长期负酱
+3. **不要求全列齐步**：leader-follower 相对信息，异步动力学仍可学
+4. **大负值惩罚用于硬约束**（碰撞/超限），与连续势场正项分开设计
+5. **多目标显式化**：间距误差、速度差、（可选）jerk 各自成项，按任务权重叠加
+
+> 留痕结论（失败不删，作修正依据）：2026-09-09 上一版"群组均速带二值门槛" designs 违反原则 1/2/3，是发散根因；重构按上表原则执行。原始发散 history 见 `outputs/checkpoints_formation/seed0/results/train_history_dec_ad2_cp_seed0.json`（ep1-30: rewards 反复 −4万~−45万，violations 0→247，peakCoupler 800→1376kN）。
+
 ### V3.5.4 Zhao2022 空气制动精细建模验证基准（2026-09-02，文献初始化）
 
 **来源**：赵紫宁（导师王青元）. *重载列车空气制动精细建模与操纵优化.* 西南交通大学硕士学位论文, 2022.
@@ -522,6 +556,8 @@ I（提示，留给司机反应） → P（许可速度，超限预警） → W�
 
 ## 地基级建模体检 R0：车钩/制动物理五项改进（2026-09-06，文献核对 + 实测带标定 + 全量重跑）
 
+> **【2026-09-07 superseded（仅限 R0-C 之 QKX100）】** 经 ADR-011（`docs/records/DECISIONS.md`）统一回 MT-2：机车 QKX100 弹性胶泥分区已**彻底移除**，全列（含机车-货车连挂钩）一律 MT-2（Stribeck 750/500、v_er=0.2、2270 kN 饱和）。R0-A/B/D/E 的物理（卸载刚度复核=1.0、Stribeck、段间衰减、两段式缓解）**保留不变并继续生效**；此 superseded 只针对 R0-C。历史 QKX100 的 C/n/F_d/f 标定值（诊断-2026-09-06 检索结论）仅作文献/决策追溯，**不再用于当前仿真**。详见 ADR-011。
+
 > **任务定位**：HANDOFF_2026-09-06_ModelBasisReview 的 R0 交付。此前车钩模型只被"特征锚点（峰值/延迟/2270kN）"验证，缺"整段物理曲线 + 跨工况覆盖"；本轮按于宗泽2025《重载列车车钩缓冲装置纵向动力学精细化模型》（中国铁道科学 46(2):192-202）+ 李蔚2023 系统性补齐，**两处实现（`coupler.py` 标量 + `train.py` 向量化）同步改**，全部文献锚点测试化（`tests/test_coupler_model_refined.py`，18 项）。
 
 ### R0-A～E 实施与文献核对结论
@@ -584,3 +620,194 @@ python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1pl
   --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --decision_interval 10 \
   --seed {0,1,2} --enable_etcs --checkpoint_dir outputs/checkpoints_r0_dec --results_dir outputs/results_r0_dec
 ```
+
+---
+
+### 诊断-2026-09-06-车钩缓冲器标定参数文献锚全量检索
+
+**触发**：审稿风险——模型含 ~5 个"无文献解析值"的标定参数（MT-2 μs/μd、v_er、QKX100 的 C/n/F_d/f）。此前代码注释仅写"文献未给拟合常数"（诚实但过强，把搜索局限当成了定论）。本次对本地全文库 + 中文期刊库做全量检索，**并补齐了决定性 2 篇付费论文全文**（杨亮亮2017、赵旭宝2022），修正注释中的错误声明。
+
+**新增文献资产**（`docs/papers/`，保留全文 txt 供追溯）：
+| 文件 | 论文 | 提供的参数 |
+|:--|:--|:--|
+| `yangliangliang2017_mt2.txt` | 杨亮亮·罗世辉2017《一种用于模拟车辆冲击试验的铁路货车纵向连接模型》中国铁道科学 38(1):123 | MT-2 阻抗式(2)、**附加摩擦式(3) = 于宗泽式(2) 原出处**（μ_a=μs·Δv=0；μs−(μs−μk)Δv/v_er·Δv∈(0,v_er)；0·Δv≥v_er）、递推动态式(5)、车钩力符号式(6) |
+| `zhaoxubao2022_qkx100.txt` | 赵旭宝2022《弹性胶泥缓冲器关键参数对快捷列车纵向冲动的影响》振动与冲击 41(5):99，DOI 10.13465/j.cnki.jvs.2022.05.014 | 速度型胶泥模型、**流动指数 n∈(0,1)**、初压力基线 ~60kN、n∈0.5~0.9 指数增长 / 0.1~0.5 变化较小 |
+| `yanghui2020_qkx_mt2.txt` | 杨辉2020《重载列车QKX100与MT-2缓冲器动态特性》北工大学报 46(4) | 缓冲器过渡刚度 k≈80 kN/mm（引文献[15]实测）、QKX100 vs MT-2 紧急/循环制动车钩力·加速对比验证（表1/表2） |
+| `mawh2011.txt` | 马卫华2011《缓冲器阻抗特性对重载列车动力学性能的影响》交通运输工程学报 | 摩擦胶泥型（MT-2 类）初压力≤250kN/静态阻抗理论无穷大；弹性胶泥型（QKX100 类）初压力≤150kN/静态阻抗≥1200kN |
+
+**逐参数文献状态**（回填 `src/train_dynamics/params.py` 注释）：
+| 参数 | 目标值 | 文献锚 | 性质 |
+|:--|:--|:--|:--|
+| MT-2 结构式 F=F₀+kx±μF_N | 2270 kN@83mm | 于宗泽2025式(1)；CSR《机车电传动》2024 表2（≤2270kN/83mm/54~65kJ）| 文献结构+额定 **✓** |
+| MT-2 μs/μk/v_er 三支式 | μs/μd 比 1.5、v_er=0.2 | 于宗泽2025式(2) **= 杨亮亮2017式(3)**（完全同型）| 结构 ✓；**具体数值为冲击试验拟合值**，1.5/0.2 属标定 |
+| QKX100 结构 F=C|v|ⁿ+F_d+f | C/n/F_d/f | 于宗泽2025式(3)(4) + 赵旭宝2022（n∈(0,1)，强敏感段 0.5~0.9）| 结构+n范围 ✓；**C/F_d/f 具体值仍为 PSO/试验辨识** |
+| QKX100 额定 | 2500 kN@83mm | 李蔚2023表1 / 马卫华2011 / CSR2024 表2 | 文献额定 **✓** |
+| 缓冲器过渡刚度 | 80 kN/mm | 杨辉2020 引文献[15] | 文献实测 **✓**（非主加载刚度，是滞回内过渡斜率，勿与 k1 混淆）|
+| 缓解排气时间常数 τ | 6 s | Zhao2022（西南交大硕论）实测缓解再充风 175~512s | τ=6s 只建模缓解**初期排气**指数衰减，**不是**整个再充风（百秒量级）——缓解不充分→下次制动力发挥不足 |
+
+**结论（对审稿人的诚实边界）**：
+- **结构与额定量级**（2270/2500 kN、83mm、200kN、n∈(0,1)、过渡刚度 80kN/mm、μs/μk/v_er 三支式）**有可靠文献锚，可直接引用**，此前"无文献拟合常数"是过强声明，已在 `params.py` 中修正。
+- **μs/μk/v_er 的具体数值、QKX100 的 C/F_d/f**：文献按冲击试验/PSO 辨识给出（赵旭宝2020/2022、杨亮亮2017 已锁定出处），但两本 EI 刊正文多为图内拟合值，本项目取值仍为**单点标定**。
+- **待补敏感性扫描**：μs/μd（1.5 附近 1.2~1.8）与 v_er（0.2 附近 0.05~0.5）尚无独立敏感性扫描——下一阶段按 Morris 一阶/二阶影响做归因，避免审稿质疑"该参数是否主导结果"。
+
+### 诊断-2026-09-06-敏感性扫描：μs/μd 与 v_er 对循环制动车钩力峰值的独立归因
+
+**触发**：上节"待补敏感性扫描"落地。审稿人第二箭——"μs/μd、v_er 是否主导（主场景）朔黄循环制动车钩力峰值结果"。本扫描对 **MT-2 摩擦两个标定参数**做单参数独立归因，复用 fig3 协议（`10kt_1plus0` + `shuozhou_23800` + 15000 步 + `TrainLowLevelController` 规则循环制动 80↔40km/h + `enable_safety=True`）。
+
+**⚠️ 方法学坑（record）**：向量化力计算读的是构造/`set_couplers()` 时缓存的 `self._cp`（`_build_coupler_param_arrays`），**构造后直接覆盖 `env.dynamics.coupler` 不会更新 `_cp`** → override 静默失效，早期扫描 8 工况峰值恒为基线 1403.6 kN（同值即此坑的信号）。**必须在覆盖后调用 `env.dynamics.set_couplers(None)` 重建参数数组**。修复后阳性对照确认：friction_n 300/500/700 kN → 峰值 1353.9/1403.6/1696.7 kN，override 生效。旧产物 `outputs/coupler_param_scan/coupler_param_scan.csv`（恒 1403.6）为无效数据，作废；有效数据见 `coupler_param_scan_2026-09-06_fix.csv`。
+
+**扫描数据**（车钩力峰值 kN，基线 1.5/0.2 → 1403.6 kN）：
+| 参数 | 扫描值 | 峰值 (kN) | Δ vs 基线 | 末速 (km/h) |
+|:--|:--|:--|:--|:--|
+| μs/μd | 1.2 | 1387.6 | −16.0 (−1.1%) | 52.7 |
+| μs/μd | 1.3 | 1393.4 | −10.2 (−0.7%) | 52.8 |
+| μs/μd | **1.5（基线）** | **1403.6** | 0 | 52.6 |
+| μs/μd | 1.8 | **1625.1** | **+221.5 (+15.8%)** | **67.5** |
+| v_er | 0.05 | 1389.9 | −13.7 (−1.0%) | 52.6 |
+| v_er | 0.1 | 1399.9 | −3.7 (−0.3%) | 52.5 |
+| v_er | **0.2（基线）** | 1403.6 | 0 | 52.6 |
+| v_er | 0.5 | 1405.5 | +1.9 (+0.1%) | 53.1 |
+
+**物理/机制解释**：
+- **v_er 不敏感**：全范围 0.05→0.5 峰值仅 +1.0%，单调温和上升。原因：运行时缓冲器相对速度/缓解冲击处于 v_er 附近过渡区，0.05→0.5 只是把"静摩擦窗口"拉宽，摩擦在静/动间略切换，对峰值影响 <2% → **该参数对主结果不起主导作用，审稿低风险**。
+- **μs/μd 温和但带阈值非线性**：1.2→1.5 峰值仅 +1.2%（1387.6→1403.6），所选 **1.5 落在平缓段、非悬崖**；但 1.8 处突变 +15.8%（→1625.1）**且末速异常跳升至 67.5 km/h**（其余 ~52.6）——高静摩擦（900kN）使缓冲器近"准刚性"，纵向冲动传递加强而缓冲耗能/制动效率下降，改变整体动力学，属阈值型非线性（位于 ~1.6–1.8）。
+
+**结论（对审稿人的诚实边界）**：
+- 两个标定参数在所选标定值处的 ±合理不确定度内对主场景车钩力峰值影响 **≤~1%** → **均不主导头号结论**（循环制动车钩力），审稿"参数主导结果"质疑可被数据驳回。
+- 需在 Limitations/诚实边界补充一句：μs/μd 峰值单调递增，且在 ~1.8 存在阈值非线性（峰值 +15.8% + 末速跳变），本项目取 1.5（平缓段）为保守合理值，未触及阈值。这是扫描获得的**新边界知识**，比"文献单点标定"更严格。
+
+### 诊断-2026-09-07-车钩缓冲器统一回 MT-2（移除机车 QKX100，ADR-011）
+
+**触发**：承接 R0-C 的 QKX100 胶泥缓冲器分区 + 诊断-2026-09-06 的敏感性扫描。用户决策"还是统一用 A"（A = 成熟论文主流"分车型归一对"），把机车 QKX100 弹性胶泥实现**彻底移除**，全列（含机车-货车连挂钩）统一 MT-2 摩擦式。决策全文：`docs/records/DECISIONS.md` ADR-011。
+
+**改动范围（已实施 + 验证）**：
+| 层 | 文件 | 改动 |
+|:--|:--|:--|
+| 源码 | `params.py` | 移除 buffer_type/k2_nm/knee_x_m/viscous_c/viscous_n_exp/static_damp_n 与 `qkx100_params()`；`sample_coupler_params` 去掉 QKX100 关联项 |
+| 源码 | `coupler.py` | 移除 QKX100 分支，`friction_magnitude_n`/`coupler_force` 仅 MT-2（k_term 单段刚度） |
+| 源码 | `train.py` | `_build_coupler_param_arrays` 齐次默认全列 `[self.coupler]`；`_coupler_interface_forces_vec` 去 QKX100 |
+| 测试 | `test_coupler_model_refined.py` | 删 QKX100 4 个测试；派发断言改"全列统一 MT-2 2270 kN"；向量化对标仅测 MT-2 |
+| 测试 | `test_fleet_decompose.py` / `test_train_dynamics.py` | 齐次断言 = MT-2 1.89e7 / 逐耦合全等 |
+| 绘图 | `plot_physical_curves.py` | 图 3/4 头钩标签去 QKX100；图 6 改单面板 MT-2 迟滞环；metadata physics 串更新 |
+| 训练 | `train_cyclic_braking/train_fleet/train_runner.py` | metadata physics 串 = "R0+MT2统一(2026-09-07)" |
+
+**验证结果（成功）**：
+- 核心模块 `py_compile` 通过；全局 grep 仅剩 params.py / coupler.py / 测试 docstring 中的**历史追溯性文本**（含 superseded 标注），无代码级引用残留。
+- 车钩/动力学/编组相关测试 **55 项通过**（`test_coupler_model_refined` + `test_train_dynamics` + `test_fleet_decompose`）；全量 `pytest tests/ -q` 待后台完成确认。
+
+**物理/机制说明**：
+- 统一回 MT-2 后，机车-货车连挂钩由"软侧 QKX100（月牙形弹性胶泥）"变为"MT-2 摩擦式（Stribeck 750/500、v_er=0.2、2270 kN）"。对 1 万吨单机牵引编组，机首位力敏感度略降（QKX100 小压缩量阻抗 < MT-2 不再出现），但消除了 5 个无正文拟合常数的标定参数，**主场景（循环制动车钩力峰值）结论的数学生成在审核口径上更朴素、更可辩护**。
+- 保留 R0 有效物理：卸载刚度复核（MT-2=1.0）、Stribeck、循环段间衰减、两段式缓解排气（τ=6s）——仅移除机车胶泥分区。
+
+**对审稿人的价值**：决策从"双类型并置 + QKX100 形状标定参数"收敛到"单一成熟范式（MT-2）+ 逐车钩个体差异（E4-H 仍保留）"，诚实边界更清晰，标定参数数显著下降。
+
+### 诊断-2026-09-08-MT-2 统一后重训与评估（L1 单列 MAPPO + M-DQN-fair + Rule 基线）
+
+**触发**：ADR-011（2026-09-07 统一回 MT-2）改变物理，历史在旧物理（含机车 QKX100 / 75% 动力学等）下产出的训练/评估绝对值不可直接引用。按"建模变更须重训"规范，在统一 MT-2 物理下重训单列 L1 与公平 DQN 基线，并评估对比规则基线。
+
+**运行命令（可复现）**：
+```bash
+# L1 单列循环制动 MAPPO 重训（MT-2，curriculum 300-1000-15000，seed0）
+cd /mnt/d/Code/MultiAgent/traffic_rl_project && \
+python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_23800 \
+  --warm_start --curriculum 300-1000-15000 \
+  --checkpoint_dir outputs/mt2_l1/checkpoints --results_dir outputs/mt2_l1/results --seed 0
+
+# M-DQN-fair 公平 DQN 基线重训（MT-2，3 seed × 40 ep × 300 步训练段，评估才用 15000 步）
+python src/trainer/train_fleet_dqn.py --episodes 40 --seed {0,1,2} --num_trains 3 --adj_coef 0.3 \
+  --checkpoint_dir outputs/mt2_dqn/ckpt
+
+# 评估（15000 步完整协议，对齐 23.8km 朔黄）
+python src/evaluation/evaluate_l1_long.py outputs/mt2_l1/checkpoints/cyclic_mappo_best_seed0_v40-80_init65.pt
+python src/evaluation/evaluate_l1_rule_baseline.py
+```
+
+**结果数据表**：
+
+*L1 MAPPO 训练（MT-2，seed0，300 ep，metadata: git ec986dde / simcase official）*
+| 指标 | 值 |
+|:--|:--|
+| best_reward（15000 步） | **72381.24** |
+| 车钩力峰值区间（全程） | 571–652 kN |
+| 超限次数 viol | **0**（全程） |
+| 产出 | `outputs/mt2_l1/checkpoints/cyclic_mappo_best_seed0_v40-80_init65.pt` + `results/` |
+
+*15000 步完整协议评估对比（3 seed 一致，控制变量）*
+| 策略 | 平均速度 | 最大速度 | 超80 | 低40 | 车钩力峰值 | 安全 |
+|:--|:--|:--|:--|:--|:--|:--|
+| **L1 MAPPO**（MT-2 重训） | 58.5 km/h | 65 km/h | **0.0%** | **0.0%** | 698 kN | ✅ <1000kN |
+| Rule 循环制动基线 | 60.1 km/h | 81 km/h | 4.2% | 7.2% | **482 kN** | ✅ <1000kN |
+
+*M-DQN-fair（MT-2 重训，300 步训练段，3 seed）*
+| seed | best reward（300 步段） | 车钩力峰值 | 耗时 |
+|:--|:--|:--|:--|
+| 0 | 5013.93 | 0.8 kN | 6.8 min |
+| 1 | 5011.93 | 0.8 kN | 6.9 min |
+| 2 | 5012.93 | 0.8 kN | 6.8 min |
+
+**物理/机制说明**：
+- L1 MAPPO 在 MT-2 下学会的速度窗口控制显著优于规则基线：超80/低40 占比全 0（规则为 4.2%/7.2%），最大速度 65 vs 81 km/h。代价是车钩力峰值 698 vs 482 kN——RL 策略更积极地用制动维持速度（制动冲动更频繁），但两者均守住 1000 kN 安全约束。符合"学习到的循环制动在限速保持上优于固定阈值规则"的预期，与 Zhang2024 观测（RL 制动距离/速度控制优于 Q-learning 基线）同向。
+- M-DQN-fair 为第 2 层阈值协同（Layer-1 规则循环制动管速度），300 步短段下 reward ~5012±1、车钩力 ~0.8 kN（协同层基本不引入冲动），3 seed 高度一致。
+- **建模版本声明**：以上全部为 R0（2026-09-06）+ 统一 MT-2（2026-09-07）物理产出；历史含 QKX100 / 其他建模版本的同名指标（如 M1 +44200、M3 等）不属于本建模集，引用须附版本声明（规范见 `docs/rules/EXECUTION_RULES.md`）。
+
+### 诊断-2026-09-08-编队层3000步段坍塌根因（长程纵荡/编队失稳）
+
+**背景**：编队层（`platoon_mappo` R2 + 细课程）MT-2 重跑，seed0 训练 `train_s1_r2_seed0.log`：
+- 300/1000 步段稳定（+9.4k / +31k），**curriculum 跳到 3000 步段首 ep（Ep150）reward 灾难性坍塌 -635843**（≈ -212/步×3000）。
+- -212/步 ≈ 势场 clip(-200) + 追尾硬惩罚(-12)，提示持续追尾穿透；但复现推翻此假设，见下。
+
+**复现命令**（`tmp_diag_s1_crash.py`，官方工况，加载 ep140/ep150 checkpoint 跑 rollout 逐 step 采集）：
+```
+cd /mnt/d/Code/MultiAgent/traffic_rl_project
+python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_diag_ep140.json
+```
+
+**逐 step 数据（ep150 checkpoint，horizon=3000，单次随机 rollout）**：
+| step | g12 列1-列0 (m) | g23 列2-列1 (m) | 速度区间 (m/s) |
+|:--|:--|:--|:--|
+| 400 | 183 | 183 | 17.4 |
+| 1000 | 195 | 183 | 16.6~17.5 |
+| 1400 | 279 | 183 | 16.1~19.7 |
+| 2000 | 580 | 215 | 15.4~20.1 |
+| 2400 | 455 | 341 | 10.6~19.7 |
+| 2830 | 6.8 | 600 | 12.5~22.3 |
+| 3000 | **-133** | **689** | 14.0~20.0 |
+
+**对照（ep140 checkpoint，1000 步段）**：total +31637，0 追尾，100% 带内，车钩力峰值 164 kN，min gap 183 m——全程健康。
+
+**结论（期望 vs 实际）**：
+- **期望**：长程坍塌 = 一进 3000 步就持续追尾穿透。
+- **实际**：单次复现 ep150 = +22089（正）、169 个追尾步但**首撞在第 2832 步**；真正机制是**纵向"手风琴"震荡 + 编队串级失稳（platoon string instability）**：
+  1. 列 1 先被甩开（g12 183→580 m），随后猛追赶上、**过冲追尾前列**（穿透至 -133 m）；
+  2. 列 2 单调被拉开到 689 m（列距断裂）。
+  3. 速度全程在 [10.6, 22.3] m/s 大幅震荡（触碰 v_min=11.11）。
+  4. 1000 步内这种相位漂移累积不明显，**horizon 拉长后各列循环制动相位差随距离放大**，任何一次相位错位滚成巨大震荡。
+- 训练日志 -63 万 = 某随机采样下后车更早追尾且势场/趋势惩罚未能救回 → 持续 -212/步。
+- **归因**：编队层奖励以**逐列独立速度带（+10/步）为主，间距保持（+1·exp(-(ge/140)²)）量级过弱**，缺少显式相对速度/VCTS 跟车项与提前闭合间距惩罚（gap_trend 仅当 cur<30 且 shrink>1 才触发）；策略不主动维持相对列距 → 长程列距失稳。
+
+**留痕**：脚本属诊断用（`tmp_diag_s1_crash.py` / `tmp_an_gap.py`），结论已落本文档，脚本本次保留供复现、后续清理。
+
+### 诊断-2026-09-09-formation 3列1+1 decompose seed0 5000步段坍塌（ADR-013 唯一 RL，修复+留痕）
+
+**背景**：formation-aware 机车级 ED/AB 分工（`configs/experiments/formation_ed_ab_3train_1plus1.yaml`，3列×1+1=6 agents，decompose='loco_ed_ab'）MT-2 统一物理下 5-seed 首跑（reward 为 2026-09-09 重调群组均速版本）。seed0 训练日志 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（发散产物已归档保留）。
+
+**训练命令（修复前）**：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 120`
+
+**数据（seed0，每 10 ep 采样）**：
+| Ep | Reward | best | peakCoupler | viol |
+|:--|:--|:--|:--|:--|
+| 30（1000步段） | +14069.4 | +16713.2 | 777 kN | 0.0 |
+| 40（1000步段末） | +16639.6 | +16713.2 | 768 kN | 0.0 |
+| 50（5000步段首） | **-791921.8** | +16713.2 | **1371 kN** | 332.2 |
+| 60 | -498533.1 | +16713.2 | **1387 kN** | 449.7 |
+| 70 | -696176.4 | +16713.2 | **1362 kN** | 315.3 |
+
+**结论（期望 vs 实际）**：
+- **期望**：重调后的群组均速速度带（编队整体进带才给正，越带谷值惩罚）能避免长程坍塌。
+- **实际**：1000 步段健康（+16k、viol 0、车钩力 768kN），**curriculum 跳到 5000 步段（Ep50）立即坍塌**（-50万~-80万、peakCoupler 超 1000kN、viol 300-450）。机制与 2026-09-08 编队层 3000 步段坍塌同构：**群组均速在带内 ≠ 列间同步**（如 [10.6,22.3]m/s 均值在带内仍纵向振荡），decompose 分支奖励**缺相对速度惩罚 + gap_trend 提前闭合惩罚**（该修复 2026-09-08 只落在非 decompose 分支 `_calculate_reward`，`_calculate_reward_decomposed` 未同步）→ 长程列距失稳。
+- **修复（2026-09-09）**：`src/environments/train_fleet_env.py` `_calculate_reward_decomposed` 补两项（对齐非 decompose 分支）：
+  1. `rel_vel_penalty = -0.1 * std(group_speeds)`：显式惩罚列间速度离散度（编队串级失稳的物理源头）；
+  2. `gap_trend_penalty`：间距误差在缩小（shrink>1）且已较近（cur<30m）→ 提前惩罚，不等追尾势场爆炸。
+- **验证**：`pytest tests/test_fleet_decompose.py tests/test_train_fleet_env.py` → **19 passed**；冒烟（3列 500 步规则基线动作）avg +17.0/步、NaN=0、peakCoupler 1kN、viol 0。
+- **留痕**：发散 seed0 产物归档至 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（含 metadata/csv/模型/fig，只回溯不引用）；修复后重跑由 relay v2 接管（`tmp_formation_relay.sh`，显式传每 seed 独立 dirs，5 seed 串行），日志 `outputs/checkpoints_formation/seed{N}_train.log` + relay.log。
+- **附注（relay v1 缺陷）**：v1 只传 `--seed N` 不传 dirs，而 config `dirs.checkpoint_dir` 写死 seed0 → seed1-4 会覆盖写进 seed0 目录且 metadata 检查 MISSING；v2 已改为逐 seed 显式 `--checkpoint_dir/--results_dir/--override dirs.figures_dir`。

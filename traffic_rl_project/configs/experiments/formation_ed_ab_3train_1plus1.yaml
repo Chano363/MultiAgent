@@ -1,0 +1,52 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# formation-aware 机车级 ED/AB 分工（唯一 RL 落位，ADR-013）
+#   3 列 × 1+1（每列 首/尾 双机车）= 6 agents（每台机车 = 智能体）
+#   以【编队】为上下文：观测含列间间距误差 obs[10]，奖励含 gap 编队项
+#   底层规则循环制动 + 车钩力安全层（enforce_coupler≤1000kN）确定性执行
+# 入口：python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml
+# ═══════════════════════════════════════════════════════════════════════════
+name: formation_ed_ab_3train_1plus1
+algorithm: mappo
+algo_params:                  # MAPPO（阶段一唯一收敛算法，迁移复用）
+  learning_rate: 0.00005
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.002
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet                # TrainFleetEnv（多列编队环境，3 列）
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus1  # 每列 1机车+94货车+1机车（多机车分布式动力，index [0,95]）
+  grade_profile: shuozhou_23800          # 【A1-final 回退 2026-09-09】主剖面暂留 23.8km，先让 leader-迁就协同在既有 15000 步协议上坐实收敛；53km(shuozhou_real_53km) 为收敛后新主线场景
+  v_max: 22.222                # 80 km/h
+  v_min: 11.111                # 40 km/h（编队目标速度带）
+  target_gap: 100.0            # 安全列距目标
+  max_steps: 15000
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
+  decompose: loco_ed_ab        # 机车级 ED/AB 分工：每机车行为 [ed_mod, ab_mod]∈[-1,1]²
+
+obs: env                       # 逐机车 11 维观测（含编队上下文 obs[10]=列间间距误差）
+action: continuous
+interaction: mappo_fleet       # MAPPO 交互（decompose：agent=每机车）
+reward: env_default            # decompose 模式奖励口径 = _calculate_reward_decomposed（R2+gap 编队项+车钩力）
+
+num_trains: 3
+decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短 15000 步信用链）
+episodes: 120                  # 6 机车编队探索难，20ep 远不够（曾发散）；加大到 120
+curriculum: 1000:0,2000:20,3000:30,5000:40,8000:60,12000:75,15000:90   # 【2026-09-09 修复】长程渐变递进：1000→2000→3000→5000→8000→12000→15000。原 1000→5000 步 5 倍跳变导致 seed0 首个 5000 步段（ep41）手风琴振荡崩塌（reward -43万/coupler 1405kN/viol 267，见 DIAGNOSTICS.md）。锚点保留：5000@ep40、15000@ep90
+init_speed_kmh: 80.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 10
+
+dirs:
+  checkpoint_dir: outputs/checkpoints_formation/seed0
+  results_dir: outputs/checkpoints_formation/seed0/results
+  figures_dir: outputs/checkpoints_formation/seed0/figures

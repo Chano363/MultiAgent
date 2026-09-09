@@ -206,6 +206,7 @@ class MultiLocoController:
     def get_action_decomposed(
         self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
         v_min: float = 40.0 / 3.6, ed_mod_coef: float = 0.5,
+        v_max_adj: float = 0.0, v_min_adj: float = 0.0,
     ):
         """规则循环制动基线 + 逐机车 RL 调制 → (final, baseline)，各 (num_loco,2)。
 
@@ -218,7 +219,10 @@ class MultiLocoController:
             才生效——远离超速才允许关兜底，"ED 优先"可学且安全）；
           * ab_mod < -0.5：提前触发本机车 MIN 档 AB 兜底（错峰/预判性引入）。
         """
-        baseline = self.get_action_cyclic_braking(train_env, v_max=v_max, v_min=v_min)
+        baseline = self.get_action_cyclic_braking(
+            train_env, v_max=v_max, v_min=v_min,
+            v_max_adj=v_max_adj, v_min_adj=v_min_adj,
+        )
         final = baseline.copy()
         vel = float(train_env.dynamics.vel[0])
         rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
@@ -238,6 +242,14 @@ class MultiLocoController:
             elif baseline[i, 1] >= 0 and ab_mod < -0.5:
                 # 提前触发 MIN 档兜底（RL 学"何时/哪台机车引入 AB"）
                 final[i, 1] = self.AB_FALLBACK_NOTCH
+        # 【2026-09-09 修复：decompose 调制必须过车钩力投影】基线 get_action_cyclic_braking
+        # 已应用 _coupler_throttle_scale，但 RL 调制后的 final 此前直接返回，导致 RL 可在
+        # 车钩力接近上限时把 ED 顶满（+ed_mod_coef）/触发 AB，突破 1000kN 底线（ep41-50
+        # 实测 peakCoupler 1366-1417kN、viol 138-794 发散）。与 get_action_accel 的
+        # ed_throttle *= scale 对齐：调制输出同样按比例钳制（车钩力>80%上限 → 制动缓和）。
+        scale = self._coupler_throttle_scale(train_env)
+        final[:, 0] *= scale
+        final[:, 1] *= scale
         return final, baseline
 
     # ------------------------------------------------------------------ #
@@ -261,6 +273,40 @@ class MultiLocoController:
             for loco_idx in self.loco_indices:
                 throttle[loco_idx] = min(target_accel / max(self.max_accel, 1e-6), 1.0)
         return np.stack([ed_throttle[self.loco_indices], np.full(self.num_locomotives, 0.0)], axis=1)
+
+    # ------------------------------------------------------------------ #
+    # A1 列间协同偏置（ADR-013 编队目的落地，2026-09-09）
+    # ------------------------------------------------------------------ #
+    def coordination_adj(
+        self,
+        gap_err: float,
+        rel_speed: float,
+        kp_gap: float = 0.001,
+        kd_rel: float = 0.003,
+        traction_coef: float = 0.0005,
+        max_traction: float = 0.3,
+        max_adj: float = 2.0,
+    ) -> tuple:
+        """按前列间距误差 + 相对速度差，返回速度带偏移 (v_max_adj, v_min_adj, traction)。
+
+        A1b 扩展：首版 A1（仅调带）无效——因为 `get_action_cyclic_braking` 是纯两态
+        （带外制动/带内惰行），带内根本没有"主动追逐"的杠杆，调带也追不上。
+        因此协同需要**真杠杆**：返回一个 `traction∈[0,max_traction]`，让 TMPF 跟随列在
+        **带内非制动段**输出正牵引主动追上（耦合进 decompose 的负 ed 通道）。领航列
+        (n=0) 无前列，gap_err/rel_speed 恒 0 → traction=0，单列特性零回归。
+
+        - gap_err > 0（间距偏大）：正 traction 主动追，缩间距；
+        - gap_err < 0（间距偏小）：负 traction（退 => 更慢的释放，避免压迫前列车钩力）；
+        - rel_speed = v_self - v_lead > 0（本列更快）：抑制 traction，防追尾积聚。
+        """
+        gap_adj = kp_gap * float(gap_err)
+        v_adj = np.clip(gap_adj + kd_rel * float(rel_speed), -max_adj, max_adj)
+        v_min_adj = np.clip(gap_adj, -max_adj, max_adj)
+        traction = np.clip(
+            traction_coef * float(gap_err) - kd_rel * float(rel_speed),
+            -max_traction, max_traction,
+        )
+        return float(v_adj), float(v_min_adj), float(traction)
 
     def reset(self):
         self._cyclic_braking = False

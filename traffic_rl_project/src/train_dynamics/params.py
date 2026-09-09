@@ -66,6 +66,9 @@ class CouplerParams:
       friction_static_n = 静摩擦 μs·FN（默认 1.5× 动摩擦）。
     - C 机车缓冲器分区：buffer_type='qkx100'（弹性胶泥，于宗泽式(3)(4)），
       月牙形两段刚度 + 速度幂律阻尼 C|v|^n（n<1，速度越快阻尼越大）。
+      【2026-09-07 superseded】经 ADR（docs/records/DECISIONS.md）统一回 MT-2
+      （A 范式，成熟论文"分车型归一对"），QKX100 实现已彻底移除，本文档该历史
+      项仅作文献/决策追溯保留。
     """
 
     stiffness: float = 1.89e7
@@ -81,13 +84,17 @@ class CouplerParams:
     落锤冲击 ~3.3 m/s >> v_er，落在动摩擦区）。
     这是主要冲击耗能机制：恒反对相对运动，低速时不像线性阻尼那样消失。"""
     friction_static_n: float = 7.5e5
-    """【R0-B Stribeck】静摩擦 μs·FN（牛顿，|v|→0 上界）。于宗泽式(2)：
-    "MT-2 型缓冲器运动速度越慢，摩擦力越大"。默认 1.5× 动摩擦（750 kN）。
-    缓解冲击（相对速度 ~0.1 m/s 量级 < v_er）处于静/动过渡区，阻抗高于
-    旧常数摩擦模型 —— 这是"卸载初期阻抗较小"现象的另一面。"""
+    """【R0-B Stribeck】静摩擦 μs·FN（牛顿，|v|→0 上界）。结构源于于宗泽式(2)
+    = 杨亮亮2017式(3)（中国铁道科学 38(1):123）：μ_a=μs（Δv=0）、
+    μs−(μs−μk)·Δv/v_er（0<Δv<v_er）、0（Δv≥v_er），"MT-2 运动速度越慢摩擦力越大"。
+    默认 1.5× 动摩擦（750 kN）——μs/μk 是冲击试验拟合的可调常数，1.5 属标定值
+    （Lei2019 楔簧摩擦系数 0.3 同量级，非文献单一标准值）；缓解冲击
+    （相对速度 ~0.1 m/s < v_er）处于静/动过渡区，阻抗高于旧常数模型。"""
     friction_v_er: float = 0.2
-    """【R0-B Stribeck】动、静摩擦之间转换速度阈值 v_er（米/秒，于宗泽式(2)）。
-    |v|≥v_er 全动摩擦；|v|=0 全静摩擦；中间线性过渡。设 0 退化为常数摩擦。"""
+    """【R0-B Stribeck】动、静摩擦之间转换速度阈值 v_er（米/秒，于宗泽式(2)
+    = 杨亮亮2017式(3)，完全同型：Δv≥v_er 全动摩擦、Δv=0 全静摩擦、中间线性过渡）。
+    设 0 退化为常数摩擦。v_er 的具体数值为冲击试验拟合（于宗泽/杨亮亮以冲击工况
+    标定命中尖峰现象），0.2 m/s 为模型标定值，非文献单一发布常数。"""
     friction_v_eps: float = 0.05
     """摩擦方向 tanh 平滑速度阈值（米/秒）。tanh 平滑近似 sign(dv)，
     避免 stick-slip 硬切换的数值抖动（于宗泽式(2) 的 v_er 平滑对应物）。"""
@@ -101,7 +108,6 @@ class CouplerParams:
     F_u(83mm) = 200 + 1568 − 500 = 1268 ≈ 2270 − 2×500 kN。
     【实测带门禁】u=0.4（HANDOFF 建议值）使 1万吨循环制动峰值 +894 kN
     （1372→2266），突破王鼎 46 次 2250 kN 上限与四源 1800 kN 带，故不采用。
-    机制保留为参数：QKX100 胶泥迟滞用 0.6（弹性胶泥卸载迟滞宽于纯摩擦式）。
     """
     damping: float = 5.0e4
     """（已弃用）线性阻尼（N·s/m）。被 friction_n 库仑摩擦取代，
@@ -123,10 +129,9 @@ class CouplerParams:
     死区内 |e|<=gap 不产生弹簧力，只有阻尼；间隙越大→车钩力峰值越大。
     默认 0.01m 对应杨敏论文研究的间隙量级。"""
     max_impulse_n: float = 2.27e6
-    """缓冲器最大阻抗力（牛顿）。真实重载货车缓冲器 MT-2 = 2270 kN（李蔚 2023），
-    机车 QKX100 = 2500 kN。设为 0 禁用（向后兼容）。"""
+    """缓冲器最大阻抗力（牛顿）。MT-2 = 2270 kN（李蔚 2023）。设为 0 禁用（向后兼容）。"""
     stroke_m: float = 0.083
-    """缓冲器最大行程（米）。MT-2 / QKX100 行程 = 83mm。
+    """缓冲器最大行程（米）。行程 = 83mm。
 
     【2026-08-30 标准 LTD 重构】真实缓冲器行程是硬限位：位移超过行程后
     金属接触，刚度剧增（几乎不可压缩）。原 tanh 软饱和只封顶力、不限位位移，
@@ -138,58 +143,6 @@ class CouplerParams:
     """行程限位后的刚性接触刚度（N/m）。约为正常阻抗刚度（5e6）的 10 倍，
     模拟缓冲器打满后的金属接触（位移被约束在行程内）。
     不宜过大（如 1e9），否则 Newmark 迭代对剧增力发散产生 NaN。"""
-    # ---------------- 【R0-C】QKX100 弹性胶泥缓冲器扩展 ----------------
-    # 结构 = 于宗泽2025式(3)(4)：F_Q = F_k(x) + sgn(v)·(C|v|^n + F_d + f)。
-    # 文献只给结构 + 静压/落锤曲线形状（月牙形），未在正文给出拟合常数，
-    # 下列数值为形状标定（约束：2500 kN@83mm、月牙形两段刚度、小压缩量
-    # 阻抗 < MT-2、速度幂律阻尼 n<1），非文献拟合值 —— 使用时须知此边界。
-    buffer_type: str = "mt2"
-    """缓冲器类型：'mt2'（货车摩擦式，默认）或 'qkx100'（机车弹性胶泥）。"""
-    k2_nm: float = 0.0
-    """月牙形第二段刚度（N/m，x>knee_x_m 段）。0 = 单段刚度（MT-2）。
-    QKX100 月牙形：加载初期上升快、末期变缓 → k1 > k2（凹形/软化）。"""
-    knee_x_m: float = 0.02
-    """两段刚度转折点（米）。"""
-    viscous_c: float = 5.0e5
-    """胶泥阻尼系数 C（N·s⁻ⁿ/mⁿ，于宗泽式(4) F_r = C|v|^n + F_d + f）。"""
-    viscous_n_exp: float = 0.55
-    """胶泥阻尼速度指数 n（0<n<1，于宗泽式(4)；"运动速度越快，胶泥的阻尼越大"）。
-    落锤 3.3 m/s 时阻尼远大于运行速度 → 直角梯形；正常运行低速 → 月牙形。"""
-    static_damp_n: float = 3.0e4
-    """静止状态阻尼力 F_d（牛顿，于宗泽式(4)；胶泥静压仍有少量流动阻力）。"""
-
-
-def qkx100_params() -> CouplerParams:
-    """机车 QKX100 弹性胶泥缓冲器参数（于宗泽2025式(3)(4) 结构 + 形状标定）。
-
-    文献锚点（硬约束）：
-    - 最大阻抗 2500 kN、行程 83 mm（李蔚2023表1：机车 QKX100 / 货车 MT-2）；
-    - 月牙形阻抗特性（正常运行低速）：加载初期上升快、末期变缓 → 两段刚度
-      k1=6e7（60 kN/mm）> k2=2.14e7（21.4 kN/mm），F(83mm)≈2500 kN；
-    - "小压缩量下的阻抗小于 MT-2"（于宗泽图9：QKX100 车钩位移明显大于 MT-2）；
-    - 速度幂律阻尼 C|v|^n（n=0.55<1）+ 静止阻尼 F_d + 移动摩擦 f；
-    - 加载/卸载曲线存在明显差别（静压试验，于宗泽图4）→ 卸载刚度比 0.6
-      （胶泥迟滞窄于 MT-2 摩擦式）。
-
-    标定边界：C/F_d/f/k1/k2 为形状标定值（文献未给拟合常数），量级合理性
-    由 tests/test_coupler_model_refined.py 断言（2500 锚、月牙形、小压缩量 < MT-2）。
-    """
-    return CouplerParams(
-        buffer_type="qkx100",
-        stiffness=6.0e7,        # k1：第一段（0~20mm，60 kN/mm，月牙形陡升段）
-        k2_nm=2.14e7,           # k2：第二段（20~83mm，21.4 kN/mm，趋缓段）
-        knee_x_m=0.02,
-        preload_n=1.0e5,        # 胶泥初始阻抗低（无摩擦楔块预压；UM 平台 ~50 kN 量级参考）
-        friction_n=1.0e5,       # 移动摩擦力 f（式(4)）
-        friction_static_n=1.0e5,   # QKX100 不用 Stribeck（阻尼随速度增大，方向相反）
-        friction_v_er=0.0,         # 0 = 禁用 Stribeck 过渡
-        unload_stiffness_ratio=0.6,
-        max_impulse_n=2.5e6,    # 2500 kN（李蔚2023表1）
-        stroke_m=0.083,
-        viscous_c=5.0e5,
-        viscous_n_exp=0.55,
-        static_damp_n=3.0e4,
-    )
 
 
 @dataclass
@@ -217,11 +170,9 @@ def sample_coupler_params(rng, base: CouplerParams = None,
 
     在一个车钩内独立扰动**力相关的物理参数**：stiffness/preload_n/friction_n/
     coupler_gap_m/stroke_m/rigid_stiffness_nm 各乘 [force_scale] 内的均匀抽样因子。
-    关联参数随主参数同步缩放：k2_nm 随 stiffness、friction_static_n 随 friction_n、
-    viscous_c 独立扰动（力相关）。布局与饱和不扰动：free_length_m（决定静止
-    间距/编组尺度）与 max_impulse_n（缓冲器饱和上限）保持不变，避免破坏编组
-    布局与安全。buffer_type 不扰动（货车 MT-2 研究域；机车 QKX100 分区由
-    TrainDynamics 按编组自动分派）。
+    关联参数随主参数同步缩放（stiffness 关联 k2 已随 QKX100 移除、friction_static_n
+    随 friction_n）。布局与饱和不扰动：free_length_m（决定静止间距/编组尺度）与
+    max_impulse_n（缓冲器饱和上限）保持不变，避免破坏编组布局与安全。
 
     rng：numpy random Generator（调用方须传已 seed 的 rng，如 np.random.default_rng(seed)，
     保证评估可复现；held-out 用不同 seed 即可得到训练未见参数）。
@@ -230,26 +181,19 @@ def sample_coupler_params(rng, base: CouplerParams = None,
     b = base if base is not None else CouplerParams()
     lo, hi = force_scale
     f = lambda x: float(x * rng.uniform(lo, hi))
-    fk = float(rng.uniform(lo, hi))   # stiffness 关联因子（k2 同步）
     ff = float(rng.uniform(lo, hi))   # friction 关联因子（静摩擦同步）
     return CouplerParams(
-        stiffness=fk * b.stiffness,
-        k2_nm=fk * b.k2_nm,
+        stiffness=f(b.stiffness),
         preload_n=f(b.preload_n),
         friction_n=ff * b.friction_n,
         friction_static_n=ff * b.friction_static_n,
-        viscous_c=f(b.viscous_c),
         coupler_gap_m=f(b.coupler_gap_m),
         stroke_m=f(b.stroke_m),
         rigid_stiffness_nm=f(b.rigid_stiffness_nm),
         friction_v_eps=b.friction_v_eps,
         friction_v_er=b.friction_v_er,
         unload_stiffness_ratio=b.unload_stiffness_ratio,
-        static_damp_n=b.static_damp_n,
         damping=b.damping,
         free_length_m=b.free_length_m,
         max_impulse_n=b.max_impulse_n,
-        buffer_type=b.buffer_type,
-        knee_x_m=b.knee_x_m,
-        viscous_n_exp=b.viscous_n_exp,
     )

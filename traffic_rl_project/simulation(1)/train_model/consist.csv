@@ -1,0 +1,9 @@
+weight_key,weight_name,sequence,vehicle_id,quantity,role
+5000t,5千吨,1,HXD1,1,locomotive
+5000t,5千吨,2,C80,54,wagon
+10000t,万吨,1,HXD1,1,locomotive
+10000t,万吨,2,C80,108,wagon
+20000t,两万吨,1,HXD1,1,locomotive
+20000t,两万吨,2,C80,105,wagon
+20000t,两万吨,3,HXD1,1,locomotive
+20000t,两万吨,4,C80,105,wagon

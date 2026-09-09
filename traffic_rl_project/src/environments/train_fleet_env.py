@@ -37,6 +37,24 @@ from src.train_dynamics.etcs_braking import (
 
 
 class TrainFleetEnv:
+    # 【A1-final 双向列距维持，2026-09-09】leader 最多比尾部列快这么多（m/s），
+    # 留出追上裕量。大于此则 leader 迁就压速，编队以尾部能跟上的共同速度前进。
+    LEAD_TAIL_OFFSET_MPS = 5.0
+
+    # 【列距主动收缩 v2 2026-09-09】follower 级联追前列的强化增益。
+    # A2 全局共同速度锁把 follower 上限一起压到"最慢列+5"，使"最慢列当 follower"时
+    # 无追能力 → col1-col2 停在 ~2400m 缩不回；且原 coordination_adj 增益太小。
+    # 放大追增益 + 上限改 min(协调抬带, lead_speed+offset)，让级联追前列真正生效。
+    LEAN_KP_GAP = 0.004
+    LEAN_TRACTION_COEF = 0.0015
+    LEAN_MAX_TRACTION = 0.5
+    LEAN_MAX_ADJ = 3.0
+
+    # 【等速冻结消除 2026-09-09】三列等速时 coordination_adj 偏置无累积 → 间距冻结在
+    # ~1300m。chase：follower 落后超前区时把缓解线抬到"仅比 lead 快一点"持续缩距。
+    LEAN_CHASE_DELTA_MPS = 0.8
+    LEAN_CHASE_DEADBAND_M = 25.0
+
     """
     多列万吨列车编队协同控制环境。
 
@@ -62,7 +80,7 @@ class TrainFleetEnv:
         config = config or {}
         self.num_trains = config.get('num_trains', 3)
         self.consist_preset = config.get('consist_preset', '10kt_1plus0')
-        self.grade_profile = config.get('grade_profile', 'shuozhou_23800')
+        self.grade_profile = config.get('grade_profile', 'shuozhou_real_53km')  # 主训练默认=朔黄完整真实纵断面 53.2km
         # 限速区间（m/s）：对齐 Zhang2024（朔黄线 23.8km 长大下坡循环制动）[40,80] km/h。
         # 依据（V5.24 系统核对）：
         # - 上限 80 km/h = 朔黄线实际线路限速（Zhang2024: "speed limit on this line was 80 km/h"，
@@ -575,13 +593,66 @@ class TrainFleetEnv:
         ab_count = 0       # 本步激活的 AB 源总数（奖励塑形：AB 贵）
         ed_sum = 0.0       # 本步 ED 深度合计（ED 便宜，鼓励 ED 优先）
         a = 0
+        # 【列距收缩 v2 2026-09-09】放弃 A2"全场共同速度锁"（它会连 follower 一起压死，
+        # 使"最慢列当 follower"时无追能力 → col1-col2 停在 ~2400m 缩不回）。
+        # 现为：leader(ti==0) 沿用 A1-final 迁就尾列；follower(ti>0) 级联追自己前列，
+        # 上限 = min(协调抬带, lead_speed+offset)，见下方 follower 分支。
         for ti, (tr, ctrl) in enumerate(zip(self.trains, self.multi_loco_controllers)):
             v_before = float(tr.dynamics.vel[0])
             n_loco = len(tr.loco_indices)
             rl = actions[a:a + n_loco]
+            # 【A1-final 双向列距维持，2026-09-09。C3 铁证：长大下坡"位置→坡度→速度"
+            # 正反馈——leader 先进深坡加速到 |v_max|，follower 在缓坡平衡低速，物理上
+            # 追不上（A1b"follower 追"无效）。唯一物理可收敛路径 = leader 迁就降速：
+            # leader 目标速度带上限受"尾部列速度"约束，编队以尾部能跟上的共同速度前进。
+            # 领航列(ti==0)迁就；跟随列(ti>0)保留带内追上杠杆作辅助。
+            if ti == 0:
+                # 【leader 迁就】限制 leader 速度带不高于 "尾部列速度 + 裕量"。
+                tail_speed = float(self.trains[-1].dynamics.vel[0])
+                lead_cap = float(np.clip(self.v_max, 0.0,
+                                         tail_speed + self.LEAD_TAIL_OFFSET_MPS))
+                v_bound_max = lead_cap - self.v_max  # ≤0：压低 leader 的超速触发线
+                v_bound_min = 0.0
+                coordination_traction = 0.0
+            else:
+                lead_tail = float(self.trains[ti - 1].dynamics.pos[-1])
+                gap_err = (lead_tail - self._train_heads[ti]) - self._dynamic_gap()
+                lead_speed = float(self.trains[ti - 1].dynamics.vel[0])
+                self_vel = v_before
+                v_bound_max, v_bound_min, coordination_traction = ctrl.coordination_adj(
+                    gap_err=gap_err,
+                    rel_speed=self_vel - lead_speed,
+                    kp_gap=self.LEAN_KP_GAP,
+                    traction_coef=self.LEAN_TRACTION_COEF,
+                    max_traction=self.LEAN_MAX_TRACTION,
+                    max_adj=self.LEAN_MAX_ADJ,
+                )
+                # 【列距主动收缩 v2 2026-09-09】A2 全场共同速度锁（v_cap_max）把 follower
+                # 速度带上限压到"最慢列+5"。当 follower 恰为全场最慢列时被自己拖死，col1-col2
+                # 停在 ~2400m 缩不回。修复：共同速度锁只约束 leader；follower 上限改用
+                # "lead 速度 + 允许offset"，让级联追前列真正生效，间距靠 coordination_adj
+                # 的 gap 抬带/牵引收缩，防追尾由 rel_speed 抑制 + 前置 ETCS(gap) 监督兜底。
+                v_bound_max = min(v_bound_max, lead_speed + self.LEAD_TAIL_OFFSET_MPS)
+                # 【等速冻结消除 chase 2026-09-09】三列等速时 coordination_adj 追的偏置
+                # 因 rel_speed≈0 / gap_err 恒定而无累积 → 间距在 ~1300m 冻结。补救：当
+                # follower 仍明显落后（gap_err>死区）时，把缓解线(v_min)抬高到
+                # "仅比 lead 快一个小量"的目标速度，使 follower 在带内常态获得正向加速度，
+                # 持续缩距直到 gap_err 落入死区（进入死区后撤销 chase，防追过头压迫前列）。
+                if gap_err > self.LEAN_CHASE_DEADBAND_M:
+                    chase_v = float(np.clip(
+                        lead_speed + self.LEAN_CHASE_DELTA_MPS, self.v_min, self.v_max))
+                    v_bound_min = max(v_bound_min, chase_v - self.v_min)
             final_edab, _ = ctrl.get_action_decomposed(
                 tr, rl, v_max=self.v_max, v_min=self.v_min,
+                v_max_adj=v_bound_max, v_min_adj=v_bound_min,
             )
+            # 【A1b 带内追逐】协调偏置的正 traction 注入 decompose 的 ed 通道（负 ed=牵引）：
+            # 仅当本步规则在"带内非制动段"（_cyclic_braking==False）且不在电梯制动中
+            # 才注入——制动/ED 段仍以安全为准，避免"边追边制"冲突。
+            if ti > 0 and coordination_traction > 0 and not ctrl._cyclic_braking:
+                for k in range(final_edab.shape[0]):
+                    if final_edab[k, 0] <= 1e-9:  # 本机车未在 ED 制动
+                        final_edab[k, 0] = -float(coordination_traction)
             self._executed_actions[a:a + n_loco] = final_edab
             a += n_loco
             ab_count += int(np.sum(final_edab[:, 1] < 0))
@@ -630,11 +701,33 @@ class TrainFleetEnv:
           让 RL 学"ED 打满、AB 只在 ED 不足时兜底"——这是本架构给 RL 的真物理杠杆；
         - ED 轻成本 -0.02/深度：防无谓满 ED（如低速滑行），但远低于 AB 成本。
         """
-        # 限速区间（循环制动核心，同旧模式 ±5/-20 per train）
+        # 限速区间（循环制动核心）：逐列(agent)速度势场，非群组门槛——文献基准
+        # V3.5.3b（Zhang2021 逐 agent APF + Guo2025 大负值硬奖惩）：
+        #   1) 每列按自身 v 对带中心做连续 APF（越靠近 v_center 奖越大，越带越深）；
+        #   2) 任一列撞带上限(超速)触发大负值硬惩罚（流速约束，等效 Guo2025 −15）；
+        #   3) 不要求全列齐步（发散的旧"群组均速带"已废）。
+        # 旧版(2026-09-09 上半期)「群组均速二值门槛」反范式 → 已在 VALIDATION_BASELINE V3.5.3b 留痕。
         speed_band_reward = 0.0
+        v_center = 0.5 * (self.v_min + self.v_max)
+        band_half = 0.5 * (self.v_max - self.v_min)
+        force_penalty = 0.0  # 撞带上限→大负值硬惩罚（安全约束，超速不可容忍）
         for tr in self.trains:
-            vel = float(tr.dynamics.vel[0])
-            speed_band_reward += 5.0 if self.v_min <= vel <= self.v_max else -20.0
+            v = float(tr.dynamics.vel[0])
+            # 连续 APF：|v-v_center|/band_half ∈ [0,1] 内奖最大，越带逐渐转负
+            norm_dev = abs(v - v_center) / max(band_half, 1e-6)
+            if norm_dev <= 1.0:           # 带内：越近中心奖越大（+6 → 0）
+                speed_band_reward += 6.0 * (1.0 - 0.9 * norm_dev)
+            else:                          # 越带上限/下限：越深越罚（−0.2/单位偏移）
+                speed_band_reward -= 0.2 * (norm_dev - 1.0) * 100.0
+            if v > self.v_max:             # 超速不可容忍 → 大负值硬惩罚（每列独立）
+                force_penalty -= 5.0 * (v - self.v_max)
+
+        # 编队级联稳定性（诊断-2026-09-08 Option 1，修复长程手风琴振荡）：
+        # 各列速度在带内 ≠ 列间同步（如 [10.6,22.3]m/s 均值在带内仍纵向振荡），
+        # 必须显式惩罚各列速度离散度（对齐非 decompose 分支 -0.1*speed_consistency）。
+        # 权重保守：真实剖面多坡段各列速度天然不同步，过强会误伤追车所需的速度差。
+        group_speeds = [float(tr.dynamics.vel[0]) for tr in self.trains]
+        rel_vel_penalty = -0.1 * float(np.std(group_speeds))
 
         # 车钩力约束（创新点，同旧模式权重）
         coupler_means = obs[:, 5] if self.num_agents else np.zeros(1)
@@ -651,9 +744,15 @@ class TrainFleetEnv:
         gap_reward = 0.0
         potential_field = 0.0
         collision_penalty = 0.0
+        # 追尾趋势早期惩罚（诊断-2026-09-08 Option 1，对齐非 decompose 分支 gap_trend）：
+        # 间距误差在缩小（后列逼近前列）且已较近 → 提前惩罚，引导 RL 提前协同减速，
+        # 而非等追尾势场爆炸（长程 5000 步段串级失稳的根因）。
+        gap_trend_penalty = 0.0
+        current_gap_err = []
         if self.num_trains > 1:
             for i in range(1, self.num_trains):
                 ge = (self.trains[i - 1].dynamics.pos[-1] - self._train_heads[i]) - self._dynamic_gap()
+                current_gap_err.append(ge)
                 gap_reward += 1.0 * float(np.exp(-(ge / 140.0) ** 2))
                 if ge > 150.0:
                     gap_reward -= 0.02 * (ge - 150.0)
@@ -663,8 +762,20 @@ class TrainFleetEnv:
                 if actual_gap < min_gap:
                     potential_field += -2.0 * (min_gap - actual_gap) ** 2
                 if actual_gap < 5.0:
-                    collision_penalty -= 50.0
+                    # 降软：追尾硬惩罚从 -50/对 降为 -10/对，避免多列逐对累加成负信号洪流
+                    collision_penalty -= 10.0
             potential_field = max(potential_field, -200.0)
+            if self._prev_gap_err is not None and len(current_gap_err) == len(self._prev_gap_err):
+                for i, cur in enumerate(current_gap_err):
+                    prev = self._prev_gap_err[i]
+                    # 间距误差在变小（实际间距缩短，逼近前列）→ 追尾趋势 → 惩罚
+                    shrink = prev - cur
+                    # 【2026-09-09 修复】触发窗放宽（cur<30→60m，shrink>1→0.5m/步）：长程段
+                    # 振荡中后列从 100m 目标快速逼近时需更早更连续的信号（原窗只在 30m 内、
+                    # 且 0.5 权重单步惩罚过浅，5000 步段手风琴建立前几乎不触发）
+                    if shrink > 0.5 and cur < 60.0:  # 间距缩短且已较近 → 追尾风险
+                        gap_trend_penalty -= 0.4 * shrink
+            self._prev_gap_err = current_gap_err
 
         # 电空分工塑形（本架构核心）：AB 是手段、车钩力才是目标——冒烟实证 RL 用
         # "错峰 MIN 档 AB"降车钩力 24%，任何 AB 成本都会等额抵消该收益
@@ -675,7 +786,10 @@ class TrainFleetEnv:
 
         return (
             + speed_band_reward
+            + force_penalty
+            + rel_vel_penalty
             + gap_reward
+            + gap_trend_penalty
             + potential_field
             + collision_penalty
             + comfort_penalty
@@ -713,6 +827,11 @@ class TrainFleetEnv:
         # 第1层成功关键：速度在限速区间内给清晰正向(+5/步)，超出硬惩罚(-20/步)，制动有成本(-0.5)。
         # 第2层原奖励全是连续负惩罚，RL 无法判断"该制动还是缓解"，导致 v1 贴上限超速(97%)、
         # v2 二次惩罚探索期崩溃。重构为与第1层一致的清晰区间引导 + 多列协同项。
+        # 【reward 版本 R2（2026-09-08，编队层长程 curriculum 修复）】seed1 长程(9000+步)灾难根因=
+        # 追尾惩罚每步 -50 长程累积爆炸（-172万）。R2 改动：追尾硬惩罚 -50→-12/步；速度带内
+        # +5→+10/列/步（强化长程"维持带内循环"持续正反馈）。避免追尾仍由 gap_trend(超前预防)
+        # + 势场(clip)分担。其余 shaping 不变。训练/评估共用本 env，reward 口径一致。
+        #
         # 速度一致性（各列速度相互差，越小越好）——协同制动时各列应协调减速
         speeds = np.array([tr.dynamics.vel[0] for tr in self.trains])
         speed_consistency = float(np.std(speeds))
@@ -746,7 +865,7 @@ class TrainFleetEnv:
                 potential_field += -2.0 * (min_gap - actual_gap) ** 2
             # 追尾硬惩罚（间距接近 0）
             if actual_gap < 5.0:
-                collision_penalty -= 50.0
+                collision_penalty -= 12.0  # R2：-50→-12，防长程追尾累积爆炸（seed1 -172万根因）
         potential_field = max(potential_field, -200.0)  # E22：数值稳定+降灾难量级（原-2000长距离累积爆炸）
 
         # 限速区间约束 [v_min, v_max]（循环制动核心目标，对齐 Zhang2024 朔黄线[40,80]，V5.24）：
@@ -758,7 +877,7 @@ class TrainFleetEnv:
         for i, tr in enumerate(self.trains):
             vel = tr.dynamics.vel[0]
             if self.v_min <= vel <= self.v_max:
-                speed_band_reward += 5.0
+                speed_band_reward += 10.0
             else:
                 speed_band_reward -= 20.0
 

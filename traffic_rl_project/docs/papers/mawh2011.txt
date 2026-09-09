@@ -1,0 +1,383 @@
+第11卷　第2期
+2011年4月
+交 通 运 输 工 程 学 报
+JournalofTrafficandTransportationEngineering
+Vo∙l11　No∙2
+Apr．2011
+收稿日期：2010-11-29
+基金项目：国家自然科学基金项目（51005190）；霍英东教育基金项目（122014）；中国博士后科学基金项目（20100471655）；高等学校博士学
+科点专项科研基金项目（20090184120006）
+作者简介：马卫华（1979-）山东滕州人西南交通大学副研究员工学博士从事车辆动力学研究。
+文章编号：1671-1637（2011）02-0059-06
+缓冲器阻抗特性对重载列车动力学性能的影响
+马卫华
+1
+宋荣荣
+2
+揭长安
+3
+罗世辉
+1
+（1∙西南交通大学牵引动力国家重点实验室四川成都　610031；2∙西南民族大学计算机科学与技术学院
+四川成都　610041；3∙中国北车天津机辆轨道交通装备有限责任公司天津　300232）
+摘　要：研究了重载列车缓冲器的特性分析了弹性胶泥型缓冲器和摩擦胶泥型缓冲器的结构及工
+作原理以HXD1型机车、13A型车钩以及2种类型缓冲器为基础建立了4节编组机车万吨级牵
+引列车动力学模型研究了2种缓冲器静态与动态阻抗特性对重载列车相关动力学性能的影响。
+仿真结果表明：重载列车在长大下坡道进行循环制动时摩擦胶泥型缓冲器无穷大的静态阻抗特性
+有利于发挥缓冲作用在受到900kN静态压力的情况下能够保持100％的缓冲器行程和容量且
+能满足进一步缓冲1000kN动态压力的需要此时缓冲器的行程不超过20mm；在900kN静态压
+力与400kN动态压力的复合作用下弹性胶泥型缓冲器行程就已经达到60mm难以满足缓冲更
+大冲击压力的需要；在动态阻抗特性方面2种缓冲器均能满足万吨级重载列车的正常运行要求。
+关键词：重载列车；HXD1机车；纵向冲击；车钩和缓冲器；阻抗特性；弹性胶泥；摩擦胶泥
+中图分类号：U260．34　　　文献标志码：A
+Influences of buffer impedance characteristics on dynamics
+performances for heavy haul train
+MAWe-ihua
+1
+SONGRong-rong
+2
+JIEChang-an
+3
+LUOSh-ihui
+1
+（1．TractionPowerStateKeyLaboratorySouthwestJiaotongUniversityChengdu610031SichuanChina；
+2．SchoolofComputerScienceandTechnologySouthwestUniversityforNationalitiesChengdu610041
+SichuanChina；3．CNRTianjinJLRailwayTransportEquipmentCo．Ltd．Tianjin300232China）
+Abstract：Thebuffer characteristics of heavy haul train were studiedand the structures and
+workingprinciplesofelasticclaybufferandfrictionclaybufferwereanalyzed．Onthebasisof
+HXD1typelocomotive13A typecoupler and two buffersadynamics model of10
+4
+t grade
+tractiontrainwithfourmarshallinglocomotiveswasestablishedandtheinfluencesofthestatic
+anddynamicimpedancecharacteristicsoftwobuffersonthedynamicsperformancesofheavyhaul
+trainwere researched．Simulation result indicates that when heavy haul train conducts cycle
+brakingonlongdowngradetheinfinitestaticimpedancecharacteristicoffrictionclaybufferis
+beneficialtoplaybufferactionandthestrokeandcapacityoffrictionclaybuffercankeep100％
+underthestaticpressureof900kN．Frictionclaybufferalsocansatisfythedemandoffurther
+dynamicpressure of1000kNwhile the buffer strokeis no more than20mm．Under the
+compoundeffect of staticpressureof900kN anddynamicpressureof400kNthestrokeof
+elasticclaybufferhasreached60mmsoelasticclay buffercanʾt satisfy thedemandof more
+greaterimpactpressure．Ontheaspectofdynamicimpendencecharacteristictwobuffersallcan
+DOI:10．19818／j．cnki．1671－1637．2011．02．010
+satisfythenormalrunningdemandof10
+4
+tgradeheavyhaultrain．9figs16refs．
+Key words： heavy haul train；HXD1locomotive；longitudinal impact；coupler and buffer；
+impedancecharacteristic；elasticclay；frictionclay
+Author resume： MA We-ihua（1979-）maleassociate researcherPhD＋86-28-87601973
+maweihua2008＠gmail．com．
+0　引　言
+在重载列车的发展过程中钩缓系统出现了很
+多脱钩、断钩、钩尾销折断、车钩疲劳损伤、钩尾框裂
+纹、缓冲器破损等问题严重影响了列车运行的安全
+性
+［1-4］
+。为此相关部门针对重载列车钩缓系统进行
+了大量的研究在车钩设计规范、空气制动学和列车
+操纵等方面做了相应的规定
+［5-8］
+。国内外对于实施
+制动时车钩缓冲装置对机车动力学的具体影响研究
+较少2002年加拿大曾发生过一起列车电制动脱轨
+事故
+［9-10］
+。王开云等结合重载机车研究了车钩自由
+角对轮轨动态安全性能的影响分析了车钩在承压
+状态下的机车安全性问题对车钩自由转角、复位能
+力进行了分析并通过动力学仿真进行了验证计算
+但是没有充分考虑缓冲器的影响因素
+［11］
+；王成国等
+应用CAE软件研究了重载货车缓冲器的性能以及
+MT-2型缓冲器各参数与阻抗力、容量之间的关系
+分析了缓冲器对重载列车纵向力的影响
+［12］
+；杨俊杰
+等采用动力学软件建立了2万吨重载列车多质点模
+型和缓冲器数值模型分析了缓冲器最大阻抗力、行
+程和初压力对列车纵向动力学性能的影响
+［13］
+。
+缓冲器各性能参数如缓冲器行程、最大阻抗力、
+容量、初压力、吸收率等对缓冲器性能均有较大的影
+响其中尤以缓冲器的阻抗特性影响突出。目前针
+对缓冲器的研究大多集中在缓冲器的动态阻抗特性
+方面对缓冲器的静态阻抗特性特别是静态阻抗特
+性对列车纵向冲动的影响关注较少。大秦线重载列
+车运行中发现在长大下坡道进行循环制动时缓冲
+器容易发生损坏及胶泥泄露现象而这正是由静态
+阻抗力较小所导致的
+［14-15］
+。本文针对重载列车钩缓
+系统进行研究分析缓冲器动态、静态阻抗特性对重
+载机车动力学性能的影响。
+1　缓冲器阻抗特性
+缓冲器静态阻抗力和动态阻抗力分别对应缓冲
+器在静态、动态下所能承受的最大作用力。在容量
+一定的情况下较大的静态阻抗力、较小的动态阻抗
+力有利于缓冲器作用的发挥。
+缓冲器静态阻抗力大于机车启动时的持续牵引
+力和长大下坡循环制动的持续制动力时缓冲器的
+行程较小。这种状态下受到进一步的冲击时有足
+够的剩余缓冲行程使缓冲器充分发挥作用。而缓
+冲器的静态阻抗力小于机车启动时的持续牵引力和
+长大下坡循环制动的持续制动力时此时已达到缓
+冲器的最大行程这种状态下受到冲击没有足够的
+剩余缓冲行程不能发挥缓冲作用。
+中国重载机车一般采用MT-2型或者弹性胶泥
+型缓冲器由于MT-2型缓冲器容量较小已不能满
+足万吨级列车的要求。本文以一种大容量弹性胶泥
+型缓冲器和一种大容量摩擦胶泥型缓冲器进行分
+析分别简记为弹性胶泥型缓冲器及摩擦胶泥型缓
+冲器。缓冲器动态阻抗特性可采用试验的方法确
+定大秦线重载机车所采用的弹性胶泥型缓冲器、
+MT-2型缓冲器以及摩擦胶泥型缓冲器的动态阻抗
+特性曲线见图1可见3种缓冲器的行程相近但弹
+性胶泥型缓冲器和摩擦胶泥型缓冲器的动态阻抗力
+随着缓冲器行程的增大迅速增大有利于缓冲特性
+的发挥优于MT-2型缓冲器的动态阻抗特性。
+图1　缓冲器特性曲线
+Fig．1　Characteristiccurvesofbuffers
+2　重载机车缓冲器
+2．1　弹性胶泥型缓冲器
+大秦线万吨级重载列车原装的MT-2型缓冲器
+60 交　通　运　输　工　程　学　报　　　　　　　　　　 　2011年
+在试验时因列车冲动大而发生了裂损。为减轻对机
+车的纵向冲击分别在SS4改型机车和HXD1机车
+上应用了弹性胶泥型缓冲器运用情况证明其基本
+能够满足大秦线重载列车的运行要求。这种缓冲器
+以弹性胶泥作为主要吸能介质不仅与MT-2型缓
+冲器等国内通用的钩缓安装接口一致具有容量大
+与吸能效果好的优点同时检修周期长比较适合于
+重载机车目前已经在大秦线批量装车；较MT-2型
+缓冲器在紧急制动工况下的最大纵向力、最大冲击
+与常用全制动工况下的最大冲击有较大改善。
+弹性胶泥型缓冲器的初压力不大于150kN最
+大动态阻抗力不大于2500kN行程不大于83mm
+容量不小于100kJ吸收率不小于80％；最大静态
+阻抗力不小于1200kN容量不小于35kJ吸收率
+不小于45％。大秦线试验结果表明在长大下坡道
+列车的最大车钩力在900kN左右同样的结果也
+出现在澳大利亚昆士兰和南非Spoornet铁路两大
+万吨级重载运输列车的仿真计算中
+［16］
+因此弹性
+胶泥型缓冲器静态阻抗力与万吨级列车在长大下坡
+道上的持续制动力接近不利于长大下坡道循环制
+动工况下缓冲性能的发挥。
+2．2　摩擦胶泥型缓冲器
+针对弹性胶泥缓冲器静态阻抗较小的问题相
+关部门新研制了一种摩擦胶泥型缓冲器结构见
+图2由箱体、摩擦楔块、中心楔块、动板、外固定板、
+固定斜板、角弹簧座、弹簧座、角弹簧、外簧、胶泥组
+件、预缩短销等组成。
+图2　摩擦胶泥型缓冲器结构
+Fig．2　Structureoffrictionclaybuffer
+当摩擦胶泥型缓冲器受到冲击时中心楔块和
+楔块沿着固定斜板滑动同时夹紧动板；当楔块移动
+到一定距离后和动板一起移动动板、固定斜板和外
+固定板构成一组摩擦机构消耗吸收一部分动能并
+推动弹簧座共同压缩弹性胶泥、外弹簧和角弹簧将
+一部分冲击动能转化为弹簧的弹性势能；当缓冲器
+卸载时复原弹簧借助弹力使中心楔块复位。
+外簧与胶泥组件的组合使摩擦胶泥型缓冲器不
+仅具有了与冲击速度相匹配的胶泥型缓冲器的阻抗
+性能而且保持了摩擦缓冲器的可靠性和坚固耐用
+性。与全部采用弹簧结构的摩擦缓冲器相比其缓
+冲容量提高了60％～100％以上。摩擦胶泥型缓冲
+器的初压力不大于250kN最大动阻抗不大于
+2500kN行程不大于83mm容量不小于100kJ
+吸收率不小于80％。摩擦胶泥型缓冲器的静态阻
+抗力在理论上为无穷大这个特性对列车在长大下
+坡道循环制动时缓冲器性能的发挥有很大好处。
+3　计算模型
+3．1　列车模型
+以HXD1机车为原型建立了单节机车动力学
+仿真模型。图3为HXD1机车4节连挂牵引万吨
+级列车动力学模型包括1个车体、2个转向架和
+4个轮对以及4个电机等刚体。对各刚体及弹簧、
+减振器均根据实际情况进行建模并考虑了减振器
+与轮轨接触的非线性特性。轮对滚动圆半径为
+0∙625m采用JM3踏面与60kg·m
+－1
+钢轨型面的
+匹配轨底坡为1∶40。根据建立的单节机车模型
+运用子结构法建立了4节机车连挂的模型各机车
+之间通过车钩和缓冲器装置连接在一起。
+图3　HXD1机车动力学模型
+Fig．3　Dynamicsmodelof HXD1locomotive
+3．2　车钩和缓冲器模型
+13A型车钩与大容量缓冲器组成的车钩和缓冲
+器模型见图4。由图4可见13A型车钩钩体与缓
+冲器通过钩尾框连接在一起钩体与钩尾框之间通
+过长扁柱型钩尾销相连车钩相对钩尾框可以发生
+转动最大水平摆角限制在9°～11°左右。相连接的
+2套钩缓装置在建模时可以一起处理。将2个钩
+头建为一根直杆分别与两侧的缓冲器相连缓冲器
+具有刚度与阻尼特性。钩缓装置的一端与前车体相
+连另一端与后车体相连。
+61第2期　　　　　　　马卫华等：缓冲器阻抗特性对重载列车动力学性能的影响
+图4　车钩和缓冲器模型
+Fig．4　Modelofcouplerandbuffer
+4　缓冲器阻抗特性分析
+4．1　静态阻抗特性
+列车在长大下坡道循环制动时列车前端机车
+受到的车钩压力最大值取为900kN车钩的自由摆
+角设置为10°。以第4辆机车为例分别采用2种类
+型的缓冲器的车钩力和缓冲器行程分别见图5、6。
+其中摩擦胶泥型缓冲器受到静态力为900kN和
+动态力为1000kN的复合作用弹性胶泥型缓冲器
+受到静态力为900kN和动态力为500kN的复合
+作用。
+图5　车钩力
+Fig．5　Couplerforces
+图6　缓冲器行程
+Fig．6　Bufferstrokes
+由于摩擦胶泥型缓冲器的静态阻抗理论上为无
+穷大在900kN静态压力作用下缓冲器无行程的
+变化只有动态作用力能影响到缓冲器的行程。从
+图5、6可知机车采用摩擦胶泥型缓冲器时在
+900kN的纵向静态压力作用下缓冲器具有100％
+的剩余行程和容量。当列车采取进一步制动时缓
+冲器仍可承受1000kN的动态压力此时缓冲器的
+行程不超过20mm。
+对于弹性胶泥型缓冲器而言第4辆机车首先
+受到大约900kN 的初压力然后再继续受到
+400kN的纵向动态压钩力此时缓冲器的行程达到
+了60mm难以承受更大的动态力。静态阻抗力为
+1200kN在长大下坡道进行循环制动时钩缓系统
+没有足够的剩余容量及行程来承受进一步的纵向冲
+击力。
+通过以上比较可知摩擦胶泥型缓冲器的一个
+主要特点就是其静态阻抗力极大带来的优点就是
+在长大下坡道上进行循环制动时缓冲器仍然有足
+够的容量及行程适应进一步的纵向冲击而这正是
+弹性胶泥型缓冲器所不具备的特点。
+4．2　动态阻抗特性
+假定每辆机车产生300kN的电制动力速度
+为70km·h
+－1
+。制动力从第3s开始施加到第5s
+时制动力达到300kN随后保持恒定。以各机车受
+到的车钩力、缓冲器行程以及车钩力最大的第4辆
+机车的轮轴横向力为评价指标分别采用2种缓冲
+器在电制动工况下机车受到的车钩力见图7。从
+图7中可以看到无论采用摩擦胶泥型缓冲器还是
+弹性胶泥型缓冲器各机车受到的车钩力基本一致。
+其中第4辆机车受到的车钩力最大为1200kN。
+此工况下各机车缓冲器行程变化见图8可见
+2种缓冲器的行程相近摩擦胶泥型缓冲器和弹性
+胶泥型缓冲器均有很大的剩余行程以及缓冲器容
+量可以满足进一步的吸能减振都满足动态阻抗
+的要求。
+通过之前分析可知第4辆机车受到的车钩压
+力最大为1200kN以第4辆机车为例研究此时
+多轮轴横向力见图9。由于缓冲器容量及吸收率的
+原因分别采用2种缓冲器时轮轴横向力的稳态值
+基本一致；由于缓冲器动态刚度较大采用弹性胶泥
+型缓冲器时轮轴横向力瞬态冲击比采用摩擦胶泥型
+缓冲器时大。
+5　结　语
+（1）缓冲器动态阻抗特性关系到列车运行时车
+钩缓冲器装置受到的冲击力相邻两车速度差较小
+时较低的阻抗特性以与速度差较大时较高的阻抗特
+62 交　通　运　输　工　程　学　报　　　　　　　　　　 　2011年
+图7　电制动工况下的车钩力
+Fig．7　Couplerforcesunderelectricbreakingcondition
+图8　电制动工况下的缓冲器行程
+Fig．8　Bufferstrokesunderelectricbreakingcondition
+图9　轮轴横向力
+Fig．9　Wheelaxlelateralforces
+性有利于保护缓冲装置及车辆。
+（2）摩擦胶泥型缓冲器与弹性胶泥型缓冲器的
+动态阻抗特性相近且均能满足万吨级重载列车正
+常运用需要。
+（3）摩擦胶泥型缓冲器同时具备了摩擦型缓
+冲器和胶泥型缓冲器的特性其静态阻抗无穷大
+的特点有利于保证缓冲器在静态工况下尤其是
+在长大下坡道进行循环制动时仍保持足够的剩
+余缓冲行程和容量满足进一步缓冲纵向冲击压
+力的需要。
+63第2期　　　　　　　马卫华等：缓冲器阻抗特性对重载列车动力学性能的影响
+参考文献：
+References ：
+［1］　常崇义王成国王永菲等．基于响应面方法的车钩缓冲器特
+性曲线优化分析［J］．中国铁道科学200728（6）：84-90．
+CHANGChong-yiWANGCheng-guoWANG Yong-feietal．
+Optimal analysis of the hysteretic characteristic curve for
+draft gear based on response surface method［J］．China
+RailwayScience200728（6）：84-90．（inChinese）
+［2］　任玉君陈　凯宋国文等．关于机车车辆车钩缓冲装置的选
+型分析［J］．铁道车辆200947（5）：1-7．
+RENYu-junCHENKaiSONGGuo-wenetal．Theanaly-
+sismodel selectionof coupler draft gearforlocomotiveand
+rollingstock［J］．RollingStock200947（5）：1-7．（inChinese）
+［3］　贾九红华宏星．新型胶泥缓冲器的试验研究［J］．噪声与振动
+控制201030（1）：99-101．
+JIAJiu-hongHUA Hong-xing．Experimentalresearchof a
+newsilicon-basedelastomerdamper［J］．NoiseandVibration
+Control201030（1）：99-101．（inChinese）
+［4］　KAHLEVE．FailureAnalysisofthreereconditionedrailcar
+couplers［J］．Journal of Failure Analysis and Prevention
+20066（4）：23-28．
+［5］　杨俊杰刘建新罗世辉等．重载组合列车机车车钩稳定控制
+试验［J］．西南交通大学学报200944（6）：882-886．
+YANGJun-jieLIUJian-xinLUOSh-ihuietal．Test studyon
+stabilitycontroloflocomotivecouplerinheavyhaulcombined
+train［J］．Journal of Southwest Jiaotong University2009
+44（6）：882-886．（inChinese）
+［6］　BELFORTEPCHELIFDIANAGetal．Numericaland
+experimentalapproach for the evaluation of severe longitu-
+dinaldynamicsof heavy freight trains［J］．Vehicle System
+Dynamics200846（S）：937-955．
+［7］　COLECSUNYQ．Simulatedcomparisonsofwagoncoup-
+ler systems in heavy haul trains［J］．Proceedings of the
+Institutionof MechanicalEngineersPartF：Journalof Rail
+andRapidTransit2006220（3）：247-256．
+［8］　GEIKE T．Understanding highcouplerforcesat metro ve-
+hicles［J］．VehicleSystemDynamics200745（4）：389-396．
+［9］　李瑞淳．高速列车及提速列车车钩缓冲装置研究［J］．铁道机
+车车辆200424（6）：15-21．
+LIRu-ichun．Researchonhigh-speedtrainandraisingspeed
+trainvehiclehookbuffermechanism［J］．RailwayLocomotive
+andCar200424（6）：15-21．（inChinese）
+［10］　马卫华杨俊杰罗世辉等．SS3B电力机车长大下坡道稳钩能
+力分析［J］．铁道学报201032（2）：109-113．
+MAWe-ihuaYANGJun-jieLUOSh-ihuietal．Studyon
+thecouplerstability of locomotiverunningSS3Bonthelong
+heavydowngrade［J］．JournaloftheChinarailwaySociety
+201032（2）：109-113．（inChinese）
+［11］　王开云翟婉明封全保等．重载机车车钩自由角对轮轨动态
+安全性能的影响［J］．中国铁道科学200930（6）：72-76．
+WANGKa-iyunZHAIWan-mingFENGQuan-baoetal．
+Effectofthecouplerfreeangleonwheel／raildynamicsafety
+performance of heavy haul locomotive［J］．China Railway
+Science200930（6）：72-76．（inChinese）
+［12］　王成国马大炜王雪军等．重载货车缓冲器的数字试验
+研究［J］．铁道机车车辆200929（5）：1-4．
+WANG Cheng-guoMA Da-weiWANG Xue-junet al．
+Researchonstructuresandperformancesofheavyhaulbuffer
+bynumerical simulation［J］．Railway Locomotiveand Car
+200929（5）：1-4．（inChinese）
+［13］　杨俊杰常崇义封全保等．重载组合列车机车缓冲器关键技
+术参数研究［J］．中国铁道科学201031（3）：76-81．
+YANGJun-jieCHANGChong-yiFENGQuan-baoetal．
+Studyonthekeytechnicalparameterofthelocomotivedraft
+gearin a heavy haul combined train［J］．China Railway
+Science201031（3）：76-81．（inChinese）
+［14］　刘　伶．HXD2机车车钩大容量缓冲器存在的问题及解决措
+施［J］．铁道机车车辆200929（5）：66-68．
+LIU Ling．Failure and treatment measure of HXD2
+locomotiveʾs big capacity buffer with coupler［J］．Railway
+LocomotiveandCar200929（5）：66-68．（inChinese）
+［15］　周光强杨丽娜杨爱军等．弹性胶泥特性及其缓冲器的研究
+进展［J］．有机硅材料201125（1）：40-43．
+ZHOU Guang-qiangYANG L-inaYANG A-ijunet al．
+Researchprogressoncharacteristicsofelasticrubberandits
+buffer［J］．SiliconeMaterial201125（1）：40-43．（inChinese）
+［16］　COLEC．昆士兰和COALlink重载煤炭运输列车动力学仿
+真的比较［J］．国外铁道车辆200340（2）：33-39．
+COLEC．Heavyhaulcoaltraindynamicssimulationcompari-
+sonsof theCOALlinkandcentral Queenslandsystems［J］．
+ForeignRollingStock200340（2）：33-39．（inChinese）
+64 交　通　运　输　工　程　学　报　　　　　　　　　　 　2011年

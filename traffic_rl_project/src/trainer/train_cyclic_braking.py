@@ -1,4 +1,6 @@
 """
+【legacy 2026-09-06】框架化后对应 configs/experiments/l1_cyclic_mappo.yaml；本脚本保留为 append-only
+（其 cyclic_obs/cyclic_reward 等被评估脚本 import，勿删）。语义符号已镜像至 src/trainer/specs/cyclic_spec.py。
 【第1层】单列循环制动 MAPPO 训练（对齐 Zhang2024 DQN）。
 
 Zhang2024（Algorithms 2024,17,190）在朔黄线真实线路上用 DQN 学**单列循环制动**：
@@ -16,8 +18,8 @@ Zhang2024（Algorithms 2024,17,190）在朔黄线真实线路上用 DQN 学**单
 我们验证：MAPPO 能否学会循环制动，且车钩力守住 1000kN（Zhang2024 无此指标）。
 
 用法（WSL）：
-    python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_23800
-    # 默认 max_steps=15000（≈23.8km 完整协议），与多列 MARL 评估对齐（控制变量）
+    python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_real_53km
+    # 默认 max_steps=15000；53.2km 完整纵断面全程需按步长折算（见下）
 """
 
 import sys
@@ -38,6 +40,9 @@ logger = logging.getLogger('CyclicBraking')
 
 from src.environments.train_env import TrainFormationEnv
 from src.algorithms.mappo_agent import MAPPOAgent
+from src.physics_config import PhysicsConfig
+from src.physics_governance import SimCase, official_world_config
+from src.metadata import save_metadata
 
 
 # Zhang2024 限速参数
@@ -202,6 +207,7 @@ def train(
     batch_size: int = 64,
     device: str = None,
     seed: int = 0,
+    curriculum: str = None,
     checkpoint_dir: str = 'outputs/checkpoints',
     results_dir: str = 'outputs/results',
 ):
@@ -249,12 +255,52 @@ def train(
 
     Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
     Path(results_dir).mkdir(parents=True, exist_ok=True)
+    # 权威 metadata（git_commit / physics_version / simcase / 全物理配置）：
+    # L1 原只在 save_training_artifacts 内嵌文本标签，缺权威 metadata.json →
+    # 补上与 train_fleet 一致的落盘，保证"结果以 metadata 为准"可追溯。
+    save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
+                  case=SimCase('official').value, world_cfg=official_world_config(PhysicsConfig()),
+                  seed=seed, entry=__file__,
+                  extra={"hyperparameters": {
+                      "algorithm": "mappo",
+                      "episodes": episodes, "consist_preset": consist_preset,
+                      "grade_profile": grade_profile, "max_steps": max_steps,
+                      "init_speed_kmh": init_speed * 3.6, "warm_start_bc": warm_start,
+                      "lr": lr, "entropy": entropy, "epochs": epochs,
+                      "batch_size": batch_size, "seed": seed, "curriculum": curriculum,
+                  }})
 
     episode_rewards = []
     episode_peak_coupler = []
     episode_violations = []
     episode_v_range = []
     best_reward = float('-inf')
+
+    # curriculum：按全局回合号递增 horizon（镜像 train_fleet，平衡训练成本）。
+    #   相对格式 '300-1000-15000'：按 episodes 均分（如 300ep → 每段100：ep<100=300步，
+    #   ep<200=1000步，之后=15000步）；绝对格式 '1000:66,3000:132'：ep66 起=1000步，
+    #   ep132 起=3000步。均以【全局回合号】判定，末尾仍完整时域（不破坏协议）。
+    cur_plan = []
+    if curriculum:
+        if ':' in curriculum:
+            for part in curriculum.split(','):
+                h_str, e_str = part.strip().split(':')
+                cur_plan.append((int(e_str), int(h_str)))
+            cur_plan.sort()
+            logger.info(f"curriculum 绝对边界: {cur_plan}")
+        else:
+            stages = [int(x) for x in curriculum.split('-')]
+            per_stage = max(1, episodes // len(stages))
+            cur_plan = [(i * per_stage, h) for i, h in enumerate(stages)]
+            logger.info(f"curriculum 分段: {stages}（每段约 {per_stage} ep）")
+
+    def _resolve_horizon(gep: int) -> int:
+        """按全局回合号返回该回合的 max_steps（curriculum 生效）。"""
+        h = max_steps
+        for e_bound, h_stage in cur_plan:
+            if gep >= e_bound:
+                h = h_stage
+        return h
 
     logger.info("=" * 70)
     logger.info("开始训练")
@@ -267,6 +313,9 @@ def train(
                       V_MAX_MPS, V_MIN_MPS, brake_notch=-0.8)
 
     for ep in range(episodes):
+        cur_horizon = _resolve_horizon(ep)
+        if ep == 0 or cur_horizon != _resolve_horizon(ep - 1):
+            logger.info(f"curriculum: ep{ep + 1} → horizon {cur_horizon} 步")
         env.reset(options={'speed': init_speed})  # 初始速度（默认 65 km/h Zhang2024；80=立即循环制动）
         obs = cyclic_obs(env)  # 用自定义单智能体观测 (1,4)，不用环境默认 (101,4)
         done = False
@@ -277,7 +326,7 @@ def train(
         v_max_ep = 0.0
         step = 0
 
-        while not done and step < max_steps:
+        while not done and step < cur_horizon:
             flat_obs = obs.flatten()
             actions, log_prob = agent.select_actions(flat_obs)
             # E17 离散档位动作（对齐 Zhang2024/Tang2020/VCTS 重载列车领域标准）：
@@ -357,7 +406,7 @@ def train(
                     'init_speed_kmh': init_speed * 3.6,
                     'v_range_kmh': [V_MIN_MPS * 3.6, V_MAX_MPS * 3.6],
                     'best_reward': float(best_reward),
-                    'physics': 'MT2-hysteresis+real-brake+parallel-wave (2026-08-30 基线对齐)',
+                    'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β',
                 },
                 results_dir=results_dir,
                 figures_dir='outputs/figures',
@@ -373,6 +422,9 @@ def train(
     logger.info(f"平均超限: {np.mean(episode_violations[-10:]):.1f} 次")
     logger.info(f"末回合速度范围: {episode_v_range[-1][0]:.0f}~{episode_v_range[-1][1]:.0f} km/h")
     logger.info(f"模型已保存: {checkpoint_dir}")
+    # 【防漏】训练结束强制校验权威 metadata.json 已生成（入口已 save_metadata）
+    from src.metadata import assert_training_metadata
+    assert_training_metadata(results_dir)
     logger.info("=" * 70)
 
     return {
@@ -405,6 +457,9 @@ if __name__ == '__main__':
                         help='初始速度 km/h（默认 65，Zhang2024；80=立即触发循环制动）')
     parser.add_argument('--warm_start', action='store_true',
                         help='用规则循环制动做行为克隆预训练策略（E15修复持续牵引问题）')
+    parser.add_argument('--curriculum', type=str, default=None,
+                        help='递增 horizon："300-1000-15000"（相对，按episodes均分）或 '
+                             '"15000:200"（绝对，全局ep边界），平衡训练成本')
     parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
                         help='checkpoint 输出目录（重训时用新目录，避免覆盖旧模型）')
     parser.add_argument('--results_dir', type=str, default='outputs/results',
@@ -424,6 +479,7 @@ if __name__ == '__main__':
         entropy=args.entropy,
         device=args.device,
         seed=args.seed,
+        curriculum=args.curriculum,
         checkpoint_dir=args.checkpoint_dir,
         results_dir=args.results_dir,
     )

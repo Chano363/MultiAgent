@@ -19,7 +19,7 @@ class PhysicsConfig:
     target_speed_mps: float = 20.0          # 巡航参考速度（限速带中值）
     target_gap_m: float = 100.0
     consist_preset: str = '10kt_1plus0'     # 论文编组（重构后多列用 1+1 时在此改）
-    grade_profile: str = 'shuozhou_23800'   # 主评估真实剖面
+    grade_profile: str = 'shuozhou_real_53km'  # 主训练真实剖面（朔黄完整纵断面 53.2km）；history 'shuozhou_23800'=23.8km 仅作 Zhang2024 复现
     coupler_force_limit_n: float = 1.0e6    # 1000 kN 底线
     enable_etcs: bool = True                # 训练/评估 ETCS 对齐
     enable_cyclic_degrade: bool = True      # 【R0-D 2026-09-06】B3 段间衰减=基线物理

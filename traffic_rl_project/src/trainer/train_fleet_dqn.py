@@ -1,4 +1,5 @@
 """
+【legacy 2026-09-06】已被 run_training.py 统一框架替代（configs/experiments/fair_dqn.yaml），保留 append-only。
 公平 DQN baseline 训练：分层架构下第2层用 DQN 学协同阈值偏移。
 
 【与 M1（MAPPO 协同）完全同架构，只换第2层 RL 算法】

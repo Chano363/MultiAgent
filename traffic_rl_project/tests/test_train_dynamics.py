@@ -569,17 +569,9 @@ def _make_dyn(couplers=None):
 def test_hetero_default_homogeneous():
     """默认（couplers=None）→ 逐耦合参数数组全等 → 断面力与无异构一致（零回归）。"""
     a, b = _make_dyn(), _make_dyn()
-    # 【R0-C】机车相邻耦合 = QKX100（is_qkx=1），货车-货车耦合齐次全等（is_qkx=0）
-    assert np.allclose(a._cp['is_qkx'], a._cp['is_qkx'][0]) or True
-    freight = a._cp['is_qkx'] < 0.5
+    # 【2026-09-07 ADR】齐次默认全列统一 MT-2（机车相邻耦合亦 MT-2，逐耦合全等）
     for name, arr in a._cp.items():
-        if name == 'is_qkx':
-            continue
-        assert np.allclose(arr[freight], arr[freight][0]),             f"默认（无异构）下货车耦合 {name} 应全等"
-        # 机车相邻（QKX100）与货车（MT-2）参数按类型各自全等
-        loco_mask = ~freight
-        if loco_mask.any():
-            assert np.allclose(arr[loco_mask], arr[loco_mask][0]),                 f"机车耦合 {name} 应齐次全等"
+        assert np.allclose(arr, arr[0]), f"默认（无异构）下耦合 {name} 应全等"
     fa = _strain_consist_dyn(a)
     fb = _strain_consist_dyn(b)
     assert fa.shape == (2,) and np.all(fa != 0.0)          # 压缩产生非零力

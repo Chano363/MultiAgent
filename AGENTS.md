@@ -46,19 +46,22 @@ python src/main.py --mode train --algorithm MAPPO --episodes 500
 **论文题目**：面向长大下坡场景基于多智能体强化学习的重载列车群组自动控制方法
 **研究对象**：一万吨级 1+0 重载列车群组（单机牵引万吨列车，1机+\~100节货车，群组由多列组成）
 
-**核心创新点：车钩力 + 多列群组 + 长大下坡 分层（Hierarchical）MARL**。
+**核心创新点：车钩力 + 多列群组 + 长大下坡 协同控制**（编队=最终目的，MARL=实现手段）。
 
 现有长大下坡 RL 工作（Zhang2024 DQN、Liu2021 DDQN、Wang2025 DQN）**均明确忽略车钩力**；
 本项目在长大下坡循环制动场景下**显式建模车钩力**，并扩展到多列群组协同。
-自动控制 = MARL 训练出的控制器本身（无额外底层控制器）。
+实现方式（2026-09-08 ADR-013）＝ **RL 定策 + 底层控制器安全执行**（非纯 RL 直控 100 车厢）。
 
-> **⚠️ 智能体分解重构方向（2026-09-02，ADR-009）**：导师批评"3 列 1+0 群组叫多智能体不合适"（单机牵引、把"列车"当智能体名不符实）。方向已决策：**多机车分布式动力 × 电空双制动分工**融合——多机车作"体"（每机车=智能体），每机车独立决策电制动(连续)/空气制动(离散档位)分配 → 列内真多智能体。**待仿真器改动方收尾后实施**。详见 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.3.1、`DECISIONS.md` ADR-009、`PROJECT_PIPELINE.md` P3.5。
+> **⚠️ 主轴与 RL 落位（2026-09-08，ADR-013，铁律）**：论文**最终目的是"编队"**（多列重载列车群组长大下坡保持安全列距 + 速度带一致 + 车钩力≤1000kN）；MARL 只是手段。**仅保留一套 formation-aware RL＝机车级 ED/AB 分工**（每台机车=智能体，ED 连续 / AB 离散档位，以编队为上下文）；底层由列内规则循环制动 + 车钩力安全层确定性执行。**废止**"编队层(列车级)RL + 列内层(机车级)RL 两层叠加 = T-MARL"表述（ADR-012→013）；编队层阈值 RL（`hierarchical` 每列 `coor_adj`）已下线，其 R0 +110042 不作当前主结果。来源：ADR-009/009.1（机级 ED/AB 机制）、ADR-013（唯一 RL 落位）。详见 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.3/§1.3.1、`DECISIONS.md` ADR-013。
 
 分层框架：
 
 ```
-层级一（多列群组）: 每列万吨级列车=智能体, 安全间距约束, 生成宏观驾驶曲线
-层级二（单列车厢级）: 每节车厢=智能体, 车钩力≤1000kN (ATP安全层), 跟随曲线
+编队目标（最终目的，非 RL）: 多列群组长大下坡协同（安全列距 + 速度带一致 + 车钩力≤1000kN）
+       ↓ 由同一套 RL 承载（编队上下文）
+RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（ED 连续 / AB 离散档位）
+       ↓ 目标速度/档位
+底层执行（确定性）: 列内规则循环制动 + 车钩力安全层（enforce_coupler≤1000kN）
 ```
 
 详见 `traffic_rl_project/docs/RESEARCH_POSITIONING.md`。
@@ -107,7 +110,7 @@ python src/main.py --mode train --algorithm MAPPO --episodes 500
 
   - **空气制动（AB）**：离散档位（RELEASE/MIN/SERVICE/EMERGENCY），**沿车列按制动波速向后传播**（常用 200m/s、紧急 250m/s）——纵向冲动的主要物理来源
 
-- **车钩力** `coupler.py`：质量-弹簧-阻尼 + **车钩间隙死区**（`_dead_zone`，`CouplerParams.coupler_gap_m` 默认 0.01m），复现杨敏"间隙→车钩力"规律，牛顿第三定律成对抵消
+- **车钩力** `coupler.py`：**MT-2 摩擦式迟滞缓冲器**（于宗泽2025/李蔚2023，Stribeck 静 750/动 500 kN、v_er=0.2、预压 200 kN、饱和 2270 kN @ 83mm 行程）+ **车钩间隙死区**（`_dead_zone`，`CouplerParams.coupler_gap_m` 默认 0.01m），复现杨敏"间隙→车钩力"规律，牛顿第三定律成对抵消；**【2026-09-07 ADR-011】统一回 MT-2**：机车 QKX100 弹性胶泥分区已彻底移除，全列（含机-货连挂钩）均 MT-2，WSL 两处实现（`coupler.py` 标量 + `train.py` 向量化）数值一致
 
 - **坡度剖面** `grade_profile.py`：`GradeProfile` 分段剖面 + 3 种预置（樊运新：长大下坡-10.2‰/缓坡变陡坡/V型坡），每步按车辆位置实时更新坡度
 
@@ -142,7 +145,7 @@ python src/main.py --mode train --algorithm MAPPO --episodes 500
 | **Davis 阻力被放大 w 倍**                 | 空气阻力必须是标准 Davis 形式 `0.0018*C*A*V²`（独立于车重），不能 `area*cd*v²/w` 再乘 w（会把阻力放大数百倍，平衡速度被低估到 8m/s，20m/s 不可达）。已修复（见 VALIDATION\_BASELINE V2）                                                  |
 | **制动传播被 dt 吞掉**                     | 传播延迟按**车辆累计长度/波速**算（真实重载数百米→数秒延迟），不要用车钩 free\_length                                                                                                                                |
 | **安全层修正 → log\_prob 失配 → 策略发散**     | SafetyLayer 修正动作后必须用**实际执行动作**重算 log\_prob 存储（`info['executed_actions']` + `agent.get_log_prob`），否则重要性采样失效，viol 每 10ep 爆 85 倍（V5.1 三层 bug 链之一）                                      |
-| **R0 车钩地基改版（2026-09-06）→ 历史车钩力绝对值作废** | 车钩模型升级：Stribeck 摩擦（静 750/动 500kN，v_er=0.2）+ 机车 QKX100 分区（月牙形两段刚度+胶泥幂律阻尼，2500kN@83mm）+ 循环段间衰减启用（official 基线）+ 缓解排气两段式（波传播期满制动+exp(-t/τ=6s) 排风）。SSOT=`traffic_rl_project/docs/VALIDATION_BASELINE.md`「地基级建模体检 R0」节；R0 前训练产物/评估 JSON/fig3-6 绝对值引用须附建模版本声明 |
+| **R0 车钩地基改版（2026-09-06）→ 历史车钩力绝对值作废** | 车钩模型升级：Stribeck 摩擦（静 750/动 500kN，v_er=0.2）+ 循环段间衰减启用（official 基线）+ 缓解排气两段式（波传播期满制动+exp(-t/τ=6s) 排风）。**【2026-09-07 ADR-011】统一回 MT-2**：机车 QKX100 弹性胶泥分区（月牙形两段刚度+胶泥幂律，2500kN@83mm）已彻底移除，仅作文献追溯。SSOT=`traffic_rl_project/docs/VALIDATION_BASELINE.md`「地基级建模体检 R0」+「诊断-2026-09-07」节；R0 前训练产物/评估 JSON/fig3-6 绝对值引用须附建模版本声明 |
 | **Newmark 欠松弛污染最终状态 → 动力学整体缩水 25%** | 迭代欠松弛（α<1）只用于防发散，**收敛后必须取未松弛候选解** `(x_cand, v_cand)`。曾把松弛中间量当最终状态，稳态等效 v\_{n+1}=0.75·真解（2026-09-02 三层锚交叉测试发现，修复后多体 vs 独立 RK4 差异 8.77%→0.0005%）。**历史训练/验证绝对值都在 75% 动力学下产生，重跑前勿直接引用** |
 | **缓解波建模差异 → 历史资产结论可能失真** | 历史训练**有的含缓解波(空气制动缓解波速传播)、有的不含**，产出于建模变更**之前**的结论不得直接引用；追加任何历史资产必须**并入记录训练路况+完整命令+seed/配置+建模版本声明**（规范见 `docs/rules/EXECUTION_RULES.md`「历史资产复现元数据与建模差异声明」） |
 | **`ab_command=None`** **≠ 缓解**      | `None` = 不使用空气制动，须在 `_advance_control_once` 单独分支 `pass`（`None != RELEASE` 为真会把头车挂上 None 档 active 态，静止列车蠕动/能量不守恒）                                                                    |
@@ -217,6 +220,8 @@ YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值
 - 临时脚本用后即删
 
 - 检查点定期保存；只使用专业仿真器，禁止 mock 环境
+
+- **训练/评估必须落权威 metadata**（强制，见 `docs/rules/EXECUTION_RULES.md`）：训练走统一框架 `run_training.py`（`training_metadata_guard`）或 legacy 入口 `train_fleet/`train_cyclic_braking`（`save_metadata`+`assert`）；评估用 `build_metadata` 内嵌结果 JSON 并时间戳归档。不进此路径的训练结论不认可、不得引用
 
 - **`.codebuddy/mcp.json`** **已 gitignore**（含 API key，勿提交）
 

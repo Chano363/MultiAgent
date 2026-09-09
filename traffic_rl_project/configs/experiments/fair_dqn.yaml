@@ -1,0 +1,39 @@
+# 公平 DQN baseline：分层架构下第2层用每列独立 CoorDQN 学协同阈值偏移
+# 与 M1(MAPPO) 完全同架构，只换第2层 RL 算法（回答审稿人 DQN vs MAPPO）
+name: fair_dqn
+algorithm: coor_dqn
+algo_params:
+  lr: 0.0001
+  batch_size: 128
+  tau: 0.005
+  buffer_size: 100000
+  eps_start: 1.0
+  eps_end: 0.05
+  eps_decay: 0.995
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus0
+  grade_profile: shuozhou_23800
+  v_max: 22.222
+  v_min: 11.111
+  target_gap: 100.0
+  max_steps: 300
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: true
+  adj_coef: 0.3
+obs: env
+action: coor_adj
+interaction: coor_dqn_fleet
+reward: env_default
+num_trains: 3
+episodes: 200
+init_speed_kmh: 65.0
+simcase: official
+ckpt_policy: coor_dqn
+log_interval: 10
+dirs:
+  checkpoint_dir: outputs/checkpoints
+  results_dir: outputs/results
+  figures_dir: outputs/figures

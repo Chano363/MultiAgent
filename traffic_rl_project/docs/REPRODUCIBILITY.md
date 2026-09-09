@@ -84,14 +84,15 @@ python src/evaluation/evaluate_m1_m3_long.py mpc --n_seed 1
 | 5列间距图（Fig.3） | `python src/evaluation/make_5train_fig.py`（需 shuozhou 5列 checkpoint） | `outputs/figures/fig_5train_gap_trajectory.png` |
 | M1/M3/惰行 对比图 + csv | `python src/evaluation/make_m1m3_figures.py` | `outputs/figures/m1m3_{gap,coupler,speed}_trajectory.png` + `outputs/m1m3_comparison.md` |
 
-## 六、论文编译 + 中文对照
+## 六、论文编译
 
 ```
 cd traffic_rl_project/docs
 conda activate traffic_rl   # 环境含 tectonic 0.17.0
 tectonic ITSC_PAPER.tex     # → ITSC_PAPER.pdf（6页，0 Overfull）
 ```
-- 中文对照版：`docs/ITSC_PAPER_中文对照.md`（供作者核对英文版）
+
+> 2026-09-08：旧循环制动方案/存档已清理——旧中文对照 `docs/ITSC_PAPER_中文对照.md` 及其产物 `ITSC_PAPER_CN.tex/.pdf`、`build_cn.sh` 均已删除，唯一权威 = `docs/ITSC_PAPER.md / .tex / .pdf`。
 
 ## 七、关键参数（论文 Table I）
 

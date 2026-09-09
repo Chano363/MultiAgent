@@ -1,0 +1,43 @@
+# 3 列 platoon 第2层 MAPPO（M1 协同 / M3 无协同 / M4 直接协同阈值）
+# M1:   adj_coef=0.1（默认）
+# M3:   --override env_cfg.adj_coef=0.0       （M3 退化为规则基线，验证协同增量）
+# M4:   --override env_cfg.adj_coef=0.3 action=continuous  （M4 直接协同阈值）
+name: platoon_mappo
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00005
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.001
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus0
+  grade_profile: shuozhou_23800
+  v_max: 22.222
+  v_min: 11.111
+  target_gap: 100.0
+  max_steps: 300
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: true
+  adj_coef: 0.1
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+num_trains: 3
+episodes: 200
+curriculum: 1000:66,3000:132
+simcase: official
+ckpt_policy: fleet
+log_interval: 10
+dirs:
+  checkpoint_dir: outputs/checkpoints
+  results_dir: outputs/results
+  figures_dir: outputs/figures

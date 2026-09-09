@@ -1,0 +1,2 @@
+id,name,mass_t,length_m,max_traction_kn,max_electric_brake_kn,res_a_n_per_t,res_b_n_per_t_kmh,res_c_n_per_t_kmh2
+HXD1,HXD1 electric locomotive,200,35.2,760,461,2.25,0.0019,0.00032

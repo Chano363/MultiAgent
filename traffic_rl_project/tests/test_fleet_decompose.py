@@ -274,12 +274,9 @@ def test_hetero_domain_randomization_resample():
     h1 = _stiff(env_h)
     env_h.reset(options={'speed': 65.0 / 3.6})
     h2 = _stiff(env_h)
-    # 【R0-C 2026-09-06】齐次默认下机车相邻耦合自动派发 QKX100（6e7），
-    # 货车耦合保持 MT-2 基值（1.89e7）；1+1 编组前 3 个耦合 = [loco-货, 货-货, 货-货]
+    # 【2026-09-07 ADR】齐次默认全列统一 MT-2（原先机车相邻耦合 QKX100 auto 派发已移除）
+    # 1+1 编组前 3 个耦合 = [loco-货, 货-货, 货-货] 全为 MT-2 基值（1.89e7）
     assert h1 == h2, "齐次 reset 参数不变"
-    # _stiff = 2 列 × 各自前 3 个耦合；每列耦合 0 = 机车-货车（QKX100），耦合 1/2 = 货车（MT-2）
-    for t0 in (0, 3):
-        assert abs(h1[t0] - 6.0e7) < 1e-9, f"机车-货车耦合应为 QKX100 6e7，实际 {h1[t0]}"
-    for tf in (1, 2, 4, 5):
-        assert abs(h1[tf] - 1.89e7) < 1e-9, f"货车耦合应为 MT-2 1.89e7，实际 {h1[tf]}"
+    for idx in (0, 1, 2, 3, 4, 5):
+        assert abs(h1[idx] - 1.89e7) < 1e-9, f"全列耦合应为 MT-2 1.89e7，实际 {h1[idx]}"
     env_h.close()

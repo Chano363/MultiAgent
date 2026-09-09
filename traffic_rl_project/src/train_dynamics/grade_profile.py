@@ -172,6 +172,134 @@ def profile_long_downhill_50km() -> GradeProfile:
     ])
 
 
+@dataclass
+class SpeedLimitSegment:
+    """一段限速：从 start_m 到下一个段的起点，限速 limit_kmh（km/h）。"""
+    start_m: float
+    limit_kmh: float
+
+
+@dataclass
+class SpeedLimitProfile:
+    """线路限速剖面（分段线性，单位 km/h）。
+
+    【来源 = 真实线路数据，非设计/合成】数据出处：同行提供的 朔黄线宁武西→北大牛
+    真实线路纵断面原始数据（`simulation(1)/data_line/speed_limit.xlsx`），
+    供按里程做 per-position 限速监督（ATP 安全层）使用。
+
+    注意：当前 SafetyLayer/TrainFormationEnv 的线路限速仍是**单一标量**
+    `line_speed_limit_mps`（编队训练默认 80 km/h 统一限速）。本剖面为真实限速
+    数据块，**默认不启用**（启用需把安全层限速升级为按头车位置查询，会改变
+    编队训练限速语义，不默认接入）。
+    """
+    segments: List[SpeedLimitSegment] = field(default_factory=list)
+
+    def limit_at(self, position_m: float) -> float:
+        """查询 position 处的限速（km/h），最后一段之后取最后段限速。"""
+        if not self.segments:
+            return 80.0
+        limit = self.segments[0].limit_kmh
+        for seg in self.segments:
+            if position_m >= seg.start_m:
+                limit = seg.limit_kmh
+            else:
+                break
+        return limit
+
+
+# 朔黄线宁武西→北大牛真实限速剖面（来源：simulation(1)/data_line/speed_limit.xlsx）
+# 注意：限速值单位 km/h。与 grade 剖面同一条线路，供 per-position 限速监督用。
+SHUOZHOU_REAL_SPEED_LIMIT = SpeedLimitProfile(segments=[
+    SpeedLimitSegment(0.0, 45.0),        # 0.0–3865   区间限速 45 km/h（进出站区段）
+    SpeedLimitSegment(3865.0, 75.0),     # 3865–23669 75
+    SpeedLimitSegment(23669.0, 70.0),    # 23669–25935 70
+    SpeedLimitSegment(25935.0, 60.0),    # 25935–29743 60
+    SpeedLimitSegment(29743.0, 75.0),    # 29743–49527 75
+    SpeedLimitSegment(49527.0, 45.0),    # 49527–53392 45（进北大牛区段）
+    SpeedLimitSegment(53392.0, 75.0),    # 53392+     75
+])
+
+
+def profile_shuozhou_real_53km() -> GradeProfile:
+    """朔黄线宁武西→北大牛真实长大下坡纵断面（≈53.2km，**真实线路数据**）。
+
+    【来源 = 同行真实数据，非设计/合成】取自 `simulation(1)/data_line/line_grade.xlsx`
+    （车站索引 sheet3：宁武西 / 龙宫 / 北大牛），58 个实测坡段端点，建议起始里程
+    逐段（米）衔接自洽（脚本校验通过）。坡度 -1.2‰~-12.0‰ 连续变坡，属典型
+    长大下坡循环制动剖面，比现有手写 `shuozhou_23800`（Zhang2024 Table2 手工表）
+    更完整真实（23800m→53205m）。
+
+    用途：作为"真实线路"额外验证工况，可评估动力学对真实纵断面的复现
+    （长坡多段变坡下循环制动 / 车钩力守 1000kN）。坡度 sign：负值=下坡（与全局一致）。
+
+    坡度段（start_m, ‰）：
+        0–809: -1.5;  809–1309: -5.0;  1309–1859: -1.3;  1859–2389: -9.0
+        2389–2894: -10.0;  2894–3809: -6.2;  3809–10209: -10.2（长坡）
+        10209–16609: -10.2;  16609–17159: -10.8;  17159–17659: -12.0
+        …（多段 -8~-12‰ 交替变坡，进口/出口均长大下坡）
+    """
+    return GradeProfile(segments=[
+        GradeSegment(0.0, -1.5),
+        GradeSegment(809.000, -5.0),
+        GradeSegment(1309.000, -1.3),
+        GradeSegment(1859.000, -9.0),
+        GradeSegment(2389.000, -10.0),
+        GradeSegment(2894.000, -6.2),
+        GradeSegment(3809.000, -10.2),
+        GradeSegment(10209.100, -10.2),
+        GradeSegment(16609.200, -10.8),
+        GradeSegment(17159.200, -12.0),
+        GradeSegment(17659.200, -10.7),
+        GradeSegment(17959.200, -12.0),
+        GradeSegment(18959.200, -9.6),
+        GradeSegment(19709.200, -10.8),
+        GradeSegment(21059.200, -11.3),
+        GradeSegment(21709.200, -10.1),
+        GradeSegment(22259.200, -10.8),
+        GradeSegment(22509.200, -9.4),
+        GradeSegment(24578.000, -10.3),
+        GradeSegment(24778.000, -8.9),
+        GradeSegment(25278.000, -1.5),
+        GradeSegment(26948.000, -8.0),
+        GradeSegment(27368.000, -10.9),
+        GradeSegment(27994.180, -11.2),
+        GradeSegment(28744.180, -10.8),
+        GradeSegment(32144.180, -9.0),
+        GradeSegment(32694.180, -10.9),
+        GradeSegment(33770.430, -12.0),
+        GradeSegment(34520.430, -10.8),
+        GradeSegment(34870.430, -11.0),
+        GradeSegment(35070.430, -11.4),
+        GradeSegment(35420.430, -11.2),
+        GradeSegment(36270.430, -11.0),
+        GradeSegment(37020.430, -12.0),
+        GradeSegment(37870.430, -11.0),
+        GradeSegment(38370.430, -10.5),
+        GradeSegment(40020.430, -11.5),
+        GradeSegment(40570.430, -12.0),
+        GradeSegment(41370.430, -11.0),
+        GradeSegment(42270.430, -10.0),
+        GradeSegment(43520.430, -10.5),
+        GradeSegment(44570.430, -11.5),
+        GradeSegment(45070.430, -12.0),
+        GradeSegment(45450.520, -10.6),
+        GradeSegment(46800.520, -12.0),
+        GradeSegment(47203.190, -10.5),
+        GradeSegment(48203.190, -8.3),
+        GradeSegment(48405.860, -5.5),
+        GradeSegment(48605.860, -2.5),
+        GradeSegment(48805.860, -1.2),
+        GradeSegment(50005.860, -2.0),
+        GradeSegment(50205.860, -5.0),
+        GradeSegment(50405.860, -8.5),
+        GradeSegment(50605.860, -10.8),
+        GradeSegment(51555.860, -12.0),
+        GradeSegment(51855.860, -11.0),
+        GradeSegment(52305.860, -12.0),
+        GradeSegment(53205.860, -11.4),
+    ])
+
+
 PROFILES = {
     'long_downhill': profile_long_downhill,
     'gradual_to_steep': profile_gradual_to_steep,
@@ -180,4 +308,5 @@ PROFILES = {
     'long_downhill_20km': profile_long_downhill_20km,  # 第二长下坡剖面（普适性）
     'long_downhill_35km': profile_long_downhill_35km,  # 第三长下坡剖面（35km，synthetic）
     'long_downhill_50km': profile_long_downhill_50km,  # 第四长下坡剖面（50km，synthetic，剧变点/边界）
+    'shuozhou_real_53km': profile_shuozhou_real_53km,  # 朔黄线真实纵断面（同行 data_line，真实数据）
 }

@@ -2,12 +2,17 @@
 
 【重构 2026-09-05】所有实验数值必须来自 metadata.json / 评估 JSON，
 禁止从代码注释复制实验数值当结论。
+
+【2026-09-06 防漏守卫】任何训练入口都应调用 save_metadata() 生成权威
+元数据，并在训练结束用 assert_training_metadata() 强制校验；或直接包
+training_metadata_guard() 一次到位——自动生成且不可被遗忘（替代逐个脚本手补）。
 """
 import os
 import sys
 import json
 import hashlib
 import subprocess
+from contextlib import contextmanager
 
 
 def git_commit(project_root: str) -> str:
@@ -25,12 +30,54 @@ def physics_version(world_cfg: dict) -> str:
     return h.hexdigest()[:12]
 
 
+# ---------------------------------------------------------------------------
+# 仿真器/物理模型「型号」语义标签（可复现关键字段之一）。
+# 当前物理锚定（2026-09-08，ADR-011）：统一的 MT-2 摩擦式缓冲器 + 空气制动缓解波
+# 传播（官方基线）。若耦合器型号 / 制动缓解模型 / 动力学实现发生替换，必须同步
+# 更新下面 _SIM_MODEL_FIXED（否则 physics_version 哈希不感知模型替换）。
+# 该串与 simcase + 配置派生项共同构成 metadata.simulator_model。
+_SIM_MODEL_FIXED = "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave"
+
+
+def simulator_model(simcase: str, world_cfg: dict) -> str:
+    """返回人类可读的仿真器型号串：固定物理 + simcase + 配置派生项。
+
+    world_cfg = official_world_config() 形态：顶层放治理开关，physics 字典放
+    PhysicsConfig 全部字段。取值容错，缺省用 None 兜底，不抛错。
+    """
+    ph = world_cfg.get("physics", {}) if isinstance(world_cfg, dict) else {}
+    if not isinstance(ph, dict):
+        ph = {}
+
+    def g(key, default="-"):
+        for src in (world_cfg, ph):
+            if isinstance(src, dict) and key in src and src[key] is not None:
+                return src[key]
+        return default
+
+    parts = [
+        _SIM_MODEL_FIXED,
+        f"simcase={simcase}",
+        f"cyclic_degrade={bool(g('enable_cyclic_degrade', False))}",
+        f"consist={g('consist_preset')}",
+        f"grade={g('grade_profile')}",
+    ]
+    return "|".join(parts)
+
+
+def simulator_model_version(simcase: str, world_cfg: dict) -> str:
+    """仿真器型号的稳定哈希（前 12 位），供机器比对：型号串不变→哈希不变。"""
+    return hashlib.sha1(simulator_model(simcase, world_cfg).encode()).hexdigest()[:12]
+
+
 def build_metadata(project_root: str, case: str, world_cfg: dict, seed, entry: str,
                    extra: dict = None) -> dict:
     """构造元数据字典（供 save_metadata 落盘，或评估脚本内嵌进结果 JSON）。"""
     meta = {
         "git_commit": git_commit(project_root),
         "physics_version": physics_version(world_cfg),
+        "simulator_model": simulator_model(case, world_cfg),
+        "simulator_model_version": simulator_model_version(case, world_cfg),
         "simcase": case,
         "seed": seed,
         "entry": os.path.basename(entry),
@@ -53,3 +100,34 @@ def save_metadata(exp_dir: str, *, project_root: str, case: str,
     with open(path, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
     return path
+
+
+def assert_training_metadata(results_dir: str) -> str:
+    """训练结束强制校验权威 metadata.json 已生成；缺失 → 抛错（防悄悄丢元数据）。"""
+    path = os.path.join(results_dir, "metadata.json")
+    if not os.path.isfile(path):
+        raise RuntimeError(
+            f"[metadata-guard] 训练结束仍缺 metadata.json：{path}\n"
+            "训练入口必须落权威元数据（save_metadata/guard），禁止静默通过")
+    return path
+
+
+@contextmanager
+def training_metadata_guard(results_dir: str, *, world_cfg: dict, seed,
+                            project_root: str = None, simcase: str = "official",
+                            entry: str = None, extra: dict = None):
+    """训练元数据守卫：进入自动写 metadata.json，训练结束强制校验存在。
+
+    用法：把训练主体放进 with 里即可，自动生成、且结束时若缺失会抛错。
+         with training_metadata_guard(results_dir, world_cfg=world_cfg, seed=seed,
+                                      simcase='official', entry=__file__,
+                                      extra={"hyperparameters": ...}):
+             ...训练循环...
+    """
+    path = save_metadata(results_dir, project_root=project_root or os.getcwd(),
+                         case=simcase, world_cfg=world_cfg, seed=seed,
+                         entry=entry or "training", extra=extra)
+    try:
+        yield path
+    finally:
+        assert_training_metadata(results_dir)

@@ -1,0 +1,29 @@
+{
+  "git_commit": "ec986dde849ed5c033d9f711eecdf1cb6c4700e8",
+  "physics_version": "7e5e87310703",
+  "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus0|grade=shuozhou_real_53km",
+  "simulator_model_version": "d8b93f54ff28",
+  "simcase": "official",
+  "seed": 7,
+  "entry": "tmp_sync_probe.py",
+  "physics": {
+    "enable_cyclic_degrade": true,
+    "tail_pressure_kpa": null,
+    "brake_reduction_override_kpa": null,
+    "physics": {
+      "v_max_mps": 22.22222222222222,
+      "v_min_mps": 11.11111111111111,
+      "dt": 0.1,
+      "max_accel": 1.0,
+      "target_speed_mps": 20.0,
+      "target_gap_m": 100.0,
+      "consist_preset": "10kt_1plus0",
+      "grade_profile": "shuozhou_real_53km",
+      "coupler_force_limit_n": 1000000.0,
+      "enable_etcs": true,
+      "enable_cyclic_degrade": true
+    }
+  },
+  "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
+  "note": "同步初态规则基线隔离验证"
+}

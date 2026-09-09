@@ -1,0 +1,40 @@
+# L1 单列循环制动 MAPPO（对齐 Zhang2024 DQN + 车钩力）
+# 统一框架配置：python run_training.py --experiment configs/experiments/l1_cyclic_mappo.yaml
+name: l1_cyclic
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00005
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_epsilon: 0.2
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 4
+  batch_size: 64
+  max_grad_norm: 0.5
+env_type: single
+env_cfg:
+  consist_preset: 10kt_1plus0
+  grade_profile: shuozhou_23800
+  target_speed: 20.0
+  max_steps: 15000
+  enable_safety: true
+  dt: 0.1
+  v_max: 22.222
+  v_min: 11.111
+obs: cyclic
+action: notch
+interaction: mappo_single
+reward: cyclic
+num_trains: 1
+episodes: 300
+curriculum: 300-1000-15000
+init_speed_kmh: 65.0
+warm_start: false
+ckpt_policy: l1
+simcase: official
+log_interval: 10
+dirs:
+  checkpoint_dir: outputs/checkpoints
+  results_dir: outputs/results
+  figures_dir: outputs/figures

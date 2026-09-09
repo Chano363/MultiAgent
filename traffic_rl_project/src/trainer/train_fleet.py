@@ -1,4 +1,6 @@
 """
+【legacy 2026-09-06】已被 run_training.py 统一框架替代（对应 configs/experiments/platoon_mappo.yaml
+ 或 decompose_loco_ed_ab.yaml），保留为 append-only 供复现/评估兼容。
 重载列车群组（多列编队）MAPPO 训练入口。
 
 【架构澄清（2026-08-14）】
@@ -35,78 +37,11 @@ from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
 from src.physics_config import PhysicsConfig
 from src.physics_governance import SimCase, official_world_config, assert_case_allows
-from src.metadata import save_metadata
+from src.metadata import save_metadata, assert_training_metadata
+from .artifacts import save_training_artifacts  # 【2026-09-06 统一框架】迁移至 artifacts.py，此处 re-export 保兼容
 
 
-def save_training_artifacts(
-    rewards, peak_coupler, violations, meta, results_dir, figures_dir, tag
-):
-    """保存训练历史（JSON/CSV）并绘制学习曲线 PNG（论文/PPT 用）。
 
-    每次调用都全量覆写，保证训练中断（前台超时）后已有数据不丢失。
-    """
-    import json
-    import csv
-
-    Path(results_dir).mkdir(parents=True, exist_ok=True)
-    Path(figures_dir).mkdir(parents=True, exist_ok=True)
-    hist = {
-        'rewards': [float(r) for r in rewards],
-        'peak_coupler_kN': [float(c) for c in peak_coupler],
-        'violations': [float(v) for v in violations],
-        'meta': meta,
-    }
-    with open(Path(results_dir) / f"train_history_{tag}.json", 'w',
-              encoding='utf-8') as f:
-        json.dump(hist, f, ensure_ascii=False, indent=2)
-    with open(Path(results_dir) / f"train_history_{tag}.csv", 'w',
-              newline='', encoding='utf-8') as f:
-        w = csv.writer(f)
-        w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations'])
-        for i, (r, c, v) in enumerate(zip(rewards, peak_coupler, violations)):
-            w.writerow([i + 1, f"{r:.2f}", f"{c:.1f}", f"{v:.1f}"])
-
-    # 学习曲线图（三子图：reward 原始+10ep滑动平均 / 车钩力峰值 / 超限次数）
-    try:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-        from src.utils.plot_style import setup_cjk_font
-        setup_cjk_font()
-
-        eps = np.arange(1, len(rewards) + 1)
-        fig, axes = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
-        axes[0].plot(eps, rewards, alpha=0.35, color='tab:blue', label='每回合')
-        if len(rewards) >= 10:
-            ma = np.convolve(rewards, np.ones(10) / 10, mode='valid')
-            axes[0].plot(eps[9:], ma, color='tab:blue', lw=2,
-                         label='10 回合滑动平均')
-        axes[0].axhline(0, color='gray', lw=0.6, ls='--')
-        axes[0].set_ylabel('回合奖励')
-        axes[0].legend(loc='lower right', fontsize=8)
-        axes[0].set_title(f'MAPPO 群组协同训练曲线（{tag}）', fontsize=11)
-
-        axes[1].plot(eps, peak_coupler, alpha=0.35, color='tab:orange')
-        if len(peak_coupler) >= 10:
-            ma_c = np.convolve(peak_coupler, np.ones(10) / 10, mode='valid')
-            axes[1].plot(eps[9:], ma_c, color='tab:orange', lw=2)
-        axes[1].axhline(1000, color='red', lw=1.0, ls='--', label='1000 kN 安全限值')
-        axes[1].set_ylabel('车钩力峰值 (kN)')
-        axes[1].legend(loc='upper right', fontsize=8)
-
-        axes[2].plot(eps, violations, alpha=0.35, color='tab:green')
-        if len(violations) >= 10:
-            ma_v = np.convolve(violations, np.ones(10) / 10, mode='valid')
-            axes[2].plot(eps[9:], ma_v, color='tab:green', lw=2)
-        axes[2].set_ylabel('车钩力超限次数')
-        axes[2].set_xlabel('训练回合')
-        for ax in axes:
-            ax.grid(alpha=0.3)
-        fig.tight_layout()
-        fig.savefig(Path(figures_dir) / f"fig_learning_curve_{tag}.png", dpi=150)
-        plt.close(fig)
-    except Exception as e:  # 绘图失败不应中断训练
-        logger.warning(f"[警告] 学习曲线绘制失败（训练继续）: {e}")
 
 
 def set_seed(seed: int):
@@ -206,9 +141,28 @@ def train(
     # 【治理】工况断言 + 元数据落盘：调试物理(衰减/列尾压/减压覆盖)进入正式训练即抛异常
     _case = SimCase(case)
     assert_case_allows(_case, official_world_config(PhysicsConfig()), __file__)
+    extra_hp = {
+        "algorithm": "mappo",
+        "episodes": episodes, "num_trains": num_trains,
+        "consist_preset": consist_preset, "grade_profile": grade_profile,
+        "target_speed": target_speed, "target_gap": target_gap, "max_steps": max_steps,
+        "lr": lr, "entropy": entropy, "batch_size": batch_size, "epochs": epochs,
+        "decision_interval": decision_interval, "mask_lever": mask_lever,
+        "decompose": decompose, "action_dim": action_dim, "group_obs": group_obs,
+        "hetero": hetero, "hetero_seed": hetero_seed,
+        "hierarchical": hierarchical, "adj_coef": adj_coef,
+        "use_coupler_constraint": use_coupler_constraint, "enable_etcs": enable_etcs,
+        "curriculum": curriculum, "resume": resume, "start_ep": start_ep,
+        "init_speed_kmh": init_speed_kmh, "random_init_speed": random_init_speed,
+        "init_speed_min": init_speed_min, "init_speed_max": init_speed_max,
+        "disturbance": {
+            "enabled": enable_disturbance, "step": disturbance_step,
+            "duration": disturbance_duration, "target_accel": disturbance_target_accel,
+        },
+    }
     save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
                   case=_case.value, world_cfg=official_world_config(PhysicsConfig()), seed=seed,
-                  entry=__file__)
+                  entry=__file__, extra={"hyperparameters": extra_hp})
 
     obs_dim = env.obs_dim       # 每智能体观测维度
     act_dim = env.act_dim       # 每智能体动作维度（decompose=2 [ed_mod,ab_mod]；否则=action_dim）
@@ -413,7 +367,7 @@ def train(
                     'decompose': decompose,     # 【ADR-009.1】逐机车电空分工模式
                     'coupler_constraint': use_coupler_constraint,
                     'best_reward': float(best_reward),
-                    'physics': 'MT2-hysteresis+real-brake+parallel-wave (2026-08-30 基线对齐)',
+                    'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β',
                 },
                 results_dir=results_dir,
                 figures_dir='outputs/figures',
@@ -428,6 +382,8 @@ def train(
     logger.info(f"平均车钩力峰值: {np.mean(episode_peak_coupler[-10:]):.1f} kN")
     logger.info(f"平均超限次数: {np.mean(episode_violations[-10:]):.1f}")
     logger.info(f"模型已保存: {checkpoint_dir}")
+    # 【防漏】训练结束强制校验权威 metadata.json 已生成（入口 save_metadata 已写）
+    assert_training_metadata(results_dir)
     logger.info("=" * 70)
 
     return {
@@ -445,8 +401,8 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', type=int, default=200)
     parser.add_argument('--num_trains', type=int, default=3)
     parser.add_argument('--preset', type=str, default='10kt_1plus0')
-    parser.add_argument('--grade', type=str, default='shuozhou_23800',
-                        help='坡度剖面（默认朔黄线真实剖面，循环制动）')
+    parser.add_argument('--grade', type=str, default='shuozhou_real_53km',
+                        help='坡度剖面（默认朔黄完整真实纵断面 53.2km，循环制动）')
     parser.add_argument('--target_speed', type=float, default=None,
                         help='巡航参考速度（默认取限速区间中值）')
     parser.add_argument('--target_gap', type=float, default=100.0)

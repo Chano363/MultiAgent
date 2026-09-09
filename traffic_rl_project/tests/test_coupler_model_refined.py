@@ -5,19 +5,17 @@
     A 卸载刚度软化 unload_stiffness_ratio=0.4（"阻抗在卸载初期较小"）；
     B Stribeck 速度相关摩擦（式(2)：|v|=0 静摩擦 → |v|≥v_er 动摩擦，线性过渡；
       "MT-2 运动速度越慢，摩擦力越大"）；
-    C 机车 QKX100 弹性胶泥分区（式(3)(4)：F_Q = F_k + sgn(v)·(C|v|^n + F_d + f)，
-      月牙形特性、速度越快阻尼越大、小压缩量阻抗 < MT-2）；
     D 循环制动段间衰减（赵紫宁表5-5 C_β）为 official 基线物理；
     E 缓解排气时间常数 exp(-t/τ)（替代线性 release_frac 渐变）。
 
+    【2026-09-07 ADR】原 C 机车 QKX100 弹性胶泥分区（式(3)(4)）已按决策统一回
+    MT-2（A 范式，成熟论文"分车型归一对"），本测试随 QKX100 移除删除相关用例。
+
 文献硬锚点：
     - MT-2：最大阻抗 2270 kN、行程 83 mm、预压力 ~200 kN（于宗泽/李蔚表1）
-    - QKX100：最大阻抗 2500 kN、行程 83 mm（李蔚2023表1）
-    - QKX100 月牙形（低速）、小压缩量阻抗 < MT-2（于宗泽图9）
     - 张二田 S3：循环制动峰值车钩力出现在缓解阶段
 
-除文献锚点外，QKX100 的 C/n/F_d/f/k1/k2 为形状标定值（文献未给拟合常数），
-本测试把标定约束固化成回归门禁。
+其余为标定约束，本测试把标定约束固化成回归门禁。
 """
 
 import os
@@ -30,7 +28,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.coupler import coupler_force
 from src.train_dynamics.params import (
-    VehicleParams, LocomotiveParams, CouplerParams, TrainConsist, qkx100_params,
+    VehicleParams, LocomotiveParams, CouplerParams, TrainConsist,
 )
 from src.train_dynamics.train import TrainDynamics
 from src.train_dynamics.braking import AirBrakeNotch
@@ -117,125 +115,56 @@ def test_mt2_hysteresis_loop_dissipative():
     assert energy > 0.0
 
 
-# ---------------------------------------------------------------------------
-# 文献锚点：QKX100 弹性胶泥
-def test_qkx100_max_impedance_2500kn_at_stroke():
-    """QKX100 最大阻抗 2500 kN @ 83 mm（李蔚2023表1），加载端封顶不超限。"""
-    p = qkx100_params()
-    f = coupler_force(0.0, 0.0, -1.0 + p.stroke_m + p.coupler_gap_m, 0.5, p.stiffness, 0.0, 1.0,
-                      coupler_gap=p.coupler_gap_m, max_impulse=p.max_impulse_n,
-                      preload_n=p.preload_n, friction_n=p.friction_n,
-                      unload_stiffness_ratio=p.unload_stiffness_ratio,
-                      buffer_type=p.buffer_type, k2_nm=p.k2_nm,
-                      knee_x_m=p.knee_x_m, viscous_c=p.viscous_c,
-                      viscous_n_exp=p.viscous_n_exp, static_damp_n=p.static_damp_n)
-    assert f == pytest.approx(2.5e6, rel=0.05)
-
-
-def test_qkx100_crescent_shape_concave():
-    """【R0-C】月牙形（低速）：加载初期上升快、末期变缓 → 分段割线刚度单调下降。"""
-    p = qkx100_params()
-    gap = p.coupler_gap_m
-    # 扫掠点全部落在死区之外（x_el = x−gap ∈ 5mm~83mm）
-    xs = np.array([0.015, 0.020, 0.030, 0.050, 0.070, 0.083 + gap])
-    fs = np.array([
-        coupler_force(0.0, 0.0, -1.0 + x, 0.05, p.stiffness, 0.0, 1.0,
-                      coupler_gap=gap, max_impulse=p.max_impulse_n,
-                      preload_n=p.preload_n, friction_n=p.friction_n,
-                      unload_stiffness_ratio=p.unload_stiffness_ratio,
-                      buffer_type=p.buffer_type, k2_nm=p.k2_nm,
-                      knee_x_m=p.knee_x_m, viscous_c=p.viscous_c,
-                      viscous_n_exp=p.viscous_n_exp, static_damp_n=p.static_damp_n)
-        for x in xs
-    ])
-    x_el = xs - gap
-    secant = fs / x_el  # 割线刚度（相对有效压缩量）
-    assert np.all(np.diff(secant) < 0), f"QKX100 非月牙形（割线刚度未单调下降）: {secant}"
-
-
-def test_qkx100_softer_than_mt2_at_small_compression():
-    """于宗泽图9：小压缩量下 QKX100 阻抗 < MT-2（QKX100 车钩位移明显更大）。"""
-    p = qkx100_params()
-    x = 0.010
-    kw = _mt2()
-    f_q = coupler_force(0.0, 0.0, -1.0 + x, 0.05, p.stiffness, 0.0, 1.0,
-                        coupler_gap=p.coupler_gap_m, max_impulse=p.max_impulse_n,
-                        preload_n=p.preload_n, friction_n=p.friction_n,
-                        unload_stiffness_ratio=p.unload_stiffness_ratio,
-                        buffer_type=p.buffer_type, k2_nm=p.k2_nm,
-                        knee_x_m=p.knee_x_m, viscous_c=p.viscous_c,
-                        viscous_n_exp=p.viscous_n_exp, static_damp_n=p.static_damp_n)
-    f_m = coupler_force(0.0, 0.0, -1.0 + x, 0.05, kw['stiffness'], 0.0, 1.0,
-                        preload_n=kw['preload_n'], friction_n=kw['friction_n'])
-    assert f_q < f_m, f"QKX100({f_q:.0f}) 应 < MT-2({f_m:.0f}) @10mm 低速"
-
-
-def test_qkx100_damping_increases_with_speed():
-    """【R0-C】QKX100 速度越快胶泥阻尼越大（于宗泽式(4)，与 MT-2 Stribeck 相反）。"""
-    p = qkx100_params()
-    x = 0.02
-
-    def f_at(dv):
-        return coupler_force(0.0, 0.0, -1.0 + x, dv, p.stiffness, 0.0, 1.0,
-                             coupler_gap=p.coupler_gap_m, max_impulse=p.max_impulse_n,
-                             preload_n=p.preload_n, friction_n=p.friction_n,
-                             unload_stiffness_ratio=p.unload_stiffness_ratio,
-                             buffer_type=p.buffer_type, k2_nm=p.k2_nm,
-                             knee_x_m=p.knee_x_m, viscous_c=p.viscous_c,
-                             viscous_n_exp=p.viscous_n_exp, static_damp_n=p.static_damp_n)
-
-    assert f_at(1.0) > f_at(0.3) > f_at(0.05)
-
-
-def test_loco_coupler_dispatch_qkx100_mt2():
-    """【R0-C】机车相邻耦合自动派发 QKX100，货车-货车耦合保持 MT-2。"""
+def test_default_dispatch_all_mt2():
+    """【2026-09-07 ADR】齐次默认全列统一 MT-2（含机车-货车连挂），无 QKX100 分区。
+    原 R0-C test_loco_coupler_dispatch_qkx100_mt2 已随 QKX100 移除而改写。"""
     consist = TrainConsist(
         [LocomotiveParams()] + [VehicleParams() for _ in range(5)])
     td = TrainDynamics(consist, dt=0.1)
-    assert td._cp['is_qkx'][0] == 1.0    # 机车-货车
-    assert np.all(td._cp['is_qkx'][1:] == 0.0)   # 货车-货车
-    assert td._cp['max_impulse_n'][0] == pytest.approx(2.5e6)
-    assert np.all(td._cp['max_impulse_n'][1:] == pytest.approx(2.27e6))
-    # 纯货车列（无机车）→ 全 MT-2
+    # 全列逐耦合 max_impulse 均为 MT-2 2270 kN（机车相邻耦合不再用 QKX100 2500）
+    assert np.all(td._cp['max_impulse_n'] == pytest.approx(2.27e6))
+    # 多次齐次构造逐位一致（无分区、无类型差异）
+    consist2 = TrainConsist(
+        [LocomotiveParams()] + [VehicleParams() for _ in range(5)])
+    td2 = TrainDynamics(consist2, dt=0.1)
+    for name, arr in td._cp.items():
+        assert np.allclose(arr, td2._cp[name]), f"齐次默认应全列 MT-2 全等: {name}"
+    # 纯货车列同样全 MT-2
     consist_f = TrainConsist([VehicleParams() for _ in range(4)])
     td_f = TrainDynamics(consist_f, dt=0.1)
-    assert np.all(td_f._cp['is_qkx'] == 0.0)
+    assert np.all(td_f._cp['max_impulse_n'] == pytest.approx(2.27e6))
 
 
 # ---------------------------------------------------------------------------
 # 两处实现一致性（标量 coupler.py ↔ 向量化 train.py）
-def test_vector_matches_scalar_both_buffer_types():
-    """向量化实现与标量实现在随机状态网格上数值一致（MT-2 与 QKX100）。"""
+def test_vector_matches_scalar_mt2():
+    """向量化实现与标量实现在随机状态网格上数值一致（MT-2）。"""
     rng = np.random.default_rng(42)
-    for params in (CouplerParams(), qkx100_params()):
-        consist = TrainConsist([VehicleParams() for _ in range(3)])
-        td = TrainDynamics(consist, coupler=params, dt=0.1)
-        for _ in range(50):
-            e = rng.uniform(-0.15, 0.15, size=2)
-            dv = rng.uniform(-2.0, 2.0, size=2)
-            f_vec = td._coupler_interface_forces_vec(e=e, dv=dv)
-            f_sca = np.array([
-                coupler_force(
-                    0.0, 0.0, e[i] - 1.0, -dv[i],
-                    params.stiffness, 0.0, 1.0,
-                    coupler_gap=params.coupler_gap_m,
-                    max_impulse=params.max_impulse_n,
-                    preload_n=params.preload_n, friction_n=params.friction_n,
-                    friction_v_eps=params.friction_v_eps,
-                    stroke_m=params.stroke_m,
-                    rigid_stiffness_nm=params.rigid_stiffness_nm,
-                    unload_stiffness_ratio=params.unload_stiffness_ratio,
-                    friction_static_n=params.friction_static_n,
-                    friction_v_er=params.friction_v_er,
-                    buffer_type=params.buffer_type, k2_nm=params.k2_nm,
-                    knee_x_m=params.knee_x_m, viscous_c=params.viscous_c,
-                    viscous_n_exp=params.viscous_n_exp,
-                    static_damp_n=params.static_damp_n,
-                ) for i in range(2)])
-            # 标量约定：dv = v_front − v_back；此处构造 e=x_back−x_front+1
-            # v_front=0、v_back=−dv → dv_scalar = 0−(−dv) = dv ✓
-            assert np.allclose(f_vec, f_sca, rtol=1e-9, atol=1.0), \
-                f"标量/向量化不一致: {f_vec} vs {f_sca} ({params.buffer_type})"
+    params = CouplerParams()
+    consist = TrainConsist([VehicleParams() for _ in range(3)])
+    td = TrainDynamics(consist, coupler=params, dt=0.1)
+    for _ in range(50):
+        e = rng.uniform(-0.15, 0.15, size=2)
+        dv = rng.uniform(-2.0, 2.0, size=2)
+        f_vec = td._coupler_interface_forces_vec(e=e, dv=dv)
+        f_sca = np.array([
+            coupler_force(
+                0.0, 0.0, e[i] - 1.0, -dv[i],
+                params.stiffness, 0.0, 1.0,
+                coupler_gap=params.coupler_gap_m,
+                max_impulse=params.max_impulse_n,
+                preload_n=params.preload_n, friction_n=params.friction_n,
+                friction_v_eps=params.friction_v_eps,
+                stroke_m=params.stroke_m,
+                rigid_stiffness_nm=params.rigid_stiffness_nm,
+                unload_stiffness_ratio=params.unload_stiffness_ratio,
+                friction_static_n=params.friction_static_n,
+                friction_v_er=params.friction_v_er,
+            ) for i in range(2)])
+        # 标量约定：dv = v_front − v_back；此处构造 e=x_back−x_front+1
+        # v_front=0、v_back=−dv → dv_scalar = 0−(−dv) = dv ✓
+        assert np.allclose(f_vec, f_sca, rtol=1e-9, atol=1.0), \
+            f"标量/向量化不一致: {f_vec} vs {f_sca}"
 
 
 # ---------------------------------------------------------------------------
