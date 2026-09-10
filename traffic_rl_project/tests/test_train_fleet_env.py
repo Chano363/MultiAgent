@@ -12,7 +12,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.environments.train_env import TrainFormationEnv

@@ -10,7 +10,6 @@ import time
 import numpy as np
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent

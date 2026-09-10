@@ -13,7 +13,6 @@ import logging
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
 
 from src.trainer.config_schema import parse_experiment_yaml
 from src.trainer.train_runner import TrainRunner

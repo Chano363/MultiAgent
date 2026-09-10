@@ -9,7 +9,6 @@ import sys
 import json
 from pathlib import Path
 import numpy as np
-sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.environments.train_env import TrainFormationEnv
 from src.algorithms.mappo_agent import MAPPOAgent
 from src.trainer.train_cyclic_braking import quantize_to_notch  # 与训练同一次量化

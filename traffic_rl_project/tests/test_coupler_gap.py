@@ -15,7 +15,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.coupler import coupler_force, _dead_zone
 from src.train_dynamics.params import (

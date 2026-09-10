@@ -22,23 +22,21 @@ import argparse
 import logging
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import numpy as np
 import torch
+from src.utils.seed import set_seed
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('TrainFleetDQN')
 
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.coor_dqn_agent import CoorDQNAgent
+from src.metadata import build_metadata
+from src.physics_config import PhysicsConfig
+from src.physics_governance import official_world_config
 
 
-def set_seed(seed: int):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
 
 
 def main():
@@ -69,6 +67,18 @@ def main():
 
     device = args.device or ('cuda' if torch.cuda.is_available() else 'cpu')
     set_seed(args.seed)
+
+    # 自包含 checkpoint：权威 metadata 嵌入 .pt（对标 YOLO best.pt）
+    ckpt_meta = build_metadata(
+        project_root=str(Path(__file__).parent.parent.parent),
+        case='official', world_cfg=official_world_config(PhysicsConfig()),
+        seed=args.seed, entry=__file__,
+        extra={"hyperparameters": {
+            "algorithm": "coor_dqn", "episodes": args.episodes,
+            "num_trains": args.num_trains, "consist_preset": args.preset,
+            "grade_profile": args.grade, "target_gap": args.target_gap,
+            "lr": args.lr, "adj_coef": args.adj_coef, "max_steps": args.max_steps,
+        }})
 
     env_cfg = {
         'num_trains': args.num_trains,
@@ -163,7 +173,8 @@ def main():
         if ep_reward > best_reward:
             best_reward = ep_reward
             for i, ag in enumerate(agents):
-                ag.save(str(Path(args.checkpoint_dir) / f"coor_dqn_best_seed{args.seed}_train{i}.pt"))
+                ag.save(str(Path(args.checkpoint_dir) / f"coor_dqn_best_seed{args.seed}_train{i}.pt"),
+                        metadata=ckpt_meta)
 
         if (ep + 1) % 10 == 0 or ep == args.episodes - 1:
             recent = np.mean(episode_rewards[-10:])

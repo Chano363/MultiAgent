@@ -44,3 +44,7 @@ Auto-claude-code-research-in-sleep/
 memory/
 # 记忆库当日滚动文件（已由 memory/sync_memory.py 统一归档）
 .codebuddy/memory/2026-09-*.md
+# 训练检查点补充（2026-09-10 治理）
+traffic_rl_project/outputs/abl_checkpoints/
+traffic_rl_project/outputs/_no_metadata_staging/
+traffic_rl_project/outputs/diag_53km_*/

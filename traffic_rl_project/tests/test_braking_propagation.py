@@ -16,7 +16,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.params import VehicleParams, LocomotiveParams, TrainConsist
 from src.train_dynamics.train import TrainDynamics

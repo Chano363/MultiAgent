@@ -8,7 +8,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.safety_layer import SafetyLayer, DEFAULT_COUPLER_FORCE_LIMIT_N
 from src.train_dynamics.braking import (

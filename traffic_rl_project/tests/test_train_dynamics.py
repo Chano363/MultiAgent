@@ -15,7 +15,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.resistance import resistance_force_lb, resistance_force_n
 from src.train_dynamics.tractive import tractive_force, throttle_coefficient

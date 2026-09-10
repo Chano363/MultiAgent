@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 import sys
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.evaluation import evaluate_m1_m3_long as ev
 from src.algorithms.mappo_agent import MAPPOAgent

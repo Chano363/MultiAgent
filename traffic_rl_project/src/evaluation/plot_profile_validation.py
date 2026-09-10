@@ -16,7 +16,6 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import numpy as np
 import matplotlib

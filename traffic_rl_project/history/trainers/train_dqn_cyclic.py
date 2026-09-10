@@ -15,24 +15,22 @@ from pathlib import Path
 import argparse
 import logging
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import numpy as np
 import torch
+from src.utils.seed import set_seed
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('DQNCyclic')
 
 from src.environments.train_env import TrainFormationEnv
 from src.algorithms.dqn_agent import DQNAgent
+from src.metadata import build_metadata
+from src.physics_config import PhysicsConfig
+from src.physics_governance import official_world_config
 from src.trainer.train_cyclic_braking import cyclic_obs, cyclic_reward, V_MAX_MPS, V_MIN_MPS
 
 
-def set_seed(seed: int):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
 
 def train(
@@ -62,6 +60,17 @@ def train(
     episode_peaks = []
     best_avg = -1e9
     best_ckpt = None
+
+    # 自包含 checkpoint：权威 metadata 嵌入 .pt（对标 YOLO best.pt）
+    ckpt_meta = build_metadata(
+        project_root=str(Path(__file__).parent.parent.parent),
+        case='official', world_cfg=official_world_config(PhysicsConfig()),
+        seed=seed, entry=__file__,
+        extra={"hyperparameters": {
+            "algorithm": "dqn", "episodes": episodes,
+            "consist_preset": consist_preset, "grade_profile": grade_profile,
+            "max_steps": max_steps, "lr": lr, "init_speed_kmh": init_speed_kmh,
+        }})
 
     for ep in range(episodes):
         env.reset(options={'speed': init_speed_kmh / 3.6})
@@ -130,7 +139,7 @@ def train(
                 best_avg = eval_reward
                 best_ckpt = (ep + 1, eval_reward, eval_peak)
                 ckpt_name = f"dqn_cyclic_best_seed{seed}.pt"
-                agent.save(str(Path(checkpoint_dir) / ckpt_name))
+                agent.save(str(Path(checkpoint_dir) / ckpt_name), metadata=ckpt_meta)
                 logger.info(f"  >> 保存 best DQN: {ckpt_name} (eval={eval_reward:+.0f}, peak={eval_peak:.0f}kN)")
 
     logger.info(f"训练完成。best eval={best_ckpt}")

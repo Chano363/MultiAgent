@@ -31,6 +31,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 - 新条目：
   - 诊断-2026-09-08-formation-aware-启动（registry 多机车 agent 数 bug 修复 + 新训练线冒烟）
   - 诊断-2026-09-09-formation-5seed-发散根因（decompose 调制绕过车钩力投影，reward-fix 未及根本）
+  - 诊断-2026-09-10-53km-发散-两轮reward杠杆均失败（相对锚定 + 车钩力惩罚强化，长时程仍破线）
 
 ***
 
@@ -876,6 +877,43 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
   | M1 逐机车调制 | +14,544 | **560 (-24%)** |    0 |      354 |  0.343 | 99.97% |
 
 - **冒烟2**（AB 成本 0.2→0.05）：结果复现——coupler **559kN（-24%）**、viol 0、band 99.97%、AB 352 步、reward +14,648（vs M0 +14,677，**差 -29 ≈ AB 成本项 -35**）。
+
+### 诊断-2026-09-10-53km-发散-两轮reward杠杆均失败（相对锚定 + 车钩力惩罚强化）
+
+- **目的**：在**朔黄完整真实纵断面 shuozhou\_real\_53km**（主训练剖面）排除规则层/RL 物理性发散，定位长时程（3000+ 步）车钩力破 1000kN 底线根因。这是 P3「免重辨识泛化」主训练的前置。
+
+- **已排除：底层物理发散**。规则裸跑（含 leader-follower + ETCS + 车钩力钳制）53km 全程车钩力峰值仅 **793 kN < 1000**，不破线。**破线非物理必然**，而是 RL 学到的暴力循环制动动作被低估/惩罚太弱所致（`_calculate_reward_decomposed` 注释同述）。
+
+- **杠杆1：相对列距锚定（ADR-015 方向1，已实施）**——领航列锚绝对带、跟随列锚相对前列，删全局同速惩罚。短训 35ep：只修好短-中时程，**长时程（ep21-30）仍破线**（1200-1735kN、viol 数百）。不构成根治。
+
+- **杠杆2：车钩力惩罚强化（已实施并验证 30ep）**——改用**本步全列真实峰值**（`_step_coupler_peak_n`），破线二次硬惩罚 `-80·ov²` + 早触发 `0.9×limit` 连续惩罚。数据（`outputs/diag_53km_coupler_pen/seed0/`）：
+
+  | ep | peakCoupler(kN) | viol | reward |
+  | :------ | :------: | :-----: | ------: |
+  | 10 |  577 |  0.0 | +4380.9 |
+  | 20 |  872 |  0.3 | +6293.0 |
+  | 30 | **1505** | **482.3** | -88786.6 |
+
+  完整 30ep 逐 ep 曲线见 `revards/peak_coupler_kN`（ep0-15 稳定 522-917kN；**ep16 起间歇性溃败**，ep21/23-30 持续破线）。
+
+- **有望复现命令**：
+  ```bash
+  python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
+    --seed 0 --episodes 30 \
+    --checkpoint_dir outputs/diag_53km_coupler_pen/seed0 \
+    --results_dir outputs/diag_53km_coupler_pen/seed0/results \
+    --override dirs.figures_dir=outputs/diag_53km_coupler_pen/seed0/figures
+  ```
+
+- **根因判定（关键）**：
+  1. 破线模型是**间歇性溃败**（ep16 崩→ep17-22 部分恢复→ep23 后持续炸），非稳定收敛到暴力策略 → 指向**训练不稳定 / 策略坍塌**，而非单一坏策略。
+  2. KL 早停**过频繁**（ep10/20/30 均触发，多数 epoch 4-10 被早停）→ 单步策略更新过大、学习率/熵不匹配新奖励量纲（破线惩罚 -80·ov² 量纲大，value 目标变化剧烈）。
+  3. **SSOT 冲突**：项目硬约束"车钩力不进 reward、不作最小化对象"（RESEARCH_POSITIONING §1.3），本两轮杠杆都往 reward 里加车钩力惩罚——方向本身偏离既定车钩力定位（硬安全层 enforce≤1000kN + 观测上下文，不作优化对象）。
+
+- **结论 → 下一步**：**不继续在 reward 层打补丁**。车钩力定位回归 SSOT（不动 reward 车钩力项），转治训练稳定性：
+  1. 校验 `run_training.py` 的 lr / entropy / KL 早停阈值是否适配新奖励量纲（尤其破线惩罚使 value 目标量纲变大 → 需 ValueNorm 参数 / lr 下调 / entropy 上调 / KL 阈值放宽）。
+  2. 确认下发散是训练不稳而非策略固有 → 修训练超参后重跑短训验证 ep21-30 是否收敛。
+  3. 训练稳之后才谈 5-seed 主训练 / 主对比 / 跨线泛化。
 
 - **解读（期望 vs 实际）**：
 

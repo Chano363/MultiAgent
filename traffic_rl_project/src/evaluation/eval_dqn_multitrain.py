@@ -8,7 +8,6 @@ import sys
 import argparse
 from pathlib import Path
 import numpy as np
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.algorithms.dqn_agent import DQNAgent
 from src.trainer.train_cyclic_braking import cyclic_obs

@@ -13,7 +13,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.utils.plot_style import setup_cjk_font
 
 setup_cjk_font(verbose=False)

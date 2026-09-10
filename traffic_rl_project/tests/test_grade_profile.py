@@ -14,7 +14,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.grade_profile import (
     GradeProfile, GradeSegment,

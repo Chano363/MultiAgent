@@ -11,7 +11,6 @@ import sys
 import json
 from pathlib import Path
 import numpy as np
-sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.environments.train_env import TrainFormationEnv
 from src.controllers.low_level_controller import TrainLowLevelController
 from src.physics_governance import official_entry_guard, official_world_config  # 【治理】

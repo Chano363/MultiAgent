@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traffic-rl"
+version = "0.1.0"
+description = "面向长大下坡场景基于多智能体强化学习的重载列车群组自动控制方法"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = ["history", "outputs", "reference"]
+
+[tool.ruff.lint]
+# 起步只拦"真 bug"级问题（运行时错误/未定义名/重复定义），
+# 风格类规则待 P1-2 二期逐步放开（E/W 全家桶会一次性报数百条风格噪音）
+select = ["E9", "F63", "F7", "F82", "F401"]
