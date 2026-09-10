@@ -202,6 +202,9 @@ class MultiLocoController:
     AB_FALLBACK_NOTCH = -0.4
     # 距 v_max 不足该裕量（m/s）时禁止抑制 AB（AB 兜底不被轻率关闭 → 防 EB 兜不住超速）
     AB_SUPPRESS_MARGIN_MPS = 0.5
+    # 【2026-09-10 安全层源头门控】当前列内耦合器力 ≥ 该比例上限时禁止 RL 新增 AB 源
+    # （防"高力下叠加新 AB"的暴力吸态；车钩力=安全层兜底，SSOT，不靠 reward 惩罚）
+    AB_ADD_SOURCE_MAX_RATIO = 0.85
 
     def get_action_decomposed(
         self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
@@ -226,6 +229,12 @@ class MultiLocoController:
         final = baseline.copy()
         vel = float(train_env.dynamics.vel[0])
         rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
+        # 【2026-09-10】当前列内耦合器力/上限比（安全层源头门控用；本次决策内统一评估一次）
+        cur_coupler_ratio = 0.0
+        if self.enforce_coupler and self.num_vehicles:
+            cf = np.abs(np.asarray(train_env.dynamics._coupler_forces(), dtype=float))
+            if cf.size:
+                cur_coupler_ratio = float(np.max(cf)) / max(self.coupler_force_limit_n, 1e-6)
         for i in range(self.num_locomotives):
             ed_mod = float(np.clip(rl[i, 0], -1.0, 1.0))
             ab_mod = float(np.clip(rl[i, 1], -1.0, 1.0))
@@ -241,7 +250,16 @@ class MultiLocoController:
                     final[i, 1] = 0.0
             elif baseline[i, 1] >= 0 and ab_mod < -0.5:
                 # 提前触发 MIN 档兜底（RL 学"何时/哪台机车引入 AB"）
-                final[i, 1] = self.AB_FALLBACK_NOTCH
+                # 【2026-09-10 安全层源头门控：防暴力 AB 吸态】车钩力由安全层兜底（SSOT），
+                # 不靠 reward 惩罚。但感知式 _coupler_throttle_scale 按"当前时刻"力钳制，
+                # 拦不住 RL 新增 AB 源沿列传播的**滞后峰值**（1km 列车 @200m/s 波速 ~5s，
+                # 触发时力未升 → scale=1 不钳，峰值随后爆发）。故从**源头**封：当前列内
+                # 耦合器力已 ≥ 安全线时，禁止 RL 新增 AB 源（仅保留基线 ED 调制）。
+                # 依据：诊断-2026-09-10 三轮短训（相对锚定/车钩力惩罚/回滚）逐 ep 崩点一致的
+                # 长时程坍塌，主因正是探索踩进"高耦合器力下叠加新 AB 源"的暴力吸态。
+                if cur_coupler_ratio < self.AB_ADD_SOURCE_MAX_RATIO:
+                    final[i, 1] = self.AB_FALLBACK_NOTCH
+                # 否则高力下禁止新增源（final[i,1] 保持 baseline 的 0 → 不引入新 AB）
         # 【2026-09-09 修复：decompose 调制必须过车钩力投影】基线 get_action_cyclic_braking
         # 已应用 _coupler_throttle_scale，但 RL 调制后的 final 此前直接返回，导致 RL 可在
         # 车钩力接近上限时把 ED 顶满（+ed_mod_coef）/触发 AB，突破 1000kN 底线（ep41-50

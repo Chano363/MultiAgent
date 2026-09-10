@@ -78,7 +78,7 @@ class TrainRunner:
             case = SimCase(cfg.simcase)
             assert_case_allows(case, world_cfg, __file__)
 
-            # warm start（L1 BC 预训练）
+            # warm start（L1 BC 预训练 / fleet decompose BC）
             if cfg.warm_start and cfg.obs == 'cyclic':
                 from src.trainer.specs.cyclic_spec import warm_start_bc
                 warm_start_bc(inter.agent, env, env.num_vehicles, cyclic_obs,
@@ -86,57 +86,89 @@ class TrainRunner:
                               v_min=cfg.env_cfg.get('v_min', 40.0 / 3.6),
                               episodes=cfg.bc_episodes, bc_epochs=cfg.bc_epochs,
                               brake_notch=cfg.brake_notch)
+            elif cfg.warm_start and getattr(env, 'decompose', None):
+                # 【2026-09-10】decompose 6 机车编队：BC 自确定性规则基线（[0,0] 即复现
+                # 规则循环制动），治诊断-2026-09-10 长时程随机探索踩暴力 AB 吸态。
+                from src.trainer.specs.fleet_spec import warm_start_decompose_bc
+                warm_start_decompose_bc(
+                    inter.agent, env,
+                    episodes=cfg.bc_episodes, bc_epochs=cfg.bc_epochs,
+                    init_speed=cfg.env_cfg.get('init_speed_kmh', 80.0) / 3.6,
+                )
 
             cur_plan = self._parse_curriculum()
             episode_rewards, peak_coupler, violations = [], [], []
             best_reward = self._restore_best(namer)
             global_ep = max(cfg.start_ep, -1)
 
+            # 【并行多环境】同一 env 每个 ep 跑 n_env 条独立轨迹（不同初始速度提供
+            # 样本多样性，策略/共享 value），全部进 agent 共享 buffer、统一一次 update。
+            # GAE 靠 dones 正确处理多轨迹边界；多轨迹平均 advantage≥ 信噪比×n_env。
+            n_env = max(1, int(cfg.n_env))
+
             start = time.time()
             for ep in range(cfg.episodes):
                 global_ep += 1
                 horizon = self._resolve_horizon(global_ep, cur_plan)
-                env.max_steps = horizon
+                parallel_len = int(cfg.parallel_traj_len) or horizon
+                env.max_steps = parallel_len
+                self._traj_reward, self._traj_peak, self._traj_viol = [], [], []
 
-                if cfg.random_init_speed:
-                    init = float(np.random.uniform(cfg.init_speed_min, cfg.init_speed_max)) / 3.6
-                else:
-                    init = cfg.init_speed_kmh / 3.6
-                obs = env.reset(options={'speed': init})
-                if isinstance(obs, tuple):
-                    obs = obs[0]
-                obs = cyclic_obs(env) if cfg.obs == 'cyclic' else obs
-
-                ep_reward, ep_peak, ep_viol, step, done = 0.0, 0.0, 0, 0, False
-                while not done and step < horizon:
-                    if cfg.decision_interval > 1:
-                        env_act, value, aux = inter.act(obs)
-                        nxt, acc, term, trunc, info = obs, 0.0, False, False, None
-                        for _ in range(cfg.decision_interval):
-                            nxt, r_step, term, trunc, info = env.step(env_act)
-                            acc += r_step
-                            step += 1
-                            if term or trunc or step >= horizon:
-                                break
-                        reward = acc
-                        done = term or trunc or step >= horizon
-                        inter.observe(obs, env_act, value, nxt, reward, done, info, aux)
-                        next_obs = self._next_obs(env, nxt)
+                # 并行 n_env 条独立轨迹（初速均匀铺开 [min,max]，随机化时叠加抖动）：
+                # 全部进共享 buffer，统一 end_episode 一次
+                for ei in range(n_env):
+                    if n_env > 1 and cfg.random_init_speed:
+                        lo, hi = cfg.init_speed_min, cfg.init_speed_max
+                        init = lo + (hi - lo) * (ei + 0.5 + np.random.uniform(-0.3, 0.3)) / max(n_env, 1)
+                        init = float(np.clip(init, lo, hi)) / 3.6
+                    elif n_env > 1 and not cfg.random_init_speed:
+                        init = cfg.init_speed_kmh / 3.6
                     else:
-                        env_act, value, aux = inter.act(obs)
-                        next_obs, r_step, term, trunc, info = env.step(env_act)
-                        step += 1
-                        done = term or trunc or step >= horizon
-                        reward = self._reward_override(env, inter, r_step)
-                        inter.observe(obs, env_act, value, next_obs, reward, done, info, aux)
-                        next_obs = self._next_obs(env, next_obs)
+                        init = (float(np.random.uniform(cfg.init_speed_min, cfg.init_speed_max))
+                                if cfg.random_init_speed else cfg.init_speed_kmh) / 3.6
+                    obs = env.reset(options={'speed': init})
+                    if isinstance(obs, tuple):
+                        obs = obs[0]
+                    obs = cyclic_obs(env) if cfg.obs == 'cyclic' else obs
 
-                    ep_reward += reward
-                    ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))
-                    ep_viol = info.get('coupler_limit_violations', 0)
-                    obs = next_obs
+                    ep_reward, ep_peak, ep_viol, step, done = 0.0, 0.0, 0, 0, False
+                    while not done and step < parallel_len:
+                        if cfg.decision_interval > 1:
+                            env_act, value, aux = inter.act(obs)
+                            nxt, acc, term, trunc, info = obs, 0.0, False, False, None
+                            for _ in range(cfg.decision_interval):
+                                nxt, r_step, term, trunc, info = env.step(env_act)
+                                acc += r_step
+                                step += 1
+                                if term or trunc or step >= parallel_len:
+                                    break
+                            reward = acc
+                            done = term or trunc or step >= parallel_len
+                            inter.observe(obs, env_act, value, nxt, reward, done, info, aux)
+                            next_obs = self._next_obs(env, nxt)
+                        else:
+                            env_act, value, aux = inter.act(obs)
+                            next_obs, r_step, term, trunc, info = env.step(env_act)
+                            step += 1
+                            done = term or trunc or step >= parallel_len
+                            reward = self._reward_override(env, inter, r_step)
+                            inter.observe(obs, env_act, value, next_obs, reward, done, info, aux)
+                            next_obs = self._next_obs(env, next_obs)
 
+                        ep_reward += reward
+                        ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))
+                        ep_viol = info.get('coupler_limit_violations', 0)
+                        obs = next_obs
+
+                    self._traj_reward.append(ep_reward)
+                    self._traj_peak.append(ep_peak)
+                    self._traj_viol.append(ep_viol)
+
+                # 并行 n_env 条轨迹跑完后统一 update，聚合指标取平均
                 metrics = inter.end_episode() or {}
+                ep_reward = float(np.mean(self._traj_reward))
+                ep_peak = float(np.max(self._traj_peak))
+                ep_viol = int(np.sum(self._traj_viol))
                 episode_rewards.append(ep_reward)
                 peak_coupler.append(ep_peak / 1e3)
                 violations.append(ep_viol)

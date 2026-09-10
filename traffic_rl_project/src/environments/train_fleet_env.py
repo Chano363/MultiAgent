@@ -725,23 +725,18 @@ class TrainFleetEnv:
         # 编队级联稳定性：删除旧全局 rel_vel_penalty(std 全列速度)——逐列绝对同速在 53km
         # 多坡段不可达，已由逐对相对速度镜像(rel_anchor_reward) + 相对列距(gap_reward)替代。
 
-        # 车钩力约束（创新点）。2026-09-10：改用【本步全列真实峰值】作惩罚对象
-        # （旧用 obs[:,5] 机车局部值 → 低估真实峰值，使 RL 学到暴力制动破线而不被罚）；
-        # 并大幅强化惩罚量级以覆盖带内收益。依据：规则裸跑 53km 车钩力仅 793kN(<1000)，
-        # 破线非物理必然，而是 RL 学到的暴力循环制动被低估/惩罚太弱所致。物理有效：纯
-        # reward 塑形，不触碰动力学 / 牛顿第三定律 / 能量守恒。
+        # 车钩力约束（创新点）。2026-09-10 回滚 SSOT：破线由底层硬安全层 enforce_coupler
+        # 杜绝（车钩力定位 = 硬安全层≤1000kN + 观测上下文，不作 reward 强化最小化对象）。
+        # 此处仅保留"用本步全列真实峰值"作观测塑形（旧用 obs[:,5] 机车局部值 → 低估；
+        # 全列真实峰值更贴合物理约束），但不再施加 -80·ov² 二次硬惩罚——量纲(|-80| >> 带内
+        # 收益 ~6)使 value 目标震荡、KL 频繁早停，是诊断-2026-09-10 训练不稳的直接诱因之一；
+        # 且破线本就该由安全层兜底，非 reward 职责（SSOT：硬安全层 + 观测上下文）。
         coupler_means = obs[:, 5] if self.num_agents else np.zeros(1)
         if step_coupler_peak_n is not None and step_coupler_peak_n > 0:
             peak_n_norm = step_coupler_peak_n / max(self.coupler_force_limit_n, 1e-9)
         else:
             peak_n_norm = float(np.max(coupler_means)) if len(coupler_means) else 0.0
-        violation_penalty = 0.0
-        if peak_n_norm > 1.0:
-            ov = peak_n_norm - 1.0
-            violation_penalty = -80.0 * ov * ov        # 破线二次硬惩罚（覆盖带内收益）
-        elif peak_n_norm > 0.9:
-            violation_penalty = -20.0 * (peak_n_norm - 0.9)  # 0.9×limit 早触发连续惩罚
-        coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * peak_n_norm + violation_penalty
+        coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * peak_n_norm
 
         # 舒适性（同旧模式）
         comfort_penalty = -0.3 * float(np.mean(accels ** 2)) if len(accels) else 0.0

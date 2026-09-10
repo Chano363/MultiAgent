@@ -83,6 +83,7 @@
 | `training_results_standardized.md`                          | 阶段一学术成果报告                              |
 | `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
 | `HANDOFF_*.md`、`GROUP_MEETING_TALK_PLAN.md` | 阶段性交接/会议/备忘（任务已转移到 `PROJECT_PIPELINE`；`HUMAN_TODO.md` 已删） |
+> **最新交接**：`logs/HANDOFF_2026-09-10.md`（面向零基础新成员 + agent，含加速导航 / 踩坑史 / 当前卡点与下一步精确指令；supersede `logs/HANDOFF_2026-09-09.md`） |
 
 ### 归档区（已有，保持）
 
