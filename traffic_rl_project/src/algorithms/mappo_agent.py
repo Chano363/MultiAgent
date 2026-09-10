@@ -13,6 +13,8 @@ import numpy as np
 from typing import List, Dict, Tuple, Optional
 import logging
 
+from .base_agent import BaseRLAgent
+
 
 class RunningMeanStd:
     def __init__(self, shape=()):
@@ -159,7 +161,7 @@ class CentralizedValueNetwork(nn.Module):
         return self.network(state)
 
 
-class MAPPOAgent:
+class MAPPOAgent(BaseRLAgent):
     """Multi-Agent PPO with shared policy and centralized critic."""
 
     def __init__(
@@ -504,8 +506,9 @@ class MAPPOAgent:
         self.buffer_dones = None
         self.buffer_values = None
 
-    def save(self, path: str):
-        checkpoint = {
+    # -- checkpoint 钩子（save/load 协议在 BaseRLAgent） ------------------
+    def _checkpoint_payload(self) -> dict:
+        return {
             'policy_state_dict': self.policy.state_dict(),
             'value_state_dict': self.value.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
@@ -518,11 +521,8 @@ class MAPPOAgent:
             'reward_rms_var': self.reward_rms.var,
             'reward_rms_count': self.reward_rms.count
         }
-        torch.save(checkpoint, path)
-        logging.info(f"MAPPO模型已保存到: {path}")
 
-    def load(self, path: str):
-        checkpoint = torch.load(path, map_location=self.device)
+    def _restore_checkpoint(self, checkpoint: dict) -> None:
         self.policy.load_state_dict(checkpoint['policy_state_dict'])
         self.value.load_state_dict(checkpoint['value_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
@@ -535,4 +535,3 @@ class MAPPOAgent:
             self.reward_rms.mean = checkpoint['reward_rms_mean']
             self.reward_rms.var = checkpoint['reward_rms_var']
             self.reward_rms.count = checkpoint.get('reward_rms_count', 0)
-        logging.info(f"MAPPO模型已从 {path} 加载")

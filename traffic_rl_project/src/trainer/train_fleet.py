@@ -25,10 +25,10 @@ import argparse
 import logging
 from typing import Dict
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import numpy as np
 import torch
+from src.utils.seed import set_seed
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('TrainFleet')
@@ -37,18 +37,13 @@ from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
 from src.physics_config import PhysicsConfig
 from src.physics_governance import SimCase, official_world_config, assert_case_allows
-from src.metadata import save_metadata, assert_training_metadata
+from src.metadata import save_metadata, assert_training_metadata, build_metadata
 from .artifacts import save_training_artifacts  # 【2026-09-06 统一框架】迁移至 artifacts.py，此处 re-export 保兼容
 
 
 
 
 
-def set_seed(seed: int):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
 
 
 def make_env(config: Dict) -> TrainFleetEnv:
@@ -92,8 +87,6 @@ def train(
                                        # 禁用 ed_mod（仅 AB 杠杆）或 ab_mod（仅 ED 杠杆）
     hetero: bool = False,              # 【E4-H 车钩异构】训练在逐车钩独立参数分布上（分布内）
     hetero_seed: int = 0,              # 车钩异构抽样 seed（训练固定；评估 held-out 用另一组）
-    enable_etcs: bool = False,       # 【2026-09-03】训练时启用 ETCS（与评估 --etcs 对齐，
-                                     # 消除"训练无 ETCS / 评估有 ETCS"的分布不一致）
     random_init_speed: bool = False,
     init_speed_min: float = 55.0 / 3.6,
     init_speed_max: float = 75.0 / 3.6,
@@ -132,7 +125,6 @@ def train(
         'mask_lever': mask_lever,   # 【杠杆隔离消融】'none'/'ed'/'ab'
         'hetero': hetero,           # 【E4-H 车钩异构】True=逐车钩独立参数
         'hetero_seed': hetero_seed,
-        'enable_etcs': enable_etcs,   # 【2026-09-03】训练/评估 ETCS 对齐
     }
     if target_speed is not None:
         env_cfg['target_speed'] = target_speed
@@ -151,7 +143,7 @@ def train(
         "decompose": decompose, "action_dim": action_dim, "group_obs": group_obs,
         "hetero": hetero, "hetero_seed": hetero_seed,
         "hierarchical": hierarchical, "adj_coef": adj_coef,
-        "use_coupler_constraint": use_coupler_constraint, "enable_etcs": enable_etcs,
+        "use_coupler_constraint": use_coupler_constraint,
         "curriculum": curriculum, "resume": resume, "start_ep": start_ep,
         "init_speed_kmh": init_speed_kmh, "random_init_speed": random_init_speed,
         "init_speed_min": init_speed_min, "init_speed_max": init_speed_max,
@@ -163,6 +155,12 @@ def train(
     save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
                   case=_case.value, world_cfg=official_world_config(PhysicsConfig()), seed=seed,
                   entry=__file__, extra={"hyperparameters": extra_hp})
+    # 自包含 checkpoint：同一份权威 metadata 嵌入每个 .pt（对标 YOLO best.pt）
+    ckpt_meta = build_metadata(project_root=str(Path(__file__).parent.parent.parent),
+                               case=_case.value,
+                               world_cfg=official_world_config(PhysicsConfig()),
+                               seed=seed, entry=__file__,
+                               extra={"hyperparameters": extra_hp})
 
     obs_dim = env.obs_dim       # 每智能体观测维度
     act_dim = env.act_dim       # 每智能体动作维度（decompose=2 [ed_mod,ab_mod]；否则=action_dim）
@@ -335,7 +333,8 @@ def train(
             # （V5.14 教训：策略可能后期退化，末 ep 模型性能可能差于早期）
             # 文件名含 coupler 标识（消融实验：有车钩力 _cp / 无车钩力 _nocp）
             cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'m'+mask_lever if mask_lever and mask_lever != 'none' else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
-            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_{cp_tag}_seed{seed}.pt"))
+            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_best_{cp_tag}_seed{seed}.pt"),
+                       metadata=ckpt_meta)
 
         if (gep + 1) % 10 == 0 or ep == episodes - 1:
             recent = np.mean(episode_rewards[-10:]) if len(episode_rewards) >= 10 else np.mean(episode_rewards)
@@ -349,7 +348,8 @@ def train(
             sys.stdout.flush()
             # checkpoint 带 seed + coupler 标识 + 【全局回合号】ep{gep+1}
             cp_tag = f"{'dec_' if decompose else ''}ad{act_dim}{'g' if group_obs else ''}_{'m'+mask_lever if mask_lever and mask_lever != 'none' else ''}_{'cp' if use_coupler_constraint else 'nocp'}"
-            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{gep+1}_{cp_tag}_seed{seed}.pt"))
+            agent.save(str(Path(checkpoint_dir) / f"mappo_fleet_ep{gep+1}_{cp_tag}_seed{seed}.pt"),
+                       metadata=ckpt_meta)
 
         # 【2026-08-30】训练历史落盘 + 学习曲线图（论文/PPT 用，前台中断也不丢数据）
         if (gep + 1) % 10 == 0 or ep == episodes - 1:
@@ -458,8 +458,6 @@ if __name__ == '__main__':
                         help='【E4-H 车钩异构】训练在逐车钩独立参数分布上（分布内）；评估 held-out 用另一组 hetero_seed')
     parser.add_argument('--hetero_seed', type=int, default=0,
                         help='车钩异构抽样 seed（训练固定；评估 held-out 用另一组）')
-    parser.add_argument('--enable_etcs', action='store_true',
-                        help='训练时启用 ETCS 真 ATP（与评估 --etcs 对齐，消除分布不一致）')
     parser.add_argument('--checkpoint_dir', type=str, default='outputs/checkpoints',
                         help='checkpoint 输出目录（多 run 并行不互相覆盖）')
     parser.add_argument('--results_dir', type=str, default='outputs/results',
@@ -505,7 +503,6 @@ if __name__ == '__main__':
         mask_lever=args.mask_lever,
         hetero=args.hetero,
         hetero_seed=args.hetero_seed,
-        enable_etcs=args.enable_etcs,
         random_init_speed=args.random_init_speed,
         init_speed_min=args.init_speed_min,
         init_speed_max=args.init_speed_max,

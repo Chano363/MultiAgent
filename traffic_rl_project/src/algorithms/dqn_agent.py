@@ -10,32 +10,20 @@ Zhang2024（Algorithms 2024,17,190）在朔黄线用 DQN 学单列循环制动�
 
 用作论文 baseline（M-DQN）：单列 DQN 学循环制动，多列场景中每列独立 DQN（无协同），
 对比 M1（MAPPO 协同）。
+
+【2026-09-10 基类重构】网络/回放/更新/存档协议上移至 base_agent.BaseDQNAgent，
+本文件只保留 Zhang2024 式动作映射。
 """
-import torch
-import torch.nn as nn
 import numpy as np
-from collections import deque
-import random
+
+from .base_agent import BaseDQNAgent, QNetworkMLP
 
 
-class DQN(nn.Module):
-    """Q 网络：obs -> Q(s, a) 各离散动作的 Q 值。"""
-
-    def __init__(self, obs_dim: int, num_actions: int, hidden: int = 128):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(obs_dim, hidden),
-            nn.Tanh(),
-            nn.Linear(hidden, hidden),
-            nn.Tanh(),
-            nn.Linear(hidden, num_actions),
-        )
-
-    def forward(self, obs):
-        return self.net(obs)
+class DQN(QNetworkMLP):
+    """Q 网络：obs -> Q(s, a)（保留原名，向后兼容既有导入）。"""
 
 
-class DQNAgent:
+class DQNAgent(BaseDQNAgent):
     """DQN 智能体（离散动作，学循环制动）。"""
 
     # 离散动作 → throttle 映射（对齐循环制动：制动/缓解/牵引）
@@ -56,77 +44,12 @@ class DQNAgent:
         eps_decay: float = 0.995,
         device: str = 'cuda',
     ):
-        self.obs_dim = obs_dim
-        self.num_actions = num_actions
-        self.gamma = gamma
-        self.tau = tau
-        self.batch_size = batch_size
-        self.device = torch.device(device if torch.cuda.is_available() else 'cpu')
-        self.eps_start = eps_start
-        self.eps_end = eps_end
-        self.eps_decay = eps_decay
-        self.eps = eps_start
-
-        self.q_net = DQN(obs_dim, num_actions).to(self.device)
-        self.target_net = DQN(obs_dim, num_actions).to(self.device)
-        self.target_net.load_state_dict(self.q_net.state_dict())
-        self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=lr)
-
-        # 经验回放
-        self.buffer = deque(maxlen=buffer_size)
-
-    def select_action(self, obs: np.ndarray, eval_mode: bool = False) -> int:
-        """ε-greedy 选择离散动作索引。"""
-        if not eval_mode and random.random() < self.eps:
-            return random.randrange(self.num_actions)
-        obs_t = torch.tensor(obs, dtype=torch.float32, device=self.device).unsqueeze(0)
-        with torch.no_grad():
-            q_vals = self.q_net(obs_t)
-        return int(q_vals.argmax(dim=1).item())
+        super().__init__(
+            obs_dim, num_actions, lr=lr, gamma=gamma, tau=tau,
+            buffer_size=buffer_size, batch_size=batch_size,
+            eps_start=eps_start, eps_end=eps_end, eps_decay=eps_decay,
+            device=device)
 
     def action_to_throttle(self, action_idx: int) -> float:
         """离散动作 → throttle。"""
         return float(self.ACTION_THROTTLE[action_idx])
-
-    def store_transition(self, obs, action, reward, next_obs, done):
-        self.buffer.append((obs.copy(), action, reward, next_obs.copy(), float(done)))
-
-    def update(self) -> float:
-        """从经验回放采样训练 Q 网络，返回 loss。"""
-        if len(self.buffer) < self.batch_size:
-            return 0.0
-        batch = random.sample(self.buffer, self.batch_size)
-        obs, act, rew, nobs, done = map(np.array, zip(*batch))
-        obs_t = torch.tensor(obs, dtype=torch.float32, device=self.device)
-        act_t = torch.tensor(act, dtype=torch.long, device=self.device).unsqueeze(1)
-        rew_t = torch.tensor(rew, dtype=torch.float32, device=self.device).unsqueeze(1)
-        nobs_t = torch.tensor(nobs, dtype=torch.float32, device=self.device)
-        done_t = torch.tensor(done, dtype=torch.float32, device=self.device).unsqueeze(1)
-
-        q = self.q_net(obs_t).gather(1, act_t)
-        with torch.no_grad():
-            q_next = self.target_net(nobs_t).max(dim=1, keepdim=True)[0]
-            target = rew_t + self.gamma * (1 - done_t) * q_next
-        loss = nn.functional.smooth_l1_loss(q, target)
-
-        self.optimizer.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.q_net.parameters(), 1.0)
-        self.optimizer.step()
-
-        # 软更新 target 网络
-        for tp, p in zip(self.target_net.parameters(), self.q_net.parameters()):
-            tp.data.copy_(self.tau * p.data + (1 - self.tau) * tp.data)
-
-        # ε 衰减
-        self.eps = max(self.eps * self.eps_decay, self.eps_end)
-        return float(loss.item())
-
-    def save(self, path: str):
-        torch.save({'q_net': self.q_net.state_dict(), 'eps': self.eps}, path)
-
-    def load(self, path: str):
-        ckpt = torch.load(path, map_location=self.device)
-        self.q_net.load_state_dict(ckpt['q_net'])
-        self.target_net.load_state_dict(ckpt['q_net'])
-        self.eps = ckpt.get('eps', 0.05)

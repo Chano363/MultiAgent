@@ -30,10 +30,10 @@ import argparse
 import logging
 from typing import Dict
 
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 import numpy as np
 import torch
+from src.utils.seed import set_seed
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('CyclicBraking')
@@ -42,7 +42,7 @@ from src.environments.train_env import TrainFormationEnv
 from src.algorithms.mappo_agent import MAPPOAgent
 from src.physics_config import PhysicsConfig
 from src.physics_governance import SimCase, official_world_config
-from src.metadata import save_metadata
+from src.metadata import save_metadata, build_metadata
 
 
 # Zhang2024 限速参数
@@ -50,11 +50,6 @@ V_MAX_MPS = 80.0 / 3.6      # 80 km/h 最高限速
 V_MIN_MPS = 40.0 / 3.6      # 40 km/h 最低缓解速度
 
 
-def set_seed(seed: int):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
 
 
 def cyclic_obs(env) -> np.ndarray:
@@ -258,17 +253,22 @@ def train(
     # 权威 metadata（git_commit / physics_version / simcase / 全物理配置）：
     # L1 原只在 save_training_artifacts 内嵌文本标签，缺权威 metadata.json →
     # 补上与 train_fleet 一致的落盘，保证"结果以 metadata 为准"可追溯。
+    hp = {
+        "algorithm": "mappo",
+        "episodes": episodes, "consist_preset": consist_preset,
+        "grade_profile": grade_profile, "max_steps": max_steps,
+        "init_speed_kmh": init_speed * 3.6, "warm_start_bc": warm_start,
+        "lr": lr, "entropy": entropy, "epochs": epochs,
+        "batch_size": batch_size, "seed": seed, "curriculum": curriculum,
+    }
     save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
                   case=SimCase('official').value, world_cfg=official_world_config(PhysicsConfig()),
-                  seed=seed, entry=__file__,
-                  extra={"hyperparameters": {
-                      "algorithm": "mappo",
-                      "episodes": episodes, "consist_preset": consist_preset,
-                      "grade_profile": grade_profile, "max_steps": max_steps,
-                      "init_speed_kmh": init_speed * 3.6, "warm_start_bc": warm_start,
-                      "lr": lr, "entropy": entropy, "epochs": epochs,
-                      "batch_size": batch_size, "seed": seed, "curriculum": curriculum,
-                  }})
+                  seed=seed, entry=__file__, extra={"hyperparameters": hp})
+    # 自包含 checkpoint：同一份权威 metadata 嵌入每个 .pt（对标 YOLO best.pt）
+    ckpt_meta = build_metadata(project_root=str(Path(__file__).parent.parent.parent),
+                               case=SimCase('official').value,
+                               world_cfg=official_world_config(PhysicsConfig()),
+                               seed=seed, entry=__file__, extra={"hyperparameters": hp})
 
     episode_rewards = []
     episode_peak_coupler = []
@@ -382,7 +382,7 @@ def train(
             # [45,65]重训覆盖了[40,80]成功模型导致后续评估出错）
             ckpt_name = (f"cyclic_mappo_best_seed{seed}_v{int(V_MIN_MPS*3.6)}-{int(V_MAX_MPS*3.6)}"
                          f"_init{int(init_speed*3.6)}.pt")
-            agent.save(str(Path(checkpoint_dir) / ckpt_name))
+            agent.save(str(Path(checkpoint_dir) / ckpt_name), metadata=ckpt_meta)
 
         if (ep + 1) % 10 == 0 or ep == episodes - 1:
             recent = np.mean(episode_rewards[-10:])

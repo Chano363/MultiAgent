@@ -15,8 +15,9 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from src.utils.seed import set_seed
 
-from src.metadata import training_metadata_guard
+from src.metadata import training_metadata_guard, build_metadata
 from src.physics_config import PhysicsConfig
 from src.physics_governance import SimCase, official_world_config, assert_case_allows
 from src.trainer.config_schema import cfg_to_dict
@@ -29,11 +30,6 @@ from src.trainer.specs.cyclic_spec import cyclic_obs, cyclic_reward, quantize_to
 logger = logging.getLogger('TrainRunner')
 
 
-def set_seed(seed: int):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
 
 
 class TrainRunner:
@@ -68,6 +64,13 @@ class TrainRunner:
         namer = make_namer(cfg, act_dim=act_dim, num_trains=num_agents)
 
         world_cfg = official_world_config(PhysicsConfig())
+        # 自包含 checkpoint：权威 metadata 嵌入每个 .pt（对标 YOLO best.pt，
+        # 2026-09-10），与 metadata.json 双轨——权重单文件即可溯源复现。
+        self._ckpt_meta = build_metadata(
+            project_root=str(Path(__file__).parent.parent.parent),
+            case=cfg.simcase, world_cfg=world_cfg, seed=cfg.seed,
+            entry="run_training.py",
+            extra={"hyperparameters": cfg_to_dict(cfg)})
         with training_metadata_guard(cfg.results_dir, world_cfg=world_cfg,
                                      seed=cfg.seed, simcase=cfg.simcase,
                                      entry="run_training.py",
@@ -210,12 +213,14 @@ class TrainRunner:
     def _maybe_save_best(self, inter, agents, namer, ep_reward, best_reward, seed):
         if ep_reward <= best_reward:
             return
+        meta = getattr(self, '_ckpt_meta', None)
         if self.cfg.ckpt_policy == 'coor_dqn':
             for i, ag in enumerate(agents):
                 ag.save(str(Path(self.cfg.checkpoint_dir) /
-                            f"coor_dqn_best_seed{seed}_train{i}.pt"))
+                            f"coor_dqn_best_seed{seed}_train{i}.pt"), metadata=meta)
         else:
-            agents.save(str(Path(self.cfg.checkpoint_dir) / namer.best_path(seed)))
+            agents.save(str(Path(self.cfg.checkpoint_dir) / namer.best_path(seed)),
+                        metadata=meta)
 
     def _periodic(self, inter, agents, namer, rewards, peaks, viols, global_ep, best_reward):
         tag = namer.history_tag(self.cfg.seed)
@@ -231,4 +236,5 @@ class TrainRunner:
         # periodic checkpoint（fleet 保留 ep{gep+1} 存档协议）
         p = namer.periodic_path(global_ep, self.cfg.seed)
         if p and (global_ep + 1) % self.cfg.log_interval == 0 and not isinstance(agents, list):
-            agents.save(str(Path(self.cfg.checkpoint_dir) / p))
+            agents.save(str(Path(self.cfg.checkpoint_dir) / p),
+                        metadata=getattr(self, '_ckpt_meta', None))
