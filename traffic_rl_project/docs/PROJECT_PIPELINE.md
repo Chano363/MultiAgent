@@ -1067,3 +1067,30 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **落实**：源码 `params.py`/`coupler.py`/`train.py`、测试 `test_coupler_model_refined`/`test_fleet_decompose`/`test_train_dynamics`、绘图 `plot_physical_curves.py`（图 6 改单面板 MT-2）、训练 metadata physics 串均去 QKX100。
 - **留痕**：ADR-011（`docs/logs/decisions/DECISIONS.md`）；`VALIDATION_BASELINE.md` R0-C superseded 标注 + 「诊断-2026-09-07」节；`ITSC_PAPER.md/.tex` Limitation (6) 改写 + tectonic 重编译 PDF；`AGENTS.md` 车钩描述与 R0 gotcha 更新；HANDOFF 补 superseded 声明。
 
+---
+
+## P3 免重辨识泛化 claim 完整实验计划 - 2026-09-10（ADR-014）
+
+- **状态**：🆕 新增（实施中）
+- **归属**：P3 · 论文 Experiments（主对比三行 + 跨线泛化 + 对照消融）· 立论依据 ADR-014 §1.6
+- **动机/背景**：把 ADR-014 的"扛部署"立论落成可发表实验。核心 claim = 同一环境/安全层/**53km 主训练**下，免重辨识 D-RL 跨线守住底线（车钩力≤1000kN、ATP 不限速、列距不破界）；公平 MPC 需重标定/模型失配/耦合区求解失败。不比"谁控制更准"，只比"谁扛得住部署"。
+- **主指标口径**：级联失败率 / MPC 求解失败次数 / ATP 触发次数（非追尾，安全层已杜绝）/ 车钩力峰值 / 列距不破界。
+- **方法/关键命令**（完整可复现）：
+
+  ```
+  # 阶段0 工程奠基：ATP 永久启用移除 enable_etcs 开关 + run_training 统一入口核对
+  # 阶段1 主训练 D-RL 53km 全量 5 seed + 双 checkpoint（best/ep120）+ curriculum→36000
+  python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed {0..4}
+  # 阶段2 主对比三行 @53km：D-RL / D-Rule / MPC
+  python src/evaluation/evaluate_*.py ...
+  # 阶段3 跨线泛化（免重辨识）：D-RL 零微调 @20/35km vs 公平 MPC（no-re-identification，protocol A/B）
+  # 阶段4 对照/消融：S-Loco / ED-only / AB-only（论文对标行）
+  ```
+
+- **配置**：主配置 `formation_ed_ab_3train_1plus1.yaml`（ED/AB 分工、6 agent、53km、36000 步、curriculum）；5 seed；跨线目标剖面 20km/35km 真实；23.8km 仅作已知锚。逐实验 metadata + JSON 时间戳归档（不覆盖旧文件）。
+- **结果（完成后补）**
+  - ⏳ 实施中：先完成阶段0 工程奠基（ATP 开关移除），再启动主训练。
+- **产出文件**：
+  - 结果/图表/日志：`outputs/checkpoints_formation/seed{0..4}/`、`outputs/results_*.json`
+  - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`（如跨月）、`VALIDATION_BASELINE.md` 诊断留痕
+

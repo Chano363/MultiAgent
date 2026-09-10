@@ -29,7 +29,7 @@ env_cfg:
   max_steps: 36000             # 【53km 全程全覆盖】=3600s；avg≥~14.8m/s 即跑满 53.2km（原 15000 步仅~24km）
   max_accel: 1.0
   use_coupler_constraint: true
-  enable_etcs: true             # 【2026-09-09 修复】真 ATP 列间防追尾默认关(False)；run_training/decompose 未显式开→ETCS 未生效→53km 负间距追尾坍缩(见 DIAGNOSTICS#2332"训练必须--etcs"，评估侧 hardcode=True)。此处对齐评估开启
+  # ATP/ETCS 真 ATP 为永久启用的安全底线，无 enable_etcs 开关（恒启）。历史 false 开关已移除。
   hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
   decompose: loco_ed_ab        # 机车级 ED/AB 分工：每机车行为 [ed_mod, ab_mod]∈[-1,1]²
 

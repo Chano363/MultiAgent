@@ -208,11 +208,11 @@ class TrainFormationEnv:
         self.line_speed_limit_mps = config.get(
             'line_speed_limit_mps', consist.vehicles[0].max_speed_mps
         )
-        # ETCS 前瞻式超速防护（"真 ATP"）：enable_etcs=True 时由安全层对给定前方目标
-        #   （由外部 set_etcs_targets 注入，多列群组中=前列尾车）计算 EBD/EBI 监督限位，
-        #   超限强制制动。etcs_curve 为共享曲线（多列同编组可复用）；缺省 None 不启用。
+        # ETCS 前瞻式超速防护（"真 ATP"，**永久启用，安全底线，无开关**）：由安全层对
+        #   给定前方目标（由外部 set_etcs_targets 注入，多列群组中=前列尾车）计算
+        #   EBD/EBI 监督限位，超限强制制动。etcs_curve 为共享曲线（多列同编组可复用）；
+        #   缺省 None（单列无前列）时安全层自然回退"反应式限速"兜底，不漏检。
         #   max_speed_mps 仍传给安全层作线速兜底（与 ETCS 共存，见 safety_layer 规则1）。
-        self.enable_etcs = config.get('enable_etcs', False)
         self.etcs_curve = config.get('etcs_curve', None)
         # 当前前方 ETCS 目标点（由 fleet 每步 set_etcs_targets 更新；单列场景可置空）
         self.etcs_targets = []
@@ -221,7 +221,6 @@ class TrainFormationEnv:
             max_speed_mps=self.line_speed_limit_mps,
             coupler_force_limit_n=self.coupler_force_limit_n,
             min_gap_m=self.target_gap * 0.1,
-            enable_etcs=self.enable_etcs,
         )
 
         # 【2026-09-03 智能体分解重构（ADR-009）】decompose='loco_ed_ab' 模式：
@@ -332,8 +331,8 @@ class TrainFormationEnv:
             'gaps': gaps,
             'emergency': is_emergency,
         }
-        # 启用 ETCS 时注入前瞻式监督所需数据（车头里程 + 前方目标 + 共享曲线）
-        if self.enable_etcs and self.etcs_curve is not None:
+        # 注入 ETCS 前瞻式监督所需数据（车头里程 + 前方目标 + 共享曲线；无曲线时跳过）
+        if self.etcs_curve is not None:
             snap['head_position_m'] = float(pos[0])
             snap['etcs_curve'] = self.etcs_curve
             snap['etcs_targets'] = list(self.etcs_targets)

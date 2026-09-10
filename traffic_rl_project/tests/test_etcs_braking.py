@@ -15,7 +15,6 @@ import sys
 import pytest
 import numpy as np
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.train_dynamics.etcs_braking import (
     EtcsBrakingCurve, EbdTarget, braking_build_up_from_train, G_RAIL,
@@ -192,7 +191,7 @@ def test_supervision_active_level_high_speed():
 # SafetyLayer 集成：前瞻 EBI / SBI 触发 + 向后兼容
 # ---------------------------------------------------------------------------
 def _sl_with_obs(target_pos, v_head, grade_at=None, build_up=0.0):
-    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0, enable_etcs=True)
+    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0)
     curve = _make_curve(grade_at=grade_at, brake_build_up_s=build_up)
     obs = {
         'vel': np.full(4, v_head),
@@ -232,8 +231,8 @@ def test_safety_etcs_sbi_trigger_service_brake():
 
 
 def test_safety_etcs_missing_target_falls_back_to_reactive():
-    """enable_etcs=True 但 obs 缺目标数据 → 回退反应式限速（超速仍被拦，不漏检）。"""
-    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0, enable_etcs=True)
+    """ETCS 恒启但 obs 缺目标数据 → 回退反应式限速（超速仍被拦，不漏检）。"""
+    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0)
     obs = {
         'vel': np.full(4, 30.0),
         'coupler_forces': np.zeros(4),
@@ -245,8 +244,8 @@ def test_safety_etcs_missing_target_falls_back_to_reactive():
     assert any(e['rule'] == 'overspeed' for e in sl.last_events)
 
 
-def test_safety_default_backward_compatible():
-    """默认 enable_etcs=False → 行为完全向后兼容（原 overspeed 语义）。"""
+def test_safety_reactive_overspeed_without_etcs_targets():
+    """ETCS 恒启但 obs 缺目标数据 → 回退反应式限速（超速仍被拦，不漏检）。"""
     sl = SafetyLayer(num_vehicles=2, max_speed_mps=30.0)
     corrected = sl.protect(np.array([1.0, 1.0]),
                            {'vel': np.array([30.0, 30.0]),
@@ -312,33 +311,28 @@ def test_paper_hs_train_deceleration_levels():
 from src.environments.train_fleet_env import TrainFleetEnv
 
 
-def _fleet(enable_etcs=True, num_trains=3):
+def _fleet(num_trains=3):
     return TrainFleetEnv({
         'num_trains': num_trains,
         'consist_preset': '10kt_1plus0',
         'grade_profile': 'shuozhou_23800',
-        'enable_etcs': enable_etcs,
     })
 
 
 def test_fleet_etcs_trains_have_curve_and_enabled():
-    """enable_etcs=True 时每列安全层启用 ETCS 且共享同一条曲线（含坡度分量/建立期）。"""
-    fleet = _fleet(True, num_trains=3)
+    """ATP/ETCS 恒启（无开关）：每列共享同一条 ETCS 曲线（含坡度分量/建立期）。"""
+    fleet = _fleet(num_trains=3)
     for tr in fleet.trains:
-        assert tr.enable_etcs is True
-        assert tr.safety.enable_etcs is True
         assert tr.etcs_curve is fleet.etcs_curve  # 共享曲线
-        assert fleet.etcs_curve is not None
-        assert fleet.etcs_curve.brake_build_up_s > 0.0  # 由波速传播算出（~4.9s）
+    assert fleet.etcs_curve is not None
+    assert fleet.etcs_curve.brake_build_up_s > 0.0  # 由波速传播算出（~4.9s）
 
 
-def test_fleet_etcs_off_is_backward_compatible():
-    """默认 enable_etcs=False → 各列安全层 ETCS 关闭，行为不回归。"""
-    fleet = _fleet(False, num_trains=3)
-    for tr in fleet.trains:
-        assert tr.enable_etcs is False
-        assert tr.safety.enable_etcs is False
-        assert tr.etcs_curve is None
+def test_fleet_etcs_is_permanent_and_curve_shared():
+    """ATP 恒启安全底线：多列场景 ETCS 曲线必建且全列共享，无"关闭"路径。"""
+    fleet = _fleet(num_trains=3)
+    assert all(tr.etcs_curve is fleet.etcs_curve for tr in fleet.trains)
+    assert fleet.etcs_curve is not None
     fleet.reset()
     obs, *_ = fleet.step(np.zeros(3))
     assert obs.shape == (3, fleet.obs_dim)
@@ -346,7 +340,7 @@ def test_fleet_etcs_off_is_backward_compatible():
 
 def test_fleet_etcs_follower_target_is_leader_tail():
     """后列每步被注入"前列尾车"作为 ETCS 监督目标（防追尾）。"""
-    fleet = _fleet(True, num_trains=3)
+    fleet = _fleet(num_trains=3)
     fleet.reset()
     fleet.step(np.zeros(3))
     for i in range(1, fleet.num_trains):
@@ -363,7 +357,7 @@ def test_fleet_etcs_follower_target_is_leader_tail():
 
 def test_fleet_etcs_leader_has_no_target_and_still_enforces_line_speed():
     """领航列（i=0）无前列目标，但线速上限仍由反应式限速兜底（不超 80km/h，无漏检）。"""
-    fleet = _fleet(True, num_trains=3)
+    fleet = _fleet(num_trains=3)
     fleet.reset()
     leader = fleet.trains[0]
     leader.set_etcs_targets([])  # 领航列无前列 → 空目标
@@ -377,7 +371,7 @@ def test_fleet_etcs_leader_has_no_target_and_still_enforces_line_speed():
 
 def test_fleet_etcs_follower_fast_near_leader_triggers_ebi():
     """后列距前列近且高速 → ETCS EBI 强制紧急制动（真正防追尾，非反应式兜底）。"""
-    fleet = _fleet(True, num_trains=2)
+    fleet = _fleet(num_trains=2)
     fleet.reset()
     follower = fleet.trains[1]
     leader = fleet.trains[0]

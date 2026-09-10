@@ -49,10 +49,19 @@ class TrainFleetEnv:
     LEAN_MAX_TRACTION = 0.5
     LEAN_MAX_ADJ = 3.0
 
-    # 【等速冻结消除 2026-09-09】三列等速时 coordination_adj 偏置无累积 → 间距冻结在
+    # 【等速冻结消除 2026-09-09】三列等速时 coordination_adj 追的偏置无累积 → 间距冻结在
     # ~1300m。chase：follower 落后超前区时把缓解线抬到"仅比 lead 快一点"持续缩距。
     LEAN_CHASE_DELTA_MPS = 0.8
     LEAN_CHASE_DEADBAND_M = 25.0
+
+    # 【相对列距锚定 2026-09-10，ADR-014 方向1】绝对速度带一致在 53km 多坡段物理不可达
+    # （诊断-2026-09-10 发散短训 35ep 复现：位置差→坡度差→速度差→间距扩大，ep17 起崩坏）。
+    # 编队学习目标从"所有列贴近绝对带中心 + 全局同速"改为相对锚定：
+    #   - 领航列(ti==0)：锚绝对带（编队节奏负责人），带内奖 + 超上限硬罚。
+    #   - 跟随列(ti>0)：锚"相对前列"(列距 gap_reward + 相对速度此处)，不再被绝对带/
+    #     全局 std 惩罚拖累。跟随列镜像前列可行轨迹（同坡序相位差），物理可收敛。
+    REL_ANCHOR_SPD_SCALE = 3.0       # 相对速度匹配对称尺度（m/s）：±3 内奖最强、越界衰减
+    REL_ANCHOR_SPD_W = 2.0           # 相对速度镜像奖权重（替代旧 rel_vel_penalty 全局 std）
 
     """
     多列万吨列车编队协同控制环境。
@@ -70,9 +79,9 @@ class TrainFleetEnv:
             - max_steps: 每回合最大步数
             - dt: 积分步长
             - action_speed_range: 目标速度动作范围（m/s，相对 target_speed 的偏差范围）
-            - enable_etcs: 是否启用 ETCS 前瞻式超速防护（"真 ATP"，默认 False 向后兼容）。
-                启用后每列安全层对"前列尾车"做 EBD/EBI 监督（防追尾由车载 ATP 保证），
-                线速上限仍由反应式限速兜底（两者共存，见 safety_layer 规则0/规则1）。
+        （ATP/ETCS 为永久启用的安全底线，无 enable_etcs 开关：每列安全层恒对
+        "前列尾车"做 EBD/EBI 监督（防追尾由车载 ATP 保证），线速上限仍由反应式
+        限速兜底（两者共存，见 safety_layer 规则0/规则1）。
     """
 
     def __init__(self, config: dict = None):
@@ -156,10 +165,9 @@ class TrainFleetEnv:
         # 且导致前列/后列缓解持续不同步 → 车钩力持续超限 + M1 训练不收敛。
         # 正确场景 = 普通 reset 布局（各列同坡段起步，见 reset()），协同由场景天然驱动。
 
-        # 【2026-09-02 ETCS 集成】多列"真 ATP"：共享一条 ETCS 制动曲线。
-        # 前列尾车位置作为后列的前方监督目标（防追尾），落地 safety_layer 的规则0。
-        # （曲线依赖 self.trains，故在本处创建后构建）
-        self.enable_etcs = config.get('enable_etcs', False)
+        # 【2026-09-02 ETCS 集成】多列"真 ATP"（永久启用，安全底线，无开关）：
+        # 共享一条 ETCS 制动曲线。前列尾车位置作为后列的前方监督目标（防追尾），
+        # 落地 safety_layer 的规则0。（曲线依赖 self.trains，故在本处创建后构建）
         self.etcs_curve = None
 
         # 每列内部用单列动力学环境（列车内车钩力由此计算）
@@ -176,7 +184,6 @@ class TrainFleetEnv:
                 'line_speed_limit_mps': self.v_max,
                 'dt': self.dt,
                 'max_steps': self.max_steps,
-                'enable_etcs': self.enable_etcs,
                 'etcs_curve': self.etcs_curve,
                 'decompose': self.decompose,   # decompose 模式下单列 step 走 _step_decomposed
             }
@@ -188,29 +195,28 @@ class TrainFleetEnv:
                     sample_coupler_params(hetero_rng) for _ in range(n_coupling)
                 ]
             self.trains.append(TrainFormationEnv(tr_cfg))
-        # ETCS 共享曲线（启用时）：制动建立时间 = 车列总长/紧急制动波速 250m/s
+        # ETCS 共享曲线（**永久启用**，安全底线）：制动建立时间 = 车列总长/紧急制动波速 250m/s
         # （对齐 braking.py 波速传播，不用 free_length）；建立期内最不利 = 按剖面
         # 最陡下坡的沿坡加速度继续（最保守）；grade_at 绑定同一条剖面（坡度分量生效）。
-        if self.enable_etcs:
-            profile = PROFILES[self.grade_profile]()
-            train_len = sum(v.length_m for v in self.trains[0].dynamics.consist.vehicles)
-            build_up = braking_build_up_from_train(train_len, propagation_speed_mps=250.0)
-            steepest_down = min(seg.grade_permille for seg in profile.segments)
-            # 【2026-09-03 ATP 修复】原 nominal_emergency_decel=1.6 为旧李蔚法（制动力
-            # 系统性偏强 2-4 倍）继承值，与牵规 β_c 法实际紧急制动减速度（1 万吨 1+0：
-            # 40/60/80 km/h → 0.426/0.401/0.382 m/s²，tmp_etcs_decel_check.py 实测）
-            # 严重不匹配 → EBD/EBI 安全距离仅为实际的 1/4 → ATP 兜不住追尾。
-            # 改用实际减速度速度 profile（速度步进，见 EtcsBrakingCurve.nominal_decel）。
-            self.etcs_curve = EtcsBrakingCurve(
-                speed_profile=[(40.0 / 3.6, 0.426), (60.0 / 3.6, 0.401),
-                               (80.0 / 3.6, 0.382)],
-                k_dry=1.0,
-                brake_build_up_s=build_up,
-                assumed_accel_during_buildup=G_RAIL * abs(steepest_down) / 1000.0,
-                grade_at=profile.grade_at,
-            )
-            for tr in self.trains:
-                tr.etcs_curve = self.etcs_curve
+        profile = PROFILES[self.grade_profile]()
+        train_len = sum(v.length_m for v in self.trains[0].dynamics.consist.vehicles)
+        build_up = braking_build_up_from_train(train_len, propagation_speed_mps=250.0)
+        steepest_down = min(seg.grade_permille for seg in profile.segments)
+        # 【2026-09-03 ATP 修复】原 nominal_emergency_decel=1.6 为旧李蔚法（制动力
+        # 系统性偏强 2-4 倍）继承值，与牵规 β_c 法实际紧急制动减速度（1 万吨 1+0：
+        # 40/60/80 km/h → 0.426/0.401/0.382 m/s²，tmp_etcs_decel_check.py 实测）
+        # 严重不匹配 → EBD/EBI 安全距离仅为实际的 1/4 → ATP 兜不住追尾。
+        # 改用实际减速度速度 profile（速度步进，见 EtcsBrakingCurve.nominal_decel）。
+        self.etcs_curve = EtcsBrakingCurve(
+            speed_profile=[(40.0 / 3.6, 0.426), (60.0 / 3.6, 0.401),
+                           (80.0 / 3.6, 0.382)],
+            k_dry=1.0,
+            brake_build_up_s=build_up,
+            assumed_accel_during_buildup=G_RAIL * abs(steepest_down) / 1000.0,
+            grade_at=profile.grade_at,
+        )
+        for tr in self.trains:
+            tr.etcs_curve = self.etcs_curve
         # 每列的底层控制器（列内：加速度执行 + 车钩力约束，可开关）
         self.controllers = [
             TrainLowLevelController(
@@ -477,7 +483,7 @@ class TrainFleetEnv:
             # EBD 预留距离不足以应对"前列更慢" → 后列穿透前列（35km 长坡实测
             # 28581/35000 步 gap<5m、min=-5401m）。正确语义：后列须在到达前列尾前
             # 降到前列当前速度，才真正防追尾。
-            if self.enable_etcs and i > 0:
+            if i > 0:
                 leading_tail = float(self.trains[i - 1].dynamics.pos[-1])
                 lead_speed = float(self.trains[i - 1].dynamics.vel[0])
                 tr.set_etcs_targets([EbdTarget(
@@ -572,6 +578,7 @@ class TrainFleetEnv:
         accels = np.zeros(self.num_trains)
         ab_count = 0       # 本步激活的 AB 源总数（奖励塑形：AB 贵）
         ed_sum = 0.0       # 本步 ED 深度合计（ED 便宜，鼓励 ED 优先）
+        self._step_coupler_peak_n = 0.0  # 本步全列最大车钩力（跨列车取 max；奖励车钩力用真实峰值，非机车局部值）
         a = 0
         # 【列距收缩 v2 2026-09-09】放弃 A2"全场共同速度锁"（它会连 follower 一起压死，
         # 使"最慢列当 follower"时无追能力 → col1-col2 停在 ~2400m 缩不回）。
@@ -638,7 +645,7 @@ class TrainFleetEnv:
             ab_count += int(np.sum(final_edab[:, 1] < 0))
             ed_sum += float(np.sum(final_edab[:, 0]))
             # ETCS 前列尾车监督（与旧模式同语义；decompose 下安全层经投影钳 ED）
-            if self.enable_etcs and ti > 0:
+            if ti > 0:
                 leading_tail = float(self.trains[ti - 1].dynamics.pos[-1])
                 lead_speed = float(self.trains[ti - 1].dynamics.vel[0])
                 tr.set_etcs_targets([EbdTarget(
@@ -648,12 +655,15 @@ class TrainFleetEnv:
             self._train_heads[ti] = float(tr.dynamics.pos[0])
             accels[ti] = (float(tr.dynamics.vel[0]) - v_before) / max(self.dt, 1e-6)
             coupler = np.abs(tr.dynamics._coupler_forces())
-            self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(coupler)) if len(coupler) else 0.0)
+            cpl_max = float(np.max(coupler)) if len(coupler) else 0.0
+            self._peak_coupler_n = max(self._peak_coupler_n, cpl_max)
+            self._step_coupler_peak_n = max(self._step_coupler_peak_n, cpl_max)
             self._coupler_limit_violations += int(np.sum(coupler > self.coupler_force_limit_n))
             self._safety_events += tr._safety_events
 
         obs = self._get_obs_decomposed()
-        reward = self._calculate_reward_decomposed(obs, accels, ab_count, ed_sum)
+        reward = self._calculate_reward_decomposed(obs, accels, ab_count, ed_sum,
+                                                   step_coupler_peak_n=self._step_coupler_peak_n)
         self.steps += 1
         terminated = False
         truncated = self.steps >= self.max_steps
@@ -672,7 +682,8 @@ class TrainFleetEnv:
         return obs, reward, terminated, truncated, info
 
     def _calculate_reward_decomposed(self, obs: np.ndarray, accels: np.ndarray,
-                                     ab_count: int, ed_sum: float) -> float:
+                                     ab_count: int, ed_sum: float,
+                                     step_coupler_peak_n: float = None) -> float:
         """decompose 模式奖励：限速区间 + 车钩力 + 舒适 + 电空分工塑形。
 
         与旧模式共享的语义（speed_band/车钩力/舒适/列间间距）沿用原权重；
@@ -681,41 +692,56 @@ class TrainFleetEnv:
           让 RL 学"ED 打满、AB 只在 ED 不足时兜底"——这是本架构给 RL 的真物理杠杆；
         - ED 轻成本 -0.02/深度：防无谓满 ED（如低速滑行），但远低于 AB 成本。
         """
-        # 限速区间（循环制动核心）：逐列(agent)速度势场，非群组门槛——文献基准
-        # V3.5.3b（Zhang2021 逐 agent APF + Guo2025 大负值硬奖惩）：
-        #   1) 每列按自身 v 对带中心做连续 APF（越靠近 v_center 奖越大，越带越深）；
-        #   2) 任一列撞带上限(超速)触发大负值硬惩罚（流速约束，等效 Guo2025 −15）；
-        #   3) 不要求全列齐步（发散的旧"群组均速带"已废）。
-        # 旧版(2026-09-09 上半期)「群组均速二值门槛」反范式 → 已在 VALIDATION_BASELINE V3.5.3b 留痕。
+        # 【相对列距锚定 2026-09-10】限速区间（循环制动核心）只由领航列承载绝对带责任，
+        # 跟随列改为相对锚定前列（列距由 gap_reward 承担、相对速度在此镜像），
+        # 避开 53km 多坡段"绝对同速物理不可达"（诊断-2026-09-10 发散短训 35ep 复现）。
+        # 文献基准：Zhang2021 逐 agent 连续 APF / Guo2025 大负值硬奖惩（超速不可容忍）；
+        # 旧"逐列独立绝对带 + 全局 std 同速"(V3.5.3b) 在 53km 仍是发散根因之一，此处废止为
+        # "领航列绝对带 + 跟随列相对锚定"。
         speed_band_reward = 0.0
+        rel_anchor_reward = 0.0
         v_center = 0.5 * (self.v_min + self.v_max)
         band_half = 0.5 * (self.v_max - self.v_min)
-        force_penalty = 0.0  # 撞带上限→大负值硬惩罚（安全约束，超速不可容忍）
-        for tr in self.trains:
+        force_penalty = 0.0  # 超速硬惩罚（跟随列由相对锚定 + 前置 ETCS 兜底）
+        for ti, tr in enumerate(self.trains):
             v = float(tr.dynamics.vel[0])
-            # 连续 APF：|v-v_center|/band_half ∈ [0,1] 内奖最大，越带逐渐转负
-            norm_dev = abs(v - v_center) / max(band_half, 1e-6)
-            if norm_dev <= 1.0:           # 带内：越近中心奖越大（+6 → 0）
-                speed_band_reward += 6.0 * (1.0 - 0.9 * norm_dev)
-            else:                          # 越带上限/下限：越深越罚（−0.2/单位偏移）
-                speed_band_reward -= 0.2 * (norm_dev - 1.0) * 100.0
-            if v > self.v_max:             # 超速不可容忍 → 大负值硬惩罚（每列独立）
-                force_penalty -= 5.0 * (v - self.v_max)
+            if ti == 0:
+                # 领航列：锚绝对带（编队节奏负责人）
+                norm_dev = abs(v - v_center) / max(band_half, 1e-6)
+                if norm_dev <= 1.0:           # 带内：越近中心奖越大（+6 → 0）
+                    speed_band_reward += 6.0 * (1.0 - 0.9 * norm_dev)
+                else:                          # 越带：越深越罚
+                    speed_band_reward -= 0.2 * (norm_dev - 1.0) * 100.0
+                if v > self.v_max:             # 超线路限速 → 不可容忍硬罚
+                    force_penalty -= 5.0 * (v - self.v_max)
+            else:
+                # 跟随列：镜像前列可行轨迹（相对速度匹配）——不再被绝对带拖累
+                lead_v = float(self.trains[ti - 1].dynamics.vel[0])
+                rel_spd_norm = (v - lead_v) / self.REL_ANCHOR_SPD_SCALE
+                rel_anchor_reward += self.REL_ANCHOR_SPD_W * max(0.0, 1.0 - rel_spd_norm ** 2)
+                # 跟随列绝对线速兜底（轻权重，主要靠 ETCS+车钩钳制；不强行与带中心一致）
+                if v > self.v_max * 1.05:
+                    force_penalty -= 3.0 * (v - self.v_max)
+        # 编队级联稳定性：删除旧全局 rel_vel_penalty(std 全列速度)——逐列绝对同速在 53km
+        # 多坡段不可达，已由逐对相对速度镜像(rel_anchor_reward) + 相对列距(gap_reward)替代。
 
-        # 编队级联稳定性（诊断-2026-09-08 Option 1，修复长程手风琴振荡）：
-        # 各列速度在带内 ≠ 列间同步（如 [10.6,22.3]m/s 均值在带内仍纵向振荡），
-        # 必须显式惩罚各列速度离散度（对齐非 decompose 分支 -0.1*speed_consistency）。
-        # 权重保守：真实剖面多坡段各列速度天然不同步，过强会误伤追车所需的速度差。
-        group_speeds = [float(tr.dynamics.vel[0]) for tr in self.trains]
-        rel_vel_penalty = -0.1 * float(np.std(group_speeds))
-
-        # 车钩力约束（创新点，同旧模式权重）
+        # 车钩力约束（创新点）。2026-09-10：改用【本步全列真实峰值】作惩罚对象
+        # （旧用 obs[:,5] 机车局部值 → 低估真实峰值，使 RL 学到暴力制动破线而不被罚）；
+        # 并大幅强化惩罚量级以覆盖带内收益。依据：规则裸跑 53km 车钩力仅 793kN(<1000)，
+        # 破线非物理必然，而是 RL 学到的暴力循环制动被低估/惩罚太弱所致。物理有效：纯
+        # reward 塑形，不触碰动力学 / 牛顿第三定律 / 能量守恒。
         coupler_means = obs[:, 5] if self.num_agents else np.zeros(1)
-        coupler_peak = float(np.max(coupler_means)) if len(coupler_means) else 0.0
+        if step_coupler_peak_n is not None and step_coupler_peak_n > 0:
+            peak_n_norm = step_coupler_peak_n / max(self.coupler_force_limit_n, 1e-9)
+        else:
+            peak_n_norm = float(np.max(coupler_means)) if len(coupler_means) else 0.0
         violation_penalty = 0.0
-        if coupler_peak > 1.0:
-            violation_penalty = -5.0 * (coupler_peak - 1.0)
-        coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * coupler_peak + violation_penalty
+        if peak_n_norm > 1.0:
+            ov = peak_n_norm - 1.0
+            violation_penalty = -80.0 * ov * ov        # 破线二次硬惩罚（覆盖带内收益）
+        elif peak_n_norm > 0.9:
+            violation_penalty = -20.0 * (peak_n_norm - 0.9)  # 0.9×limit 早触发连续惩罚
+        coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * peak_n_norm + violation_penalty
 
         # 舒适性（同旧模式）
         comfort_penalty = -0.3 * float(np.mean(accels ** 2)) if len(accels) else 0.0
@@ -766,8 +792,8 @@ class TrainFleetEnv:
 
         return (
             + speed_band_reward
+            + rel_anchor_reward
             + force_penalty
-            + rel_vel_penalty
             + gap_reward
             + gap_trend_penalty
             + potential_field

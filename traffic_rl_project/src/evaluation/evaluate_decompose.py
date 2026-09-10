@@ -19,7 +19,6 @@ import sys
 import json
 import argparse
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import numpy as np
 import torch
@@ -42,7 +41,6 @@ def make_env(mode, args):
         'grade_profile': args.grade,
         'target_speed': 20.0,
         'max_steps': args.max_steps,
-        'enable_etcs': True,
         'eval_mode': True,
     }
     if mode == 'decompose':

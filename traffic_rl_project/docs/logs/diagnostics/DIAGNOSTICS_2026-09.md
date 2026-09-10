@@ -1363,3 +1363,32 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - 未动的"更硬手段"（车钩力惩罚量级提升 / 0.5×limit 早触发 / 动力学硬限）按上一节结论**保留待用户决策**——先看渐变 curriculum 轮能否过 ep41-50，不再叠加未验证改动。
 - **运行状态（04:45 重启）**：seed0 全新开训（seed0 目录已清空重建，旧发散资产保留于 `seed0_DIVERGED_*`），relay+patrol 已重启。curriculum 边界日志确认生效：`[(0, 1000), (20, 2000), (30, 3000), (40, 5000), (60, 8000), (75, 12000), (90, 15000)]`。
 - **判定窗口**：ep21-30（2000 步）≈05:20 起、ep31-40（3000 步）≈05:55 起、**ep41-60（5000 步）≈06:25-07:45** —— 若该窗口仍出现 coupler>1000 / viol>50 / reward<-20万 即触发 patrol 报警并转入用户决策。数据留痕：`outputs/checkpoints_formation/seedN_train.log` + `relay.log` + `patrol.log`（append-only）。
+
+
+### 诊断-2026-09-10-发散根因（方向1 相对列距锚定 reward 改造不彻底：短-中时程修好、长时程仍发散）
+
+- 背景：ADR-014/015 主线 53km 训练在历史奖励（逐列绝对带+全局 std）下 ep17 起持续崩塌。用户选方向1：改编队目标为“领航列锚绝对带、跟随列锚相对前列（相对速度+相对列距）”，删全局绝对同速惩罚。落地 train_fleet_env.py::_calculate_reward_decomposed。本诊断验证其是否解除 53km 长时程发散。
+- 复现命令：python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 40 --checkpoint_dir outputs/diag_53km_relanchor/seed0 --results_dir outputs/diag_53km_relanchor/seed0/results --override dirs.figures_dir=outputs/diag_53km_relanchor/seed0/figures
+- seed/配置：seed=0；config formation_ed_ab_3train_1plus1.yaml（3x1+1=6 agents，curriculum->36000 步，simcase=official，53km）；git ed0a064 physics 29569dca；metadata：outputs/diag_53km_relanchor/seed0/results/metadata.json。
+- 数据（40ep 计划，诊断进行至 ep30 尚未竟，增量写入 CSV）：
+  | ep | reward | peakCoupler(kN) | viol |
+  |----|--------|-----------------|------|
+  | 1-10 | 3995~4401 | 522-649 | 0 |
+  | 11-16 | 4367~8276 | 786-1029 | 0（仅 ep12 viol=1） |
+  | 17 | -41216 | 807 | 0 |
+  | 18-20 | 5292~6299 | 836-1031 | 0（仅 ep18 viol=1） |
+  | 21 | -32884 | 1596.7 | 586 |
+  | 22 | +7731 | 921 | 0 |
+  | 23 | -179662 | 1664.5 | 883 |
+  | 24 | -24686 | 1523 | 782 |
+  | 25 | -15171 | 1520 | 518 |
+  | 26 | +9484 | 1203 | 22 |
+  | 27 | -6224 | 1499 | 236 |
+  | 28 | +2184 | 1266 | 128 |
+  | 29 | -68937 | 1735 | 872 |
+  | 30 | -2918 | 1640 | 337 |
+- 结论（方向1 部分生效，未根治）：
+  - 短-中时程（<=1000 步）修好：ep17 单次 -41216（viol=0）后 ep18-20 即恢复 +5~6.3k，与旧奖励“ep17 起持续崩塌至 -30万+”形成对照——相对锚定移除了“绝对同速不可达”这一短时程惩罚源。
+  - 长时程（2000-3000 步，ep21-30）仍发散：coupler 反复越 1000kN（1200-1735）、viol 数百、reward 反复 ±。印证 09-09 诊断：手风琴振荡在更长时域充分发展，“策略未在 >1000 步时域充分受训”仍存在；且车钩力惩罚过弱（peak 1.4 -> penalty≈-2.3/步 vs 带内收益 +10-15/步）使 RL 学到暴力循环制动。
+- 期望 vs 实际：期望方向1 奖励重构使 D-RL 在 53km 全程（curriculum->36000 步）收敛、守住车钩力<=1000kN 底线；实际仅短-中时程改善，长时程仍破线（1200-1735kN）-> 方向1 单独不构成根治；主训练（curriculum->36000 步）若照此推进仍会发散。
+- 下一步决策点（承接 09-09“更硬手段保留待用户决策”）：车钩力底线保障需二选一/组合：①车钩力惩罚量级大幅提升（量级覆盖带内收益）；②0.5xlimit 早触发惩罚；③动力学层硬限（dynamics 层钳 |F|<=1000kN，超越即时归零——但会与“车钩力=约束非优化”ADR-014 的观测上下文定位冲突，需辨析）；④长时程分段/更缓 curriculum（当前 2000@ep20->3000@ep30 仍过快）。数据落盘：outputs/diag_53km_relanchor/（seed0 检查点+results+log，append-only 不覆盖）。

@@ -14,7 +14,6 @@
 import sys
 import numpy as np
 from pathlib import Path
-sys.path.append(str(Path(__file__).parent.parent.parent))
 import torch
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.algorithms.mappo_agent import MAPPOAgent
@@ -36,7 +35,7 @@ NUM_TRAINS = 3
 def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, disturbance_duration=200,
              target_gap=100.0, grade_profile='shuozhou_23800', max_steps=None,
              controller='mpc_simplified', horizon=10, mpc_gap_min=20.0, mpc_enforce_coupler=True,
-             blocks=5, block_len=10, use_coupler_constraint=True, enable_etcs=False):
+             blocks=5, block_len=10, use_coupler_constraint=True):
     # 普通场景（各列同坡段起步，无 start_offset/spacing 人为坡段错开）
     # eval_mode=True：第1层策略用确定性采样（bug修复：消除 M1/M3 评估随机性）
     # disturbance_accel<0：领航车扰动鲁棒性评估（突发减速），默认 0=无扰动。
@@ -44,8 +43,8 @@ def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, dist
     # target_gap：列间目标间距（m），调小=初始间距更近=更大追尾压力场景（压力消融）
     # grade_profile：坡度剖面（默认朔黄线真实剖面；可换 v_shape/long_downhill 等做普适性验证）
     # use_coupler_constraint：安全层消融（--no_coupler）→ False，关掉车钩力 SafetyLayer 钳制
-    # enable_etcs：是否启用 ETCS 目标距离超速防护（"真 ATP"，所有方法一视同仁，
-    #              追尾由 ATP 兜底，聚焦"受约束下的控制质量"而非"谁追尾"）
+    # （ETCS 真 ATP 为永久启用的安全底线，无开关；追尾由 ATP 兜底，聚焦
+    #  "受约束下的控制质量"而非"谁追尾"）
     enable_disturbance = disturbance_accel < 0
     env = TrainFleetEnv({
         'num_trains': NUM_TRAINS, 'consist_preset': '10kt_1plus0',
@@ -58,7 +57,6 @@ def make_env(init_speed, hierarchical, adj_coef=0.0, disturbance_accel=0.0, dist
         'disturbance_target_accel': disturbance_accel,
         'use_coupler_constraint': use_coupler_constraint,
         'hierarchical': hierarchical, 'adj_coef': adj_coef,
-        'enable_etcs': enable_etcs,
         'eval_mode': True,
     })
     # 挂载 MPC 协同控制器（供 'mpc' / 'fairmpc' / 'mpc_dir' / 'mpc_rule' 模式使用）
@@ -354,9 +352,6 @@ def main():
     # 安全层消融：--no_coupler → 关掉车钩力 SafetyLayer 钳制（观察车钩力超限），对齐
     # 设计锁定的"安全层消融（移除安全层观察车钩力和追尾）"，只关车钩力约束（用户 2026-08-30 确认）。
     use_coupler_constraint = '--no_coupler' not in sys.argv
-    # ETCS 真 ATP：--etcs → 所有方法统一启用 ETCS 前瞻式超速防护，追尾由 ATP 兜底，
-    # 对比聚焦"受约束下的控制质量"（车钩力余量/间距漂移/节能/实时性/泛化）。
-    enable_etcs = '--etcs' in sys.argv
     if disturbance_accel < 0:
         tag = (f"场景=[普通场景 + 领航车扰动鲁棒性评估（扰动脉冲 {disturbance_accel:.1f}m/s² "
                f"@step500 持续{disturbance_duration}步）]")
@@ -371,7 +366,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=False, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, enable_etcs=enable_etcs)
+                           target_gap=target_gap)
             coast_res.append(run_episode(env, None, 'coast', s, deterministic, randomize_init))
         summarize(f"惰行 baseline {tag}", coast_res)
 
@@ -384,8 +379,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.1, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, use_coupler_constraint=use_coupler_constraint,
-                           enable_etcs=enable_etcs)
+                           target_gap=target_gap, use_coupler_constraint=use_coupler_constraint)
             m1_res.append(run_episode(env, agent, 'm1', s, deterministic, randomize_init))
         summarize(f"M1 群组协同+车钩力 (coupler_constraint={use_coupler_constraint}) ({ckpt}) {tag}", m1_res)
 
@@ -395,7 +389,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.0, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, enable_etcs=enable_etcs)
+                           target_gap=target_gap)
             m3_res.append(run_episode(env, None, 'm3', s, deterministic, randomize_init))
         summarize(f"M3 单列独立（δ=0）{tag}", m3_res)
 
@@ -408,7 +402,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, enable_etcs=enable_etcs)
+                           target_gap=target_gap)
             env._m4_kp = kp
             env._m4_kd = kd
             m4_res.append(run_episode(env, None, 'm4', s, deterministic, randomize_init))
@@ -420,7 +414,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, enable_etcs=enable_etcs)
+                           target_gap=target_gap)
             mpc_res.append(run_episode(env, None, 'mpc', s, deterministic, randomize_init))
         summarize(f"M-MPC 协同（确定性 MPC，horizon={env._mpc_controller.horizon}）{tag}", mpc_res)
 
@@ -431,8 +425,7 @@ def main():
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
                            target_gap=target_gap, controller='fairmpc', horizon=horizon,
-                           mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler,
-                           enable_etcs=enable_etcs)
+                           mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler)
             fm_res.append(run_episode(env, None, 'fairmpc', s, deterministic, randomize_init))
         times = env._mpc_controller.solve_times
         mean_t = float(np.mean(times)) if times else float('nan')
@@ -448,7 +441,7 @@ def main():
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
                            target_gap=target_gap, controller='mpc_dir',
                            mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler,
-                           blocks=blocks, block_len=block_len, enable_etcs=enable_etcs)
+                           blocks=blocks, block_len=block_len)
             mpc_dir_res.append(run_episode(env, None, 'mpc_dir', s, deterministic, randomize_init))
         times = env._mpc_controller.solve_times
         mean_t = float(np.mean(times)) if times else float('nan')
@@ -466,7 +459,7 @@ def main():
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
                            target_gap=target_gap, controller='mpc_rule',
                            mpc_gap_min=mpc_gap_min, mpc_enforce_coupler=mpc_enforce_coupler,
-                           blocks=blocks, block_len=block_len, enable_etcs=enable_etcs)
+                           blocks=blocks, block_len=block_len)
             mpc_rule_res.append(run_episode(env, None, 'mpc_rule', s, deterministic, randomize_init))
         times = env._mpc_controller.solve_times
         mean_t = float(np.mean(times)) if times else float('nan')
@@ -489,7 +482,7 @@ def main():
         for s in range(n_seed):
             env = make_env(65 / 3.6, hierarchical=True, adj_coef=0.3, disturbance_accel=disturbance_accel,
                            disturbance_duration=disturbance_duration, grade_profile=grade_profile,
-                           target_gap=target_gap, enable_etcs=enable_etcs)
+                           target_gap=target_gap)
             mdqn_fair_res.append(
                 run_episode(env, None, 'mdqn_fair', s, deterministic, randomize_init, coor_agents=coor_agents))
         summarize(f"M-DQN-fair 公平 DQN 协同 (seed{dqn_seed}) {tag}", mdqn_fair_res)

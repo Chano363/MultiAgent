@@ -51,8 +51,9 @@ class SafetyLayer:
         max_speed_mps: 最大运行速度（米/秒），用于限速防护
         coupler_force_limit_n: 车钩力上限（牛顿），默认 1000 kN
         min_gap_m: 最小安全车钩间距（米），用于间距防护
-        enable_etcs: 是否启用 ETCS 目标距离超速防护（默认 False 向后兼容）。
-            启用后仍需提供 etcs_targets 和 etcs_curve 在 obs_state。
+
+    ETCS 目标距离超速防护（"真 ATP"）为**永久启用的安全底线，无开关**：
+    若 obs_state 提供 etcs_targets 和 etcs_curve，即对前方目标做前瞻式监督。
     """
 
     def __init__(
@@ -63,7 +64,6 @@ class SafetyLayer:
         min_gap_m: float = 0.1,
         coupler_force_limit_emergency_n: float = None,
         coupler_override: str = 'release',
-        enable_etcs: bool = False,
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
@@ -80,7 +80,6 @@ class SafetyLayer:
             if coupler_force_limit_emergency_n is not None
             else 2.25 * coupler_force_limit_n
         )
-        self.enable_etcs = bool(enable_etcs)
         self.last_events = []
 
     def reset(self):
@@ -121,8 +120,8 @@ class SafetyLayer:
         """
         对智能体输出的动作做安全修正。
 
-        升级：若 `enable_etcs=True` 且 obs_state 提供 etcs_curve + etcs_targets + head_position，
-        则启用 ETCS 前瞻式监督：
+        升级：ETCS 前瞻式监督（永久启用，安全底线）——若 obs_state 提供
+        etcs_curve + etcs_targets + head_position：
 
         - EBI 介入前限速：当前速度 > P 限速 → 强制 service 制动
         - EBI 触发：当前速度 > EBI 限速 → 强制紧急制动
@@ -159,27 +158,27 @@ class SafetyLayer:
             if is_emergency else self.coupler_force_limit_n
         )
 
-        # 规则 0：ETCS 目标距离超速防护（前瞻真 ATP，若配置）
+        # 规则 0：ETCS 目标距离超速防护（前瞻真 ATP，**永久启用，安全底线，无开关**）
         # 只对车头（头车）计算，ETCS 限速是全局硬限位（整列车不能超）。
         # EBI 触发 → 全列车强制紧急制动；P 触发 → 全列车强制 service 制动。
         etcs_applied = False
-        if self.enable_etcs:
-            etcs_curve = obs_state.get('etcs_curve', None)
-            etcs_targets = obs_state.get('etcs_targets', None)
-            head_pos = obs_state.get('head_position_m', None)
-            if etcs_curve is not None and etcs_targets is not None and head_pos is not None:
-                etcs_applied = True
-                v_head = float(vel[0])
-                ebi, sbi = self._etcs_check(head_pos, v_head, etcs_curve, etcs_targets)
-                if ebi is not None:
-                    if v_head > (ebi + 1e-6):
-                        self._log(0, 'etcs_ebi',
-                                  f'v={v_head:.2f} > EBI={ebi:.2f} -> emergency brake')
-                        actions[:] = np.minimum(actions, EMERGENCY_BRAKE)
-                    elif v_head > (sbi + 1e-6):
-                        self._log(0, 'etcs_permitted',
-                                  f'v={v_head:.2f} > SBI={sbi:.2f} -> service brake')
-                        actions[:] = np.minimum(actions, FULL_SERVICE_BRAKE)
+        # obs 缺目标数据（etcs_curve=None）时自然回退"规则1 反应式限速"，不漏检。
+        etcs_curve = obs_state.get('etcs_curve', None)
+        etcs_targets = obs_state.get('etcs_targets', None)
+        head_pos = obs_state.get('head_position_m', None)
+        if etcs_curve is not None and etcs_targets is not None and head_pos is not None:
+            etcs_applied = True
+            v_head = float(vel[0])
+            ebi, sbi = self._etcs_check(head_pos, v_head, etcs_curve, etcs_targets)
+            if ebi is not None:
+                if v_head > (ebi + 1e-6):
+                    self._log(0, 'etcs_ebi',
+                              f'v={v_head:.2f} > EBI={ebi:.2f} -> emergency brake')
+                    actions[:] = np.minimum(actions, EMERGENCY_BRAKE)
+                elif v_head > (sbi + 1e-6):
+                    self._log(0, 'etcs_permitted',
+                              f'v={v_head:.2f} > SBI={sbi:.2f} -> service brake')
+                    actions[:] = np.minimum(actions, FULL_SERVICE_BRAKE)
 
         # 规则 1：简单反应式限速防护（**始终启用**，作为 ETCS 的线速兜底，保证超速不漏检）
         # 【2026-09-02 集成修复】原 `if not etcs_applied` 只在 ETCS 未生效时启用反应式限速；
