@@ -1094,3 +1094,17 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   - 结果/图表/日志：`outputs/checkpoints_formation/seed{0..4}/`、`outputs/results_*.json`
   - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`（如跨月）、`VALIDATION_BASELINE.md` 诊断留痕
 
+***
+
+## 阶段二·交接后首日执行记录（2026-09-13）
+
+| 任务 | 状态 | 说明 |
+| :--- | :--: | :--- |
+| 环境迁移：Windows 无 WSL2，新建 conda `traffic_rl`(py3.10+GPU) 跑通 | ✅ | torch2.6.0+cu124，CUDA 可用；gym+gymnasium 并存；详见 DIAGNOSTICS |
+| 全量测试 | ✅ | `pytest tests/ -q` → **173 passed**（760.25s） |
+| **§8 Step 1 并行验证（n_env=4 × 2000 步 × 44ep）** | ❌ FAIL（ep1-10 判定） | 首个 10ep **全面破线**（peak 恒 1476–1827kN、viol 494–1474/集、best_reward -2391，reward 无正）。且运行时 **~10–16min/ep → 44ep ≈ 12h**（远超预估 40-60min）。数据 `outputs/diag_53km_nenv/seed0/`；详细 `DIAGNOSTICS_2026-09.md`「2026-09-13-交接后Step1」 |
+| Step 1 调整 + 后续 Step 2-5 | ⏳ 待主管拍板 | 候选：①加 BC warm_start；②恢复 curriculum 起步/缩短 parallel_traj_len；③n_env→8；同时须解决物理步进瓶颈。Step 1 判 FAIL 后按交接 §8.3「仍破线→回来讨论」暂停，未擅自进 Step 2 |
+| **运行时提速评估（2026-09-13/14）** | ✅ | 实测 omp_num_threads=2/4/8 物理吞吐**无差异**（13.87/13.65/13.81 ms/step）→ 物理单线程主导，omp 提速无效。提速唯可靠 = 缩短总步进（curriculum/降 parallel_len）/ 真多进程并行 n_env（需改代码）。**5-seed×120ep 全量主训练本机不现实**（数十h~数天/seed），需决策：多进程并行 / 停于短档(2500步已覆盖53km) / 更强硬件。详见 DIAGNOSTICS「运行时提速评估」 |
+| **受控重验①：加 BC warm_start（n_env=4 × 2000 步 × 8ep）** | ⚠️ 部分 PASS / 判 FAIL | BC 修复 reward 侧（8ep 中 6 正、best+14558，上轮全负），**确认"缺安全起步"是 Step1 FAIL 因素之一**；但车钩力仍破线（peak 1079~1650、viol 14~633），未达 §8.3 判据。数据 `outputs/diag_53km_nenv_BCws/seed0/`；详见 DIAGNOSTICS「受控修正重验」 |
+| **待办（最该做）①：恢复 curriculum 渐进出步（parallel_traj_len=0）+ BC + n_env=4** | ⏳ 未跑 | 样本：历史单轨"渐进到 2000"BC 版 ep11-21@2000档 viol 全 0；本轮恒 2000 直接开跑 viol>0 → 渐进起步是遗留破线主嫌，待验证。单 ep 成本低（500/1000 起步为 2000 档 1/4~1/2）。若仍破线→定为"并行信噪比 2000 档不足"，再议 n_env→8/截断/off-policy |
+

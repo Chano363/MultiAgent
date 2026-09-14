@@ -1500,3 +1500,88 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **结论（第 6 次验证，定论）**：BC 热启动把崩点从 2000 步（无 BC）**推迟**到 2500 步档，且 2000 步档内全 viol 0——证明"随机探索踩吸态"确为载体，BC 改善起点有效但未根治。2500-3000 步档仍整集崩塌（viol 至 1839、peak 1651kN）。**根因锁定 = MAPPO（on-policy GAE）在 6 机车编队 × 2500+ 步单条长轨迹上的 advantage/value 固有失稳**：on-policy 一次采样只推一条 2500-3000 步长轨迹，advantage 信噪比崩→value 污染不可回退→策略坍缩。与起点(BC)、reward(回滚后)、curriculum(退火)、AB门控、coupler惩罚全部无关。
 - **判定（转方向）**：纯 on-policy 长轨迹路线在 6 车编队 53km **终结**。破局需打破"单条长轨迹 on-policy"前提：(a) 截断 episode 至 ~1000 步（车钩力观测辅助"安全域内完结态"）；(b) 改 off-policy（replay buffer 短 transition 免疫此失稳）；(c) 收敛并停在 2500 步档（物理上 53km@27.8m/s≈1900 步即达，2500 步含安全余量足够，最省改动）。建议先试 (c)，最快验证且物理自洽。
 - **状态**：完成（停于 ep46 发散，未继续）。
+
+***
+
+### 诊断-2026-09-13-交接后Step1并行多环境验证（n_env=4×2000步，首个10ep判定FAIL）+ 运行时瓶颈实测
+
+- **目的**：执行交接文档 §8.3 Step 1 —— 用 n_env=4 并行多环境打破"单条长轨迹 on-policy"前提，验证是否撑过 2000 步档（原崩点）。本机环境为 **Windows 原生**（WSL2 未装，见下方环境说明），新建 conda 环境 `traffic_rl`（Python 3.10.21，Anaconda）跑通。
+- **环境说明（与交接文档假设不符的重要偏差）**：交接文档假设 WSL2 Ubuntu 24.04 + conda `traffic_rl`。**当前机无 WSL2**（需管理员+重启才能装，属硬阻塞，故改用 Windows 侧 Anaconda 直跑）。Anaconda base 在 `F:\Anaconda3`，新建 env `traffic_rl` 位于 `C:\Users\XMC\.conda\envs\traffic_rl`；GPU=RTX 4060 8GB（CUDA），torch 2.6.0+cu124，`torch.cuda.is_available()=True`。代码无 WSL 路径硬编码（仅绘图字体探测，无害），纯 Python 可跨平台。依赖额外需 `gym==0.26.2`（与 requirements 的 gymnasium 并存，代码 `from gym import spaces` 走旧 API）。
+- **全量测试**：`pytest tests/ -q` → **173 passed in 760.25s**（非交接文档的 167 个；WSL→Windows 首跑含导入编译略慢），代码未坏。
+- **Step 1 命令**（与交接 §8.3 逐参数一致）：
+  `run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 44 --override n_env=4 --override parallel_traj_len=2000 --override random_init_speed=True --checkpoint_dir outputs/diag_53km_nenv/seed0 --results_dir outputs/diag_53km_nenv/seed0/results --override dirs.figures_dir=outputs/diag_53km_nenv/seed0/figures`
+  metadata 确认 `n_env=4`、`parallel_traj_len=2000`、`random_init_speed=true`、`episodes=44`、`grade=shuozhou_real_53km`、simcase=official。
+- **运行健康但极慢（关键实测）**：`parallel_traj_len=2000` 使**每个** episode 跑 n_env=4 条 × 2000 步并行轨迹（=8000 次物理步进 × 3 列 ~288 车多体力学），实测 **~10–16 分钟/episode**（CPU 单核瓶颈，`omp_num_threads=2`），即 44ep 需 **~12 小时**，显著超出交接文档预估的 40–60 分钟。→ 即使方向对，整套 5-seed 主训练+评估在本机物理步进成本下并发/耗时预算需重新评估。
+- **首个 10ep 结果（results/train_history_dec_ad2_cp_seed0.csv，判定数据）** —— **全面破线 = FAIL**：
+  | ep | reward | peakCoupler(kN) | viol |
+  | :-- | ------: | :---------: | :--: |
+  | 1 | -31399 | 1686 | 998 |
+  | 2 | -2391(best) | 1634 | 1065 |
+  | 3 | -8540 | 1678 | 682 |
+  | 4 | -17546 | 1675 | 1446 |
+  | 5 | -16182 | 1476 | 494 |
+  | 6 | -48609 | 1827 | 1293 |
+  | 7 | -80746 | 1509 | 926 |
+  | 8 | -27776 | 1649 | 1082 |
+  | 9 | -9411 | 1750 | 1258 |
+  | 10 | -17362 | 1737 | 1474 |
+- **期望 vs 实际**：期望 n_env 并行摊薄 advantage 信噪比、在 2000 步档守住底线（≤1000kN / viol≈0 / 不塌）；实际**从 ep1 起每集都破线**（peak 恒 1476–1827kN、viol 494–1474/集、best_reward 仍为负 -2391）。对比历史 BC 版（ep1-10 全 0 违规）更差。
+- **可能境变（非纯并行劣性，需讨论确认）**：本 Step 1 配置 `warm_start=false`（无 BC），且 `parallel_traj_len=2000` 把每个 ep 直接推到 2000 步档（**跳过历史稳定的 500/1000 步 curriculum 起步**），随机策略从零探索直接踩入暴力 AB 吸态。因此 ep1-10 破线可能混淆了"并行结构无效"与"缺 warm_start/缺短步 curriculum 起步"两个因素。
+- **判定（转回讨论）**：按交接 §8.3 判据，Step 1 **首个 10ep 判 FAIL（仍破线）**。方向有待三种调整候选：① 加 BC warm_start（治"从零随机探索踩吸态"）；② 恢复 curriculum 起步（早期 500/1000 步→渐增，而非恒 2000）或缩短 parallel_traj_len；③ n_env→8 再提信噪比。同时**必须解决物理步进瓶颈**（12h/Step1 不可行）。
+- **状态**：已完成首轮 10ep，判定 FAIL；已停跑保留数据（`outputs/diag_53km_nenv/seed0/`）。已向主管上报：环境就绪 / 测试全绿 / Step1 破线 + 运行时瓶颈。
+
+***
+
+### 诊断/验证-V2026-09-13-Windows 环境迁移（conda traffic_rl + GPU 跑通 + 全量测试）
+
+- **目的**：在无 WSL2 的当前 Windows 机复现交接环境，跑通测试与训练入口。
+- **结果**：env `traffic_rl`（python 3.10.21）装 torch2.6.0+cu124 + 项目依赖 + gym0.26.2，CUDA 可用；`pytest tests/ -q` **173 passed**；`run_training.py` 统一入口启动正常并落权威 metadata。网络下载走 Windows PowerShell（conda 镜像 USTC 偶发 SSL，重试通过）。
+- **踩坑**：gymnasium 与 gym 需并存（代码用旧 `from gym import spaces`）；conda 写 `F:\Anaconda3\pkgs` 需绕沙箱权限。
+- **状态**：完成。临时文件 `outputs/_smoke_pytest.log` 已删。（注：本条目为环境迁移记录，并入交接后首日诊断。）
+
+***
+
+### 诊断-2026-09-13/14-运行时提速评估 + 受控修正重验（n_env=4 加 BC warm_start，恒 2000 步档）
+
+- **背景**：续接上轮 Step 1 FAIL。主管定三条：①加 BC warm_start 治"从零随机探索踩暴力 AB 吸态"；②缩短 parallel_traj_len / 恢复 curriculum 起步（让单集可控快速）；③运行时提速 + 时间预算对比，先评估 5-seed 主训练本机可行性。本轮先用小基准量化提速空间（结论先于重验），再跑受控重验拆开"并行无效"与"缺起步"两因素。
+
+- **运行时提速评估（临时脚本 `outputs/_bench_env.py`，用后已删；物理=en.step 规则基线全零动作，`shuozhou_real_53km`）**：
+  - 实测 env.step 吞吐随 `omp_num_threads`：**2→13.87 ms/step、4→13.65、8→13.81（无差异）** → 物理步进是**单线程内存带宽/串行主导**，`omp_num_threads` 提速杠杆**无效**（保持 2）。torch 训练只在 GPU forward/update，无碍物理。
+  - 上行实测真实全量训练（本重验 8ep，n_env=4×2000 步 + BC）：**总 47.1min，约 5.9min/ep**；上轮记录 10–16min/ep（峰值区间）。单 ep 时间不稳定：规则基线轻载 ≈1.8min（按下界外推），随机/暴力 AB 高载时每步更贵，可到 ~15min/ep。
+  - **结论：提速唯一可靠手段 = 缩短轨迹总步进（curriculum 起步 / 降 parallel_traj_len）/ 减少 ep 数**，或**真多进程并行 n_env 轨迹（需改 `train_runner.py` multiprocessing，理论 ~×核心数，属代码改造，本轮未做）**。
+
+- **时间预算对比（当前 vs 提速后；供主管评估 5-seed 可投性）**：
+  - 当前 Step1 全量（n_env=4×2000×44ep，无 BC 恒 2000）：实测 10–16min/ep → **44ep ≈ 7–12h**。
+  - 本轮受控重验（n_env=4×2000×8ep + BC）：8ep 总 47.1min → **≈5.9min/ep，44ep 量级 ≈ 4.3h**（BC 已含）。
+  - omp 提升：**0 收益**，不做。
+  - 若恢复 curriculum 起步（parallel_traj_len=0，n_env=4）：ep1-6 @500 步、ep7-20 @1000 步，单 ep 仅为 2000 档的 1/4~1/2，Stage 1 步进判定更可控。
+  - **5-seed × 120ep 全量主训练（curriculum 至 36000 步）在本机（RTX4060 单卡 + 物理单核瓶颈）不现实**：粗略序贯成本依负载约 **几十小时~数天/seed**。即便无并行也受 53km 长 horizon 物理下限约束。**需主管决策**：真多进程并行 n_env（吃满核）/ 收敛并停于较短档(历史 §7.12 (c) 建议 2500 步=53km@~27.8m/s≈1900 步已覆盖)/ 更硬环境。**未硬跑 5-seed**。
+
+- **受控重验命令**（`run_training.py` 统一入口，权威 metadata 已落 `outputs/diag_53km_nenv_BCws/seed0/results/metadata.json` 并确认所有 override 生效无静默回退）：
+  `run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 8 --override n_env=4 --override parallel_traj_len=2000 --override random_init_speed=True --override warm_start=True --override bc_episodes=3 --override bc_epochs=30 --override log_interval=4 --checkpoint_dir outputs/diag_53km_nenv_BCws/seed0 --results_dir outputs/diag_53km_nenv_BCws/seed0/results --override dirs.figures_dir=outputs/diag_53km_nenv_BCws/seed0/figures`
+  metadata 确认：n_env=4、parallel_traj_len=2000、random_init_speed=true、warming start=true(bc3/30)、episodes=8、grade=shuozhou_real_53km、simcase=official。BC 采集 27000 条(obs,[0,0])、BC loss=2.674。
+
+- **结果（results/train_history_dec_ad2_cp_seed0.csv，判定数据，逐集）**：
+  | ep | reward | peakCoupler(kN) | viol |
+  | :-- | ------: | :---------: | :--: |
+  | 1 | +12744 | 1566 | 312 |
+  | 2 | +11853 | 1276 | 119 |
+  | 3 | +9966  | 1650 | 448 |
+  | 4 | +14558 (best) | 1079 | 14 |
+  | 5 | +13297 | 1578 | 491 |
+  | 6 | +9919  | 1470 | 360 |
+  | 7 | -2350  | 1602 | 633 |
+  | 8 | +10596 | 1510 | 244 |
+  总 47.1min/8ep。数据目录 `outputs/diag_53km_nenv_BCws/seed0/`。
+
+- **期望 vs 实际**：
+  - BC 预期修复"从零随机探索踩吸态 → negative reward 塌陷"：**达成**。reward 由上轮全负（-2391~-80746）→ 本轮 6/8 为正、best +14558，仅 ep7 出现单次 -2350。**确认"缺 BC / 缺安全起点"确为 Step1 FAIL 的实质因素之一，BC warm_start 有效修复 reward 侧。**
+  - 判据（§8.3：peakCoupler≤1000 且 viol≈0 撑过 2000 步档）：**未达成 → 本配置判 FAIL**。peak 恒 1079~1650（无一≤1000）、viol 恒 14~633（无一≈0）。较上轮 peak 1476–1827 / viol 494–1474 有改善（viol 约降 1/2~1/3），但远未到安全域。
+  - **拆因（本轮关键）**：本配置=恒 2000 步 + `random_init_speed` 铺开 4 条初速直接开跑（**无 curriculum 渐进**），其结果（viol 14~633@2000档）明显**差于历史单轨迹"渐进到 2000 步"的 BC 版（ep11-21@2000档 viol 全 0、peak≤863）**。→ 破线剩量集中在**"缺 curriculum 渐进起步 + 并行长轨迹直接开跑"**，而非并行结构本身。并行 n_env 未被证无效（reward/viol 均改善），亦可证非充分。
+
+- **判定（转讨论/下一步）**：受控修正"加 BC"效果明确（reward 转正）但未达车钩力判据。**最该做的一件受控修正（主管候选②）尚未覆盖：恢复 curriculum 渐进起步（`--override parallel_traj_len=0`）+ BC + n_env=4，让并行轨迹从 500/1000 步渐进到 2000 档**，验证渐进起步是否是本轮遗留破线的正解。该项单 ep 成本低（500-1000 起步为 2000 档 1/4~1/2），可控。若该配置仍破线 → 可定位为"并行 n_env=4 信噪比在 2000 档仍不足"，再讨论 n_env→8 / 截断并行轨迹 / off-policy。
+- **状态**：完成（8ep 跑满）。临时基准脚本 `outputs/_bench_env.py` 已删；结论先落本文档。
+
+***
+
+### 诊断-2026-09-13-Windows 环境迁移（续见上节）
