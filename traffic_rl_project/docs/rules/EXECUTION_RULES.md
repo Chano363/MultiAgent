@@ -21,7 +21,7 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 ## 历史资产复现元数据与建模差异声明（2026-09-05 强制）
 
-> **背景**：历史训练有的含"缓解波"（空气制动缓解波速传播建模）、有的不含；这类**建模/物理差异**会让产出于建模变更**之前**的历史结论失真（与 Newmark 欠松弛修复后"历史训练/验证都在 75% 动力学下"同类，见根 AGENTS Gotchas）。为防再次引用错误历史资产：
+> **背景**：历史训练有的含/不含"缓解波"（空气制动缓解波速传播）建模，建模变更前产出的历史结论会失真（同类：Newmark 欠松弛修复前后，见根 AGENTS Gotchas）。为防引用错误历史资产：
 
 1. **追加任何历史资产（实验/诊断/评估/图表）时必须一并记录**（写入 DIAGNOSTICS 或对应卡）：
 
@@ -37,7 +37,7 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 ## 训练/评估入口必须落权威元数据 metadata（2026-09-08 强制）
 
-> **背景**：实验数值必须可复现（结论来自 metadata.json / 评估 JSON，禁止从代码注释抽数据）。为保证"规范入口下 100% 自动落盘"，把是否走 metadata 硬化为入门口令。
+> **背景**：结论必须可复现——数值只认 metadata.json / 评估 JSON（禁止从代码注释抽数据），故把 metadata 落盘硬化为入门口令。
 
 1. **训练入口只有两条合法路径，缺一不可，否则该次训练结论视为不成立、不许引用**：
 
@@ -55,17 +55,19 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 ## 免重辨识 claim 实验执行规范（2026-09-09，覆盖式修订，当前口径）
 
+> **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）】**：本节原协议（下方第 2 条：MPC 跨线**不重喂 `grade_at`** + 必须声明 `no-re-identification`）随 Regime B 一并废止。**当前协议（ADR-016，2026-09-16）**：MPC 对比只留 Regime A——MPC **逐线重喂该线 `grade_at` 图纸 + 在线标定 b0**（每线公平标定）；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不再提供"MPC 不重辨识即失配"论证（领域常识，不占篇幅）；Protocol 逐实验标 A（无 B，不再 A/B 双标）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-016。下方旧协议文字原样保留，仅作历史。
+
 > **本节为当前实验体系运行时口径（覆盖式修订，不追加历史）**。SSOT 见 `RESEARCH_POSITIONING.md` §1.6 + `DECISIONS.md` ADR-014。旧口径（如主剖面默认 23.8、跨线方向 23→35km）已过时，以本节为准。
 
 1. **主训练剖面颗粒**：主训练走 `grade_profile: shuozhou_real_53km`（真实朔黄）；跨线域外目标 = `long_downhill_20km` / `long_downhill_35km`；`shuozhou_23800` 仅作已知基线锚，**不作跨线泛化证明**。
-2. **跨线免调参协议**：RL 跨线零微调直接评估；MPC 跨线**不重喂 `grade_at`**，并**必须声明 `no-re-identification`**（否则当 strawman）。
+2. **跨线免调参协议**：RL 跨线零微调直接评估；MPC 跨线**不重喂 `grade_at`**，并**必须声明 `no-re-identification`**（否则当 strawman）。**【2026-09-16 ADR-016 修订，本句作废，仅作历史】当前协议**：MPC 跨线**逐线重喂该线 `grade_at` 图纸 + 在线标定 b0**（Regime A 公平标定）；D-RL 跨线**严格零微调**，声明 "no fine-tuning on target line"；不再演"MPC 不重辨识失配"（Regime B 废止）。
 3. **指标口径**：主指标 = **跨线免调参级联失败率** / **MPC 求解失败/终端无解次数** / **ATP 触发次数**（替代"追尾"——安全层已杜绝物理追尾，ATP 触发=策略踩线兜底依赖度）。补遗口径：车钩力峰/超限、列距误差、速度带落地率、求解耗时（MPC 每步记录 `solve_times`）。
 4. **protocol 标注**：每实验表逐行标 MPC 是否 re-identification / `inner_rule_cyclic`、seed、`simulator_model` 版本（`coupler=MT-2 | braking=ED+AB-relief-wave`）。
 5. **全部走 `metadata` 守卫**（`training_metadata_guard`/`save_metadata`）+ 结果 JSON 按时间戳归档到 `outputs/`，**不覆盖旧文件**（复用既有 `metadata.py` / `evaluate_m1_m3_long.py` M-MPC 模式入口）。
 
 ## AGENTS.md 引用一致性校验（2026-09-16 强制，防"妄猜规范"）
 
-> **背景**：AGENTS.md 是导航/立论指针层，只放一句话指针，不内联数值（数值会随 SSOT 漂移）。为防止把指针当规范来源去"妄猜"，用脚本在工程层面强制校验引用一致性，不依赖人读。
+> **背景**：AGENTS.md 是导航/立论指针层（只放一句话指针、不内联数值，数值随 SSOT 漂移）。为防止把指针当规范来源"妄猜"，用脚本强制校验引用一致性。
 
 - **入口**：`python scripts/check_agents_links.py`（在 `traffic_rl_project/` 下运行）。退出码非 0 即存在引用问题。
 - **校验内容**：
@@ -74,4 +76,6 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
   3. 启发式发现 AGENTS.md 疑似内联"episodes 数值对比"等易腐化数值 → 警告，要求改回指针。
 - **强制场景**：任何人/agent 改动 AGENTS.md 或新增 ADR 后、以及正式提交前，运行该校验必须通过（exit 0）。不通过的改动不得合入。
 - **SSOT 原则**：AGENTS.md 只许放"指向 SSOT 的一句话指针"；**具体数值/论文佐证一律放 ADR 或 RESEARCH_POSITIONING**，不复制进 AGENTS.md（违背即被此校验警告）。
+
+<!-- 该文档整理/压缩于 2026-09-22 -->
 

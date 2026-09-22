@@ -6,9 +6,6 @@ owner: Agent + Owner
 supersedes: partial（自 docs/records/VERIFICATION_LOGS.md 按 V1 块拆出）
 ---
 
-> 本文件为 `docs/records/VERIFICATION_LOGS.md` 按 V1 系列拆出的部分。
-
-
 # 验证执行日志（V 系列）
 
 > 本文档由 `docs/VALIDATION_BASELINE.md`「三.5 验证结果记录」部分按行迁移而来，**内容零丢失**。
@@ -117,3 +114,7 @@ supersedes: partial（自 docs/records/VERIFICATION_LOGS.md 按 V1 块拆出）
 **可借鉴点（P2 能耗优化）**：
 - **PMP 最优解 = RL 能耗上界对照**：你的 MAPPO 能耗结果应接近或低于 PMP 最优
 - 惰行（coasting）是关键节能工况，可作为节能奖励设计参考
+
+---
+
+<!-- 该文档整理/压缩于 2026-09-22 -->

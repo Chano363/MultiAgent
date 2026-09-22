@@ -26,17 +26,13 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 ## Key commands
 
 ```sh
-# 阶段二列车动力学/环境测试（69 个测试）
+# 阶段二列车动力学/环境测试
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python -m pytest tests/ -q
 
-# 阶段二 MAPPO 训练（长大下坡 + 万吨级 1+0）
+# 阶段二主训练（53km，formation-aware 机车级 ED/AB）
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
-python src/trainer/train_train.py --episodes 500 --preset 10kt_1plus0 --grade long_downhill
-
-# 阶段一无人机训练（历史命令，MAPPO 唯一收敛；其仿真器 gym_pybullet_drones 已移除）
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
-python src/main.py --mode train --algorithm MAPPO --episodes 500
+python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed {0..4}
 ```
 
 无 linter/typechecker/formatter 配置。遵循 PEP 8。
@@ -68,35 +64,19 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：`traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5 + `docs/logs/decisions/DECISIONS.md` ADR-010。这里只放一句话要点，细看原文。
+> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，最新见 ADR-016/ADR-017，覆盖旧的 ADR-010/ADR-014）；**勿从本文件/旧版本妄猜规范**——本文件仅放一句话指针，细看原文。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/做消融/加对比。
+> **文档规范出处**：文档治理/角色/三态/判断树 = `docs/README.md` + `docs/rules/README.md`（唯一规范，勿凭 AGENTS.md 猜测哪些真相定）。
 
 - **主轴**：多列编队 + 队内车钩力≤1000kN + 安全列距 = 不可逾越底线；AB+ED 分工、1+1 = 锦上添花（不当主线）。
-- **MPC 对比 Regime A/B**：不按坡道换 MPC 模型；A=每线重喂 grade_at（公平，main/E1/E3）、B=不重辨识演不泛化（E4/E4-H，须声明 no-re-identification）。Protocol 逐实验标 A/B。
-- **车钩异构**：每车钩/每列车物理不同（实例异构≠离散），是泛化卖点（E4-H，需 `--hetero` 逐参数抽样 + held-out）。
-- 细看：`docs/RESEARCH_POSITIONING.md` §1.5；决策：`docs/logs/decisions/DECISIONS.md` ADR-010。
+- **MPC 对比只留 Regime A（2026-09-16 ADR-016，B 已废止）**：不按坡道换 MPC 模型；MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定），D-RL 跨线严格零微调（声明 no fine-tuning on target line）。立论 ="免重辨识成本"（零重标定代价的 MARL ≈ 逐线重标定后的 MPC）；不再提供"MPC 不重辨识失配"论证（领域常识，不证）。Protocol 逐实验标 A。
+- **车钩异构（E4-H）【2026-09-16 SUPERSEDED，不承担立论】**：每车钩/每列车物理不同（实例异构≠离散）。**已从立论移除**——主 claim 只押"免重辨识成本"（ADR-016），与异构无关；`--hetero` 代码保留为可选鲁棒性（默认齐次零回归），不作泛化卖点、不进正文主表。
+- **训练/评估时域（2026-09-16 ADR-017，铁律）**：三条独立维度不可混——①**单条 rollout 时域**（on-policy 窗口）②**评估时域**（覆盖剖面）③**总训练量**（episodes 预算）。本项目 on-policy MAPPO **训练=短窗口**，**评估=独立完整剖面单独跑（非"多段拼接"）**；训练量现状需对齐同类论文量级。跨线方向=长复杂剖面训→未见过剖面验。**具体数值/论文佐证见 ADR-017，勿在本文件复制以免随 SSOT 漂移**。
+- 细看：`docs/RESEARCH_POSITIONING.md` §1.5；决策：`docs/logs/decisions/DECISIONS.md` ADR-016（覆盖 ADR-010 的 A/B）。
 
 ## 阶段二当前进度
 
-| 子任务                                                                                                                                        | 状态                                         |
-| :----------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------- |
-| P0 列车动力学 Gym 环境（`train_env.py` + `train_dynamics/`）                                                                                        | ✅ 完成                                       |
-| P0.5 仿真升级：电制动/空气制动波速传播/ATP 安全层/车钩力指标                                                                                                       | ✅ 完成（54 测试）                                |
-| P0.5 研究定位 + 文献库搭建（docs/papers/）                                                                                                            | ✅ 完成                                       |
-| P0.75 验证基准：提取 6 篇论文数据 + coupler 间隙死区 + 多源制动 + 紧急制动上限                                                                                       | ✅ 完成（54 测试通过）                              |
-| P1 第9条 环境验证：修复 Davis 阻力 bug + 验证 20m/s 可达                                                                                                  | ✅ 完成（65 测试通过）                              |
-| **P1.5 题目对齐前置**：长大下坡变坡剖面 + 万吨级 1+0 编组 + Zhang2024 验证基准                                                                                     | ✅ 完成（65 测试通过）                              |
-| P1 第15条 MAPPO 迁移到列车（train\_train.py）+ 冒烟/短训验证                                                                                              | ✅ 完成（69 测试通过）                              |
-| 全项目审计修复 7 项（free\_length 尺度/log\_prob 重要性采样/安全层/一致性）                                                                                       | ✅ 完成（83 测试通过，2026-08-20）                   |
-| 方案A：缓解波下重训 + 健康场景固化（M1 +44200、低40=0、车钩力892kN）                                                                                              | ✅ 完成（2026-08-21）                           |
-| **最终战略：分层控制重构（第1层规则循环制动 + 第2层 RL 阈值协同）**                                                                                                   | ✅ 完成（M1 vs M3 协同增量 +67,597，论文核心结果）         |
-| **论文冲刺（可发表性收尾）**：叙事收敛 + 公平 DQN baseline + curriculum + Yang2025 对标 + 复现性加固                                                                 | ✅ 完成（2026-08-23，`ITSC_PAPER.md/.tex` 达投稿级） |
-| **弱点补全（2026-08-24）**：curriculum 全量 3 seed（3/3 泛化，双 checkpoint 协议）+ 第二剖面 20km 完整重训评估（M1/M3/M4/M-DQN-fair/压力消融/5列）+ Limitations 改写 + PDF 重编译 | ✅ 完成                                       |
-| P1 第16条 正式基线训练（长大下坡循环制动自动控制）                                                                                                               | ✅ 完成                                       |
-| P2 奖励消融/多算法对比/阶段二报告                                                                                                                        | 🔄 论文冲刺已覆盖核心对比，阶段二报告待完善                    |
-| P3 层级一（多列群组）环境 + 对比实验                                                                                                                      | ✅ 完成（含压力消融/5列扩展/公平DQN/MPC探索）               |
-
-> **可投性结论（2026-08-24 更新）**：ITSC 论文 `docs/ITSC_PAPER.md/.tex` 已达投稿级且**三大弱点已补全**——① curriculum 全量 3 seed 训练：双 checkpoint（best/ep600）协议下 3/3 泛化成功，M1 随机化鲁棒性提升至 +35,464±966 / 0 碰撞；② 第二剖面（long\_downhill\_20km，-9.5\~-11.5‰）：Layer-1 免调参跨线验证 + Layer-2 完整重训，M1 协同增益/鲁棒性复现朔黄线结论（含压力消融单调性 +14,577→+23,298 与 5 列扩展）；③ Limitations 已改写为两剖面覆盖。PDF 已由 tectonic 编译生成（`docs/ITSC_PAPER.pdf`）。
+> **进度流水（任务清单/✅ 历史项）已迁至 `traffic_rl_project/docs/PROJECT_PIPELINE.md`**（append-only 任务总览，唯一权威）。本文件仅为导航/立论指针入口，不承载进度表。当前主线：53km 主训练完成 5 seed，免重辨识跨线泛化评估推进中；详见 PROJECT_PIPELINE §P3 与 `docs/logs/diagnostics/`。
 
 ## 阶段二列车仿真设计
 
@@ -157,45 +137,29 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 | **程序化下载论文被 403**                    | MDPI/Wiley/IEEE/Hindawi 反爬，开放获取论文用**浏览器手动下载**                                                                                                                                       |
 | 网络下载                                | 用 Windows PowerShell，别用 WSL                                                                                                                                                         |
 
-## Algorithm status（阶段一结论，阶段二复用）
+## Config files（阶段二相关）
 
-- **MAPPO**：唯一收敛算法（无人机 Best Reward 235.5），**迁移到列车复用**
-
-- SAC：后期退化；PPO：不稳定；DQN：未验证
-
-## Config files
-
-- `traffic_rl_project/configs/train_config.yaml` — 每算法超参数（`training.hyperparameters.<algo>`，MAPPO 起步 `lr=5e-5, entropy=0.005`）
-
-- `traffic_rl_project/configs/env_config.yaml` — 环境参数（阶段一 num\_drones 为主）
-
-- `traffic_rl_project/configs/agent_lightning_config.yaml` — Agent Lightning 优化配置（阶段一）
+- `traffic_rl_project/configs/experiments/formation_ed_ab_3train_1plus1.yaml` — **主训练配置**（formation-aware 机车级 ED/AB，3 列×1+1=6 agent，53km，curriculum 上限 1200 步）
+- 阶段一历史配置（`train_config.yaml` / `env_config.yaml` / `agent_lightning_config.yaml`）见归档，非当前主战场。
 
 YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值。
 
-## Project docs（按阅读优先级）
+## Project docs（何时读什么——按任务触发）
 
-> 文档治理与导航：**`traffic_rl_project/docs/README.md` 是唯一文档索引入口**——里面既有"按文档角色"的快导航，也有"**核心思想→文档**"的反向映射（找不到时先查它）。
-> 规范/模板（工作计划、失败教训、历史经验、checklist）在 `docs/rules/`；新诊断→`docs/logs/diagnostics/`、新决策→`docs/logs/decisions/DECISIONS.md`。详见 `docs/rules/README.md`。
-> **立论性规范（SSOT）**：主轴/MPC-Regime/车钩异构的权威出处 = `docs/RESEARCH_POSITIONING.md` §1.5 + `docs/logs/decisions/DECISIONS.md` ADR-010（本文件「规范性问题」只保留要点指针）。
+> 找任何文档先看 `traffic_rl_project/docs/README.md`（**唯一文档索引入口**：角色导航 + 核心思想→文档反向映射）。文档角色/模板/判断树见 `docs/rules/README.md`。
+> **立论性规范（SSOT）**：主轴/MPC-Regime/车钩异构的权威出处 = `docs/RESEARCH_POSITIONING.md` §1.5 + `docs/logs/decisions/DECISIONS.md` ADR-016（本文件「规范性问题」只保留要点指针）。
+> **⚠️ 校验能力边界（2026-09-16，勿当万灵药）**：`scripts/check_agents_links.py`（见 `docs/rules/EXECUTION_RULES.md`）只保证**引用卫生**（ADR 编号存在 / docs 路径非断链 / 个别数值内联警示），**不保证**内容规范、不误导、不循环论证。这三件事分别靠：①内容规范=ADR review + 人审（机器查不了语义）；②防误导=写前追问"这是流水还是立论、措辞是否含糊、推测是否写成结论"；③**防循环论证=引用必须锚定外部独立权威**（原始论文 / DOI / 领域公认），**禁止用"本项目自己的历史"当作"外部标准证明"**——那会制造 A 证 B 而 A 源自 B 的循环。任何校验脚本都不检查"你引用的那个权威是否独立于本项目"。**请勿因存在校验而省略 ①②③ 的人工判断。**
 
-- `traffic_rl_project/docs/README.md` — **唯一文档索引入口**（文档角色导航 + 核心思想→文档映射）；先看这个
-- `traffic_rl_project/docs/PROJECT_PIPELINE.md` — **pipeline 总览 + 任务列表（P0/P1/P2/P3，已完成的✅保留不删）+ 下一步，先读这个**
-- `traffic_rl_project/docs/RESEARCH_POSITIONING.md` — **阶段二研究定位 + 创新点 + 文献库（20+ 论文）**；§1.5 = 规范性问题 SSOT
-
-- `traffic_rl_project/docs/VALIDATION_BASELINE.md` — **论文→项目正确性验证基准**（仿真器公式/数据/算法对照 + 历史诊断留底）
-
-- `traffic_rl_project/docs/logs/diagnostics/` — 新的实验/诊断数据记录（按月拆分）
-
-- `traffic_rl_project/docs/logs/decisions/DECISIONS.md` — 新的重大决策记录（ADR）
-
-- `traffic_rl_project/docs/ITSC_PAPER.md` — 阶段二论文（唯一权威）｜`docs/ITSC_PAPER.tex/.pdf`
-
-- `traffic_rl_project/docs/learning_report.md` — 阶段一报告（archived）
-
-- `traffic_rl_project/docs/training_results_standardized.md` — 阶段一学术成果（archived）
-
-- `traffic_rl_project/docs/logs/learnings/LEARNINGS.md` — 踩坑记录
+- **看进度 / 下一步 / 任务清单** → `traffic_rl_project/docs/PROJECT_PIPELINE.md`（P0/P1/P2/P3，已完成✅保留不删；先读这个）
+- **写论文 / 立论 / 查创新点与文献 / 改规范** → `traffic_rl_project/docs/RESEARCH_POSITIONING.md`（§1.5=立论 SSOT）＋ `traffic_rl_project/docs/ITSC_PAPER.md`（论文唯一权威，含 `.tex`/`.pdf`）
+- **写公式引用 / 技术→论文速查** → `traffic_rl_project/docs/REFERENCE_INDEX.md`
+- **验证仿真器公式/数据/算法正确性、查历史诊断** → `traffic_rl_project/docs/VALIDATION_BASELINE.md`（论文→项目验证基准）
+- **复现训练/评估结果** → `traffic_rl_project/docs/REPRODUCIBILITY.md`
+- **做实验/诊断后留痕** → `traffic_rl_project/docs/logs/diagnostics/DIAGNOSTICS_YYYY-MM.md`（按月拆分，append-only）
+- **做重大决策 / 改立论** → `traffic_rl_project/docs/logs/decisions/DECISIONS.md`（ADR，append-only）
+- **踩坑 / 报错 / 参数不生效** → `traffic_rl_project/docs/logs/learnings/LEARNINGS.md`（append-only）
+- **新建/改文档的规范与模板** → `traffic_rl_project/docs/rules/README.md`（判断树 + TEMPLATE_* + CHECKLIST_NEW_DOC）
+- 阶段一历史（`learning_report.md` / `training_results_standardized.md`）＝ archived，仅回溯
 
 ## 修改 / 追加文档方法论（强，Docs-as-Code）
 

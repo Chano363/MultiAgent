@@ -1,0 +1,20 @@
+{
+  "rewards": [
+    3936.849232159939
+  ],
+  "peak_coupler_kN": [
+    680.3044600287578
+  ],
+  "violations": [
+    0.0
+  ],
+  "meta": {
+    "seed": 0,
+    "episodes": 1,
+    "grade_profile": "shuozhou_real_53km",
+    "curriculum": "500:0,1000:10,2000:20,3000:30,5000:42,8000:55,12000:70,18000:82,24000:90,30000:98,36000:110",
+    "best_reward": 3936.849232159939,
+    "name": "formation_ed_ab_3train_1plus1",
+    "physics": "R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β"
+  }
+}

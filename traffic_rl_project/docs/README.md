@@ -18,7 +18,7 @@
 | 每日工作日志（timeline）     | `docs/logs/README.md`（→ `.codebuddy/memory/`)                            |
 | 论文（唯一权威）             | `docs/ITSC_PAPER.md` / `.tex` / `.pdf`                                   |
 | 复现性说明                | `docs/REPRODUCIBILITY.md`                                                |
-| 文献 PDF / 信息卡         | `docs/papers/`（重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT） |
+| 文献 PDF / 信息卡         | `docs/papers/`（重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
 | 规范 / 模板 / checklist  | `docs/rules/`                                                            |
 | 阶段一历史成果              | 见「归档区」↓                                                                  |
 
@@ -55,8 +55,8 @@
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
-| `logs/diagnostics/DIAGNOSTICS_YYYY-MM.md` | 实验/诊断数据（按月拆分，append-only）                    | active |
-| `logs/verification/VERIFICATION_LOGS_V*.md` | V 系列验证执行日志（按 V 拆分，append-only）         | active |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` | 实验/诊断数据（按月拆分，append-only）       | active |
+| `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
 | `ITSC_PAPER.md` / `.tex` / `.pdf` | 论文（唯一权威）                     | active |
 | `REPRODUCIBILITY.md`              | 复现                           | active |
@@ -72,8 +72,8 @@
 | `rules/CHECKLIST_NEW_DOC.md`   | 新建/修改文档清单                       |
 | `rules/EXECUTION_RULES.md`     | 执行规范（原 PIPELINE 七）              |
 | `logs/decisions/DECISIONS.md`  | 决策记录（ADR）                       |
-| `logs/diagnostics/`            | 实验/诊断数据（按月拆分）                  |
-| `logs/verification/`           | V 系列验证执行日志（按 V 拆分）             |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` | 实验/诊断数据（按月拆分） |
+| `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分） |
 | `logs/learnings/LEARNINGS.md`  | 踩坑 / 失败教训                        |
 | `logs/README.md`               | 工作日志入口（指向 `.codebuddy/memory/`） |
 
@@ -85,7 +85,7 @@
 | `training_results_standardized.md`                          | 阶段一学术成果报告                              |
 | `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
 | `HANDOFF_*.md`、`GROUP_MEETING_TALK_PLAN.md` | 阶段性交接/会议/备忘（任务已转移到 `PROJECT_PIPELINE`；`HUMAN_TODO.md` 已删） |
-> **最新交接**：`logs/HANDOFF_2026-09-10.md`（面向零基础新成员 + agent，含加速导航 / 踩坑史 / 当前卡点与下一步精确指令；supersede `logs/HANDOFF_2026-09-09.md`） |
+> **最新交接**：`logs/HANDOFF_2026-09-22.md`（MPC 对比基线专项：现状 + 接下来全部工作；supersede `docs/logs/HANDOFF_2026-09-10.md`） |
 
 ### 归档区（已有，保持）
 
@@ -113,3 +113,4 @@
 | **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `AGENTS.md` Gotchas；`logs/learnings/LEARNINGS.md`                                                      |
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 
+<!-- 该文档整理/压缩于 2026-09-22 -->

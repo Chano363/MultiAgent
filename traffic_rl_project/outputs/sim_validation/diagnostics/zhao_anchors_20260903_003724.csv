@@ -1,5 +1,0 @@
-section,grade_permille,v_brake_start,v_release_anchor,r_kpa,sim_v_release_kmh,err_kmh,r_in_range
-0,-10.0,65,38,56.70,38.00,-0.0,True
-1,-12.0,62,42,54.57,42.00,0.0,True
-2,-12.0,45,40,53.42,40.00,0.0,True
-3,-12.0,46,57,52.57,57.00,0.0,True

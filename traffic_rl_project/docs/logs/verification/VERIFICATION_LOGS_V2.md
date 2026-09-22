@@ -36,3 +36,5 @@ supersedes: partial（自 docs/records/VERIFICATION_LOGS.md 按 V2 块拆出）
 📌 **教训**：从参考实现复制的公式也可能有 bug，必须用物理合理性 + 论文/标准验证；验证基准能暴露此类隐藏错误。
 
 ---
+
+<!-- 该文档整理/压缩于 2026-09-22 -->

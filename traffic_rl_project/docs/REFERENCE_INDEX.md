@@ -106,3 +106,5 @@
 ---
 
 维护：新增引用三处同步（`docs/papers/` + `refs.bib` + 本表）；自研项（winsorization、value grad clip、KL 0.012、5-seed 并行）在论文中声明"ours"，不混入文献。
+
+<!-- 该文档整理/压缩于 2026-09-22 -->

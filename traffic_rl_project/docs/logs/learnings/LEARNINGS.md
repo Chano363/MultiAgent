@@ -25,19 +25,14 @@ Corrections, insights, and knowledge gaps captured during development.
 **Area**: docs
 
 ### Summary
-README must be extremely concise to save tokens; prefer linking to detailed docs instead of inline content.
-
-### Details
-User explicitly stated README was "太冗余，浪费我的token". The previous README contained inline tables for algorithm comparisons, action/observation spaces, reward functions, literature references, and phase2 plans — all of which are already detailed in learning_report.md and project_rules.md.
-
-Lesson: README should be a **navigation index** + **critical gotchas only**. Assume the reader (another agent) will follow links for details.
+README 必须极简省 token：优先链接到详细文档而非内联内容。用户原话：README "太冗余，浪费我的token"——旧 README 内联了算法对比/动作观测空间/reward 函数/文献引用/阶段二计划等表格，均已在 learning_report.md 与 project_rules.md 中。
+Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟随链接看细节。
 
 ### Suggested Action
-When writing README docs:
-1. Keep it to: what, status, entry point, critical gotchas
-2. ANY content > 2 sentences that exists elsewhere → link instead
-3. Project structure tree OK but keep it flat
-4. Training commands OK but absolute minimum
+1. 只写：what / status / 入口 / 关键坑
+2. 任何 >2 句且别处已有的内容 → 改链接
+3. 项目结构树可留但保持扁平
+4. 训练命令可留但保持绝对最少
 
 ### Metadata
 - Source: user_feedback
@@ -45,3 +40,5 @@ When writing README docs:
 - Tags: docs, token_efficiency, readability
 
 ---
+
+<!-- 该文档整理/压缩于 2026-09-22 -->

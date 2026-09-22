@@ -1,7 +1,0 @@
-seed,disturbance_accel,scenario,coupler_peak_kN,violations,gap_err_mean_m,speed_err_mean_mps,per_train_peak_kN_0,per_train_peak_kN_1,per_train_peak_kN_2,collision
-0,,A1_single,532.71,0,,3.37,,,,
-0,-0.8,A2_single_braked,978.21,0,,6.99,,,,
-0,-0.8,B_group_loose,978.21,0,7.21,4.57,978.21,532.71,532.71,0
-0,-0.8,C_group_tight,978.21,0,7.21,4.57,978.21,532.71,532.71,0
-0,-0.8,D_group_nocoupler,1140.42,8,7.22,4.59,1140.42,532.71,532.71,0
-0,-0.8,E_group_nodisturb,532.71,0,5.53,3.37,532.71,532.71,532.71,0

@@ -37,3 +37,5 @@ supersedes: partial（自 docs/records/VERIFICATION_LOGS.md 按 V4 块拆出）
 📌 **说明**：短训仅验证"能跑通"，MAPPO 需数百回合才收敛（阶段一经验）；正式基线训练需较长训练时间（P1 第15条后续）
 
 ---
+
+<!-- 该文档整理/压缩于 2026-09-22 -->

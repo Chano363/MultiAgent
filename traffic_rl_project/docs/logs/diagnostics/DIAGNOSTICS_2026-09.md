@@ -9,9 +9,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 # 实验 / 诊断数据记录（承接文件）
 
-> **为什么有本文件**：2026-09-01 文档规范化时，将 `docs/VALIDATION_BASELINE.md` 中的
-> **「诊断-日期-主题」序列（E19~~E25、诊断-08-20~~08-31）完整按行迁移至此**（内容零丢失）。
-> **从今天起新跑的实验/诊断**，数据 + 复现命令 + 分组明细继续在此 append。这样验证基准不再膨胀。
+> 本文件承接 `docs/VALIDATION_BASELINE.md` 的「诊断-日期-主题」序列（E19~E25、诊断-08-20~08-31，2026-09-01 按行迁移，内容零丢失）；此后新实验/诊断在此 append（数据+复现命令+分组明细），防验证基准膨胀。
 
 ## 记录法则（写进每条诊断）
 
@@ -24,19 +22,14 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 ## 索引（新条目在此登记）
 
-<!-- 新条目在下方追加，并在 docs/README.md 无变更（本文件即导航点） -->
-
-- 迁移入：诊断-2026-08-20\~08-31 系列（自 VALIDATION\_BASELINE.md）
-
+- 迁移入：诊断-2026-08-20~08-31 系列（自 VALIDATION_BASELINE.md）
 - 新条目：
   - 诊断-2026-09-08-formation-aware-启动（registry 多机车 agent 数 bug 修复 + 新训练线冒烟）
   - 诊断-2026-09-09-formation-5seed-发散根因（decompose 调制绕过车钩力投影，reward-fix 未及根本）
   - 诊断-2026-09-10-53km-发散-两轮reward杠杆均失败（相对锚定 + 车钩力惩罚强化，长时程仍破线）
+  - 诊断-2026-09-22-best权重长程评估失效（训练reward选优≠长程质量；主结果改用last + 框架补长程选优）
 
 ***
-
-> 本文件为 `docs/records/DIAGNOSTICS.md` 按月拆出的 2026-09 部分。
-
 
 ## 条目区
 
@@ -44,23 +37,8 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 ### 诊断-2026-09-02-ARIS 跨模型审阅基线试点（title-内层失配 / fair-MPC 公平性 / 证据泛化）
 
 - **目的**：试点 `Auto-claude-code-research-in-sleep`（ARIS）审阅链，验证 ITSC 论文重构进展可被**独立第二模型**对抗性审出硬伤。
-
-- **集成方法**：
-
-  - 用 `@` 引用 ARIS 仓库（`D:\Code\MultiAgent\Auto-claude-code-research-in-sleep`），不复制进项目 `.trae/skills/`（避免污染）。
-
-  - 配 `llm-chat` MCP（`mcp-servers\llm-chat\server.py`），reviewer=OpenRouter `minimax/minimax-m3:free`，executor=deepseek，`family_relation=different`（跨族对抗）。
-
-- **踩坑记录（TRAE 密钥遮罩）**：
-
-  - 现象：`run_mcp` 报 `'ascii' codec can't encode '\u2026' in position 7`。
-
-  - 期望 vs 实际：独立命令行跑 server 正常（`Pong!`），走 TRAE 必炸。完整 traceback 定位在 `httpx._merge_headers`（Authorization header）。
-
-  - 根因：**TRAE 在注入 stdio 进程的 env 时，对"值像 API key"（`sk-...`）的变量做遮罩，把 key 前缀替换成** **`\u2026`**，非 server bug 也非 stdio 兼容。诊断日志 key head codepoints=`[8230=…,115=s,107=k,45=-]` 坐实。
-
-  - 解决：server.py 新增 `LLM_CRED_FILE` 支持，从本地 key 文件读 key，env 只传中性"路径"字段绕开遮罩（[server.py L52-72](file:///D:/Code/MultiAgent/Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)）。key 文件入 `C:\Users\chano\.trae-cn\memory\llm_chat_key.txt`（git 外）。
-
+- **集成**：`@` 引用 ARIS 仓库（`D:\Code\MultiAgent\Auto-claude-code-research-in-sleep`，不复制进项目）；配 `llm-chat` MCP（`mcp-servers\llm-chat\server.py`），reviewer=OpenRouter `minimax/minimax-m3:free`、executor=deepseek，`family_relation=different`（跨族对抗）。
+- **踩坑（TRAE 密钥遮罩）**：`run_mcp` 报 `'ascii' codec can't encode '\u2026' in position 7`；独立命令行跑 server 正常（`Pong!`），走 TRAE 必炸，traceback 定位 `httpx._merge_headers`（Authorization header）。根因：**TRAE 注入 stdio env 时对"值像 API key"（`sk-...`）的变量做遮罩、key 前缀替换成 `\u2026`**（非 server bug 亦非 stdio 兼容；key head codepoints=`[8230=…,115=s,107=k,45=-]` 坐实）。解决：server.py 新增 `LLM_CRED_FILE` 从本地 key 文件读 key（[server.py L52-72](file:///D:/Code/MultiAgent/Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)），env 只传中性"路径"字段绕开遮罩；key 文件 `C:\Users\chano\.trae-cn\memory\llm_chat_key.txt`（git 外）。
 - **跨模型评审结论（minimax 独立审 AUTOM 论文，[ITSC\_PAPER.md](file:///D:/Code/MultiAgent/traffic_rl_project/docs/ITSC_PAPER.md)）**：
 
   | 攻击点                                                                                      | 裁决               | 具体修复                                                                                                             |
@@ -69,23 +47,10 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
   | P2 fair-MPC 是 strawman（3.2s SLSQP 无规则内层/无终端集/短 horizon，与 Yang2025/Song2026 Tube-MPC 不对等） | still-unresolved | 补 "MPC + 同规则循环制动内层" 基线，同 5-seed 协议重跑；否则 71.6% 停滞 / 330 追尾 headline 可被整体质疑                                        |
   | P3 证据薄 vs 广泛化（20km 剖面 + 5 列仅提及无全量表）                                                      | partially-fixed  | 把 20km 剖面 + 5 列升级为独立小节，补 reward/gap min/车钩力峰/collision±std 全量；Conclusion 泛化限定在表内                                 |
 
-- **机制说明**：mini max 作为一个**独立第二模型**（非同族自审）读论文原文，独立戳中"标题无模型失配 + fair-MPC 不公平"——与本地自审 P1-P4 高度吻合，证明 ARIS 跨模型对抗能抓出单模型自审的盲区偏袒。
-
-- **局限**：`independence_verified: unverified`（OpenRouter 公共端点无法强证明独立）；5 seeds 单剖面基底仍待强化。审阅为 framing 问题，非伤筋动骨缺陷，改 Abstract/Contributions + 补 1 条 baseline 即可转危为安。
-
-- **相关**：`docs/logs/decisions/DECISIONS.md` ADR-008（引入 ARIS 跨模型审阅通道）；`docs/PROJECT_PIPELINE.md`。
-
+- **机制说明**：minimax 为独立第二模型（非同族自审），独立戳中"标题无模型失配 + fair-MPC 不公平"，与本地自审 P1-P4 高度吻合——ARIS 跨模型对抗能抓出单模型自审盲区。
+- **局限**：`independence_verified: unverified`（OpenRouter 公共端点无法强证独立）；5 seeds 单剖面基底待强化。属 framing 问题（非伤筋动骨缺陷），改 Abstract/Contributions + 补 1 条 baseline 即可。
+- **相关**：`docs/logs/decisions/DECISIONS.md` ADR-008（引入 ARIS 通道）；`docs/PROJECT_PIPELINE.md`。
 - **复现命令**（TRAE 内）：`run_mcp(mcp_llm-chat, review, prompt=敌意拒稿论文, files=[docs/ITSC_PAPER.md], executor_model=deepseek, model=minimax/minimax-m3:free)` → `review_reply(threadId, prompt=逐点裁决)`。
-
-<!-- 追加新诊断时，复制此模板到文件末尾：
-### 诊断-YYYY-MM-DD-主题
-- 目的/背景
-- 命令：...
-- seed/配置
-- 结果（数据表，分组明细）
-- 结论（物理/机制解释）
-- 产出文件：computer://
--->
 
 
 ### 诊断-2026-09-02-P0-1 修复后论文关键数值重跑（75%→100% 动力学新旧对照）
@@ -104,12 +69,12 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **"车钩力偏低 40%"疑点结论**：
 
-  1. **修复后 1 万吨车钩力上抬 +48\~68%**（527/597 → 885 kN）——历史"偏低 \~40%"**绝大部分由 Bug 3 的 0.75 动力学造成**，量级疑点基本解除。
-  2. **1 万吨 885 kN 仍 < 1000 kN 正常运行上限**（Fu2019），论文"1 万吨车钩力守住 1000 kN 安全裕度"的结论**方向与裕度均不受影响**；且 885 kN 是"SERVICE 满档 + 80→40 激进速度窗 + 安全层关闭"的**最坏工况**，论文 M1/M3 实际评估（空电联合 + 安全层）峰值更低（659\~892 kN）。
-  3. **2 万吨 2405 kN 相对实测 929\~1021（正常循环制动）偏高 +147%**：⚠️ 需标定。分解原因：① 验证控制器用**满 SERVICE（140 kPa）循环制动，而朔黄实测"正常循环制动"为**部分减压（70\~100 kPa）（张二田 Fig.2/3 制动时间分布）+ 更缓速度窗；满 SERVICE 在 2 万吨上产生近极端冲动（张二田 800M+400k 同步差编组实测极端峰值即达 2142 kN）。② 编组规模效应 2.72× 随吨位增长符合物理规律 ✅。
-  4. **标定路径（→ P0-3）**：`braking.py` 已扩展连续减压量模型（`reduction_to_cylinder_pressure_kpa` / `air_brake_force_by_reduction`），用减压 70~~100 kPa 复现实车部分制动后，2 万吨峰值预期落入四源实测 1000~~1800 kN 带（张二田 1429｜王鼎 1490/1773｜刘博阳 742\~1337｜赵紫宁 1195.8），届时"仿真器能复现论文数字"即达成。
+  1. 修复后 1 万吨上抬 **+48\~68%**（527/597→885 kN）——历史"偏低 ~40%"绝大部分由 Bug 3 的 0.75 动力学造成，量级疑点基本解除。
+  2. **885 kN 仍 <1000 kN**（Fu2019），"1 万吨守住安全裕度"结论方向/裕度不受影响；且 885 kN 为"SERVICE 满档 + 80→40 激进窗 + 安全层关闭"的最坏工况，论文 M1/M3 实际评估（空电联合+安全层）峰值更低（659~892 kN）。
+  3. **2 万吨 2405 kN 相对实测 929~1021（正常循环制动）偏高 +147%**：⚠️ 需标定。①验证控制器用满 SERVICE（140 kPa），朔黄实测"正常循环制动"为部分减压 70~100 kPa（张二田 Fig.2/3）+更缓速度窗；满 SERVICE 在 2 万吨上产生近极端冲动（张二田 800M+400k 同步差编组实测极端峰值 2142 kN）②编组规模效应 2.72× 随吨位增长符合物理 ✅。
+  4. **标定路径（→P0-3）**：`braking.py` 已扩展连续减压量模型（`reduction_to_cylinder_pressure_kpa`/`air_brake_force_by_reduction`），用 70~100 kPa 部分制动的 2 万吨峰值预期落四源实测带 1000~1800 kN（张二田1429｜王鼎1490/1773｜刘博阳742~1337｜赵紫宁1195.8）。
 
-- **对论文数值的影响标注**（Bug 3 修复后，绝对数值须以修复后仿真器重跑为准）：
+- **对论文数值的影响标注**（Bug 3 修复后，绝对值须以修复后仿真器重跑为准）：
 
   | 论文引用值                              | 状态     | 说明                                       |
   | :--------------------------------- | :----- | :--------------------------------------- |
@@ -237,17 +202,17 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **根因诊断**：
 
-  1. **训练日志**：新 M1 与历史 75% 训练**都**在 curriculum 3000 步阶段（ep132+）reward 崩塌（-74万/-75万），best checkpoint 都在 3000 步阶段某 ep（新 ep150 +36084 / 历史 ep160 +38890）。**历史 75% 的 best 在 3000 步评估泛化好（+36004），100% 的 best 泛化差（+2129）**——说明 100% 动力学下 M1 策略对确定性评估的泛化变差。
-  2. **adj 分布**：新 M1 协同动作剧烈且不一致（adj\_0 +0.38 / adj\_1 -0.34 / adj\_2 -0.28，std 0.81~~0.92）；历史 75% M1 温和（+0.42/+0.19/+0.03，std 0.20~~0.45）。**100% 动力学下 M1 学到了剧烈不一致的阈值偏移，在长程确定性评估中反而制造追尾**（无 ETCS 追尾 59）。
-  3. **M-MPC-rule（P2 公平基线）**：inner\_rule\_cyclic 只处理 v≥v\_max 强制制动，不处理低40（M-MPC 崩溃主因），故结果与 mpc\_dir 相同（-200548 / 低40 53.7% / 1384kN）——**规则内层实现不完整，P2 公平基线未真正补齐**。
+  1. **训练日志**：新 M1 与历史 75% 训练**都**在 curriculum 3000 步阶段（ep132+）reward 崩塌（-74万/-75万），best 均在 3000 步阶段（新 ep150 +36084 / 历史 ep160 +38890）。历史 75% best 在 3000 步评估泛化好（+36004），100% best 泛化差（+2129）——100% 动力学下 M1 对确定性评估的泛化变差。
+  2. **adj 分布**：新 M1 协同动作剧烈且不一致（adj\_0 +0.38 / adj\_1 -0.34 / adj\_2 -0.28，std 0.81\~0.92）；历史 75% M1 温和（+0.42/+0.19/+0.03，std 0.20\~0.45）——100% 下 M1 学到剧烈不一致的阈值偏移，长程确定性评估中反而制造追尾（无 ETCS 追尾 59）。
+  3. **M-MPC-rule（P2 公平基线）**：inner\_rule\_cyclic 只处理 v≥v\_max 强制制动、不处理低40（M-MPC 崩溃主因）→ 结果与 mpc\_dir 相同（-200548 / 低40 53.7% / 1384kN）——**规则内层实现不完整，P2 公平基线未真正补齐**。
 
-- **结论**：100% 动力学下 **M1 协同增量消失甚至为负（M3 > M1）**，论文核心结论（"MARL 协同相对独立控制有增量"）**反转**。这不是协议 bug，而是 M1 训练在 100% 动力学下未学到可泛化的协同策略。M3 纯规则 + ETCS 已能守住 0 追尾且 reward 更高 → 协同价值需重新论证或重新训练。
+- **结论**：100% 动力学下 **M1 协同增量消失甚至为负（M3 > M1）**，论文核心结论（"MARL 协同相对独立控制有增量"）**反转**。非协议 bug，而是 M1 在 100% 动力学下未学到可泛化协同策略；M3 纯规则 + ETCS 已守住 0 追尾且 reward 更高 → 协同价值需重新论证或重新训练。
 
 - **下一步选项（待用户决策）**：
 
-  1. 延长 3000 步阶段训练（ep132 后更多回合）让 M1 真正学会长程协同；
+  1. 延长 3000 步阶段训练（ep132 后更多回合）让 M1 学会长程协同；
   2. 训练时启用 ETCS（当前训练无 ETCS，评估有 ETCS，分布不一致）；
-  3. 约束 M1 协同动作幅度（当前 adj std ~~0.8 过激，历史 0.2~~0.4 温和），减小 adj\_coef；
+  3. 约束 M1 协同动作幅度（当前 adj std ~0.8 过激，历史 0.2~0.4 温和），减小 adj\_coef；
   4. 接受"协同收益需更长下坡/更紧间距才显现"，改写论文叙事（但压力消融也显示 M3 恒高）；
   5. 5 列扩展需专门训练 5 列 checkpoint（当前 3 列模型 value 维度不匹配，报错已确认属预期）。
 
@@ -256,7 +221,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **续前**：诊断-2026-09-03-100%动力学重训后M1协同价值消失（M3>M1）。本诊断定位根因并验证修复。
 
-- **根因假设**：训练无 ETCS（	rain\_fleet.py 不传 enable\_etcs）/ 评估有 ETCS（--etcs）→ 分布不一致。无 ETCS 时探索期碰撞无兜底 → 3000 步阶段 reward 崩塌 → best checkpoint 落在早期 1000 步阶段 → 长程泛化差。
+- **根因假设**：训练无 ETCS（`train_fleet.py` 不传 enable\_etcs）/ 评估有 ETCS（--etcs）→ 分布不一致。无 ETCS 时探索期碰撞无兜底 → 3000 步阶段 reward 崩塌 → best checkpoint 落在早期 1000 步阶段 → 长程泛化差。
 
 - **决定性验证**（20ep 直接 3000 步训练，seed77，adj\_coef=0.1）：
 
@@ -282,7 +247,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 #### 1. B3 循环制动性能衰减（新增建模，默认关闭）
 
-- **实现**：raking.py 新增 cyclic\_braking\_degrade()（赵紫宁表5-5 C\_β 相对首段归一：段1→1.0、段2→0.705、段3→0.676、段≥3 保守饱和）；	rain.py 新增 enable\_cyclic\_degrade 参数 + 段号跟踪，\_air\_braking\_forces 乘衰减因子。
+- **实现**：`braking.py` 新增 `cyclic_braking_degrade()`（赵紫宁表5-5 C_β 相对首段归一：段1→1.0、段2→0.705、段3→0.676、段≥3 保守饱和）；`train.py` 新增 `enable_cyclic_degrade` 参数 + 段号跟踪，`_air_braking_forces` 乘衰减因子。
 
 - **诚实边界**：赵紫宁式(3-6)\~式(3-10) 的 P\_s(t) 段内时间演化子模型需文献\[50]闸瓦温度曲线 S\_tmp，未获取该数据故不臆造参数——保留扩展点注释，只实现有实测支撑的段间 C\_β 衰减。
 
@@ -290,17 +255,17 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 #### 2. L1 列尾压强梯度（新增建模，默认关闭）
 
-- **实现**：raking.py 新增 	ail\_pressure\_to\_cyl\_ratio()（刘博阳 L6 标定：列尾 585/589/593 kPa → 后部/前部平衡压比 0.783/0.863/0.929）+ cylinder\_pressure\_gradient()（前部 1.0 → 后部 ratio 线性插值）；	rain.py 新增 	ail\_pressure\_kpa 参数，制动力乘梯度因子。
+- **实现**：`braking.py` 新增 `tail_pressure_to_cyl_ratio()`（刘博阳 L6 标定：列尾 585/589/593 kPa → 后部/前部平衡压比 0.783/0.863/0.929）+ `cylinder_pressure_gradient()`（前部 1.0 → 后部 ratio 线性插值）；`train.py` 新增 `tail_pressure_kpa` 参数，制动力乘梯度因子。
 
 - **诚实边界**：刘博阳 L5"缓解滞后"耦合（后部缓解延迟 17.8\~20.9s）用"后部制动力弱"近似主效应，完整充风动态保留扩展点。
 
-- **默认关闭**：tail\_pressure\_kpa=None 无梯度，向后兼容。
+- **默认关闭**：ttail\_pressure\_kpa=None 无梯度，向后兼容。
 
 #### 3. 变坡点压钩力（诊断纠正：已自然体现，非未建模）
 
 - **诊断**：前陡后缓凹形坡（L4），队首刚跨变坡点（列车跨变坡）制动段压钩力 685 kN vs 全列缓坡 596 kN（**1.15x**）——变坡效应已由"多体模型 + 坡度逐车取值"自然产生（前部陡坡减速慢、后部缓坡减速快 → 后部推前部 → 压钩力）。
 
-- **纠正**：此前探针"变坡点未复现（1.00x）"系探针场景构造不当（队首未真正跨变坡/缓解时机不对）。已固化测试 	est\_grade\_transition\_coupler\_force\_peak（方向断言）。
+- **纠正**：此前探针"变坡点未复现（1.00x）"系探针场景构造不当（队首未真正跨变坡/缓解时机不对）。已固化测试 `test_grade_transition_coupler_force_peak`（方向断言）。
 
 - **无需新增建模**。
 
@@ -308,13 +273,13 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **诊断**：2 万吨 1+1（2 机车）单次 SERVICE 制动，双源同步 616 kN vs 单源 1549 kN（**0.40x，下降 60%**）——多源同步制动 → 制动波从多点向两侧传播 → 前后相位差小 → 冲动小，复现张二田表1"2+1+1 分布式动力 836 kN 全场最低"。
 
-- **纠正**：此前探针"均匀多源 1449 > 单源 1302 未复现"系探针工况构造不当（循环制动多次/操纵不同）。已固化测试 	est\_distributed\_power\_sync\_reduces\_coupler\_force。
+- **纠正**：此前探针"均匀多源 1449 > 单源 1302 未复现"系探针工况构造不当（循环制动多次/操纵不同）。已固化测试 `test_distributed_power_sync_reduces_coupler_force`。
 
 - **无需新增建模**。
 
 #### 5. 代码缺陷修复
 
-- **M-MPC-rule 规则内层不完整**：air\_mpc\_controller.py 的 inner\_rule\_cyclic 原只处理 v≥v\_max（低40 分支 pass）→ 与 M-MARL 语义不一致，MPC 持续制动崩溃（低40 53.7%）。修复：v≤v\_min 强制恢复牵引/缓解（≥0）。修复后 M-MPC-rule：reward -200548→**+17312**、低40 53.7→**14.0**、车钩力 1384→**648 kN 守限**、追尾 156→**0**、循环制动 3→68。P2 公平基线真正补齐。
+- **M-MPC-rule 规则内层不完整**：`fair_mpc_controller.py` 的 inner\_rule\_cyclic 原只处理 v≥v\_max（低40 分支 pass）→ 与 M-MARL 语义不一致，MPC 持续制动崩溃（低40 53.7%）。修复：v≤v\_min 强制恢复牵引/缓解（≥0）。修复后 M-MPC-rule：reward -200548→**+17312**、低40 53.7→**14.0**、车钩力 1384→**648 kN 守限**、追尾 156→**0**、循环制动 3→68。P2 公平基线真正补齐。
 
   - ⚠️ **对论文的新证据**：MPC + 规则内层（同 M-MARL 护盾语义）后竞争力显著增强（+17312），"MARL vs MPC"差距收窄——论文需诚实报告"公平 MPC 加规则内层后接近 MARL"，优势叙事须更精确（MPC 低40 仍 14% vs MARL \~0.5%，实时性差 126.8ms/步）。
 
@@ -838,11 +803,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
   | **ad2g-M1**（A+B） | **+42,786** |      537 |      183 | **7,212** |
   | M3（独立δ=0）        |     +42,442 |      508 |      183 |    11,292 |
 
-- **解读（期望 vs 实际）**：
-
-  - 期望：B 的一致性观测+一致性奖励应显著放大 M1 相对 M3 的增量。实际：**reward 增量 A→B 翻倍（+193→+343）**，方向正确、幅度仍小（\~0.8%）；**ATP 安全优势保持**（7122 vs 11292，近减半）——RL 协同用更少 ATP 紧急介入达成同等间距，是更可靠的"协同价值"信号。
-
-  - 训练稳定性：A 与 B 均 best≈final、零超限，连续 gap\_reward 修复的稳定收敛未回退；B 的全局观测未引入不确定性。
+- **解读（期望 vs 实际）**：期望 B 的一致性观测+奖励显著放大 M1 增量。实际：**reward 增量 A→B 翻倍（+193→+343）**，方向正确、幅度仍小（\~0.8%）；**ATP 安全优势保持**（7122 vs 11292，近减半）——RL 协同用更少 ATP 紧急介入达成同等间距，是更可靠的"协同价值"信号。训练稳定性：A/B 均 best≈final、零超限，连续 gap\_reward 修复未回退；B 的全局观测未引入不确定性。
 
 - **结论**：**A→B 链路成立**——协同增量从无（旧 1 维/0.1 负增量）到正向且逐级放大（A +193 → B +343），安全事件近半。但幅度仍不足以单独立论（reward 相对 M3 仅 \~0.8%），需用户定夺：继续深化（完整 23.8km 长训/时序特性）或倚重"少用 ATP"安全论据立论。
 
@@ -1546,8 +1507,8 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **背景**：续接上轮 Step 1 FAIL。主管定三条：①加 BC warm_start 治"从零随机探索踩暴力 AB 吸态"；②缩短 parallel_traj_len / 恢复 curriculum 起步（让单集可控快速）；③运行时提速 + 时间预算对比，先评估 5-seed 主训练本机可行性。本轮先用小基准量化提速空间（结论先于重验），再跑受控重验拆开"并行无效"与"缺起步"两因素。
 
 - **运行时提速评估（临时脚本 `outputs/_bench_env.py`，用后已删；物理=en.step 规则基线全零动作，`shuozhou_real_53km`）**：
-  - 实测 env.step 吞吐随 `omp_num_threads`：**2→13.87 ms/step、4→13.65、8→13.81（无差异）** → 物理步进是**单线程内存带宽/串行主导**，`omp_num_threads` 提速杠杆**无效**（保持 2）。torch 训练只在 GPU forward/update，无碍物理。
-  - 上行实测真实全量训练（本重验 8ep，n_env=4×2000 步 + BC）：**总 47.1min，约 5.9min/ep**；上轮记录 10–16min/ep（峰值区间）。单 ep 时间不稳定：规则基线轻载 ≈1.8min（按下界外推），随机/暴力 AB 高载时每步更贵，可到 ~15min/ep。
+  - env.step 吞吐随 `omp_num_threads`：**2→13.87 ms/step、4→13.65、8→13.81（无差异）** → 物理步进**单线程内存带宽/串行主导**，`omp_num_threads` 提速杠杆**无效**（保持 2）。torch 训练只在 GPU forward/update，无碍物理。
+  - 真实全量训练（本重验 8ep，n_env=4×2000 步 + BC）：**总 47.1min ≈5.9min/ep**；上轮记录 10–16min/ep。单 ep 不稳：规则基线与轻载 ≈1.8min，随机/暴力 AB 高载时每步更贵可到 ~15min/ep。
   - **结论：提速唯一可靠手段 = 缩短轨迹总步进（curriculum 起步 / 降 parallel_traj_len）/ 减少 ep 数**，或**真多进程并行 n_env 轨迹（需改 `train_runner.py` multiprocessing，理论 ~×核心数，属代码改造，本轮未做）**。
 
 - **时间预算对比（当前 vs 提速后；供主管评估 5-seed 可投性）**：
@@ -1584,9 +1545,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 
 ***
 
-### 诊断-2026-09-13-Windows 环境迁移（续见上节）
 
-***
 
 ### 诊断-2026-09-15-方案1受控修正（BC+n_env=4+curriculum渐进起步）：2000档仍破线，判FAIL
 
@@ -1652,8 +1611,8 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   | 26 | +9150 | **1556** | **24** |
   总耗时 4292.5s（71.5min）。best reward=12688，末段平均车钩力峰值=1161kN。
 - **期望 vs 实际**：
-  - **消除整集崩溃：达成（关键突破）**。1500 档 ep20-26 全程 reward 为正且高（best +12688，末段 avg +10456），对比方案1@2000 档 ep21-22 的深度崩溃（-12800/-8274、viol 698/601）——**收窄 horizon 由 2000→1500 步成功消除了 on-policy 长轨迹整集价值崩溃，且编队 reward 显著提升（+12688 vs +9411）**。这是历轮 6 拳 + 方案1 均未实现的实质进展，反证根因确为"horizon 过长 → value 漂移"。
-  - **全程 ≤1000kN 严格判据：未达成**。1500 档仍 4/7 集破线（ep21 1251kN / ep22 1022 / ep24 1070 / ep26 1556），viol 2~47。仅收窄程 ln 不足以保证全程安全，需再强化。
+  - **消除整集崩溃：达成（关键突破）**。1500 档 ep20-26 全程 reward 为正且高（best +12688，末段 avg +10456），对比方案1@2000 档 ep21-22 深度崩溃（-12800/-8274、viol 698/601）——**收窄 horizon 2000→1500 步成功消除 on-policy 长轨迹整集价值崩溃，且编队 reward 显著提升（+12688 vs +9411）**。这是历轮 6 拳 + 方案1 均未实现的实质进展，反证根因确为"horizon 过长 → value 漂移"。
+  - **全程 ≤1000kN 严格判据：未达成**。1500 档仍 4/7 集破线（ep21 1251kN / ep22 1022 / ep24 1070 / ep26 1556），viol 2~47。仅收窄 horizon 不足以保证全程安全，需再强化。
 - **判断**：方案2 **部分成功**。方向（收窄 horizon 治长程崩溃）被证实正确高效，但零星破线需第三步：1500 档基础上 ①再收窄至~1200 步 或 ②强化车钩力塑形项抑制暴力点 或 ③复加 AB 源头门控（高力禁新源）。候选交与主管取舍后继续。
 - **状态**：完成（26ep 跑满）。数据 `outputs/diag_53km_p2_curric1500/seed0/`。临时启动脚本 `outputs/launch_p2_curric1500.sh`、`outputs/wait_p2.sh` 保留留痕。
 
@@ -1716,8 +1675,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 
 - **现象**：5-seed 全量 1400ep 长训用串行编排（launch_final_5seed.sh，单进程前台顺序跑 seed0→4），预估全程 ~8-12 天，质问为何如此慢、有无可牺牲项。
 - **根因（已实测，非推断）**：
-  - src/trainer/train_runner.py#L156 的 
-_env=4 是**纯串行 or ei in range(n_env)**（非线程/进程），4 条 rollout 排队挤单核。
+  - src/trainer/train_runner.py#L156 的 `n_env=4` 是**纯串行 `for ei in range(n_env)`**（非线程/进程），4 条 rollout 排队挤单核。
   - 整训练只占 1 逻辑核：WSL 内 loadavg ≈ 1.0/12 核、%Cpu idle 88.5%；内存充足（WSL 15.8GB 上限，free ~13GB）；非内存/磁盘瓶颈。
   - **结论：慢=CPU 并行没启用（闲置 11 核），不是物理步进本身太贵**。物理瓶颈 dt=0.1→10子步→Newmark/Picard × 多体101车 是保真必需，不得牺牲。
 - **改动（物理保真零改动）**：新编排 outputs/launch_final_5seed_parallel.sh，每 seed 独立后台进程各占 1 核 + wait 聚合；resume 权重与 --episodes 1400 语义与旧串行脚本完全一致（可复现）。
@@ -1732,3 +1690,27 @@ _env=4 是**纯串行 or ei in range(n_env)**（非线程/进程），4 条 rol
   - 旧串行 seed0 中断 ~266ep 产物备份：outputs/checkpoints_formation/final_seed0_aborted_sequential_266ep/（防 CSV 重复污染，供回溯）。
   - 机器：i5-13420H（8物理/12逻辑）/ 31.6GB（WSL 上限 15.8GB）。
   - 复现命令：wsl -d Ubuntu-24.04 bash outputs/launch_final_5seed_parallel.sh（前台后台均可，wait 聚合）。
+
+<!-- 该文档整理/压缩于 2026-09-22 -->
+
+### 诊断-2026-09-22-best权重长程评估失效（训练reward选优≠长程质量）
+
+- **现象**：4 条 best 权重评估（s0/s1 × 53km/35km，best = `mappo_fleet_best_dec_ad2_cp_seed{0,1}.pt`）**全部崩**；而 s0 **last 权重（ep1623）完整 53km 评估达标**（viol 0 / 863.5kN / 末速 72.0 / band 99.7%）。best 反而显著劣于 last。
+- **数据表（best vs last，同剖面/同时域/确定性策略；viol 含计数 bug 膨胀，仅看趋势）**：
+  | 评估 | peakCoupler kN | viol | band率 | 末速 km/h |
+  |---|---|---|---|---|
+  | s0 best × 53km | **1683** | 5.38M | 89.8% | 47.7 |
+  | s0 last(ep1623) × 53km | 863.5 | 0 | 99.7% | 72.0 |
+  | s0 best × 35km | **1709** | 3.64M | 71.9% | 0.0（停车） |
+  | s0 last × 35km | 1675.4 | 17.4M | 58.8% | 20.9（失速） |
+  | s1 best × 35km | 1251 | 2.38M | 59.7% | 18.0 |
+  （s1 未训满 721/1400，其 last/best 均非收敛产物，仅存档；s1 best × 53km 最后一条已出/存档）
+- **根因机制（非代码 bug，机制必然）**：
+  - best 按**训练窗口 reward** 选取（[train_runner.py `_maybe_save_best`](file:///d:/Code/MultiAgent/traffic_rl_project/src/trainer/train_runner.py#L323-L333)：`ep_reward > best_reward` 才覆盖，逻辑正确）。
+  - 训练窗口 = **1200 步 = 120s ≈ 2.4km**（20m/s），**完全不含长时程压力**；完整 53km 评估 = 36000 步 = 3600s，需十几次循环制动 + 空气制动波速传播 + 车钩力累积。
+  - s0 best 冻结轨迹：+11433.5(ep1/全局874) → +11458.9(ep2) → +11517.2(ep169/全局1042) → +11535.4 → **+11569.7（全局 ~1100+，Sep 21 15:23 冻结）**；此后 ep640-780（全局 1513-1653）reward 均 10700~11400，**从未超越**。
+  - 早期策略 = 短视激进（少制动冲坡，短窗口高分）；后期策略牺牲短窗口 reward（~11000 < 11569）换取长程稳定（viol 0 / 863kN / 末速 72）→ **短窗口训练 reward 最优 ≠ 长程评估最优**。s1 同理（best +11832.8 冻结）。
+- **期望 vs 实际**：期望 best = 历史最优可直接作主结果；实际 best 在完整剖面评估下崩（>1000kN 超限 + 末速失速/停车），而 last 达标——best 文件**不可用于论文主结果**。
+- **解决**：①本次主结果改用 **last 权重**（s0 last/53km 达标为实证）；②训练框架补"**周期性长程评估选优**"（每 N ep 用完整剖面确定性评估，按 viol/车钩力/末速 而非训练 reward 选 best，见 train_runner 新增 long_eval 钩子）；③跨线失速（s0/35km last 与 best 均失速）为独立真问题，与权重选择无关，待续训训满后另诊断。
+- **复现命令**：`wsl bash tmp_launch_best_evals.sh`（wait 保活版，4 条并行）；结果 JSON `outputs/results_decompose/eval_decompose_*_best_*.json`。
+- **状态**：完成（best 4/4 已出，结论确定）。

@@ -380,3 +380,5 @@ SAC算法的实验为奖励函数设计提供了重要教训。早期使用的�
 [14] Seeley T D. The honeybee democracy[M]. Princeton University Press, 2010.
 
 $e^{i\pi} + 1 = 0$
+
+<!-- 该文档整理/压缩于 2026-09-22 -->

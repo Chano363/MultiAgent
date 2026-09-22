@@ -1,8 +1,0 @@
-section,type,sim_v_kmh,anchor_v_kmh,sim_km,anchor_km
-0,release_start,25.30,38,23.213,23.69
-1,brake_start,0.00,62,23.296,25.93
-1,release_start,0.00,42,23.296,42.34
-2,brake_start,0.00,45,23.296,44.93
-2,release_start,0.00,40,23.296,66.41
-3,brake_start,0.00,46,23.296,68.69
-3,release_start,0.00,57,23.296,83.79

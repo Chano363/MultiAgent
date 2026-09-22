@@ -337,9 +337,45 @@ class MAPPOAgent(BaseRLAgent):
         returns = advantages + values
         # E22 长轨迹数值稳定：returns 可能巨大（3000步累积），clip 防 value_loss 爆炸
         # （实测长距离多列 loss 4.7e12）。clip 到合理范围，保留正常 returns，只限极端。
+        # 【2026-09-19 治本】①硬 clip 仅兜底数值，加 ②per-trajectory winsorization：
+        # 按 done=1 切分轨迹，对每条轨迹内 returns 分位裁剪，抑制单条极端轨迹（爆发期
+        # 谓深负的暴力 AB 轨迹）污染 value 网络——非单点突变，而是按轨迹粒度治理。
         returns = np.clip(returns, -2e5, 2e5)
+        returns = self._winsorize_by_traj(returns, dones, lo_q=0.02, hi_q=0.98)
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         return advantages, returns
+
+    def _winsorize_by_traj(
+        self,
+        returns: np.ndarray,
+        dones: np.ndarray,
+        lo_q: float = 0.02,
+        hi_q: float = 0.98,
+    ) -> np.ndarray:
+        """按 done=1 划轨迹边界，抑制单条极端轨迹对 value 目标的污染。
+
+        n_env 并行轨迹在 buffer 里是"轨迹1全部步 + 轨迹2全部步 + ..."连续 append，
+        轨迹结束步 done=1（该轨迹最后一步），故以 done>0 为切点分段。
+
+        语义（精确治理"单条极端轨迹"）：对每条轨迹用其**累计 return** sample 判定是否
+        为异常轨迹（超出全部轨迹累计 return 的 [lo_q, hi_q] 分位）。仅对异常轨迹整体
+        用累计分位上限 clip，正常轨迹**完全不动**——这正是"抑制破线深负轨迹污染 value、
+        不误伤正常梯度"的意图。段长 <4 视为样本太少跳过。
+        """
+        out = np.array(returns, dtype=np.float64, copy=True)
+        traj_ends = np.where(np.asarray(dones) > 0)[0]
+        starts = np.concatenate(([0], traj_ends + 1))
+        ends = np.concatenate((traj_ends + 1, [len(returns)]))
+        segs = [(s, e) for s, e in zip(starts, ends) if e - s >= 4]
+        if len(segs) < 4:
+            return out  # 轨迹太少，分位不稳，跳过
+        cum = np.array([np.sum(out[s:e]) for s, e in segs], dtype=np.float64)
+        lo = float(np.quantile(cum, lo_q))
+        hi = float(np.quantile(cum, hi_q))
+        for (s, e), c in zip(segs, cum):
+            if c < lo:  # 异常深负累计（暴力AB破线轨迹）→ 均摊抬升到 lo 分位累计，
+                out[s:e] += (lo - c) / (e - s)  # 保持段内相对形状，仅抑制整体污染
+        return out
 
     def update(self) -> Dict[str, float]:
         if self.buffer_states is None or len(self.buffer_states) < self.batch_size:
@@ -469,6 +505,12 @@ class MAPPOAgent(BaseRLAgent):
                     self._clear_buffer()
                     return {'total_loss': 0.0}
 
+                # 【2026-09-19 治本②】value 与 policy 梯度分离约束：
+                # 先对 value 网络独立 clip 到更紧上限（max_grad_norm*0.5），再对整体 clip，
+                # 防止单条极端 returns 让 value 大步漂移（终段 loss 爆 1.283 的直接源头）。
+                value_sep_norm = torch.nn.utils.clip_grad_norm_(
+                    list(self.value.parameters()), self.max_grad_norm * 0.5
+                )
                 grad_norm = torch.nn.utils.clip_grad_norm_(
                     list(self.policy.parameters()) + list(self.value.parameters()),
                     self.max_grad_norm
@@ -481,9 +523,11 @@ class MAPPOAgent(BaseRLAgent):
                 total_entropy += entropy.item()
 
             # per-agent KL（batch × agents 平均），避免联合 log_prob 求和导致 KL 被 N 倍放大
+            # 【2026-09-19 治本②】收紧早停阈值：1.5→1.2（0.015→0.012），终段不再放任
+            # epoch 滑到 7~10 才触发，抑制 value 被极端轨迹带偏后的连波策略漂移。
             approx_kl = ((new_log_probs - batch_old_log_probs) ** 2).mean().item()
-            if approx_kl > self.target_kl * 1.5:
-                logging.info(f"KL早停: {approx_kl:.4f} > {self.target_kl * 1.5:.4f} (epoch {epoch + 1}/{self.epochs})")
+            if approx_kl > self.target_kl * 1.2:
+                logging.info(f"KL早停: {approx_kl:.4f} > {self.target_kl * 1.2:.4f} (epoch {epoch + 1}/{self.epochs})")
                 break
 
         self.training_step += 1

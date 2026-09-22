@@ -26,6 +26,7 @@ from src.trainer.registry import Registry
 from src.trainer.ckpt_policy import make_namer
 from src.trainer.artifacts import save_training_artifacts
 from src.trainer.specs.cyclic_spec import cyclic_obs, cyclic_reward, quantize_to_notch, set_cyclic_limits
+from src.environments.train_fleet_env import TrainFleetEnv
 
 logger = logging.getLogger('TrainRunner')
 
@@ -96,10 +97,51 @@ class TrainRunner:
                     init_speed=cfg.env_cfg.get('init_speed_kmh', 80.0) / 3.6,
                 )
 
+            # 【2026-09-16】resume 续训：若指定 --resume <已有 .pt>，则加载其权重并跳过
+            # 从头 BC。同时把 start_ep 垫到已训进度，使 curriculum 走对应档、best 门槛继承。
+            resume_pt = getattr(cfg, 'resume', None)
+            if resume_pt and Path(resume_pt).exists():
+                agents_to_load = agents if isinstance(agents, list) else [agents]
+                for ag in agents_to_load:
+                    ag.load(resume_pt)
+                # 从 checkpoint 逼近已训 ep：优先用 checkpoint_dir 里已有的 history JSON
+                # 的下一段，否则靠 --override start_ep。
+                resume_start = int(getattr(cfg, 'start_ep', 0) or 0)
+                if resume_start <= 0:
+                    resume_start = self._resume_ep_from_history()
+                cfg.start_ep = resume_start
+                logger.info(
+                    f"[resume] 已从 {resume_pt} 加载权重，续训自 ep {resume_start}"
+                    f"（curriculum 将按 global_ep≥{resume_start} 解析）"
+                )
+                # 跳过从头 BC：续训时不需再 warm_start（权重已含安全行为）
+                cfg.warm_start = False
+
             cur_plan = self._parse_curriculum()
             episode_rewards, peak_coupler, violations = [], [], []
             best_reward = self._restore_best(namer)
+            # 【2026-09-22 长程评估选优】long_eval_interval>0 时 best 文件改由完整剖面
+            # 确定性评估驱动（诊断-2026-09-22：训练窗口 reward 最优≠长程评估最优）
+            long_eval = int(getattr(cfg, 'long_eval_interval', 0) or 0)
+            best_eval = self._restore_long_eval_best(cfg) if long_eval > 0 else None
             global_ep = max(cfg.start_ep, -1)
+
+            # 【YOLO 式日志】TensorBoard + tqdm 实时表 + 每集 CSV + last.pt 快照
+            if getattr(cfg, 'yolo_logging', True):
+                from src.trainer.logger import TrainingLogger
+                self._tlog = TrainingLogger(
+                    log_dir=cfg.results_dir,
+                    figures_dir=cfg.figures_dir,
+                    checkpoint_dir=cfg.checkpoint_dir,
+                    tag=namer.history_tag(cfg.seed),
+                    seed=cfg.seed,
+                    total_episodes=int(cfg.episodes),
+                    ckpt_meta=getattr(self, '_ckpt_meta', None),
+                    save_fn=agents.save if not isinstance(agents, list) else None,
+                    tb=getattr(cfg, 'yolo_tb', True),
+                )
+            else:
+                self._tlog = None
 
             # 【并行多环境】同一 env 每个 ep 跑 n_env 条独立轨迹（不同初始速度提供
             # 样本多样性，策略/共享 value），全部进 agent 共享 buffer、统一一次 update。
@@ -173,8 +215,25 @@ class TrainRunner:
                 peak_coupler.append(ep_peak / 1e3)
                 violations.append(ep_viol)
 
-                self._maybe_save_best(inter, agents, namer, ep_reward, best_reward, seed=cfg.seed)
+                # 【YOLO 式日志】逐集驱动（CSV/TB/终端），不依赖 log_interval
+                if self._tlog is not None:
+                    self._tlog.log_episode(
+                        ep=global_ep + 1,
+                        reward=ep_reward,
+                        peak_coupler_kN=ep_peak / 1e3,
+                        violations=ep_viol,
+                        total_loss=float(metrics.get('total_loss', 0.0)),
+                    )
+
+                # 【2026-09-22】long_eval 启用时 best 由完整剖面评估驱动，训练窗口
+                # reward 不再直接写 best（否则选出短视激进的长程崩权重）
+                if long_eval <= 0:
+                    self._maybe_save_best(inter, agents, namer, ep_reward, best_reward, seed=cfg.seed)
                 best_reward = max(best_reward, ep_reward)
+
+                # 周期性完整剖面评估选优（viol==0 且 车钩力≤限 且 末速在带内 才可当选）
+                if long_eval > 0 and (ep + 1) % long_eval == 0:
+                    self._long_eval(agents, cfg, namer, global_ep + 1, best_eval)
 
                 if (ep + 1) % cfg.log_interval == 0 or ep == cfg.episodes - 1:
                     recent = np.mean(episode_rewards[-cfg.log_interval:]) if len(episode_rewards) >= cfg.log_interval else np.mean(episode_rewards)
@@ -184,8 +243,15 @@ class TrainRunner:
                         f"peakCoupler {np.mean(peak_coupler[-cfg.log_interval:]):.0f}kN | "
                         f"viol {np.mean(violations[-cfg.log_interval:]):.1f} | "
                         f"loss {metrics.get('total_loss', 0):.3f}")
+                    if self._tlog is not None:
+                        # last.pt 中间权重快照（YOLO weights/last 语义，周期粒度）
+                        self._tlog.save_last(global_ep + 1, namer.best_path(cfg.seed))
                     self._periodic(inter, agents, namer, episode_rewards, peak_coupler, violations,
                                    global_ep, best_reward)
+
+            # 收尾：关闭 tqdm / TensorBoard writer
+            if self._tlog is not None:
+                self._tlog.close()
 
             total_time = time.time() - start
             logger.info("=" * 60)
@@ -242,6 +308,30 @@ class TrainRunner:
             pass
         return float('-inf')
 
+    def _resume_ep_from_history(self) -> int:
+        """从 resume 权重所在目录已存的 ep{N} checkpoint 推断已训进度（续训起始 ep）。
+
+        兼容命名 mappo_fleet_ep{N}/*.pt-*（如 _ep120_、last_ep120）。
+        找不到则返回 0（从头）。优先看 --resume 权重自身所属目录，而非新 checkpoint_dir。
+        """
+        import re as _re
+        best = 0
+        resume_pt = getattr(self.cfg, 'resume', None)
+        # resume 权重自身文件名就是最佳线索：mappo_fleet_ep120_...  → 120
+        if resume_pt:
+            m = _re.search(r"_ep(\d+)[._]", str(resume_pt))
+            if m:
+                best = max(best, int(m.group(1)))
+        # 兜底：扫描旧目录（resume 权重同目录）里的其他 ep{N} checkpoint
+        if best <= 0 and resume_pt:
+            d = Path(resume_pt).parent
+            if d.exists():
+                for f in d.glob("*.pt"):
+                    m = _re.search(r"_ep(\d+)[._]", f.name)
+                    if m:
+                        best = max(best, int(m.group(1)))
+        return best
+
     def _maybe_save_best(self, inter, agents, namer, ep_reward, best_reward, seed):
         if ep_reward <= best_reward:
             return
@@ -253,6 +343,92 @@ class TrainRunner:
         else:
             agents.save(str(Path(self.cfg.checkpoint_dir) / namer.best_path(seed)),
                         metadata=meta)
+
+    # ------------------------------------------------------------------
+    # 【2026-09-22 长程评估选优】best 由完整剖面确定性评估驱动（诊断-2026-09-22：
+    # 训练窗口 1200 步≈2.4km 的 reward 最优 ≠ 完整剖面评估最优；短视激进权重长程崩）。
+    # 达标判据：viol==0 且 峰值车钩力≤限 且 末速在 [v_min,v_max] 带内；达标且评估
+    # reward 创新高才覆盖 best 文件。评估 env 与训练同源（cfg.env_cfg，仅改 max_steps/
+    # eval_mode/grade），杜绝训练-评估物理不一致。
+    def _long_eval(self, agents, cfg, namer, global_ep, best_eval):
+        if isinstance(agents, list):
+            logger.warning(f"[long_eval] ep{global_ep}: 多智能体 list 暂不支持长程评估选优，跳过")
+            return
+        long_steps = int(getattr(cfg, 'long_eval_steps', 36000) or 36000)
+        grade = getattr(cfg, 'long_eval_grade', '') or cfg.env_cfg.get('grade_profile', 'shuozhou_real_53km')
+        init_kmh = float(getattr(cfg, 'long_eval_init_speed_kmh', 80.0) or 80.0)
+        eval_cfg = dict(cfg.env_cfg)
+        eval_cfg['max_steps'] = long_steps
+        eval_cfg['eval_mode'] = True
+        eval_cfg['grade_profile'] = grade
+        act_interval = max(1, int(cfg.decision_interval or 1))
+        env = None
+        try:
+            env = TrainFleetEnv(eval_cfg)
+            obs, _ = env.reset(options={'speed': init_kmh / 3.6})
+            ep_r = peak = viol = band = 0.0
+            n = 0
+            a = None
+            for i in range(long_steps):
+                if a is None or i % act_interval == 0:
+                    flat = np.asarray(self._eval_obs(cfg, env)).flatten()
+                    a, _ = agents.select_actions(flat, deterministic=True)
+                    a = np.asarray(a, dtype=np.float32).reshape(env.num_agents, env.act_dim)
+                obs, r, term, trunc, info = env.step(a)
+                ep_r += float(r)
+                peak = max(peak, float(info.get('coupler_force_peak', 0)))
+                viol += int(info.get('coupler_limit_violations', 0))
+                vel = float(env.trains[0].dynamics.vel[0])
+                band += int(env.v_min <= vel <= env.v_max)
+                n += 1
+                if term or trunc:
+                    break
+            final_kmh = float(env.trains[0].dynamics.vel[0]) * 3.6
+            lim_kN = env.coupler_force_limit_n / 1e3
+            peak_kN = peak / 1e3
+            ok = (int(viol) == 0 and peak_kN <= lim_kN
+                  and env.v_min * 3.6 <= final_kmh <= env.v_max * 3.6)
+            logger.info(f"[long_eval] ep{global_ep}: reward {ep_r:+.0f} | peak {peak_kN:.0f}kN | "
+                        f"viol {int(viol)} | band {band / max(n, 1):.1%} | 末速 {final_kmh:.1f}km/h "
+                        f"| 达标={ok}")
+            if ok and ep_r > best_eval.get('reward', float('-inf')):
+                best_eval.update({'reward': ep_r, 'ep': global_ep,
+                                  'peak_kN': peak_kN, 'viol': int(viol),
+                                  'final_kmh': final_kmh, 'grade': grade})
+                agents.save(str(Path(cfg.checkpoint_dir) / namer.best_path(cfg.seed)),
+                            metadata=getattr(self, '_ckpt_meta', None))
+                self._save_long_eval_best(cfg, best_eval)
+                logger.info(f"[long_eval] 新 best（长程评估达标）已保存: "
+                            f"{namer.best_path(cfg.seed)} @ ep{global_ep} (reward {ep_r:+.0f})")
+        except Exception as e:
+            # 长程评估为附加选优机制：失败不中断训练（本次不选优，下周期再试）
+            logger.warning(f"[long_eval] ep{global_ep}: 长程评估失败 "
+                           f"({type(e).__name__}: {e})，跳过本次选优")
+            return
+        finally:
+            if env is not None:
+                env.close()
+
+    def _eval_obs(self, cfg, env):
+        """评估观测：cyclic 走 cyclic_obs，decompose/常规走 env 自带 obs。"""
+        if cfg.obs == 'cyclic':
+            return cyclic_obs(env)
+        if hasattr(env, '_get_obs_decomposed'):
+            return env._get_obs_decomposed()
+        return env._get_obs()
+
+    def _restore_long_eval_best(self, cfg):
+        p = Path(cfg.results_dir) / 'long_eval_best.json'
+        if p.exists():
+            try:
+                return json.loads(p.read_text(encoding='utf-8'))
+            except Exception:
+                pass
+        return {'reward': float('-inf'), 'ep': 0}
+
+    def _save_long_eval_best(self, cfg, best_eval):
+        p = Path(cfg.results_dir) / 'long_eval_best.json'
+        p.write_text(json.dumps(best_eval, ensure_ascii=False, indent=2), encoding='utf-8')
 
     def _periodic(self, inter, agents, namer, rewards, peaks, viols, global_ep, best_reward):
         tag = namer.history_tag(self.cfg.seed)

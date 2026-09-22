@@ -69,6 +69,17 @@ class ExperimentConfig:
     n_env: int = 1                          # 并行 rollout 环境数（1=原单轨迹）
     parallel_traj_len: int = 0              # 并行轨迹长度；0=沿用 curriculum horizon
     env_gap: float = 0.0                    # 并行各 env 的初始列间距偏移（米），增加多样性
+    # 【2026-09-22 长程评估选优】诊断-2026-09-22：训练窗口(1200步≈2.4km)reward 最优
+    # ≠ 完整剖面评估最优，best 按训练 reward 选会选出"短视激进"长程崩的权重。
+    # 启用后 best 文件改由"周期性完整剖面确定性评估"驱动（按 viol/车钩力/末速 选优），
+    # 训练 reward 不再直接写 best。0=关闭（默认，完全兼容旧行为）。
+    long_eval_interval: int = 0             # 每 N ep 跑一次完整剖面评估（0=关闭）
+    long_eval_steps: int = 36000            # 评估时域（36000=53km 全程；跨线目标按其剖面长度）
+    long_eval_grade: str = ""               # 评估剖面（空=沿用训练 grade_profile）
+    long_eval_init_speed_kmh: float = 80.0  # 评估初始速度（对齐评估脚本默认 80km/h）
+    # 【YOLO 式日志】tensorboard/tqdm/每集 CSV/last.pt。缺依赖自动降级，不中断训练。
+    yolo_logging: bool = True               # 总开关
+    yolo_tb: bool = True                    # TensorBoard scalars（false 只留 CSV+tqdm）
 
     # checkpoint / 治理
     ckpt_policy: str = "fleet"              # 'l1'|'fleet'|'coor_dqn'|'dqn_cyclic'

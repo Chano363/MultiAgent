@@ -140,3 +140,4 @@ We argued and demonstrated that for long-downhill cyclic-braking control, **the 
 
 - Project records: `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` §2026-09-05 (decompose smoke / full / RL-rescue); `outputs/results_decompose/eval_decompose_all_ms15000.json`.
 
+<!-- 该文档整理/压缩于 2026-09-22 -->
