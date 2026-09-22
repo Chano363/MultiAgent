@@ -1585,3 +1585,150 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 ***
 
 ### 诊断-2026-09-13-Windows 环境迁移（续见上节）
+
+***
+
+### 诊断-2026-09-15-方案1受控修正（BC+n_env=4+curriculum渐进起步）：2000档仍破线，判FAIL
+
+- **目的**：执行 `/goal 先做1再做2` 之方案1 —— 采纳上任诊断 1581 的"最该做受控修正"：`BC warm_start + n_env=4 + curriculum 渐进起步（parallel_traj_len=0）`，验证并行结构能否在**渐进到 2000 步档（历史崩点）**守住 `peakCoupler≤1000kN ∧ viol≈0` 判据。
+- **命令**（run_training 统一入口，权威 metadata 落 `outputs/diag_53km_p1_bcnenv_curric/seed0/results/metadata.json`）：
+  `run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 24 --override n_env=4 --override warm_start=True --override bc_episodes=3 --override bc_epochs=30 --override log_interval=3 --checkpoint_dir outputs/diag_53km_p1_bcnenv_curric/seed0 --results_dir outputs/diag_53km_p1_bcnenv_curric/seed0/results --override dirs.figures_dir=outputs/diag_53km_p1_bcnenv_curric/seed0/figures`
+  关键差异 vs 上轮（诊断-2026-09-13/14 n_env_BCws）：**上轮 parallel_traj_len=2000 恒 2000 步起步（跳过 curriculum）；本轮不设 → parallel_traj_len=0 → 走 config 默认 curriculum** `500@0,1000@10,2000@20,...`，从 500 步渐进。metadata 确认 n_env=4、warm_start=true(bc3/30)、curriculum 生效、grade=shuozhou_real_53km、simcase=official。BC loss=2.674（与历史一致）。
+- **结果（results/train_history_dec_ad2_cp_seed0.csv，判定数据，逐集）**：
+  | ep | reward | peakCoupler(kN) | viol |
+  | :-- | ------: | :---------: | :--: |
+  | 1 | +4234 | 583 | 0 |
+  | 2 | +4272 | 538 | 0 |
+  | 3 | +4336 | 536 | 0 |
+  | 4 | +4315 | 523 | 0 |
+  | 5 | +4280 | 584 | 0 |
+  | 6 | +4270 | 592 | 0 |
+  | 7-10 | +4215~4268 | 508~550 | 0 |
+  | 11 | +8656 | 759 | 0 |
+  | 12 | +8916 | 754 | 0 |
+  | 13 | **-1583** | 809 | 0 |
+  | 14 | +9089 | 733 | 0 |
+  | 15 | +8856 | 741 | 0 |
+  | 16 | +9227 | 808 | 0 |
+  | 17 | +9149 | 780 | 0 |
+  | 18 | +9089 | 741 | 0 |
+  | 19 | +9412 | 755 | 0 |
+  | 20 | +9282 | 759 | 0 |
+  | **21** | **-12801** | **1394** | **698** |
+  | **22** | **-8274** | **1576** | **601** |
+  （ep22 后因判 FAIL 主动停跑，未跑 23-24）
+- **期望 vs 实际**：
+  - 500/1000 档：**完全达成甚至超预期**。ep1-20 全部 viol=0，peakCoupler 恒 508-808kN（远低于 1000kN 底线），reward 从 ep11 起从 +4.2k 跃升至 +8.6k~+9.4k（编队协同出现信号）。这是历轮**唯一在 500/1000 档全程零违规且 reward 稳定爬升**的配置。
+  - 2000 档（ep20 切档）：**FAIL**。ep20 守住（+9282/759/0），但 **ep21 崩（-12.8k/1394kN/698viol），ep22 又崩（-8.3k/1576kN/601viol）**。连续两集破线，非单集偶发。
+- **拆因（方案1关键结论）**：
+  - BC（安全起点）+ n_env（信噪比）+ curriculum（渐进）**三管齐下，只把破线推迟到 2000 档第 2 集**，且 500/1000 档显著改善 → 三者**各有正贡献（尤其 BC+curriculum 治好短中档）**，但**均无法阻止 2000 步档复发**。
+  - 与历轮 6 拳（相对锚定/车钩惩罚/回滚/AB门控/退火/纯BC）收敛到同一根因互证：**MAPPO 单轨迹在 ≥2000 步时 value 估计漂移导致策略进入暴力 AB 吸态是固有缺陷，不因起点（BC）、信噪比（n_env）、渐进（curriculum）、奖励设计、门控而改变**。并行 n_env 在此只说明：即使多轨迹平均，**至少一条 2000 步并行轨迹踩进吸态仍污染聚合值**（ep21/22 聚合 viol 698/601，但单条轨迹 pkCpl 达 1394/1576kN）。
+- **判定**：方案1判 **FAIL**（未达 peakCoupler≤1000 且 viol≈0 撑过 2000 档）。据此转入方案2（HANDOFF §8.3），收敛接受较短 horizon（历史建议 2500 步=53km@~27.8m/s≈1900 步已充足）做分段可达训练 / 停止盲目增长 horizon。
+- **状态**：已完成 22ep，判 FAIL，停跑保留数据 `outputs/diag_53km_p1_bcnenv_curric/seed0/`。临时启动脚本 `outputs/launch_p1_bc_nenv_curriculum.sh` 保留留痕。
+
+***
+
+### 诊断-2026-09-15-方案2（curriculum 上限锁 1500 步）：消除整集崩溃但零星破线仍在，部分成功
+
+- **目的**：执行 `/goal 先做1再做2` 之方案2 —— 基于方案1 FAIL，收窄 curriculum 上限至 **1500 步**（避开 2000 步崩点），验证"较短 horizon 内可训到物理够用的编队策略"。53km@~27.8m/s≈1900 步，1500 步已物理够用。
+- **命令**（run_training 统一入口，权威 metadata 落 `outputs/diag_53km_p2_curric1500/seed0/results/metadata.json`）：
+  `run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 26 --override curriculum="500:0,1000:10,1500:20" --override n_env=4 --override warm_start=True --override bc_episodes=3 --override bc_epochs=30 --override log_interval=3 --checkpoint_dir outputs/diag_53km_p2_curric1500/seed0 --results_dir outputs/diag_53km_p2_curric1500/seed0/results --override dirs.figures_dir=outputs/diag_53km_p2_curric1500/seed0/figures`
+  唯一差异 vs 方案1：`curriculum` 由 `500:0,1000:10,2000:20,...` 改为 `500:0,1000:10,1500:20`。metadata 确认 curriculum=`500:0,1000:10,1500:20`、n_env=4、warm_start=true(bc3/30)、grade=shuozhou_real_53km、simcase=official。BC loss=2.674 确定性与方案1一致。
+- **结果（results/train_history_dec_ad2_cp_seed0.csv，判定数据，逐集）**：
+  | ep | reward | peakCoupler(kN) | viol |
+  | :-- | ------: | :---------: | :--: |
+  | 1-6(500) | +4234~+4336 | 537~592 | 0 |
+  | 7-10(1000) | +4215~+4268 | 508~550 | 0 |
+  | 11 | +8656 | 759 | 0 |
+  | 12 | +8916 | 754 | 0 |
+  | 13 | -1583 | 809 | 0 |
+  | 14-19(1000) | +8856~+9412 | 723~808 | 0 |
+  | 20(1500) | +9282 | 759 | 0 |
+  | 21 | +7338 | **1251** | **47** |
+  | 22 | +4557 | **1022** | 2 |
+  | 23 | **+11826** | 822 | 0 |
+  | 24 | +9531 | **1070** | 3 |
+  | 25 | **+12688(best)** | 858 | 0 |
+  | 26 | +9150 | **1556** | **24** |
+  总耗时 4292.5s（71.5min）。best reward=12688，末段平均车钩力峰值=1161kN。
+- **期望 vs 实际**：
+  - **消除整集崩溃：达成（关键突破）**。1500 档 ep20-26 全程 reward 为正且高（best +12688，末段 avg +10456），对比方案1@2000 档 ep21-22 的深度崩溃（-12800/-8274、viol 698/601）——**收窄 horizon 由 2000→1500 步成功消除了 on-policy 长轨迹整集价值崩溃，且编队 reward 显著提升（+12688 vs +9411）**。这是历轮 6 拳 + 方案1 均未实现的实质进展，反证根因确为"horizon 过长 → value 漂移"。
+  - **全程 ≤1000kN 严格判据：未达成**。1500 档仍 4/7 集破线（ep21 1251kN / ep22 1022 / ep24 1070 / ep26 1556），viol 2~47。仅收窄程 ln 不足以保证全程安全，需再强化。
+- **判断**：方案2 **部分成功**。方向（收窄 horizon 治长程崩溃）被证实正确高效，但零星破线需第三步：1500 档基础上 ①再收窄至~1200 步 或 ②强化车钩力塑形项抑制暴力点 或 ③复加 AB 源头门控（高力禁新源）。候选交与主管取舍后继续。
+- **状态**：完成（26ep 跑满）。数据 `outputs/diag_53km_p2_curric1500/seed0/`。临时启动脚本 `outputs/launch_p2_curric1500.sh`、`outputs/wait_p2.sh` 保留留痕。
+
+***
+
+### 诊断-2026-09-15-方案3-A（curriculum 上限收窄至 1200 步）：全程零破线收敛，判 SUCCESS
+
+- **目的**：方案2 部分成功后，按主管授权自主执行第三步候选①——curriculum 上限再收窄 **1500→1200 步**，验证能否消灭 1500 档的零星车钩力破线（ep21 1251/ ep22 1022/ ep24 1070/ ep26 1556kN）。依据：收窄 horizon 已被方案2 证实为治崩有效杠杆，1200 步 < 53km 物理 ~1900 步，仍物理够用。
+- **命令**（run_training 统一入口，权威 metadata 落 `outputs/diag_53km_p3_curric1200/seed0/results/metadata.json`）：
+  `run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 22 --override curriculum="500:0,1000:10,1200:20" --override n_env=4 --override warm_start=True --override bc_episodes=3 --override bc_epochs=30 --override log_interval=3 --checkpoint_dir outputs/diag_53km_p3_curric1200/seed0 --results_dir outputs/diag_53km_p3_curric1200/seed0/results --override dirs.figures_dir=outputs/diag_53km_p3_curric1200/seed0/figures`
+  唯一差异 vs 方案2：`curriculum` 上限 `1500` → `1200`。metadata 确认 curriculum=`500:0,1000:10,1200:20`、n_env=4、warm_start=true(bc3/30)、grade=shuozhou_real_53km、simcase=official。BC loss=2.674 与方案1/2 完全一致（确定性复现）。
+- **结果（results/train_history_dec_ad2_cp_seed0.csv，判定数据，逐集）**：
+  | ep | reward | peakCoupler(kN) | viol |
+  | :-- | ------: | :---------: | :--: |
+  | 1-10(500) | +4215~+4336 | 508~592 | 0 |
+  | 11 | +8656 | 759 | 0 |
+  | 12 | +8916 | 754 | 0 |
+  | 13 | -1583 | 809 | 0 |
+  | 14-19(1000) | +8856~+9412 | 733~808 | 0 |
+  | 20(1200) | +9282 | 759 | 0 |
+  | 21 | +10368 | 824 | 0 |
+  | 22 | +10543 | 839 | 0 |
+  总耗时 3145s（52.4min）。best reward=10543，末段平均车钩力峰值=780kN。**22 集全程 viol=0**。
+- **期望 vs 实际**：
+  - **消灭零星破线：达成（关键突破）**。1200 档 ep20-22 全程 **viol=0、pkCpl≤839kN**，对比方案2@1500 档 ep21/22/24/26 的 4/7 集破线（峰值至 1556kN）——**再收窄 300 步即消除全部零星破线**，且 reward 持续爬升（+9282→+10368→+10543，best 刷新于末集）。
+  - **全程安全 + reward 爬升双达标：达成（历轮首次）**。22 集三档（500/1000/1200）全程 viol=0、pkCpl 峰值仅 839kN（远低于 1000kN 底线），1200 档 reward 稳定正爬升。
+- **判断**：方案3-A **SUCCESS**。收窄 horizon 至 1200 步是治崩 + 消破线的最终安全阈值。与方案1/2 构成完整证据链：2000 档整集崩 → 1500 档不崩但零星破线 → **1200 档全程零破线收敛**。
+- **结论与下一步**：1200 步档可作为 D-RL 53km 主训练的 curriculum 终值（物理 53km 分多集评估拼接覆盖）。后续：将 `curriculum=500:0,1000:10,1200:20` 固化进主训练配置 → 补 seed1-4 主训练 → 主对比三行评估。**注意**：需向主管确认主训练最终 horizon 策略（1200 步单集 + 拼接，或进一步验证 1200 以上仍安全）。
+- **状态**：完成（22ep 跑满）。数据 `outputs/diag_53km_p3_curric1200/seed0/`。临时启动脚本 `outputs/launch_p3_curric1200.sh` 保留留痕。训练经 tmux session `train3` 持久化运行（不受 WSL 会话回收影响）。
+
+### 诊断-2026-09-19-MAPPO长训终段value发散治本（winsorize + value grad clip + KL早停收紧）—— SUCCESS
+
+- **背景**：`seed0_nep1400` 长训（1400ep）在终段 ep849→856 发散：loss 从 ~-0.01 爆到 **+0.337→+1.283**、reward 崩到 **-5371**。前期诊断（会话内已写入 mappo_agent.py 注释）定位**非单点突变，而是策略固有"偶发暴力 AB 探破车钩力>1000kN"在长训练终段碰上 value_norm(PopArt) running std 收敛，把一次性破线放大成不可回退的 value 污染**。全程 viol>0 的 ep 共 22 个（ep428 起贯穿），终段最集中。
+- **证据链**：ep841 best 权重本身干净（53km 36000 步 + 35km 18000 步双剖面 5-seed 全 viol 0、车钩力<876 kN、reward +221163）。发散只发生在**继续长训**阶段——即 value 拟合目标随着训练推进被极端破线轨迹持续污染。
+- **根因机制**：①破线深负轨迹（暴力 AB → 车钩力冲顶 → 巨额负 reward）作为**单条极端 returns** 进入 value 训练；②value_norm 匀速平滑 running std 收缩→适得其反把一次性破线放大成全局 value 漂移；③终段 KL 早停阈值 0.015（epoch 7~10 才触发）放任多次更新累积漂移成不可回退发散。
+- **三项治本杠杆（全部改动落点 `src/algorithms/mappo_agent.py`）**：
+  1. **per-trajectory winsorization**（新增 `_winsorize_by_traj`，`compute_gae` 调用于 returns，lo_q=0.02/hi_q=0.98）：按 `done=1` 切分并行轨迹，对每条轨迹用**累计 return** 判定是否异常（<2% 分位），**仅对深负异常轨迹整体均摊抬升到 lo 分位累计**，正常轨迹完全不动——抑制破线轨迹污染 value、不误伤正常梯度。轨迹段长<4 或段数<4 视为样本不足跳过。
+  2. **value 网络独立梯度 clip**（`update` 中，在整体 clip 之前对 `self.value.parameters()` 独立 `clip_grad_norm_(max_grad_norm*0.5)`）：防止单条极端 returns 让 value 大步漂移（终段 loss 爆 +1.283 的直接源头）。
+  3. **KL 早停趋势收紧**：`target_kl*1.5 → target_kl*1.2`（0.015→0.012）：终段不再放任 epoch 滑到 7~10 才触发，提前拦截策略漂移累积。
+  - 均经 py_compile + b4 单测通过；只影响训练，不影响推理（deterministic 用 mean）。
+- **验证协议**（从干净 ep841 best 权重续训 30ep）：
+  命令：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 30 --resume outputs/checkpoints_formation/seed0_nep1400/mappo_fleet_best_dec_ad2_cp_seed0.pt --override n_env=4 --checkpoint_dir outputs/checkpoints_formation/seed0_valid_lean --results_dir outputs/checkpoints_formation/seed0_valid_lean/results --override dirs.figures_dir=outputs/checkpoints_formation/seed0_valid_lean/figures`
+  - resume 加载 ep841，curriculum 按 global_ep≥841 解析 → 恒 1200 步档；n_env=4；`start_valid_lean.sh` exec 后台运行（job wrapper）。总耗时 6461s（107.7min）。
+- **结果（全程 30ep = 原 ep843-872，判定数据）**：
+  | 指标 | 全程表现 |
+  | :-- | :-- |
+  | **violations** | **30ep 全 0**（无任何急性破线） |
+  | **total_loss** | **-0.010 ~ +0.001** 小值稳定，从未出现原 >+1 爆炸 |
+  | **peak_coupler(kN)** | 686~875，全程 **<1000kN** 底线 |
+  | **reward** | 9956~11369 稳定（无原 -5371 崩溃） |
+  | **原发散区 ep849-856** | **零复发**：ep849 loss=-0.002/pk754/viol0，ep856(原绝对峰值+1.283) loss=-0.010/pk695/viol0 |
+  | **KL 早停** | epoch 3~4/10 触发（原终段 7~10），提前拦截 |
+  best reward=11369.34，末段平均车钩力峰值=741.5kN。数据 `outputs/checkpoints_formation/seed0_valid_lean/results/train_history_dec_ad2_cp_seed0.csv`；模型 `.../mappo_fleet_best_dec_ad2_cp_seed0.pt`。
+- **期望 vs 实际**：期望是 30ep 内 loss 不爆、viol 不爆发、车钩力<1000kN——**三项全达成**。原史上最危险的 849-856 发散区被完整平滑压制，KL 早停提前到 epoch 3-4 收手（杠杆③预期行为），reward 全程无崩塌。
+- **判断**：三项治本杠杆 **SUCCESS**。从"偶发破线 → 终段 value 污染 → 不可回退发散"的根因链条上切断了"污染入口（winsorize）+ 放大端（value grad clip）+ 累积端（KL 收紧）"三处，互不干扰、组合有效。
+- **结论与下一步**：治本杠杆已证实可维持长训稳定，可作为最终生产训练的稳定性保护。下一步铺 **5-seed（seed0-4）全量 episodes=1400 长训**（新逻辑自带治本杠杆），用 best-checkpoint 协议产出主结果；核对 5-seed 是否长期稳定无复发，再推进主对比评估。若 5-seed 长训仍出现发散，回读本诊断按杠杆强度/超参迭代。
+- **状态**：完成（30ep 跑满）。临时启动脚本 `outputs/start_valid_lean.sh` 留痕（用后删）。
+
+### 诊断-2026-09-20-训练慢的根因=单核瓶颈与5-seed并行提速（数据留痕）
+
+- **现象**：5-seed 全量 1400ep 长训用串行编排（launch_final_5seed.sh，单进程前台顺序跑 seed0→4），预估全程 ~8-12 天，质问为何如此慢、有无可牺牲项。
+- **根因（已实测，非推断）**：
+  - src/trainer/train_runner.py#L156 的 
+_env=4 是**纯串行 or ei in range(n_env)**（非线程/进程），4 条 rollout 排队挤单核。
+  - 整训练只占 1 逻辑核：WSL 内 loadavg ≈ 1.0/12 核、%Cpu idle 88.5%；内存充足（WSL 15.8GB 上限，free ~13GB）；非内存/磁盘瓶颈。
+  - **结论：慢=CPU 并行没启用（闲置 11 核），不是物理步进本身太贵**。物理瓶颈 dt=0.1→10子步→Newmark/Picard × 多体101车 是保真必需，不得牺牲。
+- **改动（物理保真零改动）**：新编排 outputs/launch_final_5seed_parallel.sh，每 seed 独立后台进程各占 1 核 + wait 聚合；resume 权重与 --episodes 1400 语义与旧串行脚本完全一致（可复现）。
+- **实测数据（并行 5 进程各 ~91% CPU，load ~4.9/12 核）**：
+  - 单 ep 用时：串行 ~150s（1200 档）→ 并行 ~268s（seed4 首 ep，268.53s/ep）。
+  - **代价=内存带宽竞争**（5 路 numpy 物理同时跑，DRAM 带宽饱和）→ 净提速 = 5 并行 / 1.8 单ep退化 ≈ **2.8×**。
+  - 墙钟：串行全 5-seed ≈ 12 天 → 并行 ≈ 104h ≈ **4.3 天**。
+- **判定**：并行方案**通过**（seed4 首 ep 全绿：viol 0 / pkCpl 663kN<1000 / loss -0.005）。追加并行度无益（已带宽受限）。
+- **结论与下一步**：保留并行编排作为当前 5-seed 驱动；监控至 ALL 5 SEEDS COMPLETE；验证通过后删除临时脚本 check_parallel.sh/diag_parallel.sh。
+- **数据留痕**：
+  - 新 job id：job-5d1ee3c78c7441b194f099519f14dbae；逐 seed 日志 outputs/logs_final_parallel/seed{N}.log。
+  - 旧串行 seed0 中断 ~266ep 产物备份：outputs/checkpoints_formation/final_seed0_aborted_sequential_266ep/（防 CSV 重复污染，供回溯）。
+  - 机器：i5-13420H（8物理/12逻辑）/ 31.6GB（WSL 上限 15.8GB）。
+  - 复现命令：wsl -d Ubuntu-24.04 bash outputs/launch_final_5seed_parallel.sh（前台后台均可，wait 聚合）。

@@ -1,0 +1,5 @@
+M1 collision seeds: 0/50
+M3 collision seeds: 17/50
+Fisher p: 0.000003
+Chi2 p: 0.000020
+collision mean: M1=0.0 M3=44.6

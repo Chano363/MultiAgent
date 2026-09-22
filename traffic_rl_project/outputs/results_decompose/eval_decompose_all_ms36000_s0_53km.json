@@ -1,0 +1,319 @@
+{
+  "metadata": {
+    "git_commit": "55789c03ddacb8ae4d917842d6778da3254527b4",
+    "physics_version": "29569dcaf78a",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus0|grade=shuozhou_real_53km",
+    "simulator_model_version": "d8b93f54ff28",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "evaluate_decompose.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus0",
+        "grade_profile": "shuozhou_real_53km",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
+    "eval_args": {
+      "mode": "all",
+      "checkpoint": "outputs/checkpoints_formation/seed0/mappo_fleet_ep120_dec_ad2_cp_seed0.pt",
+      "grade": "shuozhou_real_53km",
+      "max_steps": 36000,
+      "num_trains": 3,
+      "enable_mpc": true,
+      "mpc_simple": false,
+      "mpc_gap_min": 20.0,
+      "mpc_enforce_coupler": true,
+      "n_seed": 5,
+      "eval_seed": 0,
+      "init_speed_kmh": 80.0,
+      "random_init_speed": false,
+      "decision_interval": 10,
+      "mask_lever": "none",
+      "hetero": false,
+      "hetero_seed": 0,
+      "out_suffix": "_s0_53km"
+    }
+  },
+  "args": {
+    "mode": "all",
+    "checkpoint": "outputs/checkpoints_formation/seed0/mappo_fleet_ep120_dec_ad2_cp_seed0.pt",
+    "grade": "shuozhou_real_53km",
+    "max_steps": 36000,
+    "num_trains": 3,
+    "enable_mpc": true,
+    "mpc_simple": false,
+    "mpc_gap_min": 20.0,
+    "mpc_enforce_coupler": true,
+    "n_seed": 5,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": false,
+    "decision_interval": 10,
+    "mask_lever": "none",
+    "hetero": false,
+    "hetero_seed": 0,
+    "out_suffix": "_s0_53km"
+  },
+  "results": {
+    "decompose_M0_rule": {
+      "reward": -145211.49801988513,
+      "peak_coupler_kN": 827.4507448846161,
+      "viol": 0.0,
+      "safety_events": 1781726358.4,
+      "ab_steps": 3378.0,
+      "mean_ed": 0.24844657117772312,
+      "band_rate": 0.9841,
+      "final_speed_kmh": 50.52609271233867,
+      "per_seed": [
+        {
+          "reward": -288401.7208147423,
+          "peak_coupler_kN": 812.8673410088784,
+          "viol": 0.0,
+          "safety_events": 2014813941.0,
+          "ab_steps": 3212.0,
+          "mean_ed": 0.24095678111259247,
+          "band_rate": 0.9800555555555556,
+          "final_speed_kmh": 46.2746728523118
+        },
+        {
+          "reward": -101538.83109772601,
+          "peak_coupler_kN": 831.5492581984172,
+          "viol": 0.0,
+          "safety_events": 1693109724.0,
+          "ab_steps": 3403.0,
+          "mean_ed": 0.25750579561469944,
+          "band_rate": 0.9883333333333333,
+          "final_speed_kmh": 47.66922628528865
+        },
+        {
+          "reward": 71114.41423768578,
+          "peak_coupler_kN": 793.9222587652639,
+          "viol": 0.0,
+          "safety_events": 1507533769.0,
+          "ab_steps": 3257.0,
+          "mean_ed": 0.24635132216362515,
+          "band_rate": 0.9775277777777778,
+          "final_speed_kmh": 56.57679366261668
+        },
+        {
+          "reward": -33499.001804371386,
+          "peak_coupler_kN": 834.3988635322896,
+          "viol": 0.0,
+          "safety_events": 1846570851.0,
+          "ab_steps": 3598.0,
+          "mean_ed": 0.24862758609426172,
+          "band_rate": 0.9873055555555555,
+          "final_speed_kmh": 54.76974754723654
+        },
+        {
+          "reward": -373732.35062027175,
+          "peak_coupler_kN": 864.516002918232,
+          "viol": 0.0,
+          "safety_events": 1846603507.0,
+          "ab_steps": 3420.0,
+          "mean_ed": 0.24879137090343678,
+          "band_rate": 0.9872777777777778,
+          "final_speed_kmh": 47.34002321423963
+        }
+      ]
+    },
+    "decompose_M1_rl": {
+      "reward": -94516.28680826728,
+      "peak_coupler_kN": 1162.0851317622823,
+      "viol": 6700768.4,
+      "safety_events": 627526732.4,
+      "ab_steps": 12383.6,
+      "mean_ed": 0.20176808605601212,
+      "band_rate": 0.9272666666666668,
+      "final_speed_kmh": 38.6168841006482,
+      "per_seed": [
+        {
+          "reward": 36337.88134479162,
+          "peak_coupler_kN": 1159.3043576321854,
+          "viol": 473353.0,
+          "safety_events": 780042134.0,
+          "ab_steps": 11984.0,
+          "mean_ed": 0.1879897989478079,
+          "band_rate": 0.9271944444444444,
+          "final_speed_kmh": 35.0713303068209
+        },
+        {
+          "reward": -114279.15254695558,
+          "peak_coupler_kN": 1162.6014577503395,
+          "viol": 5820420.0,
+          "safety_events": 394703528.0,
+          "ab_steps": 11826.0,
+          "mean_ed": 0.22032745479054439,
+          "band_rate": 0.9191111111111111,
+          "final_speed_kmh": 31.237985866790808
+        },
+        {
+          "reward": -86654.86989455626,
+          "peak_coupler_kN": 1162.808439550066,
+          "viol": 8187023.0,
+          "safety_events": 251138450.0,
+          "ab_steps": 13545.0,
+          "mean_ed": 0.19658737995208475,
+          "band_rate": 0.9435,
+          "final_speed_kmh": 37.04673433719074
+        },
+        {
+          "reward": -264602.644305431,
+          "peak_coupler_kN": 1163.9444714847864,
+          "viol": 12010210.0,
+          "safety_events": 720297574.0,
+          "ab_steps": 11993.0,
+          "mean_ed": 0.20203784709703274,
+          "band_rate": 0.9025555555555556,
+          "final_speed_kmh": 38.078129731587374
+        },
+        {
+          "reward": -43382.64863918517,
+          "peak_coupler_kN": 1161.7669323940343,
+          "viol": 7012836.0,
+          "safety_events": 991451976.0,
+          "ab_steps": 12570.0,
+          "mean_ed": 0.20189794949259077,
+          "band_rate": 0.9439722222222222,
+          "final_speed_kmh": 51.65024026085118
+        }
+      ]
+    },
+    "mpc": {
+      "reward": 180069.94101996493,
+      "peak_coupler_kN": 758.8306922523917,
+      "viol": 0.0,
+      "safety_events": 3744226929.0,
+      "ab_steps": 4439.8,
+      "mean_ed": 0.3709261720932156,
+      "band_rate": 0.8957055555555554,
+      "final_speed_kmh": 55.12623526194311,
+      "per_seed": [
+        {
+          "reward": 76458.31278231014,
+          "peak_coupler_kN": 762.8432354683657,
+          "viol": 0.0,
+          "safety_events": 4759061153.0,
+          "ab_steps": 4335.0,
+          "mean_ed": 0.357670251515799,
+          "band_rate": 0.8939722222222222,
+          "final_speed_kmh": 53.4723464890273
+        },
+        {
+          "reward": 92168.80076883192,
+          "peak_coupler_kN": 735.9007598782052,
+          "viol": 0.0,
+          "safety_events": 4938576919.0,
+          "ab_steps": 4409.0,
+          "mean_ed": 0.36447092982249346,
+          "band_rate": 0.8905,
+          "final_speed_kmh": 41.86913915097375
+        },
+        {
+          "reward": 271974.31877588615,
+          "peak_coupler_kN": 757.9343630087427,
+          "viol": 0.0,
+          "safety_events": 2552887958.0,
+          "ab_steps": 4262.0,
+          "mean_ed": 0.41101990089084106,
+          "band_rate": 0.9235,
+          "final_speed_kmh": 51.40773077455019
+        },
+        {
+          "reward": 234674.69849347541,
+          "peak_coupler_kN": 779.2132586501505,
+          "viol": 0.0,
+          "safety_events": 3145532606.0,
+          "ab_steps": 5179.0,
+          "mean_ed": 0.3686273631283771,
+          "band_rate": 0.8996666666666666,
+          "final_speed_kmh": 67.43019847641746
+        },
+        {
+          "reward": 225073.5742793211,
+          "peak_coupler_kN": 758.2618442564941,
+          "viol": 0.0,
+          "safety_events": 3325076009.0,
+          "ab_steps": 4014.0,
+          "mean_ed": 0.3528424151085671,
+          "band_rate": 0.8708888888888889,
+          "final_speed_kmh": 61.45176141874684
+        }
+      ]
+    },
+    "single_loco_rule": {
+      "reward": 286515.6875,
+      "peak_coupler_kN": 674.6381981420942,
+      "viol": 0.0,
+      "safety_events": 5066519910.2,
+      "ab_steps": 0.0,
+      "mean_ed": 0.0,
+      "band_rate": 0.9258722222222222,
+      "final_speed_kmh": 78.66308295205067,
+      "per_seed": [
+        {
+          "reward": 283204.34375,
+          "peak_coupler_kN": 675.1064518599716,
+          "viol": 0.0,
+          "safety_events": 5034286171.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.9228055555555555,
+          "final_speed_kmh": 76.96282737002761
+        },
+        {
+          "reward": 287343.5625,
+          "peak_coupler_kN": 674.5211347126249,
+          "viol": 0.0,
+          "safety_events": 5074578345.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.9266388888888889,
+          "final_speed_kmh": 79.08814684755643
+        },
+        {
+          "reward": 287343.5625,
+          "peak_coupler_kN": 674.5211347126249,
+          "viol": 0.0,
+          "safety_events": 5074578345.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.9266388888888889,
+          "final_speed_kmh": 79.08814684755643
+        },
+        {
+          "reward": 287343.5625,
+          "peak_coupler_kN": 674.5211347126249,
+          "viol": 0.0,
+          "safety_events": 5074578345.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.9266388888888889,
+          "final_speed_kmh": 79.08814684755643
+        },
+        {
+          "reward": 287343.5625,
+          "peak_coupler_kN": 674.5211347126249,
+          "viol": 0.0,
+          "safety_events": 5074578345.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.0,
+          "band_rate": 0.9266388888888889,
+          "final_speed_kmh": 79.08814684755643
+        }
+      ]
+    }
+  }
+}

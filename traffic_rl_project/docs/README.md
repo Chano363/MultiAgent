@@ -9,6 +9,7 @@
 | -------------------- | ------------------------------------------------------------------------ |
 | 项目总览 / 任务清单 / 下一步    | `docs/PROJECT_PIPELINE.md`                                               |
 | 研究定位 / 创新点 / 文献库     | `docs/RESEARCH_POSITIONING.md`                                           |
+| **技术/公式 → 论文 引用索引**  | `docs/REFERENCE_INDEX.md`（写作速查）                                    |
 | 论文↔项目验证基准（对照）        | `docs/VALIDATION_BASELINE.md`                                            |
 | 验证执行日志（V 系列过程记录）     | `docs/logs/verification/`（按月/按 V 拆分）                               |
 | 实验/诊断数据记录（按月拆分）     | `docs/logs/diagnostics/`（`DIAGNOSTICS_YYYY-MM.md`）                      |
@@ -51,6 +52,7 @@
 | --------------------------------- | ---------------------------- | ------ |
 | `PROJECT_PIPELINE.md`             | 总览+工作计划                      | active |
 | `RESEARCH_POSITIONING.md`         | 定位+文献库                       | active |
+| `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
 | `logs/diagnostics/DIAGNOSTICS_YYYY-MM.md` | 实验/诊断数据（按月拆分，append-only）                    | active |

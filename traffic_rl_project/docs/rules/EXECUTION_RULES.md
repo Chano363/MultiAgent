@@ -63,3 +63,15 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 4. **protocol 标注**：每实验表逐行标 MPC 是否 re-identification / `inner_rule_cyclic`、seed、`simulator_model` 版本（`coupler=MT-2 | braking=ED+AB-relief-wave`）。
 5. **全部走 `metadata` 守卫**（`training_metadata_guard`/`save_metadata`）+ 结果 JSON 按时间戳归档到 `outputs/`，**不覆盖旧文件**（复用既有 `metadata.py` / `evaluate_m1_m3_long.py` M-MPC 模式入口）。
 
+## AGENTS.md 引用一致性校验（2026-09-16 强制，防"妄猜规范"）
+
+> **背景**：AGENTS.md 是导航/立论指针层，只放一句话指针，不内联数值（数值会随 SSOT 漂移）。为防止把指针当规范来源去"妄猜"，用脚本在工程层面强制校验引用一致性，不依赖人读。
+
+- **入口**：`python scripts/check_agents_links.py`（在 `traffic_rl_project/` 下运行）。退出码非 0 即存在引用问题。
+- **校验内容**：
+  1. AGENTS.md 引用的每个 `ADR-<N>` 主编号必须在 `DECISIONS.md` 中真实存在（防 ADR 编号越界/乱编）；
+  2. AGENTS.md 引用的 `docs/` 相对路径必须存在（防断链）；
+  3. 启发式发现 AGENTS.md 疑似内联"episodes 数值对比"等易腐化数值 → 警告，要求改回指针。
+- **强制场景**：任何人/agent 改动 AGENTS.md 或新增 ADR 后、以及正式提交前，运行该校验必须通过（exit 0）。不通过的改动不得合入。
+- **SSOT 原则**：AGENTS.md 只许放"指向 SSOT 的一句话指针"；**具体数值/论文佐证一律放 ADR 或 RESEARCH_POSITIONING**，不复制进 AGENTS.md（违背即被此校验警告）。
+

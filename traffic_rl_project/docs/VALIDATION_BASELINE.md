@@ -868,3 +868,36 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 3. **遗留**：vstd=1.745 仍偏高——安全层兜住"不追尾"，但**规则层速度协同仍未锁死**是独立的收敛问题（对应上一诊断的"规则骨架 53km 需升级"），需另修，不属安全层职责。
 
 **留痕对象**：trace 日志 `outputs/trace_53km_rule_etcs_ab_full/`；修复代码 `src/environments/train_env.py` + `src/train_dynamics/etcs_braking.py`；ETCS+safety 单测 50 passed + 全量回归 167 passed（2026-09-09）。
+
+---
+
+### 诊断-2026-09-17-多体 NMPC 成熟基线（casadi+IPOPT）两处必踩坑 + 冒烟验证【物理：MT-2 统一 + Newmark-β；剖面 shuozhou_real_53km / long_downhill】
+
+**任务**：按导师口径"不要留粗糙 MPC 当靶子"，用 casadi+IPOPT 实现多体 NMPC 成熟基线（`src/controllers/nmpc_controller.py`，lumped 4 块/列 + MT-2 车钩符号化 + 车钩力≤1000kN 硬约束 + 终端代价 + control blocking），与 D-RL 同档对冲（规则循环制动内层 + NMPC 调制，唯一差异=决策来源）。已接入 `evaluate_decompose.py --mpc_type nmpc`，求解耗时/失败率落评估 JSON。
+
+**坑1（本会话根因）：casadi 1D 参数 + reshape 是列主序填充，与 numpy 行主序 ravel 不匹配**
+- 期望：`opti.parameter(n*nL*2)` + `ca.reshape` 承载 `np.concatenate([pos0.ravel(), vel0.ravel()])`。
+- 实际：reshape 按**列主序**填充，块位置被打乱 → step1 初始相对伸长 ±1208m → 车钩力预测 5.6e10 N → 速度被 clip 到 2·v_max → IPOPT 不可行。
+- 解决：改两个 2D 参数 `opti.parameter(n,nL)`（pos0/vel0 分离），`set_value(2D numpy)` 保持逻辑布局；验证 0 点轨迹全程 max|rel|<0.09m。
+
+**坑2（fleet env 才暴露）：列距符号约定 = 前列尾 − 后列头（head 递减），写成 head 差则符号反置**
+- 期望：3 列 fleet（`head` 递减，后列在前列后方，初始列距=200m）首步求解 optimal。
+- 实际：IPOPT `Infeasible_Problem_Detected`，首迭代 constraint violation **220**＝符号反置的 −200m 列距（gap 公式写成 `pos[i,0]−pos[i-1,-1]`＝head 差＝−200，违背 `gap≥20m`）。单列求解正常、短冒烟（fake env head 递增）也正常——坑被"单列无列距约束 + fake env 顺序巧合"掩盖，3 列真实 fleet 首步即炸。
+- 解决：gap = `pos[k][i-1,-1] − pos[k][i,0]`（前列尾块 − 后列头块）；两端车位置各 +0.5·sp 相抵 → 直接用块中心差。修复后 1/2/3 列首步全 optimal。
+
+**冒烟验证（`tests/test_nmpc_controller.py`，5 项，全部通过）**：
+1. 首步求解 `optimal` + 输出契约 `(num_trains,)` 有限且落在 [accel_lo, accel_hi]；
+2. 3 列 fleet 首步 optimal（坑2 回归）；
+3. NMPC 驱动 40 步 rollout：车钩力峰值 ≤1000kN、viol==0；
+4. 与 D-Rule（规则基线零调制）同剖面同时域：车钩力峰值在 2× 带内、ED 深度差 <0.6（同物理带内一致，非粗糙靶子）；
+5. solve_times/solve_statuses 逐帧累积、reset() 清空。
+
+**短评估冒烟（60 步，shuozhou_real_53km 起点，3 列×1+1，init 80km/h）**：
+- 命令：`python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --max_steps 60 --n_seed 1 --enable_mpc --out_suffix _smoke_nmpc`
+- 结果：fail **0** / peakCoupler **478kN**（≤1000✓）/ viol 0 / band 100% / meanED 0.992 / MPC求解 **98ms 均值 / 1630ms 峰值**（首步含符号构建）；JSON 含 `mpc_solve_mean_ms / mpc_solve_max_ms / mpc_solve_fail` 落盘 `outputs/results_decompose/eval_decompose_mpc_ms60_smoke_nmpc.json`。
+- 修复前对照：同命令 fail=60（每步都失败回退惰行），但 peakCoupler 473kN/band 100% 貌似正常——**求解失败被规则内层兜底掩盖，必须显式统计 solve_status 失败率**（这正是把 solve_fail 落 JSON 的原因）。
+
+**留痕/边界**：
+- 新文件：`src/controllers/nmpc_controller.py`、`tests/test_nmpc_controller.py`；`requirements.txt` 加 `casadi>=3.6.0`。
+- 临时脚本 `tmp_nmpc_smoke.py`/`tmp_nmpc_diag_status.py` 用后即删；结论已留本文档。
+- 待续（plan Step 2 全量）：53km 主对比 D-RL/D-Rule/NMPC 三行 + 跨线 20/35km 同协议，指标落 metadata JSON（车钩力峰值/ATP/列距/solve_times），时间戳归档不覆盖。

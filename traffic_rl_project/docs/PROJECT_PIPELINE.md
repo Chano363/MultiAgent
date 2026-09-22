@@ -1094,6 +1094,17 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   - 结果/图表/日志：`outputs/checkpoints_formation/seed{0..4}/`、`outputs/results_*.json`
   - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`（如跨月）、`VALIDATION_BASELINE.md` 诊断留痕
 
+### ⚠️ superseded：训练时域口径修正（2026-09-16）
+
+上节"阶段1 主训练 36000 步 / 53km 全程拼接覆盖"表述**不再采用**，原因是它把两个不同维度混为一谈、产生误导。修正如下（外部论文实证，见 `docs/papers/`）：
+
+1. **训练时域 = 短窗口（on-policy 收敛前提），不是 36000 步全程**。本项目是 on-policy MAPPO，单条 rollout 只能短窗口（`curriculum` 上限 1200 步，已验证安全收敛 viol=0 / pkCpl≤839kN）。不能把训练时域设成 36k——那会重引入长时程 on-policy 自举误差滚雪球的不收敛问题。on-policy 论文交叉验证：Guo2025 也用 horizon 1024/512 短窗口训练。
+2. **评估时域 = 独立完整剖面，不是"多段 1200 步拼接"**。成熟做法是训练短窗口、评估单独跑完整剖面（Guo2025 用 combined trip 训练 1024 窗口、NEDC 完整剖面评估 ~3900 步；Zhang2021 全程 ~1200 步）。主训练 53km → 跨线 35km 完整剖面独立评估，而非拼接。`dt` 小不是障碍（Guo2025 dt=0.1 照样完整剖面评估）；Zhang2024 用 Δt=100s 只是刻意压步数。
+3. **训练量（总 episodes）与训练时域（单条窗口）是两个独立维度**。已发现本项目总训练量偏少（~120 episodes/seed，Hua2024 用 6×10⁵ 总步、Guo2025 用 1400 episodes），**补足方向=保窗口、增 episodes**，不是拉长窗口。
+4. 以上修正不改变 P3 跨线泛化主线（53km 训练 → 20/35km 未见过剖面验证），该方向经 Guo2025/你项目设计验证为正确。改动仅限"训练时域/评估时域/训练量"的表述澄清。
+
+> 本节 superseded 仅指"阶段1 的时域表述"，不否定 ADR-014 的"跨线泛化 claim"本身。
+
 ***
 
 ## 阶段二·交接后首日执行记录（2026-09-13）
@@ -1107,4 +1118,28 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 | **运行时提速评估（2026-09-13/14）** | ✅ | 实测 omp_num_threads=2/4/8 物理吞吐**无差异**（13.87/13.65/13.81 ms/step）→ 物理单线程主导，omp 提速无效。提速唯可靠 = 缩短总步进（curriculum/降 parallel_len）/ 真多进程并行 n_env（需改代码）。**5-seed×120ep 全量主训练本机不现实**（数十h~数天/seed），需决策：多进程并行 / 停于短档(2500步已覆盖53km) / 更强硬件。详见 DIAGNOSTICS「运行时提速评估」 |
 | **受控重验①：加 BC warm_start（n_env=4 × 2000 步 × 8ep）** | ⚠️ 部分 PASS / 判 FAIL | BC 修复 reward 侧（8ep 中 6 正、best+14558，上轮全负），**确认"缺安全起步"是 Step1 FAIL 因素之一**；但车钩力仍破线（peak 1079~1650、viol 14~633），未达 §8.3 判据。数据 `outputs/diag_53km_nenv_BCws/seed0/`；详见 DIAGNOSTICS「受控修正重验」 |
 | **待办（最该做）①：恢复 curriculum 渐进出步（parallel_traj_len=0）+ BC + n_env=4** | ⏳ 未跑 | 样本：历史单轨"渐进到 2000"BC 版 ep11-21@2000档 viol 全 0；本轮恒 2000 直接开跑 viol>0 → 渐进起步是遗留破线主嫌，待验证。单 ep 成本低（500/1000 起步为 2000 档 1/4~1/2）。若仍破线→定为"并行信噪比 2000 档不足"，再议 n_env→8/截断/off-policy |
+
+***
+
+## 阶段二·主训练长训稳定性（2026-09-19）：MAPPO 终段 value 发散治本 + 验证通过
+
+**背景**：`seed0_nep1400`（1400ep 主训练）在终段 **ep849→856 发散**（loss +0.337→+1.283、reward 崩 -5371），直接威胁长训主结果稳定性。ep841 best 权重本身干净（53km/35km 双剖面 5-seed 全 viol 0、车钩力<876kN、+221163），发散仅发生在**继续长训**阶段。
+
+**根因**（非单点突变）：策略固有"偶发暴力 AB 探破车钩力>1000kN"的深负破线轨迹，在长训终段碰上 value_norm(PopArt) running std 收缩，被放大成不可回退的 value 污染（全程 viol>0 共 22 个、ep428 起贯穿、终段最集中）。
+
+**三项治本杠杆（全部落点 `src/algorithms/mappo_agent.py`，只影响训练不影响推理）**：
+1. per-trajectory winsorization（`_winsorize_by_traj`，lo_q=0.02/hi_q=0.98）：按 done 切轨迹，仅把 <2% 分位的深负异常轨迹整体均摊抬升，正常轨迹不动 → 掐断"污染入口"。
+2. value 网络独立 `clip_grad_norm_(max_grad_norm*0.5)`（在整体 clip 之前）→ 掐断"放大端"。
+3. KL 早停 `target_kl*1.5→*1.2`（0.015→0.012）→ 提前拦截"累积端"。
+
+**30ep 续训验证（从 ep841 干净权重，n_env=4、恒 1200 步档，107.7min）**：
+- violations **30ep 全 0**；total_loss **-0.010~+0.001** 小值稳定；peak_coupler **686~875kN**（<1000kN）；reward **9956~11369** 无崩塌。
+- **原发散区 ep849-856 零复发**（ep849 loss=-0.002、ep856[-1.283] -0.010）；KL 早停提前到 epoch 3-4/10（原终段 7-10）。
+- 数据 `outputs/checkpoints_formation/seed0_valid_lean/results/train_history_dec_ad2_cp_seed0.csv`；模型 `.../mappo_fleet_best_dec_ad2_cp_seed0.pt`。
+
+**判断**：治本杠杆 **SUCCESS**。留痕 → `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`「诊断-2026-09-19-MAPPO长训终段value发散治本（winsorize + value grad clip + KL早停收紧）」。
+
+**下一步（主线）**：铺 **5-seed（seed0-4）全量 episodes=1400 长训**（新逻辑自带治本杠杆）→ 核对长期稳定 → best-checkpoint 协议产出主结果 → 主对比评估。若 5-seed 长训仍发散，回读诊断按杠杆强度/超参迭代。
+
+**（2026-09-20 更新）5-seed 1400ep 长训已启动，且改并行编排**：诊断出原串行脚本慢的根因=`n_env=4` 是纯串行 for 循环 + 单进程顺序跑 seed0→4，整训练只占 1 核（load~1.0/12 核）。已改 `outputs/launch_final_5seed_parallel.sh`（每 seed 独立进程各占 1 核，`wait` 聚合；物理保真零改动）。代价=内存带宽竞争使单 ep 150s→268s，净提速 ~2.8×：墙钟 ~12 天→~104h（~4.3 天）。后台 job `job-5d1ee3c78c7441b194f099519f14dbae`，逐 seed 日志 `outputs/logs_final_parallel/seed{N}.log`，留痕见 DIAGNOSTICS-2026-09-20。
 
