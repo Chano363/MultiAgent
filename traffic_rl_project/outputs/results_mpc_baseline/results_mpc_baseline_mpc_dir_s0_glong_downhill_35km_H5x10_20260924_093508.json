@@ -1,0 +1,69 @@
+{
+  "metadata": {
+    "git_commit": "",
+    "physics_version": "29569dcaf78a",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus0|grade=shuozhou_real_53km",
+    "simulator_model_version": "d8b93f54ff28",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "run_mpc_baseline.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus0",
+        "grade_profile": "shuozhou_real_53km",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "eval_protocol": "A",
+    "no_fine_tuning_declaration": "MPC 逐线重喂 grade_at + b0 在线标定（公平标定，Regime A）",
+    "args": {
+      "mode": "mpc_dir",
+      "grade": "long_downhill_35km",
+      "n_seed": 1,
+      "max_steps": 30000,
+      "blocks": 5,
+      "block_len": 10,
+      "horizon": 10,
+      "gap_min": 20.0
+    }
+  },
+  "results": {
+    "reward": -2950560.5571300182,
+    "speed_mean": 44.45986999403702,
+    "speed_max": 82.50768067472418,
+    "over": 1.8911111111111112,
+    "under": 43.20666666666666,
+    "coupler_peak": 1694.950343202378,
+    "gap_min": -290.2520772988719,
+    "gap_max": 3763.109901432106,
+    "gap_drift": 4053.361978730978,
+    "collision_steps": 2255,
+    "atp_brake_steps": 25,
+    "cycles": 10,
+    "steps": 30000,
+    "solve_times": {
+      "n_solves": 30000,
+      "mean_ms": 121.07348084334383,
+      "p95_ms": 277.8445399977496,
+      "max_ms": 4690.916999999899,
+      "timeout_rate": 0.022533333333333332
+    },
+    "mode": "mpc_dir",
+    "grade_profile": "long_downhill_35km",
+    "max_steps": 30000,
+    "blocks": 5,
+    "block_len": 10,
+    "horizon_blocks": 5
+  }
+}

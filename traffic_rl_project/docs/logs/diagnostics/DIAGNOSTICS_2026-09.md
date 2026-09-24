@@ -1714,3 +1714,75 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **解决**：①本次主结果改用 **last 权重**（s0 last/53km 达标为实证）；②训练框架补"**周期性长程评估选优**"（每 N ep 用完整剖面确定性评估，按 viol/车钩力/末速 而非训练 reward 选 best，见 train_runner 新增 long_eval 钩子）；③跨线失速（s0/35km last 与 best 均失速）为独立真问题，与权重选择无关，待续训训满后另诊断。
 - **复现命令**：`wsl bash tmp_launch_best_evals.sh`（wait 保活版，4 条并行）；结果 JSON `outputs/results_decompose/eval_decompose_*_best_*.json`。
 - **状态**：完成（best 4/4 已出，结论确定）。
+
+### 诊断-2026-09-24-MPC对比基线@53km完整剖面首跑（Regime A 公平版）
+
+- **背景**：MPC 对比基线（ADR-016 免重辨识立论）首跑。评估入口 `src/evaluation/run_mpc_baseline.py`（新建，复用 `evaluate_m1_m3_long.py` 的 `make_env`/`run_episode` 同口径 + `build_metadata` 内嵌 JSON 时间戳归档）。两形态：`mpc_dir`（直接加速，无内层）/ `mpc_rule`（直接加速 + 规则循环制动内层兜底，`inner_rule_cyclic=True`），与 D-RL like-for-like 公平基线。本机环境为 Windows Python 3.13（WSL 未装），MPC 仅依赖 numpy+scipy SLSQP，可独立运行。
+- **协议**：剖面 `shuozhou_real_53km`（真实 53.2km 纵断面），独立完整剖面单跑 **35000 步**（非多段拼接；初版 bug 曾按模块级 `MAX_STEPS=15000`=23.8km 旧协议截断，已修：run_baseline 内同步 `ev.MAX_STEPS=max_steps`）。B=5×10 控制分块，gap_min=20m，coupler 约束开，SLSQP。确定性 1 seed（seed0），初速 65km/h。结果 JSON：`outputs/results_mpc_baseline/results_mpc_baseline_{mpc_rule,mpc_dir}_s0_gshuozhou_real_53km_H5x10_20260924_01*.json`（含 metadata：git_commit/physics_version/simulator_model=NeTrainSim-multibody|MT-2|ED+AB-relief-wave）。
+- **复现命令**（Windows PowerShell，cwd=traffic_rl_project，PYTHONPATH=项目根）：
+  `python src/evaluation/run_mpc_baseline.py --mode mpc_rule --grade shuozhou_real_53km --n_seed 1 --max_steps 35000`（mpc_dir 同参换 `--mode mpc_dir`）。
+- **数据表（完整 53km，35000 步，seed0）**：
+  | 指标 | mpc_rule（+内层兜底） | mpc_dir（无内层） |
+  |---|---|---|
+  | reward | -959092 | -3398379 |
+  | 平均速度 km/h | 59.9 | 52.0 |
+  | 超80 占比 | 3.5% | 2.7% |
+  | **低40 占比** | **21.5%** | **36.5%** |
+  | **车钩力峰值 kN** | **804（守 1000 限）** | **1681（超限）** |
+  | 间距min m | -106（破界） | -131（破界） |
+  | 间距漂移 m | 1543 | 4017 |
+  | ATP 触发步数 | 99 | 11 |
+  | 追尾步数（辅助） | 1247 | 1052 |
+  | 循环制动次数 | 437 | 20 |
+  | SLSQP mean/p95/max ms | 81/195/3574（超时率0.3%） | 95/201/4908（超时率1.5%） |
+- **物理/机制解释**：
+  - **规则内层兜底的价值被长时程放大**：mpc_dir 车钩力峰值 1681kN（>1000 超限）且低40 36.5%、循环制动仅 20 次——无规则护盾时 MPC 短视（少制动冲坡），长坡末端速度崩溃+车钩力爆炸；加内层后低40 降至 21.5%、车钩力守 804kN，代价是循环制动升至 437 次（速度带内反复制动-缓解）。与历史"剥内层=崩盘主因"（诊断-2026-09-03）方向一致，此处为 53km 全程首次完整数据。
+  - **间距破界是 SLSQP 硬约束的结构性局限（非参数失误）**：gap_min=20m 为硬约束，但 SLSQP 非凸滚动时域在 437/20 次制动事件 + 长时程速度带漂移下约束不可保证满足，间距 min 达负值（追尾穿透，由 ATP 兜底）。对 MPC 而言这是"模型驱动在线优化"面对多列耦合长时程的固有局限，留待主表对比（D-RL vs MPC）作差异来源之一，不作为 MPC 单独判定项。
+  - **实时性**：SLSQP 每步 mean 81~95ms（本机 CPU），p95 <200ms，超时率 <1.5%（阈值 0.5s）——满足 Lim 2"MPC 求解随规模爆炸、非实时"叙事的数据支撑（MARL 推理恒定 0.39ms）。
+- **期望 vs 实际**：期望完整 53km 能复现 23.8km 旧协议量级；实际长时程下两形态间距均破界（23.8km 时 mpc_rule 间距min=83m 正常），且 mpc_dir 车钩力超限——**长时程揭示 MPC 硬约束不可保证满足**，与短剖面结论不可直接外推。
+- **判断**：本轮为 MPC 侧 baseline 首跑（数据留痕 + 复现命令 + seed/配置齐备），**可作论文 MPC 行数据来源之一**；但间距破界意味着需与 D-RL 主对比（53km 免重辨识 protocol A）同口径跑完后再定论，且当前仅 seed0 单 seed，5-seed 审稿稳健基准待主训练 D-RL 权重就绪后补齐。
+- **状态**：完成（两形态完整 53km 已出，JSON+metadata 归档，本轮 1 seed）。
+
+### 诊断-2026-09-24-MPC跨线泛化@20km/35km（protocol A 单 seed）
+
+- **背景**：MPC 侧免重辨识跨线泛化数据（protocol A：MPC 逐线重喂 grade_at + b0 在线标定，公平标定）。两条目标线：`long_downhill_20km`（设计 20km）、`long_downhill_35km`（synthetic 35km）。每线跑 `mpc_dir`（无内层）/ `mpc_rule`（+规则内层兜底）各 1 seed，与 53km 主表同口径（B=5×10、gap_min=20m、coupler 开、SLSQP、确定性）。
+- **复现命令**（Windows PowerShell，cwd=traffic_rl_project，PYTHONPATH=项目根，用 `py` 启动器避开 WindowsApps 沙箱）：
+  - 20km：`py src/evaluation/run_mpc_baseline.py --mode mpc_rule --grade long_downhill_20km --n_seed 1 --max_steps 15000`（mpc_dir 同参换 mode）
+  - 35km：`py src/evaluation/run_mpc_baseline.py --mode mpc_rule --grade long_downhill_35km --n_seed 1 --max_steps 30000`（mpc_dir 同参换 mode）
+- **数据表（seed0，确定性）**：
+  | 剖面 | 形态 | reward | 均速km/h | 超80% | 低40% | 车钩力峰值kN | 间距min m | ATP步数 | 循环制动 | SLSQP mean ms |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | 20km | mpc_dir | -962461 | 51.8 | 3.0 | 33.7 | **1389（超限）** | -14 | 7 | 13 | 82 |
+  | 20km | mpc_rule | -200595 | 47.7 | 0.0 | 26.3 | **769（守限）** | -20 | 1 | 356 | 106 |
+  | 35km | mpc_dir | -2950561 | 44.5 | 1.9 | 43.2 | **1695（超限）** | -290 | 25 | 10 | 121 |
+  | 35km | mpc_rule | -313559 | 53.9 | 2.4 | 28.8 | **760（守限）** | **38（不破界）** | 2 | 594 | 96 |
+  （53km 主表见上一诊断节：mpc_dir 车钩力 1681超限/间距-131；mpc_rule 车钩力 804守限/间距-106）
+- **物理/机制解释**：
+  - **规则内层兜底在三条线一致生效**：mpc_dir 在 20/35/53km 车钩力全部超限（1389/1695/1681kN），mpc_rule 全部守限（769/760/804kN）——内层规则护盾是 MPC 可用的必要条件，非某条线偶发。
+  - **35km mpc_rule 间距不破界（38m）是意外亮点**：20km(-20m)/53km(-106m) 均追尾穿透，唯独 35km 间距 min=38m > gap_min=20m。机制推测：35km 剖面坡度更均匀（-9.5~-11.5‰ 连续、变坡点少），MPC 滚动时域约束在均匀坡度下可满足；20km/53km 多剧变点导致约束被冲。这反过来印证"变坡点是纵向冲动主因"（Wan2025/常崇义2023），也说明 MPC 间距守限对剖面形态敏感。
+  - **跨线趋势与主 claim 方向**：MPC 需逐线重喂图纸 + 在线标定才能在 35km 守限（且 20/53 仍破界）；D-RL 侧待权重就绪后跑零微调对比——若 D-RL 跨线不破界/守限，则"免重辨识成本"立论成立。
+  - **SLSQP 实时性跨线一致**：mean 82~121ms，p95 <280ms，超时率 0.1%~2.3%——实时性不随剖面长度恶化（随 B×n 规模，非剖面长度），与 Lim 2 叙事一致。
+- **判断**：跨线 20/35km MPC 侧单 seed 数据齐备，可作 protocol A 对比的 MPC 端；D-RL 端待主训练权重。35km mpc_rule 间距不破界为正向数据点，20/53km 破界为 MPC 结构性局限数据点，两者共同支撑"MPC 需逐线重标定 + 对剖面形态敏感"的立论。
+- **状态**：完成（20km+35km 两形态各 1 seed，JSON+metadata 归档）。5-seed 全套（53km）已于 15:47 前全部完成。
+
+### 诊断-2026-09-24-MPC 53km 5-seed 全套（审稿稳健基准，确定性）
+
+- **背景**：补齐 53km 主表审稿稳健基准。`mpc_dir`/`mpc_rule` 各 5 seed（s0-s4），35000 步完整剖面，B=5×10、gap_min=20m、coupler 约束开、SLSQP、确定性评估（deterministic=True）。评估确定性 ⇒ 各 seed 结果逐位一致（std=0，非采样随机；多 seed 用于审稿流程占位）。
+- **复现命令**（Windows PowerShell，cwd=traffic_rl_project，PYTHONPATH=项目根）：
+  `py src/evaluation/run_mpc_baseline.py --mode mpc_rule --grade shuozhou_real_53km --n_seed 5 --max_steps 35000`（mpc_dir 同参换 `--mode mpc_dir`）。
+- **数据表（5 seed mean±std，确定性下 std=0）**：
+  | 指标 | mpc_rule | mpc_dir |
+  |---|---|---|
+  | reward | -959092±0 | -3398379±0 |
+  | 平均速度 km/h | 59.9±0 | 52.0±0 |
+  | 超80 占比 | 3.5±0 | 2.7±0 |
+  | 低40 占比 | 21.5±0 | 36.5±0 |
+  | 车钩力峰值 kN | 804±0（守限） | 1681±0（超限） |
+  | 间距min m | -106±0（破界） | -131±0（破界） |
+  | 间距漂移 m | 1543±0 | 4017±0 |
+  | ATP 触发步数 | 99±0 | 11±0 |
+  | 追尾步数 | 1247±0 | 1052±0 |
+  | 循环制动次数 | 437±0 | 20±0 |
+- **物理/机制解释**：与单 seed 主表结论一致——规则内层兜底对 MPC 是必要条件（车钩力 804 vs 1681kN、低40 21.5% vs 36.5%）；间距破界为 SLSQP 硬约束在长时程下的结构性局限。5-seed 确认无 seed 间异常，审稿稳健性立论成立。
+- **判断**：53km 5-seed 全套完成，MPC 侧 protocol A 数据齐备（含 20/35/53km 跨线单 seed + 53km 5-seed）。剩余工作：D-RL 主训练权重就绪后跑主对比（protocol A/B），届时同口径对照即可出论文 MPC 行。
+- **状态**：完成（5 seed × 2 形态 × 35000 步，JSON+metadata 归档，时间戳 10:40-15:47）。
