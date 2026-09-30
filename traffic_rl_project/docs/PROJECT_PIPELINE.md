@@ -920,5 +920,28 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 
 **（2026-09-20 更新）5-seed 1400ep 长训已启动，且改并行编排**：诊断出原串行脚本慢的根因=`n_env=4` 是纯串行 for 循环 + 单进程顺序跑 seed0→4，整训练只占 1 核（load~1.0/12 核）。已改 `outputs/launch_final_5seed_parallel.sh`（每 seed 独立进程各占 1 核，`wait` 聚合；物理保真零改动）。代价=内存带宽竞争使单 ep 150s→268s，净提速 ~2.8×：墙钟 ~12 天→~104h（~4.3 天）。后台 job `job-5d1ee3c78c7441b194f099519f14dbae`，逐 seed 日志 `outputs/logs_final_parallel/seed{N}.log`，留痕见 DIAGNOSTICS-2026-09-20。
 
+***
+
+### [P3] 车钩力口径统一 + 安全层对 AB 的"减"权限（治本落地） - 2026-09-30
+
+- **状态**：✅ 完成（改造 + 单测 + 同窗口四场景回归验证）
+- **归属**：P3（免重辨识泛化主线的**安全兜底契约**修复）· 对应论文 Methods（安全层）/ Limitations（"车钩力 ≤1000kN 硬兜底"）
+- **动机/背景**：`诊断-2026-09-30-100ep破线根因` 定位两个**代码级根因**——① 指标口径混用（"每车净力" vs 基准"单钩断面力"，少报 ~7.8×，拉压交界误判）；② 安全层对 AB **无物理权限**（`ab_sources` 绕过安全层；两 AB 闸门反应式且读净力，叠加 AB 波 ~5s 滞后 ⇒"≤1000kN 硬兜底"名不副实）。决策全文见 `docs/logs/decisions/DECISIONS.md` **ADR-018**。
+- **完成判据（验收）**：
+  - ✅ = 同一 1200 步窗口（`set_seed(2000)`、初速 80 km/h）四场景**断面力口径全部 0 步破线**（full 1238.4→**783.4 kN**、no_traction 1242.3→**955.2 kN**、no_rl 767.7 不变、no_ab 870.1→769.0）
+  - ✅ = 单测 `pytest tests/ -q --ignore=tests/test_mappo_train.py` → **172 passed**（exit 0）
+  - ❌ 失败项：无
+- **方法/关键命令**：回归脚本为临时脚本 `tmp_diag_regress_0930.py`（结论入档后按项目规则已删）；`env.reset()` 有状态残留 → 逐场景重建 env
+- **配置**：权重 `outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`）；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`（起始 1200 步）
+- **结果（已完成）**：
+  - 四场景复测：full **783.4 kN / 0 步**、no_rl 767.7 / 0（**逐字不变**，确认闸门不扰动规则层）、no_traction **955.2 / 0**、no_ab 769.0 / 0
+  - **闸门开/关隔离对照**：full_nogate 1156.7 kN / 17 步 → full 783.4 / 0；**口径统一贡献 124→17 步**（门控改读断面力后更早介入，属行为变化）、**闸门贡献 17→0 步**
+  - 速度未受损（<40 km/h 比例 **42.8%→3.4%**，末速 35.9→39.2 km/h）
+  - **诚实边界**：单权重（seed0）× 单 rollout seed（2000）× 单窗口（1200 步），**不得据此断言终态策略安全**
+- **产出文件**：
+  - 结果/日志：`computer://d:\Code\MultiAgent\traffic_rl_project\outputs\log_diag_regress_20260930.txt`、`.json`
+  - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md`「诊断-2026-09-30-治本改造回归验证」；教训 `LEARNINGS.md` LRN-20260930-001/002（转 resolved）/003（`env.reset` 残留）
+- **遗留（承接上一节 ⑧）**：① 抑制 AB 不均匀缓解（列尾拉力来源）；② **1400ep 全量 5-seed 重训** + 完整剖面评估；③ 全部代码改动**尚未 git 提交**（待用户确认）
+
 <!-- 该文档整理/压缩于 2026-09-22 -->
 

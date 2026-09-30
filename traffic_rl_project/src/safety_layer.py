@@ -64,11 +64,26 @@ class SafetyLayer:
         min_gap_m: float = 0.1,
         coupler_force_limit_emergency_n: float = None,
         coupler_override: str = 'release',
+        train_length_m: float = None,
+        ab_wave_speed_mps: float = 200.0,
+        coupler_veto_ratio: float = 0.6,
+        coupler_veto_margin: float = 0.9,
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
         self.coupler_force_limit_n = coupler_force_limit_n
         self.min_gap_m = min_gap_m
+        # 【2026-09-30 治本-根因②】AB "减权限" 所需物理量：
+        # - train_length_m：车列全长 → 估计 AB 波传播滞后时域（列长/波速）；
+        # - ab_wave_speed_mps：AB 常用制动波速（对齐 braking 传播波速 200 m/s）；
+        # - coupler_veto_ratio：当前峰值 ≥ ratio·limit 即禁止本步新增 AB 源（反应式）；
+        # - coupler_veto_margin：按波速外推的预测峰值 ≥ margin·limit 亦禁止（预测式）。
+        self._train_length_m = train_length_m
+        self._ab_wave_speed_mps = ab_wave_speed_mps
+        self._coupler_veto_ratio = coupler_veto_ratio
+        self._coupler_veto_margin = coupler_veto_margin
+        self._peak_hist = []        # 近期峰值历史（N），供预测式外推
+        self._peak_hist_max = 512
         # 车钩力超限时的干预策略（8/18 修正，避免 E3 改动破坏第1层）：
         # - 'release'（默认，原行为）：制动完全钳制为 0（释放），保持速度，第1层单列用
         # - 'min_brake'（E3 修复）：制动降到 MIN 档保留制动，避免长大下坡"释放→再制动"死锁，第2层多列用
@@ -85,6 +100,7 @@ class SafetyLayer:
     def reset(self):
         """重置安全事件记录。"""
         self.last_events = []
+        self._peak_hist = []
 
     def _log(self, vehicle_idx, rule: str, detail: str = ""):
         self.last_events.append({
@@ -115,6 +131,44 @@ class SafetyLayer:
         if fast['EBI'] is not None:
             return float(fast['EBI']), float(fast['SBI'])
         return None, None
+
+    def ab_new_source_veto(self, obs_state: dict) -> bool:
+        """**一步新增 AB 源硬闸门**（安全层对 AB 的"减权限"）。True = 本步禁止新增 AB 源。
+
+        【2026-09-30 治本-根因②】感知式车钩力钳制只看"当前力"，而 AB 波以 v_wave 沿
+        车列传播（1.2km 列车 @200m/s ≈ 5s），新 AB 源的峰值滞后 ≈ 列长/波速 才显现
+        → 反应式门控拦不住滞后峰值（诊断-2026-09-30：AB 首现 t=0 → 首破 t=901，
+        滞后 90.1s）。本闸门按"位置 + 波速"外推：
+
+        - 口径：`obs_state['coupler_forces']` 须为**每车断面力视图**（长度 n）；
+        - 反应式：当前峰值 P0 ≥ veto_ratio·limit → 禁止（更早封"高力叠加"）；
+        - 预测式：以近 horizon 步的峰值上升率 r 外推 P_pred = P0 + r·horizon，
+          若 P_pred ≥ veto_margin·limit → 禁止；horizon = 列长/波速/dt（步）。
+
+        仅禁止"新增"源，不撤销已建立的制动源（避免制造缓解冲击）。无历史/无列长时
+        退化为纯反应式门控（安全默认：不越权）。
+        """
+        limit = self.coupler_force_limit_n
+        cur = np.asarray(
+            obs_state.get('coupler_forces', np.zeros(self.num_vehicles)), dtype=float)
+        p0 = float(np.max(cur)) if cur.size else 0.0
+        # 反应式：当前峰值已接近上限 → 禁止新增源
+        if p0 >= self._coupler_veto_ratio * limit:
+            return True
+        # 预测式：按"列长/波速"估计峰值滞后时域，用近期上升率外推
+        dt = float(obs_state.get('dt', 0.1)) or 0.1
+        if self._train_length_m and self._ab_wave_speed_mps > 0:
+            horizon = max(
+                int(round(self._train_length_m / self._ab_wave_speed_mps / dt)), 1)
+        else:
+            horizon = 1
+        hist = self._peak_hist
+        if len(hist) >= 2:
+            k = min(horizon, len(hist) - 1)
+            rate = (hist[-1] - hist[-1 - k]) / k   # N/步
+            if rate > 0.0 and hist[-1] + rate * horizon >= self._coupler_veto_margin * limit:
+                return True
+        return False
 
     def protect(self, actions: np.ndarray, obs_state: dict) -> np.ndarray:
         """
@@ -150,6 +204,12 @@ class SafetyLayer:
         coupler_forces = np.asarray(
             obs_state.get('coupler_forces', np.zeros(self.num_vehicles)), dtype=float
         )
+        # 【2026-09-30】记录当前车钩力峰值（**断面力口径** per-vehicle view，长度 n），
+        # 供 ab_new_source_veto 的预测式外推（按列长/波速的滞后时域）。
+        self._peak_hist.append(
+            float(np.max(coupler_forces)) if coupler_forces.size else 0.0)
+        if len(self._peak_hist) > self._peak_hist_max:
+            del self._peak_hist[0]
         gaps = np.asarray(obs_state.get('gaps', np.full(self.num_vehicles, self.min_gap_m)), dtype=float)
         # 是否紧急制动工况（Fu2019 区分上限：紧急制动允许更大车钩力）
         is_emergency = bool(obs_state.get('emergency', False))

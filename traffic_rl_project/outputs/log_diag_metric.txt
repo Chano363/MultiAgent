@@ -1,0 +1,23 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+
+================ 口径对比（同一次策略 rollout, SEED=2000, 1200步）================
+train0: 净力峰值=  948.1kN @t=1168 | 断面力峰值=  948.1kN @t=1168 | 净/断比=1.00
+train1: 净力峰值=  965.6kN @t=1193 | 断面力峰值= 1111.9kN @t=1136 | 净/断比=0.87
+train2: 净力峰值= 1238.4kN @t=1076 | 断面力峰值= 1238.4kN @t=1076 | 净/断比=1.00
+
+FLEET : 净力峰值= 1238.4kN @t=1076 | 断面力峰值= 1238.4kN @t=1076
+步数(净力>1000kN) =   92 / 1200
+步数(断面力>1000kN) =  124 / 1200
+车厢·步 计数(净力>1000kN) =    110
+车厢·步 计数(断面力>1000kN) =    857
+
+结论判据: 断面力峰值 1238.4kN 相对 1000kN → 确实超限
+
+== 净力峰值步 t=1076 train2 断面力剖面（kN, 正=压）==
+  sec: min=-818.3 max=+765.0 | 异号相邻对=7/95
+  net: min=-522.4 max=+818.3
+  断面力峰值处 idx=7: -401.8 -447.0 -532.0 -661.5 -818.3 +0.0 +6.9 +15.3 +24.1
+  净力峰值处 idx=8: -45.2 -84.9 -129.6 -156.8 +818.3 +6.9 +8.4 +8.9 +8.8

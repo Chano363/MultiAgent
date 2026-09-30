@@ -161,8 +161,9 @@ class FairMPCController:
                 self.grade_at = PROFILES[prof_name]().grade_at
         pos0 = np.array([float(env._train_heads[i]) for i in range(n)], dtype=float)
         grade0 = np.array([np.mean(tr.dynamics.grade[:5]) for tr in env.trains], dtype=float)
-        coupler0 = np.array([float(np.max(np.abs(tr.dynamics._coupler_forces())))
-                             if tr.num_vehicles else 0.0 for tr in env.trains], dtype=float)
+        # 【2026-09-30 口径统一】断面力口径（单钩力，长度 n-1）
+        coupler0 = np.array([float(np.max(np.abs(tr.dynamics.coupler_interface_forces())))
+                             if tr.num_vehicles > 1 else 0.0 for tr in env.trains], dtype=float)
         gap_ref = env._dynamic_gap()
         gap0 = np.full(n, gap_ref)
         for i in range(1, n):

@@ -39,7 +39,8 @@ def run(env, agent, init_speed):
             g1 = env.trains[0].dynamics.pos[-1] - env._train_heads[1]
             g2 = env.trains[1].dynamics.pos[-1] - env._train_heads[2]
             gaps.append(min(g1, g2))
-        coupler = np.abs(env.trains[0].dynamics._coupler_forces())
+        # 【2026-09-30 口径统一】断面力口径（单钩力）
+        coupler = np.abs(env.trains[0].dynamics.coupler_interface_forces())
         peaks.append(np.max(coupler) / 1e3)
         rewards.append(r)
         step += 1

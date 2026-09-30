@@ -61,7 +61,9 @@ def run_episode(env, policy_fn, record=True, init_speed=None):
                 gaps.append(prev_tail - env._train_heads[i])
             traj['gap'].append(min(gaps) if gaps else 0.0)
             traj['coupler_peak'].append(
-                max(np.max(np.abs(tr.dynamics._coupler_forces())) for tr in env.trains) / 1e3)
+                # 【2026-09-30 口径统一】断面力口径（单钩力，与论文/实测基准一致）
+                max(np.max(np.abs(tr.dynamics.coupler_interface_forces()))
+                    for tr in env.trains) / 1e3)
 
         obs, reward, terminated, truncated, info = env.step(actions)
 
@@ -82,7 +84,8 @@ def run_episode(env, policy_fn, record=True, init_speed=None):
 
         # 逐列：车钩力峰值/超限（用当前步该列最大车钩力）
         for i, tr in enumerate(env.trains):
-            cf = np.abs(tr.dynamics._coupler_forces())
+            # 【2026-09-30 口径统一】断面力口径（单钩力）
+            cf = np.abs(tr.dynamics.coupler_interface_forces())
             if len(cf) > 0:
                 peak_coupler_per_train[i] = max(peak_coupler_per_train[i], np.max(cf) / 1e3)
                 viol_per_train[i] += int(np.sum(cf > env.coupler_force_limit_n))

@@ -1,0 +1,31 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+加载 outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt  decision_interval=10  STEPS=1200  SEED=2000
+LEAN_MAX_TRACTION=0.5  LEAN_KP_GAP=0.004  LEAN_TRACTION_COEF=0.0015
+
+---- 反事实消融（开环重放同一序列）----
+full           | pkCpl= 1238.4kN @t=1076 | viol= 110 | gap_min=  148.6m | AB源= 884 抖动=109 | v_end= 27.6 v_max= 79.4 km/h
+  峰值步真实执行指令 [ed,ab]（ed<0 = 牵引 T；ab<0 = AB 波源）：
+    t=1154 pk= 1238.4kN viol= 100 gap=  261.5 牵引机=2 AB源=1 | -A:+0.00/-0.40 E:+0.50/+0.00 E:+0.14/+0.00 E:+0.10/+0.00 T:-0.13/+0.00 T:-0.13/+0.00
+          raw RL: [-1.00,-0.18] [+1.00,-0.41] [+1.00,+1.00] [+0.72,+1.00] [-1.00,-0.19] [+1.00,+1.00]
+    t=1155 pk= 1238.4kN viol= 100 gap=  261.7 牵引机=1 AB源=1 | -A:+0.00/-0.40 E:+0.50/+0.00 E:+0.50/+0.00 E:+0.36/+0.00 T:-0.13/+0.00 E:+0.50/+0.00
+          raw RL: [-1.00,-0.18] [+1.00,-0.41] [+1.00,+1.00] [+0.72,+1.00] [-1.00,-0.19] [+1.00,+1.00]
+    t=1157 pk= 1238.4kN viol= 101 gap=  262.1 牵引机=1 AB源=1 | -A:+0.00/-0.40 E:+0.50/+0.00 E:+0.33/+0.00 E:+0.24/+0.00 T:-0.14/+0.00 E:+0.50/+0.00
+          raw RL: [-1.00,-0.18] [+1.00,-0.41] [+1.00,+1.00] [+0.72,+1.00] [-1.00,-0.19] [+1.00,+1.00]
+    t=1158 pk= 1238.4kN viol= 101 gap=  262.3 牵引机=2 AB源=1 | -A:+0.00/-0.40 E:+0.50/+0.00 E:+0.50/+0.00 E:+0.36/+0.00 T:-0.14/+0.00 T:-0.14/+0.00
+          raw RL: [-1.00,-0.18] [+1.00,-0.41] [+1.00,+1.00] [+0.72,+1.00] [-1.00,-0.19] [+1.00,+1.00]
+    t=1159 pk= 1238.4kN viol= 102 gap=  262.5 牵引机=1 AB源=2 | -A:+0.00/-0.40 E:+0.50/+0.00 E:+0.50/+0.00 E:+0.36/+0.00 TA:-0.14/-0.40 E:+0.50/+0.00
+          raw RL: [-1.00,-0.18] [+1.00,-0.41] [+1.00,+1.00] [+0.72,+1.00] [-1.00,-0.19] [+1.00,+1.00]
+    t=1199 pk= 1238.4kN viol= 110 gap=  270.9 牵引机=3 AB源=0 | -:+0.00/+0.00 -:+0.00/+0.00 T:-0.14/+0.00 E:+0.50/+0.00 T:-0.16/+0.00 T:-0.16/+0.00
+          raw RL: [-0.84,+0.70] [-1.00,+1.00] [-0.98,+1.00] [+1.00,+0.76] [-1.00,+1.00] [-1.00,+0.98]
+no_traction    | pkCpl=  913.4kN @t=1134 | viol=   0 | gap_min=  182.6m | AB源= 989 抖动= 29 | v_end= 47.8 v_max= 79.4 km/h
+  峰值步真实执行指令 [ed,ab]（ed<0 = 牵引 T；ab<0 = AB 波源）：
+    t=1182 pk=  913.4kN viol=   0 gap=  392.4 牵引机=0 AB源=0 | E:+0.50/+0.00 E:+0.92/+0.00 E:+0.50/+0.00 -:+0.00/+0.00 E:+0.50/+0.00 E:+0.50/+0.00
+          raw RL: [-1.00,+0.43] [+0.45,+1.00] [+1.00,+0.83] [-1.00,+0.47] [+1.00,+0.50] [+1.00,+1.00]
+    t=1183 pk=  913.4kN viol=   0 gap=  392.7 牵引机=0 AB源=0 | E:+0.50/+0.00 E:+0.92/+0.00 E:+0.50/+0.00 -:+0.00/+0.00 E:+0.50/+0.00 E:+0.50/+0.00
+          raw RL: [-1.00,+0.43] [+0.45,+1.00] [+1.00,+0.83] [-1.00,+0.47] [+1.00,+0.50] [+1.00,+1.00]
+    t=1184 pk=  913.4kN viol=   0 gap=  393.1 牵引机=0 AB源=0 | E:+0.50/+0.00 E:+0.92/+0.00 E:+0.50/+0.00 -:+0.00/+0.00 E:+0.45/+0.00 E:+0.45/+0.00
+          raw RL: [-1.00,+0.43] [+0.45,+1.00] [+1.00,+0.83] [-1.00,+0.47] [+1.00,+0.50] [+1.00,+1.00]
+no_ab          | pkCpl=  729.6kN @t= 858 | viol=   0 | gap_min=  182.6m | AB源=   0 抖动=  0 | v_end= 50.8 v_max= 79.4 km/h

@@ -1,0 +1,25 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+num_agents=6  profile=shuozhou_real_53km  steps=1200  episodes=2/mode
+[base        ] pkCpl avg=  721.5 max=  725.8 kN | viol sum=    0 | max AB源=0 | 逐集=[(0, 725.8, 0, 0), (1, 719.3, 0, 0), (2, 719.3, 0, 0)]
+[ab_add      ] pkCpl avg=  811.9 max=  933.1 kN | viol sum=    0 | max AB源=3 | 逐集=[(0, 933.1, 0, 3), (1, 710.8, 0, 3), (2, 791.7, 0, 3)]
+[toggle_ab   ] pkCpl avg=  734.9 max=  736.0 kN | viol sum=    0 | max AB源=3 | 逐集=[(0, 732.7, 0, 3), (1, 736.0, 0, 3), (2, 736.0, 0, 3)]
+[toggle_ed   ] pkCpl avg=  647.1 max=  647.1 kN | viol sum=    0 | max AB源=0 | 逐集=[(0, 647.1, 0, 0), (1, 647.1, 0, 0), (2, 647.1, 0, 0)]
+[toggle_both ] pkCpl avg=  662.1 max=  666.5 kN | viol sum=    0 | max AB源=3 | 逐集=[(0, 653.3, 0, 3), (1, 666.5, 0, 3), (2, 666.5, 0, 3)]
+[random      ] pkCpl avg=  710.1 max=  712.4 kN | viol sum=    0 | max AB源=3 | 逐集=[(0, 711.4, 0, 3), (1, 706.4, 0, 3), (2, 712.4, 0, 3)]
+
+[长程探针] base 8000 步 × 1 ep（覆盖陡坡段，约 16km）...
+[base_long   ] pkCpl max=719.3 kN | viol=0 | max AB源=0
+
+=== 判据（是否破线 >1000kN）===
+base        : pkCpl max=  725.8  viol=    0   OK
+ab_add      : pkCpl max=  933.1  viol=    0   OK
+toggle_ab   : pkCpl max=  736.0  viol=    0   OK
+toggle_ed   : pkCpl max=  647.1  viol=    0   OK
+toggle_both : pkCpl max=  666.5  viol=    0   OK
+random      : pkCpl max=  712.4  viol=    0   OK
+base_long   : pkCpl max=  719.3  viol=    0   OK
+
+模型权重未加载；本诊断只隔离'动作模式'变量。

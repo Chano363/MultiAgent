@@ -52,7 +52,9 @@ def run(agent, seed):
         obs, r, term, trunc, info = env.step(np.full(env.num_vehicles, throttle))
         done = term or trunc
         speeds.append(float(env.dynamics.vel[0]))
-        peaks.append(np.max(np.abs(env.dynamics._coupler_forces()))/1e3)
+        # 【2026-09-30 口径统一】断面力口径（单钩力）；上方 cyclic_obs 的 obs 通道
+        # 仍保留原口径（不改，避免作废第1层既有 checkpoint）
+        peaks.append(np.max(np.abs(env.dynamics.coupler_interface_forces()))/1e3)
         if prev is not None and float(env.dynamics.vel[0]) < prev - 0.5 and not braking:
             braking = True
         elif braking and float(env.dynamics.vel[0]) > prev + 0.5:

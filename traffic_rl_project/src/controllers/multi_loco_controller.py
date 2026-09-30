@@ -25,7 +25,6 @@
 
 import numpy as np
 
-from src.safety_layer import SafetyLayer
 from src.environments.train_env import COUPLER_FORCE_LIMIT_N
 from src.train_dynamics.braking import AirBrakeNotch, notch_from_throttle
 from src.train_dynamics.etcs_braking import G_RAIL
@@ -60,11 +59,9 @@ class MultiLocoController:
         # 训练与评估须用同一 mask（train_fleet --mask_lever / evaluate_decompose
         # --mask_lever），否则策略与掩码失配。
         self.mask_lever = mask_lever
-        self._safety = SafetyLayer(
-            num_vehicles=num_vehicles,
-            coupler_force_limit_n=coupler_force_limit_n,
-            coupler_override='min_brake',
-        )
+        # 【2026-09-30 死代码消除】原内部 SafetyLayer 从未被调用（真安全层 = 环境的
+        # train_env.safety，在动作喂给动力学前统一钳制）。此处删除，避免"两套安全层"混淆；
+        # 车钩力源头门控改为直接咨询 train_env.safety（见 get_action_decomposed）。
         self._cyclic_braking = False
 
     # ------------------------------------------------------------------ #
@@ -103,7 +100,9 @@ class MultiLocoController:
         """车钩力接近上限时按比例缓和（0.8→1.0 时 scale 1→0）。"""
         if not self.enforce_coupler:
             return 1.0
-        peak = float(np.max(np.abs(train_env.dynamics._coupler_forces()))) if self.num_vehicles else 0.0
+        # 【2026-09-30 口径统一】用**断面力**每车视图（原每车净力在拉压交界处误判）
+        peak = (float(np.max(train_env.dynamics.coupler_interface_forces_per_vehicle()))
+                if self.num_vehicles else 0.0)
         if peak <= 0:
             return 1.0
         ratio = peak / max(self.coupler_force_limit_n, 1e-6)
@@ -204,7 +203,14 @@ class MultiLocoController:
     AB_SUPPRESS_MARGIN_MPS = 0.5
     # 【2026-09-10 安全层源头门控】当前列内耦合器力 ≥ 该比例上限时禁止 RL 新增 AB 源
     # （防"高力下叠加新 AB"的暴力吸态；车钩力=安全层兜底，SSOT，不靠 reward 惩罚）
-    AB_ADD_SOURCE_MAX_RATIO = 0.85
+    # 【2026-09-26 治本-滞后峰值防护】0.85→0.6 + 限制单步并发新增源：
+    # 感知式安全层按"上一时刻力"钳制，拦不住 RL 新增 AB 波源沿列传播 ~5s 后才到的滞后峰值
+    # （诊断-2026-09-25 AB 塑形短训：AB 激活后 viol 332 / pk1549、pk~1162 均值破线）。故：
+    # ① 下调阈值：力比 ≥ 0.6 即禁止新增源（更早封"高力叠加"）；
+    # ② 单步并发数 ≤1：杜绝多机车同时触发 AB 的压缩波叠加。仅保留基线 ED 调制。
+    AB_ADD_SOURCE_MAX_RATIO = 0.6
+    # 单次决策内允许新增的 AB 源最大并发数（>1 会多源同步压缩波叠加 → 滞后峰值叠加）
+    AB_MAX_CONCURRENT_ADD = 1
 
     def get_action_decomposed(
         self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
@@ -232,9 +238,21 @@ class MultiLocoController:
         # 【2026-09-10】当前列内耦合器力/上限比（安全层源头门控用；本次决策内统一评估一次）
         cur_coupler_ratio = 0.0
         if self.enforce_coupler and self.num_vehicles:
-            cf = np.abs(np.asarray(train_env.dynamics._coupler_forces(), dtype=float))
+            # 【2026-09-30 口径统一】改用**断面力**每车视图（原每车净力会漏报/误报）
+            cf = np.asarray(
+                train_env.dynamics.coupler_interface_forces_per_vehicle(), dtype=float)
             if cf.size:
                 cur_coupler_ratio = float(np.max(cf)) / max(self.coupler_force_limit_n, 1e-6)
+        # 【2026-09-30 安全层 AB 减权限】咨询环境安全层的"一步新增 AB 源硬闸门"
+        # （断面力口径 + 位置/波速预测式峰值防护）：命中则本步禁止 RL 新增 AB 源，
+        # 仅保留规则基线。感知式钳制看的是"当前力"，拦不住 AB 波传播 ~5s 后的滞后峰值，
+        # 故由安全层按列长/波速外推峰值提前封源（诊断-2026-09-30 根因②）。
+        ab_add_vetoed = False
+        if self.enforce_coupler:
+            ab_add_vetoed = bool(
+                train_env.safety.ab_new_source_veto(train_env._state_snapshot()))
+        # 【2026-09-26 治本-滞后峰值防护】单步新增 AB 源并发计数（>1 禁止 → 防多车钩压缩波同步叠加）
+        added_ab_sources = 0
         for i in range(self.num_locomotives):
             ed_mod = float(np.clip(rl[i, 0], -1.0, 1.0))
             ab_mod = float(np.clip(rl[i, 1], -1.0, 1.0))
@@ -244,11 +262,11 @@ class MultiLocoController:
             elif self.mask_lever == 'ab':
                 ab_mod = 0.0   # 仅 ED 杠杆生效（ed_mod-only）
             final[i, 0] = float(np.clip(baseline[i, 0] + ed_mod_coef * ed_mod, 0.0, 1.0))
-            if baseline[i, 1] < 0 and ab_mod > 0.5:
+            if baseline[i, 1] < 0 and ab_mod > 0.15:
                 # 抑制本机车 AB 源：仅当远离超速裕量才生效（保住"AB 兜底"安全性）
                 if vel < v_max - self.AB_SUPPRESS_MARGIN_MPS:
                     final[i, 1] = 0.0
-            elif baseline[i, 1] >= 0 and ab_mod < -0.5:
+            elif baseline[i, 1] >= 0 and ab_mod < -0.15:
                 # 提前触发 MIN 档兜底（RL 学"何时/哪台机车引入 AB"）
                 # 【2026-09-10 安全层源头门控：防暴力 AB 吸态】车钩力由安全层兜底（SSOT），
                 # 不靠 reward 惩罚。但感知式 _coupler_throttle_scale 按"当前时刻"力钳制，
@@ -257,9 +275,14 @@ class MultiLocoController:
                 # 耦合器力已 ≥ 安全线时，禁止 RL 新增 AB 源（仅保留基线 ED 调制）。
                 # 依据：诊断-2026-09-10 三轮短训（相对锚定/车钩力惩罚/回滚）逐 ep 崩点一致的
                 # 长时程坍塌，主因正是探索踩进"高耦合器力下叠加新 AB 源"的暴力吸态。
-                if cur_coupler_ratio < self.AB_ADD_SOURCE_MAX_RATIO:
+                # 【2026-09-26 治本】阈值 0.6 + 单步并发 ≤1：感知式安全层兜不住 5s 滞后峰值，
+                # 故更早封新增源 + 限并发，避免多机车同步 AB 压缩波叠加。
+                if (cur_coupler_ratio < self.AB_ADD_SOURCE_MAX_RATIO
+                        and added_ab_sources < self.AB_MAX_CONCURRENT_ADD
+                        and not ab_add_vetoed):
                     final[i, 1] = self.AB_FALLBACK_NOTCH
-                # 否则高力下禁止新增源（final[i,1] 保持 baseline 的 0 → 不引入新 AB）
+                    added_ab_sources += 1
+                # 否则高力下/已限并发时禁止新增源（final[i,1] 保持 baseline 的 0 → 不引入新 AB）
         # 【2026-09-09 修复：decompose 调制必须过车钩力投影】基线 get_action_cyclic_braking
         # 已应用 _coupler_throttle_scale，但 RL 调制后的 final 此前直接返回，导致 RL 可在
         # 车钩力接近上限时把 ED 顶满（+ed_mod_coef）/触发 AB，突破 1000kN 底线（ep41-50

@@ -181,7 +181,10 @@ class TrainLowLevelController:
             gaps[i] = pos[i - 1] - pos[i]
         return {
             'vel': np.array(dyn.vel, dtype=float),
-            'coupler_forces': np.array(np.abs(dyn._coupler_forces()), dtype=float),
+            # 【2026-09-30 口径统一】改用**断面力**每车视图（原每车净力会漏报/误报）
+            'coupler_forces': np.array(
+                dyn.coupler_interface_forces_per_vehicle(), dtype=float),
             'gaps': gaps,
             'emergency': False,
+            'dt': float(train_env.dt),
         }

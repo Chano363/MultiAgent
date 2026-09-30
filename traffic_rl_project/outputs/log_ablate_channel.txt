@@ -1,0 +1,11 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+加载 outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt  decision_interval=10  STEPS=1200  SEED=2000
+
+---- 通道消融（开环固定动作序列，只改一个通道）----
+full         | pkCpl_max= 1238.4kN @t=1076 | viol= 110 | gap_min=  148.6m | AB源步数= 884 | AB抖动= 109
+no_ab        | pkCpl_max=  730.6kN @t= 858 | viol=   0 | gap_min=  182.6m | AB源步数=   0 | AB抖动=   0
+no_ed        | pkCpl_max=  759.9kN @t= 559 | viol=   0 | gap_min=  127.8m | AB源步数=1010 | AB抖动=  33
+no_rl(=baseline) | pkCpl_max=  722.4kN @t=1192 | viol=   0 | gap_min=  183.3m | AB源步数=   0 | AB抖动=   0

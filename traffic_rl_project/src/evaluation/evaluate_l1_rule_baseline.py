@@ -46,7 +46,8 @@ def run(seed: int, brake_notch: float = -0.75):
         obs, r, term, trunc, info = env.step(a)
         done = term or trunc
         speeds.append(float(env.dynamics.vel[0]))
-        peaks.append(np.max(np.abs(env.dynamics._coupler_forces())) / 1e3)
+        # 【2026-09-30 口径统一】断面力口径（单钩力）
+        peaks.append(np.max(np.abs(env.dynamics.coupler_interface_forces())) / 1e3)
         if prev is not None and float(env.dynamics.vel[0]) < prev - 0.5 and not braking:
             braking = True
         elif braking and float(env.dynamics.vel[0]) > prev + 0.5:

@@ -494,10 +494,13 @@ class TrainFleetEnv:
             # 实际加速度 = (新速度 - 旧速度) / dt（舒适性奖励项，对齐 Hua2024 w3·u²）
             accels[i] = (float(tr.dynamics.vel[0]) - v_before) / max(self.dt, 1e-6)
 
-            # 该列车钩力指标（车钩力超限计数，列内累计）
-            coupler = np.abs(tr.dynamics._coupler_forces())
-            self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(coupler)) if len(coupler) else 0.0)
-            self._coupler_limit_violations += int(np.sum(coupler > self.coupler_force_limit_n))
+            # 该列车钩力指标（**断面力口径** coupler_interface_forces，长度 n-1；列内累计）
+            # 【2026-09-30 治本】原用每车净力 _coupler_forces → 拉压交界处矢量和误报/漏报
+            interface = np.abs(tr.dynamics.coupler_interface_forces())
+            if interface.size:
+                self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(interface)))
+                self._coupler_limit_violations += int(
+                    np.sum(interface > self.coupler_force_limit_n))
             self._safety_events += tr._safety_events
 
         # 记录本步各列目标加速度（供 obs 的"前列制动状态"，E4 协同预判用）
@@ -516,6 +519,8 @@ class TrainFleetEnv:
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
             'safety_events': int(self._safety_events),
+            # 列间间距监控（2026-09-23 新增，训练日志 CSV/TB 用）
+            **dict(zip(('gap_err_mean', 'gap_min_m'), self._gap_metrics())),
             # 实际执行 throttle（列级，供诊断/评估）
             'executed_actions': self._executed_actions.copy(),
             # 恒 False：RL 输出动作（δ 协同 / 目标加速度）经确定性映射才执行，
@@ -566,6 +571,22 @@ class TrainFleetEnv:
                 obs[a, 10] = gap_err
                 a += 1
         return obs
+
+    def _gap_metrics(self):
+        """本步列间间距指标：(间距误差均值 m, 最小实际列间距 m)。
+
+        供训练日志监控（CSV/TB 的 gap_err_mean / gap_min_m 列）。单列编组无列间距，
+        返回 (0.0, float('inf'))。
+        """
+        if self.num_trains <= 1:
+            return 0.0, float('inf')
+        dyn_gap = self._dynamic_gap()
+        errs, gaps = [], []
+        for i in range(1, self.num_trains):
+            ge = (self.trains[i - 1].dynamics.pos[-1] - self._train_heads[i]) - dyn_gap
+            errs.append(ge)
+            gaps.append(dyn_gap + ge)
+        return float(np.mean(errs)), float(np.min(gaps))
 
     def _step_decomposed_fleet(self, actions: np.ndarray):
         """decompose 模式 step：每机车 RL 调制 [ed_mod, ab_mod] → 规则基线+调制 → 单列 _step_decomposed。"""
@@ -654,11 +675,16 @@ class TrainFleetEnv:
             tr.step(final_edab)
             self._train_heads[ti] = float(tr.dynamics.pos[0])
             accels[ti] = (float(tr.dynamics.vel[0]) - v_before) / max(self.dt, 1e-6)
+            # 奖励塑形用每车净力峰值（保口径，避免作废 checkpoint）；
+            # 指标/违规计数用**断面力口径**（SSOT）【2026-09-30 治本】
             coupler = np.abs(tr.dynamics._coupler_forces())
             cpl_max = float(np.max(coupler)) if len(coupler) else 0.0
-            self._peak_coupler_n = max(self._peak_coupler_n, cpl_max)
             self._step_coupler_peak_n = max(self._step_coupler_peak_n, cpl_max)
-            self._coupler_limit_violations += int(np.sum(coupler > self.coupler_force_limit_n))
+            interface = np.abs(tr.dynamics.coupler_interface_forces())
+            if interface.size:
+                self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(interface)))
+                self._coupler_limit_violations += int(
+                    np.sum(interface > self.coupler_force_limit_n))
             self._safety_events += tr._safety_events
 
         obs = self._get_obs_decomposed()
@@ -673,6 +699,8 @@ class TrainFleetEnv:
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
             'safety_events': int(self._safety_events),
+            # 列间间距监控（2026-09-23 新增，训练日志 CSV/TB 用）
+            **dict(zip(('gap_err_mean', 'gap_min_m'), self._gap_metrics())),
             'executed_actions': self._executed_actions.copy(),
             'actions_modified': False,
             'ab_source_count': ab_count,          # 本步 AB 源数（ED 优先/AB 兜底 分配诊断）
@@ -778,11 +806,23 @@ class TrainFleetEnv:
                         gap_trend_penalty -= 0.4 * shrink
             self._prev_gap_err = current_gap_err
 
-        # 电空分工塑形（本架构核心）：AB 是手段、车钩力才是目标——冒烟实证 RL 用
-        # "错峰 MIN 档 AB"降车钩力 24%，任何 AB 成本都会等额抵消该收益
-        # （诊断-2026-09-05-decompose 冒烟两轮），故 AB 成本归零、仅保留 ED 微成本
-        # 防无谓满 ED（如巡航段深度制动）。
+        # 电空分工塑形（本架构核心）。诊断-2026-09-25：原 `ab_cost=0.0` 使 AB 在奖励上
+        # 完全中性、且在触发舒适/车钩项时被隐式扣分 → seed0 退化成"纯 ED 蠕行"
+        # （完整 53km 评估 ab_steps=0、pe41248kN 超限、band 6%、末速18km/h 失速）。
+        # 文献张2024_DQN_CyclicBraking_Bownhill 式22："越限 Rc<0 罚 / AB engaged=0 /
+        # 释放 Rd>0 奖"的需求驱动塑形。此处对齐但避免引入大系数致 value 震荡（KL 早停）：
+        # 用"领航列带外/超速"作为制动需求信号，needy 时 AB 未参与 → 加惩罚，
+        # 使"AB 是带内唯一守住速度带的手段"从 reward 里自然涌现。
         ab_cost = 0.0
+        # 需求信号 = 领航列是否带外（norm_dev>1）或超线速（v>v_max）。这些量在带内 retable 为 0
+        needs_brake = 0.0
+        if self.num_trains:
+            lv = float(self.trains[0].dynamics.vel[0])
+            needs_brake = float(lv > self.v_max) or float(
+                abs(lv - v_center) > band_half)
+        if needs_brake > 0.0 and ab_count <= 0:
+            # 领航列已带外/超速却无 AB 参与 → 弱惩罚，倒逼"需减速时必须靠 AB 兜底"
+            ab_cost -= 0.5 * needs_brake
         ed_cost = -0.02 * float(ed_sum)
 
         return (

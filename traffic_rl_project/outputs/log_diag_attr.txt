@@ -1,0 +1,24 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+n_trains=3 loco_per_train=[2, 2, 2] num_agents=6
+
+fleet pk=1238.4kN @t=1076
+逐列 |cpl| 峰值: [948085.0, 965593.0, 1238412.9] kN
+逐列峰值时刻: [1168, 1193, 1076]
+
+== 全局峰值步 t=1076 逐列归属 ==
+  train0: |cpl|=691361.0kN signed=+691361.0kN | E:+0.72/+0.00 E:+0.20/+0.00
+  train1: |cpl|=572353.7kN signed=-572353.7kN | E:+0.26/+0.00 T:-0.11/+0.00
+  train2: |cpl|=1238412.9kN signed=+1238412.9kN | E:+0.50/+0.00 E:+0.50/+0.00  <== 肇事列
+
+== 破线步总数(逐列 |cpl|>1000kN)=1200 ==
+  train0: 破线步=1200 | 含牵引=   0 | 含AB源= 425 | 牵引∧AB同列车=   0 | 同一机车同时牵引∧AB=   0
+  train1: 破线步=1200 | 含牵引= 361 | 含AB源= 618 | 牵引∧AB同列车=  54 | 同一机车同时牵引∧AB=  38
+  train2: 破线步=1200 | 含牵引= 256 | 含AB源= 761 | 牵引∧AB同列车=  21 | 同一机车同时牵引∧AB=  13
+
+== 逐列峰值符号（+=拉/压 依实现约定）==
+  train0: pk=948085.0kN @t=1168 signed=+948085.0kN
+  train1: pk=965593.0kN @t=1193 signed=-965593.0kN
+  train2: pk=1238412.9kN @t=1076 signed=+1238412.9kN

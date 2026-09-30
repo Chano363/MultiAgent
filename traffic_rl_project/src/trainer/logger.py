@@ -79,22 +79,26 @@ class TrainingLogger:
         Path(self._csv_path).parent.mkdir(parents=True, exist_ok=True)
         with open(self._csv_path, 'w', newline='', encoding='utf-8') as f:
             w = csv.writer(f)
-            w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations', 'total_loss_k', 'time_s'])
+            w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations',
+                        'total_loss_k', 'time_s', 'gap_err_mean', 'gap_min_m'])
 
     # ------------------------------------------------------------------ #
     def log_episode(self, ep: int, reward: float, peak_coupler_kN: float,
-                    violations: int, total_loss: float = 0.0, elapsed: float = 0.0):
+                    violations: int, total_loss: float = 0.0, elapsed: float = 0.0,
+                    gap_err_mean: float = 0.0, gap_min_m: float = 0.0):
         """逐集调用：写 CSV 行 + 刷终端行 + 写 TB 标量。"""
         _ = elapsed
         # CSV（每集一行，实时）
         with open(self._csv_path, 'a', newline='', encoding='utf-8') as f:
             w = csv.writer(f)
             w.writerow([int(ep), f"{float(reward):.2f}", f"{float(peak_coupler_kN):.1f}",
-                        int(violations), f"{float(total_loss):.3f}", f"{time.time():.1f}"])
+                        int(violations), f"{float(total_loss):.3f}", f"{time.time():.1f}",
+                        f"{float(gap_err_mean):.1f}", f"{float(gap_min_m):.1f}"])
 
         # 终端（每集刷新）
         msg = (f"Ep {ep}/{self.total} | R {reward:+.0f} | "
-               f"pkCpl {peak_coupler_kN:.0f}kN | viol {violations} | loss {total_loss:.3f}")
+               f"pkCpl {peak_coupler_kN:.0f}kN | viol {violations} | loss {total_loss:.3f} | "
+               f"gap_err {gap_err_mean:+.0f}m | gap_min {gap_min_m:.0f}m")
         if self._use_tqdm and self._tqdm is not None:
             self._tqdm.set_postfix_str(msg)
             self._tqdm.update(1)
@@ -109,6 +113,8 @@ class TrainingLogger:
                 self._writer.add_scalar('peak_coupler_kN', peak_coupler_kN, t)
                 self._writer.add_scalar('violations', violations, t)
                 self._writer.add_scalar('total_loss', total_loss, t)
+                self._writer.add_scalar('gap_err_mean', gap_err_mean, t)
+                self._writer.add_scalar('gap_min_m', gap_min_m, t)
             except Exception as e:
                 logger.info(f"[log] TB write 跳过：{e}")
 

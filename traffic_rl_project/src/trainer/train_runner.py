@@ -155,6 +155,8 @@ class TrainRunner:
                 parallel_len = int(cfg.parallel_traj_len) or horizon
                 env.max_steps = parallel_len
                 self._traj_reward, self._traj_peak, self._traj_viol = [], [], []
+                # 列间间距监控（2026-09-23 新增）：每轨迹聚合间距误差均值 / 最小间距
+                self._traj_gap_err, self._traj_gap_min = [], []
 
                 # 并行 n_env 条独立轨迹（初速均匀铺开 [min,max]，随机化时叠加抖动）：
                 # 全部进共享 buffer，统一 end_episode 一次
@@ -174,6 +176,8 @@ class TrainRunner:
                     obs = cyclic_obs(env) if cfg.obs == 'cyclic' else obs
 
                     ep_reward, ep_peak, ep_viol, step, done = 0.0, 0.0, 0, 0, False
+                    # 列间间距监控（2026-09-23 新增）：本轨迹间距误差累计 / 最小间距
+                    ep_gap_err_sum, ep_gap_min, gap_steps = 0.0, float('inf'), 0
                     while not done and step < parallel_len:
                         if cfg.decision_interval > 1:
                             env_act, value, aux = inter.act(obs)
@@ -200,17 +204,34 @@ class TrainRunner:
                         ep_reward += reward
                         ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))
                         ep_viol = info.get('coupler_limit_violations', 0)
+                        # 列间间距监控（2026-09-23 新增）
+                        if info is not None:
+                            _ge = info.get('gap_err_mean', 0.0)
+                            _gm = info.get('gap_min_m', float('inf'))
+                            ep_gap_err_sum += float(_ge)
+                            ep_gap_min = min(ep_gap_min, float(_gm))
+                            gap_steps += 1
                         obs = next_obs
 
                     self._traj_reward.append(ep_reward)
                     self._traj_peak.append(ep_peak)
                     self._traj_viol.append(ep_viol)
+                    # 列间间距监控：轨迹级 = 间距误差均值 / 最小间距（无步则留空）
+                    if gap_steps > 0:
+                        self._traj_gap_err.append(ep_gap_err_sum / gap_steps)
+                        self._traj_gap_min.append(ep_gap_min)
+                    else:
+                        self._traj_gap_err.append(0.0)
+                        self._traj_gap_min.append(0.0)
 
                 # 并行 n_env 条轨迹跑完后统一 update，聚合指标取平均
                 metrics = inter.end_episode() or {}
                 ep_reward = float(np.mean(self._traj_reward))
                 ep_peak = float(np.max(self._traj_peak))
                 ep_viol = int(np.sum(self._traj_viol))
+                # 列间间距监控（2026-09-23 新增）：全轨迹间距误差均值 / 最危险的最小间距
+                ep_gap_err = float(np.mean(self._traj_gap_err))
+                ep_gap_min = float(np.min(self._traj_gap_min))
                 episode_rewards.append(ep_reward)
                 peak_coupler.append(ep_peak / 1e3)
                 violations.append(ep_viol)
@@ -223,6 +244,8 @@ class TrainRunner:
                         peak_coupler_kN=ep_peak / 1e3,
                         violations=ep_viol,
                         total_loss=float(metrics.get('total_loss', 0.0)),
+                        gap_err_mean=ep_gap_err,
+                        gap_min_m=ep_gap_min,
                     )
 
                 # 【2026-09-22】long_eval 启用时 best 由完整剖面评估驱动，训练窗口

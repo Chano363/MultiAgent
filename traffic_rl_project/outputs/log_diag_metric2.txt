@@ -1,0 +1,17 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+断面力口径 = coupler_interface_forces()（正=压钩力）  LIMIT=1000kN  STEPS=1200
+full         | 断面力峰值= 1238.4kN @t=1076 (train2) | 步数>1000kN= 124/1200 | 车厢·步>1000kN=   125 | 逐列峰值=[948.1, 1111.9, 1238.4]
+             峰值步 t=1076 逐机车执行动作: E:+0.72/+0.00 E:+0.20/+0.00 E:+0.26/+0.00 T:-0.11/+0.00 E:+0.50/+0.00 E:+0.50/+0.00
+no_rl(规则基线)  | 断面力峰值=  767.7kN @t=1078 (train2) | 步数>1000kN=   0/1200 | 车厢·步>1000kN=     0 | 逐列峰值=[739.2, 751.0, 767.7]
+             峰值步 t=1078 逐机车执行动作: E:+1.00/+0.00 E:+0.70/+0.00 T:-0.04/+0.00 T:-0.04/+0.00 E:+1.00/+0.00 E:+0.70/+0.00
+no_traction  | 断面力峰值= 1242.3kN @t=1181 (train2) | 步数>1000kN= 110/1200 | 车厢·步>1000kN=   110 | 逐列峰值=[991.3, 975.5, 1242.3]
+             峰值步 t=1181 逐机车执行动作: E:+0.50/+0.00 E:+0.92/+0.00 E:+0.42/+0.00 -:+0.00/+0.00 E:+0.14/+0.00 E:+0.14/+0.00
+no_ab        | 断面力峰值=  870.1kN @t=1151 (train1) | 步数>1000kN=   0/1200 | 车厢·步>1000kN=     0 | 逐列峰值=[730.1, 870.1, 737.8]
+             峰值步 t=1151 逐机车执行动作: E:+0.50/+0.00 E:+1.00/+0.00 E:+0.50/+0.00 E:+0.36/+0.00 T:-0.11/+0.00 E:+0.50/+0.00
+
+---- 规则基线 vs 策略：断面力逐列峰值对比 ----
+  规则基线 train峰值 = [739.2, 751.0, 767.7]
+  策略     train峰值 = [948.1, 1111.9, 1238.4]

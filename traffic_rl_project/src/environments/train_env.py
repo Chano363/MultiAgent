@@ -221,6 +221,8 @@ class TrainFormationEnv:
             max_speed_mps=self.line_speed_limit_mps,
             coupler_force_limit_n=self.coupler_force_limit_n,
             min_gap_m=self.target_gap * 0.1,
+            # 【2026-09-30】车列总长（米）→ 安全层按"位置+波速"预测 AB 峰值到达时域
+            train_length_m=float(sum(v.length_m for v in consist.vehicles)),
         )
 
         # 【2026-09-03 智能体分解重构（ADR-009）】decompose='loco_ed_ab' 模式：
@@ -327,9 +329,13 @@ class TrainFormationEnv:
         is_emergency = any(x == AirBrakeNotch.EMERGENCY for x in ab_state)
         snap = {
             'vel': self.dynamics.vel.copy(),
-            'coupler_forces': np.abs(self.dynamics._coupler_forces()),
+            # 【2026-09-30 口径统一】喂给安全层的车钩力 = **每车断面力视图**
+            # （相邻钩断面力最大幅值，长度 n）；原用每车净力会在拉压交界处
+            # 矢量和抵消/叠加 → 安全层门控误判（漏报+误报并存）。
+            'coupler_forces': self.dynamics.coupler_interface_forces_per_vehicle(),
             'gaps': gaps,
             'emergency': is_emergency,
+            'dt': self.dt,
         }
         # 注入 ETCS 前瞻式监督所需数据（车头里程 + 前方目标 + 共享曲线；无曲线时跳过）
         if self.etcs_curve is not None:
@@ -338,12 +344,19 @@ class TrainFormationEnv:
             snap['etcs_targets'] = list(self.etcs_targets)
         return snap
 
-    def _update_metrics(self, coupler: np.ndarray):
-        """更新最终指标统计。"""
-        abs_c = np.abs(coupler)
-        if len(abs_c):
-            self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(abs_c)))
-            self._coupler_limit_violations += int(np.sum(abs_c > self.coupler_force_limit_n))
+    def _update_metrics(self):
+        """更新最终指标统计（**断面力口径** = coupler_interface_forces，长度 n-1）。
+
+        【2026-09-30 治本-口径统一】车钩力硬指标 SSOT = 单钩断面力（论文/实测基准）。
+        此前用每车净力（_coupler_forces）：相邻钩矢量和在拉压交界处会抵消（漏报）或
+        同号叠加，驻车净力≠断面力 → 违规计数/峰值误报（诊断-2026-09-30 实测少报约 7.8×）。
+        本函数不再接收外部数组，直接按动力学断面力计算，杜绝口径漂移。
+        """
+        interface = np.abs(self.dynamics.coupler_interface_forces())
+        if interface.size:
+            self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(interface)))
+            self._coupler_limit_violations += int(
+                np.sum(interface > self.coupler_force_limit_n))
         # 【bug修复 2026-08-20】超速指标按线路限速 line_speed_limit_mps 统计
         # （原实现按机车物理限速 max_speed_mps=108km/h，与论文"超80率"指标口径不符）
         if np.max(self.dynamics.vel) > self.line_speed_limit_mps:
@@ -402,9 +415,12 @@ class TrainFormationEnv:
         )
 
         obs = self._get_obs()
+        # 奖励塑形保留**每车净力**口径（不改，避免作废既有 checkpoint；见 2026-09-30 决策）
         coupler = np.abs(self.dynamics._coupler_forces())
         reward = self._calculate_reward(obs, coupler)
-        self._update_metrics(coupler)
+        # 指标/违规计数用**断面力**口径（SSOT）
+        interface = np.abs(self.dynamics.coupler_interface_forces())
+        self._update_metrics()
 
         self.steps += 1
         terminated = False
@@ -418,8 +434,8 @@ class TrainFormationEnv:
         info = {
             'speed': float(np.mean(self.dynamics.vel)),
             'formation_gap_err': float(np.mean(np.abs(obs[:, 1]))),
-            'coupler_force': float(np.mean(np.abs(coupler))),
-            'coupler_force_peak': float(np.max(coupler)),
+            'coupler_force': float(np.mean(interface)) if interface.size else 0.0,
+            'coupler_force_peak': float(np.max(interface)) if interface.size else 0.0,
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
             'overspeed_violations': int(self._overspeed_violations),
@@ -513,9 +529,12 @@ class TrainFormationEnv:
         )
 
         obs = self._get_obs()
+        # 奖励塑形保留**每车净力**口径（不改，避免作废既有 checkpoint；见 2026-09-30 决策）
         coupler = np.abs(self.dynamics._coupler_forces())
         reward = self._calculate_reward(obs, coupler)
-        self._update_metrics(coupler)
+        # 指标/违规计数用**断面力**口径（SSOT）
+        interface = np.abs(self.dynamics.coupler_interface_forces())
+        self._update_metrics()
 
         self.steps += 1
         terminated = False
@@ -527,8 +546,8 @@ class TrainFormationEnv:
         info = {
             'speed': float(np.mean(self.dynamics.vel)),
             'formation_gap_err': float(np.mean(np.abs(obs[:, 1]))),
-            'coupler_force': float(np.mean(np.abs(coupler))),
-            'coupler_force_peak': float(np.max(coupler)),
+            'coupler_force': float(np.mean(interface)) if interface.size else 0.0,
+            'coupler_force_peak': float(np.max(interface)) if interface.size else 0.0,
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
             'overspeed_violations': int(self._overspeed_violations),

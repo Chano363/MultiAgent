@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "git_commit": "a03ebc31e08ebfea7c02ead53a11daf9d0d7cf62",
+    "physics_version": "29569dcaf78a",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus0|grade=shuozhou_real_53km",
+    "simulator_model_version": "d8b93f54ff28",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "evaluate_decompose.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus0",
+        "grade_profile": "shuozhou_real_53km",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
+    "eval_args": {
+      "mode": "decompose_m1",
+      "checkpoint": "outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep2265_dec_ad2_cp_seed0_seed0.pt",
+      "grade": "shuozhou_real_53km",
+      "max_steps": 36000,
+      "num_trains": 3,
+      "enable_mpc": false,
+      "mpc_simple": false,
+      "mpc_type": "fair",
+      "mpc_gap_min": 20.0,
+      "mpc_enforce_coupler": true,
+      "n_seed": 3,
+      "eval_seed": 0,
+      "init_speed_kmh": 80.0,
+      "random_init_speed": false,
+      "decision_interval": 10,
+      "mask_lever": "none",
+      "hetero": false,
+      "hetero_seed": 0,
+      "out_suffix": "_s0_ep2265_int10"
+    }
+  },
+  "args": {
+    "mode": "decompose_m1",
+    "checkpoint": "outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep2265_dec_ad2_cp_seed0_seed0.pt",
+    "grade": "shuozhou_real_53km",
+    "max_steps": 36000,
+    "num_trains": 3,
+    "enable_mpc": false,
+    "mpc_simple": false,
+    "mpc_type": "fair",
+    "mpc_gap_min": 20.0,
+    "mpc_enforce_coupler": true,
+    "n_seed": 3,
+    "eval_seed": 0,
+    "init_speed_kmh": 80.0,
+    "random_init_speed": false,
+    "decision_interval": 10,
+    "mask_lever": "none",
+    "hetero": false,
+    "hetero_seed": 0,
+    "out_suffix": "_s0_ep2265_int10"
+  },
+  "results": {
+    "decompose_M1_rl": {
+      "reward": -13933686.056809893,
+      "peak_coupler_kN": 1248.289221054836,
+      "viol": 12200.666666666666,
+      "safety_events": 23481.666666666668,
+      "ab_steps": 0.0,
+      "mean_ed": 0.2407622928623884,
+      "band_rate": 0.06314814814814816,
+      "final_speed_kmh": 18.13652465957254,
+      "per_seed": [
+        {
+          "reward": -13879768.421094812,
+          "peak_coupler_kN": 1249.0190337556812,
+          "viol": 11627.0,
+          "safety_events": 24654.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.2406839444176835,
+          "band_rate": 0.06419444444444444,
+          "final_speed_kmh": 18.26845238724854
+        },
+        {
+          "reward": -14015483.086816793,
+          "peak_coupler_kN": 1247.7973723869143,
+          "viol": 13405.0,
+          "safety_events": 23333.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.24108425908021355,
+          "band_rate": 0.06811111111111111,
+          "final_speed_kmh": 18.053320476038508
+        },
+        {
+          "reward": -13905806.662518073,
+          "peak_coupler_kN": 1248.0512570219119,
+          "viol": 11570.0,
+          "safety_events": 22458.0,
+          "ab_steps": 0.0,
+          "mean_ed": 0.24051867508926822,
+          "band_rate": 0.05713888888888889,
+          "final_speed_kmh": 18.087801115430562
+        }
+      ]
+    }
+  }
+}

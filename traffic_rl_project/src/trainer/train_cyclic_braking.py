@@ -58,6 +58,8 @@ def cyclic_obs(env) -> np.ndarray:
     对齐 Zhang2024 s=[P,V,T]（位置/速度/时间），加我们的车钩力增量。
     """
     vel = float(env.dynamics.vel[0])          # 机车速度（m/s）
+    # 【2026-09-30 口径统一】obs 通道刻意保留**每车净力**口径（不改，
+    # 避免作废第1层既有 checkpoint）；断面力口径只用于安全层门控/违规计数/评估指标。
     coupler = np.abs(env.dynamics._coupler_forces())
     coupler_peak = float(np.max(coupler)) if len(coupler) else 0.0
     return np.array([
@@ -147,6 +149,7 @@ def cyclic_reward(env, prev_speed, prev_coupler_peak, brake_engaged, throttle) -
     →惩罚（引导牵引恢复）。修复 RL 只学"贴上限[76,81]"不学"40-80完整循环"。
     """
     vel = float(env.dynamics.vel[0])
+    # 【2026-09-30 口径统一】reward 塑形刻意保留**每车净力**口径（不改，避免作废既有 checkpoint）
     coupler = np.abs(env.dynamics._coupler_forces())
     coupler_peak = float(np.max(coupler)) if len(coupler) else 0.0
 

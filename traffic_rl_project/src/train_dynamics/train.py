@@ -356,6 +356,25 @@ class TrainDynamics:
             return np.zeros(0)
         return self._coupler_interface_forces_vec()
 
+    def coupler_interface_forces_per_vehicle(self) -> np.ndarray:
+        """每节车所受相邻钩断面力的**最大幅值**（长度 n，无量纲符号，恒 ≥ 0）。
+
+        【2026-09-30 治本-口径统一】断面力口径（coupler_interface_forces，长度 n-1，
+        单钩）作用于相邻两车：第 i 车同时承受前钩(i-1)与后钩(i)的断面力，其强度取
+        两者幅值较大者。本函数把"单钩断面力"映射回"每车视图"，专供：
+        - **安全层按车索引钳制动作**（actions[i] 对应第 i 车，需长度 n）；
+        - 控制器按车取"当前列内耦合器力量级"。
+
+        ⚠️ 评估/违规计数口径请用 coupler_interface_forces()（长度 n-1），
+        **不要**用本函数做统计（本函数对每钩力重复计入相邻两车，会 2× 计数）。
+        """
+        n = self.num_vehicles
+        if n < 2:
+            return np.zeros(n)
+        f = np.abs(self._coupler_interface_forces_vec())  # 长度 n-1
+        padded = np.concatenate(([0.0], f, [0.0]))        # 长度 n+1
+        return np.maximum(padded[:-1], padded[1:])        # 长度 n
+
     def _resistance_forces(self) -> np.ndarray:
         """Davis 阻力（恒与速度方向相反，含坡度项在 grade 中单独计算）。
 

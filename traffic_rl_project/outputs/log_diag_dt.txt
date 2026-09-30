@@ -1,0 +1,12 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+
+---- dt=0.1 (决策节奏 1s, 120s 时程) ----
+full(策略,ep100)             dt=0.1   | 断面力峰值= 1238.4kN @t= 1076 | 步数>1000kN= 124/1200 | 逐列峰值=[948.1, 1111.9, 1238.4] | v_end= 27.6 v_min= 26.0 km/h
+no_rl(纯规则基线)               dt=0.1   | 断面力峰值=  767.7kN @t= 1078 | 步数>1000kN=   0/1200 | 逐列峰值=[739.2, 751.0, 767.7] | v_end= 41.2 v_min= 40.0 km/h
+
+---- dt=0.05 (决策节奏 1s, 120s 时程) ----
+full(策略,ep100)             dt=0.05  | 断面力峰值= 1377.7kN @t= 2391 | 步数>1000kN= 215/2400 | 逐列峰值=[949.0, 1377.7, 1272.8] | v_end= 27.0 v_min= 25.4 km/h
+no_rl(纯规则基线)               dt=0.05  | 断面力峰值=  780.9kN @t= 2196 | 步数>1000kN=   0/2400 | 逐列峰值=[746.6, 751.0, 780.9] | v_end= 41.2 v_min= 40.0 km/h

@@ -1,0 +1,30 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+  step | pos_km | 剖面坡度‰ | v_km/h | ed_avail | ab_src | pkCpl_kN | 制动相位
+     0 |   0.00 |     -1.50 |    79.4 |     1.50 |      0 |    161.5 | True
+   400 |   0.82 |     -5.00 |    66.9 |     1.50 |      0 |    473.0 | True
+   800 |   1.49 |     -1.30 |    54.4 |     1.50 |      0 |    553.2 | True
+  1200 |   2.02 |     -9.00 |    41.3 |     1.50 |      0 |    725.8 | False
+  1600 |   2.48 |    -10.00 |    43.7 |     1.35 |      0 |    725.8 | False
+  2000 |   3.00 |     -6.20 |    50.9 |     1.35 |      0 |    725.8 | False
+  2400 |   3.62 |     -6.20 |    59.1 |     1.22 |      0 |    725.8 | False
+  2800 |   4.31 |    -10.20 |    65.6 |     1.08 |      0 |    725.8 | False
+  3200 |   5.08 |    -10.20 |    72.4 |     0.98 |      2 |    725.8 | True
+  3600 |   5.85 |    -10.20 |    67.2 |     1.05 |      2 |    755.8 | True
+  4000 |   6.59 |    -10.20 |    66.1 |     1.07 |      0 |    755.8 | True
+  4400 |   7.31 |    -10.20 |    64.7 |     1.09 |      2 |    775.6 | True
+  4800 |   8.03 |    -10.20 |    63.5 |     1.11 |      0 |    775.6 | True
+  5200 |   8.72 |    -10.20 |    61.8 |     1.14 |      2 |    776.2 | True
+  5600 |   9.40 |    -10.20 |    60.1 |     1.18 |      0 |    776.2 | True
+  6000 |  10.06 |    -10.20 |    58.1 |     1.22 |      0 |    776.2 | True
+  6400 |  10.69 |    -10.20 |    55.8 |     1.27 |      0 |    776.2 | True
+  6800 |  11.29 |    -10.20 |    53.0 |     1.32 |      0 |    776.2 | True
+  7200 |  11.86 |    -10.20 |    49.6 |     1.32 |      0 |    776.2 | True
+  7600 |  12.39 |    -10.20 |    45.3 |     1.32 |      0 |    776.2 | True
+  7999 |  12.87 |    -10.20 |    41.7 |     1.32 |      0 |    776.2 | False
+  提前结束于 step=7999
+
+剖面坡度概览（每 2km 抽样）：
+  0km:-1.5  2km:-9.0  4km:-10.2  6km:-10.2  8km:-10.2  10km:-10.2  12km:-10.2  14km:-10.2  16km:-10.2  18km:-12.0  20km:-10.8  22km:-10.1  24km:-9.4  26km:-1.5  28km:-11.2  30km:-10.8  32km:-10.8  34km:-12.0  36km:-11.2  38km:-11.0  40km:-10.5  42km:-11.0  44km:-10.5  46km:-10.6  48km:-10.5  50km:-1.2  52km:-11.0

@@ -1,0 +1,46 @@
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+Users of this version of Gym should be able to simply replace 'import gym' with 'import gymnasium as gym' in the vast majority of cases.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+
+=== 情景 A 重叠+ETCS开  overlap=True  etcs=True ===
+   t | pkCpl | viol | safety_evt | gap_min | v0_kmh | ab_src
+    0 |  161.7 |    0 |        289 |  -116.7 |    79.4 |      0
+   50 |  477.1 |    0 |        296 |  -116.3 |    78.5 |      0
+  100 |  477.1 |    0 |        324 |  -116.0 |    76.8 |      0
+  150 |  477.1 |    0 |        354 |  -116.4 |    75.2 |      0
+  200 |  477.1 |    0 |        355 |  -116.3 |    73.4 |      0
+  250 |  477.1 |    0 |        355 |  -115.8 |    71.9 |      0
+  300 |  477.1 |    0 |        355 |  -116.0 |    70.4 |      0
+  350 |  477.1 |    0 |        355 |  -116.1 |    68.6 |      0
+  400 |  477.1 |    0 |        355 |  -115.7 |    66.9 |      0
+  450 |  477.1 |    0 |        355 |  -115.6 |    65.4 |      0
+  500 |  481.4 |    0 |        355 |  -115.8 |    63.6 |      0
+  550 |  496.2 |    0 |        355 |  -115.6 |    61.8 |      0
+  600 |  504.1 |    0 |        355 |  -115.3 |    60.2 |      0
+  650 |  504.1 |    0 |        355 |  -115.5 |    58.5 |      0
+  700 |  528.1 |    0 |        355 |  -115.3 |    56.6 |      0
+  750 |  553.4 |    0 |        355 |  -115.0 |    55.0 |      0
+  799 |  553.4 |    0 |        355 |  -115.1 |    53.4 |      0
+  --> A 重叠+ETCS开: pkCpl_max=553.4kN  viol=0  safety_events=355
+
+=== 情景 B 重叠+ETCS关  overlap=True  etcs=False ===
+   t | pkCpl | viol | safety_evt | gap_min | v0_kmh | ab_src
+    0 |  161.5 |    0 |        288 |  -116.7 |    79.4 |      0
+   50 |  473.0 |    0 |        288 |  -116.3 |    78.5 |      0
+  100 |  473.0 |    0 |        288 |  -116.1 |    76.8 |      0
+  150 |  473.0 |    0 |        288 |  -116.5 |    75.2 |      0
+  200 |  473.0 |    0 |        288 |  -116.5 |    73.4 |      0
+  250 |  473.0 |    0 |        288 |  -116.1 |    71.9 |      0
+  300 |  473.0 |    0 |        288 |  -116.3 |    70.4 |      0
+  350 |  473.0 |    0 |        288 |  -116.5 |    68.6 |      0
+  400 |  473.0 |    0 |        288 |  -116.2 |    66.9 |      0
+  450 |  473.0 |    0 |        288 |  -116.2 |    65.4 |      0
+  500 |  473.3 |    0 |        288 |  -116.5 |    63.6 |      0
+  550 |  496.2 |    0 |        288 |  -116.3 |    61.8 |      0
+  600 |  504.1 |    0 |        288 |  -116.1 |    60.2 |      0
+  650 |  504.1 |    0 |        288 |  -116.4 |    58.5 |      0
+  700 |  528.1 |    0 |        288 |  -116.4 |    56.6 |      0
+  750 |  553.2 |    0 |        288 |  -116.1 |    55.0 |      0
+  799 |  553.2 |    0 |        288 |  -116.3 |    53.4 |      0
+  --> B 重叠+ETCS关: pkCpl_max=553.2kN  viol=0  safety_events=288

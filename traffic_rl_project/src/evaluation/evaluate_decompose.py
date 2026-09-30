@@ -112,6 +112,7 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         init = args.init_speed_kmh / 3.6
     obs, _ = env.reset(options={'speed': init})
     ep_r = peak = ab_steps = ed_sum = band = viol = safety = 0.0
+    prev_viol = prev_safety = 0.0  # env episode 级累计计数器的上一轮快照，用于取增量
     n = 0
     decompose = bool(env.decompose)
     actions = None
@@ -124,8 +125,12 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         obs, r, term, trunc, info = env.step(actions)
         ep_r += r
         peak = max(peak, info['coupler_force_peak'])
-        viol += info['coupler_limit_violations']
-        safety += info.get('safety_events', 0)
+        # env 的 coupler/safety 计数器是 episode 级单调累计（reset 清零、step 间不清零），
+        # 此处必须取其每步增量累加；否则 O(n²) 叠加会把 viol/safety_events 放大到 1e6~1e8（2026-09-25 修复）。
+        viol += info['coupler_limit_violations'] - prev_viol
+        prev_viol = info['coupler_limit_violations']
+        safety += info.get('safety_events', 0) - prev_safety
+        prev_safety = info.get('safety_events', 0)
         if decompose:
             ab_steps += int(info['ab_source_count'] > 0)
             ed_sum += float(np.mean(info['executed_actions'][:, 0]))

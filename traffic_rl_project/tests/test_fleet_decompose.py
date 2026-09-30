@@ -236,7 +236,11 @@ def test_decompose_mask_lever_isolates_modulation():
     assert np.all(np.abs(final_ed_masked[:, 0] - base[:, 0]) < 1e-9)  # ED 锁基线（ed_mod=0）
     # AB 提前触发在规则基线非 AB 态下生效（ab_mod 杠杆可用）
     if np.all(base[:, 1] >= 0):
-        assert np.all(final_ed_masked[:, 1] == MultiLocoController.AB_FALLBACK_NOTCH)
+        # 【2026-09-26 单步并发 ≤1】至多 1 台机车可新增 AB 源（防多源压缩波同步叠加），
+        # 故不再要求"每台机车都触发"，只要求恰好 1 台被 AB 杠杆触发。
+        n_fallback = int(np.sum(
+            final_ed_masked[:, 1] == MultiLocoController.AB_FALLBACK_NOTCH))
+        assert n_fallback == MultiLocoController.AB_MAX_CONCURRENT_ADD
 
 
 def test_hetero_domain_randomization_resample():

@@ -55,7 +55,7 @@
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
-| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` | 实验/诊断数据（按月拆分，append-only）       | active |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
 | `ITSC_PAPER.md` / `.tex` / `.pdf` | 论文（唯一权威）                     | active |
@@ -72,7 +72,7 @@
 | `rules/CHECKLIST_NEW_DOC.md`   | 新建/修改文档清单                       |
 | `rules/EXECUTION_RULES.md`     | 执行规范（原 PIPELINE 七）              |
 | `logs/decisions/DECISIONS.md`  | 决策记录（ADR）                       |
-| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` | 实验/诊断数据（按月拆分） |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` | 实验/诊断数据（按月 / 体积拆分） |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分） |
 | `logs/learnings/LEARNINGS.md`  | 踩坑 / 失败教训                        |
 | `logs/README.md`               | 工作日志入口（指向 `.codebuddy/memory/`） |
