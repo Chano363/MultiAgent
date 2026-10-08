@@ -1,0 +1,728 @@
+Virtual Coupling Train Following Control Using High Order Control
+Barrier Functions
+Yike Li, Yin Tong∗, Alessandro Giua
+Abstract— Virtual Coupling (VC) has gained increasing at-
+tention as a next-generation railway signaling solution. Its
+implementation, however, poses critical control challenges, as
+following trains must maintain small inter-train spacing under
+dynamic operating conditions. This paper proposes a decentral-
+ized control framework for VC followers, where safety is defined
+by the relative braking distance (RBD) principle and enforced
+through High Order Control Barrier Functions (HOCBFs). An
+adaptive switching heuristic is introduced to compute the refer-
+ence control force while accounting for potential Train-to-Train
+(T2T) communication delays. The HOCBF constraints and
+reference control are embedded into a sequence of Quadratic
+Programs (QPs) solvable in real time. The proposed method
+guarantees safety for VC followers without requiring centralized
+coordination or full trajectory prediction of the preceding
+trains.
+I. INTRODUCTION
+To meet the growing demand for railway capacity, Virtual
+Coupling (VC) has emerged as a promising signaling concept
+that enables trains to dynamically form convoys and separate,
+thereby improving operational flexibility without the need for
+physical couplers [1]. In a VC convoy, multiple trains operate
+at a reduced spacing and coordinate their movements through
+Train-to-Train (T2T) wireless communication. This enables
+flexible train formations based on real-time passenger or
+freight demands, while avoiding issues associated with tradi-
+tional mechanical coupling—such as incompatibility between
+heterogeneous carriages and excessive in-train forces [2].
+Recent studies have demonstrated that VC can significantly
+reduce headway and enhance line throughput [3].
+Among previous studies on train control under VC, the
+general idea is to control the follower’s velocity based on
+the distance to its predecessor. Traditional moving block
+systems use the absolute braking distance [4], In contrast, VC
+This work has been supported by the project co-funded by the European
+Union – Next Generation Eu - under the National Recovery and Resilience
+Plan (NRRP), Mission 4 Component 1 Investment 4.1 - Decree No.351 (9th
+April 2022) of Italian Ministry of University and Research - Concession
+Decree No. 2152 (28th December 2022) of the Italian Ministry of University
+and Research, Project code D93C22000860005, within the Italian National
+Program PhD Programme in Autonomous Systems (DAuSy), by the Project
+SERICS (PE00000014), and by the National Natural Science Foundation of
+China under Grant No. 62373313 and by the Fundamental Research Funds for
+the Central Universities under Grant No. 2682025GH015.
+Y. Li is with the Department of Electrical and Electronic Engineering,
+University of Cagliari, Cagliari 09123, Italy; and the Department of Elec-
+trical and Information Engineering, Polytechnic of Bari, Bari 70125, Italy
+yike.li@unica.it; y.li@phd.poliba.it
+Y. Tong (*Corresponding Author) is with the School of Information Science
+and Technology, Southwest Jiaotong University, Chengdu 611756, China
+yintong@swjtu.edu.cn
+A. Giua is with the Department of Electrical and Electronic Engineering,
+University of Cagliari, Cagliari 09123, Italygiua@unica.it
+leverages T2T communication to enable the more efficient
+relative braking distance(RBD) principle [5], which consid-
+ers the braking performance of both follower and predecessor
+and effectively reduces unnecessary gaps between them.
+Despite the RBD principle being the theoretical basis for VC
+spacing, many studies adopt a simplified version of the RBD
+usually in the following three different ways: (i) constant
+minimum distances, (ii) linearized RBD-based distances and
+(iii) scenario-based distances.
+Constant spacing is often set empirically, e.g., 130 m
+in [6], 200–300 m in [7], or 60 m in [8]. Such values are ac-
+ceptable for high-speed lines. However, they are impractical
+for metro lines. Metro platforms are shorter, and stations are
+closer together, where closely coupled operations are crucial
+to adapt to fluctuating passenger demand and improve service
+quality. The linearized RBD proposed in [9], [10] assume
+identical braking rates and velocity limits, which simplifies
+control but ignores potential safety risks. Some studies utilize
+constant time headway to define the linear spacing princi-
+ple [11], which is originated from the autonomous cruise
+control of cars. However, this criterion of cars lacks practical
+validation in the railway context, where braking dynamics of
+train differ significantly from that of road vehicles. Scenario-
+based spacing approaches adjust the minimum separation
+according to discrete operational phases [12], [13]. An ad-
+ditional scheme is required to identify and manage those
+different phases, which might increase system complexity.
+On the other hand, the train-borne implementation of VC
+functionality primarily requires upgrading the onboard sys-
+tem, which must meet strict safety and real-time computing
+requirements. Once the formation is established, the leading
+train handles path planning. The key challenge in controlling
+a following train lies in ensuring both safety and stability
+while responding to the leader’s maneuvers and satisfying
+time-varying constraints. This motivates the need for real-
+time capable control algorithms that can guarantee safety
+without compromising the capacity benefits enabled by VC.
+To address the identified research gaps, this paper pro-
+poses a HOCBF-based optimal safety controller for the
+following trains in VC. Control Barrier Function (CBF) are
+Lyapunov-like functions that enforce state-dependent con-
+straints on the control input, ensuring that the system remains
+within a predefined safe set. CBFs have recently emerged
+as powerful tools for safety-critical control of dynamical
+systems, and have been successfully applied to real-time
+control in applications such as drones, bipedal robots, and
+connected autonomous vehicles [14]. High Order Control
+Barrier Functions (HOCBFs), as a generalization of CBFs,
+Fig. 1: Framework of the HOCBF-based VC Follower Controller.
+Fig. 2: A general VC convoy consisting of𝑁trains.
+are specifically designed to handle constraints with arbitrary
+relative degree [15].
+The overall controller design is depicted in Fig. 1. Com-
+bining the kinetic information transmitted from the preceding
+train via T2T communication, a reference control force is
+computed to achieve convergence in inter-train distance. An
+adaptive switching mechanism is employed to account for
+potential T2T communication delays. Meanwhile, HOCBFs
+are formulated to enforce collision avoidance constraints by
+filtering the reference force. The controller integrates the
+reference force and HOCBF constraints into a Quadratic
+Program (QP) to compute the control input. A decentralized
+control scheme is adopted, where each follower solves its
+local QP based on the proposed HOCBF-based framework.
+The main contributions of this paper are: 1. A realization
+of the RBD-based spacing policy using HOCBFs, enhancing
+the flexibility of convoy movement. 2. A real-time controller
+capable of handling time-varying leader maneuvers and com-
+munication delays. The remainder is organized as follows.
+Section II introduces the VC train following control problem.
+Section III presents the control approach. Effectiveness of
+the proposed approach is demonstrated with a simulation in
+Section IV. Conclusion is given in Section V.
+II. Problem Formulation
+In this section, we first provide a brief overview of the
+decentralized control scheme for a VC convoy and the train
+dynamics, then formalize the constraints and objectives of
+the following train control problem.
+A. Convoy Structure and Train Dynamics
+We investigate a general VC convoy consisting of𝑁
+trains as shown in Fig. 2, where each following train𝑖
+(𝑖=1,2, ... ,𝑁−1), simply called the follower, receives
+real-time kinematic data (e.g., speed, position, acceleration)
+only from its direct predecessor𝑖−1. The leading train
+(simply called the leader), indexed by 0, is responsible for
+processing operational commands that determine the overall
+convoy behavior, such as entering and departing one segment
+or stations. Each follower adjust its control input to maintain
+the desired spacing and velocity relative to its preceding train.
+In this paper, we focus on the control of following trains
+and assume that the trajectory of the leading train has been
+pre-designed. The longitudinal dynamics of each follower𝑖
+can be modeled as a mass-point system and is described by the
+following continuous dynamic equation [16]:
+ 
+
+¤𝑝𝑖(𝑡)=𝑣 𝑖(𝑡)
+¤𝑣𝑖(𝑡)= 𝑢𝑖(𝑡)−𝑟 𝑖(𝑡)
+𝑀𝑖
+(1)
+where𝑀 𝑖 [kg]denotes the mass of train𝑖,𝑣 𝑖(𝑡) [m/s]is
+the velocity, and𝑝 𝑖(𝑡)[m]is the position of the train’s head.
+External forces include the traction or braking force (T/B force)
+𝑢𝑖(𝑡)[N], which is the control input, and the running resistance
+force𝑟 𝑖(𝑡)[N]is calculated by a 2-order empirical equation
+called the Davis equation [17]:
+𝑟𝑖(𝑡)=(𝐶 0,𝑖+𝐶 1,𝑖𝑣𝑖(𝑡)+𝐶 2,𝑖𝑣2
+𝑖(𝑡))𝑀𝑖,(2)
+where𝐶 1,𝑖 and𝐶 2,𝑖 are the coefficients related to mechanical
+and aerodynamic characteristics, respectively. The parameter
+𝐶0,𝑖 refers to the starting resistance, which can be neglected
+when the speed is greater than 3 m/s.
+B. Constraints and Objectives
+To ensure safety and stability of the convoy movement, the
+following constraints are defined.
+1) Control Limits:The control input𝑢 𝑖(𝑡)is constrained
+by the mechanical limitations:
+−𝑀𝑖𝐵𝑖≤𝑢 𝑖(𝑡)≤𝑀 𝑖𝑇𝑖,(3)
+where𝐵 𝑖 >0 and𝑇 𝑖 >0 denote the maximum allowable
+braking and traction rates (in m/s2), respectively.
+2) Collision Avoidance Constraint:Let𝑑 𝑖(𝑡)be the dis-
+tance between the head of train𝑖and the rear of train𝑖−1,
+given by
+𝑑𝑖(𝑡)=𝑝 𝑖−1(𝑡)−𝑝 𝑖(𝑡)−𝐿 𝑖−1,(4)
+where𝑝 𝑖−1(𝑡)and𝑝 𝑖(𝑡)denote the head positions of the two
+trains, and𝐿 𝑖−1 is the length of train𝑖−1. To ensure safety
+under all braking scenarios, the distance between train𝑖and
+train𝑖−1 must always be greater than or equal to aminimum
+safe distance𝑑 ∗
+𝑖(𝑡)determined by the RBD-based spacing
+principle:
+𝑑𝑖(𝑡)≥𝑑 ∗
+𝑖(𝑡)=max(𝜃 𝑖(𝑡),0)+𝑑 0,(5)
+where𝑑 0 is a default margin that separates trains even when
+they are both stationary, ensuring a standstill clearance, and
+𝜃𝑖(𝑡)represents the deviation between the braking distances
+of train𝑖and train𝑖−1, given by
+𝜃𝑖(𝑡)= 𝑣𝑖(𝑡) 2
+2𝑆𝐵𝑖
+− 𝑣𝑖−1(𝑡) 2
+2𝐸𝐵𝑖−1
+.(6)
+The operator𝑚𝑎𝑥(·)ensures that, for the case𝜃 𝑖(𝑡)<0,
+𝑑∗
+𝑖(𝑡)=𝑑 0. In (6),𝑆𝐵 𝑖 denotes the service braking rate of
+train𝑖, and𝐸𝐵 𝑖−1 is the emergency braking rate of train𝑖−1,
+with𝑆𝐵 𝑖 <𝐸𝐵 𝑖−1 .
+3) Convoy Convergence Objective:In traditional opti-
+mization control for train convoys, the convergence objective
+involves minimizing tracking errors in both spacing and
+velocity. In this work, we focus on spacing convergence, as it
+directly determines the convoy’s compactness and safety. By
+(5) and (6),𝑑 ∗
+𝑖(𝑡)increases quadratically with velocity while
+decreases as the convoy slows down. For example, a 50 m/s
+convoy requires a minimum safe spacing of 138 m (assuming
+𝑆𝐵𝑖 =1.5 m/s 2,𝐸𝐵 𝑖−1 =1.8 m/s 2), which will reduce to
+22 m at the velocity of 20 m/s. Let𝛿𝑑
+𝑖(𝑡)=𝑑 𝑖(𝑡)−𝑑 ∗
+𝑖(𝑡)be the
+spacing deviation. To increase the line capacity, it is necessary
+to minimize the space between trains as much as possible.
+Therefore, the convoy convergence goal is
+lim
+𝑡→∞
+𝛿𝑑
+𝑖(𝑡)=0.(7)
+Remark: We do not limit the maximum value of𝛿𝑑
+𝑖(𝑡), because
+a large spacing intrinsically offers additional safety. Moreover,
+excessive distance does not necessarily disrupt VC: recent T2T
+communication technologies indicate reliable performance
+even if the trains are separated up to 10 km [18].
+III. Controller Design
+To design the controller for each following train𝑖, we
+combine the above proposed constraint and objective with the
+train dynamics to establish the train control model.
+A. Follower Model
+1) Nominal model:To compute the control force for each
+following train in the VC convoy, we model the train𝑖as a
+nonlinear affine control system. Let𝒙 𝑖(𝑡)=[𝑝 𝑖(𝑡),𝑣 𝑖(𝑡)]⊤,
+based on the longitudinal dynamics (1),
+¤𝑝𝑖(𝑡)
+¤𝑣𝑖(𝑡)
+
+|  {z  }
+¤𝒙𝑖(𝑡)
+=
+𝑣𝑖(𝑡)
+−𝑟𝑖(𝑡)
+𝑀𝑖
+
+|   {z   }
+𝑓(𝒙 𝑖(𝑡))
++
+ 0
+1
+𝑀𝑖
+
+|{z}
+𝑔(𝒙 𝑖(𝑡))
+𝑢𝑖(𝑡).
+(8)
+Ideally, the following train receives real-time information
+from the preceding train through constant and reliable T2T
+communication. This work considers the presence of the
+occasional communication delay with a permissive range,
+proposing a heuristic to process the delay, with the goal of
+mitigating their impact and avoiding undesirable actions that
+may compromise VC performance, such as emergency braking
+or system degradation.
+2) Communication delay:The transmitted packet includes
+the preceding train’s position and velocity𝒙 𝑖−1 , as well as its
+acceleration𝑎 𝑖−1 , which can be grouped into the state vector
+Ψ𝑖−1(𝑡)=[𝑝 𝑖−1(𝑡), 𝑣𝑖−1(𝑡), 𝑎𝑖−1(𝑡)]⊤.
+The T2T channel is modeled as a FIFO buffer. When a
+delay𝜏occurs at time𝑡 ′, no updated packet arrives from
+train𝑖−1 during[𝑡 ′, 𝑡′+𝜏). After𝜏, the system resumes
+receiving packets, but the information is delayed until the
+delay is cleared (by the communication module) at time𝑡 ′′.
+With embedded timestamps, train𝑖is able to detect𝜏upon the
+first delayed packet at𝑡 ′+𝜏, and determine𝑡 ′′ exactly when
+a packet arrives with its send-time stamp that equals to𝑡 ′′.
+Assuming𝑡 ′′ > 𝑡′+𝜏, the received state vector under delay
+ˆΨ𝑖−1(𝑡)=[ˆ𝑝 𝑖−1(𝑡),ˆ𝑣𝑖−1(𝑡),ˆ𝑎𝑖−1(𝑡)]⊤ is defined as
+ˆΨ𝑖−1(𝑡)=
+ 
+
+Ψ𝑖−1(𝑡′), 𝑡∈[𝑡 ′, 𝑡′+𝜏),
+Ψ𝑖−1(𝑡−𝜏), 𝑡∈[𝑡 ′+𝜏, 𝑡′′),
+Ψ𝑖−1(𝑡),otherwise.
+(9)
+We model the delay𝜏as a constant bounded by the maximum
+value𝜏 max =400 ms. For simplicity, this paper studies the
+case where is only one communication delay in the control
+horizon. It is worth noting that the proposed method can be
+applied to the scenarios that may have multiple delays with
+different values in[0, 𝜏max].
+B. Reference Control Force
+The reference solution is based on the convoy convergence
+goal (7), i.e. to minimize the spacing distance.
+1) Nominal design:Given𝛿 𝑑
+𝑖(𝑡) ≥0, we compute a
+reference acceleration𝑎 ∗
+𝑖(𝑡)for train𝑖such that in the time
+interval𝜖𝑐, distance deviation𝛿𝑑
+𝑖 goes to 0 at time𝑡+𝜏. Assume
+that train𝑖−1 maintains the current acceleration𝑎 𝑖−1(𝑡), this
+occurs when the following formula (10) holds
+ 
+𝑣𝑖(𝑡)𝜖𝑐+ 𝑎∗
+𝑖(𝑡)𝜖 2
+𝑐
+2
+!
+−
+
+𝑣𝑖−1(𝑡)𝜖𝑐+ 𝑎𝑖−1(𝑡)𝜖 2
+𝑐
+2
+
+=𝛿 𝑑
+𝑖(𝑡)
+(10)
+where the first element represents the distance traveled by train
+𝑖over𝜖 𝑐 with the recommended acceleration𝑎∗
+𝑖(𝑡). The second
+represents the distance traveled by train𝑖−1 over the same
+period𝜖 𝑐 with its current acceleration𝑎 𝑖−1(𝑡). The relative
+displacement between train𝑖and train𝑖−1 compensates the
+spacing deviation𝛿 𝑑
+𝑖 .
+From (10), the reference acceleration for train𝑖is obtained
+by
+𝑎∗
+𝑖(𝑡)= 2
+𝜖2𝑐
+𝛿𝑑
+𝑖(𝑡)+ 2
+𝜖𝑐
+(𝑣𝑖−1(𝑡)−𝑣 𝑖(𝑡))+𝑎 𝑖−1(𝑡).(11)
+In (11),𝜖𝑐 is defined as theconvergence time, representing the
+time period over which train𝑖adjusts its state to reduce𝛿 𝑑
+𝑖 and
+achieve the desired spacing relative to train𝑖−1.
+2) In the presence of𝜏:The reference acceleration under
+delay is computed based on the availability of the received
+information, as given in (9). Specifically, during the delay
+period𝑡∈[𝑡 ′, 𝑡′′], it is determined by the sign of the received
+(delayed) predecessor acceleration ˆ𝑎𝑖−1(𝑡)as follows:
+•If ˆ𝑎 𝑖−1(𝑡)≥0, the following train maintains its velocity
+(i.e., cruises).
+•If ˆ𝑎𝑖−1(𝑡)<0, the following train applies service braking.
+Once the delay period ends, the computation reverts to the
+nominal logic defined in (11). To summarize, thedelay-aware
+reference acceleration, denoted by ˆ𝑎∗
+𝑖(𝑡), is defined as
+ˆ𝑎∗
+𝑖(𝑡)=
+ 
+
+0, 𝑡∈[𝑡 ′, 𝑡′′]and ˆ𝑎𝑖−1(𝑡)≥0,
+−𝑆𝐵𝑖, 𝑡∈[𝑡 ′, 𝑡′′]and ˆ𝑎𝑖−1(𝑡)<0,
+𝑎∗
+𝑖(𝑡),otherwise.
+(12)
+This adaptive strategy avoids reliance on motion prediction
+of the preceding train, while ensuring safety without triggering
+unnecessary emergency braking. By preserving convoy spac-
+ing to the extent allowed by delayed information, it maintains
+VC functionality under occasional communication delay.
+Furthermore, ˆ𝑎∗
+𝑖(𝑡)is saturated by the admissible limits (3),
+which is given by
+𝑢ref
+𝑖 (𝑡)=sat  (𝑀𝑖 ˆ𝑎∗
+𝑖(𝑡)+𝑟 𝑖(𝑡)),−𝑀 𝑖𝐵𝑖, 𝑀𝑖𝑇𝑖
+,(13)
+where the saturation function sat(·)is defined as:
+sat(𝑢,−𝑀 𝑖𝐵𝑖, 𝑀𝑖𝑇𝑖)=
+ 
+
+−𝑀𝑖𝐵𝑖,if𝑢<−𝑀 𝑖𝐵𝑖,
+𝑢,if−𝑀 𝑖𝐵𝑖≤𝑢≤𝑀 𝑖𝑇𝑖,
+𝑀𝑖𝑇𝑖,if𝑢> 𝑀 𝑖𝑇𝑖.
+C. Collision Avoidance with HOCBFs
+Essentially, HOCBFs can map the constraints from the
+system states𝒙 𝑖(𝑡)to the control input𝑢 𝑖(𝑡). In order to
+enforce the collision avoidance constraint (5), we construct
+the HOCBF constraints in this section. For further technical
+details of HOCBFs, see [15].
+To account for the possible existence of a delay𝜏, we
+redefine the relevant variables by incorporating the received
+predecessor states ˆΨ𝑖−1(𝑡)as defined in (9). Specifically, we
+denote the delay-aware distance and braking difference as
+ˆ𝑑𝑖(𝑡)=ˆ𝑝 𝑖−1(𝑡)−𝑝 𝑖(𝑡)and ˆ𝜃𝑖(𝑡)= 𝑣𝑖(𝑡) 2
+2𝑆𝐵 𝑖
+− ˆ𝑣𝑖−1(𝑡) 2
+2𝐸𝐵 𝑖−1
+. The
+corresponding minimum safe distance is given by ˆ𝑑∗
+𝑖(𝑡)=
+max( ˆ𝜃𝑖(𝑡),0)+𝑑 0, and the resulting spacing deviation is
+ˆ𝛿𝑑
+𝑖(𝑡)= ˆ𝑑𝑖(𝑡)− ˆ𝑑∗
+𝑖(𝑡). Consequently, the collision avoidance
+constraint can be reformulated as
+ˆ𝛿𝑑
+𝑖(𝑡)= ˆ𝑑𝑖(𝑡)−max( ˆ𝜃𝑖(𝑡),0)−𝑑 0≥0.(14)
+Note that the operator max(·,0)is nondifferentiable at zero,
+whereas the HOCBF must be defined as a continuously
+differentiable function. To overcome this problem, we define
+two HOCBF candidates:
+𝑏1(𝒙𝑖(𝑡),𝑡)= ˆ𝑑𝑖(𝑡)− ˆ𝜃𝑖(𝑡)−𝑑 0,(15)
+𝑏2(𝒙𝑖(𝑡),𝑡)= ˆ𝑑𝑖(𝑡)−𝑑 0.(16)
+Intuitively, we have
+ˆ𝛿𝑑
+𝑖(𝑡)=min  𝑏1(𝒙𝑖(𝑡),𝑡), 𝑏 2(𝒙𝑖(𝑡),𝑡) .
+Therefore, the constraint ˆ𝛿𝑑
+𝑖(𝑡)≥0 holds if and only if both
+𝑏1(𝒙𝑖(𝑡),𝑡)≥0 and𝑏 2(𝒙𝑖(𝑡),𝑡)≥0. In other words, enforcing
+𝑏1(𝒙𝑖(𝑡),𝑡)≥0 and𝑏 2(𝒙𝑖(𝑡),𝑡)≥0 simultaneously is thus
+equivalent to enforcing the original constraint (14).
+Here, the arguments of𝑏 1(𝒙𝑖(𝑡),𝑡)and𝑏 2(𝒙𝑖(𝑡),𝑡)explic-
+itly state both𝒙 𝑖(𝑡)and𝑡, since they depends not only on the
+states of train𝑖but also on the time-varying states of preceding
+train𝑖−1. For simplicity, in the following we omit the time
+dependency of variables except for the HOCBFs.
+To construct the constraint corresponding to𝑏 1(𝒙𝑖,𝑡), we
+choose the quadratic classKfunction,
+¤𝑏1(𝒙𝑖,𝑡)+𝑏 2
+1(𝒙𝑖,𝑡)≥0,(17)
+where
+¤𝑏1(𝒙𝑖,𝑡)= 𝜕𝑏 1(𝒙𝑖,𝑡)
+𝜕𝒙𝑖(𝑡) · 𝑑𝒙𝑖
+𝑑𝑡 + 𝜕𝑏 1(𝒙𝑖,𝑡)
+𝜕𝑡
+=
+−1− 𝑣𝑖
+𝑆𝐵
+
+¤𝒙𝑖+ˆ𝑣𝑖−1+ ˆ𝑣𝑖−1 ˆ𝑎𝑖−1
+𝐸𝐵𝑖−1
+.
+Substituting ¤𝒙𝑖 from (8), and further substituting in (17)
+(detailed steps omitted), the control constraint is derived as:
+− 𝑣𝑖
+𝑀𝑖𝑆𝐵𝑖
+𝑢𝑖+   𝑟𝑖
+𝑀𝑖𝑆𝐵𝑖
+−1 𝑣𝑖
++  ˆ𝑎𝑖−1
+𝐸𝐵𝑖−1
++1  ˆ𝑣𝑖−1+𝑏 2
+1(𝒙𝑖,𝑡)≥0,
+(18)
+which is affine in𝑢 𝑖. All values of𝑢 𝑖 satisfying (18) ensure
+that𝑏 1(𝒙𝑖(𝑡),𝑡)≥0 holds.
+For𝑏 2(𝒙𝑖,𝑡), the auxiliary functions employing the
+quadratic classKfunction are defined as
+𝜓0(𝒙𝑖,𝑡)=𝑏 2(𝒙𝑖,𝑡),
+𝜓1(𝒙𝑖,𝑡)= ¤𝜓0(𝒙𝑖,𝑡)+𝜓 2
+0(𝒙𝑖,𝑡)
+and the HOCBF𝑏 2(𝒙𝑖,𝑡)should satisfy
+¤𝜓1(𝒙𝑖,𝑡)+𝜓 1(𝒙𝑖,𝑡) 2≥0.(19)
+By substituting, inequality (19) becomes
+¥𝑏2(𝒙𝑖,𝑡)+2 ¤𝑏2(𝒙𝑖,𝑡)𝑏 2(𝒙𝑖,𝑡)
++ ¤𝑏2(𝒙𝑖,𝑡)+𝑏 2
+2(𝒙𝑖,𝑡) 2≥0,
+(20)
+where
+¤𝑏2(𝒙𝑖,𝑡)=ˆ𝑣 𝑖−1−𝑣 𝑖,
+and
+¥𝑏2(𝒙𝑖,𝑡)=ˆ𝑎 𝑖−1−¤𝑣𝑖.
+The resulting control constraint is given by
+− 1
+𝑀𝑖
+𝑢𝑖+ 𝑟𝑖
+𝑀𝑖
++ˆ𝑎𝑖−1+2(ˆ𝑣𝑖−1−𝑣 𝑖)𝑏 2(𝒙𝑖,𝑡)
++ ˆ𝑣𝑖−1−𝑣 𝑖+𝑏 2
+2(𝒙𝑖,𝑡) 2≥0.
+(21)
+D. Decentralized VC Follower Optimal Control
+Our goal is to determine the control input to achieve
+the distance convergence subject to RBD constraints. To
+minimizing the deviation from the reference control force
+in (13), the QP of train𝑖is constructed by combining the
+above HOCBF constraints as
+𝑢𝑖(𝑡)=arg min
+
+𝐻𝑖(𝑢𝑖(𝑡)−𝑢 ref
+𝑖 (𝑡)) 2
+
+s.t.Train dynamic (8),control limit (3)
+HOCBF constraints (18),(21),
+(22)
+where the scalar𝐻 𝑖 is the quadratic cost weight. In practice,
+time is discretized with step size𝑑𝑡, and a QP with HOCBF
+constraints for each follower is solved at each time step𝑘.
+Afterwards, the control from solving the QP is held constant
+and is applied at the current time step. The detailed procedure
+of the decentralized safe optimal control for the VC followers
+is summarized in the following Algorithm.
+Algorithm: Decentralized VC Follower Safe Optimal Control
+1:Initialize the states𝒙 𝑖 for all followers𝑖=1,...,𝑁−1
+2:foreach time step𝑘=1,...,𝐾=𝑡 𝑓/𝑑𝑡do
+3:foreach follower𝑖=1,...,𝑁−1do
+4:Acquire predecessor’s information ˆΨ𝑖−1(𝑘)
+5:Compute reference control force𝑢 ref
+𝑖 (𝑡)via Eq. (13)
+6:Formulate HOCBF constraints via Eqs. (18) and (21)
+7:Solve QP in Eq. (22) to get optimal input𝑢 𝑖(𝑡)
+8:end for
+9:foreach follower𝑖=1,...,𝑁−1do
+10:Update state𝒙 𝑖(𝑘+1)with𝑢 𝑖(𝑘)through Eq. (8)
+11:end for
+12:end for
+TABLE I: Parameters of Train Dynamics
+Parameter Value Unit
+𝑀0, 𝑀1, 𝑀2 383,000 kg
+𝐿0, 𝐿1, 𝐿2 100 m
+𝐶0,0, 𝐶0,1, 𝐶0,2 0.01176 N/kg
+𝐶1,0, 𝐶1,1, 𝐶1,2 0.00077616 Ns/m·kg
+𝐶2,0, 𝐶2,1, 𝐶2,2 1.6×10 −5 Ns2/m2·kg
+𝑆𝐵 0, 𝑆𝐵1, 𝑆𝐵2 1.5 m/s 2
+𝐸𝐵 0, 𝐸𝐵1, 𝐸𝐵2 1.8 m/s 2
+𝐵0, 𝐵1, 𝐵2 2 N/kg
+𝑇0, 𝑇1, 𝑇2 2 N/kg
+Remark: While𝑢 ref
+𝑖 (𝑡)offers a relatively large feasible region
+prior to HOCBF activation, this work does not explicitly guar-
+antee the feasibility of the QP under all operating conditions.
+A promising approach is to incorporate a slack variable into
+the HOCBF constraints, which could also effectively address
+model uncertainties in future extensions.
+IV . Simulation and Case Study
+To evaluate the effectiveness of the proposed control
+method, we conduct simulations on a VC convoy of three trains
+(Train 0, 1, and 2). Detailed dynamic parameters of the trains
+are listed in Table I. We set the default margin𝑑0=10 m, and
+the convergence time𝜖 𝑐 =5 s. The convoy starts from rest,
+with each pair of adjacent trains initially spaced by default
+margin𝑑 0. A predefined trajectory is assigned to Train 0,
+which undergoes an acceleration–cruise–deceleration process
+as it approaches the destination.
+•Nominal Case: No Delay
+We first investigate a nominal case without communication
+delay. Performing the simulation of 200 s with the step size
+0.02 s, the simulation results1 are shown in Fig. 3. From Fig. 3a,
+we can see that, in the nominal case, the convoy undergoes
+acceleration, cruising, and deceleration, during which Train 1
+and Train 2 closely follow the trajectory of Train 0. As
+shown in Fig. 3b, the actual inter-train distances𝑑 1(𝑡)and
+𝑑2(𝑡)remain above and closely follow the corresponding safe
+distances𝑑 ∗
+1(𝑡)and𝑑 ∗
+2(𝑡)(dashed lines in the figure), with
+deviations within 15 m. The inter-train distances converge
+smoothly to the desired default spacing𝑑 0 at standstill. A
+temporary increase in the deviation𝑑 1(𝑡)−𝑑 ∗
+1(𝑡)is observed
+when Train 0 starts braking at 102 s, as the safety distance𝑑∗
+1(𝑡)
+1The QPs are solved using Matlab toolboxquadprog. The obtained
+closed loop system is simulated using functionode45.
+0 50 100 150 200
+0
+10
+20
+30
+40
+(a) Train velocity profile. The convoy undergoes a journey consisting of
+acceleration, cruise, and deceleration.
+0 50 100 150 200
+0
+20
+40
+60
+80
+0 50 100 150 200
+0
+20
+40
+60
+80
+(b) Inter-train distance over time. The actual distance (solid line) throughout
+the entire journey is greater than and close to the desired distance (dash line).
+0 20 40 60 80 100 120 140 160 180 200
+-1
+0
+1 106
+0 20 40 60 80 100 120 140 160 180 200
+-1
+0
+1 106
+0 20 40 60 80 100 120 140 160 180 200
+-1
+0
+1 106
+(c) Control force over time. The deviations between reference force and actual force
+indicates the activation of HOCBF.
+Fig. 3: Results of the delay-free case.
+rapidly increases due to the HOCBF’s immediate response to
+the drop in𝑣 0(𝑡). This braking event also affects the following
+pair, leading to a similar but milder deviation in𝑑2(𝑡)−𝑑 ∗
+2(𝑡).
+Upon stopping, the inter-train distances are effectively reduced
+to the desired default spacing𝑑 0. In Fig. 3c, the regions where
+the solid and dashed lines diverge indicate the activation of
+the HOCBF constraints. For both Train 1 and Train 2, the
+average computation time per control step (Steps 4–7 and
+10 in Algorithm) is about 0.0028 s, satisfying the real-time
+requirements of the onboard system.
+•Communication Delay Case
+Now a communication delay of𝜏=𝜏 max =400 ms is
+introduced between Train 0 and Train 1 between 50 s and 120 s.
+Adopting the same setups in the nominal case, the simulation
+results are shown Fig. 4. When the delay starts at𝑡=50 s, from
+Fig. 4c we can see that𝑢 ref
+1 switches to cruise. However, the
+HOCBF constraint𝑏 1 for Train 1 becomes active immediately,
+(a) Train velocity profile. During the delayed period, Train 1 takes the
+conservative following policy, and Train 2 follows its maneuver closely.
+(b) Inter-train distance over time. The actual distance between Train 0 and
+Train 1 increases due to the delay, reaching nearly300𝑚. Train 2 runs closely
+with Train 1 since there is no delay between them.
+0 20 40 60 80 100 120 140 160 180 200
+-1
+0
+1 106
+0 20 40 60 80 100 120 140 160 180 200
+-1
+0
+1 106
+0 20 40 60 80 100 120 140 160 180 200
+-1
+0
+1 106
+(c) Control force over time. When the communication is restored at120 s, Train 1
+starts accelerating to catch up with Train 0.
+Fig. 4: Results of the case with delay𝜏=400 ms.
+triggering an immediate braking response. Later, when Train 0
+begins to decelerate at around𝑡=100 s,𝑢 ref
+1 switches to service
+braking. Once the delay is resolved, Train 1 quickly catches up
+with Train 0 as shown in Fig. 4b. A fluctuation in𝑑 2(𝑡)and
+𝑑∗
+2(𝑡)is observed after 120 s, as Train 1 accelerates to reduce
+the spacing caused by the earlier delay, and then decelerates
+when Train 0 transitions to a cruising speed. This results in
+an increase and decrease in𝑑 ∗
+2(𝑡), followed by corresponding
+adjustments by Train 2.
+V . CONCLUSIONS
+This study proposes a novel safety control approach for VC
+following trains based on HOCBFs. A delay-aware reference
+control force is designed to track the leader’s position as closely
+as possible, while maintaining a minimum safe distance.
+The RBD-based spacing policy is formally encoded using
+HOCBFs, which provide safety guarantees. By incorporating
+the reference force into QPs, each follower computes the
+optimal traction and braking forces and adjusts its velocity
+accordingly. Simulation results demonstrate that the proposed
+controller achieves desirable performance, ensuring safety
+without compromising close running.
+Future work will extend this method to more complex virtual
+coupling scenarios, incorporate stochastic delay modeling, and
+design more elaborate mechanisms to mitigate the impact of
+communication delays on the convoy.
+References
+[1] C. Di Meo, M. Di Vaio, F. Flammini, R. Nardone, S. Santini, and
+V. Vittorini, “ERTMS/ETCS Virtual Coupling: Proof of Concept and
+Numerical Analysis,”IEEE Transactions on Intelligent Transportation
+Systems, vol. 21, pp. 2545–2556, June 2020.
+[2] S. Zhang, P. Huang, and W. Yan, “A data-driven approach for railway
+in-train forces monitoring,”Advanced Engineering Informatics, vol. 59,
+p. 102258, 2024.
+[3] T. Schumann, “Increase of capacity on the shinkansen high-speed line
+using virtual coupling,”International Journal of Transport Develop-
+ment and Integration, vol. 1, pp. 666–676, 01 2017.
+[4] D. Emery, “Enhanced ETCS L2/L3 train control system,” inWIT
+Transactions on State of the Art in Science and Engineering, vol. 1,
+pp. 113–122, WIT Press, 1 ed., June 2010.
+[5] B. Ning, “Absolute braking and relative distance braking-train operation
+control modes in moving block systems,”WIT Transactions on The Built
+Environment, vol. 37, 1998.
+[6] Y. Liu, D. Ou, Y. Yang, and D. Dong, “A method for maintaining
+virtually coupled states of train convoys,”Proceedings of the Institution
+of Mechanical Engineers, Part F: Journal of Rail and Rapid Transit,
+vol. 237, no. 2, pp. 243–252, 2023.
+[7] Q. Wu, X. Ge, Q.-L. Han, B. Wang, H. Wu, C. Cole, and M. Spiryagin,
+“Dynamics and control simulation of railway virtual coupling,”Vehicle
+System Dynamics, vol. 61, no. 9, pp. 2292–2316, 2023.
+[8] C. Liu and Z. Xu, “Multi-agent system based cooperative control
+for speed convergence of virtually coupled train formation,”Sensors,
+vol. 24, no. 13, p. 4231, 2024.
+[9] Z. Li, L. Zhong, H. Yang, and L. Zhou, “Distributed cooperative tracking
+control strategy for virtual coupling trains: An event-triggered model
+predictive control approach,”Processes, vol. 11, no. 12, p. 3293, 2023.
+[10] Y. Liu, Y. Zhou, S. Su, J. Xun, and T. Tang, “Control strategy for stable
+formation of high-speed virtually coupled trains with disturbances and
+delays,”Computer-Aided Civil and Infrastructure Engineering, vol. 38,
+pp. 621–639, Mar. 2023.
+[11] M. Chen, J. Xun, and Y. Liu, “A coordinated collision mitigation
+approach for virtual coupling trains by using model predictive control,”
+in2020 IEEE 23rd International Conference on Intelligent Transporta-
+tion Systems (ITSC), pp. 1–6, IEEE, 2020.
+[12] H. Song, W. ShangGuan, W. Qiu, Z. Sheng, and S. S. Harrod, “Two-
+Stage Optimal Trajectory Planning Based on Resilience Adjustment
+Model for Virtually Coupled Trains,”IEEE Transactions on Intelligent
+Transportation Systems, vol. 24, pp. 15219–15235, Dec. 2023.
+[13] J. Park, B.-H. Lee, and Y. Eun, “Virtual Coupling of Railway Vehicles:
+Gap Reference for Merge and Separation, Robust Control, and Posi-
+tion Measurement,”IEEE Transactions on Intelligent Transportation
+Systems, vol. 23, pp. 1085–1096, Feb. 2022.
+[14] A. D. Ames, S. Coogan, M. Egerstedt, G. Notomista, K. Sreenath, and
+P. Tabuada, “Control Barrier Functions: Theory and Applications,” in
+2019 18th European Control Conference (ECC), pp. 3420–3431, June
+2019.
+[15] W. Xiao and C. Belta, “High-Order Control Barrier Functions,”IEEE
+Transactions on Automatic Control, vol. 67, pp. 3655–3662, July 2022.
+[16] J. Wang and H. A. Rakha, “Longitudinal Train Dynamics Model for
+A Rail Transit Simulation System,”Transportation Research Part C:
+Emerging Technologies, vol. 86, pp. 111–123, Jan. 2018.
+[17] B. P. Rochard and F. Schmid, “A Review of Methods to Measure
+and Calculate Train Resistances,”Proceedings of the Institution of
+Mechanical Engineers, Part F: Journal of Rail and Rapid Transit,
+vol. 214, no. 4, pp. 185–199, 2000.
+[18] A. Lehner, T. Strang, and P. Unterhuber, “Direct train-to-train com-
+munications at low uhf frequencies,”IET Microwaves, Antennas &
+Propagation, vol. 12, no. 4, pp. 486–491, 2018.

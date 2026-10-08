@@ -1,0 +1,66 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 【训练方法调试沙盒 — 非论文工况，结果不得进正文/主表】
+#   用途：训练方法（奖励 / 信用分配 / 动作权限）迭代时的快速 A/B。
+#   与主配置 formation_ed_ab_3train_1plus1.yaml 的唯一实质差异 = 剖面更短
+#   （shuozhou_real_53km 的 21.06–37.02km 切片 ≈15.7km），物理/编组/安全层完全一致。
+#   纪律：ADR-017 §3——长且复杂剖面训练→未见剖面验证才成立；短训长验方向错误。
+#         故本沙盒只用于"方法是否稳定"，**绝不用作论文结果**。
+#   入口：
+#     python run_training.py --experiment configs/experiments/_debug_train_method_slice16k.yaml --seed 0
+# ═══════════════════════════════════════════════════════════════════════════
+name: debug_train_method_slice16k
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus1
+  grade_profile: shuozhou_real_53km_slice16k   # ⚠️ 沙盒剖面（≈15.7km 切片）
+  v_max: 22.222
+  v_min: 11.111
+  target_gap: 100.0
+  max_steps: 12000              # 沙盒剖面全程（≈1200s）
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: false
+  decompose: loco_ed_ab
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10
+episodes: 80                    # 快速迭代档：旧 run 的震荡在 ep50-100 已充分显现，80 ep 足够判趋势
+curriculum: 500:0,1000:10,1200:20   # 与主口径一致：单集窗口 ≤1200 步=120s ≥ AB→峰值 90s 物理滞后，
+                                    # 否则 90s 滞后峰值根本不出现，沙盒测不到真机制（勿再调短）
+n_env: 4
+parallel_traj_len: 0
+warm_start: true
+bc_episodes: 3
+bc_epochs: 30
+long_eval_interval: 40          # 整轮只跑 2 次完整剖面评估（评估是主要附加成本）
+long_eval_steps: 12000          # 沙盒剖面全程（比 53km 的 36000 便宜 3×）
+init_speed_kmh: 80.0
+simcase: official               # 物理工况不变（official），仅剖面更短
+ckpt_policy: fleet
+log_interval: 10
+
+dirs:
+  checkpoint_dir: outputs/checkpoints_formation/_debug_train_method_slice16k
+  results_dir: outputs/checkpoints_formation/_debug_train_method_slice16k/results
+  figures_dir: outputs/checkpoints_formation/_debug_train_method_slice16k/figures

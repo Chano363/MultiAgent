@@ -22,6 +22,17 @@ import torch
 import torch.nn as nn
 
 
+# weights_only=True 续训时从 checkpoint 剥离的"训练状态"键：只保留网络权重，
+# 优化器动量 / value_norm 统计 / RNG 全部重置（用于跨物理版本迁移续训）。
+# metadata 不剥离（调用方仍可读溯源信息）。
+_WEIGHTS_ONLY_STRIP = frozenset({
+    'optimizer_state_dict',
+    'value_norm_mean', 'value_norm_std', 'value_norm_count',
+    'reward_rms_mean', 'reward_rms_var', 'reward_rms_count',
+    'np_rng_state', 'py_rng_state', 'torch_rng_state',
+})
+
+
 class BaseRLAgent:
     """所有 RL 智能体的共同基类（checkpoint 存档模板方法）。"""
 
@@ -43,11 +54,18 @@ class BaseRLAgent:
         torch.save(checkpoint, path)
         logging.info(f"{type(self).__name__} 模型已保存到: {path}")
 
-    def load(self, path: str) -> dict:
-        """加载 checkpoint 并恢复内部状态；返回完整字典（含 metadata 若有）。"""
+    def load(self, path: str, weights_only: bool = False) -> dict:
+        """加载 checkpoint 并恢复内部状态；返回完整字典（含 metadata 若有）。
+
+        weights_only=True：只加载网络权重，剥离优化器/value_norm/RNG（跨物理版本
+        迁移续训用，避免旧统计量失配拖累）。
+        """
         ckpt = torch.load(path, map_location=self.device, weights_only=False)
+        if weights_only:
+            ckpt = {k: v for k, v in ckpt.items() if k not in _WEIGHTS_ONLY_STRIP}
         self._restore_checkpoint(ckpt)
-        logging.info(f"{type(self).__name__} 模型已从 {path} 加载")
+        logging.info(f"{type(self).__name__} 模型已从 {path} 加载"
+                     f"{'（weights_only，优化器/统计量已重置）' if weights_only else ''}")
         return ckpt
 
 

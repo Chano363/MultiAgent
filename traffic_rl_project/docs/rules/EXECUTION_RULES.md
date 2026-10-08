@@ -53,6 +53,16 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 5. **实验数值一律以 `metadata.json` / 评估 JSON 为准**，禁止从代码注释或记忆粘贴实验数值当结论。
 
+## 长训在跑期间的行为性代码冻结（2026-10-01 强制）
+
+> **背景**：1400 ep 级长训要跑很久（ADR-017 / ADR-021 口径**实测 ≈11.7 天/seed**；`REPRODUCIBILITY.md` §十）。训练进程在启动时即把代码载入内存，**之后再改磁盘代码不会影响该进程**——但产出的 ckpt 会与工作树**不再对应**，metadata 里记的 `git_commit` 也无法覆盖未提交改动 ⇒ 结果不可复现、可能误当"当前代码的结果"引用。
+
+1. **冻结范围 = 该 run 的"产物依赖闭包"**：即**训练进程会导入/执行**的一切 —— `src/train_dynamics/**`、`src/environments/**`、`src/controllers/**`、`src/algorithms/**`、`src/trainer/**`、`src/metadata.py`、`src/physics_governance.py`、`run_training.py`，以及它读的 `configs/**`。**做这类改动前，必须先停掉在跑的长训**，或把该 run 的产出标记为"与工作树不一致、不可引用"。
+2. **不受冻结约束**（不在闭包内）：`docs/**`、`tests/**`、**纯注释**（不改变任何取值/分支的解释性文字），以及**不被训练进程导入的独立入口脚本**（如 `src/evaluation/evaluate_decompose.py` —— 全仓无任何模块 import 它，训练进程从不加载；它产出的结果 JSON 自带 `git_commit`/`eval_args`，与训练 ckpt 各自独立溯源）。
+3. **判定口径（两问）**：①"这处改动会不会改变该 run 的**任何一次 `env.step` / 一次梯度更新 / 一个 YAML 解析结果**？"②"该文件**是否被训练进程导入**（`grep 'import' 全仓确认）？"—— ①会且②是 ⇒ 冻结；否则安全。**别把"在 `src/` 下"当成冻结判据**，判据是"在不在闭包里"。
+4. **长训启动时必须登记**：启动器路径、输出目录、日志路径、`metadata.json` 的 `git_commit`、恢复命令（`--resume latest`）与预期机时（见 `REPRODUCIBILITY.md` §十「重训里程碑」模板）。
+5. **判活不看日志**：日志为 `>` 重定向 ⇒ 块缓冲，分钟级无新行属正常；一律用 `pgrep -af run_training.py` + `ps -o etime,pcpu -p <pid>`（教训 `LEARNINGS.md` LRN-20261001-014）。
+
 ## 免重辨识 claim 实验执行规范（2026-09-09，覆盖式修订，当前口径）
 
 > **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）】**：本节原协议（下方第 2 条：MPC 跨线**不重喂 `grade_at`** + 必须声明 `no-re-identification`）随 Regime B 一并废止。**当前协议（ADR-016，2026-09-16）**：MPC 对比只留 Regime A——MPC **逐线重喂该线 `grade_at` 图纸 + 在线标定 b0**（每线公平标定）；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不再提供"MPC 不重辨识即失配"论证（领域常识，不占篇幅）；Protocol 逐实验标 A（无 B，不再 A/B 双标）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-016。下方旧协议文字原样保留，仅作历史。
@@ -61,9 +71,9 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 1. **主训练剖面颗粒**：主训练走 `grade_profile: shuozhou_real_53km`（真实朔黄）；跨线域外目标 = `long_downhill_20km` / `long_downhill_35km`；`shuozhou_23800` 仅作已知基线锚，**不作跨线泛化证明**。
 2. **跨线免调参协议**：RL 跨线零微调直接评估；MPC 跨线**不重喂 `grade_at`**，并**必须声明 `no-re-identification`**（否则当 strawman）。**【2026-09-16 ADR-016 修订，本句作废，仅作历史】当前协议**：MPC 跨线**逐线重喂该线 `grade_at` 图纸 + 在线标定 b0**（Regime A 公平标定）；D-RL 跨线**严格零微调**，声明 "no fine-tuning on target line"；不再演"MPC 不重辨识失配"（Regime B 废止）。
-3. **指标口径**：主指标 = **跨线免调参级联失败率** / **MPC 求解失败/终端无解次数** / **ATP 触发次数**（替代"追尾"——安全层已杜绝物理追尾，ATP 触发=策略踩线兜底依赖度）。补遗口径：车钩力峰/超限、列距误差、速度带落地率、求解耗时（MPC 每步记录 `solve_times`）。
+3. **指标口径**：主指标 = **跨线免调参级联失败率** / **MPC 求解失败/终端无解次数** / **ATP 触发次数**（替代"追尾"——安全层已杜绝物理追尾，ATP 触发=策略踩线兜底依赖度） / **列距误差（编队底线，与车钩力并列，2026-10-02 升入主表）**。列距误差口径 = 平均绝对列距误差 / 峰值绝对列距误差 / 全程最小实际列距 / 追尾（物理穿透）步数；由 `evaluate_decompose.py` 结果 JSON 汇报，**多列编组才产出该组键**（单列无列间距）。补遗口径：车钩力峰/超限、速度带落地率、求解耗时（MPC 每步记录 `solve_times`）。
 4. **protocol 标注**：每实验表逐行标 MPC 是否 re-identification / `inner_rule_cyclic`、seed、`simulator_model` 版本（`coupler=MT-2 | braking=ED+AB-relief-wave`）。
-5. **全部走 `metadata` 守卫**（`training_metadata_guard`/`save_metadata`）+ 结果 JSON 按时间戳归档到 `outputs/`，**不覆盖旧文件**（复用既有 `metadata.py` / `evaluate_m1_m3_long.py` M-MPC 模式入口）。
+5. **全部走 `metadata` 守卫**（`training_metadata_guard`/`save_metadata`）+ 结果 JSON 按时间戳归档到 `outputs/`，**不覆盖旧文件**（复用既有 `src/metadata.py`；评估入口 = `evaluate_decompose.py`，MPC 行 `--mpc_type nmpc`。原 `evaluate_m1_m3_long.py` 的 M-MPC 模式入口**已按 ADR-022 删除**）。
 
 ## AGENTS.md 引用一致性校验（2026-09-16 强制，防"妄猜规范"）
 
@@ -77,5 +87,87 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 - **强制场景**：任何人/agent 改动 AGENTS.md 或新增 ADR 后、以及正式提交前，运行该校验必须通过（exit 0）。不通过的改动不得合入。
 - **SSOT 原则**：AGENTS.md 只许放"指向 SSOT 的一句话指针"；**具体数值/论文佐证一律放 ADR 或 RESEARCH_POSITIONING**，不复制进 AGENTS.md（违背即被此校验警告）。
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+## 产物目录规范（outputs/ 布局，2026-10-02 强制）
 
+> **背景**：`outputs/` 长期由各脚本各自落盘，已出现三类乱象：① **同义异构**——`checkpoints_*` / `results_*` / `logs_*` / `report_figures` / `sim_validation` / `phys_validation` / `training_results` 各成一级，分类维度不统一；② **层级错位**——脚本硬编码 `outputs/phys_validation/`，在项目根目录运行时又在根下生出一级目录；③ **无意义目录名**——运行归档叫 `run_<时间戳>`，看名字不知是哪个实验。本规范统一布局与命名，防止继续膨胀。
+
+### 1. 目标目录树（按产物类型分组，不按脚本）
+
+```
+outputs/
+├── checkpoints/        # 模型权重（实验线子目录：formation/ ab_gate/ ab_smoke/ …）
+├── results/            # 结果 JSON/CSV（实验线子目录 + 时间戳文件）
+├── figures/            # 展示/论文图（主题子目录；策展目录，允许覆盖）
+├── logs/               # 训练日志 + tensorboard
+├── sim_validation/     # 物理仿真验证（figures/ + phys_validation/<run>/ 原始归档）
+├── smoke/              # 冒烟/调试产物（可随时删）
+└── deprecated/         # 作废资产（gitignored，仅回溯；含 README 声明）
+```
+
+**一级分类只按"产物是什么"（权重/结果/图/日志/验证/临时/作废），不按"哪个脚本生成"。** 新增一级目录必须登记本规范。
+
+### 2. 命名规则
+
+1. **运行级目录 = 语义前缀 + 时间戳**：`<entry>_<scenario>_<YYYYMMDD_HHMMSS>`
+   - 例：`phys_curves_1plus1_53km_20261002_164518`
+   - **禁止**裸 `run_<时间戳>` 这类"看名不知义"的目录名。
+2. **语义代号**：用清晰代号（`1plus1` / `53km` / `formation` / `decompose`），**禁用 M1/M2/M3** 等无语义编号。
+3. **同一图重生成即可覆盖策展目录**（`figures/**`），但**原始归档 `<run>/` 一律不覆盖**（时间戳目录天然隔离）。
+
+### 3. 硬性规则
+
+- **R1 禁止脚本往 `outputs/` 根级或项目根写产物**。必须走统一 `dirs.*` 配置（`checkpoint_dir` / `results_dir` / `figures_dir`）或模块内统一 `outdir` 常量；**禁止硬编码相对路径后在任意 cwd 下运行**。
+- **R2 每次"跑"落 `<类别>/<实验线>/<run>/`**，运行目录按 §2.1 命名。
+- **R3 结果 JSON/CSV 不覆盖旧文件**（时间戳归档，`EXECUTION_RULES` 既有口径）；展示图允许覆盖。
+- **R4 冒烟/调试产物必须落 `smoke/`**，禁止与正式产物混放。
+- **R5 作废资产进 `deprecated/`**，保留 + README 声明（物理参数错误 / 仅回溯 / 论文禁引）。
+- **R6 短跑（smoke）验证必须同时覆盖 `checkpoint_dir` / `results_dir` / `dirs.figures_dir` 三者**（否则覆写历史，见 `LEARNINGS.md` LRN-20261001-009）。
+
+### 4. 现状 → 目标 映射（迁移待执行）
+
+| 现状（一级） | 目标 | 迁移状态 |
+|---|---|---|
+| `checkpoints_formation/` | `checkpoints/formation/` | 待迁移 |
+| `checkpoints_ab_gate/` `_gate100/` `_smoke/` | `checkpoints/ab_gate/` … | 待迁移 |
+| `results_decompose/` | `results/decompose/` | 待迁移 |
+| `training_results/` | `results/training/`（图并入 `figures/`） | 待迁移 |
+| `report_figures/` | `figures/report/` | 待迁移 |
+| `sim_validation/` | **保持**（已符合） | 已符合 |
+| `logs_final_v2/` `logs_final_parallel/` | `logs/final_v2/` … | 待迁移 |
+| `_smoke_pa/` | `smoke/_smoke_pa/` | 待迁移 |
+| `deprecated/` | **保持** | 已符合 |
+
+> **迁移纪律**：批量移动会改到脚本/文档里硬编码的路径，必须**同步 Grep 全仓改旧路径**后再动；长训在跑期间禁止迁移其 `checkpoint_dir`（见本文件「行为性代码冻结」节）。
+
+## 生图规范（图表 / 曲线，2026-10-02 强制）
+
+> **背景**：生图脚本原把"仿真"与"绘图"耦合——每次改图都**重跑整段仿真**（如 53km 32000 步，单次 5 min+），且不看数据是否存在就新建目录；后果是产物堆积、改一次样式要等很久，甚至因选中被中断运行留下的**空壳目录**而误判"缺数据"再重跑。本规范强制分离数据与绘图，并统一图内文字口径。
+
+### 1. 数据与绘图分离（铁律）
+
+- 生图脚本（`src/evaluation/plot_*.py`）必须支持**复用已归档数据重画**：默认自动读取最近一次**含数据的**归档，**不重跑仿真**。
+- 仅显式 `--source new`（或等价开关）时才重新仿真，并**新建**时间戳归档。
+- 归档必须携带**全部**图的源数据（分场景各一份，如 `scenario_a.npz` + `traj_cyclic_shuozhou.csv` + `coupler_matrix.npz`），**不能只存一部分**；缺的场景数据应在下次运行时**补存**，使下次改样式可全程复用。
+- 选"最近归档"时**必须校验该目录确实含所需数据文件**，**禁止只按目录名排序取最新**（否则会选中被中断运行留下的空壳目录，导致误判缺数据而重跑）。
+
+### 2. 落盘二分
+
+- **图 → 策展目录** `outputs/sim_validation/figures/<主题>/`：允许覆盖（对应 §3 R3）。
+- **原始数据 → 时间戳归档** `outputs/sim_validation/phys_validation/<语义前缀_时间戳>/`：不覆盖；**复用运行时不得覆写既有归档，也不得新建目录**（仅可补存缺失数据文件）。
+- 禁止为"只改样式"另建目录；禁止把图写进归档目录（**图属展示，归档只放数据 + meta**）。
+
+### 3. 图内文字口径
+
+- **一律英文**（图题 / 轴标签 / 图例 / 注释 / colorbar）；中文只出现在代码注释与日志。
+- **标题**：陈述式短语，写清"什么物理 / 什么条件"；**禁用** `vs`、斜杠堆术语（如 `A / B propagation (10 kt 1+1 vdp, 200 m/s)`）、`A → B → C` 箭头串、中英混排。需要比较时用 `A under B` 或 `A and B`，**不用 `vs`**。
+- **轴标签**：必须写明**物理量 + 单位**（`Coupler force (kN)` / `Speed (km/h)` / `Time (s)` / `Distance (km)` / `Buffer displacement (mm)`）；位置轴写清含义（如 `Vehicle position (0 = head locomotive, 96 = tail locomotive)`）。
+- **色标 / 状态**：给可读状态语义（`Air brake state (1 = applied)`），不用裸 `(0/1)`。
+- 长轴用**稀疏刻度**；图例 / 字号保证可读。
+
+### 4. 指标口径
+
+- 车钩力一律用**每车钩断面力（kN）**（ADR-018），安全线 1000 kN。
+
+> **SSOT**：AGENTS.md 只放要点 + 本节指针；细节以本节为准。
+
+<!-- 该文档整理/压缩于 2026-10-01 -->

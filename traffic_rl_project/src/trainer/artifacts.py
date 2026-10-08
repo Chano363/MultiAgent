@@ -15,11 +15,17 @@ logger = logging.getLogger('Artifacts')
 
 
 def save_training_artifacts(
-    rewards, peak_coupler, violations, meta, results_dir, figures_dir, tag
+    rewards, peak_coupler, violations, meta, results_dir, figures_dir, tag,
+    write_csv: bool = True,
 ):
     """保存训练历史（JSON/CSV）并绘制学习曲线 PNG（论文/PPT 用）。
 
     每次调用都全量覆写，保证训练中断（前台超时）后已有数据不丢失。
+
+    write_csv=False 时**不写** `train_history_{tag}.csv`——统一框架（train_runner）
+    下该 CSV 归 ExperimentLogger.log_episode 独占（8 列含 gap_min_m）；本函数只重写
+    4 列会覆盖它，造成"前段 4 列 / 后段 8 列"的混合文件。legacy 入口（train_fleet /
+    train_cyclic_braking）无 logger，保持默认 True。
     """
     Path(results_dir).mkdir(parents=True, exist_ok=True)
     Path(figures_dir).mkdir(parents=True, exist_ok=True)
@@ -32,12 +38,13 @@ def save_training_artifacts(
     with open(Path(results_dir) / f"train_history_{tag}.json", 'w',
               encoding='utf-8') as f:
         json.dump(hist, f, ensure_ascii=False, indent=2)
-    with open(Path(results_dir) / f"train_history_{tag}.csv", 'w',
-              newline='', encoding='utf-8') as f:
-        w = csv.writer(f)
-        w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations'])
-        for i, (r, c, v) in enumerate(zip(rewards, peak_coupler, violations)):
-            w.writerow([i + 1, f"{r:.2f}", f"{c:.1f}", f"{v:.1f}"])
+    if write_csv:
+        with open(Path(results_dir) / f"train_history_{tag}.csv", 'w',
+                  newline='', encoding='utf-8') as f:
+            w = csv.writer(f)
+            w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations'])
+            for i, (r, c, v) in enumerate(zip(rewards, peak_coupler, violations)):
+                w.writerow([i + 1, f"{r:.2f}", f"{c:.1f}", f"{v:.1f}"])
 
     # 学习曲线图（三子图：reward 原始+10ep滑动平均 / 车钩力峰值 / 超限次数）
     try:

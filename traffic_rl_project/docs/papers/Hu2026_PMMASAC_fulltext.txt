@@ -1,0 +1,1933 @@
+ 
+ 
+ 
+ 
+ 
+Electronics 2026, 15, 1823 https://doi.org/10.3390/electronics15091823 
+Article 
+Predictive Mamba-Enhanced Multi-Agent Reinforcement 
+Learning Control for Virtual Coupling of High-Speed Trains 
+Han Hu 1, Qingsheng Feng 1, Zhun Han 1, Wangyang Liu 2 and Hong Li 3,* 
+1 School of Electrical Engineering, Dalian Jiaotong University, Dalian 116028, China; hhdjtu@163.com (H.H.); 
+fqs@djtu.edu.cn (Q.F.); 13604228286@163.com (Z.H.) 
+2 The Key Laboratory of Road and Traffic Engineering, Ministry of Education, Tongji University,  
+Shanghai 201804, China; liuwy@tongji.edu.cn 
+3 School of Railway Intelligent Engineering, Dalian Jiaotong University, Dalian 116028, China 
+* Correspondence: lihong@djtu.edu.cn 
+Abstract 
+Virtual coupling control of trains is a promising technology for improving railway capac-
+ity and operational efficiency. However, existing multi -agent reinforcement learning 
+(MARL) approaches struggle to capture long -sequence temporal dependencies among 
+train states in complex multi -train interaction scenarios, resulting in limited robustness 
+and coordination stability. To address this issue, this paper proposes a Predictive Mamba-
+based Multi -Agent Soft Actor –Critic (PM -MASAC) framework. A Mamba -based state 
+prediction module is embedded into  the centralized Critic network to model historical 
+state sequences and generate predictive state representations, thereby enhancing value 
+estimation accuracy. In addition, a multi -agent aggregated prioritized experience replay  
+(PER) mechanism is introduced to improve the utilization of critical cooperative samples 
+and stabilize training. A hierarchical local –global reward structure is further designed to 
+ensure individual tracking performance while promoting overall formation coordination. 
+Experimental results under realistic railway operating conditions demonstrate that PM -
+MASAC achieves superior robustness compared with baseline MARL methods. Velocity 
+and spacing tracking errors are maintained within 3% and 1%, respectively, and the 
+steady-state formation success rate exceeds 95.7% in the training environment. 
+Keywords: virtual coupling; multi-agent soft actor-critic; predictive Mamba block;  
+prioritized experience replay mechanism 
+ 
+1. Introduction 
+With the rapid growth of railway transportation demand, further improving 
+transport efficiency and reducing energy consumption while ensuring operational safety 
+has become a central research issue in modern railway systems. Traditional train opera-
+tion control technologies are primarily based on  the train schedule and movable block 
+mechanism. Although these approaches satisfy existing transportation requirements to a 
+certain extent, their operational efficiency is gradually approaching theoretical limits.  
+In recent years, the Vehicle-to-Vehicle Communication Based Train Control  (VBTC) 
+[1] system enables information sharing and cooperative decision -making among trains 
+through vehicle-to-vehicle communication. Multiple trains can operate cooperatively at 
+reduced headways without physical coupling and can dynamically couple and decouple 
+Academic Editor: Krzysztof 
+Zboiński 
+Received: 10 March 2026 
+Revised: 16 April 2026 
+Accepted: 21 April 2026 
+Published: 24 April 2026 
+Copyright: © 2026 by the authors. 
+Licensee MDPI, Basel, Switzerland. 
+This article is an open access article 
+distributed under the terms and con-
+ditions of the Creative Commons At-
+tribution (CC BY) license. 
+Electronics 2026, 15, 1823 2 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+[2] according to passenger demand variations. This provides a new technical pathway for 
+reducing headways and improving line capacity. Moreover, the reduced inter -train spac-
+ing introduces aerodynamic interactions, which can effectively decrease drag and im-
+prove energy efficiency. Schumann et al. [3] developed a railway operation simulation to 
+study virtual coupling,  demonstrating that it can effectively increase line capacity, with 
+passenger throughput improved from 15,000 to 23,000 per hour per direction. Tian et al. 
+[4] analyzed energy consumption in virtual coupling systems under different control 
+modes, demonstrating a strong correlation between train operating intervals, control 
+strategies, and energy efficiency. Fadhel et al. [5] investigated the aerodynamic benefits of 
+virtual coupling using CFD (Computational Fluid Dynamics) simulations, showing that 
+close train spacing can significantly reduce drag and improve energy efficiency. However, 
+in dynamic and complex operational environments, achieving coop erative control and 
+operational stability among multiple trains while ensuring safety remains a critical chal-
+lenge for virtual coupling systems. 
+Existing research on virtual coupling control of trains predominantly adopts model-
+based control methods, such as proportional –integral–derivative (PID) control [6], linear 
+quadratic regulator (LQR) [7], model predictive control (MPC) [8], and sliding mode con-
+trol (SMC) [9] . Liu et al. [10] propose a tube-based model predictive control (MPC) ap-
+proach and present simulation results that verify its stronger robustness and higher effi-
+ciency in maintaining asymptotic and string stability under disturbances and delays. He 
+et al. [11] proposed an adaptive sliding mode controller for virtual coupling train control, 
+enabling safe close -distance tracking while improving tracking performance and trans-
+portation efficiency. Luo et al. [12] employed a PID -based approach that integrates feed-
+forward and PID controllers to achieve accurate tracking and stable formation control. Du 
+et al. [13] developed a virtual coupling train group controller based on ILQR (Iterative 
+Linear Quadratic Regulator), integrating a dynamic train model to achieve stable for-
+mation control. Felez et al. [14] presents a robust model predictive control scheme for vir-
+tual coupling in railways, which introduces two types of uncertainties to enhance opera-
+tional safety while maintaining service efficiency. These studies have achieved progress 
+in reducing headways and improving tracking accuracy. However, such approaches typ-
+ically rely on fixed control rules or accurate dynamic models, making it difficult to char-
+acterize the complex and time -varying operating conditions in virtual coupling systems. 
+As a result, the robustness and stability remain limited. 
+In recent years, Artificial Intelligence (AI) technologies [15] have provided new solu-
+tions for complex transportation system control. Reinforcement Learning (RL)  [16], as an 
+important branch of AI, addresses sequential decision -making problems under the Mar-
+kov Decision Process (MDP) framework  [17]. Due to its strong adaptability in nonlinear 
+and strongly coupled systems, RL has been applied to train energy -saving control [18], 
+autonomous driving [19], and traffic scheduling  [20]. In virtual coupling scenarios, deep 
+RL methods based on the actor–critic architecture can achieve cooperative control through 
+interaction learning. Lang et al. [21] proposed a speed profile optimization method based 
+on DQN (Deep Q-Network) for virtual coupling trains, which improves train synchroni-
+zation and punctuality. Basile et al.  [22] applied the DDPG (Deep Deterministic Policy 
+Gradient) reinforcement learning algorithm to the virtual coupling control of automated 
+train platoons, successfully achieving formation control. Chen et al.  [23] combined the 
+SAC algorithm with a traditional PID controller, effectively improving tracking accuracy 
+and formation stability. Liao et al. [24] applied deep reinforcement learning (DRL) to train 
+timetable rescheduling in metro systems, demonstrating strong learning efficiency and 
+optimization capability. Mao et al. [25] designed a dual-layer deep reinforcement learning 
+(DL-DRL) method for large -scale multi-UAV (Unmanned Aerial Vehicles) task schedul-
+Electronics 2026, 15, 1823 3 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+ing, significantly improving computational efficiency and generalization capability. Nev-
+ertheless, the above RL methods make decisions solely based on current observations. For 
+the typical long -sequence, strongly coupled multi -agent cooperative control scenario of 
+train virtual coupling, the variations in speed, position, and acceleration among trains ex-
+hibit significant temporal correlation s. Decisions based only on current observations fail 
+to capture long-term temporal dependencies and are sensitive to noise, resulting in unsta-
+ble policies. 
+To address the above limitation, researchers have incorporated deep sequential mod-
+els with temporal modeling capabilities, such as LSTM  (Long Short-Term Memory) and 
+Transformer, into RL frameworks to better exploit historical information and enhance fu-
+ture state prediction. Karimzadeh et al. [26] integrated an LSTM-based prediction frame-
+work with reinforcement learning to predict urban traffic trajectories and flow of passen-
+gers, improving prediction accuracy. Tseng et al. [27] proposed an LSTM-based predictive 
+control framewo rk combined with deep reinforcement learning, which accurately pre-
+dicts future road density, vehicle speed, and flow of traffic, effectively reducing travel 
+time and energy consumption. Liu et al. [28] utilized a Transformer-based state prediction 
+model to enhance reinforcement learning policy training through self -supervised objec-
+tives, significantly improving sample efficiency in continuous control tasks. Liu et al. [29] 
+proposed the Sc ene-Rep Transformer framework, which improves SAC -based autono-
+mous driving decision-making in dense traffic scenarios by exploring latent information 
+from sequence prediction.  Although these methods have shown effectiveness in traffic 
+prediction and autonomous driving, LSTM is limited by its recursive structure and suffers 
+from gradient descent when modeling long sequence in multi-train cooperative decision-
+making tasks, while Transformer exhibits powerful global modeling capabilities, the lack 
+of explicit state -space inductive bias can make it less suitable for modeling cont inuous 
+dynamical systems. 
+Recently, the Mamba model, based on the Selective State Space Model (SSM), has 
+emerged as a promising architecture for sequential modeling. With linear computational 
+complexity and efficient long-sequence modeling capability, Mamba demonstrates signif-
+icant advantages in temporal data processing. Several studies have incorporated Mamba 
+into RL frameworks to enhance state representation and value estimation. Wang et al. [30] 
+improved policy stability in the LocoMamba framework by performing hierarchical mod-
+eling of environmental states. Mustafa et al. [31] introduced the Mamba module into the 
+value network to encode historical state sequences, enabling more efficient navigation. 
+Ryu et al. [32] proposed the Mamba-DQN framework, which enhances the accuracy of Q-
+value estimation by selectively summarizing state sequences through the Mamba module. 
+These findings indicate that Mamba  can improve policy stability and convergence effi-
+ciency owing to its efficient long-sequence modeling ability. 
+Motivated by the above analysis, this paper focuses on the multi -train virtual cou-
+pling control problem and introduces a Mamba -based state prediction module into the 
+centralized Critic network of the MASAC (Multi-Agent Soft Actor-Critic) framework. The 
+historical state sequence is modeled to generate predictive state representations, thereby 
+enhancing modeling capability. Furthermore, a multi-agent aggregated Prioritized Expe-
+rience Replay (PER) mechanism and an automatic entropy adjustment strategy are incor-
+porated during training to improve sample efficiency, exploration capability, and overall 
+training stability. The main contributions of the paper are summarized as follows: 
+• A predictive Mamba-based multi-agent soft actor–critic framework (PM-MASAC) is 
+proposed. By predicting the next -step state, the control performance of virtual cou-
+pled trains under dynamic operating conditions is significantly improved.  
+• A hierarchical local–global cooperative reward mechanism is constructed. While en-
+suring tracking performance, the mechanism guides agents to focus on the overall 
+Electronics 2026, 15, 1823 4 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+operational state of the virtual formation, promoting cooperative behavior learning 
+among trains. 
+• A multi-agent TD-error aggregated prioritized experience replay (PER) strategy is 
+proposed. By strengthening the utilization of critical cooperative experiences, the 
+training efficiency of multi-agent reinforcement learning is enhanced. 
+• Comprehensive validation under multiple typical train operating scenarios demon-
+strates that the proposed PM -MASAC framework outperforms baseline algorithms 
+in cooperative control performance, training efficiency, and robustness, thereby ver-
+ifying its effectiveness. 
+The rest of this paper is organized as follows. Section 2 formulates the multi-train 
+virtual coupling problem as a Markov decision process (MDP) and defines the state space, 
+action space, and reward function. Section 3 introduces the proposed PM-MASAC frame-
+work, including the Mamba-based state prediction mechanism, prioritized experience re-
+play, and the update process of the policy and value networks. Section 4 presents com-
+parative experiments and ablation studies under realistic railway operating scenarios . 
+Section 5 concludes the paper and outlines future research directions. 
+2. Multi-Agent Virtual Train Coupling Decision Modeling 
+2.1. Problem Formulation 
+The objective of virtual coupling control is for each follower to adjust its position and 
+speed to maintain the desired safe distance from the preceding train while synchronizing 
+with the leader’s velocity, ultimately achieving a stable, equidistant, and iso -velocity vir-
+tual coupling structure. The leader follows a predefined speed profile, serving as the ref-
+erence for the formation. The followers acquire necessary state information through vehi-
+cle-to-vehicle communication and autonomously decide the acceleration to maintain a 
+stable formation while satisfying safety constraints. The virtual coupling environment im-
+poses physical constraints, including maximum speed, acceleration, and safety distance  
+limits to ensure engineering feasibility.  All trains operate along a single track in one di-
+rection, considering only longitudinal dynamics and neglecting lateral motion or turnout 
+switching. 
+A simulation environment for multi -agent reinforcement learning (MARL) is con-
+structed to evaluate the effectiveness of the proposed algorithm in virtual train coupling 
+control tasks. The environment consists of three trains: a leader and two followers (Fol-
+lower 1 and Follower 2), forming a typical longitudinal train formation scenario. Figure 1 
+illustrates the train control model based on the VBTC system. 
+However, the proposed framework is not limited to this configuration. The system is 
+formulated in a decentralized multi-agent manner, where each following train makes de-
+cisions based only on local observations . Such a framework ensures that the proposed 
+method can be extended to larger-scale coupling by increasing the number of agents, with-
+out requiring modifications to the policy structure or learning mechanism.  
+Electronics 2026, 15, 1823 5 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+V(m/s)
+t(s)
+Virtual Coupling Trains
+LeaderFollower1Follower2
+Tracking 
+Trajectory
+Object 
+Controller
+Trackside 
+communication gateway
+Integrated Network
+Central Communication 
+Gateway
+Operation Control System
+Target gap=600m Target gap=600m
+Vital 
+computer
+Train 
+Positioning Unit
+Application 
+Processor
+Sensor Fusion 
+Unit
+Communication 
+Gateway
+ 
+Figure 1. Framework of VBTC train control. 
+2.2. Markov Decision Process Modeling 
+2.2.1. Definition of State Space and Action Space 
+In the proposed framework, each follower is treated as an individual agent. At each 
+decision step, the environment provides the agent with local observations and computes 
+rewards based on the formation operation  state to guide collaborative control strategy 
+learning. The system is formulated as a continuous -action Markov Decision Process 
+(MDP), represented by a quintuple 
+( )S, A,P,R, , where 
+S  is the state space, A is the ac-
+tion space, P denotes the state transition probability,  R is the reward function,  and 
+  is 
+the discount factor for cumulative rewards. 
+For each agent i at time step  t, the local observation vector is defined as  
+ 
+12,ii
+t t t tS s s === s
+ , for each state 
+1, 2 1 1 1 0 0, , , , , , , , ,
+i i i i i i i i i i
+t t t t t t t t t t t t ts x v a x v a d v v a s S
+= − − −=     , 
+where 
+i
+tx , 
+i
+tv , 
+i
+ta  denote the position, speed, and acceleration of the agents; 
+−1i
+tx , 
+−1i
+tv
+−1i
+ta
+ represent the preceding train’s state; 
+ i
+td  and 
+ i
+tv  are the relative distance and rel-
+ative speed; and 
+0
+tv , 
+0
+ta  correspond to velocity and acceleration of the leader. Providing 
+explicit relative information accelerates convergence while ensuring both local tracking 
+safety and global coordination. 
+At each time step 
+t  , agent 
+i   generates a control action, defined as 
+ 
+12,ii
+t t t tA a a === a
+ . By adaptively adjusting their accelerations according to the ob-
+served state, the follower trains regulate their relative velocity and inter -train distance 
+with respect to both the preceding train and the leader, thereby achieving and maintaining 
+the virtual coupling. 
+The discrete-time state update for agent i is expressed as: 
+Electronics 2026, 15, 1823 6 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+( ) ( ) ( )
+( ) ( ) ( )ii
+ii
+i
+iv v a t
+x t t x t v t
+tt
+tt
+tt+
+
+ = +  + = + + 
+ (1) 
+Benefiting from the data-driven, interactive learning paradigm of DRL, there is a re-
+duced reliance on a precise mathematical model. In our study, the dynamic linear model 
+described by Equation (1) generates coherent and plausible environmental interaction 
+data during the training phase. It provides a sufficient basis for agents to learn the essen-
+tial cooperative behaviors of speed tracking and spacing maintenance in virtual coupling. 
+2.2.2. Hierarchical Reward Function Design 
+Considering the “equidistant –iso-velocity–safety” characteristics of multi -train for-
+mation control, a hierarchical reward function integrating local rewards, global rewards, 
+and penalties is designed to achieve multi-objective collaborative optimization: 
+= + −local
+i i global iR R R P
+ (2) 
+1. Local Reward 
+The local reward is designed to guide the autonomous decision -making process of 
+each follower train, encouraging stable and safe tracking behavior while maintaining 
+smooth control inputs. The overall formulation is presented as follows: 
+=  +  + 1 2 3
+local dist vel smooth
+i i i iR w r w r w r
+ (3) 
+where 
+dist
+ir , 
+vel
+ir  and 
+smooth
+ir  denote the distance regulation reward, velocity coordination 
+reward, and control smoothness reward, respectively. 
+(1) Distance Regulation Term 
+To ensure that the inter -train spacing converges toward the desired target distance, 
+the normalized distance error is defined as: 
+i
+t targetd
+i
+target
+dd
+e d 
+−
+= +
+ (4) 
+where 
+i
+td  denotes the actual spacing between follower train i and its preceding train, 
+targetd
+ represents the desired inter-train distance and 
+  is a small constant introduced to 
+prevent numerical instability. 
+The corresponding distance regulation reward is constructed as:  
+ −  = 
+1 , 0 1,
+0, 1.
+dd
+dist ii
+i d
+i
+eer
+e
+ (5) 
+This design ensures that the maximum reward is obtained when the actual spacing 
+equals the target spacing. As the deviation increases, the reward decays linearly. When 
+the deviation exceeds a specified bound, the reward is set to zero, thereby avoiding mis-
+leading or ineffective reward signals during policy learning. 
+(2) Velocity Coordination Term 
+The velocity coordination term captures the requirement of speed consistency in vir-
+tual coupling control. To simultaneously ensure local following stability and global veloc-
+ity synchronization, global speed reference information is incorporated. This dual -level 
+guidance mechanism promotes coordinated convergence of the virtual coupling system.  
+The relative velocity error is calculated as: 
+Electronics 2026, 15, 1823 7 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+1
+0
+_
+r
+ii
+ttv
+i
+t
+vv
+e
+v 
+−
+=
++
+ (6) 
+where 
+i
+tv  denotes the velocity of agent i,  
+1i
+tv −  represents the velocity of the preceding 
+train, and 
+0
+tv  corresponds to the leader train velocity. 
+The global velocity error is calculated as: 
+0
+0
+0
+i
+ttv
+i
+t
+vv
+e
+v 
+−
+=
++
+ (7) 
+The velocity coordination reward is calculated through the weighted fusion of the 
+two types of errors mentioned above: 
+0
+12 (1.0 ) (1.0 )rvvvel
+i i ir e e =  − +  −
+ (8) 
+where 
+1 0.6 =   and 
+2 0.4 =   are weighting coefficients  which are used to balance the 
+contribution of relative velocity error and global velocity error. The reward is capable of 
+guiding vehicles to realize the consistency of the overall speed while guaranteeing local 
+tracking safety. 
+(3) Acceleration Smoothness Term 
+Ride comfort and equipment longevity are critical considerations in virtual coupling 
+control. Drastic variations in acceleration may degrade passenger comfort and increase 
+mechanical wear. Therefore, a jerk-based penalty is introduced to constrain abrupt control 
+variations. The jerk of agent i is defined as: 
+122
+2
+t t t
+i i i
+i
+a a a
+jerk t t
+−−−+
+=  ， ＞
+ (9) 
+where 
+t
+ia  denotes the current acceleration, 
+−1t
+ia  and 
+−2t
+ia  represent accelerations at pre-
+vious time steps, and 
+t  is the time step. The jerk is calculated as the second-order finite 
+difference of consecutive acceleration commands generated by the reinforcement learning 
+policy, enabling more accurate comfort evaluation. The smoothness reward is formulated 
+as: 
+1 ( ,0,1)smooth i
+i
+jerkr clip =−
+ (10) 
+where 
+2 =  is the fixed normalization coefficient , which ensures that the smoothness 
+reward is on a comparable scale with other reward components, thereby maintaining a 
+balanced multi-objective reward design. 
+(4) Stage-Based Weight Adjustment Mechanism 
+Virtual coupling control simultaneously involves safety, efficiency, and comfort ob-
+jectives. To facilitate stable convergence under multi -objective optimization, a dynamic 
+weight scheduling strategy based on training episodes is introduced. The weight coeffi-
+cients of the distance regulation reward, velocity coordination reward, and comfort re-
+ward are adjusted across different training phases. 
+The specific parameter settings are listed in Table 1. 
+Table 1. Different settings of reward function weights. 
+Episode Range Distance Weight Velocity Weight Comfort Weight 
+episode ≤ 350 0.5 0.3 0.2 
+350 < episode ≤ 600 0.3 0.4 0.3 
+episode > 600 0.2 0.3 0.5 
+Electronics 2026, 15, 1823 8 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+In this study, the reward weights are designed based on a task-oriented strategy. 
+Specifically, the weights are assigned to reflect different control priorities at different 
+stages of training. The stage division is determined based on preliminary sensitivity anal-
+ysis, which indicates that these transition point s provide a good trade -off between con-
+vergence speed and control performance. 
+In the early stage, distance control is prioritized, with weights proportionally set as 
+0.5 to ensure safe spacing between trains while also considering velocity synchronization 
+and action smoothness. In the middle stage, as training progresses, the propor tion of ve-
+locity weight increases to 0.4, distance control slightly decreases to  0.3, achieving a bal-
+anced emphasis across control objectives. In the late stage, smoothness is prioritized, in-
+creasing comfort weight  to 0.5, ensuring stable acceleration chan ges and stable virtual 
+train coupling. By proportionally and dynamically adjusting the reward weights, agents 
+can focus on different control objectives at different stages, ultimately achieving equally 
+spaced, synchronized, and smooth virtual coupling. 
+2. Global Reward 
+To encourage agents to form a coordinated and consistent virtual coupling structure, 
+a global reward mechanism is introduced. When all trains simultaneously satisfy the fol-
+lowing conditions: 
+• the inter-train spacing error is within 5% of the target spacing;  
+• the velocity deviation is controlled within 2% of the target velocity. 
+The global coupling reward is triggered: 
+010.0, 0.05, 0.02
+0
+vd
+ii
+global
+eeR =
+
+＜ ＜
+ (11) 
+3. Safety Constrains 
+In virtual coupling control tasks, safety is the highest-priority objective. If only posi-
+tive distance-based rewards are adopted, agents in the early training stage may obtain 
+short-term rewards through aggressive acceleration or braking behaviors, potenti ally 
+leading to rear-end collision risks or coupling instability.  To address this issue, three ad-
+ditional penalty terms are incorporated into the reward function to constrain and suppress 
+potentially hazardous behaviors: 
+= + +
+danger collision loose
+i i i iP P P P
+ (12) 
+(1) Dangerous Proximity Penalty 
+This penalty characterizes situations in which the train operates within a potential 
+safety risk zone. It guides the agent to decelerate or adjust its behavior in order to restore 
+a safe spacing margin.  When the inter -train distance falls below the minimum safe gap 
+mind
+, the penalty is defined as: 
+2 , 0, 1 0
+idanger
+ii
+min
+s
+P clip s d
+
+=    
+ (13) 
+where 
+i
+i t mins d d= −  denotes the spacing margin. 
+(2) Collision Penalty 
+This term strictly constrains unacceptable safety -critical events and significantly re-
+duces the probability of rear -end collisions during training. Once a collision occurs, a 
+strong negative penalty is immediately imposed: 
+50collision i
+itPd =  
+ (14) 
+Electronics 2026, 15, 1823 9 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+(3) Excessive Spacing Penalty 
+To prevent the inter -train distance from becoming excessively large and causing 
+structural looseness of the virtual coupling formation, an additional penalty is introduced. 
+When the actual spacing exceeds twice the target spacing, the excessive spacing pen alty 
+is activated: 
+2, 0, 1 2
+i
+loose i t
+i t target
+target
+dp clip d d d
+= −  
+ (15) 
+It is worth noting that safe-related penalties are assigned higher priority than the jerk 
+term above. In safe-critical situations, the agent is allowed to generate large control vari-
+ations to ensure collision avoidance. 
+3. Proposed PM-MASAC Framework 
+3.1. PM-MASAC Architecture 
+The proposed Predictive Mamba-based Multi-Agent Soft Actor–Critic (PM-MASAC) 
+adopts a multi -agent reinforcement learning framework  based on Centralized Training 
+with Decentralized Execution (CTDE). The overall structure of the proposed PM-MASAC 
+framework is illustrated in Figure 2. The actor and critic networks are implemented as 
+Multilayer Perceptron (MLP) with three hidden layers containing 256, 256, and 128 neu-
+rons, respectively. 
+Target Policy 
+Policy 
+network
+Target  
+Q2Network
+Q2Network
+Target  
+Q1Network
+Q1Network
+TD-Error
+Concatenate
+Predictive 
+Mamba
+min
+update
+Soft
+update
+1Q
+Centralized 
+Critic2
+Actor
+Multi-Agent Environment
+Follower1Follower2 Leader
+Replay buffer
+PER
+mw
+Target Policy 
+Policy 
+network
+Target  
+Q1Network
+Q1Network
+Target  
+Q2Network
+Q2Network
+TD-Error
+Concatenate
+Predictive 
+Mamba
+min
+update
+Soft
+update
+1Q
+Centralized 
+Critic1
+Actor
+mw
+2Q
+'Q
+2Q
+'Q
+Soft
+update
+Soft
+update
+iO
+ia
+Sampling 
+weight
+Sampling 
+weight
+iO
+ia
+( )1, , ,t t t t +s a r s
+st
+1st+
+
+st
+st
+1st+
+
+ts
+
+st
+ts
+
+ 
+Figure 2. Network Architecture of PM-MASAC. 
+In Figure 2, 
+iO  denotes the local observation of agent  i, where each agent 
+i  gener-
+ates an action 
+ia  through its policy network. The VBTC receives the joint action vector 
+and updates the system dynamics of all trains accordingly. 
+Electronics 2026, 15, 1823 10 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+In the proposed PM -MASAC framework, each train is treated as an independent 
+agent. The training follows the centralized training and decentralized execution (CTDE) 
+paradigm. Specifically, each agent maintains an independent actor network, meaning that 
+policy parameters are not shared across agents. This design allows each agent to learn i ts 
+own control policy based on local observations.  Additionally, t he entropy -regularized 
+policy optimization mechanism introduced in MASAC ensures sufficient exploration, 
+thereby improving policy robustness. 
+For the critic, a centralized structure is adopted, where each agent is equipped with 
+its own critic network that takes the global state and joint actions of all agents as input. 
+Therefore, while the critic utilizes centralized information during training,  the critic net-
+works are not shared among agents. 
+To capture the temporal evolution characteristics of train operation state, a Mamba-
+based state prediction module is incorporated into the framework. This module predicts 
+future states 
+1ˆt+s   based on the current observation sequence. The predicted states are 
+concatenated with the current states to form an enhanced state representation  
+ˆ ts , which 
+is then fed into the critic network for value evaluation. 
+Moreover, to improve sample efficiency during training, a prioritized experience re-
+play (PER) mechanism [33] is integrated into the algorithm. Unlike conventional uniform 
+sampling, PER assigns different sampling probabilities to experiences based on their tem-
+poral-difference errors, allowing experiences with higher learning value to be sampled 
+more frequently, thereby accelerating policy convergence and improving training stability. 
+Based on the above framework, each agent’s actor network is updated by maximizing 
+the expected entropy -regularized return. The entropy regularization term penalizes 
+overly deterministic policies, effectively preventing the policy from prematurely converg-
+ing to suboptimal solutions. The corresponding actor objective function is given by: 
+( ) ( ) ( )~ , ~ ˆlog | ,
+i i i
+ii
+i o D a i t i t tJ E a o Q a    =−  s
+ (16) 
+where 
+ˆ ts  denotes the enhanced state, 
+i
+ta  represents the joint action, D is the experience 
+replay buffer, and 
+  is the entropy coefficient  which is used to adjust the weight of ex-
+ploration intensity. 
+A fixed entropy coefficient may lack adaptability across different training phases of 
+virtual coupling control. The entropy coefficient is dynamically updated by minimizing 
+the entropy loss function, driving it toward a predefined target entropy and ensuring ad-
+equate policy stochasticity. The update formula is given by: 
+( ) ( )( )~ log |
+ii
+i
+a i t i targetL E a o    = − +
+ (17) 
+where 
+target  is the target entropy, which guides the policy toward a desired level of sto-
+chasticity. 
+The parameters of the actor and critic networks are updated using stochastic gradient 
+descent according to the aforementioned objectives, and the target networks are updated 
+via soft updates to ensure training stability. The equation is as follows: 
+( )
+'' 1j j j    + −
+ (18) 
+where 
+  is the soft update coefficient. 
+3.2. Design of the Mamba Prediction Module 
+Deep reinforcement learning estimates value functions and learns control policies 
+through interaction with the environment. The Q -network evaluates the value of state –
+action pairs, and its estimation accuracy directly affects policy optimization performanc e 
+Electronics 2026, 15, 1823 11 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+and control stability.  However, in virtual coupling scenarios,  key system variables—in-
+cluding velocity, inter -train spacing, and operational constraints —exhibit pronounced 
+temporal correlations. Conventional multilayer perceptron (MLP) -based Q-networks are 
+insufficient for capturing deep feature interactions and temporal dependencies embedded 
+in state–action pairs. In particular, they neglect the crucial reference significance  of the 
+next-state information. In dynamic and complex environments, this limitation may reduce 
+policy generalization and robustness. 
+To address this issue, a Mamba-based sequence modeling architecture is introduced 
+as a state predictor at the input stage of the Q-network. 
+The proposed Mamba structure is illustrated in Figure 3. 
+Silu Hippo
+t t-1 t
+tt
+A,B = exp A, B
+h = Ah + Bx
+y Ch
+
+=ConV1D 
+dim1Conv1D 
+dimN
+Selective
+ SSM 
+RMS Norm
+1
+Predict State 
+1
+Residual
+tu
+tz
+ty
+Linear
+Linear
+Linear
+Selective
+ SSM  Module
+  Concatenate
+  Concatenate
+  Concatenate
+Q Value 
+Network
+ta
+1ˆ +st
+st
+st
+ˆt+1s
+Concatenate 
+Module
+ 
+Figure 3. Framework of Mamba. 
+Within this framework, the Mamba module receives the current state  
+st  as input  
+which is first normalized using an RMSNorm  (Root Mean Square Layer Nromalization)  
+layer to mitigate numerical instability caused by heterogeneous physical scales. The nor-
+malized features are then projected into a higher -dimensional latent space through a lin-
+ear transformation and decomposed into a main branch u and a gating branch z, enabling 
+dynamic representation learning and selective information control.  The selective mecha-
+nism in the Mamba blocks is directly driven by the physical state variables of the train 
+system. Within the selective state space module, a depthwise one -dimensional convolu-
+tion (Conv1D) is employed to extract local temporal features . The SiLU (Sigmoid Linear 
+Unit) activation function is further utilized to ensure smooth nonlinear transformations, 
+thereby preserving the continuity of system dynamics.  The state transition matrix 
+A  is 
+initialized using the HiPPO  (High-Order Polynomial Projection Operators)  formulation, 
+providing a multi-timescale memory mechanism. The predicted state is concatenated with 
+the current state to construct an enhanced state representation  
+1ˆ ˆs ||t t t +=  ss , which is 
+then fed into the Q -network. This enhanced state, together with the current action  
+i
+ta , 
+forms an extended state–action pair for value function estimation. 
+Electronics 2026, 15, 1823 12 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+The state prediction process  above is primarily grounded in the State Space Model 
+(SSM), which characterizes the temporal evolution of dynamic systems. The concept  of 
+SSM originates from continuous linear time -invariant (LTI) systems, typically described 
+by linear ordinary differential equations (ODEs). Through the evolution of latent hidden 
+states 
+
+() Nht , SSM maps input sequences to output sequences.  The state equation is 
+expressed as: 
+( ) ( ) ( )
+( ) ( )
+AB
+C
+h t h t x t
+y t h t
+
+
+=
+=
++
+ (19) 
+where 
+
+A NN  is the state transition matrix, and 
+
+  1B N  and 
+
+  1C N  are projec-
+tion matrices that map the input to the state space and the state to the output space, re-
+spectively. 
+To embed the continuous-time SSM into discrete sequence-based deep learning mod-
+els, discretization is required. The Zero-Order Hold (ZOH) method is commonly adopted, 
+introducing a time -step parameter
+  . The continuous parameters A  and B are trans-
+formed into discrete parameters 
+A  and 
+B : 
+( )
+( ) ( )( )
+1
+A exp A
+B A exp A I B
+−
+ =
+=   − 
+ (20) 
+when the time-step is sufficiently small, 
+BB . After discretization, the recursive up-
+date equations with discrete step 
+k  become: 
+   =  − +          =      
+A 1 B
+C
+h k h k x k
+y k h k
+ (21) 
+The discrete SSM can be represented from a convolutional perspective. By unrolling 
+the recurrence relation, the system output can be expressed as the convolution between 
+the input sequence and a convolution kernel 
+K : 
+−=  =  
+ 
+1
+K CB, CAB, , CA B
+L
+y x x
+ (22) 
+where L denotes sequence length. This convolution enables efficient parallel computation 
+via Fast Fourier Transform (FFT), forming the basis of linear state space layers.  
+Traditional SSM -based neural architectures treat matrices 
+A   and 
+B   as directly 
+learnable parameters. However, in complex sequence modeling tasks, such parameteriza-
+tion often limits long -range dependency modeling.  To address the issue, Mamba adopts 
+the Hippo-based initialization strategy proposed in the S4 model  [34]. The Hippo matrix 
+provides an optimal solution for online function approximation, enabling superior long -
+range dependency representation. Its initialization form is given by: 
+( )( )2 1 2 1 ,
+A 1 ,
+0,
+B 2 1
+nk
+n
+n k if n k
+n if n k
+if n k
+n
+  + +   =− + =   
+=+
+ (23) 
+Although Hippo initialization significantly improves long -term modeling ability, 
+conventional SSMs remain constrained by the linear time -invariant model assumption. 
+Their parameters do not dynamically update, which limits their adaptive capability to 
+input. Therefore, the Mamba architecture introduces a selective mechanism  [35]. In this 
+architecture, key parameters—including 
+
+B B L N , 
+
+ C BLN  and 
+
+  B L D  are no 
+Electronics 2026, 15, 1823 13 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+longer fixed. Instead, they are dynamically generated from the input sequence 
+
+ BLDx  
+through linear projections: 
+= )B ,C , LinearPr) oj) ec n( ( ( ) ( tiox x x x
+ (24) 
+This selective mechanism enables the Mamba model to adaptively focus on informa-
+tive temporal features while suppressing redundant or less relevant historical information 
+based on the input sequence. In the virtual coupling control task, state variables suc h as 
+velocity and position exhibit strong temporal continuity under normal operation, while 
+also experiencing local abrupt variations induced by control actions and dynamic interac-
+tion among trains. 
+This capability provides a n expressive representation of the temporal structure of 
+multi-train coordination processes, which serves as the main motivation for integrating 
+the Mamba module into the Q-network. 
+3.3. Design of the Multi-Agent Prioritized Experience Replay Mechanism 
+In reinforcement learning, experience replay improves sample utilization efficiency 
+and mitigates temporal correlations between samples by storing and randomly sampling 
+interaction experiences generated during the agent –environment interaction process. 
+However, in multi-train virtual coupling control scenarios, different state transition sam-
+ples contain significantly different levels of cooperative control information. Traditional 
+uniform sampling strategies cannot distinguish the relative importance of sam ples and 
+therefore fail to fully exploit critical interaction data.  Therefore, u nder the centralized 
+training with decentralized execution (CTDE) framework, this study proposes a hierar-
+chical reward-driven prioritized experience replay (PER) mechanism to improve sample 
+efficiency and training stability in multi -agent cooperative contr ol tasks. The proposed 
+mechanism guides the training process to focus more on high-value interaction samples. 
+In the replay buffer, each interaction sample is defined as: 
+( )=
+  ', , , , , , ,1 N 1 N
+i i i i i i i ie o a a r r o d
+ (25) 
+where 
+io  and 
+'
+io  denote the joint observations at time steps t and t + 1, respectively; 
+N
+ia  
+and 
+N
+ir  represent the actions and rewards of agent N; 
+id  indicates the termination flag; 
+and N denotes the number of agents. The capacity of the replay buffer is set to 
+ 45 10 . 
+To reflect the importance of different experiences for policy updates, a proportional 
+priority sampling strategy is adopted, where the sampling probability of the i -th experi-
+ence is defined as: 
+( )
+
+=
+
+i
+jj
+PPi
+P
+ (26) 
+where 
+iP  denotes the priority of the i-th experience and 
+ 0,1  is the priority weight 
+factor. When 
+ = 0 , the sampling degenerates into uniform sampling. 
+Since prioritized sampling changes the original distribution of experience samples, 
+directly using these sampled data for gradient updates may introduce estimation bias. To 
+address this issue, importance sampling (IS) weights are introduced to correct the loss 
+function: 
+
+=
+11
+()
+iw B P i
+ (27) 
+where 
+ 0,1  is the bias compensation factor and 
+B  denotes the replay buffer capac-
+ity. 
+Electronics 2026, 15, 1823 14 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+Within the CTDE framework, the centralized critic evaluates the action value based 
+on the joint state–action pair. For agent i, the target Q-value [36] is defined as: 
+( ) ( )
+'1
+1,2 1 1 ˆmin , log , i i t
+i i j j t t t iy r Q a a o   +
+= + +
+= + − s
+ (28) 
+where 
+ir  represents the immediate reward obtained by agent i, which consists of both 
+local rewards and global rewards; 
+  is the discount factor; 
+1t
+ia +  denotes the joint action 
+sampled from the current policies at the next time step; and 
+  is the entropy coefficient. 
+ˆ ts
+ represents the enhanced state generated by concatenating the current state with the 
+Mamba-predicted next state. 
+The temporal-difference (TD) error for agent i at time step t is defined as: 
+( ) ( )( ) =− 12 ˆ ˆ, , ,
+i
+i i i
+t t t t t Q a Q a yss
+ (29) 
+In traditional PER, the priority is updated using the TD error of a single agent. How-
+ever, in multi-agent scenarios, such a strategy may introduce instability due to noise from 
+individual agents. To address this issue, a multi -agent TD-error aggregation st rategy is 
+proposed. For each experience sample, TD errors from all agents within a training cycle 
+are aggregated and averaged: 
+
+=
+= 
+1
+1 N
+i
+tt
+iN
+ (30) 
+In terms of the priority update mechanism, experience priorities are typically up-
+dated immediately after each network update based on the latest TD error. However, in 
+multi-train virtual coupling scenarios, the system often experiences strong fluctuations 
+during non-steady-state phases, such as startup, acceleration, braking, and coupling ad-
+justment. During these phases, TD errors may vary significantly within a short time inter-
+val. Frequent priority updates based on instantaneous errors may amplify stochastic dis-
+turbances and lead to unstable sampling distributions. To mitigate this issue, a delayed 
+priority update mechanism is introduced. For each experience sample, the aggregated 
+multi-agent TD error is accumulated over K consecutive replay update steps, and the pri-
+ority is updated only after reaching the predefined update interval:  
+( )
+
+=
++ 
+1
+1 K u
+ii
+u
+p K
+ (31) 
+where 
+( )
+
+u
+i  denotes the aggregated TD error of the i-th experience in the u-th update. 
+During parameter updates, the IS weights defined in Equation (27) are applied to 
+weight the squared error loss of the critic network. The prediction module is trained im-
+plicitly via the critic objective, rather than using an explicit supervised MSE loss. 
+The loss function is defined as: 
+( ) ( ) ( )
+1
+2
+, , , ~
+()ˆ ,
+jt t t t
+j i i ar
+i
+tD ts
+L E w Q y a
++
+=− 
+s
+s
+ (32) 
+The update procedures enable the MASAC framework to fully leverage Mamba -en-
+hanced state information, PER sampling weights, and entropy regularization, thereby 
+achieving stable and efficient policy learning for multi-agent train formation control. 
+3.4. Algorithm Pseudocode 
+Algorithm 1 presents the training procedure of the PM -MASAC algorithm for the 
+virtual coupling control task. Under the centralized training with decentralized execution 
+(CTDE) framework, agents continuously interact with the environment to generate state 
+transition samples, which are stored in a prioritized experience replay buffer. When the 
+Electronics 2026, 15, 1823 15 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+number of stored samples satisfies the training requirements, batch sampling is per-
+formed according to the priority distribution, and the Critic network, Actor network, and 
+temperature parameter are updated.  Meanwhile, to mitigate the influence of short -term 
+fluctuations in TD errors on the stability of the sampling distribution, a delayed priority 
+update strategy is adopted. This mechanism effectively improves training stability and 
+sample utilization efficiency. 
+Algorithm 1. PM-MASAC with PER for virtual train formation control 
+The PM-MASAC 
+Input: 
+Environment 
+E  of the three trains formation scenario; 
+Actor networks 
+i ; 
+Mamba-Q Critic networks 
+1Q , 
+2Q  with target networks 
+'
+1Q , 
+'
+2Q ; 
+Hyperparameters initialization: 
+agentsn , 
+ , 
+ , 
+ , 
+lr ; 
+PER replay buffer B with initialization parameters 
+PER  and 
+PER ; 
+Output: 
+Trained policy 
+i . 
+Procedure: 
+Interaction Process 
+1. Initialization: 
+Initialize actors 
+i ; 
+Initialize predictive mamba centralized critics 
+12,QQ , and target critics 
+''
+12,QQ ; 
+Initialize log entropy log 
+0  ; 
+Initialize PER replay buffer B as empty; 
+Initialize step counter 
+0t ; 
+2. for each episode do 
+3.    Reset environment 
+E ; 
+4.    Obtain initial state 
+0ttSS = ; 
+5.    for each step do 
+6.       for each agent i do 
+7.          Sample actions 
+( )ˆ | 
+
+i
+ii
+ttas  from actor networks; 
+8.       end for 
+9.       Execute joint action 
+at  in environment 
+E ; 
+10.       Observe next state 
+1+ts , reward 
+tr , and 
+done ; 
+11.       Store transition 
+( )1, , , ,s a r s donet t t t +  into B with maximum priority; 
+12.       
+1ttSS + ; 
+Update Process 
+13.       if size(B) ≥ batch size, then: 
+14.         Sample batch from B using priority distribution 
+( )Pi  based on (26); 
+15.         Compute importance-sampling weights 
+iW  based on (27); 
+16.         for each agent i do 
+17.            Update Critic networks based on (32); 
+18.            Update Actor network based on (16); 
+19.            Update temperature parameter 
+  based on (17); 
+20.         end for 
+21.         Soft-update target parameters 
+' j  based on (18); 
+22.         Accumulate TD-errors for sampled transitions; 
+23.         if t mod K = 0,then: 
+Electronics 2026, 15, 1823 16 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+24.           Update priorities in replay buffer B; 
+25.       if done break; 
+26.    end for 
+27. end for 
+28. Return policy 
+
+i . 
+4. Experimental Simulation and Analysis 
+To comprehensively evaluate the effectiveness of the proposed method, this study 
+first determines the optimal combination of key algorithm parameters through parameter 
+sensitivity analysis. Subsequently, comparative experiments and ablation studies are con-
+ducted to verify the respective contributions of the MASAC framework, the Mamba pre-
+diction module, and the prioritized experience replay (PER) mechanism, as well as their 
+combined synergistic effects. Finally, the overall performance and generalization capabil-
+ity of the proposed algorithm are systematically evaluated using both the training dataset 
+and an independent test set, ensuring that the learned policy can be stably applied to mul-
+tiple operating conditions after training. 
+4.1. Experimental Setup 
+The experiments are conducted in a self-defined multi-agent simulation environ-
+ment, TrainFormationEnv, developed under the PettingZoo (Farama Foundation, New 
+York, NY, USA) framework. All experiments are implemented using Python 3.9 (Python 
+Software Foundation, Wilmington, DE, USA ) and executed on the same hardware and 
+software platform to ensure fairness and consistency in algorithm comparisons.  
+During the experiments, the leading train follows a predefined speed profile, while 
+the following trains learn acceleration control strategies autonomously through the pro-
+posed PM -MASAC algorithm to track the target velocity and target spacing, thereby 
+achieving a virtual coupling state. To ensure reproducibility, all algorithms adopt identi-
+cal environment configurations and hyperparameter settings during training and evalua-
+tion, and a fixed random seed is used throughout the experiments. The training param e-
+ters are summarized in Table 2. 
+Table 2. Training parameters. 
+Meaning Parameter Value 
+Discount factor 
+  0.99 
+Learning rate 
+,,Qlr lr lr  0.0001, 0.001, 0.001 
+Size of replay buffer D 50,000 
+Size of sampling batches B 256 
+Soft update parameter 
+  0.01 
+Number of sampling episodes 
+sN  800 
+Maximum training steps per episode 
+eT  2000 
+Entropy Temperature Coefficient 
+  0.0001 
+The priority Coefficient of PER 
+p  0.6 
+Balance factor 
+  0.4 
+Time step 
+t  0.3 
+Random seed seed 58 
+Prediction horizon 
+hP  1 
+minimum log std 
+minlog  −20 
+maximum log std 
+maxlog  2 
+Electronics 2026, 15, 1823 17 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+To quantitatively compare the control performance of different algorithms, several 
+evaluation metrics are adopted. Except for the virtual coupling success rate, all metrics are 
+calculated separately for the two following trains and then averaged to obtain the overall 
+formation performance. The steady-state condition is defined as the two following trains 
+simultaneously satisfying the spacing error within ±5% and the velocity error within ±2%. 
+1. Setting Time: The time when the follower train remains in the steady -state for five 
+consecutive time steps. 
+2. Spacing Error: The absolute value of the relative error between the actual inter -train 
+distance and the desired spacing. 
+3. Velocity Error: The absolute value of the relative error between the follower and pre-
+ceding train. 
+4. 
+vMSE : Mean squared error of speed deviation. 
+5. 
+aMSE : Mean squared error of acceleration deviation, reflecting ride comfort.  
+6. Virtual Coupling Success Rate: The ratio of time steps where both followers maintain 
+steady state simultaneously. 
+4.2. Sensitivity Analysis 
+4.2.1. Sensitivity Analysis of Hyperparameter 
+To investigate the impact of key hyperparameters on algorithm performance and 
+training stability, a sensitivity analysis is conducted on the learning rate (
+lr ), soft update 
+coefficient, discount factor, PER priority weight coefficient and reward stage division. The 
+cumulative reward is used as the evaluation metric, and the experimental results are pre-
+sented in Figure 4. 
+  
+(a) (b) 
+  
+(c) (d) 
+Figure 4. Sensitivity analysis of key hyperparameters in PM-MASAC: (a) the learning rate lr; (b) soft 
+update coefficient 
+ ; (c) discount factor 
+ ; (d) PER priority weight 
+p . 
+
+Electronics 2026, 15, 1823 18 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+The results of the hyperparameter sensitivity analysis indicate that the proposed al-
+gorithm exhibits differentiated sensitivity to different types of hyperparameters. Among 
+them, the learning rate and discount factor have a more significant impact on train ing 
+stability and convergence speed. 
+When the learning rate is set too high, the policy tends to oscillate in the later stages 
+of training; conversely, while an excessively small learning rate may prevent the agent 
+from learning an optimal policy. For the discount factor, a higher value delays policy con-
+vergence, while a lower value causes the agent to focus more on short-term rewards, lim-
+iting improvements in cumulative rewards. 
+In contrast, variations in the soft update coefficient and the PER priority weight coeffi-
+cient within reasonable ranges have relatively limited influence on the final performance. 
+Based on the above analysis, the hyperparameters are finally set as learning rate  lr = 
+1 × 10 −4, soft update coefficient 
+   = 0.01, discount factor 
+   = 0.99, and PER priority 
+weight coefficient 
+p  = 0.6,which provide a reliable parameter foundation for the subse-
+quent experiments. 
+4.2.2. Sensitivity Analysis of MDP Components 
+To comprehensively evaluate the impact of design choices on the learning perfor-
+mance, a series of sensitivity and ablation experiments are conducted to investigate how 
+different reward stage partition strategies and state variable combinations affect train ing 
+stability and cumulative rewards. This analysis aims to provide insights into the effective-
+ness and robustness of the proposed design, as well as to justify the selected reward stage 
+division and state representation used in subsequent experiments.  
+The ablation settings of state variables are summarized in Table 3 and the experi-
+mental results are presented in Figure 5. 
+Table 3. Ablation settings of state variables. 
+Algorithm State Space 
+PM-MASAC 
+tS  
+1, 2 1 1 0, , , , , ,
+i i i i i i i i
+t t t t t t t t t ts x v x v d v v s S
+= −−=     
+PM-MASAC 
+tS  
+1, 2 1 1 1 0 0, , , , , , , ,
+i i i i i i i i i
+t t t t t t t t t t t ts x v a x v a v v a s S
+= − − −=    
+PM-MASAC (Ours) 
+1, 2 1 1 1 0 0, , , , , , , , ,
+i i i i i i i i i i
+t t t t t t t t t t t t ts x v a x v a d v v a s S
+= − − −=     
+ 
+  
+(a) (b) 
+Figure 5. Sensitivity analysis of MDP components: (a) reward stage division; (b) state variables. 
+
+Electronics 2026, 15, 1823 19 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+Figure 5a shows that different stage partition strategies lead to only minor variations 
+in performance in terms of final convergence level. Among the three configurations, the 
+green curve (350, 600, 800) achieves the most balanced behavior . In contrast, the orange 
+curve (240, 560, 800) and the blue one (480, 680, 800)  show relatively noticeable fluctua-
+tions during training. Considering both training stability and performance balance, the 
+training process is divided into three stages with boundaries at episodes 350 and 600 . 
+As shown in Figure 5b, ablation experiments are conducted by removing different 
+state components in sequence to further verify the rationality and effectiveness of the de-
+signed state space. When relative information is removed, the learning process becomes 
+significantly unstable, with slower convergence and lower final rewards. This indicates 
+that relative distance is critical for inter -train coordination and safety -aware decision -
+making. When acceleration information is removed, the performance also degrad es, alt-
+hough to a lesser extent, mainly affecting convergence smoothness and control stability.  
+Overall, the full state design achieves the best performance in terms of both conver-
+gence speed and stability. These results demonstrate that the proposed state representa-
+tion is not redundant. Instead, each component contributes meaningfully to the learni ng 
+process. 
+4.3. Performance Comparison of Different Algorithms 
+To verify the performance advantages of the proposed PM-MASAC algorithm in the 
+multi-agent train virtual coupling task, several representative multi -agent reinforcement 
+learning algorithms are selected as baseline methods, including MATD3  (Multi-Agent 
+Twin Delayed Deep Deterministic Policy Gradient) [37] , MADDPG (Multi-Agent Deep 
+Deterministic Policy Gradient) [38] , and MAPPO  (Multi-Agent Proximal Policy Optimi-
+zation) [39]. Among them, MATD3 and MADDPG represent multi -agent methods based 
+on deterministic policy gradients, whereas MASAC and MAPPO adopt stochastic policy 
+modeling with explicit exploration mechanisms. All algorithms are trained under the 
+same environment configuration and share common  hyperparameters, while the algo-
+rithm-specific hyperparameters are listed in Table 4. Figure 6 presents the cumulative re-
+ward curves of different algorithms during the training process. 
+ 
+Figure 6. Training reward comparison of different algorithms. 
+  
+
+Electronics 2026, 15, 1823 20 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+Table 4. Specific hyperparameters of MATD3 and MAPPO. 
+Algorithm Policy Delay Target Policy Noise Target Noise Clip 
+MATD3 2 0.2 0.5 
+Algorithm GAE 
+  Entropy coefficient Clip Epsilon 
+MAPPO 0.95 0.01 0.2 
+It can be observed  that the proposed PM -MASAC algorithm achieves a faster con-
+vergence rate in the early training stage and exhibits smaller reward fluctuations through-
+out the training process, eventually stabilizing at a higher reward level. Compared with 
+deterministic policy methods, the proposed algorithm demonstrates stronger exploration 
+capability and improved training stability in complex multi -train interaction scenarios. 
+Moreover, relative to MAPPO and the original MASAC algorithm, PM-MASAC achieves 
+clear advantages i n both convergence speed and final reward performance, further vali-
+dating the effectiveness of the proposed approach for the multi -agent train virtual cou-
+pling control task. 
+4.4. Ablation Study of PM-MASAC Algorithm 
+To further investigate the contribution of two key components in the proposed PM -
+MASAC framework , i.e., the Prioritized Experience Replay (PER) mechanism and the 
+Mamba-based predictive module , ablation experiments are conducted on the PM -MA-
+SAC algorithm. Figure 7 presents the training reward curves of the ablation  study of the 
+proposed algorithm. 
+ 
+Figure 7. Reward curves of ablation study of PM-MASAC. 
+The experimental results indicate that, compared with the baseline MASAC algo-
+rithm, the introduction of the Mamba prediction structure leads to faster convergence, 
+higher final reward values, and significantly reduced reward fluctuations during the 
+training process. This improvement can be attributed to the enhanced state representation 
+generated by the prediction module. By incorporating predicted future state information 
+into the critic input, the algorithm is able to capture the temporal evolution characteristics 
+of multi-train states more effectively, thereby improving the stability of multi-agent coop-
+erative decision-making. 
+Overall, the ablation results show that the PER mechanism mainly improves the 
+training efficiency by prioritizing informative experiences , while the Mamba prediction 
+
+Electronics 2026, 15, 1823 21 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+module plays a key role in enhancing policy stability and final performance. These two 
+components complement each other within the PM -MASAC framework, enabling the 
+proposed method to achieve faster convergence and superior overall control performance 
+in the multi-agent train virtual coupling task. 
+In addition, to analyze the influence of the predictive model structure, the proposed 
+Mamba-based prediction module is compared with the conventional LSTM prediction 
+model and MLP model. Figure 8 presents the training reward curves of different predic-
+tion models. 
+ 
+Figure 8. Reward curves of different prediction modules. 
+In c omparison with the  LSTM-based prediction model , the reward curve of the 
+Mamba-based model is smoother throughout the entire training stage, whereas the LSTM-
+based model shows obvious and frequent oscillations. Moreover, compared with the 
+MLP-based prediction model, the Mamba -based approach achieves faster initial conver-
+gence. The observation further confirms the advantages of Mamba in complex multi-agent 
+temporal modeling tasks. 
+4.5. Impact of Observation Delay on System Performance 
+In real-world railway operations, information exchange among trains is constrained 
+by communication conditions, where state information cannot always be obtained instan-
+taneously. Such non -ideal sensing and information conditions introduce delayed obser-
+vation feedback, which may affect the decision-making accuracy and control performance 
+of multi-train cooperative strategies. 
+Therefore, incorporating observation delays into the simulation is essential for eval-
+uating the applicability and robustness of the proposed method under realistic operating 
+conditions. In this study, a fixed observation delay of 3 simulation steps is intr oduced. 
+Figure 9 presents the reward curve under the delayed observation setting and compares 
+it with the delay-free case. The tracking performance of algorithms under observation de-
+lay is shown in Figure 10. 
+
+Electronics 2026, 15, 1823 22 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+ 
+Figure 9. Performance comparison of algorithms with communication delay. 
+ 
+Figure 10. Training Results Curve of algorithms with communication delay. 
+Compared with the delay-free case, the cumulative reward exhibits a slight degrada-
+tion and minor fluctuations during training. This phenomenon is mainly attributed to the 
+delayed state feedback, which leads to a mismatch between the agents’ current states and 
+their perceived states, thereby inducing small oscillations in the reward signal. However, as 
+reflected in the tracking results, these reward fluctuations do not significantly affect the 
+overall control quality, since both inter-vehicle distance and velocity errors remain consist-
+ently low. The tracking data under the delayed observation setting is presented in Table 5. 
+Table 5. Control performance of algorithms with communication delay. 
+Algorithms 
+( )sts  
+( )ev%  
+( )ed%  
+( )
+22
+vMSE
+m / s  Compliance 
+Rate (%) 
+PM-MASAC with delay  24.9 0.52 2.5 4.1476 93.45 
+Under this setting, the proposed method maintains strong formation control perfor-
+mance. Quantitatively, the average velocity error is only 0.52%, and the formation success 
+rate reaches 93.45%. The results indicate that although observation delay increases the 
+difficulty of coordination and slightly reduces the reward magnitude, the proposed ap-
+proach still achieves stable and accurate platoon formation with strong robustness.  
+
+Electronics 2026, 15, 1823 23 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+4.6. Training Scenario Result Analysis 
+In the training scenario, the train speed profile is designed to simulate realistic oper-
+ating conditions of high -speed railways, allowing the proposed virtual coupling control 
+strategy to be evaluated under non -stationary conditions. The train operating st ates and 
+action constraints are listed in Table 6. 
+Table 6. Constraints of state and action. 
+Meaning Value 
+Maximum speed (m/s) 105 
+Acceleration range (
+2m/s ) 
+( )0.8,0.8−  
+Minimum safety interval (m) 150 
+Ideal tracking interval (m) 600 
+At the initial stage of training, the lead er operates in a steady cruising stat us, while 
+two following trains start with different initial velocities and are positioned 500 m and 
+1500 m behind the lead er, respectively. This setup forms an initial operating condition 
+containing both speed and spacing disturbances. 
+The velocity profile of the leading train is designed as a multi -stage operating sce-
+nario containing two temporary speed adjustment processes. In the first stage, the train 
+decelerates to a lower cruising speed and then accelerates to recover its operating  speed. 
+A second deceleration –acceleration cycle with different acceleration and deceleration 
+rates is further introduced to represent another operational disturbance. After the disturb-
+ance is cleared, the train gradually accelerates and finally reaches a stable high -speed 
+cruising state. 
+The above speed profile covers several typical operating conditions in high -speed 
+railway systems, including cruising, speed -restricted operation, acceleration recovery, 
+and dispatch intervention. Figure 11 illustrates the train speed curves, displacement 
+curves, and the corresponding speed and spacing errors during the tracking process.  
+  
+(a) (b) 
+
+Electronics 2026, 15, 1823 24 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+  
+(c) (d) 
+Figure 11. Training Results Curve: (a) position trajectory; (b) speed trajectory; (c) spacing error; (d) 
+speed error. 
+As shown in Figure 11, all trains achieve a stable virtual coupling state and maintain 
+consistent position trajectories during operation. T he speed of the followers tracks the 
+speed of the leader with rapid response and negligible fluctuation.  The spacing error re-
+mains within a narrow range around the desired distance, while the speed error rapidly 
+converges to a near-zero level and remains stable during the operation phase. 
+To further quantitatively evaluate the effectiveness of the proposed method, compre-
+hensive comparisons with several algorithms are conducted in Table 7. The results show 
+that PM -MASAC achieves the best overall control performance among the compared 
+methods. In particular, the proposed algorithm attains a virtual coupling compliance rate 
+of 95.7%, indicating that the trains remain within the desired spaci ng and speed error 
+bounds for the majority of the operation period. 
+Combined with the above qualitative and quantitative analysis, it can be concluded 
+that the proposed method not only ensures stable and accurate tracking control but also 
+possesses stronger overall performance and robustness compared with other algorithms.  
+Table 7. Control performance of different algorithms in the training scenario. 
+Algorithms 
+( )sts  
+( )ev%  
+( )ed%  
+( )
+22
+vMSE
+m / s  Compliance 
+Rate (%) 
+MADDPG 74.55 0.46 2.12 5.9735 78.26 
+MATD3 20.4 0.49 2.4 4.5196 85.81 
+MASAC 46.65 0.5 1.77 4.0862 86.96 
+PM-MASAC 20.7 0.5 1.48 4.2575 95.7 
+4.7. Generalization Performance Analysis 
+To further evaluate the generalization capability of the proposed algorithm, we eval-
+uate the proposed algorithm on four distinct and representative operational scenarios that 
+were never encountered during training: cruising operation (CR), speed regulation  (SR), 
+station departure and arrival (DA), and real -route speed profile simulation (RRS). These 
+test scenarios are designed with different speed profiles, disturbance patterns, and dy-
+namic characteristics from the training environment. A robust policy shou ld extract gen-
+eralizable control principles rather than merely memorize training conditions. Therefore, 
+
+Electronics 2026, 15, 1823 25 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+successful performance in these unseen conditions provides strong evidence of the pol-
+icy’s robustness against operational uncertainties. 
+1. Case 1: Cruising Condition (CR) 
+In this scenario, the initial velocities of follower  1 and follow 2 are set to 65 m/s and 
+88 m/s, respectively , with initial positions located 400 m and 1100 m behind the lead er. 
+The reference speed profile of the lead er covers typical operating speeds of high -speed 
+railways, including 245 km/h, 300 km/h, and 350 km/h. Figure 12 presents the correspond-
+ing velocity tracking curves of the trains under these cruising conditions.  
+  
+(a) (b) 
+ 
+ 
+(c)  
+Figure 12. Train tracking trajectories of the cruising conditions: (a) 70 m/s; (b) 83 m/s; (c) 97 m/s. 
+For quantitative analysis of the control performance of different algorithms during 
+the steady cruising stage, a cruising speed of 70 m/s is selected  for performance evalua-
+
+Electronics 2026, 15, 1823 26 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+tion. The control performance of different algorithms is summarized in Table 8. The re-
+sults show that all algorithms are capable of tracking the motion of the leader and main-
+taining the desired inter-train spacing during operation. However, compared with other 
+algorithms, the proposed PM-MASAC algorithm achieves the highest virtual coupling of 
+74.25%, outperforming MASAC (64.65%) and MATD3 (54.3%).  In addition, the accelera-
+tion error is reduced to 0.9963, which is lower than that of the baseline algorithms, indi-
+cating improved control smoothness. compliance rate and better ride comfort. The results 
+demonstrate the PM-MASAC algorithm achieve superior overall control performance un-
+der cruising conditions. 
+Table 8. Control performance (70 m/s) of different algorithms in case CR. 
+Algorithms 
+( )sts  
+( )ev%  
+( )ed%  
+( )
+22
+vMSE
+m / s  
+( )
+4
+a
+2
+MSE
+m / s  Compliance 
+Rate (%) 
+MADDPG 84.45 0.19 8.31 21.8764 1.5953 37.3 
+MATD3 80.55 0.32 4.36 5.4507 1.4320 54.3 
+MASAC 65.55 0.35 5.34 9.185 1.2431 64.65 
+PM-MASAC 48 0.32 2.92 5.6086 0.9963 74.25 
+2. Case 2: Speed Regulation (SR) 
+In this scenario, the initial velocities of follower 1 and follower  2 are 80 m/s and 70 
+m/s, respectively, with initial positions 500 m and 1100 m behind the leader. Two acceler-
+ation magnitudes (0.15 and 0.4 m/s 2) are applied to the lead er for both acceleration and 
+deceleration to simulate speed adjustments caused by dispatching commands or opera-
+tional constraints during inter-station operation. The corresponding train tracking trajec-
+tories are illustrated in Figure 13, while the quantitative performance comparison of dif-
+ferent algorithms is summarized in Table 9. 
+  
+(a) (b) 
+
+Electronics 2026, 15, 1823 27 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+  
+(c) (d) 
+Figure 13. Tracking trajectories of different acceleration magnitudes: (a) 
+20.15m/s ; (b) 
+2-0.15m/s ; 
+(c) 
+20.4m/s ; (d) 
+2-0.4m/s . 
+Table 9. Control performance 
+2(0.15m/s )  of different algorithms in Case SR. 
+Algorithms 
+( )sts  
+( )ev%  
+( )ed%  
+( )
+22
+vMSE
+m / s  
+( )
+4
+a
+2
+MSE
+m / s  Compliance 
+Rate (%) 
+MADDPG 278.25 0.05 12.38 6.6043 2.749 10.90 
+MATD3 163.5 0.11 4.71 10.5468 2.8098 57.20 
+MASAC 98.85 0.24 4.21 11.8012 2.3832 60.9 
+PM-MASAC 88.65 0.23 2.76 25.705 0.1046 74.40 
+The results indicate that the proposed PM -MASAC algorithm can effectively sup-
+press both velocity and spacing deviations under different acceleration and deceleration 
+scenarios. The trains reach a stable virtual coupling state within a relatively short adju st-
+ment period  of 88.65 s, which outperforms the comparative algorithms.  Moreover, the 
+algorithm maintains smooth acceleration profiles, ensuring passenger comfort while 
+achieving a higher virtual coupling success rate of 74.4% than the other algorithms. 
+3. Case 3: Departure and Arrival (DA) 
+This scenario simulates the station departure and arrival process. The initial condi-
+tions approximately achieve the virtual coupling state. The initial velocities of follower 1 
+and follower 2 are 40 m/s and 50 m/s, respectively, with initial positions 600 m and 1200 
+m behind the leader. 
+During operation, the leading train decelerates from 55 m/s to a stop at a deceleration 
+of 0.2 
+2m/s , remains stationary at the station for 20 s, and then accelerates again with the 
+same acceleration magnitude to depart from the station. The corresponding tracking 
+curves are shown in Figure 14, while the quantitative performance comparison is summa-
+rized in Table 10. “–” denotes that the method does not satisfy the steady -state condition 
+and thus the compliance rate and 
+st  cannot be recorded. 
+
+Electronics 2026, 15, 1823 28 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+ 
+Figure 14. Train tracking trajectories of Case DA. 
+Table 10. Control performance of different algorithms in Case DA. 
+Algorithms 
+( )sts  
+( )ev%  
+( )ed%  
+( )
+22
+vMSE
+m / s  
+( )
+4
+a
+2
+MSE
+m / s  Compliance 
+Rate (%) 
+MADDPG - 3.84 18.97 1.739 0.427 - 
+MATD3 - 11.36 15.78 9.5509 0.2309 - 
+MASAC 1.65 19.95 23.11 58.6123 0.4364 0.10 
+PM-MASAC 1.05 0.83 3 0.1618 0.0161 71.15 
+The Departure and Arrival (DA) scenario introduces a fundamentally different dy-
+namic structure. The leading train undergoes a complete motion regime transition, start-
+ing from a deceleration phase, followed by a zero -speed stop phase, and subsequently a 
+re-acceleration phase for departure. This introduces a temporary loss of dynamic continu-
+ity during the stop phase, as well as abrupt changes in the relative motion structure be-
+tween trains when switching between stationary and moving states. 
+Due to the significant dynamic changes, several baseline algorithms fail to maintain 
+a stable virtual coupling state throughout the entire operation. In contrast, the proposed 
+PM-MASAC achieves a compliance rate of 71.15%, demonstrating its strong robustness 
+under complex operating conditions. In addition, the 
+vMSE  and 
+MSEa  errors are sig-
+nificantly reduced to 0.1618 and 0.0161, respectively. The result demonstrates the superior 
+stability and adaptability of the proposed control strategy. 
+4. Case 4: Real Route Simulation 
+To further evaluate the applicability of the proposed method in realistic railway en-
+vironments, a comprehensive operating scenario is constructed to simulate multiple typ-
+ical operational states and transitions. The overall speed and acceleration settings comply 
+with engineering constraints of high -speed railway operations. The corresponding train 
+
+Electronics 2026, 15, 1823 29 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+tracking trajectories are presented in Figure 15, and the quantitative performance compar-
+ison of different algorithms is summarized in Table 11. 
+ 
+Figure 15. Train tracking trajectories of Case SSR. 
+Table 11. Control performance of different algorithms in Case SSR. 
+Algorithms 
+( )sts  
+( )ev%  
+( )ed%  
+( )
+v
+22
+MSE
+m / s  
+( )
+4
+a
+2
+MSE
+m / s  Compliance 
+Rate (%) 
+MADDPG 18.45 0.16 2.36 1.7306 0.6895 37.25 
+MATD3 26.1 0.11 2.89 2.9514 0.6118 38.15 
+MASAC 25.95 0.39 1.76 1.5162 0.3 77.60 
+PM-MASAC 21.15 0.29 1.8 1.0296 0.2762 94.25 
+As shown in Table 11, the proposed PM -MASAC algorithm achieves a virtual cou-
+pling compliance rate of 94.25%, which is considerably higher than that of MASAC and 
+other baseline algorithms. Meanwhile, the velocity and acceleration errors are maintained 
+at lo w levels, with the 
+vMSE   and 
+aMSE   reduced to 1.0296 and 0.2762, respectively. 
+These results confirm that PM-MASAC is capable of ensuring stable tracking performance 
+and smooth control behavior even under complex operating conditions involving multi-
+ple speed transitions. This further demonstrates the strong robustness and generalization 
+capability of the proposed method. 
+In a word, although the dynamic responses in each case exhibit different characteristics, 
+the proposed PM-MASAC framework consistently demonstrates stable tracking behavior 
+and cooperative control capability. To clearly compare the overall performance of the algo-
+rithms, the results of the four cases are summarized using three key indicators: the distance 
+tracking error, the mean squared error of acceleration (MSEA), and the virtual coupling 
+
+Electronics 2026, 15, 1823 30 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+compliance rate. These indicators comprehensively reflect the tracking accuracy, opera-
+tional smoothness, and coupling stability of the virtual coupling system. The statistical re-
+sults of these indicators across Case 1–4 are summarized in Figure 16. 
+  
+(a) (b) 
+ 
+ 
+(c)  
+Figure 16. Performance comparison of different algorithms : (a) 
+aMSE ; (b) distance error 
+ed ; (c) 
+virtual coupling compliance rate. 
+As illustrated in the bar charts, MADDPG and MATD3 exhibit relatively large dis-
+tance errors and noticeable acceleration fluctuations in most cases, resulting in lower 
+steady-state compliance rates of the virtual coupling formation. Their control stability be-
+comes particularly insufficient under scenarios with stronger dynamic variations.  
+After introducing the entropy -regularized exploration mechanism, MASAC shows 
+certain performance improvements in some scenarios; however, its performance still fluc-
+tuates noticeably with changes in operating conditions. 
+In contrast, PM-MASAC demonstrates the most stable overall performance across all 
+test scenarios. It maintains lower distance and acceleration mean squared errors while 
+achieving the highest steady -state compliance rate. The advantage becomes particularly 
+evident under non-stationary conditions, indicating that the proposed method possesses 
+stronger robustness and generalization capability for the virtual coupling task.  
+  
+
+Electronics 2026, 15, 1823 31 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+5. Conclusions 
+To address the challenges of complex multi -train interactions and significant long -
+term temporal dependencies in train virtual coupling control, this paper proposes a Pre-
+dictive Mamba-based Multi-Agent Soft Actor-Critic (PM-MASAC) control framework un-
+der the Centralized Training and Decentralized Execution (CTDE) architecture. By intro-
+ducing the Mamba prediction model to construct enhanced state representations for the 
+centralized Critic network, significantly improv ing the modeling capacity of the system. 
+Integrated with a prioritized experience replay mechanism and an automatic entropy ad-
+justment strategy, the proposed method enhances sample efficiency and exploration sta-
+bility within continuous action spaces. Furthermore, a hierarchical reward function fo r 
+multi-agent virtual coupling tasks is designed to guide agents in learning coordinated car-
+following control strategies. 
+Simulation experiments were conducted across various non -stationary simulation 
+scenarios consistent with high-speed railway operation characteristics. Compared to typ-
+ical multi -agent reinforcement learning algorithms such as MASAC, MADDPG, and 
+MATD3, the proposed PM-MASAC framework achieves more stable speed and distance 
+tracking control under complex operating conditions. Moreover, it achieves superior com-
+prehensive performance in key indicators such as tracking accuracy, ride comfort, and 
+steady-state compliance of the virtual coupling distance. These results verify the effective-
+ness of the introduced Mamba-based state prediction mechanism in enhancing the stabil-
+ity and robustness of multi-agent cooperative control. 
+In summary, this paper presents a cooperative control framework that combines pre-
+dictive models with multi-agent reinforcement learning for the train virtual coupling con-
+trol problem from the perspectives of system state evolution modeling, improving control 
+stability in complex collaborative scenarios. 
+In terms of simulation environment modeling for data -driven training, future re-
+search could be extended in two directions. First, adopting a multi -mass model that cap-
+tures inertial effects between carriages to enable finer motion control. Second, moving be-
+yond simulation-based modeling to directly leverage real train operational data for train-
+ing agents and learning control policies. In addition, dynamically increasing inter -train 
+spacing and incorporating routing-based decoupling strategies near stations represent im-
+portant and practical extensions of the current framework, which can improve operational 
+flexibility and safety in real-world deployment scenarios. On the algorithmic side, future 
+work will further investigate longer prediction horizons and mult i-scale state modeling 
+methods, while validating the framework’s generalization capability and engineering ap-
+plicability under large-scale coupling and complex uncertain disturbances. 
+Author Contributions: Conceptualization, H.H. and Q.F.; methodology, H.H. and Q.F.; software, 
+H.H. and Z.H.; validation, H.H., Z.H. and W.L.; formal analysis, H.L.; investigation, Q.F. and W.L.; 
+resources, H.L.; data curation, Z.H. and W.L.; writing—original draft preparation, H.H.; writing—
+review and editing, H.H. and Q.F.; visualization, H.H.; supervision, Q.F.; project administration, 
+Q.F.; funding acquisition, H.L. All authors have read and agreed to the published version of the 
+manuscript. 
+Funding: This research was funded by Research on Intelligent Health Management for Railway 
+Switch Machines Based on Full Lifecycle Multi-Source Heterogeneous Big Data, LJ242510150003. 
+Data Availability Statement: Data are contained within the article. 
+Conflicts of Interest: The authors declare  that the research was conducted in the absence of any 
+commercial or financial relationships that could be construed as a potential conflict of interest. 
+  
+Electronics 2026, 15, 1823 32 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+Abbreviations 
+The following abbreviations are used in this manuscript: 
+VBTC Vehicle-to-Vehicle Communication Based Train Control 
+VC Virtual coupling 
+MPC Module predictive control 
+PID Proportional integral derivative 
+PER Prioritized experience replay 
+CFD Computational Fluid Dynamics 
+ILQR Iterative Linear Quadratic Regulator 
+DQN Deep Q-Network 
+DDPG Deep Deterministic Policy Gradient 
+UAV Unmanned Aerial Vehicles 
+LSTM Long Short-Term Memory 
+MASAC Multi-Agent Soft Actor-Critic 
+RMSNorm Root Mean Square Layer Normalization 
+SILU Sigmoid Linear Unit 
+Hippo High-Order Polynomial Projection Operators 
+MATD3 High-Order Polynomial Projection Operators 
+MAPPO Multi-Agent Proximal Policy Optimization 
+MADDPG Multi-Agent Deep Deterministic Policy Gradient 
+References 
+1. Gao, Y.B.; Yan, L.X.; Li, M.Q.; Tian, Z.Y. Research on movement authorization generation of VBTC based on timed automata. 
+In Proceedings of the Advances in Natural Computation, Fuzzy Systems and Knowledge Discovery (ICNC-FSKD 2020), Xi’an, 
+China, 1–3 August 2020. 
+2. Luo, C.; Liu, Y.; Li, Y.; Sun, Z.; Hu, X.; Liu, J. Dynamic decoupling control for virtually coupled train set: A reinforcement learning-
+based model predictive control approach. In Proceedings of the IEEE 27th International Conference on Intelligent Transportation 
+Systems (ITSC), Edmonton, AB, Canada, 24–27 September 2024. https://doi.org/10.1109/ITSC58415.2024.10920128. 
+3. Schumann, T. Increase of capacity on the Shinkansen high -speed line using virtual coupling. Int. J. Transp. Dev. Integr. 2017, 1, 
+666–676. https://doi.org/10.2495/tdi-v1-n4-666-676. 
+4. Tian, S.; Yan, F.; Shang, W. -L.; Majumdar, A.; Chen, H.; Chen, M.; Zeinab, M.; Tian, Y. Energy consumption analysis of trains 
+based on multi -mode virtual coupling operation control strategies. Appl. Energy . 2025, 377, 124684.  
+https://doi.org/10.1016/j.apenergy.2024.124684. 
+5. Fadhel, S.; Capgemini, S.F. Quantification of the aerodynamic gain on two virtually coupled modular trains. Int. J. Comput. 
+Methods Exp. Meas. 2022, 10, 372–384. https://doi.org/10.2495/CMEM-V10-N4-372-384. 
+6. Knospe, C. PID control. IEEE Control. Syst. Mag. 2006, 26, 30–31. https://doi.org/10.1109/MCS.2006.1580151. 
+7. Kalman, R.E. Contributions to the theory of optimal control. Bol. Soc. Mat. Mex. 1960, 5, 102–119. 
+8. Darby, M.L.; Nikolaou, M. MPC: Current practice and challenges. Control Eng. Pract. 2012, 20, 328–342. 
+9. Shtessel, Y.; Edwards, C.; Fridman, L.; Levant, A. Sliding Mode Control and Observation; Birkhäuser: New York, NY, USA, 2014. 
+10. Liu, Y.; Zhou, Y.; Su, S.; Xun, J.; Tang, T. Control strategy for stable formation of high -speed virtually coupled trains with 
+disturbances and delays. Comput.-Aided Civ. Infrastruct. Eng. 2023, 38, 621–639. https://doi.org/10.1111/mice.12873. 
+11. He, R.; Zhang, Y. An adaptive sliding mode controller for virtual coupling high -speed train. In Proceedings of the Chinese 
+Control Conference (CCC), Tianjin, China, 24–26 July 2023. https://doi.org/10.23919/CCC58697.2023.10240517. 
+12. Luo, X.; Gao, J.; Zhang, Y.; Han, X.; Liu, H. A feedforward PID control approach for reference tracking of virtually coupled train 
+set. In Proceedings of the IEEE 26th International Conference on Intelligent Transportation Systems (ITSC), Bilbao, Spain, 24 –
+28 September 2023. https://doi.org/10.1109/ITSC57777.2023.10422350. 
+13. Du, H.; Hu, W.; Liu, R.; Min, S. ILQR-based robust control approach for virtual coupled train set. In Proceedings of the Interna-
+tional Conference on Neural Networks, Information and Communication Engineering (NNICE), Guangzhou, China, 10–12 Jan-
+uary 2025. https://doi.org/10.1109/NNICE64954.2025.11064517. 
+14. Felez, J.; Vaquero-Serrano, M.A.; de Dios Sanz, J. A Robust Model Predictive Control for Virtual Coupling in Train Sets. Actua-
+tors 2022, 11, 372. https://doi.org/10.3390/act11120372. 
+Electronics 2026, 15, 1823 33 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+15. Xie, Y.; Yang, H. A review of artificial intelligence in train driving and control.  Railw. Sci.  2025, 4, 762 –782. 
+https://doi.org/10.1108/RS-09-2025-0036. 
+16. Kaelbling, L.P.; Littman, M.L.; Moore, A.W. Reinforcement learning: A survey. J. Artif. Intell. Res. 1996, 4, 237–285. 
+17. Dun, Y.; ShangGuan, W.; Song, H.; Cai, B. Time-space-based virtual coupling high-speed train separation model and trajectory 
+planning. IEEE Trans. Intell. Transp. Syst. 2024, 25, 18573–18590. https://doi.org/10.1109/TITS.2024.3442212. 
+18. Shang, M.; Zhou, Y.; Mei, Y.; Zhao, J.; Fujita, H. Energy-saving train operation synergy based on multi-agent deep reinforcement 
+learning on spark cloud. IEEE Trans. Veh. Technol. 2023, 72, 214–226. https://doi.org/10.1109/TVT.2022.3205379. 
+19. Ben Elallid, B.; Benamar, N.; Senhaji Hafid, A.; Rachidi, T.; Mrani, N. A comprehensive survey on the application of deep and  
+reinforcement learning approaches in autonomous driving.  J. King Saud Univ. Comput. Inf. Sci.  2022, 34, 7366 –7390. 
+https://doi.org/10.1016/j.jksuci.2022.03.013. 
+20. Yue, P.; Jin, Y.; Dai, X.; Feng, Z.; Cui, D. Reinforcement learning for online dispatching policy in real -time train timetable re-
+scheduling. IEEE Trans. Intell. Transp. Syst. 2024, 25, 478–490. https://doi.org/10.1109/TITS.2023.3305074. 
+21. Lang, Y.; Liu, H.; Luo, X.; Lin, B. DQN -based speed curve optimization for virtual coupling. In Proceedings of the IEEE 25th 
+International Conference on Intelligent Transportation Systems (ITSC), Macau, China, 8 –12 October 2022. 
+https://doi.org/10.1109/ITSC55140.2022.9922169. 
+22. Basile, G.; Lui, D.G.; Petrillo, A.; Santini, S. Deep deterministic policy gradient -based virtual coupling control for high -speed 
+train convoys. In Proceedings of the IEEE International Conference on Networking, Sensing and Control (ICNSC), Shanghai, 
+China, 15–18 December 2022. https://doi.org/10.1109/ICNSC55942.2022.10004067. 
+23. Chen, B.; Zhang, L.; Cheng, G.; Liu, Y.; Chen, J. A novel approach for train tracking in virtual coupling based on soft actor-critic. 
+Actuators 2023, 12, 447. https://doi.org/10.3390/act12120447. 
+24. Liao, J.; Yang, G.; Zhang, S.; Zhang, F.; Gong, C. A deep reinforcement learning approach for the energy -aimed train timetable 
+rescheduling problem under disturbances.  IEEE Trans. Transp. Electr.  2021, 7, 3096 –3109. 
+https://doi.org/10.1109/TTE.2021.3075462. 
+25. Mao, X.; Wu, G.; Fan, M.; Cao, Z.; Pedrycz, W. DL -DRL: A double-level deep reinforcement learning approach for large -scale 
+task scheduling of multi-UAV. IEEE Trans. Autom. Sci. Eng. 2025, 22, 1028–1044. https://doi.org/10.1109/TASE.2024.3358894. 
+26. Karimzadeh, M.; Aebi, R.; Souza, A.M.; Zhao, Z.; Braun, T.; Sargento, S.  Reinforcement learning-designed LSTM for trajectory 
+and traffic flow prediction. In Proceedings of the IEEE Wireless Communications and Networking Conference (WCNC), Nan-
+jing, China, 29 March–1 April 2021. https://doi.org/10.1109/WCNC49053.2021.9417511. 
+27. Tseng, Y.T.; Ferng, H.W. Adaptive DRL-based traffic signal control with an infused LSTM prediction model. In Proceedings of 
+the Advances and Trends in Artificial Intelligence (IEA/AIE 2025), Kytakyushu, Japan, 1 July 2025. https://doi.org/10.1007/978-
+981-96-8892-0_25. 
+28. Liu, M.; Zhu, Y.; Chen, Y.; Zhao, D. Enhancing reinforcement learning via transformer -based state predictive representations. 
+IEEE Trans. Artif. Intell. 2024, 5, 4364–4375. https://doi.org/10.1109/TAI.2024.3379969. 
+29. Liu, H.; Huang, Z.; Mo, X.; Lv, C. Augmenting reinforcement learning with transformer -based scene representation learning 
+for decision-making of autonomous driving. IEEE Trans. Intell. Veh. 2024, 9, 4405–4421. https://doi.org/10.1109/TIV.2024.3372625. 
+30. Wang, Y.; Tao, X. LocoMamba: Vision -driven locomotion via end-to-end deep reinforcement learning with Mamba. Adv. Eng. 
+Inform. 2026, 70, 104230. https://doi.org/10.1016/j.aei.2025.104230. 
+31. Mustafa, S.M.; Usmani, Z.A.; Rizvi, O.; Memon, A.B.; Movania, M.M. Context aware Mamba-based reinforcement learning for 
+social robot navigation. In Proceedings of the International Conference on Control, Mechatronics and Automation (ICCMA), 
+London, UK, 11–13 November 2024. https://doi.org/10.1109/ICCMA63715.2024.10843924. 
+32. Ryu, H.; Sohn, C.B.; Kim, D.Y. Latent Mamba-DQN: Improving temporal dependency modeling in deep Q-learning via selective 
+state summarization. Appl. Sci. 2025, 15, 8956. https://doi.org/10.3390/app15168956. 
+33. Schaul, T.; Quan, J.; Antonoglou, I.; Silver, D. Prioritized experience replay. arXiv 2015, arXiv:1511.05952. 
+34. Somvanshi, S.; Islam, M.M.; Mimi, M.; Polock, S.B.B.; Chhetri, G.; Das, S. From S4 to Mamba: A comprehensive survey on 
+structured state space models. arXiv 2025, arXiv:2503.18970. 
+35. Gu, A.; Dao, T. Mamba: Linear-time sequence modeling with selective state spaces. arXiv 2024, arXiv:2312.00752. 
+36. Haarnoja, T.; Zhou, A.; Abbeel, P.; Levine, S. Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a 
+stochastic actor. In Proceedings of the International Conference on Machine Learning (ICML), Stockholm, Sweden, 10 –15 July 
+2018. 
+37. Fujimoto, S.; Herke, H.; David, M. Addressing function approximation error in actor-critic methods. In International Conference 
+on Machine Learning; PMLR: Birmingham, UK, 2018; pp. 1587–1596. 
+Electronics 2026, 15, 1823 34 of 34 
+ 
+https://doi.org/10.3390/electronics15091823 
+38. Lowe, R.; Wu, Y.I.; Tamar, A.; Harb, J.; Pieter Abbeel, O.; Mordatch, I. Multi-agent actor-critic for mixed cooperative-competitive 
+environments. In Advances in Neural Information Processing Systems; NIPS Foundation: San Diego, CA, USA, 2017; Volume 30. 
+39. Yu, C.; Akash, V.; Eugene, V.; Gao, J.; Yu, W.; Alexandre, B.; Yi, W. The surprising effectiveness of ppo in cooperative multi -
+agent games. In Advances in Neural Information Processing Systems; NIPS Foundation: San Diego, CA, USA, 2022; Volume 35. 
+Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those of the individual au-
+thor(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s) disclaim responsibility for any in jury to 
+people or property resulting from any ideas, methods, instructions or products referred to in the content. 

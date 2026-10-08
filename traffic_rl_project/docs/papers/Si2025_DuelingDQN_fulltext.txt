@@ -1,0 +1,681 @@
+An Optimization Method of Heavy Haul Train Driving Strategy
+Based on Dueling DQN
+Qida Si 1, Lu Jiang 2, Qi Wang 2, Youbin Su 3,Zhiming Xiao 3,Yuxuan Han4 and Ming Chai* 1
+Abstract—The operation of heavy haul trains on long and
+steep downhill is very challenging, it is difficult for drivers to
+accurately grasp the timing of the application of circulating
+air brakes. To address this problem, this paper proposes an
+optimization method for heavy haul train driving strategy based
+on the Dueling DQN algorithm. On the premise of ensuring
+safety, the optimization goal is to improve the efficiency of train
+operation and reduce the total time of air braking. On the
+premise of considering the time-delay characteristics of train
+air braking force, a multi-particle model of a heavy haul train
+is established, and then the optimization problem of the train
+driving strategy is transformed into a Markov decision process
+(MDP). According to the characteristics of heavy haul train
+operation, the key elements of Dueling DQN are designed, and
+the reward function is set based on the optimization objective.
+The simulation experiment is carried out in the scene of a long
+and steep downhill. At the initial speed of 50 km/h, the average
+speed of the whole train can reach 65.95 km/h. Finally, the
+optimization effect of the DQN algorithm is compared to verify
+the effectiveness of the proposed algorithm.
+I. INTRODUCTION
+Heavy haul railway plays a vital role in China ’s trans-
+portation with its strong carrying capacity and extremely high
+transportation capacity. With the rapid growth of China ’s
+freight demand, the heavy haul railway is also developing
+in the direction of long marshalling and large weight. At
+present, the driving control of heavy haul railway in China
+mainly depends on the driver ’s manual control. However,
+the complex line environment of heavy haul railway makes
+it much more difficult for heavy haul trains to drive than
+ordinary trains, and it is easy to cause safety accidents by
+relying solely on manual experience. In addition, in the
+*This work was partially supported by the Fundamental Research
+Funds for the Central Universities (22JBQY001, 2025JBXT011); Na-
+tional Natural Science Foundation of China (372309, 52172322,
+U22A2046, 52272329, U2468208, U2468206, U2469211, 52372310,
+U246920087), Beijing Natural Science Foundation, China (231001,
+L251033, L251056); State Key Laboratory of Advanced Rail Au-
+tonomous Operation (RAO2023ZZ001);Technology Innovation Project of
+CHN Energy(No.GJNY-22-82);The subject of the science and technology
+research development plan of China Railway Corporation (N2023G058);
+Ministry of Industry and Information Technology of PRC (JTGXB-001),
+Beijing Laboratory of Urban Rail Transit.(Corresponding author: Ming
+Chai)
+1Qida Si and Ming Chai are with National Engineering Research Center
+of Rail Transportation Operation and Control System, Beijing Jiaotong
+University, 100044, Beijing, China. Corresponding author: Ming Chai Email:
+chaiming@bjtu.edu.cn.
+2Lu Jiang and Qi Wang are with China Academy of Railway Sciences
+Limited Corporation, Beijing, 100081, China; 20120252@bjtu.edu.cn.
+3Youbin Su and Zhiming Xiao are with CHN Energy Shuohuang Railway
+Development Co., Ltd, 062350, Hebei, China; 2507804943@qq.com.
+4Yuxuan Han is with Beijing No.159 High School,2536563271@qq.com.
+long and steep downhill section, the driver needs to perform
+circulating air braking to ensure that the train speed does not
+exceed the limit ; due to the constraints such as air filling
+time, the circulating air brake has high requirements for the
+driver. If the operation is improper, it can easily cause the
+train to stop, which will seriously affect the transportation
+capacity and economic benefits. Therefore, it is necessary to
+analyze and study the driving strategy optimization problem
+of heavy haul trains according to the characteristics of heavy
+haul trains, so as to improve the train operation speed, reduce
+air braking time, and thereby improve the efficiency of heavy-
+haul rail transport.
+As an important branch of machine learning, reinforcement
+learning (RL) plays an important role in intelligent decision-
+making research. During the training process, the agent
+interacts with the environment continuously, and gradually
+learns the optimal action strategy in continuous trial and error.
+Reinforcement learning can effectively adapt to the optimiza-
+tion needs of discrete and continuous action space. In recent
+years, it has been widely used in video games [1], automatic
+driving [2], robots [3] and other fields. When studying the
+optimization problem of heavy haul train driving strategy,
+traditional optimization algorithms such as mathematical pro-
+gramming, dynamic programming, and heuristic algorithms
+are difficult to express complex air braking constraints, and
+the optimal driving strategies are mostly non-long down-
+grades. In the problem of heavy haul train driving strategy,
+the train action is discrete and the state is continuous. It is
+suitable for reinforcement learning to optimize, and can save
+the complex modeling process. Compared with the traditional
+optimization algorithm, it is more flexible.
+In this paper, aiming at the operation problem of long and
+heavy haul trains in long and steep downhill sections, under
+the premise of ensuring safety, the corresponding dynamic
+model is established to improve the train operation efficiency
+and reduce the total air braking time. The Dueling DQN
+algorithm is used to optimize the operation strategy and
+operation curve of the train in the long and steep downhill
+section. The main contributions are as follows :
+•Since the time-delay characteristics of train air braking
+force are not considered in [4,5,8], a multi-particle
+model of a train considering the time-delay character-
+istics of air braking force is established to make the
+simulation more in line with the actual process.
+•Dueling DQN algorithm can better evaluate the value of
+the state and accelerate the training speed. We use this
+2025 IEEE International Conference on Intelligent Rail Transportation (ICIRT)
+October 11-12, 2025. Beijing, China
+979-8-3315-9751-1/25/$31.00 ©2025 IEEE 353
+2025 IEEE International Conference on Intelligent Rail Transportation (ICIRT) | 979-8-3315-9751-1/25/$31.00 ©2025 IEEE | DOI: 10.1109/ICIRT66379.2025.11216735
+Authorized licensed use limited to: University of Pittsburgh. Downloaded on July 07,2026 at 23:51:09 UTC from IEEE Xplore.  Restrictions apply. 
+algorithm to optimize train operation and design the key
+elements of the algorithm.
+•The simulation experiment is carried out in a slope en-
+vironment with a slope of -10.2 ‰, and the optimization
+effect of DQN is compared to verify the effectiveness
+of the proposed algorithm.
+The structure of this paper is as follows : Section II
+introduces the related research on curve planning and train
+operation optimization using reinforcement learning algo-
+rithm. In Section III, a driving strategy optimization model of
+heavy haul train based on Dueling DQN is established. Sec-
+tion IV analyzes the experimental results. Finally, Section V
+summarizes the research results and puts forward suggestions
+for future work.
+II. RELATEDWORK
+Automatic Train Operation (ATO) is a research hotspot in
+the field of railway transportation. Its core modules include
+train dynamics model, target speed curve optimization and
+speed tracking control. The essence of heavy haul train
+driving strategy optimization is to obtain a speed curve that
+meets the optimization goal. The following sections will
+introduce the research status of heavy haul train speed curve
+optimization and manipulation optimization using reinforce-
+ment learning.
+A. Speed curve optimization of heavy haul train
+Rao and Feng [4] designed the optimal feasible strat-
+egy based on the actual freight railway line analysis, and
+discussed the optimality and uniqueness of the analytical
+solution of train energy-saving operation. Bai and Xiao [5]
+proposed a multi-objective optimization model considering
+many practical constraints, which was solved by nonlinear
+approximation and quadratic programming (QP) algorithm,
+and the optimal trajectory was obtained. Li [6] proposed a
+time-limited multi-objective speed curve optimization model
+to achieve energy saving, punctuality and stability of train
+operation. Su [7] solved the problem of train trajectory opti-
+mization with STC by mixed integer quadratic programming
+(MIQP), and carried out actual case simulation research
+with real data. Dong [8] analyzed the driving difficulties of
+heavy haul trains in conventional sections and ramp sections,
+established a driving strategy constraint model, designed a
+train operation strategy generation method based on fuzzy
+predictive control, and locally optimized the train operation
+strategy of complex line sections to obtain the target oper-
+ation curve. The above research on the optimization of the
+speed curve of heavy haul trains has not deeply explored or
+simplified the time-delay characteristics of air braking force.
+Especially in the scene of long and steep downhill, most of
+them are simulated by empirical formulas.
+B. Train operation optimization based on reinforcement
+learning
+Based on the Q-learning algorithm, Zhu [9] constructed
+a train eco-driving strategy for energy-saving goals, and
+introduced definitions related to travel time and energy con-
+sumption distribution in the state representation. The effec-
+tiveness and robustness of the proposed method are verified
+by deterministic and random environments. Due to the size
+limitation of the look-up table in the Q-learning algorithm,
+in the optimization problem with large state space, only the
+problem of ’ dimension explosion ’ can be solved by reducing
+the accuracy. Liu [10] proposed an intelligent control method
+for heavy haul trains running on long and steep downhill
+sections based on deep Q network (DQN) algorithm, and
+carried out experimental simulation with actual data to verify
+the effectiveness and robustness of the proposed DQN-based
+control method, but it also simplified the air brake. Shang
+[11] proposed a DRL method with a reference system (DRL-
+RS) for active handling of constraints, where the reference
+system is responsible for checking and correcting the learning
+progress of the agent to avoid going farther and farther on the
+wrong road. In order to achieve precise positioning and speed
+tracking control of the train position, Wang [12] proposed a
+method based on integral reinforcement learning (IRL) and
+parameter identification.
+III. PROBLEMFORMULATION
+A. Train model
+The multi-particle model of heavy haul train is estab-
+lished, and each vehicle is regarded as a particle.Vehicles
+are connected by coupler and draft gear, and the train only
+has longitudinal freedom by default. Assuming that there are
+n+ 1vehicles in the train, the Equation 1 can be obtained
+by analyzing the longitudinal force of sectioni.
+mi ¨xi =F T i−F Bia −F Bie −F Ri +F c(i−1) −F ci
+(i= 0,1, . . . , n) (1)
+Among them,m i is the quality of theicar,¨x i is its acceler-
+ation,F T iis the traction of theicar, only the locomotive can
+provide traction.FBia is the air braking force of theicarriage,
+FBie is the electric braking force of theicarriage, and only
+the locomotive is affected by the electric braking force.F Ri
+is the resistance of theicarriage,F ci−1 represents the force
+between the adjacent previous carriage and theicarriage,F ci
+is the force between theicarriage and thei+ 1carriage.The
+air braking force will have an impact on the vehicle during the
+establishment and mitigation stages of air braking. In order to
+simulate the time-varying characteristics of air braking force
+in the establishment stage and the release stage, functions
+f delay1i(t)andf delay2i(t)[13] are introduced, and their
+expressions are shown in Equation 2 and Equation 3.
+f i
+delay1(t) =
+
+
+
+0, t≤t i
+delay1
+ 
+ti
+delay1 −t
+tmax 1
+!λ1
+, t i
+delay1 ≤t≤
+tmax 1+t i
+delay1
+1, t max 1+t i
+delay1 < t
+(2)
+354
+Authorized licensed use limited to: University of Pittsburgh. Downloaded on July 07,2026 at 23:51:09 UTC from IEEE Xplore.  Restrictions apply. 
+f i
+delay2(t) =
+
+
+
+1, t≤t i
+delay2
+"
+1−
+ 
+ti
+delay2 −t
+tmax 2
+!#λ2
+, t i
+delay2 ≤t≤
+tmax 2+t i
+delay2
+0, t max 2+t i
+delay2 < t
+(3)
+Among them,t i
+delay1 is the delay time of theivehicle
+responding to the air brake command,t max1 is the time when
+the brake cylinder pressure rises from 0 to the maximum
+value,t i
+delay2 is the delay time of theivehicle responding
+to the relief command, andt max2 is the time when the
+brake cylinder pressure drops from the maximum value to
+0. The air braking force of the train at time t is obtained by
+multiplying the basic air braking force defined in Equation 4
+and Equation 5.
+B=φ h ·
+X
+Kh (4)
+FBia =B·f i
+delay(t)(5)
+φh is the braking shoe conversion friction coefficient,K h
+is the train conversion braking shoe pressure. The electric
+braking forceF Bie can be obtained by the empirical formula
+Equation 6, wherea e is the electric braking gear.
+FBie =
+
+
+
+153.3·v·a e,0≤v≤3
+461·a e,3< v≤75
+34560·a e/v,75< v
+(6)
+In this paper, the traction forceF T iis also obtained by the
+empirical formulaEquation 7 :
+FT i=
+
+
+
+760,0≤v≤5
+779−3.8·v,3< v≤75
+34560/v,75< v
+(7)
+B. Optimization algorithm based on Dueling DQN
+Dueling DQN changes the single-branch network of DQN
+into a double-branch structure [14].As shown in Figure 1, the
+Q-value function is decomposed into a state value functionV
+and a dominance functionAEquation 8 to estimate the value
+of all actions in a certain state and the advantage of an action
+relative to other actions. This can better evaluate the value
+of the state and speed up the training. The driving operation
+process of heavy haul train involves a large number of state
+space and action space, which is suitable for optimization
+with Dueling DQN algorithm.
+Q(s, a;θ, α, β) =V(s;θ, β)+ 
+A(s, a;θ, α)− 1
+|A|
+X
+a′
+A(s, a′;θ, α)
+!
+(8)
+Advantage 
+function V
+Value function A
+Q Value Feature 
+vector
+LSTM FC
+Fig. 1: The network structure of Dueling DQN
+1) States and action spaces:In this study, the state refers
+to the current running information of the train, including :
+running timeT, displacementX k,n×n, speedV k,n×n and
+accelerationa k,n×n of each vehicle. In addition, this study
+uses the empty walking stage, transient stage and steady
+state stage to simulate the establishment and release process
+of air braking. Therefore, the information representing the
+state of air braking needs to be added to the state space :
+single air braking durationt a, whether the previous action
+is air brakingf a, whether it is currently alleviatingf r, and
+relieving countdownt r. Then the state space can be expressed
+as Equation 9.
+Sk ={T, X k,n×n, Vk,n×n, ak,n×n, tr, ta, fr, fa}(9)
+The actions that Agent can take include : traction,electric
+braking and air braking, where traction and air braking are
+represented by two Boolean variablesa t anda a, respectively.
+The electric brakinga e adopts the method of grading, a
+total of 6 gears, and the action space can be expressed as
+Equation 10 .In this paper, it is assumed that the train only
+adopts the common air braking with 50 kPa decompression.
+Ak ={a, ae, aa}
+(at ∧a e = 0, at ∧a a = 0, ae ∈[0,0.2,0.4,0.6,0.8,1])
+(10)
+2) Constraints:
+•Safety : it is the most important indicator in the opera-
+tion of heavy haul trains. The speed of the train during
+operation must be within the specified speed range, such
+as Equation 11.
+Vmin ≤V≤V max (11)
+•The minimum air filling time : the heavy haul train will
+adopt the circulating air brake to control the train not to
+exceed the speed in the long downhill.When a certain air
+braking of the train ends, it enters the release stage. At
+the same time, the air cylinder of the train begins to fill
+the air. After the pressure in the air cylinder meets the
+requirements, the next air brake can be implemented.
+Otherwise, it will not be able to provide enough air
+braking force to the train, resulting in overspeed of the
+train. For 20,000 tons of heavy haul trains, the minimum
+air filling time is 180 s [10]. Assuming that the train
+355
+Authorized licensed use limited to: University of Pittsburgh. Downloaded on July 07,2026 at 23:51:09 UTC from IEEE Xplore.  Restrictions apply. 
+stops thejair brake atT air,j, and the minimum air
+filling time isT AL, then there is Equation 12.
+Tair,j+1 −T air,j ≥T AL (12)
+3) Evaluation indicators:
+•Average speed : In this paper, the average running speed
+of the train in the set time is used to measure the
+efficiency of the train operation. The higher the average
+speed, the higher the efficiency of the train operation.
+Assuming that the total running time isT, and the
+acceleration of the train at time t isa, the average
+speedV avg of the train during operation is defined as
+Equation 13 :
+Vavg = 1
+T
+Z T
+0
+a(t)dt(13)
+•The total time of air braking : In this study, the time of
+air braking during the operation of the train is taken as
+an indicator to measure how much air braking is taken
+by the train. The longer the total time, the longer the
+friction time of the train brake shoe, and the greater the
+loss of the train Equation 14 :
+Ts =
+Z T
+0
+aadt(14)
+4) Reward function and termination conditions:
+•The algorithm rewards include : safety rewards, speed
+rewards, air brake penalties, such as type Equation 15.
+Among them,r v is the speed reward,Vis the current
+average speed of the train, when the train is speeding,
+give a negative rewardC 1, otherwise give a positive
+rewardD;r a is the air brake reward. When the train
+adopts air brake, it is given a negative rewardC 2,
+otherwise the reward is 0.
+Rk =r v +r a
+rv =
+(
+C1, V < Vmin ∥V > Vmax
+D, V min < V < Vmax
+ra =
+(
+C2, a a = 1
+0, a a = 0
+(15)
+•The termination condition is very important for whether
+the optimization algorithm can converge with the train-
+ing. In this study, if the train speed exceeds the safe
+range, this situation is unacceptable. At this time, the
+termination condition Done is set to True, and the other
+termination condition is that the train running time
+reaches the set upper limit.
+The specific process of DuelingDQN is shown in algo-
+rithm1, and the overall framework is shown in Figure 2.
+IV. EXPERIMENTALRESULTS
+A. Experimental Environment
+The heavy haul train formation mode in this paper is ’
+1HXD1 + 108C80 + 1HXD1 + 108C80 ’, the total length
+Enviroment Agent
+Multi-particle model of
+ heavy haul train
+Traction and electric braking model
+Air brake model
+Resistance model
+Coupler force
+Reward function
+Get x、v、a
+Memory buffer
+Q Network Target 
+Network
+Loss function
+update
+action
+Fig. 2: Optimization algorithm structure diagram
+Algorithm 1Dueling DQN Training Algorithm
+1:Step 1: Initialization
+2:Random weight initialization for Dueling DQN evalua-
+tion network
+3:Initialize target network with same structure and weights
+4:Initialize experience pool (sizeS), discount rateγ, ex-
+ploration rateϵ, exploration decay rateg, learning rateλ,
+batch sizen e, target update intervalK
+5:Calculate total steps based on planned running time and
+time interval
+6:
+7:Step 2: Training
+8:forepisode= 1toMdo
+9:Initialize performance parameters, train status, envi-
+ronment parameters, line speed limit
+10:forstep= 1toNdo
+11:Select actionausingϵ-greedy policy
+12:Executea, state transferred fromstos ′, rewardr,
+and done flag
+13:Store transition(s, a, r, s ′,done)in experience pool
+14:Sample minibatch of sizen e from experience pool
+15:ifdone=Truethen
+16:y=r
+17:else
+18:y=r+γmax a′ Q(s′, a′;θ −)
+19:end if
+20:Compute gradient with respect to weightsθ
+21:Update evaluation network parameters using SGD
+22:ifdonethen
+23:break
+24:end if
+25:ifepisode≡0 (modK)then
+26:Update target network weights:θ − ←θ
+27:end if
+28:end for
+29:end for
+30:Save the trained Dueling DQN model
+356
+Authorized licensed use limited to: University of Pittsburgh. Downloaded on July 07,2026 at 23:51:09 UTC from IEEE Xplore.  Restrictions apply. 
+of the line is 15000m, the slope of the line is -10.2 ‰, and
+the model training is carried out on a desktop PC with a
+processor speed of 3.4GHz and a memory size of 16GB.
+B. Parameters Setting
+For RL, selecting the appropriate hyperparameters can
+improve training efficiency and prevent instability during
+training.This paper explores the influence of learning rateλ
+and exploration attenuation rategon the training effect. From
+Figure 3a , it can be seen that when training 100,000 rounds,
+λis 0.001 and 0.00001, the cumulative reward is increasing.
+After 70,000 rounds, the model reward ofλ0.001 increases
+faster, but whenλis 0.1, the reward increases slowly and
+gradually stabilizes at about -18, which indicates that the
+model may fall into a local optimal situation. Figure 3b
+shows different effects ofg. Whengis 0.9, the exploration
+rate decays too fast, and the model relies too early on the
+estimated value of the current Q value, resulting in the agent
+failing to fully explore all possibilities of the state space and
+falling into the local optimal dilemma. Although the model
+withgof 0.99995 increased slowly in the early stage, it
+explored the state space more fully, and the reward gradually
+increased and showed a convergence trend in the later stage
+of training. Therefore, we chooseλas 0.001,gas 0.99995.In
+order to improve the training efficiency,∆Tis set to 10 s,
+and other parameters are set as shown in Table I.
+TABLE I: Parameters setting
+Parameter Value
+Maximum training episodeM2.5×10 5
+Running time of one episodeT700 s
+Update period of target networkK1000
+Discount rateγ0.95
+Learning rateλ0.001
+Initial value ofε 0 1.0
+Explore the decay rateg0.999 95
+Final value ofε min 0.02
+Capacity of memory bufferS50 000
+Batch size of samplingn e 256
+Negative rewardC 1 −100
+Negative rewardC 2 −2
+Positive rewardD ν/10
+Minimum air-refilling timeT AI 180 s
+C. Optimization Results
+Figure 4 shows the change of the average cumulative re-
+ward after training 400,000 rounds. The blue curve represents
+the Dueling DQN algorithm and the red curve represents the
+DQN algorithm. We can see that the reward of Dueling DQN
+algorithm has converged and stabilized at about 188 at the
+time of about 310000 rounds. At this time, the reward value
+of DQN algorithm is 168, and in the subsequent training
+process, the reward of DQN algorithm is still increasing,
+indicating that DQN algorithm has not reached convergence
+in the end. On the whole, the increase rate of the average
+cumulative reward of the Dueling DQN algorithm is also
+0 2000 4000 6000 8000 10000
+Episode×10
+-100
+-50
+0
+50
+100
+150
+Average Reward
+λ = 0.00001
+λ = 0.001
+λ = 0.1
+(a) Differentλ
+0 2000 4000 6000 8000 10000
+Episode×10
+-100
+-50
+0
+50
+100
+Average Reward
+g=0.9
+g=0.99995
+(b) Different g
+Fig. 3: The average total reward curve under different hyper-
+parameters
+higher than that of the DQN algorithm, which indicates that
+the Dueling DQN algorithm is a better choice.
+The blue curve in Figure 5 is the train v-t curve optimized
+by Dueling DQN algorithm,and the vehicle speed is based
+on the head car.. It can be seen that the time for the train
+to apply three times of air braking is 110 s, 370 s and
+620 s, respectively. Because the air braking force has the
+characteristics of time delay, the train is only affected by
+the air braking force after the delay of 10 s, and the train
+speed begins to decline. The end times of the three air
+brakes are 190 s, 440 s and 650 s, respectively. The time
+between the two air brakes satisfies the constraint of the
+minimum air filling time Equation 12. After the output of
+air braking force in the remission stage is 0, the train speed
+begins to increase again. During the whole operation, the
+maximum train speed is 74.94 km/h, and the minimum is
+51.39 km/h, which is within the safe range Equation 10. The
+green curve in Figure 5 is the train v-t curve optimized by
+the DQN algorithm. The train also performed three cycles
+of air braking. However, due to the different time for the
+train to reach the mitigation speed under the two algorithms,
+the speed will alternately rise.In this paper, Table II is used
+to compare the optimization effects of the two algorithms
+more intuitively. It can be seen that compared with the DQN
+357
+Authorized licensed use limited to: University of Pittsburgh. Downloaded on July 07,2026 at 23:51:09 UTC from IEEE Xplore.  Restrictions apply. 
+algorithm, when the Dueling DQN algorithm is used to
+optimize, under the premise of ensuring safety, the average
+running speed of the train is higher and the total time of
+air braking is less. Therefore, the optimization effect of the
+Dueling DQN algorithm is better.
+0 5000 10000 15000 20000 25000 30000 35000 40000
+Episode×10
+-50
+0
+50
+100
+150
+200Average Reward
+DuelingDQN
+DQN
+Fig. 4: The average reward curve of Dueling DQN and DQN
+0 10 20 30 40 50 60 70
+Time(×10s)
+30
+40
+50
+60
+70Speed(km/h)
+limit_v
+DuelingDQN
+DQN
+Fig. 5: Train v-t diagram under Dueling DQN and DQN
+TABLE II: Comparison of optimization effects under
+differentv 0
+v0 (m/s) Approach Evaluation indicators
+Vavg (m/s)T s (s)
+13.89 Dueling DQN 18.32 160
+DQN 17.63 180
+16.67 Dueling DQN 19.88 170
+DQN 19.38 200
+V. CONCLUSION
+In this paper, a driving strategy optimization method
+for heavy haul trains based on Dueling DQN algorithm
+is proposed. Considering the time-delay characteristics of
+air braking, a multi-particle model of heavy haul trains is
+established. Based on the optimization goal of improving
+train operation efficiency and reducing the total time of
+air braking, the reward function is set. The simulation is
+carried out on the long downhill, and the effectiveness of
+the proposed algorithm is verified by comparison with the
+DQN algorithm. In order to improve the efficiency of model
+training, the following two measures are taken : the choice
+of time granularity is large, and 13 trailers are regarded as
+one section for processing, which leads to the reduction of
+simulation accuracy. These two problems need to be solved
+in the future work, and the actual train operation strategy
+should be further considered.
+REFERENCES
+[1] A. I. Istamar, Terence, S. Philip, and Hidayaturrahman, “An au-
+tonomous player agent for game balance insight on an educational
+video game,” in2023 4th International Conference on Artificial
+Intelligence and Data Sciences (AiDAS), 2023, pp. 269–273.
+[2] T. K. Saini, A. Maurya, D. Dhyani, and A. Saini, “Intricacy of cnn
+and rl with substantiation of cnn model in simulated self-driving envi-
+ronment,” in2025 International Conference on Cognitive Computing
+in Engineering, Communications, Sciences and Biomedical Health
+Informatics (IC3ECSBHI), 2025, pp. 866–870.
+[3] H. Nguyen and H. La, “Review of deep reinforcement learning for
+robot manipulation,” in2019 Third IEEE International Conference on
+Robotic Computing (IRC), 2019, pp. 590–595.
+[4] Y . Rao, X. Feng, Q. Wang, and P. S. and, “The optimal solution to
+the energy-efficient train control in a multi-trains system-part 1: the
+algorithm design,”Transportmetrica A: Transport Science, vol. 21,
+no. 2, pp. 1–29, 2025.
+[5] B. Bai, Z. Xiao, Q. Wang, P. Sun, and X. Feng, “Multi-objective trajec-
+tory optimization for freight trains based on quadratic programming,”
+Transportation Research Record, vol. 2674, no. 11, pp. 466–477, 2020.
+[6] W. Li, S. Jiang, and M. Jin, “Multiobjective optimization and weight
+selection method for heavy haul trains trajectory,”IEEE Access,
+vol. 10, pp. 41 152–41 163, 2022.
+[7] S. Mingliang, N. Xingliang, Z. Zipei, S. Pengfei, W. Qingyuan, and
+B. Baoxue, “Trajectory optimization for freight train with section time
+constraints using mixed integer quadratic programming,” in2022 IEEE
+17th Conference on Industrial Electronics and Applications (ICIEA),
+2022, pp. 1545–1551.
+[8] J. Dong, H. Yu, G. Tai, F. Li, and Y . Huang, “Research on the driving
+strategy of heavy-haul train based on fuzzy predictive control,” in
+2020 IEEE 23rd International Conference on Intelligent Transportation
+Systems (ITSC), 2020, pp. 1–7.
+[9] Q. Zhu, S. Su, T. Tang, W. Liu, Z. Zhang, and Q. Tian, “An eco-
+driving algorithm for trains through distributing energy: A q-learning
+approach,”ISA Transactions, vol. 122, pp. 24–37, 2022.
+[10] W. Liu, S. Su, T. Tang, and X. Wang, “A dqn-based intelligent
+control method for heavy haul trains on long steep downhill section,”
+Transportation Research Part C: Emerging Technologies, vol. 129, p.
+103249, 2021.
+[11] M. Shang, Y . Zhou, and H. Fujita, “Deep reinforcement learning
+with reference system to handle constraints for energy-efficient train
+control,”Information Sciences, vol. 570, pp. 708–721, 2021.
+[12] J. Wang, S. Gao, H. Dong, and Z. Zhang, “Adaptive control for auto-
+matic high-speed trains operation by integral reinforcement learning
+and parameter identification,” in2019 Chinese Control Conference
+(CCC), 2019, pp. 6645–6650.
+[13] W. Liu, S. Su, T. Tang, and Y . C. and, “Study on longitudinal dynamics
+of heavy haul trains running on long and steep downhills,”Vehicle
+System Dynamics, vol. 60, no. 12, pp. 4079–4097, 2022.
+[14] Z. Wang, T. Schaul, M. Hessel, H. Hasselt, M. Lanctot, and N. Freitas,
+“Dueling network architectures for deep reinforcement learning,” in
+Proceedings of The 33rd International Conference on Machine Learn-
+ing, ser. Proceedings of Machine Learning Research, M. F. Balcan and
+K. Q. Weinberger, Eds., vol. 48. New York, New York, USA: PMLR,
+20–22 Jun 2016, pp. 1995–2003.
+358
+Authorized licensed use limited to: University of Pittsburgh. Downloaded on July 07,2026 at 23:51:09 UTC from IEEE Xplore.  Restrictions apply. 

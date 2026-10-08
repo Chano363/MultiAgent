@@ -12,7 +12,7 @@
 
 用法（WSL2，conda traffic_rl，cwd=traffic_rl_project）：
     python scripts/gen_atp_etcs_demo.py
-输出：outputs/fig_atp_etcs_supervision.png
+输出：outputs/figures/report/fig_atp_etcs_supervision.png
 
 仅依赖 src.train_dynamics（etcs_braking + grade_profile），不依赖训练环境。
 为演示清晰，保护区轨迹 = min( 巡航 coast, EBD 允许速度 )（即 ATP 硬性把速度压到
@@ -132,7 +132,7 @@ ax2.grid(True, alpha=0.3)
 ax2.axhline(0.0, color="k", lw=0.6)
 
 plt.tight_layout()
-out = "outputs/fig_atp_etcs_supervision.png"
+out = "outputs/figures/report/fig_atp_etcs_supervision.png"
 plt.savefig(out, dpi=220)
 print(f"saved: {out}")
 

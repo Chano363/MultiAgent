@@ -28,6 +28,18 @@ def _make_fleet(num_trains=3, max_steps=30):
     })
 
 
+def _make_fleet_decompose(num_trains=3, max_steps=30):
+    return TrainFleetEnv({
+        'num_trains': num_trains,
+        'consist_preset': '10kt_1plus0',
+        'grade_profile': 'long_downhill',
+        'target_speed': 20.0,
+        'target_gap': 100.0,
+        'max_steps': max_steps,
+        'decompose': 'loco_ed_ab',
+    })
+
+
 def test_fleet_env_agent_count_matches_num_trains():
     """多智能体数量 = 列车列数（每列 1 个智能体，不是每车厢）。"""
     env = _make_fleet(num_trains=3)
@@ -157,3 +169,26 @@ def test_fleet_env_reward_includes_coupler_and_spacing():
     obs_gap[:, 1] = 300.0  # 间距误差 300m（严重跟丢）
     r_gap = env._calculate_reward(obs_gap)
     assert r_base > r_gap  # 间距拉开越大奖励越低
+
+
+# ---------------------------------------------------------------------------
+# 间距危险项：穿透时不得因 d_safe→0 退化成米²爆炸（2026-10-04 回归）
+def test_fleet_gap_danger_penalty_bounded_on_penetration():
+    """后列队首越过前列车尾（穿透）时，间距危险项必须有界。
+
+    回归根因：穿透时 `_atp_safe_gap` 恒返 0.0 ⇒ 原式 `(d_safe-actual_gap)/max(d_safe,1.0)`
+    的 over 退化为"穿透米数"（-53m → over=53）⇒ `-60·over² ≈ -1.7e5/步`。持续数十步即
+    单集回报 R≈-9.18e6 → ValueNorm vstd 抬到 17k，后续数十集 advantage 被压缩、训练停滞
+    （沙盒 _debug_gapv3 ep25 实证）。修复后 over 用固定参考尺度归一，量级有界。
+    """
+    env = _make_fleet_decompose(num_trains=3, max_steps=10)
+    env.reset()
+    # 构造 53m 穿透（两对跟随列各越其前列车尾 53m）
+    env._train_heads[1] = float(env.trains[0].dynamics.pos[-1]) + 53.0
+    env._train_heads[2] = float(env.trains[1].dynamics.pos[-1]) + 53.0
+    obs = env._get_obs_decomposed()
+    reward = env._calculate_reward_decomposed(
+        obs, np.zeros(env.num_trains), 0, 0.0, step_coupler_peak_n=0.0)
+    assert np.isfinite(reward)
+    # 修复前 ≈ -3.4e5（两对 × -1.7e5）；修复后两对合计约 -50，断言远高于爆炸量级。
+    assert reward > -3000.0

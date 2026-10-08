@@ -70,6 +70,50 @@ def simulator_model_version(simcase: str, world_cfg: dict) -> str:
     return hashlib.sha1(simulator_model(simcase, world_cfg).encode()).hexdigest()[:12]
 
 
+def _resolve_critic(extra: dict) -> str:
+    """提取本次运行的 critic 价值头模式（ADR-021 方向 B）。
+
+    来源说明：build_metadata 无 cfg 入参，训练入口（train_runner）已把整份
+    cfg_to_dict(cfg) 放进 extra['hyperparameters']，故从 algo_params.critic 取。
+    任何缺失/异常都回退 'centralized_scalar'，保证 metadata 生成不失败。
+    """
+    try:
+        hp = (extra or {}).get("hyperparameters") or {}
+        algo_params = hp.get("algo_params") or {}
+        return algo_params.get("critic", "centralized_scalar")
+    except Exception:
+        return "centralized_scalar"
+
+
+def _resolve_reward_schema() -> str:
+    """读取环境模块级常量 REWARD_SCHEMA（由并行改造的 train_fleet_env 提供）。
+
+    导入失败或常量不存在时用 getattr 兜底为 'unknown'，绝不让 metadata 生成失败。
+    """
+    try:
+        import importlib
+        mod = importlib.import_module("src.environments.train_fleet_env")
+        return getattr(mod, "REWARD_SCHEMA", "unknown")
+    except Exception:
+        return "unknown"
+
+
+def _resolve_ed_mod_coef() -> float:
+    """ED 调制带宽（动作通道语义，ADR-024）：从**权威实现**读默认值，禁止手抄。
+
+    该系数是"策略动作 ed_mod → 实际 ED 变化量"的换算（final_ed = baseline_ed +
+    ed_mod_coef · ed_mod），属**动作空间语义** —— 换值即换策略含义（同一 ckpt 行为不同），
+    故必须进 metadata 才能比对历史运行。读取失败回退 -1.0（哨兵值，不抛错）。
+    """
+    try:
+        import inspect
+        from src.controllers.multi_loco_controller import MultiLocoController
+        return float(inspect.signature(
+            MultiLocoController.get_action_decomposed).parameters['ed_mod_coef'].default)
+    except Exception:
+        return -1.0
+
+
 def build_metadata(project_root: str, case: str, world_cfg: dict, seed, entry: str,
                    extra: dict = None) -> dict:
     """构造元数据字典（供 save_metadata 落盘，或评估脚本内嵌进结果 JSON）。"""
@@ -86,6 +130,11 @@ def build_metadata(project_root: str, case: str, world_cfg: dict, seed, entry: s
     }
     if extra:
         meta.update(extra)
+    # 【ADR-021 方向 B】新增两项溯源键（不改动既有任何键；γ/λ 仍随 hyperparameters.algo_params 落盘）
+    meta["critic"] = _resolve_critic(extra)
+    meta["reward_schema"] = _resolve_reward_schema()
+    # 【ADR-023】动作通道带宽（动作空间语义，换值即换策略含义）
+    meta["ed_mod_coef"] = _resolve_ed_mod_coef()
     return meta
 
 

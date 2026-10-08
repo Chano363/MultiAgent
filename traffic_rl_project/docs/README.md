@@ -18,6 +18,7 @@
 | 每日工作日志（timeline）     | `docs/logs/README.md`（→ `.codebuddy/memory/`)                            |
 | 论文（唯一权威）             | `docs/ITSC_PAPER.md` / `.tex` / `.pdf`                                   |
 | 复现性说明                | `docs/REPRODUCIBILITY.md`                                                |
+| **文献库目录清单（文件→元数据）** | `docs/papers/README.md`（新增文献必登记；含主题分类表 + 待补清单） |
 | 文献 PDF / 信息卡         | `docs/papers/`（重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
 | 规范 / 模板 / checklist  | `docs/rules/`                                                            |
 | 阶段一历史成果              | 见「归档区」↓                                                                  |
@@ -55,7 +56,7 @@
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
-| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
 | `ITSC_PAPER.md` / `.tex` / `.pdf` | 论文（唯一权威）                     | active |
@@ -72,7 +73,7 @@
 | `rules/CHECKLIST_NEW_DOC.md`   | 新建/修改文档清单                       |
 | `rules/EXECUTION_RULES.md`     | 执行规范（原 PIPELINE 七）              |
 | `logs/decisions/DECISIONS.md`  | 决策记录（ADR）                       |
-| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` | 实验/诊断数据（按月 / 体积拆分） |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月 / 体积拆分） |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分） |
 | `logs/learnings/LEARNINGS.md`  | 踩坑 / 失败教训                        |
 | `logs/README.md`               | 工作日志入口（指向 `.codebuddy/memory/`） |
@@ -84,8 +85,8 @@
 | `learning_report.md`                                        | 阶段一完整技术报告（历史成果）                        |
 | `training_results_standardized.md`                          | 阶段一学术成果报告                              |
 | `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
-| `HANDOFF_*.md`、`GROUP_MEETING_TALK_PLAN.md` | 阶段性交接/会议/备忘（任务已转移到 `PROJECT_PIPELINE`；`HUMAN_TODO.md` 已删） |
-> **最新交接**：`logs/HANDOFF_2026-09-22.md`（MPC 对比基线专项：现状 + 接下来全部工作；supersede `docs/logs/HANDOFF_2026-09-10.md`） |
+| `HANDOFF_2026-09-09.md` / `HANDOFF_2026-09-10.md` / `HANDOFF_2026-09-22.md`、`GROUP_MEETING_TALK_PLAN.md` | 阶段性交接/会议/备忘（任务已转移到 `PROJECT_PIPELINE`；`HUMAN_TODO.md` 已删） |
+> **最新交接**：`logs/HANDOFF_2026-09-22.md`（MPC 对比基线专项：现状 + 接下来全部工作；supersede `docs/logs/HANDOFF_2026-09-10.md`，后者 supersede `docs/logs/HANDOFF_2026-09-09.md`） |
 
 ### 归档区（已有，保持）
 
@@ -103,14 +104,21 @@
 | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **主轴与底线**：多列 platoon + 队内车钩力≤1000kN 不可逾越；AB+ED 分工、1+1 是锦上添花         | 仓库根 `AGENTS.md`「规范性问题」；`RESEARCH_POSITIONING.md`                                                      |
 | **研究定位 / 创新点**：重载列车群组 × 车钩力 × 长大下坡分层 MARL                           | `RESEARCH_POSITIONING.md`；论文 `ITSC_PAPER.md` Intro                                                    |
-| **架构分层**：规则层（循环制动+电空分工+安全层）作内层，MARL 作外层调制                           | `RESEARCH_POSITIONING.md`；`AGENTS.md`「阶段二列车仿真设计」                                                      |
+| **架构分层**：规则层（循环制动+电空分工+安全层）作内层，MARL 作外层调制                           | `RESEARCH_POSITIONING.md` §1.3；代码 `src/controllers/multi_loco_controller.py`                                      |
 | **智能体分解重构（ADR-009）**：每机车=智能体 / 每列车=智能体 vs 多列                        | `logs/decisions/DECISIONS.md` ADR-009/009.1                                                             |
-| **MPC 对比规范 Regime A/B**：不按坡换 MPC 模型；A=公平重喂、B=no-re-id 演不泛化，逐实验标 A/B | 仓库根 `AGENTS.md`「规范性问题」；论文 Protocol（待展开）                                                               |
-| **MPC 模型口径**：聚合列 + 车钩代理 + 坡度先验锁线                                    | 仓库根 `AGENTS.md`（`FairMPCController`）                                                          |
-| **车钩/列车异构性**（泛化卖点 E4-H）：实例异构 ≠ 离散，逐参数抽样 + held-out                  | 仓库根 `AGENTS.md`；`计划/实验` 见 `.trae/documents/`                                                          |
+| **MPC 对比规范 Regime A**（ADR-016）：不按坡换 MPC 模型；MPC 逐线公平重喂 `grade_at`+在线标定 b0；**B 已废止** | 仓库根 `AGENTS.md`「规范性问题」；论文 Protocol（待展开）                                                               |
+| **MPC 基线唯一 = NMPC**（ADR-022，2026-10-01）：旧 `FairMPCController`/简化 MPC **已删除**；术语"多体"=**集中质量(lumped)多体** | 代码 `src/controllers/nmpc_controller.py`；`DECISIONS.md` ADR-022；`RESEARCH_POSITIONING.md` §1.6 |
+| **车钩/列车异构性**（E4-H，**已 SUPERSEDED，不承担立论**）：实例异构 ≠ 离散，逐参数抽样 + held-out                  | `RESEARCH_POSITIONING.md` §1.5（车钩异构节）；`--hetero` 代码为可选鲁棒性                                                          |
+| **「MARL 不行」根因与改造方向**（2026-10-01）：奖励口径 / AB 通路 / 安全层权限 / 信用分配                          | `logs/diagnostics/DIAGNOSTICS_2026-10.md`；`logs/decisions/DECISIONS.md` ADR-021                          |
+| **文献四改造落地 + P0 三行 / AB 通道裁定**（2026-10-01）：A 充风门 / D 安全层 AB 禁新增 / C 车钩力超限项 / B per-agent | `logs/diagnostics/DIAGNOSTICS_2026-10.md`（「改造…」「P0…」两节）；`DECISIONS.md` ADR-021「执行闭环」；`REFERENCE_INDEX.md` 落地映射；规格 `.trae/specs/implement-literature-informed-fixes/` |
+| **主训练 YAML 按 ADR-017 对齐**（2026-10-01）：1400 ep / n_env 4 / BC 热启动 / long_eval 50；`--episodes N` 快速迭代 | `configs/experiments/formation_ed_ab_3train_1plus1.yaml`；`REPRODUCIBILITY.md` §十；`DECISIONS.md` ADR-017「执行闭环」；`DIAGNOSTICS_2026-10.md`「验证-2026-10-01…」 |
+| **评估链路四处口径缺陷修复**（2026-10-01）：`_long_eval` viol O(n²) / `--mode all` 缺 MPC 行 / MPC 状态残留 / `solve_statuses` 崩溃 | `DIAGNOSTICS_2026-10.md`「修复-2026-10-01…」两节；`LEARNINGS.md` LRN-20261001-010~013；`tests/test_metric_accounting.py`；`REPRODUCIBILITY.md` §十（MPC 成本提示） |
+| **重训启动 / 长跑运维**（2026-10-01 seed0）：启动器、输出目录、`--resume latest` 恢复、机时**实测 ≈11.7 天/seed**（原估 3.4 天作废）、**进程持久化边界** | `scripts/launchers/launch_retrain_adr021_seed0.sh`；`REPRODUCIBILITY.md` §十「重训里程碑」；`DIAGNOSTICS_2026-10.md`「启动-2026-10-01…」；`LEARNINGS.md` LRN-20261001-014 / -016 |
+| **ADR-024 动作带宽回退**（2026-10-02）：`ed_mod_coef` 1.0→0.5（放宽对 MPC 无收益、对 RL 有害）；五项 baseline/消融结果 | `DECISIONS.md` ADR-023 / ADR-024；`DIAGNOSTICS_2026-10.md`「放宽 / 冒烟与基线 / 回退-2026-10-02」；`scripts/launchers/launch_retrain_adr024_seed0.sh` |
+| **路线覆盖修复：训练起点随机化**（2026-10-07）：固定起点使训练只见 −1.5‰（评估 OOD 83.9%）；L2 A/B 证明随机化有效（long_eval 达标 0/2→2/2，OOD→4.1%）；已接入主配置并启动 seed0 重训 | `DIAGNOSTICS_2026-10.md`「路线覆盖 / L1 / L1-b 更正 / L2 终局」；`PROJECT_PIPELINE.md`「路线覆盖修复」；`configs/experiments/formation_ed_ab_3train_1plus1.yaml` |
 | **验证基准 / 复现**：论文↔仿真数据对照 + 实验诊断 + 复现命令                               | `VALIDATION_BASELINE.md`；`logs/verification/`；`logs/diagnostics/`；`REPRODUCIBILITY.md` |
 | **文献库 / 立论来源**：PDF + 信息卡 + 数据基准                                     | `RESEARCH_POSITIONING.md` 文献库；`docs/papers/`                                                          |
-| **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `AGENTS.md` Gotchas；`logs/learnings/LEARNINGS.md`                                                      |
+| **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `logs/learnings/LEARNINGS.md`（唯一 SSOT；原 `AGENTS.md` Gotchas 已迁入此处与 `VALIDATION_BASELINE.md`）                                                      |
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+<!-- 该文档整理/压缩于 2026-10-01 -->

@@ -1589,7 +1589,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - BC（安全起点）+ n_env（信噪比）+ curriculum（渐进）**三管齐下，只把破线推迟到 2000 档第 2 集**，且 500/1000 档显著改善 → 三者**各有正贡献（尤其 BC+curriculum 治好短中档）**，但**均无法阻止 2000 步档复发**。
   - 与历轮 6 拳（相对锚定/车钩惩罚/回滚/AB门控/退火/纯BC）收敛到同一根因互证：**MAPPO 单轨迹在 ≥2000 步时 value 估计漂移导致策略进入暴力 AB 吸态是固有缺陷，不因起点（BC）、信噪比（n_env）、渐进（curriculum）、奖励设计、门控而改变**。并行 n_env 在此只说明：即使多轨迹平均，**至少一条 2000 步并行轨迹踩进吸态仍污染聚合值**（ep21/22 聚合 viol 698/601，但单条轨迹 pkCpl 达 1394/1576kN）。
 - **判定**：方案1判 **FAIL**（未达 peakCoupler≤1000 且 viol≈0 撑过 2000 档）。据此转入方案2（HANDOFF §8.3），收敛接受较短 horizon（历史建议 2500 步=53km@~27.8m/s≈1900 步已充足）做分段可达训练 / 停止盲目增长 horizon。
-- **状态**：已完成 22ep，判 FAIL，停跑保留数据 `outputs/diag_53km_p1_bcnenv_curric/seed0/`。临时启动脚本 `outputs/launch_p1_bc_nenv_curriculum.sh` 保留留痕。
+- **状态**：已完成 22ep，判 FAIL，停跑保留数据 `outputs/diag_53km_p1_bcnenv_curric/seed0/`。临时启动脚本 `scripts/launchers/launch_p1_bc_nenv_curriculum.sh` 保留留痕。
 
 ***
 
@@ -1620,7 +1620,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - **消除整集崩溃：达成（关键突破）**。1500 档 ep20-26 全程 reward 为正且高（best +12688，末段 avg +10456），对比方案1@2000 档 ep21-22 深度崩溃（-12800/-8274、viol 698/601）——**收窄 horizon 2000→1500 步成功消除 on-policy 长轨迹整集价值崩溃，且编队 reward 显著提升（+12688 vs +9411）**。这是历轮 6 拳 + 方案1 均未实现的实质进展，反证根因确为"horizon 过长 → value 漂移"。
   - **全程 ≤1000kN 严格判据：未达成**。1500 档仍 4/7 集破线（ep21 1251kN / ep22 1022 / ep24 1070 / ep26 1556），viol 2~47。仅收窄 horizon 不足以保证全程安全，需再强化。
 - **判断**：方案2 **部分成功**。方向（收窄 horizon 治长程崩溃）被证实正确高效，但零星破线需第三步：1500 档基础上 ①再收窄至~1200 步 或 ②强化车钩力塑形项抑制暴力点 或 ③复加 AB 源头门控（高力禁新源）。候选交与主管取舍后继续。
-- **状态**：完成（26ep 跑满）。数据 `outputs/diag_53km_p2_curric1500/seed0/`。临时启动脚本 `outputs/launch_p2_curric1500.sh`、`outputs/wait_p2.sh` 保留留痕。
+- **状态**：完成（26ep 跑满）。数据 `outputs/diag_53km_p2_curric1500/seed0/`。临时启动脚本 `scripts/launchers/launch_p2_curric1500.sh`、`outputs/wait_p2.sh` 保留留痕。
 
 ***
 
@@ -1647,7 +1647,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - **全程安全 + reward 爬升双达标：达成（历轮首次）**。22 集三档（500/1000/1200）全程 viol=0、pkCpl 峰值仅 839kN（远低于 1000kN 底线），1200 档 reward 稳定正爬升。
 - **判断**：方案3-A **SUCCESS**。收窄 horizon 至 1200 步是治崩 + 消破线的最终安全阈值。与方案1/2 构成完整证据链：2000 档整集崩 → 1500 档不崩但零星破线 → **1200 档全程零破线收敛**。
 - **结论与下一步**：1200 步档可作为 D-RL 53km 主训练的 curriculum 终值（物理 53km 分多集评估拼接覆盖）。后续：将 `curriculum=500:0,1000:10,1200:20` 固化进主训练配置 → 补 seed1-4 主训练 → 主对比三行评估。**注意**：需向主管确认主训练最终 horizon 策略（1200 步单集 + 拼接，或进一步验证 1200 以上仍安全）。
-- **状态**：完成（22ep 跑满）。数据 `outputs/diag_53km_p3_curric1200/seed0/`。临时启动脚本 `outputs/launch_p3_curric1200.sh` 保留留痕。训练经 tmux session `train3` 持久化运行（不受 WSL 会话回收影响）。
+- **状态**：完成（22ep 跑满）。数据 `outputs/diag_53km_p3_curric1200/seed0/`。临时启动脚本 `scripts/launchers/launch_p3_curric1200.sh` 保留留痕。训练经 tmux session `train3` 持久化运行（不受 WSL 会话回收影响）。
 
 ### 诊断-2026-09-19-MAPPO长训终段value发散治本（winsorize + value grad clip + KL早停收紧）—— SUCCESS
 
@@ -1684,7 +1684,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - src/trainer/train_runner.py#L156 的 `n_env=4` 是**纯串行 `for ei in range(n_env)`**（非线程/进程），4 条 rollout 排队挤单核。
   - 整训练只占 1 逻辑核：WSL 内 loadavg ≈ 1.0/12 核、%Cpu idle 88.5%；内存充足（WSL 15.8GB 上限，free ~13GB）；非内存/磁盘瓶颈。
   - **结论：慢=CPU 并行没启用（闲置 11 核），不是物理步进本身太贵**。物理瓶颈 dt=0.1→10子步→Newmark/Picard × 多体101车 是保真必需，不得牺牲。
-- **改动（物理保真零改动）**：新编排 outputs/launch_final_5seed_parallel.sh，每 seed 独立后台进程各占 1 核 + wait 聚合；resume 权重与 --episodes 1400 语义与旧串行脚本完全一致（可复现）。
+- **改动（物理保真零改动）**：新编排 scripts/launchers/launch_final_5seed_parallel.sh，每 seed 独立后台进程各占 1 核 + wait 聚合；resume 权重与 --episodes 1400 语义与旧串行脚本完全一致（可复现）。
 - **实测数据（并行 5 进程各 ~91% CPU，load ~4.9/12 核）**：
   - 单 ep 用时：串行 ~150s（1200 档）→ 并行 ~268s（seed4 首 ep，268.53s/ep）。
   - **代价=内存带宽竞争**（5 路 numpy 物理同时跑，DRAM 带宽饱和）→ 净提速 = 5 并行 / 1.8 单ep退化 ≈ **2.8×**。
@@ -1695,10 +1695,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - 新 job id：job-5d1ee3c78c7441b194f099519f14dbae；逐 seed 日志 outputs/logs_final_parallel/seed{N}.log。
   - 旧串行 seed0 中断 ~266ep 产物备份：outputs/checkpoints_formation/final_seed0_aborted_sequential_266ep/（防 CSV 重复污染，供回溯）。
   - 机器：i5-13420H（8物理/12逻辑）/ 31.6GB（WSL 上限 15.8GB）。
-  - 复现命令：wsl -d Ubuntu-24.04 bash outputs/launch_final_5seed_parallel.sh（前台后台均可，wait 聚合）。
-
-<!-- 该文档整理/压缩于 2026-09-22 -->
-
+  - 复现命令：wsl -d Ubuntu-24.04 bash scripts/launchers/launch_final_5seed_parallel.sh（前台后台均可，wait 聚合）。
 ### 诊断-2026-09-22-best权重长程评估失效（训练reward选优≠长程质量）
 
 - **现象**：4 条 best 权重评估（s0/s1 × 53km/35km，best = `mappo_fleet_best_dec_ad2_cp_seed{0,1}.pt`）**全部崩**；而 s0 **last 权重（ep1623）完整 53km 评估达标**（viol 0 / 863.5kN / 末速 72.0 / band 99.7%）。best 反而显著劣于 last。
@@ -1792,3 +1789,4 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **物理/机制解释**：与单 seed 主表结论一致——规则内层兜底对 MPC 是必要条件（车钩力 804 vs 1681kN、低40 21.5% vs 36.5%）；间距破界为 SLSQP 硬约束在长时程下的结构性局限。5-seed 确认无 seed 间异常，审稿稳健性立论成立。
 - **判断**：53km 5-seed 全套完成，MPC 侧 protocol A 数据齐备（含 20/35/53km 跨线单 seed + 53km 5-seed）。剩余工作：D-RL 主训练权重就绪后跑主对比（protocol A/B），届时同口径对照即可出论文 MPC 行。
 - **状态**：完成（5 seed × 2 形态 × 35000 步，JSON+metadata 归档，时间戳 10:40-15:47）。
+<!-- 该文档整理/压缩于 2026-10-01 -->

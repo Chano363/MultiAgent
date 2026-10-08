@@ -37,4 +37,4 @@ supersedes: partial（自 docs/records/VERIFICATION_LOGS.md 按 V2 块拆出）
 
 ---
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+<!-- 该文档整理/压缩于 2026-10-01 -->

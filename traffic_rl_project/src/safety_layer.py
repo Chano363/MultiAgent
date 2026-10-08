@@ -5,7 +5,8 @@
 **升级**：ETCS 目标距离超速防护曲线（"真 ATP"）——前瞻式 EBD/EBI 监督，
 取代原反应式"vel≥限速→强制制动"软修正，回应"ATP 是假的"质疑。
 
-约束集：
+约束集（编号仅标识规则，**施加顺序 = 优先级，见 protect()**：车钩力→间距→超速→ETCS，
+ETCS 最后施加，其制动不会被车钩力缓和放掉）：
 1. **ETCS 目标距离限速防护**（前瞻，"真 ATP"）：
    - 若 obs_state 提供 `etcs_targets` 和 `etcs_curve`，则对每个前方目标点（降速/停车/间距）
      计算 EBD/EBI 监督限位，当前速度超过 EBI 强制紧急制动，超过 P 强制 service 制动。
@@ -68,6 +69,7 @@ class SafetyLayer:
         ab_wave_speed_mps: float = 200.0,
         coupler_veto_ratio: float = 0.6,
         coupler_veto_margin: float = 0.9,
+        coupler_veto_lag_s: float = 90.0,
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
@@ -77,13 +79,19 @@ class SafetyLayer:
         # - train_length_m：车列全长 → 估计 AB 波传播滞后时域（列长/波速）；
         # - ab_wave_speed_mps：AB 常用制动波速（对齐 braking 传播波速 200 m/s）；
         # - coupler_veto_ratio：当前峰值 ≥ ratio·limit 即禁止本步新增 AB 源（反应式）；
-        # - coupler_veto_margin：按波速外推的预测峰值 ≥ margin·limit 亦禁止（预测式）。
+        # - coupler_veto_margin：按滞后时域外推的预测峰值 ≥ margin·limit 亦禁止（预测式）；
+        # - coupler_veto_lag_s：新增 AB 源到车钩力峰值的**物理建立滞后**（s）。诊断-2026-09-30
+        #   实测 AB 首现 t=0 → 车钩力首破 t=901（≈90.1 s），远长于"列长/波速"的波到达时间
+        #   （≈6 s）⇒ 原预测式 horizon 过短，拦不住滞后峰值（训练日志 pkCpl 冲到 1.6~1.8 MN）。
+        #   本参数取代"列长/波速"作为预测时域；置 0 时回退旧口径（列长/波速）。
         self._train_length_m = train_length_m
         self._ab_wave_speed_mps = ab_wave_speed_mps
         self._coupler_veto_ratio = coupler_veto_ratio
         self._coupler_veto_margin = coupler_veto_margin
+        self._coupler_veto_lag_s = coupler_veto_lag_s
         self._peak_hist = []        # 近期峰值历史（N），供预测式外推
-        self._peak_hist_max = 512
+        # 历史长度须覆盖滞后时域（dt=0.1s 时 90s → 900 样本）；留足余量避免越界。
+        self._peak_hist_max = 2048
         # 车钩力超限时的干预策略（8/18 修正，避免 E3 改动破坏第1层）：
         # - 'release'（默认，原行为）：制动完全钳制为 0（释放），保持速度，第1层单列用
         # - 'min_brake'（E3 修复）：制动降到 MIN 档保留制动，避免长大下坡"释放→再制动"死锁，第2层多列用
@@ -143,7 +151,9 @@ class SafetyLayer:
         - 口径：`obs_state['coupler_forces']` 须为**每车断面力视图**（长度 n）；
         - 反应式：当前峰值 P0 ≥ veto_ratio·limit → 禁止（更早封"高力叠加"）；
         - 预测式：以近 horizon 步的峰值上升率 r 外推 P_pred = P0 + r·horizon，
-          若 P_pred ≥ veto_margin·limit → 禁止；horizon = 列长/波速/dt（步）。
+          若 P_pred ≥ veto_margin·limit → 禁止。
+          **horizon = coupler_veto_lag_s / dt（新增源→峰值建立滞后，实测≈90 s）**；
+          仅当 lag≤0 时回退旧口径 horizon = 列长/波速/dt（波到达时间，≈6 s，偏短）。
 
         仅禁止"新增"源，不撤销已建立的制动源（避免制造缓解冲击）。无历史/无列长时
         退化为纯反应式门控（安全默认：不越权）。
@@ -155,15 +165,20 @@ class SafetyLayer:
         # 反应式：当前峰值已接近上限 → 禁止新增源
         if p0 >= self._coupler_veto_ratio * limit:
             return True
-        # 预测式：按"列长/波速"估计峰值滞后时域，用近期上升率外推
+        # 预测式：按"新增源→峰值建立滞后"估时域，用近期上升率外推
         dt = float(obs_state.get('dt', 0.1)) or 0.1
-        if self._train_length_m and self._ab_wave_speed_mps > 0:
+        if self._coupler_veto_lag_s > 0.0:
+            horizon = max(int(round(self._coupler_veto_lag_s / dt)), 1)
+        elif self._train_length_m and self._ab_wave_speed_mps > 0:
             horizon = max(
                 int(round(self._train_length_m / self._ab_wave_speed_mps / dt)), 1)
         else:
             horizon = 1
         hist = self._peak_hist
-        if len(hist) >= 2:
+        # 预测式需够历史才能稳定估上升率：至少观测 max(30s, 半个时域) 才启用，
+        # 否则一段极短历史会把初始爬升率的噪声放大到 90s 外推里（结果是把 AB 全禁）。
+        min_hist = min(horizon, max(int(round(30.0 / dt)), 1))
+        if len(hist) >= 2 and (len(hist) - 1) >= min_hist:
             k = min(horizon, len(hist) - 1)
             rate = (hist[-1] - hist[-1 - k]) / k   # N/步
             if rate > 0.0 and hist[-1] + rate * horizon >= self._coupler_veto_margin * limit:
@@ -218,50 +233,27 @@ class SafetyLayer:
             if is_emergency else self.coupler_force_limit_n
         )
 
-        # 规则 0：ETCS 目标距离超速防护（前瞻真 ATP，**永久启用，安全底线，无开关**）
-        # 只对车头（头车）计算，ETCS 限速是全局硬限位（整列车不能超）。
-        # EBI 触发 → 全列车强制紧急制动；P 触发 → 全列车强制 service 制动。
-        etcs_applied = False
-        # obs 缺目标数据（etcs_curve=None）时自然回退"规则1 反应式限速"，不漏检。
-        etcs_curve = obs_state.get('etcs_curve', None)
-        etcs_targets = obs_state.get('etcs_targets', None)
-        head_pos = obs_state.get('head_position_m', None)
-        if etcs_curve is not None and etcs_targets is not None and head_pos is not None:
-            etcs_applied = True
-            v_head = float(vel[0])
-            ebi, sbi = self._etcs_check(head_pos, v_head, etcs_curve, etcs_targets)
-            if ebi is not None:
-                if v_head > (ebi + 1e-6):
-                    self._log(0, 'etcs_ebi',
-                              f'v={v_head:.2f} > EBI={ebi:.2f} -> emergency brake')
-                    actions[:] = np.minimum(actions, EMERGENCY_BRAKE)
-                elif v_head > (sbi + 1e-6):
-                    self._log(0, 'etcs_permitted',
-                              f'v={v_head:.2f} > SBI={sbi:.2f} -> service brake')
-                    actions[:] = np.minimum(actions, FULL_SERVICE_BRAKE)
+        # ============================================================
+        # 【ATP 优先级铁律 2026-10-04】规则的施加顺序 = 优先级顺序：
+        # 后施加者用 np.minimum 覆盖前者 ⇒ **防追尾/防超速的 ATP 制动必须最后施加**，
+        # 否则会被"车钩力缓和"规则当作超限制动力放掉。
+        #
+        # 事故因果链（诊断 2026-10-04，日志 gap_min −53m / vstd 17105）：
+        #   后列刹不住逼近前列 → 列间受压车钩破 1000 kN → 车钩力规则（release）把 ATP
+        #   刚下的电制动钳回 0（AB 紧急建立需 ~10s）→ 后列在下坡失去即时制动继续下探
+        #   ⇒ 间距穿负。"为压车钩力而放掉防追尾制动"是自毁闭环，必须断掉。
+        # 现序：A 车钩力缓和 → B 间距防挤压 → C 反应式超速 → D ETCS（前瞻，最高优先级）。
+        # ============================================================
 
-        # 规则 1：简单反应式限速防护（**始终启用**，作为 ETCS 的线速兜底，保证超速不漏检）
-        # 【2026-09-02 集成修复】原 `if not etcs_applied` 只在 ETCS 未生效时启用反应式限速；
-        # 但 ETCS 只监督给定的前方目标点（距目标越近越严格），对"距目标很远时的线路限速"
-        # 不生效——若前列很远，后列 ETCS 允许速度很高，会漏掉 80km/h 线速上限。故改为
-        # 反应式限速恒在：既挡线速超限，又不与 ETCS 冲突（ETCS 更严格时先钳制）。
-        # 【bug修复 2026-08-21】速度>=限速时必须强制制动（保留对抗下坡的制动力）。
-        # 原实现把>=0的动作钳为0（缓解），在长大下坡上缓解无法对抗重力→列车持续
-        # 加速超速（实测-11.3‰坡上飙到117km/h）。实测 MIN 制动(-0.3)仍不足以对抗
-        # -11.3‰坡（平衡速度>80），故用 full service 制动力 -0.75（接近 ATP 常用制动）。
-        if True:
-            for i in range(self.num_vehicles):
-                if vel[i] >= self.max_speed_mps - 1e-6:
-                    self._log(i, 'overspeed', f'v={vel[i]:.2f}')
-                    actions[i] = min(actions[i], FULL_SERVICE_BRAKE)
-
-        # 规则 2：车钩力上限防护（区分正常运行/紧急制动上限，Fu2019）
+        # 规则 A：车钩力上限防护（区分正常运行/紧急制动上限，Fu2019）
         # 车钩力超限干预策略（coupler_override，8/18 修正）：
         # - 'min_brake'：降低制动到 MIN 档（保留制动，避免长大下坡"释放→再制动"死锁，
         #   用于第2层多列协同；E3 修复，实测消除车钩力超限暴涨 625次→0）
         # - 'release'（默认）：制动完全钳制为 0（释放），用于第1层单列循环制动
         #   （E3 改动曾让第1层掉速到0：车钩力超限→仍保持MIN制动→持续减速→掉速，
         #   8/18 恢复第1层为 release，保持速度保持能力）
+        # ⚠️ 本规则只对"智能体自由输出的动作"生效；**不能覆盖规则 C/D 的 ATP 制动**——
+        #    故 ATP 制动改到最后施加（见上）。这是有意的权限收敛，非等价重排。
         for i in range(self.num_vehicles):
             if coupler_forces[i] >= coupler_limit:
                 mode = 'emergency' if is_emergency else 'normal'
@@ -276,11 +268,46 @@ class SafetyLayer:
                     # 'release'：制动完全钳制为 0（释放，保持速度，第1层用）
                     actions[i] = 0.0
 
-        # 规则 3：间距防护（后车逼近前车时禁止继续加速）
+        # 规则 B：间距防护（后车逼近前车时禁止继续加速）
         for i in range(1, self.num_vehicles):
             if gaps[i] <= self.min_gap_m + 1e-6:
                 if actions[i] > 0:
                     self._log(i, 'min_gap', f'gap={gaps[i]:.3f}m')
                     actions[i] = 0.0
+
+        # 规则 C：简单反应式限速防护（**始终启用**，作为 ETCS 的线速兜底，保证超速不漏检）
+        # 【2026-09-02 集成修复】ETCS 只监督给定前方目标点（距目标越近越严格），对"距目标
+        # 很远时的线路限速"不生效——若前列很远，后列 ETCS 允许速度很高，会漏掉 80km/h 线速
+        # 上限。故反应式限速恒在：既挡线速超限，又不与 ETCS 冲突（ETCS 更严格时最后钳制）。
+        # 【bug修复 2026-08-21】速度>=限速时必须强制制动（保留对抗下坡的制动力）。
+        # 原实现把>=0的动作钳为0（缓解），在长大下坡上缓解无法对抗重力→列车持续
+        # 加速超速（实测-11.3‰坡上飙到117km/h）。实测 MIN 制动(-0.3)仍不足以对抗
+        # -11.3‰坡（平衡速度>80），故用 full service 制动力 -0.75（接近 ATP 常用制动）。
+        if True:
+            for i in range(self.num_vehicles):
+                if vel[i] >= self.max_speed_mps - 1e-6:
+                    self._log(i, 'overspeed', f'v={vel[i]:.2f}')
+                    actions[i] = min(actions[i], FULL_SERVICE_BRAKE)
+
+        # 规则 D：ETCS 目标距离超速防护（前瞻真 ATP，**永久启用，安全底线，无开关**）
+        # **最高优先级：最后施加**，保证其制动不会被车钩力缓和（规则 A）放掉。
+        # 只对车头（头车）计算，ETCS 限速是全局硬限位（整列车不能超）。
+        # EBI 触发 → 全列车强制紧急制动；P 触发 → 全列车强制 service 制动。
+        # obs 缺目标数据（etcs_curve=None）时自然回退"规则 C 反应式限速"，不漏检。
+        etcs_curve = obs_state.get('etcs_curve', None)
+        etcs_targets = obs_state.get('etcs_targets', None)
+        head_pos = obs_state.get('head_position_m', None)
+        if etcs_curve is not None and etcs_targets is not None and head_pos is not None:
+            v_head = float(vel[0])
+            ebi, sbi = self._etcs_check(head_pos, v_head, etcs_curve, etcs_targets)
+            if ebi is not None:
+                if v_head > (ebi + 1e-6):
+                    self._log(0, 'etcs_ebi',
+                              f'v={v_head:.2f} > EBI={ebi:.2f} -> emergency brake')
+                    actions[:] = np.minimum(actions, EMERGENCY_BRAKE)
+                elif v_head > (sbi + 1e-6):
+                    self._log(0, 'etcs_permitted',
+                              f'v={v_head:.2f} > SBI={sbi:.2f} -> service brake')
+                    actions[:] = np.minimum(actions, FULL_SERVICE_BRAKE)
 
         return actions

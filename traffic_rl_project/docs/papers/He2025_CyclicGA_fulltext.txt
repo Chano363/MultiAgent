@@ -1,0 +1,1123 @@
+Resear ch on optimization and
+evaluation method of heavy-haul train
+cyclic braking manipulation
+W en He, Chongyi Chang and Lan Li
+Railway Science and T echnology Resear ch and Development Center ,
+China Academy of Railway Sciences Corporation Limited, Beijing, China, and
+Y upan Song
+China Railway T aiyuan Gr oup Corporation Limited, China Railway Gr oup Ltd,
+Beijing, China
+Abstract
+Purpose – The study aims to build a high-precision longitudinal dynamics model for heavy-haul trains and
+validate it with line test data, present an optimization method for multi-stage cyclic brakes based on the model
+and conduct a multi-objective detailed evaluation of the driver ’ s manipulation during cyclic braking.
+Design/methodology/approach – The high-precision longitudinal train dynamics model was established and
+verified by the cyclic braking test data of the 20,000 t heavy-haul combination train on the long and steep
+downgrade. Then the genetic algorithm is employed for optimization subsequent to decoupling multiple cyclic
+braking procedures, with due consideration of driver operation rules. For evaluation, key manipulation
+assessments in the scenario are prioritized, supplemented by multi-objective evaluation requirements, and the
+computational model is employed for detailed evaluation analysis.
+Findings – Based on the model, experimental data reveal that the probability of longitudinal force error being less
+than 64.6 kN is approximately 68%, 95% for less than 129.2 kN and 99.7% for less than 193.8 kN. Upon
+optimizing manipulations during the cyclic braking, the maximum reduction in coupler force spans from 21% ∼
+23.9%. And the evaluation scores imply that a proper elevation of the releasing speed favors safety . A high electric
+braking force, although beneficial to some extent for energy -saving, is detrimental to reducing coupler force.
+Originality/value – The results will provide a theoretical basis and practical guidance for further ensuring the
+safety and energy-ef ficient operation of heavy haul trains on long downhill sections and improving the
+operational quality of heavy-haul trains.
+Keywords Heavy-haul trains, Longitudinal train dynamics, Cyclic brake, Manipulation optimization,
+Detailed manipulation evaluation
+Paper type Research paper
+1. Intr oduction
+W ith the development of heavy-haul railways around the world, heavy-haul transportation
+technology has entered a new stage of development. However , due to the continuous increase
+in the tonnage of heavy-haul trains and the longer train formations, the diffi culty of operating
+heavy-haul combined trains has further increased. The long downhill sections, as critical
+segments of the railway line, present complex force conditions for each car in the heavy-haul
+combined train, resulting in high operational diffi culty . How heavy-haul trains can safely and
+ef ficiently traverse long downhill sections is a significant issue in the fields of longitudinal
+Railway Sciences
+231
+© W en He, Chongyi Chang, Lan Li and Y upan Song. Published in Railway Sciences. Published by
+Emerald Publishing Limited. This article is published under the Creative Commons Attribution (CC BY
+4.0) licence. Anyone may reproduce, distribute, translate and create derivative works of this article (for
+both commercial and non-commercial purposes), subject to full attribution to the original publication and
+authors. The full terms of this licence may be seen at http://creativecommons.org/licences/by/4.0 /
+legalcode
+This study has been subsidized by Science and T echnology Development Project Agreement/
+Contract, China State Railway Group Co., Ltd (No. J2022J009) and China Academy of Railway Sciences
+Co., Ltd (No. 2024YJ124), to which the authors hereby express their appreciation.
+The current issue and full text archive of this journal is available on Emerald Insight at:
+https://www .emerald.com/insight/2755-0907.htm
+Received 22 November 2024
+Revised 6 January 2025
+Accepted 6 January 2025
+Railway Sciences
+V ol. 4 No. 2, 2025
+pp. 231-248
+Emerald Publishing Limited
+e-ISSN: 2755-0915
+p-ISSN: 2755-0907
+DOI 10.1 108/RS-1 1-2024-0048
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+train dynamics (L TD) and train operation optimization. The commonly used method in actual
+operations is long-distance cyclic braking control, which involves alternating between air
+braking and releasing, along with electric braking to assist in speed control. However , cyclic
+braking involves multiple operational steps and requires precise control, making it difficult for
+drivers to master the timing and level for various operations, which can easily lead to excessive
+longitudinal forces. This may result in mid-route stops, severely af fecting transportation
+ef ficiency; in more severe cases, it can directly lead to train coupler failures and derailments,
+posing a threat to transportation safety .
+The most effective measure to address this issue is to optimize train manipulation based on
+the theory of L TD, seeking the optimal timing for braking or releasing and the level of the handle
+level. Through a detailed evaluation and analysis of train manipulation, feedback is provided to
+drivers regarding current manipulation issues, helping them to timely improve train operation
+and enhance operational quality . In the field of theoretical research on L TD simulation, Cole and
+Sun (2006) and W u, Spiryagin, and Cole (2015, 2016), W u et al. (2017, 2021) conducted in-
+depth analyses of the L TD performance and fatigue wear of common draft gear system types
+through comparative simulations. They also conducted more detailed studies on the systematic
+theory of L TD and the integration of air brake systems with parallel computing. Chang and W ang
+(2006) established a L TD simulation model for heavy-haul trains, studying the variation patterns
+of longitudinal forces in a 20,000-ton combined train under different delay times and initial
+braking speeds, and analyzing the longitudinal force patterns of a 40,000-ton ∼ 120,000-ton
+heavy-haul train under the influences of factors such as train composition length, wireless
+synchronization control delay of locomotives, and gradient differences on long downhill slopes
+(Chang, Guo, He, & Liu, 2023). W ei and Hu (201 1, 2012) established a joint simulation model of
+the train air brake system and L TD, conducting systematic and in-depth research on the air brake
+system of heavy-haul combined trains, longitudinal impulse variations, and key influencing
+factors. In the area of manipulation optimization and evaluation research, Domanov , Nekhaev ,
+and Cheremisin (2021). optimized energy-saving operations of trains using directed graph
+theory , Y u, Huang, and W ang (2018) optimized manipulation for safety and speed operations on
+long downhill slopes based on particle swarm algorithms, and Zhuan and Xia (2007) conducted
+multi-objective optimization for heavy-haul trains equipped with electronically controlled
+pneumatic braking devices, such as targe ting speed tracking, energy consumption, safety and
+stability objectives. Existing research has rarely focused on optimizing specific manipulation
+details, and the optimization for long-distance operations results in excessive computation time,
+which lacking engineering advantages.
+The research establishes a numerical model of the draft gear system that combines measured
+data with mechanical principles and a fluid model of the train air braking system based on airflow
+theory . The single-step balance iterative method is applied in the Newmark-β integral format,
+thereby creating a high-precision computational model for the L TD. Based on this computational
+model, the optimization method reasonably considers the constraints of excellent driver
+operation rules in the manipulation optimization process. After decoupling the multiple cycles of
+braking operations, a heuristic algorithm is employed to optimize the process, reducing
+computation time and obtaining feasible optimized operations. The evaluation of operations
+primarily focuses on key operational assessments within the scenario, supplemented by multi-
+objective evaluation requirements. The high-precision computational model of L TD is applied to
+the reproduction and analysis of train operations, achieving detailed evaluation and feedback.
+The research methods and results can provide theoretical insights for modeling key sub-models
+of L TD, offering important references to ensure safe and ener gy-efficient operation of heavy-
+haul trains on long downhill slopes and to enhance the operational quality of heavy-haul trains.
+2. High-precisi on computational model of longitudinal train dynamics
+Based on the traditional theory of L TD, the key points for achieving high-precision
+calculations are as follows:
+RS
+4,2
+232
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+(1) Updating and adjusting key simulation parameters to ef fectively improve cumulative
+simulation errors;
+(2) Accurately simulating the working characteristics of various major subsystems of
+heavy-haul train formations (such as locomotive traction or electric braking
+characteristics, air brake system working characteristics, and draft gear device
+working characteristics, etc.);
+(3) Correctly handling the coupling control relationships of various subsystems of the
+train (such as the instruction delay transmission process of the distributed wireless
+control system for combined train, and the coupling control process between the
+wireless control system and the air brake system, etc.);
+(4) High-precision multi-body dynamics numerical integration methods;
+Based on the high-precision calculation requirements of L TD, more realistic and lower-erro r
+computational methods are adopted for the key sub-models of the coupler buf fer device, air
+brake system, and numerical computation methods.
+2.1 Detailed numerical simulation of draft gear system
+The numerical simulation accuracy of the draft gear device is directly related to the calculation
+accuracy of the L TD. In the modeling of buf fers, issues such as nonlinear loading and
+unloading processes, velocity damping, peak characteristics, and locking stif fness introduce
+significant nonlinear variations in the buf fer . Additionally , due to the instability of the dry
+friction mechanical structure of steel, the impact test results of steel friction buffers generally
+exhibit considerable dispersion and disorder . Therefore, to accurately model the buf fer , it is
+essential to fully consider these issues. Based on the proposed model in the relevant literature
+(Chang, W ang, Ma, & Zhang, 2006), the expression formula for nonlinear characteristics is
+improved, and issues such as locking stif fness are taken into account, leading to the proposal of
+an improved numerical integration model for the draft gear device. For a buf fer at a specific
+position, the expression (Fancher , Ervin, MacAdam, & W inkler , 1980) for the coupler force is
+in the form of formula (1):
+F
+c
+ðt Þ ¼ f
+edg e
+þ
+�
+F
+c
+ðt � Δt Þ � f
+edg e
+�
+3 e
+−jdxðtÞ−dxðt−Δt Þj
+h
+5
+(1 )
+In the formula, F
+c
+ðt − Δt Þ and F
+c
+ðt Þ are the coupler force at t − Δt and t , f
+ed ge
+is the buf fer edge
+loading or unloading force, dxðtÞ and dxðt − Δt Þ are the relative displacement at t and t − Δt , h
+5
+is the numerical integration control coefficient.
+Considering the buf fer locking stif fness, the modified coupler force F
+c
+0
+ðt Þ is calculated
+according to formula (2).
+8
+>
+>
+<
+>
+>
+:
+KT ¼
+F
+c
+ðt Þ � F
+c
+ðt � Δt Þ
+dxðtÞ � dxðt � Δt Þ
+F
+c
+0
+ðt Þ ¼ F
+c
+ðt � Δt Þ þ ðF
+c
+ðt Þ � F
+c
+ðt � Δt ÞÞ$
+jdvðt Þj
+ve
+; KT > K T
+lo ck
+(2 )
+In the formula, KT is the instantaneous stiffness of the buf fer at t , KT
+loc k
+is the locking stif fness
+which is measured experimentally to be approximately 8e4 kN/m (W u et al., 2015), dvðtÞ is the
+relative velocity of the coupler before and after the locomotive at t , and ve is the critical
+transition velocity .
+Railway Sciences
+233
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+f
+edg e
+¼
+�
+f
+loa d
+; dxðtÞ ≥ dxðt � Δt Þ
+f
+unl oad
+; dxðtÞ < dxðt � Δt Þ
+(3 )
+In the formula, f
+load
+and f
+un load
+represents the loading and unloading force under the buf fer
+dynamic loading characteristics constructed using a large amount of impact test data (in this
+construction step, the coupler clearance and preload are considered).
+During the loading process of the steel friction buffer , non-linear impact peak are more
+likely to occur as the impact speed increases. Therefore, it is necessary to superimpose the
+viscous friction force f
+vis cou s
+on the basis of dynamic loading characteristics, as shown in
+formulas (4) and (5), h
+3
+and h
+4
+are the adjustment coeffi cient for the viscous friction force.
+f
+edg e
+¼
+�
+f
+loa d
+þ f
+vi scou s
+; dxðtÞ ≥ dxðt � Δt Þ
+f
+un load
+; dxðtÞ < dxðt � Δt Þ
+(4 )
+f
+vi scou s
+¼ h
+3
+$f
+loa d
+$e
+jdxðtÞj−h
+4
+$jdvðtÞj
+(5 )
+When constructing elastic polymer dampers, the damping ef fect should be considered.
+Therefore, the damping force f
+damp ing
+is superimposed on the basis of the static pressure test
+characteristics of the buffer , as shown in formulas (6) and (7).
+f
+ed ge
+¼
+�
+f
+load
+þ f
+damp in g
+; dxðtÞ ≥ dxðt � Δt Þ
+f
+unl oad
+; dxðtÞ < dxðt � Δt Þ
+(6 )
+f
+damp in g
+¼ h
+1
+$dvðtÞ$
+�
+1 � e
+−h
+2
+$jdxðtÞj
+�
+(7 )
+2.2 Fluid model of air brake system
+When modeling the train air brake system that uses compressed air as the transmission
+medium, the actual structure of the train air brake system and the air flow process are taken into
+account to establish an aerodynamic air brake system model based on air flow theory (referred
+to as the “fluid model”).
+For the computational solution of the actual air flow process, the characteristic line method
+is used to establish the fluid model, which mainly divides the actual air brake system into
+calculation steps such as air pipeline state calculation, boundary processing, system cylinder
+pressure calculation, and valve core position judgment. Since the temperature rise during the
+actual use of the air brake system is not significant, the flow in the pipe is treated as one-
+dimensional, frictional, and isothermal flow , with the N-S flow equations as shown in
+equation (8).
+vρ
+vt
+þ ρ
+vu
+vx
+þ u
+vρ
+vx
+¼ 0
+vu
+vt
+þ u
+vu
+vx
+þ
+1
+ρ
+vp
+vx
+þ f
+u
+2
+2
+u
+juj
+4
+D
+¼ 0
+; (8 )
+In the equation (8), ρ; u; p; D; x; t ; f represents air density , air flow velocity , gas pressure,
+hydraulic diameter , displacement, time and pipe wall friction coeffici ent respectively .
+The N-S equations are transformed into Riemann variables based on the characteristic line
+theory , and the increment of Riemann variables between diff erent time steps is calculated as
+shown in equation (9).
+RS
+4,2
+234
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+d λ ¼ −
+k � 1
+2
+2fx
+ref
+D
+�
+λ � β
+k � 1
+�
+2
+ðλ � βÞ
+jλ � βj
+�
+1 �
+2ðλ � βÞ
+ðλ þ βÞ
+�
+dZ ; (9 )
+In the equation (9), k is the adiabatic coeff icient; x
+ref
+is the reference length.
+The gas flow rate between the cylinder and the external gas is calculated using equation
+(10) (W u et al., 2017).
+_m ¼
+8
+>
+>
+>
+<
+>
+>
+>
+:
+P
+1
+A
+e
+a
+1
+��
+2k
+2
+k � 1
+��
+P
+2
+P
+1
+�
+2=k
+�
+1 �
+�
+P
+2
+P
+1
+�
+ðk−1Þ=k
+��
+1
+2
+P
+2
+P
+1
+>
+�
+2k
+k þ 1
+�
+k
+k−1
+ðSub soni c flo wÞ
+P
+1
+A
+e
+a
+1
+k
+�
+2
+k þ 1
+�
+ðkþ1Þ=½2ðk −1Þ�
+P
+2
+P
+1
+≤
+�
+2k
+k þ 1
+�
+k
+k−1
+ðCh oke d fl owÞ
+;
+(10 )
+In the equation (10), P
+1
+and P
+2
+are the pressures on both sides of the opening, A
+e
+is the
+opening area.
+For the 120/120-1 valve, the main calculations involve the positions of the main valve
+piston and the slide valve piston, which can determine the specific operating conditions of the
+brake machine (such as releasing, deceleration releasing, braking, emer gency braking, and
+holding pressure, etc.). The components of the 120/120-1 valve are simplified as shown in
+Figure 1, and by establishing the connectivity relationships and aperture opening logic in
+sequence, a fluid model can be developed.
+T aking the “1 þ 1þEnd-of-train (EOT)” combination train formation as an example, the
+number of freight cars within the unit formation is 108, and the freight cars use 120 valves.
+Using the most common initial braking operation as an example, the hardware equipment
+consists of an Intel i7-12700H 14-core 2.3GHz processor and 16GB of memory . A numerical
+program simulation is written in Cþþ language, and the 216 freight cars within the formation
+are calculated sequentially . In the calculation, the main grid length is taken as 0.675 m, and the
+branch grid length is taken as 0.3 m. The simulation results are compared with experimental
+data as shown in Figure 2. It can be seen that the fluid model can accurately reflect the various
+Figure 1. The components of the 120/120-1 valve’
+Railway Sciences
+235
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+working characteristics such as pressure boosting and pressure maintenance of the air brake
+system, as well as the impact of specific structural features of the air brake system. The
+transmission of braking wave speed and the calculation of the final equilibrium pressure are
+relatively accurate.
+2.3 Explicit numerical integration method for multibody systems
+The L TD model, as shown in Figure 3, first considers a single locomotive or vehicle as a
+separate car . A single car has one degree of freedom in the longitudinal direction (He, Chang,
+W ang, & Guo, 2024). By analyzing the longitudinal forces acting on the single car , as shown in
+Figure 4, its longitudinal dynamic equation is given by formula (1 1):
+m
+i
+€u
+i
+¼ F
+Ti
+ð−F
+Di
+Þ � F
+Bi
+� F
+wi
+þ F
+cði−1Þ
+� F
+ci
+ði ¼ 0; 1; � � � ; nÞ (11 )
+In the formula (1 1), F
+c(i-1)
+, F
+ci
+represents the front and rear coupler force of the ith vehicle, m
+i
+is
+the mass of the ith vehicle, u
+i
+is the displacement of the ith vehicle, F
+T i
+is the traction force of
+the ith vehicle (acting on the locomotive), F
+Di
+is the regenerative braking force of the ith
+vehicle (acting on the locomotive), F
+Bi
+is the air braking force of the ith vehicle, and F
+wi
+is the
+total resistance of the ith vehicle.
+Figure 2. Comparison of fluid model results with test data
+Figure 3. T rain simulation model in L TD
+RS
+4,2
+236
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+Due to the presence of various nonlinear factors in the longitudinal dynamics equations of
+trains, which complicate the computation, the research aims to ensure computational accuracy .
+Based on the Newmark-β numerical integration method (Newmark, 1959), the step-by-step
+integration method is further applied to the response calculation of nonlinear equations. At
+t þ Δt , the system incremental balance equation is given by equation (12):
+M €u
+tþΔt
+� €u
+t
+ð Þ þ K
+T
+ðΔu
+t
+Þ ¼ F
+tþΔt
+� F
+t
+; (12 )
+In the equation (12), M represents the mass matrix, K
+T
+represents the stif fness matrix; €u
+t
+and
+€u
+tþ Δt
+are the acceleration matrices at t and t þ Δt , Δu
+t
+represents the relative displacement at t ;
+F
+t
+and F
+tþΔt
+are the force vectors resisting deformation at t and t þ Δt .
+Since K
+T
+varies with the iterative process, an approximate solution is only found when it
+changes to the final equilibrium position. Therefore, the core idea of the equilibrium iteration
+method is to approximate with linear results and calculate the resulting unbalanced forces,
+repeating the iteration until no unbalanced forces are generated, as shown in Figure 5.
+Ultimately , the method of stepwise iteration to eliminate unbalanced forces is used to solve the
+nonlinear equations of L TD.
+Figure 4. Longitudinal analysis of single car
+Figur e 5. Incremental step iteration process of stepwise integration
+Railway Sciences
+237
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+3. V erification of test data fr om long downhill sections
+The cyclic braking operation in long downhill sections is an important feature that
+distinguishes heavy-haul lines from general freight lines. A segment of measured data from a
+heavy-haul line in China is selected to compare and analyze the calculation accuracy of the
+L TD model. The basic running resistance coefficient is adjusted and optimized using a
+heuristic algorithm, taking a
+l
+5 1.0473, b
+l
+5 0.0028, c
+l
+5 0.0002244, a
+w
+5 0.4662,
+b
+w
+5 0.0021, c
+w
+5 0.000061. The method is based on the actual operation sequence data of a
+train in a section without air braking process. Through the actual data, the tractive force or
+regenerative force of the current locomotive is dynamically updated, and then the basic
+running resistance of the train is taken as the independent variable. W ith the objective function
+being to minimize the mean value of speed errors, the optimal basic resistance coeffi cient is
+finally solved through the genetic algorithm.
+The selected line has a total length of 13 km (K44 þ 000∼K57 þ 000), with a longitudinal
+slope of � 9% to � 12%, a minimum curve radius of 500m, and no electric phase separation
+sections (Y ao, 2016). The train group parameters are shown in T able 1. The train operation
+sequence is based on the actual driver ’ s operation sequence, and the computing hardware
+consists of an Intel i7-12700H 14-core processor and memory .
+Through the comparative analysis of simulation data and measured data in Figure 6, it can
+be seen that the average calculation error of the simulation speed is less than 2 km/h, with a
+maximum speed error of 3.72 km/h. The calculation results of the simulation model at all test
+locations closely match the actual variation trend of the coupler force, demonstrating good
+simulation of the severe impact during the transition of key operating conditions in cyclic
+braking. A normal distribution analysis of the longitudinal force calculation error distribution
+shows that the probability of the longitudinal force calculation error being less than 64.6 kN is
+approximately 68%, a 95% probability less than 129.2kN, and a 99.7% probability less than
+193.8kN, indicating good calculation performance.
+4. Optimization method for long downhill cyclic braking operation
+When modeling the multi-objective optimization problem of cyclic braking for heavy-haul
+trains on long slopes, in order to make the optimization solving process more meaningful for
+engineering, the modeling of the cyclic braking multi-objective optimization problem is based
+on the constraints of the driver ’ s long-term operational experience. For a typical heavy-haul
+train’ s long slope cyclic braking process, as shown in Figure 7, Point A indicates the start of the
+train entering the long slope section; Point B indicates the start of the first air brake; Point C
+indicates the start of the release; Point D indicates the start of the second air brake after the
+release is completed, followed by subsequent release and air braking until the train exits the
+long slope; Point C
+0
+represents the position where the electric brake input before release
+remains stable until the start of the release; Point C
+00
+indicates the position of the first change in
+electric brake input after release.
+T able 1. T rain group parameters
+Calculation parameters V alues
+T rain group form HXD1 þ C803108 þ HXD1 þ C803108 þ EOT
+T otal traction weight 21,000 tons
+Buffer type Locomotive: QKX100; V ehicle: MT -2
+Coupling form/coupler clearance 3 vehicles per unit/9.5 mm
+W ireless synchronization control delay time 3s
+Source(s): Authors’ own work
+RS
+4,2
+238
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+4.1 Decomposition of the cyclic braking pr ocess
+By establishing the relationship between the release time after recharging, average slope value,
+releasing speed, and electric braking force after a period of release, the global optimization
+process of multiple cycles during long downhill sections can be decomposed into multiple
+single brake-release optimization solutions, thereby reducing computational complexity and
+improving computational ef ficiency . In the simplification of the cyclic braking process
+involving multiple brake-release processes, the principle of satisfying the rechargi ng time for
+the train composition is primarily followed, and based on this, the average passing speed on the
+Figure 6. Comparison of coupler force at different test locations
+Figure 7. Long downhill cyclic brake of heavy haul trains
+Railway Sciences
+239
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+slope is improved. The decomposition process of cyclic braking that includes multiple brake-
+release processes is as follows:
+Step 1: Clarify the magnitude of the pressure reduction used in speed control braking and
+the corresponding recharging time.
+Step 2: Establish an empirical relationship between the release time after recharg ing,
+average slope value, releasing speed, and electric braking force after a period of release.
+According to this empirical relationship, obtain the optimized constraint range for the
+releasing speed v
+C
+shown in Figure 7 and the values for electric braking force N
+C
+00
+D
+.
+Step 3: Optimize the single brake-release process based on a genetic algorithm according to
+the selected releasing speed range, and the electric braking force N
+C
+0
+C
+00 ; N
+C
+00
+D
+has been
+obtained. By continuously decomposing and optimizing this process, a cyclic braking that
+includes multiple processes can be completed.
+4.2 Considerations for cyclic braking constraints based on single pr ocess
+In the single brake-release process, if there are no excessive constraints and limitations, all
+decision variables can take arbitrary values. Therefore, it is necessary to introduce actual
+physical system constraints and relevant driver experience constraints, which make the
+solution of the multi-objective optimization problem reasonable and feasible.
+(1) Physical Constraints:
+• The electric braking force during the cyclic braking process is less than the
+maximum electric braking force N
+max
+, that is 0 < N
+AD
+≤ N
+ma x
+.
+• The braking pressure reduction P
+BC
+is within the commonly used range, that is
+50kP a ≤ P
+BC
+≤ 170k Pa ;
+• The available rechargi ng time for the train after releasing is greater than the current
+recharging time under the pressure reduction, that is t
+rel eas e
+> t
+rele ase
+min
+;
+(2) Driver Experience Constraints:
+• The speed when starting the air brake is less than the current section speed limit, that
+is v
+B
+< v
+lim
+max
+;
+• The speed when it begins to release is greater than the minimum releasing speed,
+that is v
+C
+> v
+lim
+min
+;
+• During the operation of the train, the electric brake force should avoid using the full
+level as much as possible, that is N
+AD
+< N
+max
+;
+• The frequency of changing the electric brake force during the operation of the train
+should be kept as low as possible; therefore, the electric brake force during a single
+brake-release process is constrained to three constant level parts of
+N
+BC
+0 ; N
+C
+0
+C
+00 ; N
+C
+00
+D
+;
+• The electric brake force N
+C
+0
+C
+00 remains unchanged over a certain distance before and
+after releasing.
+• Priority of pressure reduction should be given to the most commonly used by the
+driver , P
+BC
+preferentially uses 50 kPa.;
+• The selection of air brake locations and release locations should avoid complex
+gradient sections as much as possible to prevent the longitudinal coupler force from
+exceeding the maximum pulling force limit F
+te nsil e
+max
+and the maximum pushing force
+limit F
+co mpr ess
+max
+, that is F
+com pre ss
+max
+≤ F
+cou ple r
+≤ F
+te nsi le
+max
+;
+RS
+4,2
+240
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+4.3 Construction of the objective function for the cyclic braking pr ocess
+T aking running time and operational safety as the basic guiding objectives, the objective
+function is composed as shown in formula (13),
+J ¼ α
+1
+�
+�
+T
+run
+� T
+goa l
+�
+�
+þ α
+2
+�
+�
+F
+tens ile
+cmax
+�
+�
+þ α
+3
+�
+�
+F
+com pre ss
+cmax
+�
+�
+(13 )
+In the equation (13), F
+ten sil e
+cmax
+represents the maximum pulling coupler force during the cyclic
+braking process, F
+com pre ss
+cmax
+represents the maximum pressing coupler force during the cyclic
+braking process, α
+1
+, α
+2
+and α
+3
+are the ef ficiency weight coefficients, maximum pulling force
+and maximum pressing force weight coefficients, respectively , T
+run
+is the actual running time
+of the train, and T
+go al
+is the planned running time of the train.
+By solving the minimization objective function within the constraint space, the optimized
+variable values v
+B
+; v
+C
+; N
+BC
+0 ; N
+C
+0
+C
+00 can be determined.
+4.4 Genetic algorithm for multi-objective optimization
+For the multi-objective optimization problem of cyclic braking in a single brake-release
+process, the Genetic Algorithm is employed for global heuristic optimization as shown in
+Figure 8. In the cyclic braking optimization process, based on the range of decision
+variables v
+B
+; v
+C
+; N
+BC
+0 ; N
+C
+0
+C
+00 , each decision variable can be encoded using 4-bit binary
+numbers, resulting in each chromosome consisting of 16 bits to represent a group of
+decision variables. After initializing the solving parameters of the genetic algorithm and the
+initial population, the value of the objective function is calculated by invoking the L TD
+model, which serves as the fitness of each generation of the population. In this step, the
+focus is on efficiency and operational safety , while fully considering physical constraints
+and driver experience constraints in the L TD solution, thus saving computational resources
+to align with practical engineering applications. The optimal group of decision variables for
+the current brake-release process is obtained after optimization. If the train has not exited
+the long downhill section after completing the current cycle, the optimization for the next
+cycle will be conducted until the train exits the long downhill segment.
+T aking the long downhill section of the Daqin Line from K290 þ 000 to K294 þ 000
+(average gradient � 10.5%, minimum curve radius 700m) as the manipulation optimization
+section, optimization is performed using the aforementioned methods. The simulation
+calculation of the train group parameters is shown in T able 2.
+Select the planned train operating time T
+go al
+5 300s; efficiency weight coefficient
+α
+1
+5 10; maximum coupler force weight coefficient α
+2
+5 1; maximum coupler force weight
+coeff icient α
+3
+5 1; the releasing speed solving range based on the empirical relationship is
+[30,40] km/h, the electric brake force after releasing is 70% ∼ 80%, and the objective
+function fitness of the genetic algorithm optimization process varies with the evolutionary
+generation as shown in Figure 9, reaching the minimum value of the objective function
+fitness after 40 generations.
+The final optimized simulation results are shown in T able 3 and Figure 10. The
+parameters that changed significantly before and after the optimization are the releasing
+speed, released position, and the electric braking force used before and after the
+release. When the released speed is increased to 40km/h, the released position is
+postponed by 300 m, and the electric braking force before and after release is reduced to
+13%, the impact of the asynchronous release caused by the propagation of the released
+wave is weakened, resulting in a decrease of 208kN ∼ 245kN in the maximum coupler
+force of the 20,000-ton heavy-haul train, with a reduction of 21% ∼ 23.9%; the maximum
+amplitude of the coupler force is reduced by 179kN ∼ 801kN, with a reduction of 1 1.5%
+∼ 36.9%.
+Railway Sciences
+241
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+5. Evaluation of heavy-haul train operations on long downhill sections
+Due to the complexity of the train operation environment, which involves various group types,
+scene transitions, complex routes, and signal changes, there are challenges in multi-objective
+trade-offs, multi-parameter considerations, difficulties in obtaining key evaluation
+parameters, and challenges in quantifying indicators for operational evaluation. The
+T able 2. T rain group parameters in simulation
+Calculation parameters V alues
+T rain group form HXD1 þ C803105 þ HXD1 þ C803105 þ EOT
+T otal traction weight 20,000 tons
+Buffer type Locomotive: QKX100; V ehicle: MT -2
+Coupling form/coupler clearance 3 vehicles per unit/9.5 mm
+W ireless synchronization control delay time 3s
+Source(s): Authors’ own work
+Figure 8. Optimization process of cyclic braking
+RS
+4,2
+242
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+technical difficulties of detailed operational evaluation have led to the current state of train
+operational evaluation being primarily modular , with limited assistance for driver feedback
+improvement. The research addresses the need for specific scene operations and multi-
+objective evaluation by establishing a detailed evaluation method based on key operational
+evaluations within the scene, supplemented by multi-objective evaluation requirements,
+through the L TD model. As shown in Figure 1 1, The key points of this method include train
+operation scene recognition, identification of key operational points in the scene, trade-off s in
+multi-objective operational evaluation requirements, and analysis of key operational
+reproduction.
+T aking the typical scenario of a 20,000-ton heavy-haul train running down a long slope as
+an example, a detailed operational evaluation application is conducted on a segment of a
+heavy-haul line in China. The average gradient of this segment is � 10.5%, with a minimum
+curve radius of 800 m. It is assumed that the basic evaluation data is derived from a segment of
+LKJ running record data shown in Figure 12, and statistical analysis is performed on a total of
+21 trips of 3 drivers A, B, and C on this line segment.
+The implementation steps of the detailed operational evaluation method are as follows:
+(1) Identification of key operational points in the scenario: This involves key operational
+points such as braking speed/braking position, releasing speed/releasing position,
+Figure 9. Fitness function curve
+T able 3. Comparison of simulation results before and after optimization
+Key parameters Before optimization Optimized
+Braking speed (km/h) – 63.0
+Releasing speed (km/h) 29.6 ∼ 30.7 40.0
+Release position (km) K292 þ 967 K293 þ 260
+Electric brake force during air braking – 40%
+Electric brake force before and after releasing 30% ∼ 70% 13%
+Maximum tensile coupler force (kN) 988 ∼ 1,025 780
+Maximum compression coupler force (kN) � 322 ∼ � 1,144 � 588
+Coupler force amplitude (kN) 1,547 ∼ 2,169 1,368
+Source(s): Authors’ own work
+Railway Sciences
+243
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+braking pressure reduction, and electric braking force before and after release. The
+braking speed during this cyclic braking process is concentrated between [70, 72] km/
+h, while the releasing speed is distributed between [39, 57] km/h. The braking and
+releasing positions are relatively fixed, with the braking position concentrated around
+K149 þ 000 and the releasing position distributed between [K152 þ 700 and
+K153 þ 200].
+(2) Multi-objective manipulation evaluation demand trade-offs: This involves evaluation
+demands related to the longitudinal state assessment of trains concerning operational
+Figure 10. Simulation results of cyclic braking optimization
+Figure 1 1. Implementation steps of the detailed train operational evaluation method
+RS
+4,2
+244
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+safety , runtime evaluation, segment energy consumption assessment, and whether
+modular manipulation corresponds, with the total weight of various demands summing
+to 1;
+In long downhill scenarios, train longitudinal state assessment is closely related to safety , with
+the maximum longitudinal force F
+cmax
+of the entire train as the evaluation indicator , and its
+normalized weight is ω
+f
+; section energy consumption assessment is closely related to energy -
+saving economics, with the work done by traction/electric braking force in the section W
+t
+as the
+evaluation indicator , and its normalized weight is ω
+e
+; running time assessment is mainly
+reflected in whether the dynamic tracking interval between the front and rear of the heavy-haul
+train meets the requirements, with the running time of the section T
+r
+as the evaluation indicator ,
+and its normalized weight is ω
+t
+; whether it corresponds to modular manipulation mainly
+reflects whether the driver is familiar with the experience rules of past excellent drivers and
+whether they are proficient in the overall manipulation of the section, represented by a Boolean
+value of 0 or 1, with its weight ω
+m
+.
+(3) Critical manipulation reproduction analysis: Using known speed, time, and position
+information, a L TD model is employed to rapidly compute the train’ s longitudinal
+impulse level and energy consumption level, to decipher the dynamic data indicators
+behind the driver ’ s manipulation, and to enable comprehensive and rapid online
+evaluation and feedback.
+By implementing the above refined evaluation and feedback steps, the manipulation
+evaluation scores for 21 differe nt manipulations in the long downhill section, as shown in
+Figure 13, can be obtained. Among them, the evaluation that emphasizes safety has its weights
+allocated as ω
+f
+5 0.4, ω
+e
+5 0.25, ω
+t
+5 0.25, ω
+m
+5 0.1; in the evaluation that emphasizes
+energy-s aving, the weights are allocated as ω
+f
+5 0.2, ω
+e
+5 0.5, ω
+t
+5 0.2, ω
+m
+5 0.1; the
+normalization method is based on the maximum/minimum values.
+Figure 12. Running data of 21 trips of a heavy-haul train on a long slope
+Railway Sciences
+245
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+Analysis of feedback from the manipulation evaluation scores shows that for a 20,000-ton
+heavy-haul combined train operating in long downhill scenarios, differe nt manipulation
+conditions yield differe nt scores when evaluated with varying weightings. When safety is
+prioritized, the weight of the maximum longitudinal force is higher than that of other
+evaluation indicators, and the evaluation score is closely related to the train’ s downhill
+releasing speed, which is approximately positively correlated with the train state during
+braking release. When energy ef ficiency is prioritized, It can be intuitively understood that
+since the locomotive cannot enter the traction state during cyclic braking, the work done by the
+regenerative braking force becomes the main factor af fecting energy consumption. The
+evaluation score is significantly linked to the amount of electric braking force and the running
+speed, requiring particular attention to these critical manipulation points by the driver .
+From the scoring feedback, it is evident that under the premise of ensuring suff icient
+rechargi ng time, appropriately increasing the releasing speed is conducive to safe operation.
+Excessive electric braking force is not conducive to reducing coupler forces but offers certain
+advantages for energy -efficient operation. The evaluation feedback results align with the
+conclusions of the aforementioned manipulation optimization. Therefore, conducting detailed
+manipulation evaluation feedback based on L TD calculations can provide timely and
+reasonable manipulation suggestions to drivers during operation, which is beneficial for
+improving manipulation performance.
+6. Conclusion
+(1) By improving the modeling methods of draft gear systems and the air braking system,
+and applying a single-step balanced iteration calculation method in the Newmark-β
+integration format, a high-precision calculation model for the longitudinal dynamics of
+heavy-haul trains is established, with a comparison of � 9% ∼ � 12% against the test
+data on long downhill sections. The maximum simulation speed error is 3.72km/h, the
+longitudinal force error has a probability of 68% being less than 64.6kN, with a
+probability of 95% being less than 129.2kN, and a probability of 99.7% being less than
+193.8kN.
+(2) In the optimization method for long downhill manipulation, the driver ’ s manipulation
+rules are reasonably considered to reduce the optimization solution space, and after
+decoupling multiple cyclic braking processes, a genetic algorithm is used for
+Figure 13. Manipulation evaluation
+RS
+4,2
+246
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+optimization. T aking the long downhill section with an average gradient of � 10.5% on
+the Daqing Line as the optimization zone, the optimization of manipulation increases
+the releasing speed to 40km/h, delays the releasing point by 300 m, and reduces the
+electric braking force before and after the release to 13%. The maximum coupler force
+reduction for a 20,000-ton heavy-haul combined train is 21% to 23.9%; the maximum
+amplitude reduction of the coupler force is 1 1.5% to 36.9%.
+(3) In the detailed manipulation evaluation, the focus is on the manipulation evaluation of
+key points within the scene, supplemented by the demand for multi-objective
+evaluation. The high-precision calculation model of L TD is applied to the train
+manipulation recurrence analysis for detailed evaluation and feedback. T aking the 21
+actual operation data of a 20,000-ton heavy-haul combined train running on a long
+downhill slope of � 10.5% as an example, the detailed manipulation evaluation method
+conducts scoring analysis from the perspectives of safety and energy-sav ing operation.
+The scoring results show that under the premise of ensuring suffic ient rechargi ng time,
+appropriately increasing the releasing speed is conducive to safe operation. Although
+excessive electric braking force is not conducive to reducing coupler forces, it has
+certain advantages for energ y-saving operation.
+References
+Chang, C., Guo, G., He, W ., & Liu, Z. (2023). Simulation study on the influence of longitudinal
+dynamic force on extreme-long heavy-haul trains. Railway Sciences, 2(4), 495–513. doi:
+10.1 108/rs-09-2023-0028.
+Chang, C., W ang, C., Ma, D., & Zhang, B. (2006). Study on numerical analysis of longitudinal forces
+of the T20, 000 heavy haul. Journal of the China Railway Society , (2), 89–94.
+Cole, C., & Sun, Y . Q. (2006). Simulated comparisons of wagon coupler systems in heavy haul trains.
+Pr oceedings of the Institution of Mechanical Engineers, Part F: Journal of Rail and Rapid
+T ransit, 220(3), 247–256. doi: 10.1243/09544097jrrt35.
+Domanov , K., Nekhaev , V ., & Cheremisin, V . (2021). Optimization of operating modes of a train by the
+haul distance. T ransportation Resear ch Pr ocedia, 54, 842–853. doi: 10.1016/
+j.trpro.2021.02.142.
+Fancher , P . S., Ervin, R. D., MacAdam, C. C., & W inkler , C. B. (1980). Measur ement and
+r epr esentation of truck leaf spring. Ann Arbor: High: Safety Research Institute. The Univof
+Michigan.
+He, W ., Chang, C., W ang, J., & Guo, G. (2024). Analysis on key influencing factors of longitudinal
+force with 30 000 t heavy haul trains in braking conditions. Journal of the China Railway
+Society , 01, 53–59.
+Newmark, N. M. (1959). A method of computation for structural dynamics. Journal of the Engineering
+Mechanics Division, 85(3), 67–94. doi: 10.1061/jmcea3.0000098.
+W ei, W ., & Y u, Z. (201 1). Influence of lag time for slave control locomotive on longitudinal coupler
+forces of 30 000 t train. Journal of T raffic and T ransportation Engineering, 1 1(2), 39–44.
+W ei, W ., & Hu, Y . (2012). Influence of train tail exhaust device on longitudinal force of train. Journal
+of T raffic and T ransportation Engineering, (5), 43–49þ63.
+W u, Q., Cole, C., Spiryagin, M., Chang, C., W ei, W ., Ursulyak, L., . . . Cantone, L. (2021). Freight train
+air brake models. International Journal of Rail T ransportation, 1 1(1), 1–49. doi: 10.1080/
+23248378.2021.2006808.
+W u, Q., Cole, C., Spiryagin, M., W ang, Y ., Ma, W ., & W ei, C. (2017). Railway air brake model and
+parallel computing scheme. Journal of Computational and Nonlinear Dynamics, 12(5), 051017.
+doi: 10.1 1 15/1.4036421.
+W u, Q., Spiryagin, M., & Cole, C. (2015). Advanced dynamic modelling for friction draft gears.
+V ehicle System Dynamics, 53(4), 475–492. doi: 10.1080/004231 14.2014.1002504.
+Railway Sciences
+247
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026
+W u, Q., Spiryagin, M., & Cole, C. (2016). Longitudinal train dynamics: An overview . V ehicle System
+Dynamics, 54(12), 1688–1714. doi: 10.1080/004231 14.2016.1228988.
+Y ao, X. (2016). The test of the 20,000-ton train with a ‘1þ 1’ marshalling towing 216 C80 fr eight
+wagons on the Shuohuang Railway . Beijing: China Academy of Railway Sciences.
+Y u, H., Huang, Y ., & W ang, M. (2018). Research on operating strategy based on particle swarm
+optimization for heavy haul train on long down-slope. In 2018 21st International Confer ence on
+Intelligent T ransportation Systems (ITSC) (pp. 2735–2740). IEEE.
+Zhuan, X., & Xia, X. (2007). Optimal scheduling and control of heavy haul trains equipped with
+electronically controlled pneumatic braking systems. IEEE T ransactions on Contr ol Systems
+T echnology , 15(6), 1 159–1 166. doi: 10.1 109/tcst.2007.899721.
+Correspond ing author
+W en He can be contacted at: hewen_cars@163.com
+For instructions on how to order reprints of this article, please visit our website:
+www .emeraldgro uppublishing.com/licensing/reprints.htm
+Or contact us for further details: permissions@emeraldinsight.com
+RS
+4,2
+248
+Downloaded from www.​emerald.​com/​rs/​article-pdf/​4/​2/​231/​9675081/​rs-11-2024-0048.​pdf by guest on 16 August 2026

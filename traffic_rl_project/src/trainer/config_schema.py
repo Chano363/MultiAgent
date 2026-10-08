@@ -60,13 +60,20 @@ class ExperimentConfig:
     bc_episodes: int = 3
     bc_epochs: int = 5
     brake_notch: float = -0.8
-    resume: str = ""                        # 续训 checkpoint 路径（空=None）
+    resume: str = ""                        # 续训 checkpoint 路径（空=None；支持 'latest'）
+    resume_weights_only: bool = False       # 续训只加载网络权重并重置优化器/value_norm
+                                            # （跨物理版本迁移用；见 src/trainer/resume.py）
     mask_lever: str = "none"                # 消融：'ab'|'ed'|'none'（进 cp_tag 'g'）
     group_obs: bool = False                 # 全局一致性观测（进 cp_tag 'g'）
     # 【2026-09-10 并行多环境】治 on-policy 单条长轨迹 advantage/value 失稳。
     # n_env>1 时每个 ep 并行跑 n_env 条独立短轨迹（不同 init_speed），同一 agent 共享
     # buffer 一次 update → advantage 信噪比×n_env，且 value 不被单条 2500+ 步轨迹绑架。
     n_env: int = 1                          # 并行 rollout 环境数（1=原单轨迹）
+    # 【2026-10-07 进程级并行】n_env>1 时原本串行跑（单核），本开关改走进程池并行
+    # （见 src/trainer/parallel_rollout.py），用满多核；默认关（零回归）。
+    # 仅 interaction='mappo_fleet' + obs='env' + reward!='cyclic' + 非异构时生效。
+    # ⚠️ 与串行版数值不逐位相同（每轨迹独立 RNG 种子），但同 seed 可复现。
+    n_env_parallel: bool = False
     parallel_traj_len: int = 0              # 并行轨迹长度；0=沿用 curriculum horizon
     env_gap: float = 0.0                    # 并行各 env 的初始列间距偏移（米），增加多样性
     # 【2026-09-22 长程评估选优】诊断-2026-09-22：训练窗口(1200步≈2.4km)reward 最优

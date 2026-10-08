@@ -1,0 +1,1544 @@
+IET Intelligent Transport Systems 
+ORIGINAL RESEARCH
+Hierarchical Reinforcement Learning for Long-Distance 
+Multi-Objective Optimization of Heavy-Haul Trains via 
+Sequential Task Assignment Across Spatial Segments 
+Jianhua Wang1 , 2 Cong Wang1 Qingyuan Wang1 Yiding Yu1 Xiaoyun Feng1 
+1 School of Electrical Engineering, Southwest Jiaotong University, Chengdu, China 2 China Energy Shuohuang Railway Development Co., Ltd., Cangzhou, 
+China 
+Correspondence: Qingyuan Wang ( wangqy@swjtu.edu.cn) 
+Received: 29 October 2025 Revised: 4 May 2026 Accepted: 2 June 2026 
+ABSTRACT 
+The optimization of long-distance multi-objective operations for heavy-haul trains faces low solution efficiency when applying 
+intelligent algorithms. Currently, few studies consider the changing emphasis of multiple operational objectives, such as 
+safety, stability, punctuality and energy efficiency changes across different operational segments through task switching. To 
+address this issue, this paper proposes a sequential multi-task collaboration hierarchical reinforcement learning framework for 
+dynamic multi-objective optimization in long-distance operations. First, an event-driven time-dependent classification model 
+is established to decompose the long-distance optimization problem into multiple subtasks, thereby reducing optimization 
+complexity. Furthermore, a hierarchical reinforcement learning method based on sequential multi-task collaboration is designed, 
+in which segment-specific subtask policies are trained in parallel and invoked sequentially along the route, while global 
+coordination is achieved through a top-level dynamic programming framework. Simulation results based on a real 340-km railway 
+line demonstrate that, compared to a single-agent global optimization method, the proposed framework improves convergence 
+speed by nearly 40% and achieves superior optimization quality. It effectively restricts coupler forces within the safe limit of 1100 
+kN, while successfully balancing multiple objectives including speed tracking and energy consumption. 
+1 Introduction 
+Heavy-haul trains (HHTs) play a critical role in modern freight 
+transportation systems, particularly in the mining and bulk cargo 
+sectors. With train configurations often exceeding 20,000 tons 
+in weight and extending up to 2 km in length, their unique 
+operational characteristics coupled with stringent safety and 
+stability requirements pose significant control challenges when 
+operating on long steep downgrades. 
+Specifically, as large-inertia systems, HHTs accumulate substan- 
+tial kinetic energy during descent, which cannot be sufficiently 
+managed by electric braking alone, necessitating coordinated 
+electro-pneumatic braking for effective speed control. With- 
+out a well-coordinated braking strategy, there is a heightened 
+risk of safety incidents such as overspeeding. Moreover, the 
+extended train length leads to complex longitudinal dynamic 
+behaviours, where uneven distribution of coupler forces may 
+cause in-train oscillations or even coupler failures, directly 
+jeopardizing operational stability and structural integrity. Addi- 
+tionally, given the long-distance nature of heavy-haul routes, 
+environmental conditions vary over time, requiring adaptive 
+control strategies. Balancing multiple objectives, including safety, 
+stability, punctuality and energy efficiency, has thus become 
+a central challenge in enhancing the operational performance 
+of HHTs. In recent studies, similar challenges in optimizing 
+complex systems have been tackled using data-driven models 
+[ 1 ]. 
+This is an open access article under the terms of the Creative Commons Attribution-NonCommercial-NoDerivs License, which permits use and distribution in any medium, 
+provided the original work is properly cited, the use is non-commercial and no modifications or adaptations are made. 
+©2026 The Author(s). IET Intelligent Transport Systems published by John Wiley & Sons Ltd on behalf of The Institution of Engineering and Technology. 
+IET Intelligent Transport Systems , 2026; 20:e70254 
+https://doi.org/10.1049/itr2.70254
+1of19
+Addressing the operational challenges of HHTs mentioned 
+above, it is of great significance to conduct multi-objective 
+operation optimization to reduce longitudinal in-train forces [ 2 ] 
+and enhance multi-objective operational performance. Similar 
+approaches have been applied in energy systems, where predic- 
+tive control strategies are used to optimize load coordination, 
+which has proven effective in improving system efficiency and 
+stability [ 3 ]. Early research on train operation optimization 
+primarily involved constructing a Hamiltonian function through 
+equations of motion and objective functions, and solving the 
+optimal control problem using variational methods based on 
+Pontryagin’s maximum principle. In 1996, Howlett from the 
+University of South Australia achieved the solution of this opti- 
+mization problem under simple constraints [ 4 ], demonstrating 
+the fundamental optimal regime sequence (full-power traction, 
+constant speed, coasting and maximum braking), and further 
+proposed the local energy minimization principle [ 5 ], proving the 
+uniqueness of optimal switching [ 6, 7 ]. Recent scholars have fur- 
+ther considered optimal connections under complex constraints, 
+such as train traction system efficiency and pantograph power [ 8 ]. 
+This method requires rigorous mathematical proofs. As the 
+considered factors become increasingly complex, it becomes dif- 
+ficult to apply to intricate optimization problems. Consequently, 
+researchers have turned to mathematical programming-based 
+algorithms to solve the speed profile optimization problem, 
+transforming constraints and objectives into standard forms for 
+mathematical programming algorithms (e.g., quadratic, linear 
+forms) for solution. 
+Without applying air braking, optimization methods primar- 
+ily target gentle gradients, including model predictive control 
+[ 9 ] and fuzzy control [ 10 ]. These methods iteratively calculate 
+longitudinal forces during operation to solve for the optimal 
+speed profile, thereby reducing longitudinal impacts and improv- 
+ing average speed. However, suppressing longitudinal forces 
+under cyclical air braking conditions on long, steep downhill 
+sections is more challenging. Scholars have addressed this by 
+establishing air brake models with simple functional forms and 
+using programming algorithms to solve cooperative strategies 
+for air braking and traction/electric braking control inputs [ 11 ]. 
+Common methods include quadratic programming [ 12 ], mixed- 
+integer programming [ 13, 14 ] and fuzzy control [ 15 ]. 
+Although programming methods can achieve efficient solu- 
+tions by formulating optimization models, considering complex 
+objectives and models often necessitates model order reduction 
+for high-order constraints and models, making it difficult to 
+guarantee solution accuracy. This is particularly true for air 
+brake systems, whose low-order models struggle to accurately 
+describe time delays, propagation, and performance degradation 
+characteristics. In light of this, some researchers have investigated 
+the effects of various factors on air brake performance, such 
+as brake shoe temperature [ 16 ], train formation [ 17 ] and brake 
+cylinder filling rate [ 18 ]. Wu provided a review of different air 
+brake models [ 19 ]. The aforementioned models are too complex 
+for direct use within programming methods. In recent years, 
+intelligent algorithms have become popular approaches for han- 
+dling such optimization problems, as they do not require order 
+reduction techniques, like linearization or complex mathematical 
+derivations, and can directly incorporate complex models and 
+constraints. These include, but are not limited to, various genetic 
+algorithms [ 20–22 ], neural networks [ 23, 24 ], machine learning 
+[ 25, 26 ], dynamic programming [ 27 ] and reinforcement learning 
+(RL) [ 28–31 ]. Among them, reinforcement learning is widely 
+applied in operation optimization as it can learn sequential deci- 
+sions through continuous trial-and-error interaction in complex 
+or even model-free environments. 
+In recent years, reinforcement learning has achieved significant 
+progress in the broader field of complex traffic and vehicle 
+control. In particular, research on urban traffic signal control 
+has gradually evolved from isolated single-intersection deci- 
+sion making toward regional, hierarchical and heterogeneous 
+cooperative control, thereby improving global traffic efficiency 
+while enhancing local adaptability [ 32, 33 ]. Meanwhile, the 
+optimization objectives of traffic control have expanded beyond 
+conventional efficiency-oriented formulations to unified multi- 
+objective reward modelling that explicitly incorporates low- 
+carbon performance, safety and operational robustness. Recent 
+studies have shown that distributed reinforcement learning can 
+be used for cooperative low-carbon traffic network optimization, 
+while signal control can also be coordinated with connected 
+and automated vehicles to jointly improve safety and efficiency 
+at intersections [ 34, 35 ]. In vehicle control, hierarchical rein- 
+forcement learning and game-theoretic learning architectures 
+have been increasingly adopted for autonomous driving tasks 
+that jointly optimize energy consumption and traffic efficiency 
+[ 36 ]. Overall, the research frontier is progressively shifting 
+toward hierarchical reinforcement learning, distributed learning, 
+multi-objective reward shaping under safety and efficiency con- 
+straints and communication-efficient cooperative optimization 
+mechanisms [ 37, 38 ], which provide important methodological 
+support for the sequential multi-task collaboration hierarchical 
+reinforcement learning (HRL) framework proposed in this paper. 
+It is important to note that HHTs typically operate over large 
+spatial distances with complex environments and train models. 
+Using intelligent algorithms to solve such optimization problems 
+often involves large solution scales and high dimensionality. 
+Taking reinforcement learning as an example, when solving 
+long-distance, large-scale optimization problems, its exploration 
+mechanism often struggles to effectively capture long-term return 
+maximization, easily falls into local optima and its performance 
+can vary significantly across different solution attempts. 
+Sequential multi-task collaboration provides a practical paradigm 
+for solving such large-scale problems. It emphasizes coordi- 
+nated learning and execution across multiple subtasks within 
+a unified hierarchical framework [ 39 ]. By decomposing the 
+global optimization problem into several coordinated subtasks 
+and assigning each subtask a dedicated learned policy, this 
+paradigm can significantly improve solution efficiency for large- 
+scale problems and alleviate the curse of dimensionality [ 40, 
+41 ]. Related task-decomposition and collaborative scheduling 
+ideas have been widely applied in railway multi-train cooperative 
+scheduling [ 42, 43 ] and urban traffic scheduling [ 44, 45 ]. The 
+concept of self-organization in complex systems, such as the 
+emergence of lane formations in bidirectional pedestrian flow, 
+further suggests that local task-level coordination can induce 
+globally desirable behaviour, which provides useful inspira- 
+tion for railway operation optimization [ 46 ]. Although such 
+2of19 IETIntelligentTransportSystems ,2026
+sequential collaborative task execution has not yet been applied 
+to single-train long-distance operation optimization, these impor- 
+tant innovations provide valuable research insights and solid 
+empirical foundations. 
+Based on the above analysis, this paper proposes a sequential 
+multi-task collaboration HRL (MTC-HRL) framework suitable 
+for long-distance operation optimization of HHTs. For clarity, the 
+proposed framework organizes the route into segment-specific 
+subtasks. The corresponding subtask policies are trained in 
+parallel offline and invoked sequentially during online decision- 
+making according to the train’s spatial progression, so the method 
+is accurately characterized as a sequential multi-task collabora- 
+tion mechanism. The aim is to generate optimal speed profiles 
+and a combined air and electric braking strategy, balancing 
+solution accuracy and computational efficiency. Addressing the 
+differences in operation modes and optimization objectives across 
+various operational scenarios over long distances, the problem is 
+modelled as a set of segment-specific subtasks. Each subtask is 
+associated with a dedicated policy for offline learning, and a top- 
+level decision-making algorithm is designed to achieve optimal 
+subtask allocation over the long distance, generating a globally 
+optimized policy. The main contributions of this paper are as 
+follows: 
+1. A sequential MTC-HRL method suitable for long-distance 
+operation optimization of HHT is proposed. Compared to 
+single-agent deep reinforcement learning and other intelli- 
+gent algorithms, it reduces problem complexity and improves 
+solution efficiency while maintaining accuracy. 
+2. A task classification model has been designed to distin- 
+guish the operational modes between long steep downhill 
+sections and undulating gradient sections. Different tasks 
+are assigned tailored optimization objectives and differ- 
+entiated weights, including speed tracking, energy effi- 
+ciency and coupler force stability. Compared to traditional 
+hierarchical reinforcement learning, the top-level dynamic 
+programming-based optimal task scheduling avoids infeasi- 
+ble objectives during training and simultaneously achieves 
+dynamic multi-objective optimization for long-haul HHT 
+operation. 
+The remainder of this paper is organized as follows: Section 2 
+describes the train model, task model and optimization model 
+used. Section 3 details the design of the MTC-HRL method. 
+Section 4 verifies the effectiveness of the proposed method 
+through simulation case studies. 
+2 Analytical Model 
+This section first develops a dynamic model of HHT. It then 
+analyses operational strategies for both long steep downgrades 
+and rolling terrain, establishes an event-driven multi-task classifi- 
+cation model, and formulates differentiated optimization models 
+for distinct operational tasks. 
+2.1 Longitudinal Dynamics Model of HHT 
+The HHT is composed of a mixed formation with 𝑛𝑚 locomotives 
+and 𝑛𝑙 wagons. This paper takes a typical 20,000-ton HHT in 
+China as an example. Such a train typically consists of one 
+locomotive hauling 108 unpowered freight cars, followed by 
+another locomotive hauling an additional 108 unpowered freight 
+cars, resulting in a total train length exceeding 2 km. The two 
+locomotives employ wireless communication to achieve synchro- 
+nized control and coordinated operation of the entire train. The 
+train’s pneumatic brake system features a single air pipe running 
+through all locomotives and cars. Braking application and release 
+are achieved by controlling the charging and venting of this pipe. 
+During braking or release, the action propagates sequentially 
+along the direction of travel via an air wave. The structure 
+of the 20,000-tonne train is illustrated in the accompanying 
+Figure 1 . 
+The dynamics of the train are characterized by minor differences 
+in the motion states (such as speed and acceleration) among indi- 
+vidual locomotives and freight cars due to external environmental 
+conditions and inter-vehicle interactions, while maintaining 
+overall consistent behaviour. The longitudinal dynamics can be 
+formulated as shown in Equation ( 1 ). 
+𝑚𝑖 ̇𝑣𝑖 = 𝛼𝑓𝑡 
+𝑖 − (1 − 𝛼) 𝑓𝑒𝑡 
+𝑖 − 𝑓𝐵 
+𝑖 + 𝑓𝑐 
+𝑖− 1 − 𝑓𝑐 
+𝑖 − 𝑓𝑟 
+𝑖 , 
+𝑖 = 1 , 2 , . . . , 𝑛 = 𝑛𝑚 + 𝑛𝑙 (1) 
+where 𝑓𝑡 
+𝑖 and 𝑓𝑒𝑡 
+𝑖 is the traction and electric braking force 
+of each car. For HHT, only locomotives can output traction 
+electric braking force, while freight cars can only output air 
+braking force. And a switching variable is designed, where 𝛼
+= 1 represents locomotive traction condition, 𝛼 = 0 represents 
+locomotive electric braking condition. 
+The running resistance of HHT 𝑓𝑟 
+𝑖 in Equation ( 1 ) includes 
+basic resistance 𝑤𝑏 
+𝑖 (given by Davis equation), gradient additional 
+resistance 𝑤𝑔 
+𝑖 , and curve additional resistance 𝑤𝑐 
+𝑖 , which are 
+analytically expressed in Equation ( 2 ). 
+FIGURE 1 The structure of the 20,000-ton HHT. 
+IETIntelligentTransportSystems ,2026 3of19
+FIGURE 2 The force–displacement (F-D) characteristics. 
+𝑓𝑟 
+𝑖 = 𝑤𝑏 
+𝑖 + 𝑤𝑔 
+𝑖 + 𝑤𝑐 
+𝑖 
+𝑤𝑏 
+𝑖 = 𝑚𝑖 
+(
+𝑐0 + 𝑐1 𝑣𝑖 + 𝑐2 𝑣2 
+𝑖 
+)
+(2) 
+𝑤𝑔 
+𝑖 = 𝑚𝑖 𝑔sin 𝛼
+𝑤𝑐 
+𝑖 = 𝑚𝑖 𝑔 ⋅𝑎 
+𝑅 
+, 𝑎 = 600 
+The impact forces 𝑓𝑐 
+𝑖 generated by the relative displacement 
+between car bodies are absorbed and transmitted through these 
+coupler and draft gear mechanisms. Accordingly, it is necessary 
+to establish the force characteristics of the coupler and buffer 
+system to describe the variation of the coupler force with the 
+interaction between vehicles, that is, the force–displacement (F- 
+D) characteristics. This paper employs a lookup table to represent 
+the F-D characteristics, typically utilizing two fixed tables to 
+match the buffer behaviour [ 47 ]: one fixed table for the loading 
+process, referred to as the loading table (or loading curve), and 
+another fixed table for the unloading process, referred to as the 
+unloading table (or unloading curve). An intermediate slope can 
+bridge the loading and unloading curves during buffer switching. 
+Furthermore, the impact velocity is introduced to characterize the 
+transition process and to smooth the switching between loading 
+and unloading phases. 
+Equation ( 3 ) is used to calculate the longitudinal coupler force, as 
+shown in Figure 2 . 
+𝐹( 𝑥𝑡 , 𝑣𝑡 ) = 
+⎧ 
+⎪ 
+⎪ 
+⎨ 
+⎪ 
+⎪ 
+⎩ 
+𝑓𝑢 ( 𝑥𝑡 ) , |𝑣𝑡 | > 𝑣𝑒 ∩𝑣𝑡 𝑥𝑡 ≥ 0 , 
+𝑓𝑙 ( 𝑥𝑡 ) , |𝑣𝑡 | > 𝑣𝑒 ∩𝑣𝑡 𝑥𝑡 < 0 , 
+𝑓𝑙 ( 𝑥𝑡 ) + ( 𝐹( 𝑥𝑡− Δ𝑡 , 𝑣𝑡− Δ𝑡 ) − 𝑓𝑙 ( 𝑥𝑡 ))
+|𝑣𝑡 |
+𝑣𝑒 
+, |𝑣𝑡 | ≤ 𝑣𝑒 ∩𝑣𝑡 𝑥𝑡 ≥ 0 , 
+𝑓𝑢 ( 𝑥𝑡 ) + ( 𝐹( 𝑥𝑡− Δ𝑡 , 𝑣𝑡− Δ𝑡 ) − 𝑓𝑢 ( 𝑥𝑡 ))
+|𝑣𝑡 |
+𝑣𝑒 
+, |𝑣𝑡 | ≤ 𝑣𝑒 ∩𝑣𝑡 𝑥𝑡 < 0 . 
+(3) 
+where, 𝑥𝑡 represents the relative displacement between vehicles, 
+𝑣𝑡 represents the relative speed, 𝑓𝑢 ( 𝑥𝑡 ) represents the loading 
+curve, 𝑓𝑙 ( 𝑥𝑡 ) represents the unloading curve, and 𝑣𝑒 represents 
+the impact velocity 
+The air braking force 𝑓𝐵 
+𝑖 is calculated according to the traction 
+calculation regulations and is given in Equation ( 4 ) as the product 
+of the brake shoe pressure and the friction coefficient of each 
+freight car. 
+𝐾𝑖 = 𝜋⋅𝑑 2 
+𝑧 ⋅𝑝𝑧 ⋅𝜂𝑧 ⋅𝑛𝑧 
+4 ⋅𝑛𝑘 ⋅106 
+𝑓𝐵 
+𝑖 = 𝜑𝑖 ⋅𝐾𝑖 (4) 
+where, 𝑝𝑧 represents the air pressure in the brake cylinder. As this 
+paper primarily uses a 50 kPa pressure reduction as an example, 
+𝑝𝑧 can be considered a fixed value. 𝜑𝑖 denotes the friction 
+coefficient, while 𝑑𝑧 , 𝜂𝑧 , 𝑛𝑧 and 𝑛𝑘 are parameters related to the 
+structure of the brake system. For specific types of locomotives 
+and rolling stock, these values can be obtained by referring to 
+lookup tables. 
+2.2 Event-Driven Temporal Dependency Task 
+Classification Model 
+This section conducts a focussed analysis on the operational 
+regimes of HHTs. In accordance with distinct control strategies, 
+operational tasks are systematically categorized, and a task 
+classification model is established to support subsequent targeted 
+optimization approaches. 
+Owing to their primary function in freight transportation, 
+HHTs generally operate over extended distances with significant 
+regional environmental variations, as illustrated in Figure 3 . 
+Using a 20,000-ton HHT as a representative case, the following 
+observations are made: 
+On gentle track sections, the vertical profile is characterized by 
+continuous ascending and descending gradients. Even though 
+trains frequently pass through vertical curve points, the abso- 
+lute gradient values are generally small, resulting in limited 
+longitudinal forces on the train. Precise speed control can be 
+achieved solely through adjustments in traction and electric 
+braking, without the need for additional control forces. Therefore, 
+the operational mode under such track conditions is classi- 
+fied as single traction/electric braking control. The operational 
+objectives focus on meeting predetermined sectional travel time 
+and average speed requirements, while maximizing the utiliza- 
+tion of gravitational potential energy to reduce traction energy 
+consumption. 
+On steep downhill sections, the significant gradient generates 
+considerable inertial forces that exceed the control capacity of the 
+locomotive’s electric braking system alone. Therefore, air braking 
+must be additionally applied to maintain effective speed regula- 
+tion, leading to the definition of a combined electro-pneumatic 
+braking mode under such track conditions, as illustrated in 
+Figure 4 . During the initial phase of air brake application and 
+release, the forces on each vehicle change with a time lag due 
+to the propagation of the air wave, which can induce substantial 
+longitudinal impulses within the consist. Consequently, the 
+operational objective shifts toward maintaining train stability, 
+emphasizing the optimal selection of air braking initiation timing 
+4of19 IETIntelligentTransportSystems ,2026
+FIGURE 3 Operating mode on gentle track sections. 
+FIGURE 4 Long steep downhill operating mode. 
+TABLE 1 Task attributes in transportation systems. 
+Task type Combined electro-pneumatic braking control Single traction/Electric braking control 
+Line main features Continuous slope spanning 4 km with gradient 
+exceeding 10 ‰ 
+Undulating slope with gradient below 10 ‰ 
+Control mode Air brake and electric braking Traction/electric braking 
+Task target Coupler force stability, speed safety Speed following performance, energy efficiency 
+Task limit Minimum operating speed, release time Control force change rate 
+for effective speed control, while coordinating with electric 
+braking forces to mitigate internal dynamic impacts. 
+Based on the analysis of train control strategies, the opera- 
+tional modes are categorized into two independent tasks, as 
+summarized in Table 1 . 
+This paper decomposes the global problem into 𝑘 sub-parts, 
+each regarded as a task segment. These tasks are categorized 
+into two types: combined electro-pneumatic braking (abbreviated 
+as combined braking task) and single traction/electric brak- 
+ing control (abbreviated as single braking task). Thereby, the 
+global optimization problem is transformed into a series of sub- 
+optimization problems, reducing the computational complexity 
+inherent in solving large-scale optimization problems. 
+However, due to the specific operational scenarios and control 
+conditions of each task, coupled with the fact that subsequent 
+IETIntelligentTransportSystems ,2026 5of19
+tasks are influenced by the execution results of current tasks 
+and safety constraints, a sequential dependency is presented. 
+This necessitates the establishment of explicit event-driven task 
+switching rules, as detailed below. 
+(a) Combined braking task switched to single braking task: 
+The application time of air braking shall not be less than 
+the specified duration 𝑇𝑏,min to ensure full development 
+of braking performance. Meanwhile, the speed at the task 
+endpoint must remain below the maximum permitted initial 
+speed, which corresponds to the minimum initial speed 
+𝑣𝑡 
+0 ,max that prevents overspeed during the execution of the 
+single braking task. 
+(b) Single braking task switched to combined braking task: 
+The release time of air braking shall not be less than the 
+specified duration 𝑇𝑟,min to ensure complete recharging of 
+the brake system for subsequent applications. Meanwhile, 
+the speed at the task endpoint must exceed the minimum 
+permitted speed 𝑣𝑏 
+min , which is defined to prevent excessive 
+longitudinal impulses during brake release under low-speed 
+conditions in combined braking task. 
+It should be emphasized that the task switching constraints are 
+derived from real-world operational procedures, such as limita- 
+tions on air-brake application and relief times, while the speed 
+restrictions are imposed to ensure that the speed remains within 
+limits throughout the journey, which aligns with actual safety 
+requirements on site. These constraints will be quantitatively 
+incorporated into the optimization model in Section 2.3. 
+2.3 Multi-Objective Optimization Model 
+Based on the analysis of operational objectives and constraints 
+for different tasks, these requirements are translated into opti- 
+mization objectives and constraints for each subtask. For the 
+single braking task, the objectives include minimizing energy 
+consumption, target speed deviation and coupler forces. The 
+corresponding objective function and constraints are formulated 
+as Equation ( 5 ). 
+min 
+𝑢𝑡 
+𝐽𝑡 = 
+𝑀 ∑
+𝑖= 1 
+[ 𝑁 ∑
+𝑗= 1 
+( 
+𝑤𝑣 
+(
+𝑣𝑖,𝑗 − 𝑣𝑡 
+)2 
++ 𝑤𝑒 
+((
+𝑓𝑡 
+𝑖 − 𝜂𝑡 𝑓𝑒𝑡 
+𝑖 
+)
+Δ𝑥
+)
++ 𝑤𝑓 
+(
+𝑓𝑐 
+𝑖,𝑗 
+)2 ) ] 
+(5) 
+subject to: 
+𝑓𝑡 
+𝑖 = 𝐹𝑡 (
+𝑓𝑡 
+max ( 𝑣𝑖 ) , 𝑢𝑡 
+𝑖 
+)
+𝑓𝑒𝑡 
+𝑖 = 𝐹𝑒𝑡 (
+𝑓𝑒𝑡 
+max ( 𝑣𝑖 ) , 𝑢𝑒𝑡 
+𝑖 
+)
+𝑓min ≤ 𝑓𝑐 
+𝑖,𝑗 ≤ 𝑓max 
+𝑣min ≤ 𝑣𝑖,𝑗 ≤ 𝑣lim (6) 
+𝑣𝑏 
+min ≤ 𝑣𝑖,𝑀 ≤ 𝑣lim 
+𝑣𝑖, 0 ≤ 𝑣𝑡 
+0,max 
+0 ≤ 𝑢𝑡 
+𝑖 ≤ 1 
+0 ≤ 𝑢𝑒𝑡 
+𝑖 ≤ 1 
+In constraint set 6 , 𝑢𝑡 
+𝑖 and 𝑢𝑒𝑡 
+𝑖 denotes the traction/electric braking 
+ratio, 𝑓𝑐 
+𝑖,𝑗 and 𝑣𝑖,𝑗 denotes the coupler force and speed of each 
+vehicle under discrete step, 𝑣𝑡 denotes the target speed, Δ𝑥
+denotes the discrete step size, 𝑀and 𝑁represent the optimization 
+domain and the number of vehicles, respectively. 
+For the combined braking task, the optimization objectives are 
+shifted toward minimizing the coupler force, target speed devia- 
+tion and cumulative braking time. Furthermore, to accommodate 
+spatial domain optimization, the minimization of cumulative 
+braking time is transformed into the minimization of cumulative 
+braking distance, as Equation ( 7 ). 
+min 
+𝑢𝑏 ,𝑢𝑡 
+𝐽𝑏 =
+𝑀 ∑
+𝑖= 1 
+[ 𝑁 ∑
+𝑗= 1 
+( 
+𝑤𝑣 
+(
+𝑣𝑖,𝑗 − 𝑣𝑡 
+)2 
++ 𝑤𝑏 
+(
+𝑢𝑏 
+𝑖 Δ𝑥
+)
++ 𝑤𝑓 
+(
+𝑓𝑐 
+𝑖,𝑗 
+)2 ) ] 
+(7) 
+subject to ( 6 ) and 
+𝑀 ∑
+𝑖= 1 
+(
+𝑢𝑏 
+𝑖 Δ𝑥
+)
+> 𝑆𝑏,min 
+𝑣𝑏 
+min ≤ 𝑣𝑖,𝑗 ≤ 𝑣lim (8) 
+𝑢𝑏 
+𝑖 = [0 , 1] 
+In constraint set ( 8 ), 𝑆𝑏,min is the minimum braking distance 
+approximated by 𝑇𝑏,min . 
+The sub-optimization problems require the top-level optimiza- 
+tion scheduler to select the optimal sub-problem for solution. 
+Therefore, the top-level optimization objective is defined as 
+the common component of both independent tasks, namely 
+minimizing target speed deviation and average coupler force 
+while satisfying all constraints. Furthermore, the optimization 
+domain of the top-level problem is no longer the spatial domain 
+but rather the segment index, defined as Equation ( 9 ). 
+min 
+task 𝑖 
+𝐽 =
+𝐾 ∑
+𝑖= 1 
+[ 𝑁 ∑
+𝑗= 1 
+( 
+𝑊𝑉,𝑖 
+(
+𝑉𝑖,𝑗 − 𝑉𝑡,𝑖 
+)2 
++ 𝑊𝐹,𝑖 
+(
+𝐹𝑐 
+𝑖,𝑗 
+)2 ) ] 
+(9) 
+subject to constraint set ( 6 ) and ( 8 ): where 𝐽represents the global 
+objective function to be minimized, 𝐾represents the total number 
+of task segments, 𝑁 represents the total number of locomotives 
+and wagons, 𝑉𝑡,𝑖 represents the average target speed at the 𝑖-th 
+segment, 𝑉𝑖,𝑗 and 𝐹𝑐 
+𝑖,𝑗 represents the average speed and couple 
+force for 𝑗-th vehicle at the 𝑖-th segment, 𝑊𝑉,𝑖 and 𝑊𝐹,𝑖 represents 
+the weight for speed tracking error and coupler force. 
+In summary, the relationship among the three optimization 
+models is structured as follows: the global optimization model 
+ensures the optimal selection of tasks across sub-sections, with 
+its objective defined in terms of the average performance metrics 
+within each sub-section to guarantee global optimality. The sub- 
+section optimization models are designed to achieve optimal 
+performance under specific task requirements. This hierarchical 
+optimization architecture enables the dynamic segmentation and 
+optimization of the train’s operation over long distances based on 
+environmental conditions and temporal state transitions. 
+6of19 IETIntelligentTransportSystems ,2026
+FIGURE 5 Sequential multi-task collaboration hierarchical reinforcement learning framework. 
+3 Sequential Multi-Task Collaboration 
+Hierarchical Reinforcement Learning Method 
+The proposed framework follows a sequential task assignment 
+and execution collaboration mechanism, where segment-specific 
+subtask policies are invoked in sequence rather than being 
+executed concurrently in a shared environment at the same 
+decision stage. 
+This section first formulates the differentiated optimization 
+problems under various subtasks as respective reinforcement 
+learning problems. A sequential MTC-HRL framework is then 
+designed to achieve coordinated optimization across subtasks, as 
+illustrated in Figure 5 . At the top level, the global optimization 
+problem is transformed into a multi-stage dynamic programming 
+problem, where optimal subtasks are selected based on stage cost 
+values. The bottom level is responsible for training reinforcement 
+learning policies for each subtask; here, segment-specific poli- 
+cies are trained independently while sharing a common state 
+representation. By continuously training these subtask policies, 
+the top-level cost is iteratively updated. When the bottom-level 
+policies converge, the optimal subtask and its corresponding 
+optimal policy are simultaneously derived, thereby achieving 
+long-distance dynamic objective optimization. 
+3.1 Reconstruction of MDP Problems for 
+Subtasks 
+This subsection proceeds to formulate the reinforcement learning 
+problem, with a primary focus on elucidating the transformation 
+process of key reinforcement learning elements. 
+(a) State space: Given that sequential multi-task collabora- 
+tion requires state continuity across successive subtasks, 
+a shared state space must be designed to preserve route 
+status information and policy execution continuity during 
+task transitions. Consequently, the observable states of the 
+train are constructed as a multidimensional state space, 
+encompassing speed 𝑣, position 𝑥, cumulative braking time 
+𝑡𝑏 , cumulative release time 𝑡𝑟 , maximum coupler force 𝑓𝑐 
+max 
+and target speed 𝑣𝑡 . This state representation 𝑠𝑘 at 𝑘th stage 
+is formally defined as Equation ( 10 ). 
+𝑠𝑘 =
+[
+𝑥𝑘 , 𝑣𝑘 , 𝑣𝑘 
+𝑡 , 𝑓𝑐 
+max ,𝑘 , 𝑡𝑘 
+𝑏 , 𝑡𝑘 
+𝑟 
+]
+. (10) 
+It is important to note that the inclusion of historical braking 
+time 𝑡𝑏 and relief time 𝑡𝑟 in this study is motivated by the 
+fact that, in order to ensure the effective application of 
+braking force and to prevent performance degradation in 
+subsequent air brake operations, the activation and relief 
+of air braking must satisfy minimum time constraints. By 
+explicitly encoding cumulative braking and relief times into 
+the state representation, the key internal dynamics of the 
+air brake system become fully observable to the agent. 
+This enables accurate perception of air brake status dur- 
+ing sequential decision-making, provides state references 
+and boundary constraints for task switching and action 
+selection, prevents infeasible operations and accelerates 
+convergence. By incorporating such historical variables, the 
+temporal cumulative constraints can be transformed into a 
+standard Markov process. 
+(b) Action space: To balance engineering interpretability with 
+learning efficiency, both traction and braking commands 
+IETIntelligentTransportSystems ,2026 7of19
+are discretized into uniformly spaced levels based on the 
+maximum available traction or braking force. Each discrete 
+action corresponds to a fixed force level, which aligns 
+with the actual control notches of locomotives while also 
+reducing the exploration complexity. 
+For single braking tasks, the action space 𝑎𝑡 
+𝑘 is designed as 
+a bounded variable in [ − 1, 1], representing the application 
+ratio of electric braking to traction force as formulated 
+in Equation ( 11 ), discretized into 21 discrete actions at an 
+interval of 0.1. 
+For combined braking tasks, an integer variable in [0, 1] is 
+incorporated to indicate whether an air braking command 
+is applied, thereby encoding it as a hybrid action 𝑎𝑏 
+𝑘 , as 
+formulated in Equation ( 12 ). 
+Moreover, since only electric braking is permitted in the 
+combined braking task, the action boundary is reduced to 
+( − 1, 0). The action set is defined as a composite action space, 
+consisting of discretized electric braking ratios at intervals of 
+0.1 and an integer variable indicating whether air braking is 
+applied. 
+𝑎𝑡 
+𝑘 = 𝑢𝑡 , 𝑢𝑡 ∈(  − 1 , 1) (11) 
+𝑎𝑏 
+𝑘 = [ 𝑢′
+𝑡 , 𝑢𝑏 ] , 𝑢′
+𝑡 ∈(  − 1 , 0) , 𝑢𝑏 = [0 , 1] (12) 
+where, 𝑢 < 0 indicates the application of electric braking 
+force, while 𝑢 > 0 represents the application of traction 
+force. 
+(c) Environment: The environment employs the train longitu- 
+dinal dynamics model established in Section 2.1 . It should 
+be noted that while the discrete time steps between multi- 
+stage phases in reinforcement learning are typically set 
+relatively large to limit the number of decisions per episode, 
+the numerical integration of the longitudinal dynamics 
+model requires a finer resolution. To address this, this paper 
+adopts an implicit state formulation by inserting multiple 
+equidistant sub-segments between adjacent decision phases 
+as discrete computational steps for the dynamics model, as 
+shown in Equation ( 13 ). 
+Δ𝑋 = 𝑛Δ𝑥 (13) 
+where, 𝑛represents the sub-segments number and the train 
+control force remains unchanged in sub-segments. 
+(d) Reward: To achieve multi-objective learning for the 
+segment-specific subtask policies and enable the exploration 
+of long-term goals, it is necessary to design a reward 
+function that ensures smooth switching among rewards 
+under multiple objectives. According to the optimization 
+goals of the task, the reward function incorporates velocity 
+tracking reward 𝑅𝑣 , energy consumption reward 𝑅𝑒 , air 
+braking reward 𝑅𝑏 and coupler force reward 𝑅𝑓 . Specifically, 
+𝑅𝑣 is defined based on the deviation between the current 
+speed and the target speed as formulated in Equation ( 14 ); 
+𝑅𝑒 represents the combined effect of traction energy 
+consumption and regenerative energy consumption as 
+formulated in Equation ( 15 ); 𝑅𝑏 is decomposed into an 
+immediate braking reward and a historical mitigation 
+condition reward as formulated in Equation ( 16 ); and 𝑅𝑓 
+is expressed as the ratio of the maximum coupler force of 
+the entire vehicle to the upper limit of the coupler force as 
+formulated in Equation ( 17 ). 
+𝑅𝑣 =
+{ 
+−
+(
+1 −exp 
+(
+− 𝑘ℎ 
+(
+𝑣 − 𝑣target 
+)))
+𝑣target < 𝑣 < 𝑣limit 
+−
+(
+1 −exp 
+(
+− 𝑘𝑙 
+(
+𝑣target − 𝑣
+)))
+𝑣𝑏 
+min < 𝑣 < 𝑣target 
+(14) 
+𝑅𝑒 = −
+(
+𝑓𝑡 
+𝑖 − 𝜂𝑡 𝑓𝑒𝑡 
+𝑖 
+)
+Δ𝑥 (15) 
+𝑅𝑏 =
+⎧ 
+⎪ 
+⎪ 
+⎨ 
+⎪ 
+⎪ 
+⎩ 
+0 𝑡𝑏 < 𝑡𝑏,max 
+−
+(
+1 −exp 
+(
+− 𝑘𝑏 
+(
+𝑡𝑏 − 𝑡𝑏,max 
+)))
+𝑡𝑏 > = 𝑡𝑏,max 
+0 𝑡𝑟 > = 𝑡𝑟,min 
+−
+(
+1 −exp 
+(
+− 𝑘𝑟 
+(
+𝑡𝑟 − 𝑡𝑟,min 
+)))
+𝑡𝑟 < = 𝑡𝑟,min ∩𝑡𝑏 > 0 
+(16) 
+𝑅𝑓 = −
+( 
+exp 
+( 
+−
+𝑓𝑐 
+𝑘,max 
+𝐹𝑐 
+max 
+) ) 
+. (17) 
+In addition to the aforementioned state-dependent rewards, 
+a behavioural penalty 𝐶action is introduced to guide the 
+agent toward selecting more optimal actions and accelerate 
+convergence. Within the ideal range, no penalty is imposed 
+on actions. Beyond this range, the behavioural penalty 
+increases with the extent to which the current action devi- 
+ates from the ideal range (i.e., acceleration), as illustrated in 
+Figure 6 . 
+Therefore, the multi-objective comprehensive reward dur- 
+ing the policy exploration process is represented as shown 
+in Equation ( 18 ). 
+𝑅𝑘 = 𝛼
+(
+𝑤𝑣 𝑅𝑘 
+𝑣 + 𝑤𝑒 𝑅𝑘 
+𝑒 + 𝑤𝑏 𝑅𝑘 
+𝑏 + 𝑤𝑓 𝑅𝑘 
+𝑓 
+)
+− (1 − 𝛼) 𝐶𝑘 
+action 
+(18) 
+(e) Policy: An 𝜀-greedy exploration policy is adopted for action 
+selection throughout the training process in both tasks. 
+With probability 𝜀, a random action is chosen, while with 
+probability 1 − 𝜀, the action 𝑎∗ that maximizes the estimated 
+policy network is selected, as defined in Equation ( 19 ). 
+𝜋𝜀 ( 𝑎|𝑠𝑘 ) =
+⎧ 
+⎪ 
+⎪ 
+⎨ 
+⎪ 
+⎪ 
+⎩ 
+(1 − 𝜀0 ) ⋅𝑔𝑒 𝑝 ∕𝑒 𝑝𝑇 
+𝑎 = 𝑎∗ = arg max 
+𝑎′∈𝓁𝑎 
+𝑄( 𝑠𝑘 , 𝑎′; 𝜃) 
+𝜀0 ⋅𝑔𝑒 𝑝 ∕𝑒 𝑝𝑇 
+𝑎 = rand ( 𝓁𝑎 ( 𝑠𝑑 )) 
+(19) 
+where 𝑒𝑝𝑇 denotes the exploration rate decay frequency, 𝑔
+represents the decay rate of exploration rate. 
+3.2 MTC-HRL Solution Method 
+For the sub-optimization problems within each sub-section, 
+the training phase of this paper employs D3QN to iteratively 
+solve the subtask reinforcement learning problems. It should 
+be noted that D3QN is not an independent algorithm but 
+rather an integration of two enhancement techniques: Duelling 
+deep 𝑄-network (duelling DQN) and double deep 𝑄-network 
+(DDQN), designed to address issues of 𝑄-value overestimation 
+and redundant 𝑄-value estimation. 
+Specifically, double DQN utilizes the online network 𝑄( 𝑠 , 𝑎 ; 𝜃) to 
+select the optimal action, while the target network 𝑄′( 𝑠 , 𝑎 ; 𝜃− ) 
+8of19 IETIntelligentTransportSystems ,2026
+FIGURE 6 Behavioural cost cluster. 
+is employed for evaluation. If the online network selects a 
+suboptimal action due to estimation error, the independent target 
+network is less likely to exhibit the same extreme estimation 
+bias, thereby effectively mitigating overestimation. The iterative 
+update rule is as formulated in Equation ( 20 ). 
+𝑦DDQN 
+𝑡 = 𝑟𝑡 + 𝛾𝑄′( 𝑠𝑡+ 1 , 𝑎; 𝜃− ) 
+𝑎 = arg max 
+𝑎 
+𝑄( 𝑠𝑡+ 1 , 𝑎; 𝜃) (20) 
+The network architecture of the standard DQN requires 
+outputting a 𝑄-value for each state-action pair, which is relatively 
+inefficient and redundant to some extent. For instance, when 
+a train operates on a gentle segment, multiple actions (such as 
+traction or braking) may be similarly optimal, and their 𝑄-value 
+estimates show little differentiation. Significant discrepancies 
+in the value of different actions only emerge at points of 
+gradient change or when the environment undergoes substantial 
+variation. 
+To improve efficiency, the duelling DQN is adopted by decom- 
+posing the 𝑄-network into a value stream 𝑉( 𝑠) and an advantage 
+stream 𝐴( 𝑠 , 𝑎 ) . The value stream represents the value of the state 
+itself, that is, the average expected return of that state, while the 
+advantage stream captures the advantage of selecting a specific 
+action compared to the average action-effectively the deviation 
+from the state value. This structure enables the network to learn 
+the value of a state more effectively without requiring updates for 
+every minor variation in action selection. When the environment 
+is insensitive to actions, the advantage values tend to approach 
+to zero, and the 𝑄-value estimation is primarily governed by the 
+value stream, leading to more stable and efficient learning, as 
+illustrated in Figure 7 . 
+After modifying the network architecture, the 𝑄-value is com- 
+puted as Equation ( 21 ): 
+𝑄( 𝑠 , 𝑎 ) = 𝑉( 𝑠) + 𝐴( 𝑠 , 𝑎 ) 
+𝑄( 𝑠 , 𝑎 ; 𝜃, 𝛼, 𝛽) = 𝑉( 𝑠; 𝜃, 𝛽) + ( 𝐴( 𝑠 , 𝑎 ; 𝜃, 𝛼) − 1 
+| |
+∑
+𝑎′
+𝐴( 𝑠 , 𝑎′; 𝜃, 𝛼)) 
+(21) 
+The D3QN algorithm employed in this study integrates both 
+duelling DQN and double DQN. It is important to note that 
+duelling DQN only modifies the network architecture specifically, 
+the value stream and advantage stream are internal structures 
+of the network that collectively output the 𝑄-value. The training 
+process does not directly update the value ( 𝑉) and advantage 
+( 𝐴) components; rather, these are learned automatically through 
+forward and backward propagation of the network. Therefore, 
+the training procedure of D3QN remains consistent with that of 
+double DQN, as illustrated in Figure 8 . 
+After the underlying sub-section optimization problems con- 
+verge, the top-level framework reconstructs the global opti- 
+mization model using dynamic programming to make global 
+optimization decisions. Leveraging its ‘backward update-forward 
+selection’ architecture, the framework achieves optimal subtask- 
+policy scheduling across all sections. The key elements of the 
+dynamic programming are defined as follows: 
+The state of a dynamic programming grid node is defined as 
+a binary tuple ‘section index-task type code of the previous 
+section’, 𝑆 = [ 𝐾, 𝐴] . This indicates arriving at the current decision 
+section after executing the previous task. The task type in the 
+current stage serves as a discrete action, equivalent to a 0-1 
+variable. The resulting dynamic programming grid structure is 
+illustrated in Figure 9 . 
+In the global optimization model, the objective of each opti- 
+mization point is defined as the cost function of grid state 
+transitions 𝐶𝑂 ( 𝑆) . This cost is composed of the average target 
+speed deviation and the average maximum coupler force obtained 
+IETIntelligentTransportSystems ,2026 9of19
+FIGURE 7 D3QN network architecture. 
+FIGURE 8 D3QN reinforcement learning framework. 
+FIGURE 9 Dynamic programming grid structure. 
+after executing the specified task. It should be noted that task- 
+switching constraints are also incorporated into the cost function. 
+If a certain task type cannot be executed under the current 
+state, the corresponding action is assigned an infinite cost. The 
+cost computation method is defined as follows, as shown in 
+Equation ( 22 ). 
+𝐶𝑂 ( 𝑆) = ( 𝑉( 𝑆) − 𝑉𝑡 ( 𝑆)) 
+2 
++ Λ( 𝐹𝑐 ( 𝑆)) 
+2 (22) 
+In summary, this subsection has presented the design principles 
+of the underlying D3QN solving algorithm and the top-level 
+dynamic programming framework. The two levels are inter- 
+connected through the cost function, whose specific values are 
+derived from the outcomes of the corresponding subtask policies 
+executing their respective current optimal decisions. The next 
+section will provide a detailed explanation of the complete 
+algorithmic workflows. 
+10of19 IETIntelligentTransportSystems ,2026
+ALGORITHM 1 D3QN training process for sub-task 
+Initialize D3QN: 
+D3QN online network 𝑄( 𝑠 , 𝑎 ; 𝜃, 𝛼, 𝛽) with random weights 
+𝜃, 𝛼, 𝛽(Simplify to 𝑄( 𝑠 , 𝑎 ; 𝜃) ) 
+D3QN target network 𝑄′( 𝑠 , 𝑎 ; 𝜃− , 𝛼− , 𝛽− ) with 𝜃− = 𝜃, 
+𝛼− = 𝛼, 𝛽− = 𝛽
+Experience replay buffer 𝐵with capacity 𝑁
+Exploration rate 𝜀 = 𝜀0 
+Target network update frequency 𝐶
+Initialize environment: 
+Route conditions (task section), vehicle parameters, task type 
+Train: 
+for episode = 1 to 𝑀do 
+Initialize random state 𝑠0 
+for time step 𝑘 = 0 to 𝑇 − 1 do 
+With probability 𝜀select random action 𝑎𝑘 , otherwise 
+𝑎𝑘 = arg max 𝑎 𝑄( 𝑠𝑘 , 𝑎; 𝜃) 
+Execute 𝑎𝑘 , observe reward 𝑟𝑘 and next state 𝑠𝑘+ 1 
+Store experience ( 𝑠𝑘 , 𝑎𝑘 , 𝑟𝑘 , 𝑠𝑘+ 1 ,done ) in𝐵
+Sample random minibatch of experiences from 𝐵
+for each experience ( 𝑠 , 𝑎 , 𝑟 , 𝑠′, 𝑑 ) in minibatch do 
+𝑎∗ = arg max 𝑎′ 𝑄( 𝑠′, 𝑎′; 𝜃) 
+𝑦 = 𝑟 + 𝛾(1 − 𝑑) 𝑄′( 𝑠′, 𝑎∗ ; 𝜃− ) 
+Update 𝜃, 𝛼, 𝛽to minimize ( 𝑦 − 𝑄( 𝑠 , 𝑎 ; 𝜃))2 
+end for 
+Every 𝐶steps: 𝜃− ← 𝜃
+Decay 𝜀
+𝑠𝑘 ← 𝑠𝑘+ 1 
+end for 
+end for 
+Output: 
+Average speed 𝑉and average maximum coupler force 𝐹𝐶 . 
+Update the cost function 𝐶𝑂 ( 𝑆 , 𝑖 ) of the corresponding task 𝑖
+under the top-level task section 𝑆. 
+3.3 Algorithm Flow of MTC-HRL 
+This subsection presents the detailed implementation workflow 
+of the underlying subtask D3QN learning process in MTC-HRL 
+and the top-level dynamic programming, primarily illustrated in 
+pseudocode form. 
+First, the underlying D3QN primarily addresses the learning of 
+optimal policies for different tasks under random initial states and 
+stochastic environmental conditions. The detailed pseudocode 
+for its training phase is presented in Algorithm 1 . 
+After all underlying subtask policies have converged across 
+different sections and various initial states, the correspond- 
+ing policy can be invoked whenever its designated task is 
+ALGORITHM 2 Hierarchical optimization. 
+Initialize: 
+Dynamic programming grid cost 𝐶𝑂 ( 𝑆𝑖 ) = inf , 𝑖 = 1 , 2 , . . . , 𝐾
+task type task 𝑘 
+Optimal search: 
+for each task segment 𝑖 = 1 ∶ 𝐾do 
+call policy 𝑏 and policy 𝑡 using D3QN algorithm 
+Observe performance metrics 𝑉( 𝑆𝑖 ,task 𝑘 ) and 𝐹𝑐 ( 𝑆𝑖 ,task 𝑘 ) 
+if task 𝑘 at 𝑆𝑖 is infeasible according to classification model 
+then 
+𝐶𝑂 ( 𝑆𝑖 ,task 𝑘 ) = inf . 
+else 
+else 𝐶𝑂 ( 𝑆𝑖 ,task 𝑘 ) = 
+( 𝑉( 𝑆𝑖 ,task 𝑘 ) − 𝑉𝑡 ( 𝑆𝑖 ,task 𝑘 )) 
+2 
++ Λ( 𝐹𝑐 ( 𝑆𝑖 ,task 𝑘 )) 
+2 
+. 
+end if 
+end for 
+Output: 
+for task segment 𝑖 = 1 ∶ 𝐾do 
+select task 𝑘 = 𝑎 𝑟 𝑔max task 𝑘 𝐶𝑂 ( 𝑆𝑖 ,task 𝑘 ) 
+Dynamic programming output: 
+Record optimal state 𝑆𝑖 and action 𝐴𝑘 
+end for 
+selected. In other words, once the cost functions between all 
+grid states in the top-level framework are fixed, the dynamic 
+programming algorithm is called to perform an optimal task 
+sequence search. The algorithmic procedure is outlined as 
+Algorithm 2 . 
+4 Experimental Results and Analysis 
+Based on the analytical model established in Section 2 and 
+the hierarchical reinforcement learning algorithm proposed in 
+Section 3 , this section designs simulation experiments to validate 
+their effectiveness. The experimental scenario is built upon actual 
+parameters from a domestic heavy-haul railway line, aiming to 
+verify the performance of the proposed method when applied 
+to the control of a 20,000-ton HHT. The validation consists of 
+the following aspects: First, within a single task segment, the 
+effectiveness of the integrated pneumatic and electrical braking 
+control strategy versus traction-only or electrical braking-only 
+control strategies under different initial states is verified. This 
+ensures that each task segment possesses state-independent end- 
+point properties, thereby enabling flexible concatenation of tasks. 
+Second, the training convergence of the algorithm under varying 
+task segment lengths is analysed to examine the contribution 
+of the multi-subsegment decomposition optimization method 
+to improving long-distance optimization efficiency. Finally, an 
+analysis of long-distance optimization effectiveness is conducted 
+in a sequential multi-task collaboration setting, with comparative 
+verification against existing planning methods and a monolithic 
+reinforcement learning approach. 
+IETIntelligentTransportSystems ,2026 11of19
+TABLE 2 Train parameters used in the simulation. 
+Parameter type Value Parameter type Value 
+Locomotive type HXD1 Cars type C80 
+Locomotive length 35.2 m Cars length 13.2 m 
+Locomotive weight 200 t Cars weight 100 t 
+Maximum traction force 760 kN Maximum cars air braking force 10 kN 
+Maximum electric braking force 460 kN Maximum coupler force ± 2500 kN 
+TABLE 3 Core hyperparameter settings for the reinforcement learning algorithm. 
+Hyperparameter Value/Description 
+Discount factor 𝛾 = 0 . 999 
+Learning rate (Adam optimizer) Dynamic learning rate scheduling strategy: initial learning rate 3 ×10− 4 , minimum learning 
+rate 3 ×10− 6 , patience 50, decay factor 0.5 
+Experience replay buffer size 204, 800 
+Batch size 1024 
+Target network update Hard update every 20 steps 
+Exploration strategy Cosine decay 𝜀-greedy scheme: 𝜀decays from 1.0 to 0.05 
+Loss function Mean squared error (MSE) loss 
+4.1 Simulation Conditions 
+The simulation section is based on a 0–340 km segment of a real 
+railway line, which includes two continuous long downgrades 
+and a section of undulating terrain. The train adopts a ‘1 + 1’ 
+configuration, where one locomotive hauls 108 freight cars, which 
+are connected to another set of 108 freight cars hauled by a second 
+locomotive. The specific parameters are provided in Table 2 . 
+The core hyperparameters for the reinforcement learning algo- 
+rithm are summarized in Table 3 . 
+4.2 Single Traction/Electric Braking Control 
+Task 
+Simulations were conducted for the same sub-section (20–40 km) 
+under different initial speeds. With a speed limit of 80 km/h and 
+without pneumatic braking, the resulting speed profiles and the 
+corresponding control forces are shown in the Figure 10 . 
+Under random initial conditions, the learned task policy consis- 
+tently converges to the pre-trained optimal policy curve. In the 
+initial phase, the policy tends to apply a larger traction force 
+at lower speeds to achieve rapid acceleration towards the target 
+speed, with a longer duration of traction observed at lower initial 
+speeds. Subsequently, the policy transitions to maintaining the 
+target speed while fully utilizing the track’s potential energy, 
+with control inputs of smaller magnitudes. Eventually, the train 
+response tracks and stabilizes along the optimal policy curve, 
+ensuring consistent and stable operation. These observations val- 
+idate that the proposed multi-objective policy effectively balances 
+safety, energy efficiency and stability across varying initial states. 
+In terms of reward outcomes, lower initial speeds correspond to 
+longer recovery times for returning to the optimal policy, lower 
+average speeds and consequently, lower cumulative rewards. 
+4.3 Combined Air and Electric Braking Task 
+Simulations were conducted for a long downhill section (0–
+20 km) under different initial speeds, with the speed limit 
+maintained at 85 km/h. The timing of air braking and the strategy 
+for coordinating with electric braking force were optimized. The 
+resulting speed profiles and the corresponding electric and air 
+braking force performances are shown in Figure 11 . 
+On long downhill sections, the learned task policy is highly 
+sensitive to the initial state, with a notable divergence between the 
+optimal strategies at low and high initial speeds. When the initial 
+speed is low, the optimal policy employs sequential applications 
+of air braking to control speed while ensuring compliance with 
+brake release time constraints. In this scenario, the electric 
+braking force must be adjusted frequently to complement the 
+performance of the air braking system. Conversely, when the 
+initial speed is high, the optimal policy shifts towards maintaining 
+a prolonged braking state. Here, the electric braking force remains 
+minimal in magnitude, thereby reducing the rate of speed 
+reduction and achieving an extended braking distance. 
+4.4 Analysis of MTC-HRL 
+After validating the effectiveness of the task-specific optimal 
+policy for specific tasks, this section focuses on analysing 
+the advantages of the hierarchical reinforcement learning 
+12of19 IETIntelligentTransportSystems ,2026
+FIGURE 10 Single braking control effect. 
+FIGURE 11 Combined braking effect. 
+framework. First, the influence of task segmentation granularity 
+is investigated by setting individual task segment lengths of 10, 
+20, 50 and 100 km. Taking the traction/electrical braking speed 
+control policy as an example, the training results are presented in 
+Figure 12 . 
+As observed, finer task segmentation leads to a more rapid 
+decrease in training loss and faster policy convergence. At 
+segmentation granularities of 10 and 20 km, the policy con- 
+verges after 2500 and 3200 episodes, respectively, whereas 
+no convergence is achieved even after 5000 episodes at 50 
+IETIntelligentTransportSystems ,2026 13of19
+FIGURE 12 Training effect of task policies under different task lengths. 
+FIGURE 13 Optimized result of task policies under different task lengths. 
+and 100 km granularities. In terms of rewards, higher seg- 
+mentation granularity yields superior average rewards. For 
+the actual line segment between 240 and 340 km, the trac- 
+tion/electrical braking speed control policy was exclusively 
+employed for training without considering task switching, 
+and the globally optimized curve obtained is presented in 
+Figure 13 . 
+Following 5000 training iterations, it becomes evident that the 
+task segment length with a precision of 100 km is equivalent 
+to the scope of global optimization. Similar to the case with 50 
+km precision, convergence has not been achieved, and an early 
+stopping phenomenon has occurred, preventing the attainment 
+of an effective global optimization curve. 
+In contrast, the trends of the global optimization curves under 
+10 and 20 km precisions are relatively similar, primarily because 
+the optimization objectives and their weight settings remain 
+unchanged. Meanwhile, given the significant emphasis on speed 
+following in the objectives, the optimization results at a 10 
+km precision demonstrate a closer alignment with target speed 
+tracking, indicating superior optimization quality. This finding 
+14of19 IETIntelligentTransportSystems ,2026
+FIGURE 14 Global optimization strategy under multi-task allocation. 
+aligns with the conclusion in Figure 12 that ‘higher precision 
+yields higher rewards.’ 
+In conclusion, this study confirms that the multi-sub-segment 
+optimization strategy outperforms the global optimization 
+method in terms of both convergence speed and result quality. 
+The simulation section spans from 70 to 170 km, incorporating 
+three consecutive long and steep downhill segments and two 
+sections of undulating terrain. This setup is designed to validate 
+the global optimization effect of multi-task optimal allocation 
+over long distances. The optimization curves are illustrated in 
+Figure 14 . 
+The left figure depicts the optimization results for train speed 
+and force. The line resistance increases significantly in long and 
+steep downhill sections. In response, the optimization strategy 
+shifts to a combined braking task, primarily utilizing air brak- 
+ing supplemented by electric braking, as demonstrated in the 
+second and third subplots. As the line resistance decreases, the 
+optimization strategy disengages air braking and transitions to 
+a single electric braking speed control task. During this phase, 
+the average speed approaches the target speed, while the electric 
+braking force coordinates with the line resistance to fully harness 
+the potential energy of the route. In the final long and steep 
+downhill segment, the strategy reverts to combined braking. 
+During the integrated braking phase, the electrical braking 
+force primarily serves a compensatory role in the overall train 
+operation. In non-integrated braking phases, the electrical brak- 
+ing force is utilized to counteract track resistance to maintain 
+constant speed, while also enabling energy-efficient coasting by 
+leveraging track resistance. 
+Over long distances, and subject to meeting switching conditions, 
+the MTC-HRL framework primarily switches tasks based on 
+changes in line resistance, achieving dynamic multi-objective 
+optimization in response to environmental variations. In terms 
+of performance metrics, during the combined braking task seg- 
+ments, the average speed is 54.3 km/h with an average energy 
+consumption of − 459.49 kWh. In the single electric braking 
+segments, the average speed is 63.8 km/h, accompanied by an 
+average energy consumption of − 108.85 kWh. 
+The figure on the right presents the optimization results of the 
+train coupler forces, illustrating the variation in forces for selected 
+vehicles at typical positions. During the air braking phase, the 
+couplers are fully compressed, resulting in a clearly stratified 
+distribution of coupler forces along the train consist. In non-air 
+braking phases, the coupler forces are primarily influenced by the 
+leading and trailing locomotives. When the strategy prioritizes 
+energy efficiency, both the control and coupler forces remain 
+relatively small. Conversely, when the strategy shifts to tracking 
+the target speed, the control force undergoes significant short- 
+term variations, leading to impactful shocks on the couplers. 
+These observed phenomena align well with practical operational 
+scenarios. Regarding performance metrics, the maximum tensile 
+and compressive coupler forces are both constrained within 1100 
+kN, with average values of 72.82 and − 105.91 kN, respectively. 
+4.5 Performance Advantages of MTC-HRL 
+Compared With Baseline Method 
+To verify the performance advantages of the proposed MTC-HRL 
+framework, we conducted supplementary simulation compari- 
+son experiments with the baseline single-agent reinforcement 
+learning method (D3QN). The results clearly demonstrate the 
+proposed framework’s superiority in terms of convergence speed, 
+energy consumption and operational stability. 
+The optimization curves compared with the baseline method 
+are shown in Figure 15 . The traditional D3QN method must 
+satisfy the complex physical constraints of combined air and 
+electric braking throughout the entire operation, and its opti- 
+mization objectives and weights remain fixed, making it difficult 
+to balance the multi-objective requirements across different 
+operational phases. In contrast, MTC-HRL adaptively adjusts the 
+IETIntelligentTransportSystems ,2026 15of19
+FIGURE 15 Comparison between MTC-HRL and D3QN. 
+TABLE 4 Performance comparison between MTC-HRL and baseline method. 
+Performance indicator MTC-HRL Baseline (D3QN) 
+Average positive coupler force (tension) 40.43 kN 34.58 kN 
+Maximum positive coupler force (tension) 315.67 kN 177.77 kN 
+Average negative coupler force (compression) − 90.32 kN − 66.92 kN 
+Maximum negative coupler force (compression) − 301.96 kN − 240.16 kN 
+Energy consumption − 1196.66 kWh − 782.38 kWh 
+Average speed 70.03 km/h 59.73 km/h 
+Air braking distance 8.60 km 12.15 km 
+optimization focus for different segments through multi-task 
+coordination and a dynamic multi-objective trade-off mecha- 
+nism, thereby achieving comprehensive global optimization. 
+Specifically, in non-air-braking segments, MTC-HRL increases 
+the weights for punctuality and energy consumption optimiza- 
+tion, enabling the train to maintain a higher average speed 
+and operational efficiency. In air-braking segments, the method 
+dynamically invokes the combined air and electric braking task 
+based on the operational state, achieving shorter air-braking 
+distances and a smoother deceleration process. Detailed perfor- 
+mance indicators are compared in Table 4 . 
+It should be noted that in non-air-braking segments, due to 
+the higher priority given to speed and punctuality objectives, 
+MTC-HRL employs larger control outputs with more frequent 
+switching compared to the baseline method. Consequently, 
+the coupler force in these segments increases, which can be 
+interpreted as trading off a portion of ride comfort for signif- 
+icant speed improvement. However, the overall coupler force 
+remains constrained within 1000 kN, satisfying the design 
+requirements. 
+The convergence comparison is illustrated in Figure 16 . The pro- 
+posed MTC-HRL framework adopts a sequential multi-task col- 
+laboration strategy, in which different task segments are assigned 
+dedicated subtask policies that are trained independently and 
+coordinated through shared state representations. Since each 
+subtask policy only needs to learn and make decisions within 
+its corresponding task segment, the state-space dimensionality 
+of each individual decision-making problem is significantly 
+reduced compared to the globally unified optimization in D3QN. 
+16of19 IETIntelligentTransportSystems ,2026
+FIGURE 16 Comparison of convergence performance. 
+This accelerates the training convergence speed under identical 
+reinforcement learning hyperparameter conditions. 
+Furthermore, although the segment-specific subtask policies in 
+this study are invoked sequentially during execution, they are 
+trained independently. Thus, the overall convergence time of the 
+algorithm can be approximated as the sum of the independent 
+training convergence times of the policies corresponding to each 
+task segment. Simulation results show that the baseline D3QN 
+method typically stops automatically after approximately 3700 
+steps, with a convergence time of about 7200 s. Under the MTC- 
+HRL framework, the combined braking task converges in about 
+2570 steps (2900 seconds), and the single electric braking task 
+converges in about 490 steps (approximately 450 s). The total 
+convergence time is approximately 3500 s, representing a training 
+efficiency improvement of about 50%. 
+It should be clarified that the above conclusions are not based 
+on a single experimental trial. Consistent convergence pro- 
+cesses and time characteristics were observed across multiple 
+simulations under identical configuration conditions. Therefore, 
+the presented results are representative and reflect the typical 
+training performance of the algorithm. Compared to the baseline 
+D3QN method, the proposed framework achieves a conservative 
+estimated improvement of at least 40% in training time. 
+5 Conclusion 
+This paper addresses the issues of low computational efficiency 
+and limited adaptability of existing intelligent algorithms in the 
+long-distance multi-objective operational optimization of HHTs. 
+A sequential MTC-HRL framework is proposed, which achieves 
+a balance between optimization accuracy and computational 
+efficiency through task decomposition, parallel subtask learning 
+and sequential collaboration strategies. 
+The main contributions of this study are summarized as fol- 
+lows: 
+1. Event-driven task classification and hierarchical optimiza- 
+tion framework: An event-driven, time-dependent task 
+classification model is established, decomposing the long- 
+distance optimization problem into a combination of electro- 
+pneumatic combined braking control tasks and single 
+traction/electrical braking control tasks. A hierarchical 
+sequential collaboration architecture is designed, in which 
+segment-specific subtask policies are trained in parallel 
+and coordinated through top-level dynamic programming 
+during route execution. This hierarchical decomposition 
+strategy significantly reduces computational complexity and 
+improves convergence performance. Simulation results show 
+an improvement of nearly 40% in convergence episodes 
+compared to global training. 
+2. Multi-objective coordinated control strategy: Differentiated 
+objective reward functions and constraint conditions are 
+formulated for different tasks. Based on the D3QN learning 
+algorithm and through shared state space, smooth task tran- 
+sitions and sequential collaborative decision-making across 
+subtasks are achieved. Simulation results demonstrate that 
+coupler forces are effectively limited within 1100 kN, and both 
+the average speed and energy consumption align with actual 
+operational conditions. This realizes a dynamic balance 
+among multiple objectives, including safety, stability, energy 
+efficiency and punctuality. 
+IETIntelligentTransportSystems ,2026 17of19
+Based on the conditions of a real 340-km railway line, compared 
+to the global optimization method using single-agent reinforce- 
+ment learning, the proposed MTC-HRL framework exhibits faster 
+convergence speed and superior optimization quality, confirming 
+its suitability for large-scale, long-distance HHT operational opti- 
+mization. 
+Furthermore, based on the simulation results, the practical 
+effectiveness of the proposed framework is influenced by several 
+key hyperparameters. In particular, the segment length should be 
+determined by balancing task complexity and training stability: 
+overly short segments may cause frequent task switching and 
+increased training complexity, whereas overly long segments 
+may reduce the performance benefits of multi-task switching. 
+Moreover, different reward weight settings may change the pref- 
+erence among energy efficiency, speed tracking and longitudinal 
+smoothness, thereby affecting the corresponding multi-objective 
+trade-offs. Benefiting from its hierarchical and segment-wise 
+collaborative structure, the proposed framework is expected to 
+remain effective under moderate parameter variations and to 
+exhibit better adaptability than a single global policy under 
+moderate changes in gradients, speed limits, and load condi- 
+tions. However, more substantial environmental variations may 
+still require retraining or online fine-tuning, which will be 
+investigated in future work. 
+Future research directions include extending this framework 
+to heterogeneous multi-locomotive coordination scenarios and 
+designing more scenario-specific tasks to achieve efficient paral- 
+lel optimization. In addition, future work may explore a control 
+framework based on externally configurable weight parameters. 
+This framework aims to decouple long-term system dynamics 
+from task-specific reward functions, thereby enabling external- 
+ized configuration of optimization objective weights. 
+Author Contributions 
+Jianhua Wang: conceptualization, resources, writing – original draft. 
+Cong Wang: conceptualization, methodology, visualization, writing –
+original draft. Qingyuan Wang: conceptualization, funding acquisition, 
+supervision, writing –r e v i e w and editing. Yiding Yu: visualization, 
+writing – original draft, writing –r e v i e w and editing. Xiaoyun Feng: 
+supervision. 
+Acknowledgements 
+This work was supported in part by the National Natural Science 
+Foundation of China under Grant U2368216. 
+Conflicts of Interest 
+The authors declare no conflicts of interest. 
+Data Availability Statement 
+Research data are not shared. 
+References 
+1 . S. Chen, L. Piao, X. Zang, et al., “Analyzing Differences of Highway 
+Lane-Changing Behavior Using Vehicle Trajectory Data,” Physica A: 
+Statistical Mechanics and Its Applications 624 (2023): 128980, https://doi. 
+org/10.1016/j.physa.2023.128980 . 
+2 . W. Zhai, S. Stichel, and L. Ling, “Train-Track Coupled Dynamics 
+Problems in Heavy-Haul Rail Transportation,”Vehicle System Dynamics 
+63, no. 7 (2025): 1187–1240. 
+3 . Y. Li, Z. Pu, P. Liu, et al., “Efficient Predictive Control Strategy for 
+Mitigating the Overlap of EV Charging Demand and Residential Load 
+Based on Distributed Renewable Energy,”Renewable Energy 240 (2025): 
+122154, https://doi.org/10.1016/j.renene.2024.122154 . 
+4 . P. G. Howlett, “Optimal Strategies for the Control of a Train,”
+Automatica 32, no. 4 (1996): 519–532. 
+5 . A. R. Albrecht, P. G. Howlett, P. J. Pudney, and X. Vu, “Energy- 
+Efficient Train Control: From Local Convexity to Global Optimization and 
+Uniqueness,”Automatica 49, no. 10 (2013): 3072–3078. 
+6 . A. R. Albrecht, P. G. Howlett, P. J. Pudney, X. Vu, and P. Zhou, “The 
+Key Principles of Optimal Train Control-Part 1: Formulation of the Model, 
+Strategies of Optimal Type, Evolutionary Lines, Location of Optimal 
+Switching Points,” Transportation Research Part B: Methodological 77 
+(2015): 1–27. 
+7 . A. R. Albrecht, P. G. Howlett, P. J. Pudney, X. Vu, and P. Zhou, “The 
+Key Principles of Optimal Train Control-Part 2: Existence of an Optimal 
+Strategy, the Local Energy Minimization Principle, Uniqueness, Compu- 
+tational Techniques,”Transportation Research Part B: Methodological 94 
+(2016): 509–538. 
+8 . Y. Rao, X. Y. Feng, Q. Y. Wang, and P. F. Sun, “The Optimal Solution 
+to the Energy-Efficient Train Control in a Multi-Trains System-Part 1: The 
+Algorithm Design,”Transportmetrica A: Transport Science 21, no. 2 (2025): 
+2267685. 
+9 . L. Zhang and X. Zhuan, “Development of an Optimal Operation 
+Approach in the MPC Framework for Heavy-Haul Trains,”IEEE Trans- 
+actions on Intelligent Transportation Systems 16, no. 3 (2015): 1391–
+1400. 
+10 . X. Lu, M. Zheng, and H. Lin, “Research on and Implementation of 
+Intelligent Control Algorithm for Heavy Haul Train,”Journal of the China 
+Railway Society 39 (2017): 11–18. 
+11 . X. Lin, Q. Wang, Q. Liu, X. Ge, and X. Feng, “On Periodic Braking 
+of Freight Trains on Long Steep Downhill Section,”Journal of the China 
+Railway Society 41, no. 1 (2019): 50–58. 
+12 . B. Bai, Z. Xiao, Q. Wang, P. Sun, and X. Feng, “Multi-Objective Trajec- 
+tory Optimization for Freight Trains Based on Quadratic Programming,”
+Transportation Research Record 2674, no. 11 (2020): 466–477. 
+13 . Z. Zhang, P. Sun, M. Wei, Q. Wang, and X. Feng, “Trajectory 
+Optimization for Heavy Haul Train With Pneumatic Braking via 
+QCMIP,” IEEE Transactions on Intelligent Vehicles 9, no. 1 (2024): 2419–
+2428. 
+14 . M. Zhou, Y. Liu, H. Wang, and H. Dong, “Trajectory Optimization for 
+Heavy-Haul Trains Considering Cyclic Braking Under Complex Operat- 
+ing Conditions,”Journal of Rail Transport Planning and Management 31 
+(2024): 100462. 
+15 . J. J. Eckert, Í. P. Teodoro, M. V. Lopes, Q. Wu, and A. A. Santos, “Multi- 
+Objective Optimization of Electro-Pneumatic Braking Process With 
+Fuzzy Logic Control for Heavy Haul Railway Applications,”International 
+Journal of Rail Transportation 13, no. 2 (2024): 332–351. 
+16 . X. Chen and F. Xiao, “Research of Heat Load of Synthetic Brake Shoe 
+With High Frictional Coefficient,”Electric Locomotives and Mass Transit 
+Vehicles 37, no. 4 (2014): 32–46. 
+17 . W. Wei, Y. Hu, Q. Wu, X. Zhao, J. Zhang, and Y. Zhang, “An Air 
+Brake Model for Longitudinal Train Dynamics Studies,” Vehicle System 
+Dynamics 55, no. 4 (2017): 517–533. 
+18 . Y. Zhang, W. Wei, X. Zhao, M. He, and J. Zhang, “The Influence 
+of Brake Cylinder Charging Time on Longitudinal Impulse of Mixed 
+Formation Train,” in Proceedings of the 2nd International Conference on 
+Rail Transportation (American Society of Civil Engineers, 2021), 321–332. 
+18of19 IETIntelligentTransportSystems ,2026
+19 . Q. Wu, C. Cole, M. Spiryagin, et al., “Freight Train Air Brake Models,”
+International Journal of Rail Transportation 11, no. 1 (2023): 1–49. 
+20 . Y. Q. Zou, X. Y. Chu, X. Zhou, and Z. X. Song, “Energy-Efficient Oper- 
+ation Trajectory Optimization of Heavy-Haul Trains Based on Hybrid 
+Biological Intelligent Heuristic Strategy,”Journal of Railway Science and 
+Technology 1, no. 1 (2025): 99–111, https://doi.org/10.1016/j.jrst.2025.07.003 . 
+21 . Y. Huang, S. Su, and W. Liu, “Optimization on the Driving Curve 
+of Heavy Haul Trains Based on Artificial Bee Colony Algorithm,” in 
+Proceedings of the 2020 IEEE 23rd International Conference on Intelligent 
+Transportation Systems (ITSC) (IEEE, 2020), 865–870. 
+22 . H. Yu, Y. Huang, and M. Wang, “Research on Operating Strategy Based 
+on Particle Swarm Optimization for Heavy Haul Train on Long Down- 
+Slope,” in Proceedings of the 21st International Conference on Intelligent 
+Transport Systems (IEEE, 2018), 2735–2740. 
+23 . Huang, L. Tan, and L. Chen, “A Neural Network Driving Curve 
+Generation Method for the Heavy Haul Train,”Advances in Mechanical 
+Engineering 8, no. 5 (2016): 1–14. 
+24 . S. Açıkbaş and M. T. Söylemez, “Coasting Point Optimisation for 
+Mass Rail Transit Lines Using Artificial Neural Networks and Genetic 
+Algorithms,”IET Electric Power Applications 2, no. 3 (2008): 172–182. 
+25 . X. Wang and T. Tang, “Optimal Control of Heavy Haul Train on 
+Steep Downward Slope,” in 2016 IEEE 19th International Conference on 
+Intelligent Transportation Systems (ITSC) (IEEE, 2016), 778–783. 
+26 . X. Wang, S. Li, T. Tang, X. Wang, and J. Xun, “Intelligent Operation of 
+Heavy Haul Train With Data Imbalance: A Machine Learning Method,”
+Knowledge-Based Systems 163 (2019): 36–50. 
+27 . S. Su, W. Liu, Y. Huang, and T. Tang, “Optimization of Cyclic 
+Air Braking Strategy for Heavy Haul Trains: An ADP Approach,” in 
+Proceedings of the 2021 IEEE 24th International Conference on Intelligent 
+Transportation Systems (ITSC) (IEEE, 2021), 3527–3532. 
+28 . H. Tang, Y. Wang, X. Liu, and X. Feng, “Reinforcement Learning 
+Approach for Optimal Control of Multiple Electric Locomotives in a 
+Heavy Haul Freight Train: A Double Switch Q-Network Architecture,”
+Knowledge-Based Systems 190 (2019): 1–17. 
+29 . W. Liu, S. Su, T. Tang, and X. Wang, “A DQN-Based Intelligent 
+Control Method for Heavy Haul Trains on Long Steep Downhill Section,”
+Transportation Research Part C: Emerging Technologies 129 (2021): 103249. 
+30 . X. Lin, Z. Liang, L. Shen, et al., “Reinforcement Learning Method for 
+the Multi-Objective Speed Trajectory Optimization of a Freight Train,”
+Control Engineering Practice 138 (2023): 105605. 
+31 . L. G. Cheng, J. Cao, X. F. Yang, W. X. Wang, and Z. J. Zhou, “A 
+Train Trajectory Optimization Method Based on the Safety Reinforcement 
+Learning With a Relaxed Dynamic Reward,”Discover Applied Sciences 6, 
+no. 9 (2024): 469. 
+32 . Y. Li, Y. Zhang, X. Li, and C. Sun, “Regional Multi-Agent Cooperative 
+Reinforcement Learning for City-Level Traffic Grid Signal Control,”
+IEEE/CAA Journal of Automatica Sinica 11, no. 9 (2024): 1987–1998, 
+https://doi.org/10.1109/JAS.2024.124365 . 
+33 . Y. Bie, Y. Ji, and D. Ma, “Multi-Agent Deep Reinforcement Learning 
+Collaborative Traffic Signal Control Method Considering Intersection 
+Heterogeneity,”Transportation Research Part C: Emerging Technologies 
+164 (2024): 104663, https://doi.org/10.1016/j.trc.2024.104663 . 
+34 . Y. Zhang, Y. Zhou, and H. Fujita, “Distributed Multi-Agent Reinforce- 
+ment Learning for Cooperative Low-Carbon Control of Traffic Network 
+Flow Using Cloud-Based Parallel Optimization,” IEEE Transactions on 
+Intelligent Transportation Systems 25, no. 12 (2024): 20715–20728, https:// 
+doi.org/10.1109/TITS.2024.3452430 . 
+35 . G. Zhang, F. Li, D. Ren, H. Huang, Z. Zhou, and F. Chang, “Coop- 
+erative Control of Self-Learning Traffic Signal and Connected Automated 
+Vehicles for Safety and Efficiency Optimization at Intersections,”Accident 
+Analysis & Prevention 211 (2025): 107890, https://doi.org/10.1016/j.aap. 
+2024.107890 . 
+36 . X. Chen, X. Wang, W. Zhao, C. Wang, S. Cheng, and Z. Luan, 
+“Hierarchical Deep Reinforcement Learning Based Multi-Agent Game 
+Control for Energy Consumption and Traffic Efficiency Improving of 
+Autonomous Vehicles,”Energy 323 (2025): 135669, https://doi.org/10.1016/ 
+j.energy.2025.135669 . 
+37 . R. Zhao, Y. Li, Y. Fan, F. Gao, M. Tsukada, and Z. Gao, “A 
+Survey on Recent Advancements in Autonomous Driving Using Deep 
+Reinforcement Learning: Applications, Challenges, and Solutions,”IEEE 
+Transactions on Intelligent Transportation Systems 25, no. 12 (2024): 
+19365–19398, https://doi.org/10.1109/TITS.2024.3452480 . 
+38 . M. Hua, X. Qi, D. Chen, et al., “Multi-Agent Reinforcement Learning 
+for Connected and Automated Vehicles Control: Recent Advancements 
+and Future Prospects,” IEEE Transactions on Automation Science and 
+Engineering 22 (2025): 16266–16286, https://doi.org/10.1109/TASE.2025. 
+3574280 . 
+39 . L. Canese, G. Cardarilli, L. Di Nunzio, et al., “Multi-Agent Rein- 
+forcement Learning: A Review of Challenges and Applications,”Applied 
+Sciences 11, no. 11 (2021): 4948. 
+40 . R. Lowe, Y. Wu, A. Tamar, J. Harb, P. Abbeel, and I. Mordatch, “Multi- 
+Agent Actor-Critic for Mixed Cooperative-Competitive Environments,”
+in Advances in Neural Information Processing Systems (NeurIPS 2017) 
+(Curran Associates, Inc., 2017), 6382–6393. 
+41 . J. Foerster, G. Farquhar, T. Afouras, N. Nardelli, and S. Whiteson, 
+“Counterfactual Multi-Agent Policy Gradients,” in Proceedings of the 
+AAAI Conference on Artificial Intelligence 32, no. 1 (2018): 1–10. 
+42 . X. Wang, S. Li, T. Tang, X. Wang, and J. Xun, “Space-Time Collision 
+Avoidance and Train Dynamics Constraints-Driven Optimal Control for 
+Heterogeneous Heavy-Haul Trains Platoon Operation Considering Air 
+Brake Delay,”Vehicle System Dynamics 63, no. 1 (2024): 121–139, https:// 
+doi.org/10.1080/00423114.2024.2393354 . 
+43 . H. Liu, Y. Lang, X. Luo, T. Tang, and M. Chai, “Coor dinated Operation 
+Strategy Design for Virtually Coupled Train Set: A Multiagent Rein- 
+forcement Learning Approach,”IEEE Intelligent Transportation Systems 
+Magazine 17, no. 4 (2025): 6–24. 
+44 . Y. Wu, S. He, Z. Long, and H. Tang, “Integrated Operations Scheduling 
+and Resource Allocation at Heavy Haul Railway Port Stations: A Collab- 
+orative Dual-Agent Actor-Critic Reinforcement Learning Framework,”
+Systems 13, no. 9 (2025): 762. 
+45 . S. Zhang, H. Shi, W. Zhang, Y. Pang, and P. Sun, “Real-Time Multi- 
+Vehicle Scheduling in Tasks With Dependency Relationships Using Multi- 
+Agent Reinforcement Learning,”IEEE Access 12 (2024): 81453–81470. 
+46 . J. Yang, W. Chen, S. Feng, et al., “Lane Formation Mechanism 
+in Public Health Risk Scenarios: An Empirical Study on Bidirectional 
+Pedestrian Flow,”Physica A: Statistical Mechanics and its Applications 672 
+(2025): 130709, https://doi.org/10.1016/j.physa.2025.130709 . 
+47 . Q. Wu, C. Cole, S. Luo, and M. Spiryagin, “A Review of Dynamics 
+Modelling of Friction Draft Gear,” Vehicle System Dynamics 52, no. 6 
+(2014): 733–758, https://doi.org/10.1080/00423114.2014.894199 . 
+IETIntelligentTransportSystems ,2026 19of19

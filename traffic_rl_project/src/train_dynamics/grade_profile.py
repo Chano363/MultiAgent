@@ -300,6 +300,34 @@ def profile_shuozhou_real_53km() -> GradeProfile:
     ])
 
 
+def _slice_profile(profile: GradeProfile, start_m: float, end_m: float) -> GradeProfile:
+    """从既有剖面切出 [start_m, end_m) 并**重基到 0**。
+
+    仅用于构造"训练方法调试沙盒"剖面（物理工况不变，只是更短）。切割点落在段内时，
+    起点沿用该位置的实际坡度，保证切出来的剖面与母剖面逐点一致。
+    """
+    segs: List[GradeSegment] = []
+    for seg in profile.segments:
+        if start_m - 1e-6 <= seg.start_m <= end_m + 1e-6:
+            segs.append(GradeSegment(seg.start_m - start_m, seg.grade_permille))
+    if not segs or segs[0].start_m > 1e-6:
+        segs.insert(0, GradeSegment(0.0, round(profile.grade_at(start_m) * 1000.0, 4)))
+    return GradeProfile(segments=segs)
+
+
+def profile_shuozhou_real_53km_slice16k() -> GradeProfile:
+    """【训练方法调试沙盒，**非论文工况**】shuozhou_real_53km 的 21.06–37.02 km 切片（≈16.0 km）。
+
+    目的：训练方法（奖励 / 信用分配 / 动作权限）迭代时的快速沙盒——物理模型、编组、
+    安全层与主剖面**完全一致**，仅剖面更短（含 -12‰ 陡坡 + -1.5‰ 缓坡交替，保留
+    变坡/循环制动难点），使单集长程评估便宜、便于高频 A/B。
+
+    ⚠️ 纪律：本剖面**只作 debug 沙盒**，其训练/评估结果**不得进论文正文主表、不得引用**
+    （ADR-017 §3：长且复杂剖面训练→未见剖面验证才成立，短训长验方向错误）。
+    """
+    return _slice_profile(profile_shuozhou_real_53km(), 21059.2, 37020.43)
+
+
 PROFILES = {
     'long_downhill': profile_long_downhill,
     'gradual_to_steep': profile_gradual_to_steep,
@@ -309,4 +337,5 @@ PROFILES = {
     'long_downhill_35km': profile_long_downhill_35km,  # 第三长下坡剖面（35km，synthetic）
     'long_downhill_50km': profile_long_downhill_50km,  # 第四长下坡剖面（50km，synthetic，剧变点/边界）
     'shuozhou_real_53km': profile_shuozhou_real_53km,  # 朔黄线真实纵断面（同行 data_line，真实数据）
+    'shuozhou_real_53km_slice16k': profile_shuozhou_real_53km_slice16k,  # ⚠️ 仅训练方法调试沙盒，不进正文/主表
 }

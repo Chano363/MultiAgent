@@ -28,6 +28,12 @@
 | 单列车厢级重载控制                                               | **有车钩力**，但只做**单列**                                                                       | **扩展到多列群组**            |
 | **车钩力 + 多列群组 + 长大下坡**                                   | **几乎空白**                                                                                 | **分层 MARL 框架（本项目）**    |
 
+> **claim 限定（2026-10-07，ADR-030 收窄）**：上表"忽略车钩力"**仅指所列举的具体工作**（Zhang2024 / Liu2021 / Wang2025 等**单列、车钩力未入模**者），**不可推广为"文献都忽略车钩力"**——
+> - **Wang2026**（IET ITS，**单列**重载长大下坡**分层 RL**）**已显式含车钩力**：安全限值 1100 kN，进奖励与状态（本地 `docs/papers/Wang2026_hierRL_fulltext.txt`）；
+> - **Song2026**（北京交通大学学报，**多列**虚拟编组 **Tube-MPC**）**已含车钩力约束**：±1500 kN，峰值 330.4 kN（本地 `docs/papers/Song2026_TubeMPC_VirtualCoupling.pdf`）。
+>
+> 真正的空白 = **"多列群组 × 车钩力 × MARL"** 的交集（Wang2026 是单列、Song2026 是 MPC 非 MARL）。立论应押 **"把凭证从单列挪到多列群组"**，而非"别人不管车钩力"。
+
 **创新论点**：群组级控制不能忽略每列内部的车钩力约束——
 
 1. **物理真实性**：重载列车内部车钩力是真实安全约束（1000 kN 上限），忽略它可能给出"速度同步但车厢挤压"的危险解；
@@ -152,7 +158,8 @@
 **核心 claim（"免重辨识成本"，非"比控制品质"）【2026-09-16 ADR-016 reframe】**
 
 - 同一环境 / 安全层 / **53km 主训练**（`shuozhou_real_53km`）下，**零微调的 D-RL 跨线守住底线**（车钩力≤1000kN、不越 ATP 限速、列距不破界）。
-- 对**逐线公平标定的 MPC**（`fair_mpc_controller`：多质点多列耦合 + SLSQP 硬约束 + `inner_rule_cyclic` + 每线重喂 `grade_at` 图纸 + 在线标定 b0，即 Regime A）：D-RL 以**零重辨识成本**达到 MPC 逐线专门重标定后才有的同档性能（实测 MARL 泛化 ≈ 重标定 MPC）。
+- 对**逐线公平标定的 MPC**（`NMPCController`：列内**集中质量(lumped)多体** + **MT-2 符号化车钩** + 车钩力 ≤1000kN 硬约束 + casadi/**IPOPT** + `inner_rule_cyclic` + 每线重喂 `grade_at` 图纸 + 在线标定 b0，即 Regime A）：D-RL 以**零重辨识成本**达到 MPC 逐线专门重标定后才有的同档性能（实测 MARL 泛化 ≈ 重标定 MPC）。
+  > **【ADR-022，2026-10-01】** 对比基线**唯一化**为 `NMPCController`；旧的 `FairMPCController`（聚合列 + 车钩力代理 + SLSQP）与简化 `MPCController` **已删除**（"不要留粗糙 MPC 当靶子"）。本节原指名 `fair_mpc_controller` 的表述按本 ADR 覆盖修订；**Regime A 协议本身不变**。历史 MPC 数值全部作废。
 - **不与 MPC 比"谁控制得更准"，只比"免重辨识的成本"**（MARL 跨线零微调 vs MPC 每线重标定+在线求解）。
 - **废止"MPC 不重辨识即失配"作为论证**（Regime B 已删）：不证明、不依赖该结论，属换线必做符规标定的领域常识，不占篇幅。
 
@@ -162,8 +169,8 @@
 
 - **主 claim（唯一，必做）——免重辨识成本**：功能指标持平即可（不追求反超），差异化仅在"达到同档功能性能的获取成本 = 0（免重辨识）vs MPC 逐线重标定"。指标=速度带达成/间距误差/车钩力≤1000kN 落地率的**同档持平** + 标定成本量化（见上「标定成本量化口径」）。
 - **结构性次要优势（2026-09-16 定稿取舍）**——只留**有数据可实证**的两条，作 Appendix/补充证据，不涉安全层；无实证的砍：
-  - **规模可扩展性（留，Appendix）**：3→5 列，D-RL 每步网络前向一次 vs MPC 多列耦合 SLSQP 求解维度随列数增长；用 3→5 列 + `solve_times` 图实证（横轴列数、纵轴每步求解耗时）。
-  - **实时决策延迟（留，Appendix 一句数字）**：网络前向毫秒级 vs 每步在线 SLSQP；报 `solve_times` 现成统计即可，**当补充数字，不当主卖点**（决策间隔 1s 下 MPC 也够快，别硬立）。
+  - **规模可扩展性（留，Appendix）**：3→5 列，D-RL 每步网络前向一次 vs MPC 多列耦合 **IPOPT** 求解维度随列数增长；用 3→5 列 + `solve_times` 图实证（横轴列数、纵轴每步求解耗时）。
+  - **实时决策延迟（留，Appendix 一句数字）**：网络前向毫秒级 vs 每步在线 **IPOPT**；报 `solve_times` 现成统计即可，**当补充数字，不当主卖点**（决策间隔 1s 下 MPC 也够快，别硬立）。
   - **去中心化/抗单点故障（砍，不写进立论）**：仅定性断言、无"求解器故障 vs 某机车失效"实际对照实验，且去中心化亦含通信/一致性缺陷，审稿易戳空；不占篇幅。
 - **明确排除（不写进立论、不当卖点）**：
   - **安全性（守底线/0碰撞/车钩力≤1000kN）**：由安全层+规则层保证，非 MARL 贡献；ATP 触发等只作约束达成记录，不归功于 MARL。
@@ -172,12 +179,16 @@
 
 **车钩力定位（约束，修订明义）**
 
-- 车钩力 = 硬安全层（enforce ≤1000kN）+ 观测上下文（状态带车钩力）；**不进 reward、不作最小化对象**。
+- 车钩力 = 硬安全层（enforce ≤1000kN）+ 观测上下文（状态带车钩力）；**不作均值最小化对象**（2026-10-01 前写作"**不进 reward**"——该绝对表述已按下方条款修订为"允许受控超限项、不作均值最小化"）。
 - 这是"约束"语言（导师口径"保持在以内"），"优化目标"定位已废止。
+- **⚠️ 已修订并落地（2026-10-01，ADR-021 决策 2「执行闭环」①）**：上述"**绝不进 reward**"的**绝对表述已修订**——现允许**受控的"超限"非线性项**进目标：`coupler_over_term = −6.0 · min(peak_norm − 1, 2.0)`，上界 **−12.0**，仅在 `peak_norm > 1` 时生效（`peak_norm` = **断面力**峰值 / 限值，口径 SSOT = ADR-018）；**`mean` 项权重未动 ⇒ 仍不作均值最小化**，**安全叙事仍不归功于 MARL**（≤1000 kN 由安全层 + 规则层保证）。
+  - 动机（诊断，`logs/diagnostics/DIAGNOSTICS_2026-10.md`「诊断-2026-10-01」）：原车钩力 shaping 量级仅 ≈3%（上限 −0.4 vs 速度带 +6/列）**且无超限跳变**（`−80·ov²` 已回滚）⇒ 破线/不破线在目标里不可区分。
+  - 落地与量级核对：`logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」四、（解析核对 pn=1.5→−3.0 / 3.0→−12.0 / 5.0→−12.0）；metadata 记 `reward_schema=v2-bounded-overlimit-section-force`。
+  - **待裁定**：该权重是否保留、以及是否需要放大，**须由 C+B 重训（1400 ep × 5 seed）后的结果决定**（长久计划，见 `PROJECT_PIPELINE.md`）。本条其余立论边界不变。
 
 **动作结构（固化为单词结构 Q）**
 
-- `multi_loco_controller.get_action_decomposed`：规则循环制动 + 逐机车 RL 调制 `[ed_mod, ab_mod]`∈[-1,1]。
+- `multi_loco_controller.get_action_decomposed`：规则循环制动 + 逐机车 RL 调制 `[ed_mod, ab_mod]`∈[-1,1]；**调制带宽 `ed_mod_coef = 1.0`（全幅）** ⇒ `final_ed = clip(baseline_ed + 1.0·ed_mod, 0, 1)`（2026-10-02 ADR-023；MPC 桥接与 D-RL **同款同带宽**，符合 ADR-016 不失公允口径）。
 - claim 落"协同调制"层；**规则层管单车安全制动、RL 管多车编队协同**。
 
 **主对比（对 MPC）三行同环境/安全层**：D-RL / D-Rule / MPC。
@@ -186,7 +197,7 @@
 
 **标定成本量化口径（2026-09-16，SSOT，配套 ADR-016）**
 
-> 目标：把"免重辨识成本"变成可量化、可复现的证据。先厘清事实：MPC 的"标定"由两部分构成——**b0 在线标定**（`fair_mpc_controller` 速度差分，每步免费）与 **`grade_at` 图纸注入**（需目标线完整坡度剖面，这才是换线重标定的成本所在）。量化对象 = **先验注入量**，不是计算耗时。
+> 目标：把"免重辨识成本"变成可量化、可复现的证据。先厘清事实：MPC 的"标定"由两部分构成——**b0 在线标定**（`nmpc_controller` 的速度差分标定，每步免费）与 **`grade_at` 图纸注入**（需目标线完整坡度剖面，这才是换线重标定的成本所在）。量化对象 = **先验注入量**，不是计算耗时。
 
 - **口径 1（主证，必做）——先验注入量清单表**：MPC-C 的标定成本 = 获得目标线坡度图纸所需工程动作，逐项列行业惯例数值（线路实测人天 → 数据处理人天 → 参数辨识人天 → 仿真验证 → 试车审批，引符规/文献依据）；**D-RL 一行 = 0**（零微调、零先验）。表格即"成本差"证据，轻量、不占篇幅。
 - **口径 2（视觉证据，篇幅允许再加）——标定预算曲线**：横轴 = 注入目标线信息量（剖面采样点数/覆盖坡段比例），纵轴 = 底线达成率（车钩力≤1000kN / ATP 触发次数）。MPC 全图纸 = 100% 预算点；稀疏图纸（50%/25% 剖面）性能衰减成曲线；**D-RL = 0 预算单点，落在 MPC≈100% 预算的性能上**——"零成本达同档"的可视化。
@@ -230,6 +241,7 @@
 | `docs/papers/Guo2025_MARL_PlatoonConsensus.pdf`                                                                                     | Guo, Peng, Pi, Zhang, Wu, Ma. *Enhanced consensus control architecture for autonomous platoon utilizing MARL.* Comput-Aided Civ & Infra Eng, 2025. DOI: 10.1111/mice.13463                                                       | 高：双向协同优化 + LSTM 时序，间距误差 -8.3%、编队长度 -19.1%，**HYBRID/CCBYNC**                                                                                                                                                                                                    |
 | `docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.pdf`                                                                              | Zhang, Zhou, He 等. *Deep Q-Network Algorithm-Based Cyclic Air Braking Strategy for Heavy-Haul Trains.* Algorithms, 2024, 17(5): 190. DOI: 10.3390/a17050190                                                                      | ⭐⭐⭐ **直接对标**：**长大下坡循环空气制动 DQN**，朔黄线实测验证，制动距离 -2.1%、平均速度 +7%。**明确忽略车钩力**——你的创新空间。**GOLD/CCBY**                                                                                                                                                                  |
 | `docs/papers/Zhao2022_AirBrakeRefinedModeling_Optimization.pdf`                                                                     | 赵紫宁（导师王青元）. *重载列车空气制动精细建模与操纵优化.* 西南交通大学硕士学位论文, 2022-05.                                                                                                                                                                          | ⭐⭐⭐ **建模 + 优化双料基准**：2 万吨 1+1 编组、**三段式空气制动精细模型**（响应/暂态/稳态）+ 闸瓦压力分布 + 历史制动修正函数；QP 操纵优化使压钩力 -29.49%（叠加操纵规则 -33.74%）。**30 趟车次 / 350 个制动段实车数据**。信息卡 → [`Zhao2022_AirBrakeRefinedModeling_Optimization.md`](papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md) |
+| `docs/papers/Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf` | Lu, Zhang, Su. *Cooperative Nonlinear Model Predictive Control for Multiple Locomotives of Heavy Haul Train on Long Steep Downhill Sections.* IEEE ICIRT 2025. DOI: 10.1109/ICIRT66379.2025.11216780 | ⭐⭐ **本项目 MPC 对比基线来源**：多机车协同 NMPC — 多质点模型 + 电/空制动协同 + 车钩力缓代价 + 车钩力/限速/执行器硬约束 + 空气制动波传播延迟（LOCOTROL 非 ECP）。**差异**：原文单列多机车 → 本项目 3 列群组；多质点 → 每列 4 块降阶。信息卡 `Lu2025_CooperativeNMPC_MultiLoco.md` |
 
 **已下载的 arXiv 源码（`docs/papers/arxiv_src/`）**
 
@@ -447,4 +459,4 @@
 | `PROJECT_PIPELINE.md` | 全项目 Pipeline 总览 + 进度     |
 | `papers/`             | 已下载论文（41 篇 PDF 全文 + arXiv 源码 + 全文 txt / 信息卡 .md，详见 `papers/` 目录）     |
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+<!-- 该文档整理/压缩于 2026-10-01 -->

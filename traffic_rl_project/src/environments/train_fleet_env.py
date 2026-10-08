@@ -35,6 +35,31 @@ from src.train_dynamics.etcs_braking import (
 )
 
 
+# 【ADR-021 决策2 2026-10-01】奖励 schema 版本 + 车钩力"受控超限项"常量（文献 Tang2020 / Wang2025）。
+# reward 峰值口径改为**断面力**（coupler_interface_forces）后，旧权重需重训；此常量供 metadata 标注。
+# v4 = v3 + 间距危险项穿透有界化（ADR-028 2026-10-04）：穿透时 over 不再退化为"米²"（量级炸裂）。
+REWARD_SCHEMA = 'v4-atp-aligned-gap'
+# 超限项权重（与速度带带内最高收益 +6.0/列 同量级；刻意远小于已回滚的 -80·ov² 硬惩罚）。
+COUPLER_OVER_W = 6.0
+# 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -12。
+COUPLER_OVER_CAP = 2.0
+
+# 【ADR-026 编队间距：ATP 对齐两段式】
+# 目标：车钩力不破线的前提下，"贴近 ATP 制动安全底线"跑——间距尽量小（高效）但不触发 ATP。
+#   d_safe(t) = ETCS 制动距离（后列须在追上前列尾前降到前列当前速度）——**与 ATP 判据同源**
+#                （EtcsBrakingCurve.braking_distance，含制动建立期 + 坡度分量）。
+#   效率目标 d_eff = GAP_EFF_MARGIN · d_safe（留 10% 裕量，防相位/延迟下擦线）。
+# 文献对位：Guo2025 式5（安全距离随速度动态变化）；Zhang2021（设点 + 越界悬崖）；Hua2024 式2
+#   （平滑跟踪项 + 独立防撞项）。参见 docs/REFERENCE_INDEX.md。
+GAP_EFF_MARGIN = 1.1          # 效率目标 = 1.1 · d_safe（10% 裕量）
+GAP_EFF_SCALE_M = 150.0       # 效率项衰减尺度（gap ≥ d_eff + 此值 → 效率奖励为 0）
+GAP_EFF_W = 3.0               # 效率项权重（每对，与原速度带 +6.0/列 同量级但不喧宾夺主）
+GAP_DANGER_W = 60.0           # 危险项权重（每对）；跌破 d_safe **不封顶**（替代旧 -200 饱和）
+# 【修复 2026-10-04】穿透时 _atp_safe_gap 恒返 0.0 ⇒ d_safe 退化为 0，用本固定参考尺度（m）
+# 替代其作危险项分母，避免 over 退化成"穿透米数"后 over² 爆炸（见 _calculate_reward_decomposed）。
+GAP_DANGER_REF_M = 100.0
+
+
 class TrainFleetEnv:
     # 【A1-final 双向列距维持，2026-09-09】leader 最多比尾部列快这么多（m/s），
     # 留出追上裕量。大于此则 leader 迁就压速，编队以尾部能跟上的共同速度前进。
@@ -147,6 +172,12 @@ class TrainFleetEnv:
         # 【杠杆隔离消融】mask_lever∈{'none','ed','ab'}：decompose 模式下禁用对应 RL 调制
         # （'ed'=仅 AB 杠杆生效；'ab'=仅 ED 杠杆生效）。须与训练/评估一致。
         self.mask_lever = config.get('mask_lever', 'none')
+        # 【ADR-021 决策1 2026-10-01】AB 最小充风/保持时间（秒）：透传给 MultiLocoController，
+        # 并存为属性（供 metadata 侧读取）。ab_min_refill_s 默认 222.0 有出处
+        # （张二田 S6，见 VALIDATION_BASELINE:201）；ab_min_hold_s 无实测出处默认 0.0（不激活）。
+        # ⚠️ 键须位于 env_cfg 下，否则 config.get 静默回退默认值（YAML .get 路径须严格匹配）。
+        self.ab_min_refill_s = config.get('ab_min_refill_s', 222.0)
+        self.ab_min_hold_s = config.get('ab_min_hold_s', 0.0)
         # 【E4-H 车钩异构】hetero=True 时逐车钩/逐列独立物理参数（sample_coupler_params），
         # hetero_seed 固定保证可复现；held-out 评估用另一组 seed（训练未见）。
         self.hetero = config.get('hetero', False)
@@ -164,6 +195,18 @@ class TrainFleetEnv:
         # 它偏离正确场景（各列同坡段起步、随间距保持自然产生动态相位差），
         # 且导致前列/后列缓解持续不同步 → 车钩力持续超限 + M1 训练不收敛。
         # 正确场景 = 普通 reset 布局（各列同坡段起步，见 reset()），协同由场景天然驱动。
+        # 【2026-10-06 路线覆盖修复】训练起点随机化（消除 L1 诊断的固定起点 OOD）：
+        # 每 episode reset 沿剖面随机前移整个编队，使 ≤1200 步的短训练窗口在**分布**上
+        # 覆盖全路（L1：固定起点仅覆盖 −1.5‰ 单坡段，评估 83.9% 的步落在训练未见坡度区间）。
+        # 默认关（零回归）；仅训练态生效（eval_mode=True 恒定用基准起点，保证评估可复现）。
+        self._start_rand = None
+        _sr = config.get('start_randomization', None)
+        if isinstance(_sr, dict) and _sr.get('enabled', False):
+            self._start_rand = {
+                'min_m': float(_sr.get('min_m', 0.0)),
+                'max_m': (None if _sr.get('max_m', None) is None else float(_sr['max_m'])),
+                'rng': np.random.default_rng(_sr.get('seed', None)),
+            }
 
         # 【2026-09-02 ETCS 集成】多列"真 ATP"（永久启用，安全底线，无开关）：
         # 共享一条 ETCS 制动曲线。前列尾车位置作为后列的前方监督目标（防追尾），
@@ -247,6 +290,8 @@ class TrainFleetEnv:
                     coupler_force_limit_n=self.coupler_force_limit_n,
                     enforce_coupler=self.use_coupler_constraint,
                     mask_lever=self.mask_lever,
+                    ab_min_refill_s=self.ab_min_refill_s,
+                    ab_min_hold_s=self.ab_min_hold_s,
                 )
                 for tr in self.trains
             ]
@@ -269,7 +314,10 @@ class TrainFleetEnv:
             # [0]速度误差 [1]超上限裕量 [2]低下限裕量 [3]规则基线ED [4]规则基线AB
             # [5]本机车局部车钩力 [6]AB激活比例 [7]AB缓解剩余比例 [8]制动段序号
             # [9]本机车位置(归一化) [10]本列列间间距误差（单列=0）
-            self.obs_dim = 11
+            # [11]【ADR-030】AB 充风就绪度 = 距上次 AB 释放的充风时长 / ab_min_refill_s ∈[0,1]
+            #    ——把 222 s 长充风滞后"编码进观测"（文献 Wang2026 的累计缓解时间 t_r 口径），
+            #    使策略不必靠"拉长 rollout 窗口"即可感知该长时约束。
+            self.obs_dim = 12
             self.act_dim = 2
             self.observation_space = spaces.Box(
                 low=-np.inf, high=np.inf,
@@ -298,6 +346,25 @@ class TrainFleetEnv:
         # E21 追尾趋势：上一步各列间距误差（检测间距缩小→追尾风险，引导RL提前协同）
         self._prev_gap_err = None
 
+    def _sample_start_offset(self) -> float:
+        """训练起点随机化：均匀采样编队整体前移量（米）。
+
+        max_m 缺省 = 剖面长 − 编队总长 − 3000（预留一个短窗口的前行余量），保证随机
+        起点后编队仍能在剖面内跑完一个训练窗口。剖面为常量坡度（无 segments）时返回 0。
+        """
+        prof = getattr(self.trains[0].dynamics, '_grade_profile', None)
+        if prof is None or not prof.segments:
+            return 0.0
+        route_len = max(seg.start_m for seg in prof.segments)
+        train_len = abs(self._base_pos[0][0] - self._base_pos[0][-1])
+        platoon_len = (train_len * len(self.trains)
+                       + self._dynamic_gap() * (len(self.trains) - 1))
+        span = max(0.0, route_len - platoon_len - 3000.0)
+        lo = float(np.clip(self._start_rand['min_m'], 0.0, span))
+        hi = (span if self._start_rand['max_m'] is None
+              else float(np.clip(self._start_rand['max_m'], lo, span)))
+        return float(self._start_rand['rng'].uniform(lo, hi))
+
     def reset(self, seed=None, options=None):
         self.steps = 0
         self._peak_coupler_n = 0.0
@@ -324,6 +391,10 @@ class TrainFleetEnv:
         cumulative_offset = 0.0
         # 初始速度：对齐 Zhang2024 长大下坡循环制动初始速度 65 km/h（18.06 m/s）
         init_speed = (options or {}).get('speed', 65.0 / 3.6)
+        # 训练起点随机化：整列编队沿剖面随机前移（route_offset=0 时零回归）
+        route_offset = 0.0
+        if self._start_rand is not None and not self.eval_mode:
+            route_offset = self._sample_start_offset()
         for i, (tr, ctrl) in enumerate(zip(self.trains, self.controllers)):
             tr.reset(options={'speed': init_speed})
             ctrl.reset()
@@ -333,8 +404,9 @@ class TrainFleetEnv:
             # 从基准初始位置重建（避免跨 reset 的累积平移）
             base_pos = self._base_pos[i].copy()
             if i == 0:
-                # 领航列在原点（各列同坡段起步，普通场景）
-                tr.dynamics.set_initial(pos=base_pos, vel=tr.dynamics.vel)
+                # 领航列在原点（各列同坡段起步，普通场景）；
+                # route_offset>0 = 训练起点随机化整体前移（见 _sample_start_offset）
+                tr.dynamics.set_initial(pos=base_pos + route_offset, vel=tr.dynamics.vel)
             else:
                 # 跟随列：整列向后平移（列内长度 + 动态目标间距，E4 时间间隔）。
                 # 各列同坡段起步，随编队推进自然产生动态相位差（真实编队总长~4km，
@@ -344,7 +416,7 @@ class TrainFleetEnv:
                 offset = train_len + init_gap
                 cumulative_offset += offset
                 tr.dynamics.set_initial(
-                    pos=base_pos - cumulative_offset,
+                    pos=base_pos - cumulative_offset + route_offset,
                     vel=tr.dynamics.vel,
                 )
             self._train_heads[i] = float(tr.dynamics.pos[0])
@@ -363,6 +435,31 @@ class TrainFleetEnv:
         【代码清理 2026-08-20】原签名带 vel 参数但恒被忽略（死参数），现移除。
         """
         return float(self.target_gap + self.headway_s * max(self.target_speed, 0.0))
+
+    def _atp_safe_gap(self, i: int):
+        """第 i 列相对前列的 **ATP 制动安全距离 d_safe**（m）——与安全层 ATP 判据同源。
+
+        d_safe = 后列从当前速度、当前位置，把速度降到**前列当前速度**所需距离
+        （`EtcsBrakingCurve.braking_distance`：含制动建立期 + 真实坡度分量）。ATP 恰在
+        `实际间距 < d_safe` 时介入（ETCS EBI）⇒ 本值即"贴线不越线"的那条线。
+
+        返回 None 表示不可计算（无 ETCS 曲线 / 制动无效 / 非跟随列），调用方回退 `_dynamic_gap`。
+        """
+        curve = getattr(self, 'etcs_curve', None)
+        if curve is None or i <= 0 or i >= self.num_trains:
+            return None
+        lead_tail = float(self.trains[i - 1].dynamics.pos[-1])
+        lead_v = float(self.trains[i - 1].dynamics.vel[0])
+        head = float(self._train_heads[i])
+        if lead_tail <= head:
+            return 0.0
+        try:
+            d = curve.braking_distance(
+                float(self.trains[i].dynamics.vel[0]), head,
+                EbdTarget(position_m=lead_tail, speed_mps=lead_v, kind='gap'))
+        except Exception:
+            return None
+        return float(d) if np.isfinite(d) else None
 
     def _get_obs(self) -> np.ndarray:
         """构造每列观测（E3 增强）。
@@ -536,11 +633,12 @@ class TrainFleetEnv:
     def _get_obs_decomposed(self) -> np.ndarray:
         """逐机车观测（含 AB 状态，ADR-009.1 第3层：让策略"感知"AB 动态而非预测）。
 
-        每台机车（智能体）11 维：
+        每台机车（智能体）12 维：
         [0]速度误差 [1]超上限裕量(vel-v_max) [2]低下限裕量(vel-v_min)
         [3]规则基线ED [4]规则基线AB(0/1) [5]本机车局部车钩力(归一化)
         [6]AB激活比例 [7]AB缓解剩余比例 [8]制动段序号(缩放)
         [9]本机车位置(归一化) [10]本列列间间距误差（单列=0）
+        [11]AB 充风就绪度(ADR-030)：距上次 AB 释放的充风时长 / ab_min_refill_s ∈[0,1]
         """
         obs = np.zeros((self.num_agents, self.obs_dim), dtype=np.float32)
         a = 0
@@ -569,6 +667,11 @@ class TrainFleetEnv:
                 obs[a, 8] = float(dyn._brake_segment) / 10.0
                 obs[a, 9] = float(dyn.pos[loco_idx]) * 0.0001
                 obs[a, 10] = gap_err
+                # [11] AB 充风就绪度（ADR-030）：距上次 AB 释放的充风时长 / ab_min_refill_s ∈[0,1]。
+                # 口径 = 文献 Wang2026 的"累计缓解时间 t_r"归一化：把 222 s 长充风滞后做成可观测量，
+                # 让策略无需靠拉长 rollout 窗口即可感知该长时约束。初值 -1e9 → 首次恒为 1.0（允许）。
+                _refill_s = max((ctrl._ab_step - ctrl._ab_last_release_step[k]) * ctrl.dt, 0.0)
+                obs[a, 11] = float(min(_refill_s / max(self.ab_min_refill_s, 1.0), 1.0))
                 a += 1
         return obs
 
@@ -599,6 +702,9 @@ class TrainFleetEnv:
         accels = np.zeros(self.num_trains)
         ab_count = 0       # 本步激活的 AB 源总数（奖励塑形：AB 贵）
         ed_sum = 0.0       # 本步 ED 深度合计（ED 便宜，鼓励 ED 优先）
+        # 【ADR-021 决策3 / D】安全层对 AB 的"禁新增源"本步计数（跨列车累加）。
+        # 逐列车子环境（train_env）已在 info 暴露，此处聚合到 fleet info，供诊断/留痕可观测。
+        ab_safety_vetoed_count = 0
         self._step_coupler_peak_n = 0.0  # 本步全列最大车钩力（跨列车取 max；奖励车钩力用真实峰值，非机车局部值）
         a = 0
         # 【列距收缩 v2 2026-09-09】放弃 A2"全场共同速度锁"（它会连 follower 一起压死，
@@ -672,15 +778,19 @@ class TrainFleetEnv:
                 tr.set_etcs_targets([EbdTarget(
                     position_m=leading_tail, speed_mps=lead_speed, kind='gap',
                 )])
-            tr.step(final_edab)
+            _pt_info = tr.step(final_edab)[-1]
+            # 【ADR-021 决策3 / D】聚合本列的安全层 AB 权限计数（子环境 info 上抛）
+            ab_safety_vetoed_count += int(bool(_pt_info.get('ab_safety_vetoed', False)))
             self._train_heads[ti] = float(tr.dynamics.pos[0])
             accels[ti] = (float(tr.dynamics.vel[0]) - v_before) / max(self.dt, 1e-6)
-            # 奖励塑形用每车净力峰值（保口径，避免作废 checkpoint）；
-            # 指标/违规计数用**断面力口径**（SSOT）【2026-09-30 治本】
-            coupler = np.abs(tr.dynamics._coupler_forces())
-            cpl_max = float(np.max(coupler)) if len(coupler) else 0.0
-            self._step_coupler_peak_n = max(self._step_coupler_peak_n, cpl_max)
-            interface = np.abs(tr.dynamics.coupler_interface_forces())
+            # 【ADR-021 决策2 2026-10-01】reward 峰值口径改**断面力**（coupler_interface_forces，
+            # 长度 n-1）：原用每车净力 _coupler_forces() 少报约 7.8×，使"破线/不破线"在 reward
+            # 里几乎不可区分。此为**有意**口径变更（ADR-018 指标 SSOT = 断面力）→ 会改变 reward
+            # ⇒ 旧权重需重训。断面力违规计数（下方）保持不变。
+            iface = np.abs(tr.dynamics.coupler_interface_forces())
+            iface_max = float(np.max(iface)) if iface.size else 0.0
+            self._step_coupler_peak_n = max(self._step_coupler_peak_n, iface_max)
+            interface = iface
             if interface.size:
                 self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(interface)))
                 self._coupler_limit_violations += int(
@@ -706,6 +816,8 @@ class TrainFleetEnv:
             'ab_source_count': ab_count,          # 本步 AB 源数（ED 优先/AB 兜底 分配诊断）
             'mean_ed_frac': ed_sum / max(self.num_agents, 1),
             'decomposed_actions': self._executed_actions.copy(),
+            # 【ADR-021 决策3 / D】安全层对 AB 的权限计数（跨列车本步聚合；新增键，既有键不删）
+            'ab_safety_vetoed': ab_safety_vetoed_count,
         }
         return obs, reward, terminated, truncated, info
 
@@ -766,43 +878,58 @@ class TrainFleetEnv:
             peak_n_norm = float(np.max(coupler_means)) if len(coupler_means) else 0.0
         coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * peak_n_norm
 
+        # 【ADR-021 决策2 2026-10-01】车钩力"受控超限项"（文献 Tang2020 / Wang2025）：
+        # 保留"不作均值最小化"原则（不动 mean(obs[:,5]) 权重），仅对**断线峰值超限**加深
+        # 有界梯度。上界 -12 与带外速度惩罚（norm_dev=2 → -20）同档但更小；**刻意避免**
+        # -80·ov² 量级（回滚原因：value 目标震荡 / KL 频繁早停，见上方 :757-760 注释）。
+        # peak_n_norm < 1（未破线）时该式恒为 0（over=0）。
+        over = max(0.0, peak_n_norm - 1.0)
+        coupler_over_term = -COUPLER_OVER_W * min(over, COUPLER_OVER_CAP)
+
         # 舒适性（同旧模式）
         comfort_penalty = -0.3 * float(np.mean(accels ** 2)) if len(accels) else 0.0
 
         # 列间间距（多列 decompose 后叠阶段复用；单列时无项）
-        gap_reward = 0.0
-        potential_field = 0.0
+        # 【ADR-026 2026-10-04】改为"ATP 对齐两段式"：效率项（贴近 d_eff=1.1·d_safe 越好）
+        # + 危险项（跌破 d_safe 陡罚、**不封顶**）。旧实现（+1.0·exp(-(ge/140)²) 小高斯丘 +
+        # max(...,-200) 饱和势场 + 对固定 200m 双向惩罚）已废止：它既不给"贴紧"的奖励，
+        # 也在危险区没有梯度（gap≤70m 后恒为 -200），实测最小列距掉到 19m。
+        gap_eff_reward = 0.0
+        gap_danger_penalty = 0.0
         collision_penalty = 0.0
-        # 追尾趋势早期惩罚（诊断-2026-09-08 Option 1，对齐非 decompose 分支 gap_trend）：
-        # 间距误差在缩小（后列逼近前列）且已较近 → 提前惩罚，引导 RL 提前协同减速，
-        # 而非等追尾势场爆炸（长程 5000 步段串级失稳的根因）。
         gap_trend_penalty = 0.0
         current_gap_err = []
         if self.num_trains > 1:
             for i in range(1, self.num_trains):
-                ge = (self.trains[i - 1].dynamics.pos[-1] - self._train_heads[i]) - self._dynamic_gap()
-                current_gap_err.append(ge)
-                gap_reward += 1.0 * float(np.exp(-(ge / 140.0) ** 2))
-                if ge > 150.0:
-                    gap_reward -= 0.02 * (ge - 150.0)
-                dyn_gap = self._dynamic_gap()
-                actual_gap = dyn_gap + ge
-                min_gap = dyn_gap * 0.4
-                if actual_gap < min_gap:
-                    potential_field += -2.0 * (min_gap - actual_gap) ** 2
+                lead_tail = float(self.trains[i - 1].dynamics.pos[-1])
+                actual_gap = lead_tail - float(self._train_heads[i])
+                d_safe = self._atp_safe_gap(i)
+                if d_safe is None:
+                    d_safe = self._dynamic_gap()   # 回退（无 ETCS 曲线等）
+                current_gap_err.append(actual_gap - d_safe)
+                d_eff = GAP_EFF_MARGIN * d_safe
+                # 效率项：gap ≥ d_eff 时，越接近 d_eff（间距越小）奖励越高；再大则衰减到 0。
+                if actual_gap >= d_eff:
+                    gap_eff_reward += GAP_EFF_W * max(
+                        0.0, 1.0 - (actual_gap - d_eff) / GAP_EFF_SCALE_M)
+                # 危险项：跌破 ATP 安全线 d_safe → 陡罚，不封顶（越线绝不被速度带收益抵消）。
+                # 【修复 2026-10-04】穿透时 _atp_safe_gap 恒返 0.0（lead_tail<=head），原
+                # max(d_safe,1.0)=1.0 使 over 退化成"穿透米数"（-53m→over=53）⇒ over² 爆炸
+                # （-60·53²≈-1.7e5/步）⇒ 单集回报 R≈-9.18e6 ⇒ ValueNorm vstd 永久抬高（17k）
+                # 致后续数十集 advantage 被压缩、训练停滞。改用固定参考尺度归一（over 保持
+                # 无量纲、量级有界）；非穿透路径（d_safe>1）行为不变。
+                if actual_gap < d_safe:
+                    denom = d_safe if d_safe > 1.0 else GAP_DANGER_REF_M
+                    over = (d_safe - actual_gap) / denom
+                    gap_danger_penalty -= GAP_DANGER_W * over * over
                 if actual_gap < 5.0:
-                    # 降软：追尾硬惩罚从 -50/对 降为 -10/对，避免多列逐对累加成负信号洪流
+                    # 追尾硬惩罚（保留旧降软值，仅作最后兜底；主要靠上面的危险项）
                     collision_penalty -= 10.0
-            potential_field = max(potential_field, -200.0)
             if self._prev_gap_err is not None and len(current_gap_err) == len(self._prev_gap_err):
                 for i, cur in enumerate(current_gap_err):
-                    prev = self._prev_gap_err[i]
-                    # 间距误差在变小（实际间距缩短，逼近前列）→ 追尾趋势 → 惩罚
-                    shrink = prev - cur
-                    # 【2026-09-09 修复】触发窗放宽（cur<30→60m，shrink>1→0.5m/步）：长程段
-                    # 振荡中后列从 100m 目标快速逼近时需更早更连续的信号（原窗只在 30m 内、
-                    # 且 0.5 权重单步惩罚过浅，5000 步段手风琴建立前几乎不触发）
-                    if shrink > 0.5 and cur < 60.0:  # 间距缩短且已较近 → 追尾风险
+                    # 间距在缩小且已贴近安全线（gap-d_safe < 20m）→ 追尾趋势 → 提前惩罚
+                    shrink = self._prev_gap_err[i] - cur
+                    if shrink > 0.5 and cur < 20.0:
                         gap_trend_penalty -= 0.4 * shrink
             self._prev_gap_err = current_gap_err
 
@@ -829,12 +956,13 @@ class TrainFleetEnv:
             + speed_band_reward
             + rel_anchor_reward
             + force_penalty
-            + gap_reward
+            + gap_eff_reward
+            + gap_danger_penalty
             + gap_trend_penalty
-            + potential_field
             + collision_penalty
             + comfort_penalty
             + coupler_term
+            + coupler_over_term
             + ab_cost
             + ed_cost
         )

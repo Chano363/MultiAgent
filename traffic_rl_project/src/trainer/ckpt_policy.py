@@ -1,6 +1,7 @@
 """统一训练框架：CkptNamer —— 各产线 checkpoint 命名协议（评估入口零改动）。
 
-必须保持 evaluate_l1_long / evaluate_m1_m3_long / evaluate_decompose 的 glob 兼容：
+必须保持 evaluate_l1_long / evaluate_decompose 的 glob 兼容（`evaluate_m1_m3_long` 已按
+ADR-022 删除）：
   l1         -> cyclic_mappo_best_seed{s}_v{vmin}-{vmax}_init{init}.pt
   fleet      -> mappo_fleet_best_{cp_tag}_seed{s}.pt (+ ep{gep+1}_...)
   coor_dqn   -> coor_dqn_best_seed{s}_train{i}.pt (i in [0,num_trains))

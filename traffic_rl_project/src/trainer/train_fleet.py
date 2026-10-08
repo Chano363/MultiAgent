@@ -132,7 +132,9 @@ def train(
 
     # 【治理】工况断言 + 元数据落盘：调试物理(衰减/列尾压/减压覆盖)进入正式训练即抛异常
     _case = SimCase(case)
-    assert_case_allows(_case, official_world_config(PhysicsConfig()), __file__)
+    # 运行派生（2026-09-30）：metadata 的 physics 块随本次 run 的编组固化
+    world_cfg = official_world_config(PhysicsConfig(), env_cfg={'consist_preset': consist_preset})
+    assert_case_allows(_case, world_cfg, __file__)
     extra_hp = {
         "algorithm": "mappo",
         "episodes": episodes, "num_trains": num_trains,
@@ -153,12 +155,12 @@ def train(
         },
     }
     save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
-                  case=_case.value, world_cfg=official_world_config(PhysicsConfig()), seed=seed,
+                  case=_case.value, world_cfg=world_cfg, seed=seed,
                   entry=__file__, extra={"hyperparameters": extra_hp})
     # 自包含 checkpoint：同一份权威 metadata 嵌入每个 .pt（对标 YOLO best.pt）
     ckpt_meta = build_metadata(project_root=str(Path(__file__).parent.parent.parent),
                                case=_case.value,
-                               world_cfg=official_world_config(PhysicsConfig()),
+                               world_cfg=world_cfg,
                                seed=seed, entry=__file__,
                                extra={"hyperparameters": extra_hp})
 

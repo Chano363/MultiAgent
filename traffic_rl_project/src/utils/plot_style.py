@@ -7,8 +7,12 @@ WSL 的 conda 环境默认无 CJK 字体（只有 DejaVu），中文标签会渲
 """
 from pathlib import Path
 
-# 候选字体路径（按优先级）：Windows 雅黑/黑体 → Linux Noto/SimHei
+# 候选字体路径（按优先级）：原生 Windows 雅黑/黑体 → WSL 挂载 Windows 字体 → Linux Noto/SimHei
 CJK_FONT_CANDIDATES = [
+    (r'C:\Windows\Fonts\msyh.ttc', 'Microsoft YaHei'),
+    (r'C:\Windows\Fonts\msyhbd.ttc', 'Microsoft YaHei'),
+    (r'C:\Windows\Fonts\simhei.ttf', 'SimHei'),
+    (r'C:\Windows\Fonts\simsun.ttc', 'SimSun'),
     ('/mnt/c/Windows/Fonts/msyh.ttc', 'Microsoft YaHei'),
     ('/mnt/c/Windows/Fonts/msyhbd.ttc', 'Microsoft YaHei'),
     ('/mnt/c/Windows/Fonts/simhei.ttf', 'SimHei'),

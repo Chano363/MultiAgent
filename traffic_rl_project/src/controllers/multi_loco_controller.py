@@ -43,6 +43,8 @@ class MultiLocoController:
         enforce_coupler: bool = True,
         ed_priority: bool = True,
         mask_lever: str = 'none',
+        ab_min_refill_s: float = 222.0,
+        ab_min_hold_s: float = 0.0,
     ):
         self.num_vehicles = num_vehicles
         self.loco_indices = list(loco_indices)
@@ -59,6 +61,36 @@ class MultiLocoController:
         # 训练与评估须用同一 mask（train_fleet --mask_lever / evaluate_decompose
         # --mask_lever），否则策略与掩码失配。
         self.mask_lever = mask_lever
+        # 【ADR-021 决策1 2026-10-01】AB「最小充风时间 / 最小保持时间」进动作空间（文献 Zhang2024）。
+        # - ab_min_refill_s：AB 源释放后到下一次允许**新增/保持**该源的"最短充风时间"（秒）。
+        #   出处：docs/VALIDATION_BASELINE.md:201（张二田 S6：困难区段 5 次循环制动，最短充风
+        #   222 s）；实测范围 175~512 s 见同文件 :169（赵紫宁2022）。**有出处，勿改数值。**
+        # - ab_min_hold_s：AB 源施加后到下一次允许**释放**的最短保持时间（秒）。
+        #   **2026-10-01 结案：无出处 ⇒ 默认 0.0（该半边不激活）**，不得编造数值。
+        #   检索范围：① Zhang2024 全文 §2.2 仅三条运行约束（充风式(9)/速度式(10)/电制力式(11)），
+        #   无"最短制动保持时长"；②《铁路机车操作规则》（TG/JW104-2012）最接近的两条均不适用
+        #   ——"列检作业场…减压100kPa并保压3min"是**站内保压试验**非运行约束；"重载列车
+        #   v<30km/h 不应缓解"是**速度门限**，且本场景 v_min=40km/h ⇒ 恒不触发（空约束）；
+        #   ③ 赵紫宁2022 表5-3 的制动时长 212~1358s 是**实测观测值**非下界。
+        #   若日后要建模"低速段禁止缓解"，须作**独立机制**并入更低 v_min 剖面，勿复用本参数。
+        #   留痕：docs/REFERENCE_INDEX.md 落地映射 + DIAGNOSTICS_2026-10.md「检索-2026-10-01」。
+        # ⚠️ 计时前提（防后人误改单位）：get_action_decomposed **每个原始 dt 步都会被调用一次**
+        #   （"动作保持"/decision_interval 由外层循环反复调 env.step 实现，env 内部仍每步重算
+        #   规则基线与 RL 调制）。因此 _ab_step 等价原始步数，
+        #   elapsed_s = (self._ab_step - last_step) * self.dt 即正确仿真秒数；
+        #   **不要**乘 decision_interval，也不要新增 decision_interval 参数（会引入 10× 偏差）。
+        self.ab_min_refill_s = float(ab_min_refill_s)
+        self.ab_min_hold_s = float(ab_min_hold_s)
+        # AB 充风/保持门控状态（**仅在 get_action_decomposed 内维护**；
+        # get_action_cyclic_braking 保持无状态）。
+        self._ab_step = 0
+        self._ab_on = [False] * self.num_locomotives
+        # 初值 -1e9 保证首次允许（充风/保持门不会拦第一个源/第一次释放）
+        self._ab_last_release_step = [-10 ** 9] * self.num_locomotives
+        self._ab_last_apply_step = [-10 ** 9] * self.num_locomotives
+        # 门控拒绝计数（诊断用）
+        self.ab_refill_veto_count = 0
+        self.ab_hold_veto_count = 0
         # 【2026-09-30 死代码消除】原内部 SafetyLayer 从未被调用（真安全层 = 环境的
         # train_env.safety，在动作喂给动力学前统一钳制）。此处删除，避免"两套安全层"混淆；
         # 车钩力源头门控改为直接咨询 train_env.safety（见 get_action_decomposed）。
@@ -142,6 +174,31 @@ class MultiLocoController:
             return 1.5  # 无下坡需求 → ED 富余
         return float(np.clip(f_ed / f_req, 0.0, 1.5))
 
+    def _ab_gate(self, i: int, want_on: bool) -> bool:
+        """【ADR-021 决策1】AB 充风/保持门控：返回「是否允许这次 AB 状态变更」。
+
+        - want_on=True 且当前 off：仅在充风时长 ≥ ab_min_refill_s 后才允许新增/保持该源，
+          否则 ab_refill_veto_count += 1 并拒绝（本步不发这个新源）；
+        - want_on=False 且当前 on：仅在施加后保持时长 ≥ ab_min_hold_s 后才允许释放该源，
+          否则 ab_hold_veto_count += 1 并拒绝（本步不释放）；
+        - 其余（状态不变）直接允许。
+
+        计时口径：_ab_step 每原始 dt 步 +1（见 __init__ 说明），故
+        elapsed_s = (self._ab_step - last_step) * self.dt。ab_min_refill_s=0 时
+        (Δstep*dt >= 0) 恒真 ⇒ 零回归（行为与改造前一致）。
+        """
+        if want_on and not self._ab_on[i]:
+            if (self._ab_step - self._ab_last_release_step[i]) * self.dt >= self.ab_min_refill_s:
+                return True
+            self.ab_refill_veto_count += 1
+            return False
+        if (not want_on) and self._ab_on[i]:
+            if (self._ab_step - self._ab_last_apply_step[i]) * self.dt >= self.ab_min_hold_s:
+                return True
+            self.ab_hold_veto_count += 1
+            return False
+        return True
+
     # ------------------------------------------------------------------ #
     # 主接口 1：循环制动
     # ------------------------------------------------------------------ #
@@ -224,6 +281,13 @@ class MultiLocoController:
         - rl_actions (num_loco,2) 每机车 [ed_mod, ab_mod] ∈ [-1,1]：
           * ed_mod：调整本机车 ED 深度（±ed_mod_coef 绝对量，连续真物理杠杆，
             直接改变电制动力，区别于旧架构 ±0.5km/h 阈值偏移的 1.25% 杠杆）；
+            【ADR-024，2026-10-02】ed_mod_coef 回退为 **0.5（半幅调制）**：
+            ADR-023 曾放宽到 1.0 以消除 MPC 桥接的"越权请求"截断（455→0），但完整
+            剖面 A/B 实测显示——① 放宽对 MPC 无可用收益（53km 依旧远弱于规则基线）；
+            ② 对 RL 有害：可整幅撤销规则层 ED（Δ=−1.0）⇒ 持续破 1000 kN（ep51–55
+            旧 0.5 口径 viol=0 vs 新 1.0 口径 viol 327–694）。故回退 0.5；越权请求
+            计数保留为观测指标（MPC baseline 细节不承担立论）。带宽仍由本默认值
+            **唯一定义**（evaluate_decompose / metadata 派生读取，勿手抄常量）。
           * ab_mod > +0.5：抑制本机车 AB 源（仅当 vel < v_max - AB_SUPPRESS_MARGIN_MPS
             才生效——远离超速才允许关兜底，"ED 优先"可学且安全）；
           * ab_mod < -0.5：提前触发本机车 MIN 档 AB 兜底（错峰/预判性引入）。
@@ -232,6 +296,8 @@ class MultiLocoController:
             train_env, v_max=v_max, v_min=v_min,
             v_max_adj=v_max_adj, v_min_adj=v_min_adj,
         )
+        # 【ADR-021 决策1】AB 计时：本方法每个原始 dt 步调用一次（见 __init__ 前提说明）。
+        self._ab_step += 1
         final = baseline.copy()
         vel = float(train_env.dynamics.vel[0])
         rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
@@ -265,7 +331,10 @@ class MultiLocoController:
             if baseline[i, 1] < 0 and ab_mod > 0.15:
                 # 抑制本机车 AB 源：仅当远离超速裕量才生效（保住"AB 兜底"安全性）
                 if vel < v_max - self.AB_SUPPRESS_MARGIN_MPS:
-                    final[i, 1] = 0.0
+                    # 【ADR-021 决策1】释放该源需过"最小保持时间"门
+                    # （ab_min_hold_s>0 时才可能拒绝；默认 0.0 恒允许=零回归）。
+                    if self._ab_gate(i, False):
+                        final[i, 1] = 0.0
             elif baseline[i, 1] >= 0 and ab_mod < -0.15:
                 # 提前触发 MIN 档兜底（RL 学"何时/哪台机车引入 AB"）
                 # 【2026-09-10 安全层源头门控：防暴力 AB 吸态】车钩力由安全层兜底（SSOT），
@@ -279,7 +348,8 @@ class MultiLocoController:
                 # 故更早封新增源 + 限并发，避免多机车同步 AB 压缩波叠加。
                 if (cur_coupler_ratio < self.AB_ADD_SOURCE_MAX_RATIO
                         and added_ab_sources < self.AB_MAX_CONCURRENT_ADD
-                        and not ab_add_vetoed):
+                        and not ab_add_vetoed
+                        and self._ab_gate(i, True)):
                     final[i, 1] = self.AB_FALLBACK_NOTCH
                     added_ab_sources += 1
                 # 否则高力下/已限并发时禁止新增源（final[i,1] 保持 baseline 的 0 → 不引入新 AB）
@@ -291,6 +361,21 @@ class MultiLocoController:
         scale = self._coupler_throttle_scale(train_env)
         final[:, 0] *= scale
         final[:, 1] *= scale
+        # 【ADR-021 决策1】规则层自身新增的 AB 源同受充风门约束（gate 判定须在"提交状态"之前）：
+        # baseline[i,1]<0 = 规则层要求该机车发 AB；若 final 仍 <0 且本步由 off→on 而充风门拒绝
+        # ⇒ 本步不发这个新源（final[i,1]=0）。已 on 的源不受影响（不撤销已建立源）。
+        for i in range(self.num_locomotives):
+            if (baseline[i, 1] < 0 and final[i, 1] < 0
+                    and not self._ab_on[i] and not self._ab_gate(i, True)):
+                final[i, 1] = 0.0
+        # 【ADR-021 决策1】提交本步 AB 状态（基于 final）：记录 0→1 的施加时刻 / 1→0 的释放时刻。
+        for i in range(self.num_locomotives):
+            new_on = bool(final[i, 1] < 0)
+            if new_on and not self._ab_on[i]:
+                self._ab_last_apply_step[i] = self._ab_step
+            elif (not new_on) and self._ab_on[i]:
+                self._ab_last_release_step[i] = self._ab_step
+            self._ab_on[i] = new_on
         return final, baseline
 
     # ------------------------------------------------------------------ #

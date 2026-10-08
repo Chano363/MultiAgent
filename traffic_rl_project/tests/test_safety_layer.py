@@ -192,6 +192,36 @@ def test_safety_coupler_force_limit_blocks_both_signs_symmetrically():
 
 
 # ---------------------------------------------------------------------------
+# 安全层：ATP 制动优先级（2026-10-04 负间距自毁闭环回归）
+def test_safety_atp_brake_not_released_by_coupler_rule():
+    """ATP 制动不可被车钩力缓和规则放掉（回归：负间距自毁闭环）。
+
+    事故链：后列逼近前列 → ETCS EBI 下紧急制动 → 列间受压车钩破 1000kN →
+    原实现（ETCS 先施加、车钩力规则后施加 release）把紧急制动钳回 0 → 刹不住穿透。
+    修复后 ETCS 最后施加，其制动必须保留。
+    """
+    from src.train_dynamics.etcs_braking import EtcsBrakingCurve, EbdTarget
+    curve = EtcsBrakingCurve(nominal_emergency_decel=1.0, grade_at=lambda x: 0.0)
+    sl = SafetyLayer(num_vehicles=2, max_speed_mps=30.0,
+                     coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N)  # 默认 release
+    actions = np.array([-0.5, -0.5])  # 智能体只给了轻制动
+    obs_state = {
+        'vel': np.array([30.0, 30.0]),
+        'coupler_forces': np.array([1.2e6, 1.2e6]),  # 破线
+        'gaps': np.array([0.0, 5.0]),
+        'head_position_m': 0.0,
+        'etcs_curve': curve,
+        'etcs_targets': [EbdTarget(position_m=50.0, speed_mps=0.0, kind='gap')],
+    }
+    corrected = sl.protect(actions, obs_state)
+    # 两条规则都应命中，但 ETCS 紧急制动必须保留（不被车钩力 release 覆盖）
+    assert any(e['rule'] == 'etcs_ebi' for e in sl.last_events)
+    assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+    assert corrected[0] <= -0.9
+    assert corrected[1] <= -0.9
+
+
+# ---------------------------------------------------------------------------
 # 安全层：间距防护
 def test_safety_min_gap_blocks_acceleration():
     """间距过小时，后车继续加速应被抑制。"""

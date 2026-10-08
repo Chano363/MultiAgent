@@ -62,4 +62,4 @@ GB/T 7714-2015：Vishakh V Krishna, Daniel Jobstfinke, Stefano Melzi, Mats Berg.
 
 - **新增（控制层，文献无）**：上述文献在**力/安全层**测列车（Krishna 目标=最大 in-train force / tolerable LCF）；我们把**连续参数分布**用于**控制器层**（MARL 分布内训练+held-out 泛化 vs MPC 锁参）。异质"机理—先例、控制—新增"定位就此站稳。
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+<!-- 该文档整理/压缩于 2026-10-01 -->

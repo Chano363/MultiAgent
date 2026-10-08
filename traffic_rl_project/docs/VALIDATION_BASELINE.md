@@ -875,5 +875,60 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 - 新文件：`src/controllers/nmpc_controller.py`、`tests/test_nmpc_controller.py`；`requirements.txt` 加 `casadi>=3.6.0`。
 - 临时脚本 `tmp_nmpc_smoke.py`/`tmp_nmpc_diag_status.py` 用后即删；结论已留本文档。
 - 待续（plan Step 2 全量）：53km 主对比 D-RL/D-Rule/NMPC 三行 + 跨线 20/35km 同协议，指标落 metadata JSON（车钩力峰值/ATP/列距/solve_times），时间戳归档不覆盖。
+- **【2026-10-01 ADR-022 后续】** NMPC 已**唯一化**为 MPC 对比基线（旧 `FairMPCController` / 简化 `MPCController` 删除，`--mpc_type` 收敛为单值 `nmpc`）；本节上半的 NMPC 冒烟结论仍有效，但其 `meanED 0.992` 等数值产生于**修复前**的桥接口径（绝对 ED 当调制）⇒ **数值作废、结论（求解成功/车钩力约束生效/solve_times 有值）仍成立**。桥接修复见 `DIAGNOSTICS_2026-10.md`「修复-2026-10-01d」。
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+## 附录 A：阶段二列车仿真设计速览（自根 `AGENTS.md` 迁入，2026-10-01）
+
+> 迁入动机：根 `AGENTS.md` 大幅精简，**研究阶段细节**下沉到本文件（对应本文 §一「仿真器设计验证」）。**原文照搬，零内容丢失**；权威仍以代码 + 本文 §一/§四为准。
+
+**动力学**（`src/train_dynamics/`，NeTrainSim 公式 + 多体扩展）：
+
+- 多体积分器 `train.py`：每车独立质点，受力 = 牵引 − 制动 − Davis 阻力 ± 坡度 + 车钩力；空气制动支持**双向传播 + 多源制动**（`ab_sources`，分布式动力/尾部动力）
+- **制动** `braking.py`：
+  - **电制动（ED）**：连续可调，仅机车，功率 + 粘着约束
+  - **空气制动（AB）**：离散档位（RELEASE/MIN/SERVICE/EMERGENCY），**沿车列按制动波速向后传播**（常用 200 m/s、紧急 250 m/s）——纵向冲动的主要物理来源
+- **车钩力** `coupler.py`：**MT-2 摩擦式迟滞缓冲器**（于宗泽2025/李蔚2023，Stribeck 静 750/动 500 kN、v_er=0.2、预压 200 kN、饱和 2270 kN @ 83 mm 行程）+ **车钩间隙死区**（`_dead_zone`，`CouplerParams.coupler_gap_m` 默认 0.01 m），复现杨敏"间隙 → 车钩力"规律，牛顿第三定律成对抵消；**【2026-09-07 ADR-011】统一回 MT-2**：机车 QKX100 弹性胶泥分区已彻底移除，全列（含机-货连挂钩）均 MT-2，WSL 两处实现（`coupler.py` 标量 + `train.py` 向量化）数值一致
+- **坡度剖面** `grade_profile.py`：`GradeProfile` 分段剖面 + 3 种预置（樊运新：长大下坡 −10.2‰ / 缓坡变陡坡 / V 型坡），每步按车辆位置实时更新坡度
+
+**环境**（`src/environments/train_env.py`，`TrainFormationEnv`）：
+
+- 状态（每车 4 维）：速度误差、与前车间距误差、车钩力、位置
+- 动作（每车 1 维）：throttle ∈ \[−1, 1]，> 0 牵引（仅机车）、< 0 制动
+- **编组预设**：`consist_preset: '10kt_1plus0'`（1 机 + 100 货 = 10188 t，论文研究对象）或 `default`
+- **坡度剖面**：`grade_profile: 'long_downhill'/'gradual_to_steep'/'v_shape'`（长大下坡场景）
+- 奖励：−0.5·速度误差 − 0.3·间距误差 − 0.15·平均冲动 − 0.15·峰值冲动 + 超限惩罚
+
+**安全层**（`src/safety_layer.py`，`SafetyLayer`）：
+
+- 规则式 ATP：限速、车钩力上限（**正常运行 1000 kN / 紧急制动 2250 kN**，Fu2019）、列车间距下限
+- 在动作喂给动力学前修正，纯规则无学习参数
+- 后续可叠加 CBF（QP 求解）做理论对标
+
+> ⚠️ **2026-10-01 现状补充**：本项目"安全层对 AB 无权限"缺口（`ab_sources` 绕行）与闸门有效域问题已诊断，见 [`logs/diagnostics/DIAGNOSTICS_2026-10.md`](logs/diagnostics/DIAGNOSTICS_2026-10.md)「诊断-2026-10-01」；改造方向见 `logs/decisions/DECISIONS.md` ADR-021。奖励项的**分项量级**（速度带 +6/列 vs 车钩力 ≤0.4）亦见该诊断。
+
+## 附录 B：引擎 / 工程 Gotchas 速查（自根 `AGENTS.md` 迁入，2026-10-01）
+
+> 迁入动机：根 `AGENTS.md` 精简，**Gotchas 明细**下沉到本文件（本文件是"验证仿真器正确性 / 查历史诊断"的入口）。**原文照搬，零内容丢失**；逐条教训的完整格式见 [`logs/learnings/LEARNINGS.md`](logs/learnings/LEARNINGS.md)。
+
+| 问题 | 解决 |
+| --- | --- |
+| YAML `3e-4` 解析成字符串 | 用十进制：`0.0003` |
+| Action dim mismatch | 环境交互 reshape `(num_drones,4)`；transition 存储拉平 12 维（阶段一遗留） |
+| Loss 恒 0 | 确保 `batch_size ≤ n_steps`，否则 buffer 永远不满 |
+| INFO 日志不打印 | 脚本入口 `logging.basicConfig(level=logging.INFO)` |
+| **Davis 阻力被放大 w 倍** | 空气阻力必须是标准 Davis 形式 `0.0018*C*A*V²`（独立于车重），不能 `area*cd*v²/w` 再乘 w（会把阻力放大数百倍，平衡速度被低估到 8 m/s，20 m/s 不可达）。已修复（见 VALIDATION\_BASELINE V2） |
+| **制动传播被 dt 吞掉** | 传播延迟按**车辆累计长度/波速**算（真实重载数百米 → 数秒延迟），不要用车钩 free\_length |
+| **安全层修正 → log\_prob 失配 → 策略发散** | SafetyLayer 修正动作后必须用**实际执行动作**重算 log\_prob 存储（`info['executed_actions']` + `agent.get_log_prob`），否则重要性采样失效，viol 每 10ep 爆 85 倍（V5.1 三层 bug 链之一） |
+| **R0 车钩地基改版（2026-09-06）→ 历史车钩力绝对值作废** | 车钩模型升级：Stribeck 摩擦（静 750/动 500 kN，v_er=0.2）+ 循环段间衰减启用（official 基线）+ 缓解排气两段式（波传播期满制动 + exp(−t/τ=6s) 排风）。**【2026-09-07 ADR-011】统一回 MT-2**：机车 QKX100 弹性胶泥分区（月牙形两段刚度 + 胶泥幂律，2500 kN@83 mm）已彻底移除，仅作文献追溯。SSOT=`docs/VALIDATION_BASELINE.md`「地基级建模体检 R0」+「诊断-2026-09-07」节；R0 前训练产物/评估 JSON/fig3-6 绝对值引用须附建模版本声明 |
+| **Newmark 欠松弛污染最终状态 → 动力学整体缩水 25%** | 迭代欠松弛（α<1）只用于防发散，**收敛后必须取未松弛候选解** `(x_cand, v_cand)`。曾把松弛中间量当最终状态，稳态等效 v\_{n+1}=0.75·真解（2026-09-02 三层锚交叉测试发现，修复后多体 vs 独立 RK4 差异 8.77% → 0.0005%）。**历史训练/验证绝对值都在 75% 动力学下产生，重跑前勿直接引用** |
+| **缓解波建模差异 → 历史资产结论可能失真** | 历史训练**有的含缓解波（空气制动缓解波速传播）、有的不含**，产出于建模变更**之前**的结论不得直接引用；追加任何历史资产必须**并入记录训练路况 + 完整命令 + seed/配置 + 建模版本声明**（规范见 `docs/rules/EXECUTION_RULES.md`「历史资产复现元数据与建模差异声明」） |
+| **`ab_command=None` ≠ 缓解** | `None` = 不使用空气制动，须在 `_advance_control_once` 单独分支 `pass`（`None != RELEASE` 为真会把头车挂上 None 档 active 态，静止列车蠕动/能量不守恒） |
+| **静止起步牵引力泄漏** | `tractive_force` 在 `v<=1e-6` 分支必须先判 `throttle<=0 → 0`，否则 throttle=0 也输出满粘着牵引（~882 kN@100t），平坡静止列车被推走 |
+| **半隐式 Euler 不能做长时程交叉基准** | 一阶方法数百年时程惰行系统性高估减速 ~9%；独立实现对照（`rigid_multi_particle.py`）用 **RK4** |
+| **缓坡不超限等"规律类"文献判据需复现适用前提** | 张二田"缓坡<1000 kN"成立前提 = 同坡缓解 + 充分充风 + 平缓操纵；缓解不同步是单机车编组缓解冲击的主因（与坡度弱相关）。照搬绝对阈值会误报 |
+| **value\_loss 爆炸 → 阈值误杀** | 多智能体累计 returns ~1e4–1e5，value 网络初始输出 0 → value\_loss ~1e8 → 用 ValueNorm（PopArt）归一化 value 目标，不要用 `total_loss>1000` 硬编码阈值 |
+| **mcp 2.0 崩溃** | scholar-search-mcp 需 `mcp==1.9.3`（2.0 移除 `@app.list_tools`） |
+| **程序化下载论文被 403** | MDPI/Wiley/IEEE/Hindawi 反爬，开放获取论文用**浏览器手动下载** |
+| 网络下载 | 用 Windows PowerShell，别用 WSL |
+
+<!-- 该文档整理/压缩于 2026-10-01 -->

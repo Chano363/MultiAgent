@@ -1,0 +1,1599 @@
+ 
+Multi-Agent Reinforcement Learning Optimization for Virtual
+Coupled Train Set Problem in CBTC Systems
+Guanlin Jing, Yifei Zou*, Zuyuan Zhang, Jiguo Yu, Dongxiao Yu, and Xiuzhen Cheng
+Abstract: Modern  urban  rail  transit  systems  face  unprecedented  challenges  and  opportunities  due  to
+accelerated urbanization and growing travel demand, which increase the need for operational efficiency and
+service  quality.  Traditional  approaches  based  on  Communication-Based  Train  Control  (CBTC)  systems  are
+insufficient for fluctuating passenger flows. This study introduces a Virtual Coupled Train Set (VCTS) controlled
+by  Multi-Agent  Reinforcement  Learning  (MARL)  to  address  these  issues.  VCTS  enhances  capacity  and
+efficiency  by  dynamically  adjusting  train  spacing  and  formations  through  train-to-train  communication  and
+onboard  sensors.  The  MARL  framework  optimizes  collaborative  control  in  high-dimensional  state  spaces,
+complex action spaces, and dynamic environments. Simulation results demonstrate that the proposed MARL
+algorithm significantly improves train operation efficiency and safety compared to both traditional methods and
+previous reinforcement learning approaches. This research advances the application of the Internet of Things
+in rail transit, offering innovative solutions for safer, more efficient, and intelligent urban rail systems.
+Key words:  reinforcement  learning; Virtually  Coupled  Train  Sets  (VCTSs); Communication-Based  Train  Control
+(CBTC)
+1　Introduction
+The  modern  urban  rail  transit  system  is  currently
+experiencing both unique challenges and opportunities
+due  to  factors  such  as  advances  in  technology,
+increasing  demand  for  sustainable  transportation,  and
+the need for infrastructure upgrades. On the one hand,
+the accelerated process of urbanization and the growing
+travel demand of residents have put higher demands on
+the  operational  efficiency  and  service  quality  of  rail
+transit;  on  the  other  hand,  the  development  and
+application  of  emerging  technologies  provide  new
+ideas and possibilities for solving these problems.
+Traditional  urban  rail  transit  adopts  a
+Communication-Based  Train  Control  (CBTC)
+system[1],  which  realizes  automatic  driving  and
+dispatching  of  trains  through  train-to-ground
+communication  and  automatic  train  protection,
+ensuring  driving  safety.  This  model  typically  uses  a
+uniform  train  departure  interval,  i.e.,  trains  depart 
+   Guanlin  Jing is  with Institute  of  Software  and  Theoretical  Studies,  School  of  Computer  Science,  Beijing  University  of  Technology,
+Beijing  100124,  China,  and  also  with  Institute  of  Intelligent  Computing,  School  of  Computer  Science  and  Technology,  Shandong
+University, Qingdao 266237, China. E-mail: 202120681@mail.sdu.edu.cn.
+   Yifei Zou, Dongxiao Yu, and Xiuzhen Cheng are with Institute of Intelligent Computing, School of Computer Science and Technology,
+Shandong University, Qingdao 266237, China. E-mail: yfzou@sdu.edu.cn; dxyu@sdu.edu.cn; xzcheng@sdu.edu.cn.
+   Zuyuan Zhang is with Electrical and Computer Engineering Department, The George Washington University, Washington, DC 20052,
+USA. E-mail: zuyuan.zhang@gwu.edu.
+   Jiguo Yu is with School of Information and Software Engineering, University of Electronic Science and Technology of China, Chengdu
+611731, China. E-mail: jiguoyu@sina.com.
+* To whom correspondence should be addressed.
+    Manuscript received: 2024-07-18; revised: 2024-11-17; accepted: 2025-04-10 
+TSINGHUA  SCIENCE  AND  TECHNOLOGY Research ArticleISSN  1007 -0214     22/37    pp329 −343 
+DOI:  10.26599/TST.2025.9010067 
+Volume  32, Number  1, February   2027 
+ 
+©  The author(s) 2027. The articles published in this open access journal are distributed under the terms of the
+Creative Commons Attribution 4.0 International License (http://creativecommons.org/licenses/by/4.0/).
+according  to  a  fixed  schedule[2].  However,  with  the
+continuous  growth  of  passenger  flow  and  the  uneven
+distribution  of  passenger  flow  (such  as  during  peak
+hours and sudden passenger flows during large events),
+the  existing  train  operation  plans  are  increasingly
+unable  to  meet  actual  demand,  and  the  contradiction
+between  train  capacity  and  passenger  flow  demand  is
+becoming more prominent.
+To  further  improve  the  operational  efficiency  and
+service quality of the rail transit system, it is urgent to
+introduce innovative operational organization methods
+and  advanced  technical  means.  Among  them,  the
+Virtual Coupled Train Set (VCTS)[3] is a new type of
+train  formation  and  operation  control  method  that  can
+better adapt to passenger flow fluctuations and improve
+line  transportation  capacity  by  dynamically  adjusting
+train spacing and flexibly changing train formations.
+VCTS  uses  collaborative  control  between  trains
+using  using  Train-to-Train  (T2T)  and  train-to-ground
+communication along with onboard sensors. Instead of
+physical  coupling,  VCTS  trains  use  reliable  wireless
+tech  to  maintain  an “electronic  coupling”,  allowing
+dynamic  adjustment  of  train  spacing  based  on
+operational  needs.  Combined  with  onboard  lidar,
+millimeter-wave  radar,  vision  sensors,  and  other
+equipment,  VCTS  can  support  high  automation  and
+intelligence  of  train  operations  while  ensuring  driving
+safety.
+Trains of VCTS can achieve autonomous recoupling
+and  decoupling  operations  based  on  transport  demand
+and  planning  T2T  wireless  communication[4].  In  the
+VCTS  system  based  on  the  Industrial  Internet  of
+Things  (IIoT),  to  successfully  achieve  the  control
+objectives  of  headway  and  speed,  all  other  units  must
+be  coordinated  through  the  Train  Cooperation
+Controller  (TCO),  where  the  TCO,  as  the  core  of  the
+control  strategy,  is  responsible  for  maintaining  the
+uniform  linear  formation  of  the  leading  train  and  the
+continuous  operation  path  of  the  overall  train  by
+adjusting  the  speed  and  headway  of  the  following
+trains[5].  Furthermore,  in  such  a  VCTS  system,  the
+concept  of  braking  distance  has  also  changed  from
+absolute  braking  distance  to  relative  braking  distance.
+This  shift  means  that  the  implementation  of  braking
+measures  is  more  reliant  on  the  relative  position
+between trains and the dynamic environment[6].
+Such an urban rail transit system based on VCTS can
+significantly  enhance  line  capacity  and  operational
+efficiency,  precisely  match  passenger  flow  with
+transport  capacity,  and  provide  passengers  with  more
+comfortable  and  convenient  travel  services.  At  the
+same  time,  as  a  new  train  operation  control  method,
+VCTS  also  puts  higher  demands  on  the  safety,
+reliability,  and  intelligence  level  of  rail  transit,
+necessitating  systematic  research  and  exploration  in
+key  technology  development,  testing,  validation,  and
+standardization. Therefore, the member trains of VCTS
+have  a  certain  degree  of  autonomy  and  require  strict
+timeliness  and  reliability  in  wireless  communication.
+However, in the VCTS scenario, the complexity of the
+communication network and the high-speed mobility of
+trains  pose  severe  challenges  to  achieving  optimal
+collaborative  control.  Traditional  strategies  cannot
+meet  the  performance  requirements  of  VCTS.  Multi-
+Agent  Reinforcement  Learning  (MARL)[7−11] allows
+trains  to  intelligently  explore  optimal  solutions[12] in
+this  complex  environment.  Thus,  reinforcement
+learning control has become an emerging technology in
+optimizing  VCTS  collaborative  control  within  CBTC
+systems. Specifically, the new generation of IIoT[13, 14]
+connects a large number of user devices and sensors to
+local  units  (such  as  edge  devices  in  edge  computing)
+with  some  basic  storage  and  computing  resources
+through  high-speed  5th/6th  Generation  Mobile
+Communication  Technology  (5G/6G)  networks.
+Therefore,  a  series  of  VCTS  applications  can  be
+deployed  on  train  carriages  close  to  data  resources,
+providing users with real-time and intelligent services.
+Fraga-Lamas[15] proposed  using  IIoT  to  improve
+railway  safety  levels.  IIoT  is  also  used  to  enhance
+railway,  including  track  and  facility  maintenance
+capabilities[5].  With  the  integration  of  IIoT,  big  data,
+and  artificial  intelligence,  railway  maintenance
+becomes  more  efficient  and  intelligent,  enabling
+condition-based  maintenance[16].  Similarly,  trains  can
+move  synchronously  like  VCTS,  meaning  multiple
+trains  can  be  regarded  as  a  fleet,  thereby  increasing
+train capacity.
+However, there is little research on the performance
+evaluation and analysis of IIoT-based VCTS, which is
+urgently  needed  to  support  the  application  of  IIoT  in
+Urban  Rail  Transit  (URT).  Due  to  the  dynamic
+characteristics  of  trains  and  the  critical  requirements
+for  T2T  communication,  achieving  VCTS  consistency
+and  coverage  control  is  challenging.  The  number  of
+IIoT  states,  including  numerous  train  devices  and
+sensing  nodes,  will  be  so  large  that  no  centralized
+machine  learning  algorithm  can  be  executed.  In
+    330 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+addition, exploring machine learning in an overly large
+state space encounters the following challenges:
+(1)  If  small  exploration  steps  are  used  in  an  overly
+large  state  space,  exploration  efficiency  will  be
+severely  insufficient,  and  convergence  speed  will  be
+slow or may not converge.
+(2)  When  exploration  steps  are  too  large,  a  large
+amount of space will not be fully explored, making it
+easy  to  miss  the  optimal  solution  or  cause  severe
+oscillations.
+To  overcome  the  challenges  of  overly  large  state
+spaces in multi-agent machine learning and the limited
+exploration  capabilities  of  current  multi-agent  ML
+technologies, this paper proposes not to let multi-agent
+ML  algorithms  randomly  choose  a  state  as  the  initial
+state but to judge a good state as the starting point for
+multi-agent  ML.  A  good  state  means  that  the  state  of
+the nodes in multi-agent ML is not far from the optimal
+solution; the exploration space has been limited. Based
+on  the  relative  information  between  trains,  VCTS  can
+make optimized decisions, ensuring the stable and safe
+operation  of  the  train  system  and  achieving  precise
+matching of passenger flow and transport capacity.
+This  paper  proposes  using  MARL  to  solve  the
+optimal  collaborative  control  strategy  of  VCTS.  The
+designed  MARL  framework  addresses  the  high-
+dimensional  state  space,  complex  action  space,
+dynamic  environmental  changes,  and  multi-agent
+coordination  in  VCTS  scenarios  through  key
+technologies  such  as  state  compression,  action  space
+search  engine  optimization,  dynamic  environment
+adaptation,  heuristic  methods,  and  multi-agent
+collaborative  learning,  achieving  effective
+collaborative  control  of  VCTS  under  the  premise  of
+meeting  safety  constraints.  Simulation  experiments
+show  that  the  proposed  MARL  algorithm  has  better
+effects  in  improving  train  operation  efficiency  and
+safety compared to traditional methods. By combining
+MARL  with  VCTS  and  innovatively  addressing  the
+challenges of complexity and mobility, this paper helps
+advance  train  collaborative  control  in  large-scale
+CBTC  systems  and  VCTS,  ultimately  improving  the
+efficiency and safety of railway transportation.
+The main contributions of this paper are
+(1)  Proposes  an  IIoT-based  VCTS  collaborative
+control  framework,  utilizing  vehicle-to-vehicle
+communication  and  onboard  sensors  to  achieve
+collaborative  control  between  trains,  improving
+transportation efficiency and safety in rail transit.
+(2)  Designs  a  multi-agent  reinforcement  learning
+algorithm  that  addresses  the  high-dimensional  state
+space,  complex  action  space,  dynamic  environments,
+and  multi-agent  coordination  in  VCTS  scenarios
+through  key  technologies  such  as  state  compression,
+action  space  search  engine  optimization,  dynamic
+environment  adaptation,  heuristic  methods,  and  multi-
+agent collaborative learning.
+(3)  Validates  the  effectiveness  of  the  proposed
+method  through  simulation  experiments,  showing  that
+the  proposed  MARL  algorithm  has  better  effects  in
+improving  train  operation  efficiency  and  safety
+compared to traditional methods.
+The  research  results  of  this  paper  are  of  great
+significance  for  promoting  the  application  of  IIoT  in
+the  field  of  rail  transit,  providing  new  ideas  and
+methods  for  achieving  safer,  more  efficient,  and
+intelligent rail transit systems. Future work will further
+optimize  the  algorithms,  improve  their  convergence
+speed  and  stability,  and  test  and  apply  them  in  actual
+rail transit systems. Additionally, we explore extending
+the  methods  proposed  in  this  paper  to  other  IIoT
+application scenarios, such as autonomous driving and
+smart cities, to achieve broader applications.
+The remainder of the paper is organized as follows.
+Section  2  provides  the  related  work.  Section  3
+describes  the  system  model  and  problem  formulation.
+Section  4  presents  the  description  of  heuristically
+accelerated  MARL.  Section  5  describes  our
+implementation  and  shows  simulation  results.  We
+conclude this paper in Section 6.
+2　Related Work
+A typical CBTC system is essential for modern urban
+rail  transit,  ensuring  safe  and  efficient  operations
+through its structured components[1, 17, 18]. At the heart
+of  the  system  is  the  ground  control  center[19],  which
+includes  key  elements  such  as  Automatic  Train
+Supervision  (ATS),  Zone  Controller  (ZC),  and
+Computer  Interlocking  (CI).  These  components  work
+together  to  oversee  and  manage  the  overall  system
+operations.  The  Data  Storage  Unit  (DSU)  within  the
+ground  control  center  is  responsible  for  storing  all
+necessary  data,  facilitating  continuous  and  reliable
+system  performance.  The  train  subsystem  plays  a
+critical  role  by  collecting  various  line  data  and
+generating  operation  commands  based  on  instructions
+received  from  the  ground  control  center.  This
+subsystem  is  equipped  with  the  Vehicle  On-Board
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 331
+ 
+Controller (VOBC), which contains both the Automatic
+Train Protection (ATP) and Automatic Train Operation
+(ATO)  modules.  These  modules  ensure  that  trains
+operate  within  safe  speed  limits  and  follow  the
+Movement Authority (MA) directives generated by the
+ZC.
+Communication  between  the  ground  control  center
+and the train subsystem is maintained through the Data
+Communication  System  (DCS).  The  DCS  includes
+Base Band Units (BBU), Remote Radio Units (RRU),
+and  a  backbone  network,  which  together  establish
+robust  communication  links[20].  Trains  continuously
+send  packets  containing  critical  information  such  as
+speed,  position,  and  state  to  the  ZC  at  each
+communication  cycle  moment.  The  ZC  then  uses  this
+information,  alongside  track  occupancy  data  provided
+by track-side equipment and routes arranged by the CI,
+to calculate and issue MAs[21].
+The  MA  determines  the  safe  distance  to  the  nearest
+obstacle,  including  other  trains  or  track  switches,
+ensuring  safe  train  operations.  High-precision  control
+algorithms  enhance  the  efficiency  and  safety  of  the
+system  by  providing  accurate  MAs.  The  ATO
+subsystem[22] on  the  train  uses  the  MA  to  generate
+commands  for  accelerating,  cruising,  or  braking,
+thereby maintaining optimal train performance.
+2.1　IIoT CBTC-based VCTS
+Sudden surges in passenger flow, such as those caused
+by  concerts,  sports  matches,  and  holidays,  present  a
+significant  challenge  for  URT  systems.  These  events
+can  create  unexpected  spikes  in  demand,  requiring
+more  trains  in  one  direction  while  the  opposite
+direction needs fewer trains[23].
+VCTS  is  designed  to  address  this  issue.  Unlike
+traditional  CBTC  systems,  where  trains  run  at  fixed
+intervals,  VCTS  allows  trains  to  operate  closer
+together, forming a train platoon. This setup increases
+capacity as trains can maintain smaller intervals among
+one another[24]. In a VCTS, trains in the high-demand
+direction  stop  at  each  station  to  pick  up  passengers,
+while in the low-demand direction, only the first train
+in  the  platoon  makes  stops,  thus  optimizing  train  use
+and reducing listed capacity[23].
+The IIoT enhances CBTC systems by enabling real-
+time  data  collection  and  analysis.  IIoT  devices  gather
+information from train and track components, which is
+processed  using  advanced  analytics  and  machine
+learning to predict and prevent issues[25].
+Safety  and  reliability  also  improve  with  IIoT.  Real-
+time  data  allows  for  quick  and  accurate  decision-
+making.  Additionally,  IIoT  helps  optimize  energy  use
+by  adjusting  train  operations  based  on  current  track
+conditions  and  traffic  flow,  leading  to  significant
+energy savings[26]. In a VCTS, mechanical couplers are
+replaced with wireless communication, enabling trains
+to  operate  as  a  cohesive  unit.  The  system  leverages
+real-time  data  exchange  to  maintain  safe  distances
+between  trains,  thereby  enhancing  line  capacity  and
+operational  flexibility[27].  For  both  URT  and  High-
+Speed  Rail  (HSR),  VCTS  can  handle  emergency
+situations  and  sudden  passenger  surges.  The  proposed
+model takes into account the effects of high-speed train
+movements  and  potential  interferences,  making  it
+adaptable  for  both  types  of  rail  systems.  Thus,  with
+appropriate  configurations,  VCTS  can  significantly
+enhance rail control systems for various scenarios[28].
+2.2　MARL for VCTS
+Several studies have extensively examined the efficacy
+of  real-time  learning  through  environmental  data
+acquisition[8, 10, 12, 29, 30].  This  method  has  proven  to
+enhance the performance of algorithms, particularly in
+the  context  of  MARL.  In  recent  years,  MARL  has
+gained  significant  interest  due  to  its  innovative
+approach  to  solving  complex  problems.  MARL
+involves  scenarios  where  two  or  more  independent
+agents  interact  with  the  environment  and  each  other.
+These  agents’ actions  are  influenced  by  their
+surroundings, and they may exhibit varying degrees of
+cooperation or competition. Consequently, MARL has
+found  applications  in  diverse  areas  such  as  gaming,
+robotics, communication, and transportation systems.
+One promising application of MARL is in optimizing
+VCTS.  In  a  VCTS  system,  each  train  unit  acts  as  an
+independent agent within an MARL framework. These
+agents  (train  units)  interact  with  the  shared
+environment (railway network) and with each other to
+optimize  their  collective  performance[5].  For  instance,
+they  need  to  synchronize  speeds,  acceleration,  and
+braking  to  maintain  optimal  distances,  ensure  safety,
+and  minimize  energy  consumption.  In  multi-agent
+scenarios, agents face numerous choices for their next
+actions.  If  we  consider  all  agents  and  their  potential
+actions  as  a  single  entity,  the  size  of  this  space
+increases  exponentially  with  the  number  of  agents.
+However,  an  extensive  action  space  can  hinder  the
+algorithm’s resolution process, affecting the scalability
+of the agent count[31].
+    332 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+In  the  context  of  VCTS,  managing  this  vast  action
+space  is  crucial.  Effective  MARL  algorithms  can
+handle this complexity by learning optimal policies that
+enable the train sets to operate efficiently as a virtually
+coupled  unit.  This  involves  coping  with  dynamic
+environmental  changes,  such  as  varying  passenger
+loads  and  track  conditions,  and  making  real-time
+decisions  that  balance  safety,  efficiency,  and  energy
+consumption.
+3　System Model and Problem Formulation
+We introduce the model of the VCTS and the problems
+that  it  confronts.  Firstly,  we  provide  a  simplistic
+scenario  description,  followed  by  an  elaborate
+mathematical  model  of  the  VCTS  in  Section  3.1,
+including  the  train  dynamics  model  and  artificial
+potential  field  functions.  In  Section  3.2,  the  core
+problem that this research aims to solve is outlined.
+A  VCTS  consists  of  a  group  of  trains  that  operate
+according  to  a  preordained  plan,  with  the  stipulation
+that each train must halt at every station. The schematic
+representation  of  the  concept  is  illustrated  in  the
+corresponding Fig.  1.  Therefore,  the  operational
+objectives of a VCTS are subject to temporal changes.
+In  the  broader  sense,  a  VCTS  can  be  perceived  as  a
+multi-agent system, and its operations can be modeled
+as  a  motion  planning  problem.  However,  due  to  the
+complex  and  dynamic  operational  conditions,
+achieving  global  information  awareness  and  swiftly
+arriving at optimal decisions is challenging.
+3.1　Train motion model
+When  studying  train  control  systems,  it  is  vitally
+important to establish a motion model of the train. This
+motion  model  can  help  us  analyze  the  train’s  motion
+characteristics,  predict  the  train’s  motion  state,  and
+design  suitable  control  strategies.  Typically,  the
+dynamic  model  of  the  train  can  be  modeled  as  the
+following discrete-time invariant linear system: 
+8>>>><>>>>:
+x[k + 1] = Ax[k] + Bu[k] + C[k];
+z[k] = C1 x[k] + D1u[k];
+y[k] = C2x[k]:
+ 
+x[k]
+k
+[k]
+k
+z[k]
+k
+y[k]
+u[k]
+k
+A
+B
+C
+C1
+C2
+D1
+x[k]
+x[k]
+A
+u[k]
+B
+[k]
+C
+x[k + 1]
+z[k]
+x[k]
+C1
+u[k]
+D1
+z[k]
+where  is the train state at the -th communication
+cycle  moment,  is  the  noise  at  the -th
+communication cycle moment,  is the rated output
+at  the -th  communication  cycle  moment,  is  the
+measure  of  the  system  state,  and  is  the  system
+input at the -th communication cycle moment. , ,
+ , , ,  and  are  parameter  matrices.  This
+discrete-time  invariant  linear  system  describes  the
+variation rule of the train state in each communication
+cycle  moment  as  well  as  the  relationship  between  the
+train state and system input, output, and noise. In this
+discrete-time  invariant  linear  system,  the  train  state
+  changes with each communication cycle moment.
+These  changes  stem  from  three  components:  Firstly,
+the component from the previous communication cycle
+moment  train ,  multiplied  by  the  state  transition
+matrix ;  secondly,  based  on  the  previous
+communication cycle system input , multiplied by
+the  input  matrix ;  thirdly,  based  on  the  previous
+communication  moment  noise ,  multiplied  by  the
+noise  matrix .  The  sum  of  these  three  components
+results in the new train state . The rated output
+of the train  comprises two parts: Firstly, the train
+state  multiplied by the output matrix ; secondly,
+the  system  input  multiplied  by  the  direct  item
+matrix .  The  sum  of  these  two  parts  results  in  the
+rated output of the train .
+y[k]
+x[k]
+C2
+The  measure  of  the  train  state  is  the  train  state
+  multiplied by the measure matrix . This reflects
+our observation of the train state. The dynamic model
+defines the train state as follows: 
+ 
+CI ATS ZC
+Ground system
+CI ATS ZC
+Ground system
+ATO
+Emergency 
+brake
+Service
+brake
+Traction
+Train system
+ATP
+MS
+IIoT VCTS 
+Speed sensors
+Acceleration sensors
+Environment sensors
+Position sensors
+Safety sensors
+Emergency braking distance Service braking distance
+ 
+ 
+Fig. 1    CBTC  system  is  a  signaling  system  that  uses  telecommunications  between  the  train  and  track  equipment  for  traffic
+management and control. VCTS is a component within CBTC that integrates speed, acceleration, environment, position, and
+safety sensors to monitor and control train operations. CBTC-based VCTS combines these technologies to enhance train safety,
+efficiency, and reliability by leveraging advanced sensor data and real-time communication.
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 333
+ 
+x[k] = [si[k]; vi[k]; ai[k]]⊤ ;
+ 
+si[k]
+vi[k]
+i
+k
+Acci[k]
+i
+k
+where  and  represent the position and velocity
+of  the -th  train  at  the -th  communication  cycle
+moment respectively, and  is the acceleration of
+the -th train at the -th communication cycle moment.
+This state vector contains the train’s position, velocity,
+and acceleration state variables, completely describing
+the train’s motion state.
+Acci[k]
+si[k]
+vi[k]
+In the train control system, the velocity and position
+of  the  train  are  regulated  by  controlling  the  train’s
+acceleration. Therefore, the acceleration  can be
+regarded as the system’s control input, and the train’s
+position  and  velocity  are  the  controlled
+statuses of the system.
+By  establishing  the  dynamic  model  of  the  train,  we
+can  analyze  the  dynamic  characteristics  of  train
+motion, predict the motion state of the train, and design
+suitable  control  strategies  according  to  the  control
+objectives  to  realize  the  automatic  control  of  train
+motion.  This  is  significant  for  improving  the  safety,
+comfort, and efficiency of train operation.
+3.2　Problem formulation
+The goal of VCTS is to stabilize the distance between
+adjacent  trains  and  converge  each  train’s  speed  over
+time.  This  implies  that  VCTS  needs  to  regulate  both
+train  speed  and  acceleration  to  maintain  a  constant
+distance  between  neighboring  trains  and  eventually
+synchronize the speeds of all trains.
+Mathematically, this goal can be represented as 
+8>>>>>><>>>>>>:
+lim
+t!+1
+∆si(t) = d(Ti; Ti 1);
+lim
+t!+1
+∆vi j(t) = 0;
+Min-ACC ⩽ Acci(t) ⩽ Max-ACC;
+ 
+∆si(t) = si(t)  si 1(t)
+∆vi j(t) = vi(t)  v j(t)
+Ti
+i
+si(t)
+si 1(t)
+i
+(i  1)
+t
+d(Ti; Ti 1)
+vi(t)
+v j(t)
+i
+j
+t
+Acci(t)
+Min-ACC
+Max-ACC
+where  and . 
+labels  the -th  train.  and  represent  the
+positions of the -th and the -th trains at moment
+ , and  represents the target distance between
+them.  Similarly,  and  represent  the  speed  of
+the -th  and -th  trains  at  time .  refer  to  the
+current  acceleration  of  the  train,  and  the  maximum
+acceleration  during  the  acceleration  phase,
+respectively. To maintain passenger comfort, the train’s
+acceleration  needs  to  change  slowly  within  the
+Minimum  Acceleration  ( )  and  Maximum
+Acceleration  ( )  range.  This  implies  that  the
+acceleration  cannot  change  abruptly  and  must
+gradually  increase  or  decrease  to  ensure  passenger
+comfort.
+However, traditional VCTS control algorithms could
+potentially  trap  agents  in  local  minima  instead  of  the
+optimal  target  positions.  This  means  that  the
+conventional control algorithms may converge the train
+control strategy to a less optimal solution, instead of a
+globally optimal solution. To avoid local minima, it is
+essential to modify traditional control machine learning
+methods and embed them in reinforcement learning.
+4　MARL-Based Approach
+In this section, we present a novel approach to solving
+the complex control problem in VCTS using a hybrid
+reinforcement  learning  algorithm.  Our  method,  called
+Hybrid Heuristic-Guided Multi-Agent Proximal Policy
+Optimization (HHG-MAPPO) (shown in Algorithm 1),
+combines  the  power  of  deep  reinforcement  learning
+with  heuristic  guidance  to  achieve  efficient  and  safe
+control of multi-train systems.
+4.1　HHG-MAPPO basic environment
+S [k] =fvi j[k]; xi j[k]g
+vi j[k] = vi[k]  v j[k]
+xi j[k] = xi[k]  x j[k]
+State  and  action  representation. The  state  of  the
+VCTS  at  any  given  time k is  represented  by
+ , where  denotes
+the  relative  velocity  between  trains i and j,  and
+  represents  their  relative  distance.
+This  state  representation  captures  the  essential
+information needed for decision-making in the VCTS.
+acc0 = acc+
+acc1 = 0
+acc2 = acc 
+The  action  space  is  discretized  into  three  possible
+actions: Acceleration ( ), maintaining current
+speed ( ), and deceleration ( ). This
+discretization allows for precise control while keeping
+the action space manageable.
+(ajs; )
+V(s; ϕ)
+
+ϕ
+Neural  network  architecture. At  the  core  of  our
+HHG-MAPPO  algorithm  are  two  neural  networks:  A
+policy  network  and  a  value  network 
+where  denotes the policy network parameters, and 
+denotes  the  value  network  parameters.  The  policy
+network  takes  the  current  state  as  input  and  outputs  a
+probability distribution over possible actions, enabling
+stochastic  policy  selection.  The  value  network
+estimates  the  expected  cumulative  reward  for  a  given
+state,  which  is  crucial  for  computing  the  advantage
+function used in policy updates.
+H(s)
+sH
+s
+Heuristic guidance integration. A key innovation in
+our  approach  is  the  introduction  of  a  heuristic  state
+generator .  This  component  leverages  domain
+knowledge  to  generate  an  ideal  state  based  on  the
+current  state .  The  heuristic  guidance  is
+probabilistically  incorporated  into  the  action  selection
+process, 
+    334 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+At =
+8>><>>:
+ 
+(
+ajsH
+t ; 
+)
+; probability p
+  (ajst; ) ; probability 1  p
+:
+ 
+This mechanism allows the algorithm to benefit from
+expert  knowledge,  especially  in  the  early  stages  of
+learning,  while  still  maintaining  the  ability  to  explore
+and potentially improve upon the heuristic policy.
+State  transition  and  reward  structure. The  state
+transition follows the dynamics of the VCTS, as shown
+in Eq. (1), 
+vk+1 = vk + ak∆t;
+xk+1 = vk∆t + 1
+2 ak∆t2 (1)
+ 
+The  reward  function  is  designed  to  encapsulate
+multiple objectives, as shown in Eq. (2), 
+r(s; a) = w1 rdistance + w2 rvelocity + w3 racceleration +
+w4 rsafety (2)
+ 
+r(s; a)
+w1 rdistance
+w2 rvelocity
+w3 racceleration
+w4 rsafety
+To  improve  agents’ ability  with  diverse
+behaviors/objectives,  we  consider  four  methods  of
+creating  reward  components  and  combine  them  into
+more complex reward functions  using the linear
+function  2.  The  four  reward  components  is  as  below.
+(1)  Weight  time  distance  reward :
+Encourages  agents  to  maintain  an  optimal  distance
+from each other. If the distance is too large, a penalty is
+applied.  If  a  collision  occurs,  a  maximum penalty  is
+applied,  ending  the  training  episode. (2)  Weight  time
+velocity  reward : Encourages  agents  to
+synchronize their velocities. This helps in maintaining
+formation and preventing abrupt changes in speed. (3)
+Weight  time  acceleration  reward :
+Encourages  smooth  acceleration.  Penalizes  sudden
+changes  in  acceleration  to  promote  more  stable  and
+predictable  movements. (4)  Weight  time  safety
+reward  : Prioritizes overall safety. Penalizes
+actions  that  bring  agents  into  dangerous  situations,
+such  as  moving  too  close  to  each  other  or  obstacles.
+This  multi-faceted  reward  structure  encourages  the
+agent  to  maintain  safe  distances,  synchronize
+velocities,  ensure  smooth  acceleration,  and  prioritize
+overall  safety.  We  note  that  the  combination  of  these
+methods  allows  the  creation  of  complex  reward
+functions  with  dimensions,  enabling  the  development
+of agents with diverse behaviors and objectives.
+Policy optimization. We employ the PPO algorithm
+for  policy  updates,  which  offers  improved  stability
+compared  to  traditional  policy  gradient  methods.  The
+PPO loss is defined as 
+LPPO = Et[min(rt()At; clip(rt(); 1  ϵ; 1 + ϵ)At)];
+ 
+At
+where  is  the  advantage  function  estimated  using
+GAE.
+ 
+Algorithm 1　HHG-MAPPO for VCTS
+S =fsig; i = 0; 1; : : : ; n
+A =fa jg; j = 0; 1; : : : ; m
+r = r(si; a j)
+S t
+H
+"
+
+Require: The state space of the train, ,
+the action space, ; the reward function,
+ ; the terminal conditions, ; centralized heuristic
+optimal state generator ; initial heuristic usage rate  and
+decay rate ;
+
+V
+(sj)
+V(sjϕ)
+D
+Ensure: Policy  and value function ; initialize policy
+network  and value network ; initialize experience
+pool ; loss weight λ
+iteration = 1; 2; : : : ; L
+  1: for  do
+s1 
+  2: 　  initialize VCTS state;
+t = 1; 2; : : : ; T
+  3: 　for  do　　　　　▷ One episode
+sH
+t  H(st)
+  4: 　　 ; 　　▷ Generate centralized optimal state
+p random(0; 1)
+  5: 　　 ;
+p < "
+  6: 　　if  then
+at (sH
+tj)
+  7: 　　　 ; 　　　▷ Act based on heuristic state
+  8: 　　else
+at (stj)
+  9: 　　　 ; 　　　▷ Act based on current state
+10: 　　end if
+at
+rt
+st+1
+11: 　　Execute action , observe reward  and next state
+　　　  ;
+(
+st; sH
+t ; at; rt; st+1
+)
+D
+12: 　　Store transition  in ;
+st+12S t
+13: 　　if  then
+14: 　　　Break; 　　　▷ Terminal state reached
+15: 　　end if
+16: 　end for
+k = 1; 2; : : : ; K
+17: 　for  do　　　▷ Policy update
+D
+18: 　　Sample batch of transitions from ;
+At
+19: 　　Compute advantages  using Generalized Advantage
+　　　  Estimation (GAE);
+20: 　　Compute Proximal Policy Optimization (PPO) loss:
+LPPO = Et[min(rt()At; clip(rt(); 1  ϵ; 1 + ϵ)At)]
+Et
+　 　　  ,
+　　　  where  denots bath average at stept;
+21: 　　Compute auxiliary loss:
+Laux = 1
+n
+n∑
+i=1
+(
+V
+(
+sH
+tjϕ
+)
+  V(stjϕ)
+)2
+　 　　  ;
+L = LPPO  c Et[H((stj))] +  Laux
+22: 　　Total loss: ;
+
+ϕ
+L
+23: 　　Update  and  using gradient descent on ;
+24: 　end for
+" " 
+25: 　 ; 　▷ Decrease heuristic usage rate
+D
+26: 　Clear experience pool ;
+27: end for
+
+V
+28: return policy  and value function 
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 335
+ 
+To  further  leverage  the  heuristic  knowledge,  we
+introduce an auxiliary loss, 
+Laux = 1
+n
+n∑
+i=1
+(
+V
+(
+sH
+tjϕ
+)
+  V(stjϕ)
+)2
+:
+ 
+This  auxiliary  loss  encourages  the  value  function  to
+align  with  the  heuristic  guidance,  potentially
+accelerating learning in critical areas of the state space.
+The  total  loss  function  combines  the  PPO  loss,  an
+entropy term for exploration, and the auxiliary loss, 
+L = LPPO  c Et[H((stj))] +  Laux;
+ 
+c
+
+where  is the entropy coefficient, and  is the weight
+of the auxiliary loss.
+" " 
+Training  process  and  adaptive  parameters. The
+training  process  involves  iteratively  collecting
+experience,  computing  advantages,  and  updating  the
+policy and value networks. To balance the influence of
+heuristic  guidance  and  learned  policy,  we  introduce
+heuristic parameters: , which gradually reduce
+the reliance on heuristic guidance.
+This  adaptive  approach  allows  the  algorithm  to
+benefit  from  heuristic  knowledge  early  in  training
+while progressively relying more on learned behavior.
+4.2　Handling special cases
+To  ensure  safe  and  efficient  operation,  we  implement
+special handling for critical scenarios:
+xi j[k] ⩽ 0
+(1)  Collision  ( ):  Apply  high  penalty  and
+terminate the episode.
+xi j[k] > distancemax
+(2)  Excessive  distance  ( ):  Apply
+high penalty and terminate the episode.
+xi j[k] = distancei j
+(3)  Achieving  target  distance  ( ):
+Provide high reward and terminate the episode.
+These special cases help shape the learned policy to
+prioritize  safety  and  efficiency  in  VCTS  operations.
+The  HHG-MAPPO  algorithm  represents  a  significant
+advancement  in  VCTS  control.  By  combining  the
+sample efficiency of PPO with heuristic guidance and
+carefully  designed  reward  structures,  we  create  a
+learning  system  capable  of  rapid  adaptation  and  high-
+performance control in complex VCTS scenarios. The
+algorithm’s ability to balance heuristic knowledge with
+learned  behavior  positions  it  as  a  promising  approach
+for  real-world  VCTS  applications,  potentially
+outperforming  both  traditional  control  methods  and
+standard reinforcement learning algorithms.
+4.3　Description for multi-agent task
+At  its  core,  HHG-MAPPO  builds  upon  Policy
+(sj)
+V(sjϕ)
+Optimization,  a  state-of-the-art  reinforcement  learning
+method  known  for  its  stability  and  sample  efficiency.
+The algorithm maintains two neural networks: A policy
+network  that learns to select actions based on the
+current state, and a value network  that estimates
+the expected cumulative reward for a given state.
+H
+A key innovation of HHG-MAPPO is the integration
+of  a  centralized  heuristic  optimal  state  generator .
+This component leverages domain expertise to provide
+guidance,  especially  in  the  early  stages  of  learning.
+This  means  that  the  combination  of  conventional
+random  selection  and  experience  has  effectively
+reduced  and  compressed  the  state  space,  minimizing
+the  duration  of  the  episode  without  compromising  the
+accuracy  of  the  train’s  operational  status.  The
+algorithm  probabilistically  chooses  between  acting
+based on the current state or the heuristically generated
+optimal state, with the probability of using the heuristic
+guidance  decreasing  over  time.  The  training  process
+involves  iterative  episodes  where  the  agent  interacts
+with  the  VCTS  environment.  In  each  time  step,  the
+agent selects an action, observes the resulting state and
+reward, and stores this experience in a memory buffer.
+The  algorithm  uses  these  collected  experiences  to
+update  the  policy  and  value  networks.  The  policy
+update  process  in  HHG-MAPPO  is  particularly
+sophisticated.  It  uses  the  PPO  objective,  which  helps
+maintain stable learning by limiting the extent of policy
+changes in each update. Additionally, an auxiliary loss
+term  is  introduced  to  encourage  the  value  function  to
+align  with  the  heuristic  guidance.  This  auxiliary  loss
+helps  accelerate  learning  by  leveraging  the  heuristic
+knowledge.
+To  balance  exploration  and  exploitation,  the
+algorithm  incorporates  an  entropy  term  in  its  loss
+function. This encourages the policy to maintain some
+level  of  randomness,  preventing  premature
+convergence  to  suboptimal  solutions.  Throughout
+training, the algorithm gradually reduces its reliance on
+heuristic guidance. This is achieved by decreasing both
+the  probability  of  using  the  heuristic  state  for  action
+selection  and  the  weight  of  the  auxiliary  loss.  This
+adaptive  approach  allows  the  agent  to  benefit  from
+expert knowledge early in training while progressively
+relying  more  on  learned  behavior,  potentially
+surpassing the performance of the heuristic alone.
+The HHG-MAPPO algorithm is designed to address
+the  intricacies  of  VCTS  control.  This  includes  the
+maintenance  of  safe  distances  between  trains,
+    336 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+synchronization  of  velocities,  as  well  as  guaranteeing
+smooth  acceleration  and  deceleration.  By  integrating
+reinforcement  learning  with  heuristic  guidance,  the
+algorithm strives to provide rapid learning, augmented
+safety,  and,  in  the  end,  superior  performance  in
+managing  VCTS.  The  key  simulation  settings  and
+hyperparameters are reported in Table 1.
+5　Implementation
+The  objective  of  VCTS  is  to  increase  transportation
+efficiency and accommodate passengers. Although the
+MARL-based controller strives to reduce the disparity
+between  the  states  of  the  lead  and  subsequent  trains,
+the lead train operates at a high velocity. The intention
+of  cooperative  control  is  to  ensure  that  the  lead  train
+halts  at  the  appropriate  location  with  a  safe  level  of
+acceleration,  provides  passenger  comfort  during
+smoother sections of the journey, and has the ability to
+evade  or  stop  abruptly  in  unexpected  circumstances.
+However, the stability of dynamic cooperative control
+could  be  disrupted.  Therefore,  in  this  section,  the
+efficacy of the HHG-MAPPO in the VCTS is evaluated
+by  devising  three  different  scenarios.  Further  details
+regarding  the  specific  environmental  setup  and  the
+results  of  the  experiment  will  be  presented  in  the
+succeeding sections.
+5.1　Multi-agent VCTS environment
+si(t)  si 1(t)
+In the multi-agent VCTS environment, there are three
+main scenarios in the trains in reality. The first scenario
+of “safe  acceleration  or  brake” mentioned  refers  to  a
+state where the train maintains an appropriate distance,
+ ,  between  trains  under  the  standards  of
+Max-braking  and  Max-Acc,  and  operates  at  a  higher
+speed  safely.  In  this  case,  the  train  can  adjust  its
+acceleration  or  deceleration  as  needed  to  ensure  safe
+and  efficient  operation,  but  this  does  not  involve
+restrictive requirements for specific operations such as
+entering or exiting stations. Such an operational mode
+allows the train to flexibly respond to various situations
+during its operation while ensuring safety distance.
+si(t)  si 1(t)
+In the second scenario of “unpredictable emergency
+situation”, trains operate based on an MA generated by
+a  ZC,  where  the  MA  signifies  the  nearest  obstacle
+approaching the train, which could be another train, a
+turnout, or a sudden obstruction. The ATP generates a
+speed  limit  for  the  train  based  on  the  MA,  while  the
+ATO  controls  the  train  under  the  constraints  of  the
+ATP.  To  ensure  safety,  once  the  train  speed  exceeds
+the  limit,  an  emergency  brake  must  be  applied,
+implying  that  it  is  difficult  to  further  reduce  the
+distance  between  adjacent  trains  due  to
+safety  considerations.  Thus,  disregarding  passenger
+comfort,  the  distance  between  adjacent  trains  must  be
+sufficiently large to prevent collisions.
+For the third scenario “uniform schedule operation”,
+this  scenario  indicates  that  operations  need  to  be
+conducted  based  on  the  specific  requirements  of  the
+train’s stopping and starting, under the basic condition
+of “safe  acceleration  or  brake”.  This  means  that  there
+are  more  restrictive  conditions  when  using
+acceleration, making the operation more complex. For
+example,  when  a  train  is  approaching  a  station,  there
+are  explicit  speed  limitations,  and  therefore,  the  train
+ 
+"
+
+
+lr
+p
+Table 1    Simulation  configurations  and  parameters.  The
+physical  parameters  of  the  train’s  motion  are  based  on
+industry  standards  referenced  in  Ref.  [5],  and  the  reward
+weight is derived from these standards. The values of , ,
+ , ,  and  are  determined  based  on  preliminary
+experiments.  These  values  ensure  a  balanced  appropriation
+of  past  experiences  for  learning  convergence,  supporting
+both  the  assistance  of  past  experiences  in  learning  and  the
+rapid convergence of learning. The number of iterations ( L),
+time  steps  per  episode  (T),  and  policy  update  steps  (K)  are
+designed  based  on  the  actual  operating  mechanisms  of  the
+train,  including  the  communication  frequency  between  the
+train  and  the  control  center  and  the  computational
+capabilities.
+Parameter Value
+w1
+Distance reward weight ( ) 0 .7
+w2
+Velocity reward weight ( ) 0 .1
+w3
+Acceleration reward weight ( ) 0 .1
+w4
+Safety reward weight ( ) 0 .1
+Simulation episode (ms) 10–30
+Max speed of the train (m/s) 20
+Max-Acc (m/s2) 0 .8
+Min-Acc (m/s2) −0 .8
+"
+Initial heuristic usage rate ( ) 0 .3
+
+Decay rate for heuristic usage rate ( ) 0 .45
+
+Initial auxiliary loss weight ( ) 0 .6
+Number of iterations (L) 78–80
+Number of time steps per episode (T) 20
+Number of policy update steps (K) 10
+Batch size (bs) 128
+Experience pool size 10 000
+Target network update interval (episodes) 200
+Learning rate (lr) 0 .001
+p
+Random probability ( ) 0 .2
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 337
+ 
+needs  to  decelerate  in  advance  to  meet  the  speed
+requirements  at  the  time  of  arrival.  This  operating
+mode  requires  the  train  to  follow  stricter  controls  of
+speed and timing when entering and exiting stations to
+ensure the safety and punctuality of train operations.
+We  employ  a  variety  of  parameters  and
+hyperparameters  to  configure  and  optimize  the
+reinforcement  learning  algorithm.  These  parameters
+and hyperparameters play a crucial role during training,
+ensuring that the agents can effectively learn and adapt
+to the environment. Through Eq. (1), it can be observed
+that  the  reward  components  correspond  to  various
+aspects  such  as  position,  velocity,  and  acceleration  of
+the  train  motion  system.  Velocity  is  the  derivative  of
+position,  and  acceleration  is  the  derivative  related  to
+velocity and system control, with the safety component
+being  positively  correlated  with  both  acceleration  and
+velocity.  This  indicates  that  our  motion  system
+indicators  form  a  chaotic  system.  Hence,  they  cannot
+be  analyzed  separately.  Based  on  preliminary
+experimental  analysis,  it  has  been  concluded  that  the
+position is more important than other indicators. We set
+different  reward  weights,  including  distance  reward,
+velocity  reward,  acceleration  reward,  and  safety
+reward. Consequently, we have increased the weight of
+the position reward, with corresponding values of 0.7.
+And  we  set  different  velocity  reward,  acceleration
+reward,  and  safety  reward,  with  corresponding  values
+of 0.1, 0.1, and 0.1. This configuration ensures that the
+agents  not  only  focus  on  completing  the  task  quickly
+but  also  optimize  for  safety  and  stability.  The
+maximum speed of the train is capped at 20 m/s, with
+Max-Acc  and  Min-Acc  set  at  0.8  and −0.8  m/s2,
+respectively.  These  constraints  guarantee  that  agents
+avoid  conducting  unstable  or  unsafe  operations
+stemming  from  excessively  high  or  low  speeds  and
+accelerations.  During  training,  we  initialize  the
+heuristic usage rate at 0.3, which is adjusted after each
+iteration  by  a  decay  rate  of  0.45.  The  initial  auxiliary
+loss weight is set at 0.6 and is similarly adjusted over
+time.  The  number  of  iterations  is  set  between  78  and
+80, with each iteration consisting of 20 time steps per
+episode  and  10  policy  update  steps.  The  batch  size  is
+128,  and  the  experience  pool  size  is 10 000.  To
+maintain  the  stability  and  effectiveness  of  the
+algorithm,  the  target  network  is  updated  every  200
+episodes, and the learning rate is set at 0.001. There is
+a 0.2 probability of selecting actions based on heuristic
+states,  introducing  some  randomness  to  avoid  local
+optima.
+These  carefully  designed  parameters  and
+hyperparameters enable effective training of the agents
+within  the  multi-agent  VCTS  environment,  ensuring
+robust performance in complex task settings.
+5.2　Simulation result
+In  our  simulation,  we  examined  the  functionality  of
+four  urban  rail  train  sets,  each  measuring
+approximately  120  m,  that  constitute  a  VCTS.  We
+constructed three distinct scenarios, each characterized
+by  its  unique  circumstances  and  train  statuses  in
+Fig. 2.※
+In the first scenario, representing safe acceleration or
+brake,  we  configured  the  starting  conditions  such  that
+the initial distance separating the trains is 50 m, while
+the initial speed is 0 or 20 m/s. The results showed that
+the  trailing  train  commenced  its  movement
+synchronously  with  the  lead  train.  Moreover,  the
+trailing  train’s  velocity  slightly  exceeded  that  of  the
+lead train. Under this scenario, roughly 84 epochs were
+required  for  the  state  of  the  VCTS  to  reach  stability.
+Hence,  during  safe  acceleration  or  brake,  the
+convergence of rewards exhibited greater smoothness.
+In  the  second  scenario,  which  simulates  an
+unpredictable  emergency  situation,  we  specify  the
+starting  conditions  as  follows:  The  initial  distance
+ 
+Number of epochs
+ 
+ 
+Fig. 2    Performance  in  terms  of  reward  of  the  HHG-
+MAPPO  algorithm  in  three  different  scenarios:
+Unpredictable  Emergency  Situation  (UES),  Safe
+Acceleration  or  Brake  (SAoB),  and  Schedule  Operation
+(SO).  Reward  changes  over  training  epochs  (epoch).  The
+reward  function  is  defined  as  (r(s, a)  =  0.7  · rdistance +  0.1  ·
+rvelocity +  0.1  · racceleration +  0.1  · rsafety),  which  evaluates  the
+performance in each scenario. The shaded bands indicate the
+min–max range across independent runs (random seeds) for
+each method. 
+ 
+※The shaded bands indicate the min–max range across independent runs
+(random seeds) for each method. The horizontal axis denotes the training
+epoch index. Unless otherwise stated, all figures in the simulation result
+(Section 3.2) follow this plotting convention.
+    338 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+separating  each  train  is  set  at  10  m,  while  the  initial
+speed is set at 20 m/s. We observe that in this situation,
+the reward values tended to fluctuate continuously over
+time. This is attributable to the requirement for the lead
+train  to  execute  an  emergency  evasion  maneuver,
+resulting  in  abrupt  and  multiple  speed  alterations
+throughout  the  simulation  process.  However,  by
+approximately the 92-nd epoch, the reward value in the
+simulation  stabilized  and  trended  toward  zero.  This
+implies  that  the  train  had  successfully  performed  its
+emergency evasion and reached its maximum speed of
+20  m/s.  The  leading  train  is  thus  able  to  maintain
+stability,  despite  experiencing  multiple  consecutive
+speed  variations.  These  observations  indicate  that  the
+unpredictability  inherent  in  an  emergency  situation
+results in fluctuations in rewards among the four trains.
+Although  the  speed  performance  curve  of  the  trailing
+train  exhibited  some  oscillations,  a  stable  inter-train
+interaction was restored after a brief adjustment period.
+In  the  third  scenario,  simulating  scheduled
+operations, the initial inter-train distance is set at 8 m,
+while the initial speed of all four trains is 20 m/s. Since
+this configuration adheres to a standard rail timetable,
+stability is achieved as early as the 20th epoch. Due to
+the  trains’ comparatively  close  proximity,  the  reward
+values  are  not  significantly  high.  Nevertheless,
+complete convergence is attained within the briefest 80
+epochs.
+Taken  together,  these  simulations  demonstrate
+prompt  convergence  in  the  operational  status  of  the
+trains across three distinct scenarios, thereby providing
+substantive  verification  for  our  algorithm.  This
+underscores  the  algorithm’s  robust  short-term
+adaptability and stability.
+Upon  carefully  examining Figs.  3a and 4a,  it
+becomes  quite  apparent  that  following  a  series  of
+comprehensive tests implemented within the settings of
+our  testing  scenario  1,  a  comparison  depicting  the
+variance  of  acceleration  and  NRSS  is  shown  through
+shaded areas and informational tables. This comparison
+becomes  evident  when  measured  against  the  MAA3C
+algorithm;  our  HHG-MAPPO  algorithm  shows  a
+characteristic of higher stability and winrate.
+This  stability  advantage  of  our  algorithm  is
+particularly crucial in ensuring a consistently high win
+rate.  Furthermore,  our  algorithm  proves  competent  in
+ 
+Acceleration (m/s2)
+0 20 40 60 80 100 0 20 40 60 80 100 1000 20 40 60 80
+Acceleration (m/s2)
+Acceleration (m/s2)
+(a) Safe acceleration or brake
+Number of epochs Number of epochs Number of epochs
+(b) Unpredictable emergency situation (c) Uniform schedule operation
+ 
+ 
+Fig. 3    Performance in terms of acceleration of different algorithms in three types of scenarios. Assuming survival, the smaller
+the change in acceleration, the better. The shaded bands indicate the min–max range across independent runs (random seeds)
+for each method.
+ 
+0 20 40
+(a) Safe acceleration or brake (b) Unpredictable emergency situation (c) Uniform schedule operation
+NRSS (m)
+NRSS (m)
+NRSS (m)
+60 80 0 20 40 60 80 0 20 40 60 80
+Number of epochsNumber of epochs Number of epochs
+ 
+ 
+Fig. 4    Normalized  Risk  Safety  Space  (NRSS)  over  training  epochs  for  the  HHG-MAPPO,  Multi-Agent  Asynchronous
+Advantage  Actor-Critic  (MAA3C),  and  Greedy  algorithms.  NRSS  is  used  to  evaluate  the  deviation  of  the  current  vehicle
+distance  from  a  preset  safe  distance,  ensuring  a  safe  driving  distance  is  maintained.  An  effective  algorithm  should  aim  to
+maintain a low NRSS throughout the training process. The shaded bands indicate the min–max range across independent runs
+(random seeds) for each method.
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 339
+ 
+maintaining an optimally safe distance while retaining
+an  acceleration  selection  process  that  has  been
+designed  for  smooth  operation.  This  level  of
+consistency  and  safety  is  something  that  traditional
+Greedy  algorithms  have  trouble  achieving,  especially
+in  instances  where  there  is  an  urgency  to  meet  the
+multi-agent  requirements  of  the  VCTS.  One  of  the
+unique  benefits  of  our  algorithm  is  also  evident  from
+observing  the  quick  stabilization  of  acceleration
+changes.  Other  algorithmic  alternatives  we  assessed
+either  displayed  zero  growth  in  acceleration  or
+showcased  an  amplitude  that  is  simply  too  high  to  be
+considered effective. Both such cases are considered as
+failing to meet the strict operational requirements that
+are  in  place  for  the  effective  functioning  of  VCTS
+trains.
+We  further  delve  into Figs.  3b and 4b  which
+elaborate  on  how  our  HHG-MAPPO  algorithm  is
+competent  enough  to  respond  swiftly  in  the  event  of
+rapid alterations experienced by the leading train which
+include numerous status shifts as well. Simultaneously,
+the  algorithm  works  towards  achieving  effective  risk
+avoidance  by  retaining  a  safe  distance.  Additionally,
+the  MAA3C  algorithm  falls  short  when  pitted  against
+our algorithm with regard to the win rate and variance
+across each experimental phase, as depicted clearly in
+Table  2.  This  reinforces  our  initial  observation  based
+on  the  prior  scenario,  providing  further  proof  that  our
+algorithm  shows  great  concern  for  stability  while
+ensuring  that  no  collision  occurs.  This  meets,  and  in
+many  cases  exceeds,  the  operational  prerequisites  of
+VCTS trains.
+In  line  with  previous  findings, Figs.  3c and 4c  also
+show that our algorithm allows for a high win rate and
+a considerably stable performance even in generalized
+scenarios  that  do  not  involve  a  pre-defined  schedule.
+This  validates  the  versatility  and  robustness  of  our
+algorithm,  further  proving  its  superiority  over  the
+existing MARL method and traditional method.
+Our  study  shows  that  our  algorithm  quickly  adjusts
+and  stabilizes  speeding,  greatly  improving  VCTS
+reliability and efficiency. Ensuring a high win rate and
+a stable performance, both amidst rapid alterations and
+in  more  generalized  scenarios,  also  guarantees  an
+enhanced  sense  of  safety  and  certainty  in  urban  rail
+transport.  This  is  evident  in Table  2 which  shows  the
+consistency in performance under variable conditions.
+To  address  the  feedback  for  a  more  systematic
+presentation  and  detailed  comparison  with  baseline
+methods,  we  focus  on  comparing  the  results  of  our
+HHG-MAPPO algorithm against the MAA3C baseline
+method. In terms of WinRate, HHG-MAPPO shows an
+average increment of 23% compared with MAA3C in
+three  scenarios,  which  underscores  our  algorithm’s
+enhanced  ability  to  collaborate  successfully  in  the
+simulated  environment.  When  examining  the  average
+indicators,  HHG-MAPPO  consistently  outperforms
+MAA3C.  Specifically,  the  average  NRSS  of  HHG-
+MAPPO  averages  maintain  with  MAA3C.  HHG-
+MAPPO achieved an average reward in three scenarios
+ 
+Table 2    Experimental  results  of  WinRate,  NRSS,  reward,  and  acceleration  for  different  algorithms  in  a  simulated  driving
+environment.  WinRate  for  collaborative  agents  is  crucial,  as  a  higher  WinRate  indicates  better  overall  performance  and
+success in collaborative tasks, making the subsequent indicators meaningful (best results are marked in bold). The average of
+indicator  includes  NRSS,  reward,  and  acceleration,  which  provide  insights  into  the  efficiency  and  safety  of  the  algorithms.
+Lower NRSS values indicate better adherence to safe driving distances, higher rewards reflect more optimal performance, and
+appropriate  acceleration  values  ensure  smooth  and  safe  operations.  The  variance  of  these  indicators  further  illustrates  the
+stability and consistency of each algorithm’s performance. — means that the method do not use the reward indicator, just use
+for test for normal basline. Best results are marked in bold.
+Algorithm WinRate for
+collaborative agent
+Average of indicator Variance of indicator
+NRSS (m) Reward Acceleration (m/s2) NRSS (m) Acceleration (m/s2)
+HHGMAPPO-Scenario-1 0.75 1.66 −3.70 0.46 0.76 0.01
+MAA3C-Scenario-1 0.70 1.81 −4.36 0.41 0.87 0.04
+Greedy-Scenario-1 0.04 0.17 — 0.14 0.03 0.01
+HHGMAPPO-Scenario-2 0.81 0.17 −4.60 3.32 0.01 0.71
+MAA3C-Scenario-2 0.46 0.28 −6.22 1.69 0.05 1.85
+Greedy-Scenariso-2 0.00 0.02 — 0.37 0.01 0.06
+HHGMAPPO-Scenario-3 0.75 1.01 −3.93 0.54 0.21 0.07
+MAA3C-Scenario-3 0.45 0.64 −5.89 0.28 0.30 0.10
+Greedy-Scenario-3 0.03 0.07 — 0.11 0.01 0.01
+    340 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+ (3:7 + 4:6 + 3:93)=3 = 4:08
+ (4:36+
+6:22 + 5:89)=3 = 5:49
+of  compared with 
+  for  MAA3C,  highlighting  a
+25.7% increase  in  achieving  optimal  performance
+criteria.  In  terms  of  acceleration,  HHG-MAPPO
+maintains  smoother  and  more  consistent  acceleration
+figures  with  a  variance  of  0.327  m/s2,  in  comparison
+with  MAA3C’s  0.407  m/s2.  HHG-MAPPO  achieved
+convergence  with  an  average  of  87  epochs,  while  the
+MAA3C  required  more  than  124  epochs  to  converge.
+These  detailed  comparisons  distinctly  show  the
+superiority  of  our  HHG-MAPPO  algorithm  over  the
+baseline  MAA3C  method  in  terms  of  critical
+performance  indicators  such  as  WinRate,  NRSS,
+reward,  and  stability  in  acceleration,  signifying  better
+performance efficiency and reliability in VCTS.
+We  believe  this  innovative  algorithm  will  pave  the
+way  for  a  new  era  of  intelligent  and  highly  efficient
+urban rail transport systems, surpassing the limitations
+of  traditional  methods  and  existing  MARL,  while
+meeting  the  strict  operational  requirements  for  the
+effective functioning and safety of VCTS trains.
+6　Conclusion
+This study optimizes co-control strategies for VCTS in
+urban rail transit using MARL. Advanced technologies
+boost efficiency and safety to tackle urbanization. We
+utilize  innovative  VCTS  systems,  which  bolster  co-
+control between trains by facilitating efficient vehicle-
+to-vehicle interaction. The study uses MARL, ensuring
+effective  coordination  amid  multiple  agents.  We
+validate our MARL algorithm via simulations, showing
+its  superiority  over  traditional  methods.  We  plan  to
+fine-tune  these  algorithms  and  test  them  in  real  urban
+rail  systems.  Despite  the  promising  results  obtained
+using  MARL  for  optimizing  co-control  strategies  in
+VCTS  for  urban  rail  transit,  challenges  remain.  One
+limitation  is  the  scalability  of  the  MARL  algorithm
+when  applied  to  more  complex  and  larger-scale
+networks.  Furthermore,  our  algorithm’s  reliance  on
+high-quality,  real-time  data  may  restrict  its  use  in
+environments  where  such  data  inputs  are  inconsistent
+or  unavailable.  In  future  work,  we  will  expand  this
+approach  to  other  IIoT  applications  like  autonomous
+driving,  greatly  contributing  to  urban  mobility  and
+improving passenger experience.
+Acknowledgment
+This  work  was  in  part  supported  by  the  Major  Basic
+Research  Program  of  Shandong  Provincial  Natural
+Science  Foundation  (No.  ZR2022ZD02),  the  Joint  Key
+Funds  of  National  Natural  Science  Foundation  of  China
+(No.  U24A20244),  the  National  Natural  Science
+Foundation  of  China  (No.  62272256),  and  Shandong
+Science  Fund  for  Excellent  Young  Scholars  (No.
+2023HWYQ-007).
+Declaration of competing interest
+The  authors  have  no  competing  interests  to  declare  that
+are relevant to the content of this article.
+References 
+ H.  Wang,  F.  R.  Yu,  L.  Zhu,  T.  Tang,  and  B.  Ning, A
+cognitive  control  approach  to  communication-based  train
+control systems, IEEE Trans. Intell. Transp. Syst., vol. 16,
+no. 4, pp. 1676–1689, 2015.
+[1]
+ W. Wu, H. Song, M. Zhou, H. Wang, and H. Dong, Train
+tracking  interval  optimization  method  based  on
+cooperative perception of train speed and communication
+states,  in Proc.  2024  IEEE  Int.  Conf.  Industrial
+Technology, Bristol, UK, 2024, pp. 1−6.
+[2]
+ Y.  Liu,  Y.  Zhou,  S.  Su,  J.  Xun,  and  T.  Tang, Control
+strategy  for  stable  formation  of  high-speed  virtually
+coupled  trains  with  disturbances  and  delays, Comput.-
+Aided Civil Infrastruct. Eng., vol. 38, no. 5, pp. 621–639,
+2023.
+[3]
+ F.  Flammini,  S.  Marrone,  R.  Nardone,  A.  Petrillo,  S.
+Santini,  and  V.  Vittorini,  Towards  railway  virtual
+coupling, in Proc. 2018 IEEE Int. Conf. Electrical Systems
+for Aircraft, Railway, Ship Propulsion and Road Vehicles
+&  Int.  Transportation  Electrification  Conf. (ESARS-
+ITEC), Nottingham, UK, 2018, pp. 1−6.
+[4]
+ H.  Wang,  Q.  Zhao,  S.  Lin,  D.  Cui,  C.  Luo,  L.  Zhu,  X.
+Wang, and T. Tang, A reinforcement learning empowered
+cooperative  control  approach  for  IIoT-based  virtually
+coupled train sets, IEEE Trans. Ind. Inform., vol. 17, no. 7,
+pp. 4935–4945, 2021.
+[5]
+ S.  Stickel,  M.  Schenker,  H.  Dittus,  P.  Unterhuber,  S.
+Canesi,  V.  Riquier,  F.  P.  Ayuso,  M.  Berbineau,  and  J.
+Goikoetxea, Technical feasibility analysis and introduction
+strategy  of  the  virtually  coupled  train  set  concept, Sci.
+Rep., vol. 12, no. 1, p. 4248, 2022.
+[6]
+ K.  Zhang,  Z.  Yang,  and  T.  Başar,  Multi-agent
+reinforcement  learning:  A  selective  overview  of  theories
+and  algorithms,  in Handbook  of  Reinforcement  Learning
+and Control, K. G. Vamvoudakis, Y. Wan, F. L. Lewis, D.
+Cansever,  eds.  Cham,  Germany:  Springer,  2021,  pp.
+321−384.
+[7]
+ Z.  Zhang,  M.  Imani,  and  T.  Lan,  Modeling  other  players
+with  Bayesian  beliefs  for  games  with  incomplete
+information, arXiv preprint arXiv: 2405.14122, 2024.
+[8]
+ Y. Li, T. Zeng, X. Zhang, J. Duan, and C. Wu, TapFinger:
+Task  placement  and  fine-grained  resource  allocation  for
+[9]
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 341
+ 
+edge  machine  learning,  in Proc.  IEEE  Conf.  Computer
+Communications, New York, NY, USA, 2023, pp. 1−10.
+ H. Zhou, T. Lan, and V. Aggarwal, PAC: Assisted value
+factorisation with counterfactual predictions in multi-agent
+reinforcement  learning,  in Proc.  36th Int.  Conf.  Neural
+Information Processing Systems, New Orleans, LA, USA,
+2022, p. 1146.
+[10]
+ Y.  Jiang,  K.  Di,  R.  Qian,  X.  Wu,  F.  Chen,  P.  Li,  X.  Fu,
+and  Y.  Jiang, Optimizing  risk-aware  task  migration
+algorithm  among  multiplex  UAV  groups  through  hybrid
+attention  multi-agent  reinforcement  learning, Tsinghua
+Science  and  Technology,  vol. 30,  no. 1,  pp. 318–330,
+2025.
+[11]
+ H.  Zhou,  T.  Lan,  and  V.  Aggarwal, Value  functions
+factorization  with  latent  state  information  sharing  in
+decentralized  multi-agent  policy  gradients, IEEE  Trans.
+Emerg. Top. Comput. Intell., vol. 7, no. 5, pp. 1351–1361,
+2023.
+[12]
+ Y.  Zou,  H.  Yin,  Y.  Zheng,  and  F.  Dressler, Multi-agent
+reinforcement  learning  enabled  link  scheduling  for  next
+generation internet of things, Comput. Commun., vol. 205,
+pp. 35–44, 2023.
+[13]
+ Y. Zou, Z. Jin, Y. Zheng, D. Yu, and T. Lan, Optimized
+consensus  for  blockchain  in  Internet  of  Things  networks
+via  reinforcement  learning, Tsinghua  Science  and
+Technology, vol. 28, no. 6, pp. 1009–1022, 2023.
+[14]
+ P.  Fraga-Lamas,  T.  M.  Fernández-Caramés,  and  L.
+Castedo, Towards the internet of smart trains: A review on
+industrial IoT-connected railways, Sensors, vol. 17, no. 6,
+p. 1457, 2017.
+[15]
+ W.  Yu,  Y.  Liu,  T.  Dillon,  and  W.  Rahayu, Edge
+computing-assisted  IoT  framework  with  an  autoencoder
+for  fault  detection  in  manufacturing  predictive
+maintenance, IEEE Trans. Indust. Inform., vol. 19, no. 4,
+pp. 5701–5710, 2023.
+[16]
+ H. Wang, F. R. Yu, L. Zhu, T. Tang, and B. Ning, Finite-
+state  Markov  modeling  for  wireless  channels  in  tunnel
+communication-based  train  control  systems, IEEE  Trans.
+Intell. Transpt. Syst., vol. 15, no. 3, pp. 1083–1090, 2014.
+[17]
+ H.  Wang,  F.  R.  Yu,  and  H.  Wang, A  cognitive  control
+approach  to  interference  mitigation  in  communications-
+based  train  control (CBTC) co-existing  with  passenger
+information systems (PISs), EURASIP J. Wirel. Commun.
+Netw., vol. 2017, no. 1, p. 186, 2017.
+[18]
+ N.  Bin,  T.  Tao,  Q.  K.  Min,  and  G.  C.  Hai,  CBTC
+(communication  based  train  control):  System  and
+development,  in Proc.  Computers  in  Railways  X.  The
+Tenth  Int.  Conf.,  Prague,  Czech  Republic,  2006,  pp.
+413−420.
+[19]
+ H.  Wang,  F.  R.  Yu,  and  H.  Jiang, Modeling  of  radio
+channels with leaky coaxial cable for LTE-M based CBTC
+systems, IEEE  Commun.  Lett.,  vol. 20,  no. 5,  pp.
+1038–1041, 2016.
+[20]
+ H.  Song  and  E.  Schnieder, Availability  and  performance
+analysis  of  train-to-train  data  communication  system,
+[21]
+IEEE  Trans.  Intell.  Transp.  Syst.,  vol. 20,  no. 7,  pp.
+2786–2795, 2019.
+ Z. Yuan, L. Yan, Y. Gao, T. Zhang, and S. Gao, Virtual
+parameter  learning-based  adaptive  control  for  protective
+automatic  train  operation, IEEE  Trans.  Intell.  Transp.
+Syst., vol. 22, no. 12, pp. 7943–7954, 2021.
+[22]
+ R. Parise, H. Dittus, J. Winter, and A. Lehner, Reasoning
+functional  requirements  for  virtually  coupled  train  sets:
+Communication, IEEE Commun. Mag., vol. 57, no. 9, pp.
+12–17, 2019.
+[23]
+ B. Ai, K. Guan, M. Rupp, T. Kurner, X. Cheng, X. F. Yin,
+Q. Wang, G. Y. Ma, Y. Li, L. Xiong, et al., Future railway
+services-oriented  mobile  communications  network, IEEE
+Commun. Mag., vol. 53, no. 10, pp. 78–85, 2015.
+[24]
+ M. Takikawa, Innovation in railway maintenance utilizing
+information  and  communication  technology (smart
+maintenance  initiative), Japan  Railw.  Transp.  Rev.,  vol.
+67, pp. 22–35, 2016.
+[25]
+ X.  Wang,  L.  Liu,  L.  Zhu,  and  T.  Tang, Train-centric
+CBTC  meets  age  of  information  in  train-to-train
+communications, IEEE  Trans.  Intell.  Transp.  Syst.,  vol.
+21, no. 10, pp. 4072–4085, 2020.
+[26]
+ L. Liu, P. Wang, W. Wei, Q. Li, and B. Zhang, Intelligent
+dispatching  and  coordinated  control  method  at  railway
+stations  for  virtually  coupled  train  sets,  in Proc.  2019
+IEEE Intelligent Transportation Systems Conf., Auckland,
+New Zealand, 2019, pp. 607−612.
+[27]
+ S. Ma, H. Wang, L. Zhu, and Q. Zhang, Joint security and
+resilience  control  in  IIoT-based  virtual  control  train  sets
+under  jamming  attacks, IEEE  Trans.  Veh.  Technol.,  vol.
+72, no. 9, pp. 11196–11212, 2023.
+[28]
+ D.  Guo,  L.  Tang,  X.  Zhang,  and  Y.  C.  Liang, Joint
+optimization  of  handover  control  and  power  allocation
+based  on  multi-agent  deep  reinforcement  learning, IEEE
+Trans.  Veh.  Technol.,  vol. 69,  no. 11,  pp. 13124–13138,
+2020.
+[29]
+ Y. Zou, Z. Zhang, C. Zhang, Y. Zheng, D. Yu, and J. Yu,
+A  distributed  abstract  mac  layer  for  cooperative  learning
+on internet of vehicles, IEEE Trans. Intell. Transp. Syst.,
+vol. 25, no. 8, pp. 8972–8983, 2024.
+[30]
+ N.  Naderializadeh,  J.  J.  Sydir,  M.  Simsek,  and  H.
+Nikopour, Resource management in wireless networks via
+multi-agent  deep  reinforcement  learning, IEEE  Trans.
+Wirel. Commun., vol. 20, no. 6, pp. 3507–3523, 2021.
+[31]
+Guanlin  Jing received  the  PhD  degree  in
+computer  science  from  Shandong
+University,  China,  in  2025  and  the  MS
+degree  in  computer  science  from  The
+George  Washington  University,
+Washington,  DC,  USA,  in  2021.  He  is
+currently a lecturer at Beijing University of
+Technology,  China,  and  he  is  also  with
+School  of  Computer  Science  and  Technology,
+ShandongUniversity,  China.  His  research  interests  mainly
+focuse on distributed computing and wireless networks.
+    342 Tsinghua Science and Technology, February 2027, 32(1): 329−343
+ 
+Yifei Zou received the BEng degree from
+Wuhan University, China, in 2016, and the
+PhD degree from The University of Hong
+Kong,  China,  in  2020.  He  is  currently  an
+assistant  professor  at  School  of  Computer
+Science  and  Technology,  Shandong
+University,  China.  His  research  interests
+include  wireless  networks,  ad  hoc
+networks, and distributed computing.
+Zuyuan  Zhang received  the  BS  degree
+from Shandong University, China, in 2023.
+He is currently a second-year PhD student
+and  a  research  assistant  at  Electrical  and
+Computer  Engineering  Department,  The
+George  Washington  University  in
+Washington,  DC,  USA.  His  research
+interests  include  optimization  and  game
+theory.
+Jiguo  Yu received  the  PhD  degree  from
+Shandong  University,  China,  in  2004.  He
+was a full professor at School of Computer
+Science,  Qufu  Normal  University,  China,
+in 2007. He is currently a full professor at
+University  of  Electronic  Science  and
+Technology  of  China,  China,  and  a  joint
+professor  at  Qilu  University  of
+Technology,  China.  He  is  a  member  of  IEEE,  a  member  of
+ACM,  and  a  senior  member  of  the  CCF.  His  main  research
+interests  include  wireless  network,  privacy-aware  computing,
+blockchain,  intelligent  IoT,  AI  and  cyber  security,  distributed
+computing, and graph theory.
+Dongxiao Yu received the BS degree from
+Shandong University, China, in 2006, and
+the  PhD  degree  from  The  University  of
+Hong Kong, China, in 2014. He became an
+associate professor at School of Computer
+Science  and  Technology,  Huazhong
+University  of  Science  and  Technology,
+China, in 2016. He is currently a professor
+at  School  of  Computer  Science  and  Technology,  Shandong
+University,  China.  His  research  interests  include  wireless
+networks, distributed computing, and graph algorithms.
+Xiuzhen Cheng received the MS and PhD
+degrees  in  computer  science  from
+University of Minnesota, Twin Cities, MN,
+USA, in 2000 and 2002, respectively. She
+was a faculty member at the Department of
+Computer  Science,  The  George
+Washington  University,  Washington,  DC,
+USA, from 2002 to 2020. Currently, she is
+a professor at Shandong University, China. She is a member of
+IEEE.  Her  research  focuses  on  blockchain  computing,  security
+and privacy, and Internet of Things.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+   Guanlin Jing et al.:  Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem... 343
+ 

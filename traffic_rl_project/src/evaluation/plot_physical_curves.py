@@ -4,7 +4,9 @@
 制动力建立、长大下坡循环制动速度-时间、缓解后车钩力冲击、MT-2 缓冲器迟滞环等物理
 机制画成论文范式曲线。对齐赵紫宁2022《重载列车空气制动精细建模与操纵优化》图2-1/2-2/2-5/3-4/3-6/3-18。
 
-产出 7 图到 outputs/phys_validation/run_{时间戳}/：
+产出：
+    图 7 张 → outputs/sim_validation/figures/特征曲线_MT2/（策展目录，重生成即覆盖）
+    原始数据 → outputs/sim_validation/phys_validation/phys_curves_1plus1_53km_<时间戳>/
     fig_phys1_brake_wave.png        制动波时空传播（制动波 + 缓解波）
     fig_phys2_brake_build.png       空气制动力建立过程（响应/暂态/稳态）
     fig_phys3_cyclic_shuozhou.png   朔黄线长大下坡循环制动（速度-时间/速度-里程/车钩力）
@@ -14,11 +16,13 @@
     fig_phys7_loco_characteristics.png  机车牵引/电制动特性外包络
 
 用法（WSL traffic_rl）：
-    python src/evaluation/plot_physical_curves.py
+    python src/evaluation/plot_physical_curves.py                # 默认复用最近归档数据，仅重画（快）
+    python src/evaluation/plot_physical_curves.py --source new   # 强制重新仿真并新建归档（慢）
 """
 import sys
 import os
 import json
+import argparse
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -46,7 +50,7 @@ SEED = 0
 
 
 
-def make_env(consist_preset='10kt_1plus0', grade=None, grade_profile=None,
+def make_env(consist_preset='10kt_1plus1', grade=None, grade_profile=None,
              max_steps=100000, init_speed=0.0):
     from src.environments.train_env import TrainFormationEnv
     cfg = {
@@ -54,7 +58,13 @@ def make_env(consist_preset='10kt_1plus0', grade=None, grade_profile=None,
         'dt': 0.1,
         'max_steps': max_steps,
         'enable_safety': True,
+        # 1+1 编组（全线已放弃 1+0）：头/尾均为机车。
+        # 制动波：多源双向传播（sync_loco_brake）——头/尾机车同时发波，中间汇合。
         'sync_loco_brake': True,
+        # 缓解波：同样双向（eot=True → 尾车机车同步排风，两端向中间缓解）。
+        # 依据：1+1 编组尾车即机车，其制动阀同步响应，缓解必须与制动一致地双向传播，
+        # 否则会出现"制动双向、缓解单向"的模型自相矛盾。
+        'eot': True,
     }
     if grade_profile:
         cfg['grade_profile'] = grade_profile
@@ -76,11 +86,46 @@ def save_fig(fig, path):
 
 
 # ---------------------------------------------------------------------------
+# 数据/绘图分离：归档读写（改样式只需 --source auto，无需重跑 53km 仿真）
+# ---------------------------------------------------------------------------
+ARCH_ROOT = Path('outputs') / 'sim_validation' / 'phys_validation'
+
+
+def find_latest_archive():
+    """返回最近一次含场景B数据的 phys_curves 归档目录，无则 None。"""
+    if not ARCH_ROOT.exists():
+        return None
+    cands = [d for d in ARCH_ROOT.iterdir()
+             if d.is_dir() and d.name.startswith('phys_curves_1plus1_53km_')
+             and 'superseded' not in d.name
+             and (d / 'traj_cyclic_shuozhou.csv').exists()]
+    return max(cands, key=lambda d: d.name) if cands else None
+
+
+def load_scenario_b(archdir):
+    """从归档 CSV/npz 还原场景B（53km 循环制动）数据，键与 run_cyclic_shuozhou 一致。"""
+    import pandas as pd
+    df = pd.read_csv(archdir / 'traj_cyclic_shuozhou.csv')
+    cm = np.load(archdir / 'coupler_matrix.npz')['coupler_mat']
+    return dict(t=df['t'].to_numpy(), v_kmh=df['v_kmh'].to_numpy(),
+                dist=df['dist_m'].to_numpy(), ab_active=df['ab_active'].to_numpy(),
+                coupler_peak_kn=df['coupler_peak_kn'].to_numpy(),
+                throttle=df['throttle'].to_numpy(), coupler_mat=cm)
+
+
+def load_scenario_a(npz_path):
+    """从 scenario_a.npz 还原场景A（制动建立→缓解）数据。"""
+    d = np.load(npz_path)
+    return dict(t=d['t'], forces=d['forces'], active=d['active'], coupler=d['coupler'])
+
+
+# ---------------------------------------------------------------------------
 # 图1/图2/图5 共用场景：平坡，SERVICE 制动建立 -> 缓解波释放
 # ---------------------------------------------------------------------------
 def run_brake_release(init_speed=70.0 / 3.6, brake_s=35.0, release_s=50.0,
-                      brake_throttle=-0.5, release_throttle=0.0, dt=0.1):
-    env = make_env(grade=0.0, init_speed=init_speed)
+                      brake_throttle=-0.5, release_throttle=0.0, dt=0.1,
+                      consist_preset='10kt_1plus1'):
+    env = make_env(consist_preset=consist_preset, grade=0.0, init_speed=init_speed)
     n_b = int(brake_s / dt)
     n_r = int(release_s / dt)
     n_steps = n_b + n_r
@@ -106,13 +151,17 @@ def fig_brake_wave(data, out):
     im = ax.imshow(active.T, aspect='auto', origin='lower', cmap='Blues',
                    extent=[t[0], t[-1], 0, active.shape[1]], interpolation='nearest')
     ax.set_xlabel('Time (s)')
-    ax.set_ylabel('Vehicle index (0=loco, %d=tail)' % (active.shape[1] - 1))
-    ax.set_title('Air-brake / release wave propagation (10 kt 1+0, 200 m/s)')
-    ax.text(t[0] + 1, 0.4, 'brake wave', color='#08306b', fontsize=10, fontweight='bold')
-    ax.annotate('release wave (head → tail)', xy=(t[0] + 0.8, 60),
-                xytext=(0.02, 0.96), textcoords='axes fraction',
-                color='#08519c', fontsize=10)
-    fig.colorbar(im, ax=ax, label='Air brake active (0/1)')
+    nv = active.shape[1]
+    ax.set_ylabel('Vehicle position (0 = head locomotive, %d = tail locomotive)' % (nv - 1))
+    ax.set_title('Air Brake and Release Wave Propagation along the Train')
+    ax.text(t[0] + 1, 1.5, 'Brake wave from head locomotive', color='#08306b',
+            fontsize=9, fontweight='bold')
+    ax.text(t[0] + 1, nv - 5.0, 'Brake wave from tail locomotive', color='#08306b',
+            fontsize=9, fontweight='bold')
+    ax.annotate('Bidirectional propagation:\nboth locomotives apply, waves meet in the middle',
+                xy=(t[0] + 0.8, nv * 0.5), xytext=(0.28, 0.05),
+                textcoords='axes fraction', color='#08519c', fontsize=9)
+    fig.colorbar(im, ax=ax, label='Air brake state (1 = applied)')
     ax.grid(alpha=0.3)
     save_fig(fig, out)
 
@@ -126,20 +175,20 @@ def fig_brake_build(data, out):
     ax = axes[0]
     for i in subset:
         ax.plot(t, forces[:, i] / 1e3, lw=1.4, label=f'Car #{i}' + labels.get(i, ''))
-    ax.set_ylabel('Per-vehicle brake force (kN)')
-    ax.set_title('Air-brake build-up: wave arrival → cylinder pressure → saturation (SERVICE)')
+    ax.set_ylabel('Air brake force per vehicle (kN)')
+    ax.set_title('Air Brake Force Build-up under Service Braking')
     ax.legend(fontsize=8, ncol=2)
     ax.grid(alpha=0.3)
     ax = axes[1]
     total = np.sum(forces, axis=1) / 1e3
     ax.plot(t, total, color='#c0504d', lw=1.8)
-    ax.set_ylabel('Total brake force (kN)')
+    ax.set_ylabel('Total air brake force (kN)')
     ax.set_xlabel('Time (s)')
     ax.axvspan(t[0], t[0] + 2.0, color='gray', alpha=0.12)
-    ax.text(t[0] + 0.4, total.max() * 0.95, 'response', fontsize=9, color='dimgray')
+    ax.text(t[0] + 0.4, total.max() * 0.95, 'wave arrival', fontsize=9, color='dimgray')
     ax.axvline(t[int(0.35 * len(t))], color='k', ls=':', lw=1.0)
-    ax.text(t[int(0.35 * len(t))] + 1, total.max() * 0.95, 'transient', fontsize=9, color='dimgray')
-    ax.text(t[int(0.7 * len(t))], total.max() * 0.95, 'steady', fontsize=9, color='dimgray')
+    ax.text(t[int(0.35 * len(t))] + 1, total.max() * 0.95, 'cylinder charging', fontsize=9, color='dimgray')
+    ax.text(t[int(0.7 * len(t))], total.max() * 0.95, 'steady state', fontsize=9, color='dimgray')
     ax.grid(alpha=0.3)
     build = np.sum(np.abs(forces), axis=1)
     build_peak = float(np.max(build)) / 1e3
@@ -165,9 +214,9 @@ def fig_release_curve(data, out):
     for i in subset:
         ax.plot(tg, forces[:, i][mask] / 1e3, lw=1.3, label=f'Car #{i}')
     ax.axvline(release_start, color='r', ls='--', lw=1.0)
-    ax.text(release_start + 0.5, ax.get_ylim()[1] * 0.9, 'release start', color='red', fontsize=9)
-    ax.set_ylabel('Per-vehicle brake force (kN)')
-    ax.set_title('Release: release wave decays force head → tail')
+    ax.text(release_start + 0.5, ax.get_ylim()[1] * 0.9, 'release begins', color='red', fontsize=9)
+    ax.set_ylabel('Air brake force per vehicle (kN)')
+    ax.set_title('Air Brake Release Transient')
     ax.legend(fontsize=8, ncol=2)
     ax.grid(alpha=0.3)
     ax = axes[1]
@@ -180,7 +229,7 @@ def fig_release_curve(data, out):
                 xytext=(0.02, 0.90), textcoords='axes fraction', fontsize=9,
                 arrowprops=dict(arrowstyle='->', color='#c0504d'))
     ax.axhline(1000, color='red', ls='--', lw=1.0)
-    ax.text(tg.min(), 1015, '1000 kN safe limit', fontsize=8, color='red')
+    ax.text(tg.min(), 1015, '1000 kN safety limit', fontsize=8, color='red')
     ax.set_ylim(0, max((peak / 1e3) * 1.25, 1100))
     ax.set_ylabel('Coupler force (kN)')
     ax.set_xlabel('Time (s)')
@@ -193,9 +242,11 @@ def fig_release_curve(data, out):
 # ---------------------------------------------------------------------------
 # 图3/图4 共用场景：朔黄线长大下坡循环制动
 # ---------------------------------------------------------------------------
-def run_cyclic_shuozhou(max_steps=15000, init_speed=65.0 / 3.6, dt=0.1):
+def run_cyclic_shuozhou(max_steps=32000, init_speed=65.0 / 3.6, dt=0.1,
+                        consist_preset='10kt_1plus1',
+                        grade_profile='shuozhou_real_53km'):
     from src.controllers.low_level_controller import TrainLowLevelController
-    env = make_env(grade_profile='shuozhou_23800',
+    env = make_env(consist_preset=consist_preset, grade_profile=grade_profile,
                    max_steps=max_steps, init_speed=init_speed)
     n_veh = env.num_vehicles
     ctrl = TrainLowLevelController(num_vehicles=n_veh, dt=dt,
@@ -230,7 +281,7 @@ def run_cyclic_shuozhou(max_steps=15000, init_speed=65.0 / 3.6, dt=0.1):
 
 
 def fig_cyclic(data, out):
-    label = 'Shuohuang Line 23.8 km (real profile)'
+    label = 'Shuohuang Line 53.2 km (real profile)'
     t = data['t']
     v_kmh = data['v_kmh']
     dist = data['dist'] / 1000.0
@@ -250,13 +301,13 @@ def fig_cyclic(data, out):
     ax.text(t[0] / 60.0 + 0.2, 81.5, 'Speed limit 80 km/h', fontsize=7)
     ax.text(t[0] / 60.0 + 0.2, 41.5, 'Speed limit 40 km/h', fontsize=7)
     ax.set_xlabel('Time (min)'); ax.set_ylabel('Speed (km/h)')
-    ax.set_title('Speed vs time', fontsize=10)
+    ax.set_title('Speed Profile (Time Domain)', fontsize=10)
     ax.legend(fontsize=8, loc='upper left'); ax.grid(alpha=0.3)
     ax = axes[1]
     ax.plot(dist, v_kmh, color=GREEN, lw=1.3)
     ax.axhline(80, color='k', ls='--', lw=0.9); ax.axhline(40, color='k', ls='--', lw=0.9)
     ax.set_xlabel('Distance (km)'); ax.set_ylabel('Speed (km/h)')
-    ax.set_title('Speed vs distance', fontsize=10)
+    ax.set_title('Speed Profile (Distance Domain)', fontsize=10)
     ax.grid(alpha=0.3)
     ax = axes[2]
     ax.plot(t / 60.0, cpk, color=RED, lw=1.2, label='Peak coupler force (all sections)')
@@ -268,15 +319,15 @@ def fig_cyclic(data, out):
                 label='Head coupler (loco-freight)')
         if np.nanmax(head_mt2) > 1e-3:
             ax.text(t[0] / 60.0 + 0.2, np.nanmax(head_mt2) * 0.30,
-                    'Head MT-2', color='#ff7f0e', fontsize=8)
+                    'Head coupler (MT-2)', color='#ff7f0e', fontsize=8)
     ax.axhline(1000, color='r', ls='--', lw=1.0)
-    ax.text(t[0] / 60.0 + 0.2, 1000 * 1.03, '1000 kN safe limit', fontsize=7, color='red')
+    ax.text(t[0] / 60.0 + 0.2, 1000 * 1.03, '1000 kN safety limit', fontsize=7, color='red')
     ax.set_ylim(0, max(cpk.max() * 1.15, 1100))
-    ax.set_xlabel('Time (min)'); ax.set_ylabel('Coupler force peak (kN)')
-    ax.set_title('Coupler force peak', fontsize=10)
+    ax.set_xlabel('Time (min)'); ax.set_ylabel('Peak coupler force (kN)')
+    ax.set_title('Peak Coupler Force', fontsize=10)
     ax.legend(fontsize=8, loc='upper right')
     ax.grid(alpha=0.3)
-    fig.suptitle(f'{label} · cyclic braking simulation', fontsize=12)
+    fig.suptitle(f'{label}: Cyclic Braking Simulation', fontsize=12)
     n_ab_seg = int(np.sum(np.diff(np.r_[0, ab.astype(int)]) > 0))
     logger.info('[self-check] cyclic: v range [%.0f, %.0f] km/h, coupler peak %.0f kN, '
                 '%d brake segments, %.1f km', float(v_kmh.min()), float(v_kmh.max()),
@@ -300,7 +351,7 @@ def fig_release_impulse(data, out):
             label=f'Coupler force (car {vi}-{vi+1})')
     peak = float(np.abs(cmat).max()) / 1e3
     ax.plot(t0 / 60.0, peak, 'o', color='#c0504d')
-    ax.annotate(f'Peak impact {peak:.0f} kN', xy=(t0 / 60.0, peak),
+    ax.annotate(f'Peak coupler force {peak:.0f} kN', xy=(t0 / 60.0, peak),
                 xytext=(0.02, 0.90), textcoords='axes fraction', fontsize=9,
                 arrowprops=dict(arrowstyle='->', color='#c0504d'))
     # 【2026-09-07 ADR】全列统一 MT-2：头钩（断面0）即普通 MT-2 耦合，
@@ -316,10 +367,10 @@ def fig_release_impulse(data, out):
     for k in range(0, len(edges), 2):
         ax.axvspan(tg[edges[k]] / 60.0, tg[edges[k + 1] - 1] / 60.0, color='red', alpha=0.15)
     ax.axhline(1000, color='r', ls='--', lw=1.0)
-    ax.text(tg.min() / 60 + 0.02, 1015, '1000 kN', fontsize=8, color='red')
+    ax.text(tg.min() / 60 + 0.02, 1015, '1000 kN safety limit', fontsize=8, color='red')
     ax.set_ylim(0, max(peak * 1.25, 1200))
     ax.set_xlabel('Time (min)'); ax.set_ylabel('Coupler force (kN)')
-    ax.set_title('Longitudinal impact window (red = air braking)')
+    ax.set_title('Coupler Force Impact during Air Braking')
     ax.legend(fontsize=9)
     ax.grid(alpha=0.3)
     logger.info('[self-check] single-train longitudinal impact peak coupler = %.0f kN '
@@ -386,7 +437,7 @@ def fig_coupler_hysteresis(out):
     本图展示 MT-2 特征：Stribeck 摩擦迟滞环、预压力 200 kN、2270 kN 饱和上限。
     """
     from src.train_dynamics.params import CouplerParams
-    specs = [('MT-2 · 摩擦式弹簧缓冲器（全列统一）', CouplerParams())]
+    specs = [('MT-2 friction spring buffer (unified on all couplers)', CouplerParams())]
     fig, ax = plt.subplots(figsize=(8, 6.5))
     for title, p in specs:
         lp = _hysteresis_loop(p)
@@ -402,27 +453,27 @@ def fig_coupler_hysteresis(out):
         ax.axvline(p.stroke_m * 1000, color='gray', ls=':', lw=1.0)
         ax.axvline(-p.stroke_m * 1000, color='gray', ls=':', lw=1.0)
         ax.axhline(p.max_impulse_n / 1e3, color='gray', ls='--', lw=1.0, alpha=0.7)
-        ax.annotate('Dead zone ±%d mm\n(no force in gap)' % (p.coupler_gap_m * 1000),
+        ax.annotate('Dead zone ±%d mm\n(no force within the gap)' % (p.coupler_gap_m * 1000),
                     xy=(p.coupler_gap_m * 1000, 20), xytext=(-105, -2050), fontsize=8,
                     arrowprops=dict(arrowstyle='->'))
-        ax.set_xlabel('Displacement (mm)')
+        ax.set_xlabel('Buffer displacement (mm)')
         ax.set_ylabel('Coupler force (kN)')
         ax.set_title(title, fontsize=10)
         ax.legend(fontsize=8, loc='upper right')
         ax.grid(alpha=0.3)
         ax.set_xlim(-105, 105); ax.set_ylim(-2600, 2850)
         ax.text(30, p.max_impulse_n / 1e3 + 90,
-                'MT-2 max impulse 2270 kN', fontsize=8, color='gray')
-        ax.annotate('Preload 200 kN\n(impedance on contact)',
+                'Saturation limit 2270 kN', fontsize=8, color='gray')
+        ax.annotate('Preload 200 kN\n(resistance at contact)',
                     xy=(p.coupler_gap_m * 1000 + 2, 200),
                     xytext=(-100, 700), fontsize=8, arrowprops=dict(arrowstyle='->'))
-        ax.text(-100, -1500, 'Stribeck friction\n(静 750 / 动 500 kN, v_er=0.2)',
+        ax.text(-100, -1500, 'Stribeck friction\n(static 750 / kinetic 500 kN, v_er = 0.2)',
                 fontsize=8, color='#2ca02c')
         peak_c = float(np.nanmax(np.abs(lp['load_c']))) / 1e3
         peak_t = float(np.nanmax(np.abs(lp['load_t']))) / 1e3
         logger.info('[self-check] %-7s loading peak: compression %.0f / tension %.0f kN '
                     '(limit %d kN)', 'MT-2', peak_c, peak_t, int(p.max_impulse_n / 1e3))
-    fig.suptitle('Coupler buffer loading–unloading hysteresis · MT-2 (unified, R0)', fontsize=12.5)
+    fig.suptitle('Loading and Unloading Hysteresis of the MT-2 Coupler Buffer', fontsize=12.5)
     save_fig(fig, out)
     logger.info('[self-check] MT-2: dead zone ±10mm, preload 200kN, Stribeck 750/500, '
                 'stroke 83mm, limit 2270kN; 全列统一 MT-2（QKX100 已移除）')
@@ -440,11 +491,11 @@ def fig_loco_characteristics(out):
     ax.plot(v * 3.6, F_ed, color='#d62728', lw=2.0, label='Electric braking (ED=1)')
     ax.axhline(0.9 * 188.0 * 9.81, color='#1f77b4', ls='--', lw=1.0, alpha=0.6)
     ax.axhline(0.85 * 0.9 * 188.0 * 9.81, color='#d62728', ls='--', lw=1.0, alpha=0.6)
-    ax.text(120, 0.9 * 188.0 * 9.81 + 30, 'traction adhesion limit', fontsize=8, color='#1f77b4')
-    ax.text(120, 0.85 * 0.9 * 188.0 * 9.81 + 30, 'ED adhesion limit', fontsize=8, color='#d62728')
-    ax.text(100, 400, 'F = P_eff / v\n(power-limited)', fontsize=9, color='dimgray', ha='center')
-    ax.set_xlabel('Speed (km/h)'); ax.set_ylabel('Traction / braking force (kN)')
-    ax.set_title('HXD3B loco traction / electric-braking envelope (9600 kW, 188 t, η=0.85)')
+    ax.text(120, 0.9 * 188.0 * 9.81 + 30, 'Traction adhesion limit', fontsize=8, color='#1f77b4')
+    ax.text(120, 0.85 * 0.9 * 188.0 * 9.81 + 30, 'Electric braking adhesion limit', fontsize=8, color='#d62728')
+    ax.text(100, 400, 'F = P_eff / v\n(power-limited region)', fontsize=9, color='dimgray', ha='center')
+    ax.set_xlabel('Speed (km/h)'); ax.set_ylabel('Tractive and braking force (kN)')
+    ax.set_title('Traction and Electric Braking Envelope of the HXD3B Locomotive')
     ax.legend(fontsize=9)
     ax.set_xlim(0, 30 * 3.6)
     ax.grid(alpha=0.3)
@@ -454,64 +505,95 @@ def fig_loco_characteristics(out):
 
 
 def main():
+    ap = argparse.ArgumentParser(description='物理曲线验证图（数据与绘图分离）')
+    ap.add_argument('--source', choices=['auto', 'new'], default='auto',
+                    help='auto：优先复用已有归档数据（缺则重跑）；new：强制重新仿真并新建归档')
+    ap.add_argument('--archive', default=None, help='指定归档目录（内含场景B的 csv/npz）')
+    args = ap.parse_args()
+
     set_seed(SEED)
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    outdir = Path('outputs') / 'phys_validation' / f'run_{stamp}'
-    outdir.mkdir(parents=True, exist_ok=True)
+    # 图 → 策展目录（规范 §2.3：重生成即覆盖策展目录，不再产生带图的新目录）
+    figdir = Path('outputs') / 'sim_validation' / 'figures' / '特征曲线_MT2'
+    figdir.mkdir(parents=True, exist_ok=True)
 
-    # --- 图1/2/5：制动建立 + 缓解波（平坡） ---
-    logger.info('== 场景A：SERVICE 制动建立 -> 缓解波释放（平坡） ==')
-    data = run_brake_release()
+    # 选定归档目录：复用现有（auto）或新建（new）
+    reuse = Path(args.archive) if args.archive else (
+        find_latest_archive() if args.source == 'auto' else None)
+    if reuse is not None and not (reuse / 'traj_cyclic_shuozhou.csv').exists():
+        logger.warning('归档 %s 缺场景B数据，改为重跑', reuse)
+        reuse = None
+    if reuse is not None:
+        archdir = reuse
+        logger.info('== 复用归档数据 %s（跳过 53km 重跑） ==', archdir)
+    else:
+        archdir = ARCH_ROOT / f'phys_curves_1plus1_53km_{stamp}'
+        archdir.mkdir(parents=True, exist_ok=True)
+
+    # --- 图1/2/5 数据：优先读 scenario_a.npz，缺则重跑（~850 步，快） ---
+    a_npz = archdir / 'scenario_a.npz'
+    if a_npz.exists():
+        logger.info('场景A：复用 %s', a_npz.name)
+        data = load_scenario_a(a_npz)
+    else:
+        logger.info('== 场景A：SERVICE 制动建立 -> 缓解波释放（平坡） ==')
+        data = run_brake_release()
+        np.savez_compressed(a_npz, t=data['t'], forces=data['forces'],
+                            active=data['active'], coupler=data['coupler'])
     n_apply = int(35.0 / 0.1)
-    ab_force = np.abs(data['forces'])
-    peak_apply = float(np.max(np.sum(ab_force[:, :n_apply], axis=1))) / 1e3
     data['t_apply'] = data['t'][:n_apply]
-    fig_brake_wave(data, outdir / '图1-空气制动波传播.png')
-    # self-check: brake-wave tail activation delay vs theory L/200 m/s ≈ 6.1 s
+    fig_brake_wave(data, figdir / '图1-空气制动波传播.png')
+    # self-check: 1+1 尾车即波源 → 激活应 ≈0 s（1+0 单向才是 L/200 ≈ 6.1 s）
     on = np.where(data['active'][:, -1] > 0)[0]
     if len(on):
-        logger.info('[self-check] brake-wave tail activation delay = %.2f s (theory L/200 ≈ 6.1 s)',
+        logger.info('[self-check] brake-wave tail-loco activation = %.2f s '
+                    '(1+1：尾车即波源 → ≈0 s；若 1+0 单向则 ≈ L/200 ≈ 6.1 s)',
                     float(data['t'][on[0]]))
-    fig_brake_build(data, outdir / '图2-制动力建立.png')
-    fig_release_curve(data, outdir / '图5-缓解曲线.png')
+    fig_brake_build(data, figdir / '图2-制动力建立.png')
+    fig_release_curve(data, figdir / '图5-缓解曲线.png')
 
-    # --- 图3/4：朔黄线循环制动 ---
-    logger.info('== 场景B：朔黄线 23.8km 长大下坡循环制动 ==')
-    cyc = run_cyclic_shuozhou()
-    fig_cyclic(cyc, outdir / '图3-朔黄线循环制动.png')
-    fig_release_impulse(cyc, outdir / '图4-纵向冲动时间窗.png')
+    # --- 图3/4 数据：复用归档优先，否则重跑 53km（32000 步，慢，本次唯一耗时项） ---
+    new_b = reuse is None
+    if new_b:
+        logger.info('== 场景B：朔黄线 53.2km 长大下坡循环制动（1+1） ==')
+        cyc = run_cyclic_shuozhou()
+    else:
+        cyc = load_scenario_b(archdir)
+    fig_cyclic(cyc, figdir / '图3-朔黄线循环制动.png')
+    fig_release_impulse(cyc, figdir / '图4-纵向冲动时间窗.png')
 
-    # --- 图6/7：静态曲线（图6 = MT-2 迟滞环，2026-09-07 统一后单面板） ---
-    fig_coupler_hysteresis(outdir / '图6-缓冲器迟滞环(MT2).png')
-    fig_loco_characteristics(outdir / '图7-机车牵引电制动特性.png')
+    # --- 图6/7：静态曲线（解析计算，无需仿真） ---
+    fig_coupler_hysteresis(figdir / '图6-缓冲器迟滞环(MT2).png')
+    fig_loco_characteristics(figdir / '图7-机车牵引电制动特性.png')
 
-    # --- CSV + 元数据留痕 ---
-    import pandas as pd
-    pd.DataFrame({
-        't': cyc['t'], 'v_kmh': cyc['v_kmh'], 'dist_m': cyc['dist'],
-        'ab_active': cyc['ab_active'], 'coupler_peak_kn': cyc['coupler_peak_kn'],
-        'throttle': cyc['throttle'],
-    }).to_csv(outdir / 'traj_cyclic_shuozhou.csv', index=False)
-    np.savez_compressed(outdir / 'coupler_matrix.npz', coupler_mat=cyc['coupler_mat'])
-    meta = {
-        'seed': SEED,
-        'timestamp': stamp,
-        'section': '物理曲线验证图',
-        'scenarioA': {'consist': '10kt_1plus0', 'grade': 0.0, 'brake': 'SERVICE(-0.5)',
-                      'brake_s': 35.0, 'release_s': 50.0},
-        'scenarioB': {'consist': '10kt_1plus0', 'grade_profile': 'shuozhou_23800',
-                      'max_steps': 15000, 'init_speed_kmh': 65,
-                      'v_range_kmh': [40, 80], 'brake_notch': -0.8, 'release_throttle': 0.5},
-        'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + '
-                   '卸载刚度(MT-2=1.0) + 牵规β_c制动力 + 并行波速传播 + '
-                   '段间衰减(D) + 两段式缓解排气(τ=6s) + Newmark-β 积分',
-        'adhesion_limit_kn': float(0.9 * 188.0 * 9.81),
-        'figures': [p.name for p in outdir.glob('*.png')],
-        'note': '对向导师的物理曲线验证；不改仿真器代码，仅新增展示脚本。',
-    }
-    (outdir / 'run_meta.json').write_text(json.dumps(meta, ensure_ascii=False, indent=2),
-                                          encoding='utf-8')
-    logger.info('全部完成，输出目录 %s', outdir)
+    # --- 归档落盘：仅"新跑场景B"时写（复用不覆写既有归档） ---
+    if new_b:
+        import pandas as pd
+        pd.DataFrame({
+            't': cyc['t'], 'v_kmh': cyc['v_kmh'], 'dist_m': cyc['dist'],
+            'ab_active': cyc['ab_active'], 'coupler_peak_kn': cyc['coupler_peak_kn'],
+            'throttle': cyc['throttle'],
+        }).to_csv(archdir / 'traj_cyclic_shuozhou.csv', index=False)
+        np.savez_compressed(archdir / 'coupler_matrix.npz', coupler_mat=cyc['coupler_mat'])
+        meta = {
+            'seed': SEED,
+            'timestamp': stamp,
+            'section': '物理曲线验证图',
+            'scenarioA': {'consist': '10kt_1plus1', 'grade': 0.0, 'brake': 'SERVICE(-0.5)',
+                          'brake_s': 35.0, 'release_s': 50.0},
+            'scenarioB': {'consist': '10kt_1plus1', 'grade_profile': 'shuozhou_real_53km',
+                          'max_steps': 32000, 'init_speed_kmh': 65,
+                          'v_range_kmh': [40, 80], 'brake_notch': -0.8, 'release_throttle': 0.5},
+            'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + '
+                       '卸载刚度(MT-2=1.0) + 牵规β_c制动力 + 并行波速传播 + '
+                       '段间衰减(D) + 两段式缓解排气(τ=6s) + Newmark-β 积分',
+            'adhesion_limit_kn': float(0.9 * 188.0 * 9.81),
+            'figures': [p.name for p in figdir.glob('*.png')],
+            'note': '对向导师的物理曲线验证；不改仿真器代码，仅新增展示脚本。',
+        }
+        (archdir / 'run_meta.json').write_text(json.dumps(meta, ensure_ascii=False, indent=2),
+                                               encoding='utf-8')
+    logger.info('图 → 策展目录 %s；数据归档 %s', figdir, archdir)
 
 
 if __name__ == '__main__':

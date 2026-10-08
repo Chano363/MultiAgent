@@ -11,6 +11,14 @@
 
 > **【2026-09-09 主训练剖面升级】** 主训练剖面已由 `shuozhou_23800`（朔黄 23.8km，手写/Zhang2024 复现）**升级为 `shuozhou_real_53km`（朔黄线宁武西→北大牛完整真实纵断面 53.2km，取自真实线路数据 `simulation(1)/data_line/line_grade.xlsx`）**。正文 Abstract / Protocol / 主结果章节中的 **23.8 km 与数值均为剖面升级前的训练产物**；用新 53.2km 真实剖面重训后，需同步替换正文数值与剖面声明（本稿在数据补齐前不得当作论文最终结果引用，见顶部声明）。
 
+> **⚠️【2026-10-01 口径 / 目标 / 算法三重变更声明】** 本稿正文全部数值产生于**旧口径 + 旧目标 + 旧算法**，与现行 SSOT **不可混用**：
+> 1. **车钩力口径**（ADR-018）：现行 SSOT 为 `coupler_interface_forces()`（单钩**断面力**，长度 n−1）；正文的 `coupler peak / viol` **须逐份核对对应结果 JSON 的 `physics_version`**，与现行口径（`physics_version=1eab36352fd3`）不同源的数值**不可直接对照**。
+> 2. **reward 口径**（ADR-021 决策 2 + C 改造）：已改为 `reward_schema=v2-bounded-overlimit-section-force`，新增**受控超限项** `−6·min(peak_norm−1, 2)`（上界 −12）。⇒ 正文 reward 数值与"只靠线性车钩力 shaping"的叙事**已过时**。
+> 3. **训练算法**（ADR-021 方向 B + B 改造）：已改为 **per-agent critic + γ/λ = 0.999/0.99**（信用视界 91 s ≥ AB→车钩力峰值约 90 s 物理滞后）。⇒ **全部旧 ckpt 在新目标/新算法下失效**。
+>
+> **最直接的后果（2026-10-01 P0 实测，53km / 现行断面力口径 / 确定性）**：旧权重 `last_ep1623` 全通道 **断面力峰值 1643.49 kN / 77 破线（车厢·步）**、band 91.58%；收走 RL 的 AB 通道（仅 ED）后 **1037.50 kN / 44 破线**；规则基线 **812.87 kN / 0 破线**。**与正文"all zero safety violations"不同**。
+> ⇒ 正文表格**必须**在 **C + B 重训（1400 ep × 5 seed）** + 独立完整剖面评估后整体替换；在那之前**本稿数值一律不得作为现行结果引用**（详见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」与「诊断-2026-10-01-P0 三行基线与 AB 通道裁定」；决策见 `docs/logs/decisions/DECISIONS.md` ADR-021「执行闭环」）。
+
 ## Abstract
 
 Heavy-haul trains on sustained long downhill sections must hold speed within a narrow band using **cyclic braking** (electric + pneumatic), while keeping in-train **coupler forces** below a safety limit — a long-horizon, switched, safety-critical control problem. We show that the *decomposition* of this problem is what determines whether multi-agent reinforcement learning (MARL) can learn anything at all: prior "train-level" MARL treated each whole train as an agent and only nudged a shared speed-band threshold (a $\pm 0.5$ km/h offset = 1.25 % of bandwidth), leaving a lever too small to learn from ("nothing to learn" ceiling). We re-decompose at the **locomotive** level: each locomotive is an independent agent that directly modulates its own **electric-braking depth** and **pneumatic-braking trigger**, a continuous, physically meaningful lever. A rule engine (ED-first + inter-locomotive stagger + AB fallback) provides a safety-embedded inner layer; MAPPO adds per-locomotive $\[\mathrm{ed}\_{mod}, \mathrm{ab}\_{mod}]\in\[-1,1]^2$ modulation. A semi-MDP **decision interval** splits the 15,000-step credit chain into 1,500 decisions, making long-horizon MAPPO converge. On the real Shuozhou–Huanghua profile (23.8 km, $\approx -10.9,%o$) with a 10,000-t, 1+1 distributed-power consist, we obtain a three-layer positive evidence chain with zero safety violations: single-locomotive rule (+40,956) $\rightarrow$ distributed-power rule division (+71,252, +74 % reward, AB usage −89 %) $\rightarrow$ RL division (+72,743; coupler peak −21 % to **570 kN**, final speed +11.2 km/h, ATP emergency events −97 %). RL finds a physically interpretable policy — halve ED depth and inject staggered *minimum-notch* AB to cut longitudinal impulse — that no tuning of the old threshold coordination could reach.
@@ -140,4 +148,4 @@ We argued and demonstrated that for long-downhill cyclic-braking control, **the 
 
 - Project records: `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` §2026-09-05 (decompose smoke / full / RL-rescue); `outputs/results_decompose/eval_decompose_all_ms15000.json`.
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+<!-- 该文档整理/压缩于 2026-10-01 -->

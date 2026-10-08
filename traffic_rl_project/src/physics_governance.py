@@ -5,6 +5,7 @@
 - SimCase.DEBUG_SIMULATION  ：调试/探针/消融，允许调试物理开关。
 调试仿真工况进入训练/验证 → 立即抛异常；官方脚本不 import 调试模块。
 """
+from dataclasses import replace
 from enum import Enum
 
 from src.physics_config import PhysicsConfig
@@ -13,6 +14,14 @@ from src.physics_config import PhysicsConfig
 class SimCase(Enum):
     OFFICIAL = "official"
     DEBUG_SIMULATION = "debug"
+
+
+# 【2026-09-30】运行派生键：这些字段由**本次运行的 env_cfg**（实验 YAML 的 .env_cfg）
+# 决定，而非 PhysicsConfig 的固版默认值。metadata 的 physics 块必须反映本次运行，
+# 否则会静默误报——实例：主实验已切 `10kt_1plus1`（3列×1+1=6 机车智能体），
+# 但 physics 块仍报固版默认 `10kt_1plus0`，污染 simulator_model / simulator_model_version。
+# 溯源见 docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md「诊断-2026-09-30-metadata 编组不一致溯源」。
+RUN_DERIVED_KEYS = ("consist_preset",)
 
 
 # 调试物理开关的"正式工况合法值"（黑名单外的都必须是这些值才放行）
@@ -25,9 +34,19 @@ _OFFICIAL_LEGAL = {
 }
 
 
-def official_world_config(physics: PhysicsConfig = None) -> dict:
-    """返回正式工况的物理配置（供 metadata 固版与断言比对）。"""
+def official_world_config(physics: PhysicsConfig = None, env_cfg: dict = None) -> dict:
+    """返回正式工况的物理配置（供 metadata 固版与断言比对）。
+
+    env_cfg：本次运行的实验环境配置（实验 YAML 的 `.env_cfg`）。`RUN_DERIVED_KEYS`
+    列出的字段以 env_cfg 为准覆盖固版默认值，使 metadata 的 physics 块**反映本次运行**；
+    其余物理项仍锚定 official 默认（固版基线，不随实验漂移）。
+    不传 env_cfg → 与旧行为完全一致（纯固版快照）。
+    """
     physics = physics or PhysicsConfig()
+    if env_cfg:
+        overrides = {k: env_cfg[k] for k in RUN_DERIVED_KEYS if env_cfg.get(k)}
+        if overrides:
+            physics = replace(physics, **overrides)
     return {**_OFFICIAL_LEGAL, "physics": physics.to_dict()}
 
 

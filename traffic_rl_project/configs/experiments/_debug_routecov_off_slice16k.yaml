@@ -1,0 +1,63 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 【路线覆盖 A/B — L2 沙盒 ON/OFF，非论文工况，结果不得进正文/主表】
+#   目的：验证"训练起点随机化"能否消除固定起点的坡度 OOD（L1 诊断：固定起点仅覆盖
+#   −1.5‰ 单坡段，评估 83.9% 的步落在训练未见坡度区间）。
+#   与 _debug_train_method_slice16k.yaml 唯一实质差异 = 剖面/配置完全一致，
+#   仅 start_randomization 开关不同（本文件 = OFF 臂基线）。
+#   纪律：ADR-017 §3——只作方法稳定性 A/B，绝不用作论文结果。
+# ═══════════════════════════════════════════════════════════════════════════
+name: debug_routecov_off_slice16k
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus1
+  grade_profile: shuozhou_real_53km_slice16k   # ⚠️ 沙盒剖面（≈15.7km 切片）
+  v_max: 22.222
+  v_min: 11.111
+  target_gap: 100.0
+  max_steps: 12000              # 沙盒剖面全程（≈1200s）
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: false
+  decompose: loco_ed_ab
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10
+episodes: 80                    # 与 slice16k 一致，快速判趋势
+curriculum: 500:0,1000:10,1200:20
+n_env: 4
+parallel_traj_len: 0
+warm_start: true
+bc_episodes: 3
+bc_epochs: 30
+long_eval_interval: 40          # 整轮 2 次完整剖面评估
+long_eval_steps: 12000          # 沙盒剖面全程
+init_speed_kmh: 80.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 10
+
+dirs:
+  checkpoint_dir: outputs/checkpoints_formation/_debug_routecov_off_slice16k
+  results_dir: outputs/checkpoints_formation/_debug_routecov_off_slice16k/results
+  figures_dir: outputs/checkpoints_formation/_debug_routecov_off_slice16k/figures

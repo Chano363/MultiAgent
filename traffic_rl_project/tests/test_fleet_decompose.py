@@ -35,9 +35,9 @@ def test_decompose_agent_count_and_shapes():
     env = _make_decompose_fleet(num_trains=1)
     obs, _ = env.reset(options={'speed': 65.0 / 3.6})
     assert env.num_agents == 2  # 队首 + 队尾机车
-    assert obs.shape == (2, 11)
+    assert obs.shape == (2, 12)
     assert env.action_space.shape == (2, 2)
-    assert env.obs_dim == 11 and env.act_dim == 2
+    assert env.obs_dim == 12 and env.act_dim == 2
 
 
 def test_decompose_default_mode_unchanged():
@@ -65,7 +65,8 @@ def test_decompose_step_shapes_and_metrics():
     for _ in range(5):
         actions = rng.uniform(-1, 1, size=(2, 2))
         obs, r, term, trunc, info = env.step(actions)
-        assert obs.shape == (2, 11)
+        assert obs.shape == (2, 12)
+        assert np.all((obs[:, 11] >= 0.0) & (obs[:, 11] <= 1.0))  # ADR-030 AB 充风就绪度 ∈[0,1]
         assert info['executed_actions'].shape == (2, 2)
         assert info['ab_source_count'] >= 0
         assert 0.0 <= info['mean_ed_frac'] <= 1.0
@@ -73,7 +74,7 @@ def test_decompose_step_shapes_and_metrics():
 
 
 def test_decompose_ed_modulation_changes_ed():
-    """ed_mod 调制实际改变机车 ED 深度（真物理杠杆：±0.5 绝对量）。"""
+    """ed_mod 调制实际改变机车 ED 深度（真物理杠杆：±ed_mod_coef = ±0.5 绝对量）。"""
     env = _make_decompose_fleet()
     env.reset(options={'speed': 81.0 / 3.6})  # 超上限 → 规则进入制动（基线 ED > 0）
     tr = env.trains[0]
@@ -89,7 +90,7 @@ def test_decompose_ed_modulation_changes_ed():
     final2, _ = ctrl.get_action_decomposed(tr, minus, v_max=env.v_max, v_min=env.v_min)
     assert np.all(final1[:, 0] >= final0[:, 0] - 1e-9)
     assert np.all(final2[:, 0] <= final0[:, 0] + 1e-9)
-    # 调制幅度上限 = ±ed_mod_coef(0.5)
+    # 调制幅度上限 = ±ed_mod_coef(ADR-024：0.5 半幅)
     assert np.all(final1[:, 0] <= base0[:, 0] + 0.5 + 1e-9)
 
 
@@ -174,9 +175,9 @@ def test_decompose_fleet_multi_train_shape():
     env = _make_decompose_fleet(num_trains=2, max_steps=5)
     obs, _ = env.reset(options={'speed': 65.0 / 3.6})
     assert env.num_agents == 4
-    assert obs.shape == (4, 11)
+    assert obs.shape == (4, 12)
     obs2, r, term, trunc, info = env.step(np.zeros((4, 2)))
-    assert obs2.shape == (4, 11)
+    assert obs2.shape == (4, 12)
 
 
 def test_decompose_ab_release_command_issued():
@@ -283,3 +284,124 @@ def test_hetero_domain_randomization_resample():
     for idx in (0, 1, 2, 3, 4, 5):
         assert abs(h1[idx] - 1.89e7) < 1e-9, f"全列耦合应为 MT-2 1.89e7，实际 {h1[idx]}"
     env_h.close()
+
+
+# ---------------------------------------------------------------------------
+# 【ADR-029 回归 2026-10-04】安全层对**牵引**的权限 + EBI 紧急 AB 的优先级。
+# 根因：原 proj_throttle 把牵引动作映射为 0 ⇒ 牵引绕过安全层（规则 A/B/D 对其失效）；
+#       且 step_vehicles_ed_ab 中 ab_sources 优先级高于 ab_command ⇒ EBI 紧急被丢弃。
+# 后果：EBI 触发时仍满牵引，"边牵引边紧急制动"，长大下坡虚耦合穿透（gap→−65m）。
+# ---------------------------------------------------------------------------
+
+def _make_child_decompose_env(profile='long_downhill', max_steps=50):
+    """单列 decompose 子环境（带 ETCS 曲线）——安全层对牵引/AB 权限的定向回归用。"""
+    from src.train_dynamics.grade_profile import PROFILES
+    from src.train_dynamics.etcs_braking import EtcsBrakingCurve
+    from src.environments.train_env import TrainFormationEnv
+    prof = PROFILES[profile]()
+    curve = EtcsBrakingCurve(
+        speed_profile=[(40.0 / 3.6, 0.426), (60.0 / 3.6, 0.401), (80.0 / 3.6, 0.382)],
+        k_dry=1.0,
+        brake_build_up_s=4.68,
+        assumed_accel_during_buildup=0.12,
+        grade_at=prof.grade_at,
+    )
+    return TrainFormationEnv({
+        'consist_preset': '10kt_1plus1',
+        'grade_profile': profile,
+        'target_speed': 20.0,
+        'line_speed_limit_mps': 22.222,
+        'max_steps': max_steps,
+        'etcs_curve': curve,
+        'decompose': 'loco_ed_ab',
+    })
+
+
+def _spy_apply(env, cap):
+    """包装 step_vehicles_ed_ab，捕获真正送入动力学的 (throttle, ab_command, ab_sources)。"""
+    orig = env.dynamics.step_vehicles_ed_ab
+
+    def spy(throttle, ed_throttle, ab_command, *args, **kwargs):
+        cap['throttle'] = np.array(throttle, dtype=float)
+        cap['ed_throttle'] = np.array(ed_throttle, dtype=float)
+        cap['ab_command'] = ab_command
+        cap['ab_sources'] = kwargs.get('ab_sources')
+        return orig(throttle, ed_throttle, ab_command, *args, **kwargs)
+
+    env.dynamics.step_vehicles_ed_ab = spy
+
+
+def test_etcs_ebi_cancels_traction_and_forces_emergency():
+    """EBI 时必须**取消牵引**并**真正下紧急 AB**（牵引不得绕过安全层）。"""
+    from src.train_dynamics.etcs_braking import EbdTarget
+    from src.train_dynamics.braking import AirBrakeNotch
+    env = _make_child_decompose_env()
+    env.reset(options={'speed': 20.0})
+    head = float(env.dynamics.pos[0])
+    # 目标极近且很慢 ⇒ 必然 EBI
+    env.set_etcs_targets([EbdTarget(position_m=head + 30.0, speed_mps=3.0, kind='gap')])
+    cap = {}
+    _spy_apply(env, cap)
+    env.step(np.array([[-1.0, 0.0], [-1.0, 0.0]]))   # 满牵引
+    assert cap['throttle'].max() <= 0.0, "EBI 未取消牵引（牵引绕过安全层）"
+    assert cap['ab_command'] == AirBrakeNotch.EMERGENCY, "EBI 未真正下紧急 AB"
+
+
+def test_etcs_ebi_emergency_overrides_action_ab_sources():
+    """动作已发 AB 源时，EBI 的紧急必须**压过**动作源（否则紧急升级被优先级丢弃）。"""
+    from src.train_dynamics.etcs_braking import EbdTarget
+    from src.train_dynamics.braking import AirBrakeNotch
+    env = _make_child_decompose_env()
+    env.reset(options={'speed': 20.0})
+    head = float(env.dynamics.pos[0])
+    env.set_etcs_targets([EbdTarget(position_m=head + 30.0, speed_mps=3.0, kind='gap')])
+    cap = {}
+    _spy_apply(env, cap)
+    env.step(np.array([[-1.0, -0.75], [-1.0, -0.75]]))  # 满牵引 + 动作发 SERVICE AB 源
+    assert cap['throttle'].max() <= 0.0
+    assert cap['ab_command'] == AirBrakeNotch.EMERGENCY
+    assert not cap['ab_sources'], "EBI 时动作 AB 源未清除，紧急升级会被优先级压掉"
+
+
+# ---------------------------------------------------------------------------
+# 【路线覆盖修复 2026-10-06】训练起点随机化（消除固定起点 OOD）。
+# L1 诊断：固定起点 + 1200 步窗口只覆盖 −1.5‰ 单坡段，评估 83.9% 的步落在训练
+# 未见坡度区间。修复：训练态每 episode 沿剖面随机前移编队（默认关零回归）。
+# ---------------------------------------------------------------------------
+
+def test_start_randomization_default_off_zero_regression():
+    """默认（无 start_randomization）：起点固定，逐集不随机（零回归）。"""
+    env = TrainFleetEnv({'num_trains': 1, 'consist_preset': '10kt_1plus1',
+                         'grade_profile': 'shuozhou_23800', 'max_steps': 10,
+                         'decompose': 'loco_ed_ab'})
+    env.reset(options={'speed': 65.0 / 3.6})
+    p1 = float(env.trains[0].dynamics.pos[0])
+    env.reset(options={'speed': 65.0 / 3.6})
+    p2 = float(env.trains[0].dynamics.pos[0])
+    assert p1 == p2, "默认关：起点必须固定（零回归）"
+    env.close()
+
+
+def test_start_randomization_enabled_covers_profile_and_eval_fixed():
+    """开启后：训练态起点整体前移且逐集变化；eval 态恒定基准起点（可复现）。"""
+    cfg = {'num_trains': 1, 'consist_preset': '10kt_1plus1',
+           'grade_profile': 'shuozhou_23800', 'max_steps': 10,
+           'decompose': 'loco_ed_ab',
+           'start_randomization': {'enabled': True, 'seed': 0}}
+    env = TrainFleetEnv(cfg)
+    heads = []
+    for _ in range(6):
+        env.reset(options={'speed': 65.0 / 3.6})
+        heads.append(float(env.trains[0].dynamics.pos[0]))
+    assert min(heads) > 0.0, "开启后训练起点应整体前移（>0）"
+    assert len({round(h, 3) for h in heads}) > 1, "训练态起点应逐集变化（随机化生效）"
+    env.close()
+
+    # eval 态：恒定基准起点（held-out 可复现）
+    env_e = TrainFleetEnv({**cfg, 'eval_mode': True})
+    env_e.reset(options={'speed': 65.0 / 3.6})
+    e1 = float(env_e.trains[0].dynamics.pos[0])
+    env_e.reset(options={'speed': 65.0 / 3.6})
+    e2 = float(env_e.trains[0].dynamics.pos[0])
+    assert e1 == e2, "eval 态起点必须固定（评估可复现）"
+    env_e.close()

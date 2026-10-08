@@ -1,10 +1,16 @@
 """
-多体 NMPC 成熟对比基线（NMPCController，casadi + IPOPT，2026-09-17）。
+多体 NMPC 成熟对比基线（`NMPCController`，casadi + IPOPT，2026-09-17）。
 
-【定位】替换粗糙 FairMPCController 的成熟 MPC 对比基线（导师口径：不要留粗糙 MPC
-当靶子，目标是 MARL 效果达到与成熟 MPC 相当）。核心升级：
+> **术语（统一口径，勿再混用）**：本文件说的"多体"= **集中质量(lumped)多体** ——
+> 每列车离散成 `n_lump` 个质量块，块间以 MT-2 缓冲器等效耦合；**不是**逐车（~101 节）
+> 全耦合多体。
 
-  1. **预测模型 = 列内 lumped 多体 + MT-2 车钩**（替代单质点聚合列 + 虚构车钩力代理）：
+【定位】本项目**唯一** MPC 对比基线【ADR-022，2026-10-01：旧的 agg/SLSQP `FairMPCController`
+与简化 `MPCController` 已删除；导师口径"不要留粗糙 MPC 当靶子"，目标是 MARL 效果达到与
+成熟 MPC 相当】。相对已删除那版的升级：
+
+  1. **预测模型 = 列内集中质量(lumped)多体 + MT-2 车钩**（替代已删除那版的单质点聚合列
+     + 虚构车钩力代理）：
      每列车 lump 成 nLump 个质量块（机车 1 块 + 货车按车数加权分块），块间用 MT-2
      等效（预压 + 刚度 + 摩擦 + 间隙死区 + 行程饱和，符号化）耦合；车钩力为预测
      状态变量，约束 ≤1000kN 进优化器（"MPC 需精确动力学模型"痛点的体现）。
@@ -15,8 +21,10 @@
 【控制结构】与 D-RL 同构（用户决策）：规则循环制动内层 + 安全层不动，NMPC 只替换
 "RL 调制"部分——决策变量 = 每机车 ED 调制 [ed_mod]∈[-1,1]（>0 制动、<0 牵引），
 control blocking（B 块 × 每块常值），预测时 ED 力仅施加于机车块；输出第 1 块调制
-经规则内层兜底后映射为每列目标加速度（评估侧 mpc_act 经 get_action_accel 转机车
-动作，接口与 FairMPCController 完全兼容）。
+经规则内层兜底后映射为**每列目标加速度** `(num_trains,)`。
+⚠️ 该输出由 `evaluate_decompose.mpc_act` 桥接成 decompose 通道的**加性调制**
+`[ed_mod, ab_mod]`（反解 `ed_mod=(desired_ed−baseline_ed)/0.5`，见该函数与 ADR-022 备注）；
+`mpc_act` 已**不再**经 `get_action_accel`（那会把绝对 ED 当调制，量纲错配）。
 
 【对比指标】solve_times 记录每步求解耗时（同档对冲主指标之一：MPC 求解成本 vs
 MARL 推理恒定）；车钩力/ATP 触发/列距由评估脚本统一落 metadata JSON。
@@ -327,7 +335,8 @@ class NMPCController:
         self._spacing = spacing
 
     # ------------------------------------------------------------------ #
-    # 主接口（与 FairMPCController.compute_actions_from_env 兼容）
+    # 主接口（统一契约：`compute_actions_from_env(env) -> (num_trains,)` 每列目标加速度，
+    # 供 `evaluate_decompose._mount_mpc` / `mpc_act` 使用）
     # ------------------------------------------------------------------ #
     def compute_actions_from_env(self, env, obs=None) -> np.ndarray:
         """求解每机车 ED 调制 → 规则内层兜底 → 每列目标加速度 (num_trains,)。"""

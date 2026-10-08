@@ -496,9 +496,18 @@ class TrainFormationEnv:
         # RELEASE 对已缓解列车无害（旧架构 train_env.step 即每步默认 RELEASE）。
         ab_command = AirBrakeNotch.RELEASE
 
-        # 车钩力安全钳制：投影为整列逐车 throttle 近似走 SafetyLayer（制动方向保守安全）
+        # 车钩力安全钳制：整列逐车**带符号指令**走 SafetyLayer（正=牵引，负=制动）。
+        # 【修复 2026-10-04 ADR-029】原实现把牵引映射为 0（`-max(act,0)`）⇒ 牵引从不
+        # 进入安全层，规则 A(车钩力)/B(间距)/D(ETCS EBI) 声称的"抑制/禁止加速"对牵引
+        # 全部落空：EBI 触发时列车仍满牵引，"边牵引边紧急制动"，长大下坡虚耦合穿透
+        # （定向压测：全牵引 gap→−65m，惰行 +82m，全制动 +192m ⇒ 牵引是唯一穿透因子）。
+        # 现牵引以**正号**进入安全层，与 protect() 约定（>0=牵引）一致，使安全层能真正
+        # 取消牵引（rule A/B 置 0；rule C/D 用 np.minimum 覆盖为制动）。
         proj_throttle = np.zeros(self.num_vehicles)
         for k, loco_idx in enumerate(self.loco_indices):
+            if act[k, 0] < 0:
+                proj_throttle[loco_idx] = float(np.clip(-act[k, 0], 0.0, 1.0))
+                continue
             depth = max(float(act[k, 0]), 0.0)
             if act[k, 1] < 0:
                 depth = max(depth, notch_depth(notch_from_throttle(float(act[k, 1]))))
@@ -517,11 +526,46 @@ class TrainFormationEnv:
             for ev in self.safety.last_events:
                 if ev.get('rule') == 'etcs_ebi':
                     ab_command = AirBrakeNotch.EMERGENCY
+                    # 【修复 2026-10-04 ADR-029】`step_vehicles_ed_ab` 中 ab_sources
+                    # **优先级高于 ab_command**（train.py:556-559）⇒ 若保留动作发的源，
+                    # EBI 的紧急升级被静默丢弃（动作只发 MIN/SERVICE 时更危险）。EBI 是
+                    # 最强制动：丢弃动作源、只发车头紧急（沿波速传全列），确保紧急生效。
+                    ab_sources = []
                     break
-        # 依据安全层修正，更新每机车 ED（安全层钳降则同步降 ED）
+        # 依据安全层修正，更新每机车**牵引与 ED**（安全层持最终权限）：
+        # - 牵引：安全层把正向指令压到 ≤0（规则 A/B 取消、规则 C/D 覆盖为制动）时，
+        #   throttle 必须同步归零——否则牵引绕过安全层（ADR-029 根因）；
+        # - ED：安全层钳降则同步降 ED（原有行为，仅封顶不加深）。
         for k, loco_idx in enumerate(self.loco_indices):
+            throttle[loco_idx] = min(throttle[loco_idx],
+                                     max(proj_throttle[loco_idx], 0.0))
             ed_throttle[loco_idx] = min(ed_throttle[loco_idx],
                                         max(-proj_throttle[loco_idx], 0.0))
+
+        # 【ADR-021 决策3 2026-10-01】安全层对 AB 的"减权限"（禁新增源）。
+        # 有效域 = 环境**本步收到的全部新申请 AB 源**（含规则层与 RL 层，因为 env 无法区分
+        # 来源）——比 ADR-018 的 AB 新增源闸门（仅覆盖 RL 新增源）更宽，这是**有意的兜底强化**。
+        # ⚠️ **刻意不撤销/削减已建立源**：依据 诊断-2026-09-30 X4-b 反证「削减已发源」会恶化
+        # 纵向冲动。本块只做"新源丢弃"，绝不调用任何「撤销已建立 AB 源」的动力学函数
+        # （缓解/重置类指令），因为撤销会让已建立源被缓解波清掉 → 反而恶化。
+        # ⚠️ **不做"降级一档"的梯度投影**：曾实现过 `scale<0.5 ⇒ 新源 SERVICE→MIN` 的 ED 式
+        # 线性投影臂，但它**可证不可达**——`ab_new_source_veto` 的判据是
+        # `p0 >= coupler_veto_ratio(0.6)·limit`，而 `p0` 就是本块的断面力每车视图峰值
+        # （`_state_snapshot()` 与 `coupler_interface_forces_per_vehicle()` 同源、恒 ≥0），
+        # 故 `scale<0.5`（等价 ratio>0.9）恒蕴含 veto=True ⇒ 该臂永远被 veto 抢先。
+        # 在 veto 阈值 0.6 不变的前提下，AB 无法表达渐变投影；真·梯度权限须并入预测式
+        # safety filter 时连同阈值一并重定（见 ADR-021「执行闭环」）。
+        ab_safety_vetoed = False
+        if ab_sources:
+            veto = bool(self.safety.ab_new_source_veto(self._state_snapshot()))
+            if veto:
+                # 丢弃本步全部**新源**；为满足"不撤销已建立源"，同时置 ab_command=None
+                # （train.py:614-619："不使用空气制动"= 不触发任何制动/缓解逻辑）→ 已建立源
+                # 继续沿用，不被缓解波撤销。ETCS 已提升的 EMERGENCY 不受影响。
+                ab_sources = []
+                if ab_command == AirBrakeNotch.RELEASE:
+                    ab_command = None
+                ab_safety_vetoed = True
 
         self.dynamics.step_vehicles_ed_ab(
             throttle, ed_throttle, ab_command, eot=self.eot,
@@ -556,6 +600,8 @@ class TrainFormationEnv:
             'executed_actions': np.array(act, dtype=float),
             'actions_modified': bool(actions_modified),
             'decomposed_actions': act.copy(),
+            # 【ADR-021 决策3】安全层 AB 权限诊断（新增键，既有键不删）
+            'ab_safety_vetoed': bool(ab_safety_vetoed),
         }
         return obs, reward, terminated, truncated, info
 

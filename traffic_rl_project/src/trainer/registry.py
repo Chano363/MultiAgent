@@ -28,8 +28,13 @@ def _build_env(cfg):
 def _build_agents(env, cfg, device):
     p = dict(cfg.algo_params or {})
     if cfg.algorithm == 'mappo':
+        # 【ADR-021 方向 B】decision_interval 透传进 agent，供其计算有效信用视界（秒）。
+        # 视界换算须 (原始步数 × dt)：dt 从 env 注入（环境物理步长，默认 0.1 s）。
+        di = int(getattr(cfg, 'decision_interval', 1) or 1)
+        dt = float(getattr(env, 'dt', 0.1))
         if cfg.interaction == 'mappo_single':
-            params = dict(num_drones=1, obs_per_drone=4, act_per_drone=1, learning_rate=5e-5)
+            params = dict(num_drones=1, obs_per_drone=4, act_per_drone=1,
+                          learning_rate=5e-5, decision_interval=di, physics_dt=dt)
             params.update(p)
             return MAPPOAgent(device=device, **params)
         # mappo_fleet / decompose
@@ -37,7 +42,8 @@ def _build_agents(env, cfg, device):
         od = int(getattr(env, 'obs_dim', 11))
         # agent 数：decompose 模式 = 每列机车总和（num_agents），否则 = 列车数（num_trains）
         nt = int(getattr(env, 'num_agents', 0)) or int(getattr(env, 'num_trains', cfg.num_trains))
-        params = dict(num_drones=nt, obs_per_drone=od, act_per_drone=act_dim, learning_rate=3e-4)
+        params = dict(num_drones=nt, obs_per_drone=od, act_per_drone=act_dim,
+                      learning_rate=3e-4, decision_interval=di, physics_dt=dt)
         params.update(p)
         return MAPPOAgent(device=device, **params)
     if cfg.algorithm == 'dqn':

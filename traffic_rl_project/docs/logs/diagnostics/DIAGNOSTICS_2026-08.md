@@ -1193,4 +1193,4 @@ python src/evaluation/eval_phys2_m1_5seed.py --mode m3 --steps 3000 --label m3_f
 
 ***
 
-<!-- 该文档整理/压缩于 2026-09-22 -->
+<!-- 该文档整理/压缩于 2026-10-01 -->

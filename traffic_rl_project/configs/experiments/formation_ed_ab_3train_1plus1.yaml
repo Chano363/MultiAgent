@@ -9,8 +9,11 @@ name: formation_ed_ab_3train_1plus1
 algorithm: mappo
 algo_params:                  # 【2026-09-09 发散调参 run2】降lr/收clip/提entropy 治 KL 早停频发 + best 冻结 + reward 深负
   learning_rate: 0.00002      # 0.00005→0.00002：抑制每批更新过激（原 KL 频繁 epoch2-5 早停）
-  gamma: 0.99
-  gae_lambda: 0.95
+  gamma: 0.999                # 【ADR-021 方向 B】0.99→0.999：信用视界 1/(1-γλ)≈91 决策步
+  gae_lambda: 0.99            # ×DI=10 原始步 ×dt=0.1s ≈91 s ≥ AB→车钩力峰值≈90 s 物理滞后
+                              # （原 0.99/0.95 仅≈16.8 s，根本无法把远期破线归因到早期 AB 决策）
+  critic: per_agent           # 【ADR-021 方向 B】per-agent 价值头 → per-agent advantage，
+                              # 替代"单标量 advantage 广播到 6 台机车"。⚠️ 改算法 ⇒ 旧 ckpt 失效，须重训
   clip_epsilon: 0.15          # 0.2→0.15：更保守的策略更新步长
   entropy_coef: 0.005         # 0.002→0.005：原 best 冻结在 ep1(+8638)再也逃不出坏的确定性行为，提熵促探索
   value_coef: 0.5
@@ -26,12 +29,27 @@ env_cfg:
   v_max: 22.222                # 80 km/h
   v_min: 11.111                # 40 km/h（编队目标速度带）
   target_gap: 100.0            # 安全列距目标
-  max_steps: 36000             # 【53km 全程全覆盖】=3600s；avg≥~14.8m/s 即跑满 53.2km（原 15000 步仅~24km）
+  max_steps: 36000             # 【env 截断上限 / 评估口径】=3600s，53km 全程（avg≥~14.8m/s 跑满 53.2km）。
+                               # ⚠️ **训练实际每集长度由 curriculum 决定（≤1200 步，ADR-017 §1）**——train_runner
+                               # 每集 `env.max_steps = parallel_len` 覆盖本值；本值只在无 curriculum 时作回退、以及评估时生效。
   max_accel: 1.0
   use_coupler_constraint: true
   # ATP/ETCS 真 ATP 为永久启用的安全底线，无 enable_etcs 开关（恒启）。历史 false 开关已移除。
   hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
   decompose: loco_ed_ab        # 机车级 ED/AB 分工：每机车行为 [ed_mod, ab_mod]∈[-1,1]²
+  ab_min_refill_s: 222.0       # 【ADR-021 方向 A，Zhang2024】新增 AB 源前的最小充风时间（s）：
+                               # 出处 = VALIDATION_BASELINE.md 张二田 S6 最短充风 222 s（范围 175~512 s）
+  ab_min_hold_s: 0.0           # 【方向 A】已建立 AB 源的最小保持时间（s）：**已结案 = 无出处、不激活**（默认 0.0）。
+                               # 2026-10-01 检索：Zhang2024 运行约束仅三条（无此项）；《铁路机车操作规则》
+                               # （TG/JW104-2012）最接近的是"列检站保压试验 3 min"（非运行约束）与
+                               # "重载列车 v<30km/h 不应缓解"（速度门限，且本场景 v_min=40km/h ⇒ 空约束）。
+                               # 详见 REFERENCE_INDEX.md 落地映射 + DIAGNOSTICS_2026-10.md「检索-2026-10-01」
+  # 【路线覆盖修复 2026-10-06，L2 A/B 验证有效】训练起点随机化：训练态每 episode 沿剖面
+  # 随机前移整个编队，使 ≤1200 步短窗口在**分布**上覆盖全路（固定起点时评估 OOD 83.9%）。
+  # 依据：L2 沙盒 long_eval 达标 0/2→2/2（DIAGNOSTICS_2026-10.md「L2 路线覆盖 A/B 终局」）。
+  # 仅训练态生效（eval_mode 恒定基准起点，保证评估可复现）；seed 缺省 = 继承本次运行 seed。
+  start_randomization:
+    enabled: true
 
 obs: env                       # 逐机车 11 维观测（含编队上下文 obs[10]=列间间距误差）
 action: continuous
@@ -39,9 +57,25 @@ interaction: mappo_fleet       # MAPPO 交互（decompose：agent=每机车）
 reward: env_default            # decompose 模式奖励口径 = _calculate_reward_decomposed（R2+gap 编队项+车钩力）
 
 num_trains: 3
-decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短 15000 步信用链）
-episodes: 120                  # 6 机车编队探索难，20ep 远不够（曾发散）；加大到 120
-curriculum: 500:0,1000:10,1200:20   # 【2026-09-15 诊断固化】方案3-A 证实 1200 步全程安全收敛（viol=0/pkCpl≤839kN，best +10543）。主训练固定在已验证安全域（短集 1200 步），53km 全程由多段 1200 步评估拼接覆盖（工程标准做法，训练端不碰长时程崩点）。2000 档即崩（方案1 FAIL），不再上探。
+decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短信用链）
+episodes: 1400                 # 【ADR-017 §4 硬要求：总训练量达标】120 ep 不足（收敛≠充分），对齐同类 on-policy 论文量级
+                               # （Guo2025 用 1400 ep）。本文件=主训练口径，故直接写达标值。
+                               # ⚠️ **快速迭代请用 CLI 覆盖 `--episodes N`，勿改本值**（否则主训练又落在不足量上）。
+curriculum: 500:0,1000:10,1200:20   # 【2026-09-15 诊断固化 + ADR-017 §1】方案3-A 证实 1200 步全程安全收敛（viol=0/pkCpl≤839kN，best +10543）。
+                               # 训练时域固定为已验证安全域（短集 ≤1200 步）；2000 档即崩（方案1 FAIL），不再上探。
+                               # ⚠️ 评估时域 ≠ 训练时域（ADR-017 §2）：完整剖面（53km）**独立单独跑**；
+                               # 旧注释里的"53km 全程由多段 1200 步评估拼接覆盖"**已 SUPERSEDED**，禁止再引用。
+n_env: 4                       # 【ADR-017 配套 + 诊断-2026-09-10】并行 rollout ≥4 条独立短轨迹：advantage 信噪比 ×n_env，
+                               # 且 value 不被单条长轨迹绑架。配合 curriculum horizon ≤1200 步使用（>1200 会放大缓冲区方差）。
+parallel_traj_len: 0           # 0 = 沿用 curriculum horizon（≤1200 步）；勿设为 >1200（诊断-2026-09-10 反例）
+warm_start: true               # 【必须采用】先用规则基线做行为克隆（BC）热启动，再 RL 微调 → 保安全探索
+bc_episodes: 3                 # 与已验证配方一致（诊断-2026-09-15「nenv_BCws」）
+bc_epochs: 30                  # 与已验证配方一致（schema 默认 5 偏弱；30 为诊断验证值）
+long_eval_interval: 50         # 【2026-09-22 + ADR-017 配套】每 50 ep 跑一次**完整剖面（36000 步）确定性评估**，
+                               # best 改由 viol / 车钩力 / 末速 驱动，而非训练窗口（1200 步≈2.4km）reward
+                               # ⇒ 防"短视激进、长程崩"的权重当选（诊断-2026-09-22）。
+                               # 成本提示：每次完整剖面评估 ≈1 个 53km 评估的机时（实测 ~55 min），可调大以省算力。
+long_eval_steps: 36000         # 评估时域 = 53km 全程
 init_speed_kmh: 80.0
 simcase: official
 ckpt_policy: fleet

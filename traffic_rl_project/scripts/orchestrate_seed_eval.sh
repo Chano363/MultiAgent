@@ -7,6 +7,12 @@ set -u
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 
+# 【2026-10-08 日志可见性】子进程全部无缓冲（等价于给下面每个 python 传 `-u`）。
+# 说明：训练走 logging（StreamHandler 每条即 flush），本就中途可见；真正会"默默攒到退出
+# 才落盘"的是用 print 的评估脚本（stdout 非 TTY ⇒ 默认块缓冲 8KB，中途被 kill 即
+# "白跑一晚无日志"）。评估脚本已在源头做行缓冲 + 进度心跳，此处 export 作双保险。
+export PYTHONUNBUFFERED=1
+
 GRADE=shuozhou_real_53km
 MAX=36000
 CK=outputs/checkpoints_formation

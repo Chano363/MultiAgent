@@ -1,7 +1,7 @@
 """【2026-08-31 完整从头训练后】M-MARL vs No-C 对比图 + 主对比图 + 汇总表（论文/PPT 用）。
 
 输入：outputs/results_phys2/traj_{m1_full_seed0|m3_full}.csv
-     （由 eval_phys2_m1_5seed.py --ckpt_dir outputs/checkpoints_full 生成）
+     （原由 `eval_phys2_m1_5seed.py` 生成；该脚本已按 ADR-022 删除，CSV 作历史资产保留）
      + outputs/results_full/train_history_cp_seed*.json（完整训练学习曲线）
 输出：outputs/figures/fig_phys2_*.png（中文标签，CJK 字体）
 

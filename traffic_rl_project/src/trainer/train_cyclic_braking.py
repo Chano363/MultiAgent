@@ -264,13 +264,15 @@ def train(
         "lr": lr, "entropy": entropy, "epochs": epochs,
         "batch_size": batch_size, "seed": seed, "curriculum": curriculum,
     }
+    # 运行派生（2026-09-30）：metadata 的 physics 块随本次 run 的编组固化
+    world_cfg = official_world_config(PhysicsConfig(), env_cfg={'consist_preset': consist_preset})
     save_metadata(results_dir, project_root=str(Path(__file__).parent.parent.parent),
-                  case=SimCase('official').value, world_cfg=official_world_config(PhysicsConfig()),
+                  case=SimCase('official').value, world_cfg=world_cfg,
                   seed=seed, entry=__file__, extra={"hyperparameters": hp})
     # 自包含 checkpoint：同一份权威 metadata 嵌入每个 .pt（对标 YOLO best.pt）
     ckpt_meta = build_metadata(project_root=str(Path(__file__).parent.parent.parent),
                                case=SimCase('official').value,
-                               world_cfg=official_world_config(PhysicsConfig()),
+                               world_cfg=world_cfg,
                                seed=seed, entry=__file__, extra={"hyperparameters": hp})
 
     episode_rewards = []

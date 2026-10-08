@@ -161,6 +161,19 @@
   note   = {建模+优化双料基准：2万吨1+1编组、三段式空气制动精细模型；QP使压钩力-29.49%，叠加规则-33.74%；30趟车次/350个制动段实车数据}
 }
 
+@inproceedings{lu2025_cooperative_nmpc,
+  author    = {Lu, Ran and Zhang, Miao and Su, Shuai},
+  title     = {Cooperative Nonlinear Model Predictive Control for Multiple
+               Locomotives of Heavy Haul Train on Long Steep Downhill Sections},
+  booktitle = {2025 IEEE International Conference on Intelligent Rail
+               Transportation (ICIRT)},
+  year      = {2025},
+  doi       = {10.1109/ICIRT66379.2025.11216780},
+  note      = {本项目 MPC 对比基线来源：多机车协同 NMPC（多质点模型 + 电/空制动协同
+               + 车钩力缓代价 + 车钩力/限速/执行器约束 + 空气制动波传播延迟）；
+               本项目降阶为每列 4 块并扩展到 3 列群组}
+}
+
 % ----------------------------------------------------------------------------
 % B. 车钩力实测数据文献 (RESEARCH_POSITIONING §2.2.1, 验证基准 V3.5.x 锚点)
 % ----------------------------------------------------------------------------
@@ -292,4 +305,53 @@
   pages   = {6279--6304},
   year    = {2025},
   doi     = {10.1111/mice.70155}
+}
+
+@misc{wang2026_hrl,
+  author = {Wang, and others},
+  title  = {Hierarchical Reinforcement Learning for Long-Distance
+            Multi-Objective Optimization of Heavy-Haul Trains},
+  year   = {2026},
+  note   = {venue/DOI 待核（据 ADR-030 记为 IET ITS）；全文 docs/papers/Wang2026_hierRL_fulltext.txt。⚠️ 与 wang2026_cooperative_mpc（MPC 篇）非同一文}
+}
+
+@article{si2025_dueling_dqn,
+  author  = {Si, Qida and Jiang, Lu and Wang, Qi and Su, Youbin and
+             Xiao, Zhiming and Han, Yuxuan and Chai, Ming},
+  title   = {An Optimization Method of Heavy Haul Train Driving Strategy
+             Based on Dueling {DQN}},
+  journal = {2025 IEEE International Conference on Intelligent Rail Transportation (ICIRT)},
+  year    = {2025},
+  doi     = {10.1109/ICIRT66379.2025.11216735}
+}
+
+@article{he2025_cyclic_ga,
+  author  = {He, Wen and Chang, Chongyi and Li, Lan and Song, Yupan},
+  title   = {Research on optimization and evaluation method of heavy-haul
+             train cyclic braking manipulation},
+  journal = {Railway Sciences},
+  year    = {2025},
+  doi     = {10.1108/RS-11-2024-0048}
+}
+
+@article{jing2025_vcts_marl,
+  author  = {Jing, Guanlin and Zou, Yifei and Zhang, Zuyuan and Yu, Jiguo and
+             Yu, Dongxiao and Cheng, Xiuzhen},
+  title   = {Multi-Agent Reinforcement Learning Optimization for Virtual
+             Coupled Train Set Problem in {CBTC} Systems},
+  journal = {Tsinghua Science and Technology},
+  year    = {2025},
+  doi     = {10.26599/TST.2025.9010067}
+}
+
+@article{hu2026_pmmasac,
+  author  = {Hu, Han and Feng, Qingsheng and Han, Zhun and Liu, Wangyang and
+             Li, Hong},
+  title   = {Predictive Mamba-Enhanced Multi-Agent Reinforcement Learning
+             Control for Virtual Coupling of High-Speed Trains},
+  journal = {Electronics},
+  volume  = {15},
+  pages   = {1823},
+  year    = {2026},
+  doi     = {10.3390/electronics15091823}
 }

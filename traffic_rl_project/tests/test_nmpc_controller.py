@@ -18,6 +18,7 @@ import pytest
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.controllers.nmpc_controller import NMPCController
 from src.train_dynamics.params import CouplerParams
+from src.evaluation import evaluate_decompose as ev
 
 
 def _make_fleet(num_trains=3, grade='long_downhill', max_steps=200):
@@ -46,13 +47,14 @@ def _make_nmpc(env):
 
 
 def _nmpc_act(env):
-    """评估侧同流程：NMPC 每列目标加速度 → 每机车动作（evaluate_decompose.mpc_act）。"""
-    U = env._mpc_controller.compute_actions_from_env(env)
-    acts = []
-    for ti, tr in enumerate(env.trains):
-        row = env.multi_loco_controllers[ti].get_action_accel(tr, float(U[ti]))
-        acts.append(np.asarray(row, dtype=float))
-    return np.concatenate(acts, axis=0).astype(np.float32)
+    """评估侧同流程：**直接调用生产桥接** `evaluate_decompose.mpc_act`（2026-10-01 改）。
+
+    原实现自带一份 `get_action_accel` 桥接副本，与生产代码**并行演化** ⇒ 生产的量纲错配
+    （绝对 ED 被当加性调制，见 LRN-20261001-017）在本测试里**被副本掩盖**：
+    副本与 env 消费端语义一致地"错"下去，测试照样绿。改为调用生产函数，
+    使本文件测量的就是主表要跑的那条路径。
+    """
+    return ev.mpc_act(env)
 
 
 def _rollout(env, act_fn, steps=60, init_speed_kmh=80.0):
@@ -130,6 +132,12 @@ def test_nmpc_magnitude_comparable_to_rule_baseline():
         f"NMPC 车钩力峰值 {r_nmpc['peak_kN']:.0f}kN 远超规则基线 {r_rule['peak_kN']:.0f}kN"
     assert abs(r_nmpc['mean_ed'] - r_rule['mean_ed']) < 0.6, \
         f"NMPC ED深度 {r_nmpc['mean_ed']:.3f} vs D-Rule {r_rule['mean_ed']:.3f} 量级不一致"
+    # 【2026-10-01 补强，见 LRN-20261001-017】上面 ±0.6 的容差对"撞界/饱和"不敏感：
+    # 旧桥接把绝对 ED 当加性调制 ⇒ ED 打满 1.0，实测差仅 ≈0.15 照样绿灯（strawman 逃逸）。
+    # 故同时断言**不撞上下界**，否则"同量级"会被方向性失真骗过。
+    for _name, _r in (('NMPC', r_nmpc), ('D-Rule', r_rule)):
+        assert _r['mean_ed'] < 0.99, f"{_name} meanED={_r['mean_ed']:.3f} 已饱和（撞上界）"
+        assert _r['mean_ed'] > 0.01, f"{_name} meanED={_r['mean_ed']:.3f} 已空转（撞下界）"
 
 
 def test_nmpc_solve_times_recorded_across_steps():
