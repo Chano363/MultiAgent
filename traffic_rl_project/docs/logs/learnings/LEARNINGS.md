@@ -177,7 +177,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
   2. **机制（两条，各自独立）**：
      - **结论先于测量**：`src/trainer/logger.py:116-121` 只落盘 6 个 scalar，**没有 `value_loss` / `value_norm_mean/std` / `entropy` / `approx_kl`**；history CSV/JSON 只有 4 列。`mappo_agent.py` 明明算出了这些量（`:538-564`）却没写出去 ⇒ "value 发散"**不可证伪**，属于把推测当结论。
      - **安全层权限边界与文档不一致**：`SafetyLayer.protect()` 在 decompose 路径的返回值**只回写 ED 通道**（`train_env.py:522-524`），`ab_sources`（`:474-490` 组装）**原样**送入动力学（`:528`）；安全层能把 `ab_command` **升级**为 EMERGENCY（`:517-520`）却**从不削减已发出的 AB 源**。而 `_step_decomposed` docstring 声称"再映射回 (ED,AB)"——**文档承诺了没有实现的权限**，导致"已下发安全层为何还破线"长期无法解释。此外闸门的两条判据（反应式 `p0≥0.6·limit`、预测式 `rate·horizon`）在 **AB 波起始处同时静默**（实测力低、上升率≈0），波前叠加 ~70 步后才穿越 1000 kN。
-  3. **为什么没早发现**：`logger.py` 落盘字段清单从未与 `mappo_agent` 的返回量做过对照（无"返回即落盘"的单测）；docstring 声明的通道改写也没有断言该通道真的被改写；闸门效果只用 **100 集短训玩具 ckpt**（`outputs/checkpoints_ab_gate100`）验证过（`outputs/logs/diagnostics/log_diag_regress_20260930.json` 的 `ckpt` 字段），**从未在生产 checkpoint 分布上验证**。
+  3. **为什么没早发现**：`logger.py` 落盘字段清单从未与 `mappo_agent` 的返回量做过对照（无"返回即落盘"的单测）；docstring 声明的通道改写也没有断言该通道真的被改写；闸门效果只用 **100 集短训玩具 ckpt**（`outputs/checkpoints/ab_gate100`）验证过（`outputs/logs/diagnostics/log_diag_regress_20260930.json` 的 `ckpt` 字段），**从未在生产 checkpoint 分布上验证**。
 - **解决（进行中）**：
   - 叙事改为可观测口径："孤立、自恢复的车钩力破线 episode"，并把"value 发散"降级为**待测量**项。
   - 待做 X1（用生产 checkpoint 重跑闸门回归，检验闸门是否只在 100 集玩具 ckpt 上有效）/ X2（补落盘 value/entropy/KL）/ X3（记录在飞 AB 源）/ X4（给安全层"在飞波"锁或削减权限的反事实）。
@@ -198,7 +198,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 ## LRN-20260930-008 · metadata 的 `physics` 块固报固版默认编组（1+0），与运行实况（1+1）不一致
 
 - **现象**：复现路径 —— 读任意一次主实验产出的
-  `outputs/checkpoints_formation/final_seed1_v2/results/metadata.json`，见
+  `outputs/checkpoints/formation/final_seed1_v2/results/metadata.json`，见
   `env_cfg.consist_preset=10kt_1plus1` 与嵌套 `physics.physics.consist_preset=10kt_1plus0` 并存；
   `simulator_model` 串内为 `consist=10kt_1plus0`，`simulator_model_version` 连带走样。
   溯源见 `DIAGNOSTICS_2026-09B.md`「诊断-2026-09-30-metadata 编组不一致溯源」。
@@ -349,22 +349,22 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 ## LRN-20261001-001 · 断言"数据不存在"前必须按**实验语义**全仓复查（不能只搜变量名/只看 deprecated）
 
 - **现象**：我据一次 `grep decompose_M0` 的结果断言"**全剖面（53km）D-RL vs D-Rule 头对头在当前物理下不存在**"，
-  并据此提议先重跑；用户直接指出"**都有结果了你自己找找**"。复查后证实用户正确：`outputs/results_decompose/`
+  并据此提议先重跑；用户直接指出"**都有结果了你自己找找**"。复查后证实用户正确：`outputs/results/decompose/`
   下现存多份 `decompose_m1_*_53km`（`ep841`(5 seed) / `ep1623` / `ep1521` / `best_s0` / `best_s1` / `ep2265`），
   且方向与我的暗示**相反**（`last` 权重守得住红线且不输规则层）。
 - **期望 vs 实际**
   - 期望：说"没有证据"之前，已确认现有资产里确实没有可回答该问题的数据。
   - 实际：缺的只是**M0（规则行）这一行**，被我扩大成"**整张表**都不存在"；
-    且我默认了"历史跨线/长程评估只在 `deprecated/`"，忽略了 `outputs/results_decompose/` 里按
+    且我默认了"历史跨线/长程评估只在 `deprecated/`"，忽略了 `outputs/results/decompose/` 里按
     `_53km` 命名的 M1 评估。
 - **根因（三层追）**
   1. **表象**：一次 grep 的 0 命中 → 直接写成"不存在"。
   2. **机制**：我按**变量名/目录名**（`decompose_M0` 字符串；`deprecated/` 语义）检索，
-     而资产是按**实验语义**命名与摆放的（`*_53km`、`results_decompose/`）——
+     而资产是按**实验语义**命名与摆放的（`*_53km`、`results/decompose/`）——
      检索口径与资产组织口径不一致，必然漏检。
   3. **为什么没早发现**：把"某一行的缺失"当成了"整张表的缺失"，且**没有先问用户**
      （用户显然知道资产在哪，这是当场被纠正的直接原因）。
-- **解决**：按实验语义全仓复查（`*_53km`、`results_decompose/`），把 `last` / `best` / `ep120` / `ep2265`
+- **解决**：按实验语义全仓复查（`*_53km`、`results/decompose/`），把 `last` / `best` / `ep120` / `ep2265`
   四类权重在 53km 的表现一并列表；在 `DECISIONS.md` ADR-020 与 `DIAGNOSTICS_2026-09B.md` 对应条目
   **原位追加"更正"行**（不复写历史）。
 - **止血与预防**
@@ -434,7 +434,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 
 ## LRN-20261001-005 · 规格/评估命令里引用的 checkpoint 路径会失效：写前必须 `ls` 验证
 
-- **现象**：规格里写死 M1 的权重 `outputs/checkpoints_formation/**seed0_nep1400**/mappo_fleet_last_ep841_...pt`（来源是历史评估 JSON 里的 `eval_args.checkpoint`），实际该目录**已不存在**；全仓仅剩 `final_seed1/..._ep841_..._seed1_seed1.pt`（seed1 那一代）。
+- **现象**：规格里写死 M1 的权重 `outputs/checkpoints/formation/**seed0_nep1400**/mappo_fleet_last_ep841_...pt`（来源是历史评估 JSON 里的 `eval_args.checkpoint`），实际该目录**已不存在**；全仓仅剩 `final_seed1/..._ep841_..._seed1_seed1.pt`（seed1 那一代）。
 - **期望 vs 实际**：期望"历史 JSON 里记的路径今天仍可用"；实际训练产物目录被改名/清理过（`seed*_nep1400` → `final_seed*`），路径早已失效。
 - **根因**：把"历史 JSON 的**记录值**"当成了"**当前可用路径**"——记录是**当时**的事实，不等于**现在**的事实。
 - **解决**：改用同代同语义的现存在权重 `final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt`（seed0、`last`、ADR-020 已引用的"守线"权重），并在 tasks/留痕**原位记更正**（不改历史 JSON）。
@@ -500,7 +500,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 
 ## LRN-20261001-009 · 短训验证必须同时覆盖三个输出目录，否则静默覆盖历史产物
 
-- **现象**：为验证"主 YAML 已按 ADR-017 对齐"，跑了一次 `--episodes 2` 的短训，命令只覆盖了 `--checkpoint_dir` 与 `--results_dir`，**漏了 `dirs.figures_dir`**。结果 `figures_dir` 仍取 YAML 默认值 `outputs/checkpoints_formation/seed0/figures`，短训结束时 `save_training_artifacts` **覆写了 09-25 那次 100-ep 历史训练的学习曲线 PNG**（`fig_learning_curve_dec_ad2_cp_seed0.png`，3 子图 → 只剩 2 个点）。
+- **现象**：为验证"主 YAML 已按 ADR-017 对齐"，跑了一次 `--episodes 2` 的短训，命令只覆盖了 `--checkpoint_dir` 与 `--results_dir`，**漏了 `dirs.figures_dir`**。结果 `figures_dir` 仍取 YAML 默认值 `outputs/checkpoints/formation/seed0/figures`，短训结束时 `save_training_artifacts` **覆写了 09-25 那次 100-ep 历史训练的学习曲线 PNG**（`fig_learning_curve_dec_ad2_cp_seed0.png`，3 子图 → 只剩 2 个点）。
 - **期望 vs 实际**：期望"只要把 checkpoint/results 指到临时目录就隔离干净了"；实际 **figure 是第三个独立配置项**，且 `save_training_artifacts` **每次全量覆写**（这是它刻意的设计——防前台超时丢数据），因此一次误指就把历史图**无提示地**冲掉。
 - **根因**：
   1. 配置 schema 里 `checkpoint_dir` / `results_dir` / `figures_dir` 是**三个平级字段**，CLI 只提供 `--checkpoint_dir` / `--results_dir` 两个便捷开关，`figures_dir` **只能走 `--override dirs.figures_dir=…`**；只写前两个时极易以为"已全套隔离"；
@@ -510,8 +510,8 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
   - 立即清理：临时 `tmp_figfix.py`、`/tmp/_figfix`、`outputs/_cfgcheck/` 全部删除。
 - **止血与预防**：
   - **任何验证/冒烟短训必须同时重定向三者**：`--checkpoint_dir` + `--results_dir` + `--override dirs.figures_dir=…`（写进验证命令模板）；
-  - 或者更好：短训一律先 `--override dirs.<三项>` 到一个一次性 `outputs/_smoke_*/` 目录，跑完即删；
-  - 历史实验目录（`outputs/checkpoints_formation/seed{0..4}`、`final_seed*`）**不得作为任何验证跑的输出目标**；即便只是"顺带验证一下配置"，也必须先确认三个目录都已重定向；
+  - 或者更好：短训一律先 `--override dirs.<三项>` 到一个一次性 `outputs/smoke/_smoke_*/` 目录，跑完即删；
+  - 历史实验目录（`outputs/checkpoints/formation/seed{0..4}`、`final_seed*`）**不得作为任何验证跑的输出目标**；即便只是"顺带验证一下配置"，也必须先确认三个目录都已重定向；
   - 与 LRN-20260930 系列（"验证跑污染主实验目录"）同类，本条把污染面从 checkpoint/results 扩到 **figures**。
 - **类型标签**：`验证纪律` / `产物污染` / `可复现性`
 
@@ -578,7 +578,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 - **现象**：`REPRODUCIBILITY.md` §十 把主对比评估写成
   `python src/evaluation/evaluate_decompose.py --mode all --checkpoint <best.pt> --n_seed 3`
   并注明产出"**主对比三行 D-RL / D-Rule / MPC @53km**"。实际跑 `--mode all` **只得到 2 行**
-  （`decompose_M0_rule` / `decompose_M1_rl`），**MPC 行缺失**；证据：`outputs/results_decompose/eval_decompose_all_ms300_smoke_x1.json`
+  （`decompose_M0_rule` / `decompose_M1_rl`），**MPC 行缺失**；证据：`outputs/results/decompose/eval_decompose_all_ms300_smoke_x1.json`
   的 `results` 只有两个键。
 - **期望 vs 实际**：期望"mode 名叫 `all` ⇒ 出全部行"；实际 `all` 被一个 CLI 默认值悄悄削成 2 行。
 - **根因**：
@@ -652,7 +652,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
   再在 MPC 行组装 `mpc_solve_fail` 时抛异常。
 - **为什么长期没被发现（关键）**：
   1. MPC 行被 LRN-011 的 CLI 默认值挡在门外 ⇒ `--mode all` **从来不进 MPC 分支**，这段代码**从未被执行**；
-  2. 已有的 MPC 冒烟用的是 `--mpc_type nmpc`（`outputs/results_decompose/eval_decompose_mpc_ms60_smoke_nmpc.json`），
+  2. 已有的 MPC 冒烟用的是 `--mpc_type nmpc`（`outputs/results/decompose/eval_decompose_mpc_ms60_smoke_nmpc.json`），
      而 **NMPCController 有 `solve_statuses`**（`nmpc_controller.py:113`），恰好绕开了这条路径；
   3. 于是"默认 fair + `--mode all`"这个**文档推荐的组合**从来没跑过一次。
 - **危害（比"MPC 行缺失"更糟）**：异常发生在**收尾**，此时 M0/M1 已算完（各 36000 步、机时数十分钟）
@@ -749,7 +749,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
   ② 真 ckpt 实跑 `--mode decompose_m1 --max_steps 120`：打印
   `[decision-interval] 自 ckpt metadata 读取 decision_interval=10（与训练一致）`、
   行标签 `interval=10`、JSON 的 `metadata.eval_args.decision_interval=10` 与 `args.decision_interval=10`
-  **三处一致**（`outputs/results_decompose/eval_decompose_decompose_m1_ms120_di_fix_check.json`）。
+  **三处一致**（`outputs/results/decompose/eval_decompose_decompose_m1_ms120_di_fix_check.json`）。
 - **预防**：
   - **新增/复用 CLI 参数前先问："它与训练配置有没有必须一致的关系？"** 有 ⇒ 不许用写死的默认值，
     必须"读产物"或"默认即训练口径 + 打印"；
@@ -827,7 +827,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 
 ## LRN-20261002-001 · 评估脚本 `--out_suffix` 默认为空 ⇒ 同名结果 JSON 被**静默覆盖**
 
-- **现象**：ADR-023 验证时用 `--mode mpc --max_steps 300`（**未带** `--out_suffix`）跑评估，输出落在 `outputs/results_decompose/eval_decompose_mpc_ms300.json` —— 该文件名**不含任何后缀**，与任何同参数的早前运行**同名**，写入即覆盖（`evaluate_decompose.py:526-529` 按 `mode + max_steps + rand + suffix` 拼名后直接 `open(..., 'w')`），且打印"已保存"不提示覆盖。
+- **现象**：ADR-023 验证时用 `--mode mpc --max_steps 300`（**未带** `--out_suffix`）跑评估，输出落在 `outputs/results/decompose/eval_decompose_mpc_ms300.json` —— 该文件名**不含任何后缀**，与任何同参数的早前运行**同名**，写入即覆盖（`evaluate_decompose.py:526-529` 按 `mode + max_steps + rand + suffix` 拼名后直接 `open(..., 'w')`），且打印"已保存"不提示覆盖。
 - **预期 / 实际**：预期 = "评估结果按时间戳归档、不覆盖旧文件"（`rules/EXECUTION_RULES.md` 第 3 条）；实际 = 默认后缀为空时**同名覆盖**，改前内容不可回溯（`outputs/**` 未纳入 git，部分文件虽被跟踪但该名不在其中）。
 - **根因**：改名责任被完全外推给调用方（`--out_suffix` 靠人手填），默认 `''` 使"照文档原样复现命令"与"保留旧证据"直接冲突 —— 与 LRN-20261001-011 / 013 / 015「CLI 默认值静默决定语义」同一族。
 - **解决**：凡**产出证据**的评估命令**一律显式带 `--out_suffix`**（本次 = `_adr023_coef1_check`，见与该次运行对应的结果 JSON 名）。

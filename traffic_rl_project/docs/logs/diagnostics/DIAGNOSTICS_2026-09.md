@@ -960,7 +960,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **结论**：①换架构的**规则层增量已确立**（vs 单机单控 +74% reward、AB -89%），可作为论文"多机车电空分工"立论的主证据；②RL 层在完整时域的增量**未能复现**（冒烟 3000 步的车钩力 -24% 在 15000 步 + 重训下被 AB 滥用覆盖），全量 RL 化需先解决：探索期 AB 幅度 curriculum / RL 决策间隔降采样（如每 10 步决策）/ 带内保持奖励单独塑形。
 
-- **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --seed 0 --enable_etcs --checkpoint_dir outputs/checkpoints_dec_full --results_dir outputs/results_dec_full`；评估 `python src/evaluation/evaluate_decompose.py --mode all --checkpoint outputs/checkpoints_dec_full/mappo_fleet_ep60_dec_ad2_cp_seed0.pt --n_seed 3 --max_steps 15000`；日志 `outputs/train_logs/train_dec_full{,2}.log`；结果 JSON `outputs/results_decompose/`。
+- **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --seed 0 --enable_etcs --checkpoint_dir outputs/checkpoints_dec_full --results_dir outputs/results_dec_full`；评估 `python src/evaluation/evaluate_decompose.py --mode all --checkpoint outputs/checkpoints_dec_full/mappo_fleet_ep60_dec_ad2_cp_seed0.pt --n_seed 3 --max_steps 15000`；日志 `outputs/train_logs/train_dec_full{,2}.log`；结果 JSON `outputs/results/decompose/`。
 
 ***
 
@@ -1025,7 +1025,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
   - 相对 M0/单机结论不变：架构层（M0 vs 单机）+74%、AB -89%；学习层（M1 3-seed 均值 vs M0）reward +0.8%、车钩力均值 -20%、ATP 显著下降。seed2 的 ED-heavy 分支更接近"规则分工的优化版"，未走错峰 AB 路线但同样零超限。
 
-- **留痕文件**：`outputs/results_decompose/eval_decompose_m1_{seed0,seed1,seed2}_best_ms15000.json`（逐 seed 保留，避免固定文件名互相覆盖——脚本写 `eval_decompose_decompose_m1_ms15000.json`，跑每个 seed 后须改名保存）；训练日志 `train_dec_full_iv10_seed{1,2}_resume.log`；续训 history 并入 `train_history_dec_ad2_cp_seed{1,2}.json`。
+- **留痕文件**：`outputs/results/decompose/eval_decompose_m1_{seed0,seed1,seed2}_best_ms15000.json`（逐 seed 保留，避免固定文件名互相覆盖——脚本写 `eval_decompose_decompose_m1_ms15000.json`，跑每个 seed 后须改名保存）；训练日志 `train_dec_full_iv10_seed{1,2}_resume.log`；续训 history 并入 `train_history_dec_ad2_cp_seed{1,2}.json`。
 
 - **复现**：seed1/2 训练命令见上；评估命令（逐 seed 各跑一次并改名）：`python src/evaluation/evaluate_decompose.py --mode decompose_m1 --checkpoint outputs/checkpoints_dec_full_iv10/mappo_fleet_best_dec_ad2_cp_seed{N}.pt --n_seed 3 --max_steps 15000 --decision_interval 10`。
 
@@ -1056,7 +1056,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
   3. **双杠杆 M1 是折中**：578kN（介于 528 与 702）+ reward +73,733 + 末速 53.5（介于 45.1 与 71）——两根杠杆联合获得"低车钩力 + 中等吞吐"的最优组合。
   4. **⚠️ 暴露的奖励设计隐患（诚实上报）**：只保留 AB 杠杆的 reward（+74,634）**反超**双杠杆 M1（+73,733）——说明当前标量奖励**偏向"重空制动在带缘高速骑行"**，单一 AB 杠杆就能通过刷 band-保持率获得最高分。这提示（a）band 保持率权重可能过大、未惩罚重型空制动能耗/冲动，或（b）双杠杆优化面更难未完全收敛。论文不宜声称"M1 是标量 reward 最优"，应表述为"M1 是车钩力与吞吐的最优平衡 + 双杠杆齐备"；若需标量最优，需重设奖励（如对 AB 冲动或能耗加轻微惩罚，但冒烟已证直接 AB 成本会等额抵消车钩力收益，故宜加权衡项而非线性成本）。
 
-- **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --decision_interval 10 --mask_lever <ab|ed> --seed 0 --enable_etcs --checkpoint_dir outputs/abl_checkpoints/mask_<ab|ed> --results_dir outputs/abl_results/mask_<ab|ed>`；评估 `python src/evaluation/evaluate_decompose.py --mode decompose_m1 --checkpoint <best> --mask_lever <ab|ed> --n_seed 3 --max_steps 15000 --decision_interval 10`。留痕 JSON `outputs/results_decompose/eval_abl_{edonly_mask_ab,abonly_mask_ed}_ms15000.json`；训练日志 `train_dec_abl_mask_{ab,ed}.log`。
+- **复现**：训练 `python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1plus1 --grade shuozhou_23800 --max_steps 15000 --curriculum 1000:0,3000:20,15000:40 --init_speed_kmh 80 --entropy 0.002 --decompose loco_ed_ab --decision_interval 10 --mask_lever <ab|ed> --seed 0 --enable_etcs --checkpoint_dir outputs/abl_checkpoints/mask_<ab|ed> --results_dir outputs/abl_results/mask_<ab|ed>`；评估 `python src/evaluation/evaluate_decompose.py --mode decompose_m1 --checkpoint <best> --mask_lever <ab|ed> --n_seed 3 --max_steps 15000 --decision_interval 10`。留痕 JSON `outputs/results/decompose/eval_abl_{edonly_mask_ab,abonly_mask_ed}_ms15000.json`；训练日志 `train_dec_abl_mask_{ab,ed}.log`。
 
 
 
@@ -1314,11 +1314,11 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **重跑记录（终版物理）**：
   - decompose 主实验（1+1 空电分离，ADR-009 协议）：3 seed 重训 `outputs/checkpoints_r0_dec`（curriculum 1000:0,3000:20,15000:40、interval=10、ETCS、80km/h），日志 `outputs/logs_r0/train_dec_seed{0,1,2}.log`。
   - 杠杆消融：mask_ab（仅 ED 杠杆）/mask_ed（仅 AB 杠杆）seed0 重训 `outputs/checkpoints_r0_dec_abl/`。
-  - M0 规则基线 + 单机单控评估：`outputs/results_decompose/eval_decompose_*_r0.json`（R0 物理下重跑）。
+  - M0 规则基线 + 单机单控评估：`outputs/results/decompose/eval_decompose_*_r0.json`（R0 物理下重跑）。
   - MPC（mpc_rule，3 列车，ETCS，300 步冒烟协议）：reward +4813、车钩力峰 583kN、间距 min 173m、0 ATP 急刹、**每步求解 260.5ms（仍超 100ms 实时预算，Lim-2 保持）**。
   - 全量 pytest：见 `outputs/logs_r0/pytest_final.log`。
 
-#### R0 重跑结果汇总（15000 步完整时域、确定性 best-checkpoint、3 评估 seed，outputs/results_decompose/*_r0*.json）
+#### R0 重跑结果汇总（15000 步完整时域、确定性 best-checkpoint、3 评估 seed，outputs/results/decompose/*_r0*.json）
 
 | 方法 | reward | 车钩力峰(kN) | viol | band率 | AB步 | meanED | 末速(km/h) | ATP事件 |
 | :--- | ---: | ---: | :-: | ---: | ---: | ---: | ---: | ---: |
@@ -1356,7 +1356,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 | best reward | −6,481（6ep 随机策略，长程 tail 惩罚占主导，属预期） |
 | 耗时 | 8.5min/6ep 300步 ≈ 0.28s/动力学步 |
 
-- **全量预算**：按 0.28s/步 × curriculum 累积约 38 万步/seed ≈ **29h/seed，5 seed ≈ 150h 量级**。已按用户决策 60ep×5seed 启动，每 seed 独立目录 `outputs/checkpoints_formation/seedN` + metadata.json（不互相覆盖）。
+- **全量预算**：按 0.28s/步 × curriculum 累积约 38 万步/seed ≈ **29h/seed，5 seed ≈ 150h 量级**。已按用户决策 60ep×5seed 启动，每 seed 独立目录 `outputs/checkpoints/formation/seedN` + metadata.json（不互相覆盖）。
 - **已知项（metadata 局限）**：`simulator_model` 串的 `consist=` 取自 `official_world_config(PhysicsConfig())` 默认（1plus0），而 multi-train 编组由 `env_cfg.consist_preset` 控制。对 platoon(1plus0) 恰好正确，对本次 1plus1 会标 1plus0；同文件 `hyperparameters.env_cfg.consist_preset=1plus1` 已正确记录，可追溯性不受影响。**待修**：让 world_cfg 复用实际编组 preset。
 - **待办**：多列编队 decompose 的正式评估还缺——`evaluate_decompose.py` 目前仅支持单列（num_trains:1），需改造成按 train_fleet_env 编队上下文评估。
 
@@ -1369,9 +1369,9 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 
   ```bash
   python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
-      --seed 0 --episodes 120 --checkpoint_dir outputs/checkpoints_formation/seed0 \
-      --results_dir outputs/checkpoints_formation/seed0/results \
-      --override dirs.figures_dir=outputs/checkpoints_formation/seed0/figures
+      --seed 0 --episodes 120 --checkpoint_dir outputs/checkpoints/formation/seed0 \
+      --results_dir outputs/checkpoints/formation/seed0/results \
+      --override dirs.figures_dir=outputs/checkpoints/formation/seed0/figures
   ```
 
 - **两轮发散数据（seed0，5000 步段起）**：
@@ -1388,9 +1388,9 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - RL 可在车钩力接近上限时把 ED 顶满（`+ed_mod_coef`）或触发 AB（`AB_FALLBACK_NOTCH`），突破 1000kN 底线 → 车钩力 1366-1417kN。
   - **期望 vs 实际**：期望"车钩力≤1000kN 不可逾越"（ADR-013 铁律）由控制器钳制兜底；实际 decompose 下 RL 可绕过 → 峰值超限 40%。
 - **助推因素（奖励失衡）**：`_calculate_reward_decomposed` 车钩力惩罚太弱——coupler_peak=1.4（1400kN）时 penalty≈−2.3/步，而速度带（群组均速在带内）+15/步。激进制动"带内 +15"收益 >> 车钩力代价，RL 学到暴力制动进入手风琴失稳（gap/collision 项再叠加 → −100 万级奖励）。
-- **修复（2026-09-09 04:2x）**：`get_action_decomposed` 返回前对 `final[:,0]/[:,1]` 同样 `*= _coupler_throttle_scale(train_env)`（对齐 get_action_accel）。验证：`pytest tests/test_fleet_decompose.py tests/test_train_dynamics.py` 41 passed；5ep 冒烟 `outputs/checkpoints_formation/_smoke.log` + `_smoke/results/train_history_*.json`。
+- **修复（2026-09-09 04:2x）**：`get_action_decomposed` 返回前对 `final[:,0]/[:,1]` 同样 `*= _coupler_throttle_scale(train_env)`（对齐 get_action_accel）。验证：`pytest tests/test_fleet_decompose.py tests/test_train_dynamics.py` 41 passed；5ep 冒烟 `outputs/checkpoints/formation/_smoke.log` + `_smoke/results/train_history_*.json`。
 - **冒烟结论（修复部分生效，硬保证仍需注意）**：peakCoupler=[832, 928, **1208**, 757, 819]，viol=[0,0,9,0,0]（旧版同位置 ep3 1343kN/13 viol → 修复后 1208/9）。说明：控制器前馈投影能压小超限但**不能硬性保证 ≤1000kN**（车钩力是动力学瞬态量，制动/缓解波传播与坡度突变可在单步内推高，而 scale 基于步前力）——发散的主要形态是**持续** 1400kN（scale=0 → 制动归零 → 持续超限应自愈），本轮修复目标是打破持续发散；探索期单步瞬态超限（~1200kN）由奖励惩罚塑形。**若 ep41-50 仍发散 → 需上更硬手段（如提高惩罚量级/早触发阈值 0.5×limit/或动力学层硬限，需用户决策）**。
-- **数据落盘**：两轮发散证据归档 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（01:34 轮，ep10-70 全量检查点+results）与 `outputs/checkpoints_formation/seed0_DIVERGED_after_reward_fix_20260909_042456/`（03:20 轮，ep10-50 全量+results+log）。旧发散日志（临时 toolhost 路径）尾行 `Terminated` 系旧轮被终止所致。
+- **数据落盘**：两轮发散证据归档 `outputs/checkpoints/formation/seed0_DIVERGED_before_reward_fix/`（01:34 轮，ep10-70 全量检查点+results）与 `outputs/checkpoints/formation/seed0_DIVERGED_after_reward_fix_20260909_042456/`（03:20 轮，ep10-50 全量+results+log）。旧发散日志（临时 toolhost 路径）尾行 `Terminated` 系旧轮被终止所致。
 - **进度（自动化机制）**：relay v2（`tmp_formation_relay.sh` 串行 0→4）+ patrol v2（`tmp_formation_patrol.sh` 每 30min 快照+异常检测）已修复 active_seed 检测 bug（`grep -oE '--seed [0-9]'` 被当作 grep 选项 → 加 `--` 分隔符），并新增 coupler>1000/viol>50/reward<-200000 发散检测项。修复确认后重启 relay 续跑 0→4。
 - **待办**：多列编队 decompose 的正式评估仍缺（承接 09-08 待办）。
 
@@ -1404,7 +1404,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   2. `train_fleet_env.py` `_calculate_reward_decomposed`：rel_vel_penalty **0.1→0.25**（强化级联稳定信号，供中间时域窗口学习）；gap_trend 触发窗放宽 **cur<30→60m、shrink>1→0.5m/步**（原窗在手风琴建立前几乎不触发）。
   - 未动的"更硬手段"（车钩力惩罚量级提升 / 0.5×limit 早触发 / 动力学硬限）按上一节结论**保留待用户决策**——先看渐变 curriculum 轮能否过 ep41-50，不再叠加未验证改动。
 - **运行状态（04:45 重启）**：seed0 全新开训（seed0 目录已清空重建，旧发散资产保留于 `seed0_DIVERGED_*`），relay+patrol 已重启。curriculum 边界日志确认生效：`[(0, 1000), (20, 2000), (30, 3000), (40, 5000), (60, 8000), (75, 12000), (90, 15000)]`。
-- **判定窗口**：ep21-30（2000 步）≈05:20 起、ep31-40（3000 步）≈05:55 起、**ep41-60（5000 步）≈06:25-07:45** —— 若该窗口仍出现 coupler>1000 / viol>50 / reward<-20万 即触发 patrol 报警并转入用户决策。数据留痕：`outputs/checkpoints_formation/seedN_train.log` + `relay.log` + `patrol.log`（append-only）。
+- **判定窗口**：ep21-30（2000 步）≈05:20 起、ep31-40（3000 步）≈05:55 起、**ep41-60（5000 步）≈06:25-07:45** —— 若该窗口仍出现 coupler>1000 / viol>50 / reward<-20万 即触发 patrol 报警并转入用户决策。数据留痕：`outputs/checkpoints/formation/seedN_train.log` + `relay.log` + `patrol.log`（append-only）。
 
 
 ### 诊断-2026-09-10-发散根因（方向1 相对列距锚定 reward 改造不彻底：短-中时程修好、长时程仍发散）
@@ -1504,7 +1504,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **目的**：在无 WSL2 的当前 Windows 机复现交接环境，跑通测试与训练入口。
 - **结果**：env `traffic_rl`（python 3.10.21）装 torch2.6.0+cu124 + 项目依赖 + gym0.26.2，CUDA 可用；`pytest tests/ -q` **173 passed**；`run_training.py` 统一入口启动正常并落权威 metadata。网络下载走 Windows PowerShell（conda 镜像 USTC 偶发 SSL，重试通过）。
 - **踩坑**：gymnasium 与 gym 需并存（代码用旧 `from gym import spaces`）；conda 写 `F:\Anaconda3\pkgs` 需绕沙箱权限。
-- **状态**：完成。临时文件 `outputs/_smoke_pytest.log` 已删。（注：本条目为环境迁移记录，并入交接后首日诊断。）
+- **状态**：完成。临时文件 `outputs/smoke/_smoke_pytest.log` 已删。（注：本条目为环境迁移记录，并入交接后首日诊断。）
 
 ***
 
@@ -1660,7 +1660,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   3. **KL 早停趋势收紧**：`target_kl*1.5 → target_kl*1.2`（0.015→0.012）：终段不再放任 epoch 滑到 7~10 才触发，提前拦截策略漂移累积。
   - 均经 py_compile + b4 单测通过；只影响训练，不影响推理（deterministic 用 mean）。
 - **验证协议**（从干净 ep841 best 权重续训 30ep）：
-  命令：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 30 --resume outputs/checkpoints_formation/seed0_nep1400/mappo_fleet_best_dec_ad2_cp_seed0.pt --override n_env=4 --checkpoint_dir outputs/checkpoints_formation/seed0_valid_lean --results_dir outputs/checkpoints_formation/seed0_valid_lean/results --override dirs.figures_dir=outputs/checkpoints_formation/seed0_valid_lean/figures`
+  命令：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 30 --resume outputs/checkpoints/formation/seed0_nep1400/mappo_fleet_best_dec_ad2_cp_seed0.pt --override n_env=4 --checkpoint_dir outputs/checkpoints/formation/seed0_valid_lean --results_dir outputs/checkpoints/formation/seed0_valid_lean/results --override dirs.figures_dir=outputs/checkpoints/formation/seed0_valid_lean/figures`
   - resume 加载 ep841，curriculum 按 global_ep≥841 解析 → 恒 1200 步档；n_env=4；`start_valid_lean.sh` exec 后台运行（job wrapper）。总耗时 6461s（107.7min）。
 - **结果（全程 30ep = 原 ep843-872，判定数据）**：
   | 指标 | 全程表现 |
@@ -1671,7 +1671,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   | **reward** | 9956~11369 稳定（无原 -5371 崩溃） |
   | **原发散区 ep849-856** | **零复发**：ep849 loss=-0.002/pk754/viol0，ep856(原绝对峰值+1.283) loss=-0.010/pk695/viol0 |
   | **KL 早停** | epoch 3~4/10 触发（原终段 7~10），提前拦截 |
-  best reward=11369.34，末段平均车钩力峰值=741.5kN。数据 `outputs/checkpoints_formation/seed0_valid_lean/results/train_history_dec_ad2_cp_seed0.csv`；模型 `.../mappo_fleet_best_dec_ad2_cp_seed0.pt`。
+  best reward=11369.34，末段平均车钩力峰值=741.5kN。数据 `outputs/checkpoints/formation/seed0_valid_lean/results/train_history_dec_ad2_cp_seed0.csv`；模型 `.../mappo_fleet_best_dec_ad2_cp_seed0.pt`。
 - **期望 vs 实际**：期望是 30ep 内 loss 不爆、viol 不爆发、车钩力<1000kN——**三项全达成**。原史上最危险的 849-856 发散区被完整平滑压制，KL 早停提前到 epoch 3-4 收手（杠杆③预期行为），reward 全程无崩塌。
 - **判断**：三项治本杠杆 **SUCCESS**。从"偶发破线 → 终段 value 污染 → 不可回退发散"的根因链条上切断了"污染入口（winsorize）+ 放大端（value grad clip）+ 累积端（KL 收紧）"三处，互不干扰、组合有效。
 - **结论与下一步**：治本杠杆已证实可维持长训稳定，可作为最终生产训练的稳定性保护。下一步铺 **5-seed（seed0-4）全量 episodes=1400 长训**（新逻辑自带治本杠杆），用 best-checkpoint 协议产出主结果；核对 5-seed 是否长期稳定无复发，再推进主对比评估。若 5-seed 长训仍出现发散，回读本诊断按杠杆强度/超参迭代。
@@ -1692,8 +1692,8 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 - **判定**：并行方案**通过**（seed4 首 ep 全绿：viol 0 / pkCpl 663kN<1000 / loss -0.005）。追加并行度无益（已带宽受限）。
 - **结论与下一步**：保留并行编排作为当前 5-seed 驱动；监控至 ALL 5 SEEDS COMPLETE；验证通过后删除临时脚本 check_parallel.sh/diag_parallel.sh。
 - **数据留痕**：
-  - 新 job id：job-5d1ee3c78c7441b194f099519f14dbae；逐 seed 日志 outputs/logs_final_parallel/seed{N}.log。
-  - 旧串行 seed0 中断 ~266ep 产物备份：outputs/checkpoints_formation/final_seed0_aborted_sequential_266ep/（防 CSV 重复污染，供回溯）。
+  - 新 job id：job-5d1ee3c78c7441b194f099519f14dbae；逐 seed 日志 outputs/logs/final_parallel/seed{N}.log。
+  - 旧串行 seed0 中断 ~266ep 产物备份：outputs/checkpoints/formation/final_seed0_aborted_sequential_266ep/（防 CSV 重复污染，供回溯）。
   - 机器：i5-13420H（8物理/12逻辑）/ 31.6GB（WSL 上限 15.8GB）。
   - 复现命令：wsl -d Ubuntu-24.04 bash scripts/launchers/launch_final_5seed_parallel.sh（前台后台均可，wait 聚合）。
 ### 诊断-2026-09-22-best权重长程评估失效（训练reward选优≠长程质量）
@@ -1715,7 +1715,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   - 早期策略 = 短视激进（少制动冲坡，短窗口高分）；后期策略牺牲短窗口 reward（~11000 < 11569）换取长程稳定（viol 0 / 863kN / 末速 72）→ **短窗口训练 reward 最优 ≠ 长程评估最优**。s1 同理（best +11832.8 冻结）。
 - **期望 vs 实际**：期望 best = 历史最优可直接作主结果；实际 best 在完整剖面评估下崩（>1000kN 超限 + 末速失速/停车），而 last 达标——best 文件**不可用于论文主结果**。
 - **解决**：①本次主结果改用 **last 权重**（s0 last/53km 达标为实证）；②训练框架补"**周期性长程评估选优**"（每 N ep 用完整剖面确定性评估，按 viol/车钩力/末速 而非训练 reward 选 best，见 train_runner 新增 long_eval 钩子）；③跨线失速（s0/35km last 与 best 均失速）为独立真问题，与权重选择无关，待续训训满后另诊断。
-- **复现命令**：`wsl bash tmp_launch_best_evals.sh`（wait 保活版，4 条并行）；结果 JSON `outputs/results_decompose/eval_decompose_*_best_*.json`。
+- **复现命令**：`wsl bash tmp_launch_best_evals.sh`（wait 保活版，4 条并行）；结果 JSON `outputs/results/decompose/eval_decompose_*_best_*.json`。
 - **状态**：完成（best 4/4 已出，结论确定）。
 
 ### 诊断-2026-09-24-MPC对比基线@53km完整剖面首跑（Regime A 公平版）

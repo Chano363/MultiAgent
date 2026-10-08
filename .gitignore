@@ -10,8 +10,8 @@ venv/
 
 # 训练检查点（大文件）
 traffic_rl_project/outputs/checkpoints/
-traffic_rl_project/outputs/checkpoints_*/
 traffic_rl_project/outputs/results_phys2/checkpoints.dat
+traffic_rl_project/outputs/smoke/
 
 # 训练日志和结果
 traffic_rl_project/outputs/logs/

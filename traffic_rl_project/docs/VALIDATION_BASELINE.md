@@ -147,7 +147,7 @@ owner: Owner + Agent
 4. **大负值惩罚用于硬约束**（碰撞/超限），与连续势场正项分开设计
 5. **多目标显式化**：间距误差、速度差、（可选）jerk 各自成项，按任务权重叠加
 
-> 留痕结论（失败不删，作修正依据）：2026-09-09 上一版"群组均速带二值门槛" designs 违反原则 1/2/3，是发散根因；重构按上表原则执行。原始发散 history 见 `outputs/checkpoints_formation/seed0/results/train_history_dec_ad2_cp_seed0.json`（ep1-30: rewards 反复 −4万~−45万，violations 0→247，peakCoupler 800→1376kN）。
+> 留痕结论（失败不删，作修正依据）：2026-09-09 上一版"群组均速带二值门槛" designs 违反原则 1/2/3，是发散根因；重构按上表原则执行。原始发散 history 见 `outputs/checkpoints/formation/seed0/results/train_history_dec_ad2_cp_seed0.json`（ep1-30: rewards 反复 −4万~−45万，violations 0→247，peakCoupler 800→1376kN）。
 
 ### V3.5.4 Zhao2022 空气制动精细建模验证基准（2026-09-02，文献初始化）
 
@@ -765,7 +765,7 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 
 ### 诊断-2026-09-09-formation 3列1+1 decompose seed0 5000步段坍塌（ADR-013 唯一 RL，修复+留痕）
 
-**背景**：formation-aware 机车级 ED/AB 分工（`configs/experiments/formation_ed_ab_3train_1plus1.yaml`，3列×1+1=6 agents，decompose='loco_ed_ab'）MT-2 统一物理下 5-seed 首跑（reward 为 2026-09-09 重调群组均速版本）。seed0 训练日志 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（发散产物已归档保留）。
+**背景**：formation-aware 机车级 ED/AB 分工（`configs/experiments/formation_ed_ab_3train_1plus1.yaml`，3列×1+1=6 agents，decompose='loco_ed_ab'）MT-2 统一物理下 5-seed 首跑（reward 为 2026-09-09 重调群组均速版本）。seed0 训练日志 `outputs/checkpoints/formation/seed0_DIVERGED_before_reward_fix/`（发散产物已归档保留）。
 
 **训练命令（修复前）**：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 120`
 
@@ -783,12 +783,12 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
   1. `rel_vel_penalty = -0.1 * std(group_speeds)`：显式惩罚列间速度离散度（编队串级失稳的物理源头）；
   2. `gap_trend_penalty`：间距误差在缩小（shrink>1）且已较近（cur<30m）→ 提前惩罚，不等追尾势场爆炸。
 - **验证**：`pytest tests/test_fleet_decompose.py tests/test_train_fleet_env.py` → **19 passed**；冒烟（3列 500 步规则基线动作）avg +17.0/步、NaN=0、peakCoupler 1kN、viol 0。
-- **留痕**：发散 seed0 产物归档至 `outputs/checkpoints_formation/seed0_DIVERGED_before_reward_fix/`（含 metadata/csv/模型/fig，只回溯不引用）；修复后重跑由 relay v2 接管（`tmp_formation_relay.sh`，显式传每 seed 独立 dirs，5 seed 串行），日志 `outputs/checkpoints_formation/seed{N}_train.log` + relay.log。
+- **留痕**：发散 seed0 产物归档至 `outputs/checkpoints/formation/seed0_DIVERGED_before_reward_fix/`（含 metadata/csv/模型/fig，只回溯不引用）；修复后重跑由 relay v2 接管（`tmp_formation_relay.sh`，显式传每 seed 独立 dirs，5 seed 串行），日志 `outputs/checkpoints/formation/seed{N}_train.log` + relay.log。
 - **附注（relay v1 缺陷）**：v1 只传 `--seed N` 不传 dirs，而 config `dirs.checkpoint_dir` 写死 seed0 → seed1-4 会覆盖写进 seed0 目录且 metadata 检查 MISSING；v2 已改为逐 seed 显式 `--checkpoint_dir/--results_dir/--override dirs.figures_dir`。
 
 ### 诊断-2026-09-09-53km 双线发散定根因（规则裸跑 + RL run2）【物理：MT-2 统一 ADR-011 + Newmark-β + 两段式缓解 τ=6s；剖面 shuozhou_real_53km】
 
-**触发**：主训练剖面切至 53km（`outputs/checkpoints_formation_53km/`）后，RL(run2, lr5e-5→2e-5/clip0.15/entropy0.005) 与纯规则裸跑双线均发散。为剥离"RL 调制越界 vs 规则层骨架失效"，跑纯规则零调制 trace（仿 HANDOFF_2026-09-09 D4，但换 53km 长时域）。
+**触发**：主训练剖面切至 53km（`outputs/checkpoints/formation_53km/`）后，RL(run2, lr5e-5→2e-5/clip0.15/entropy0.005) 与纯规则裸跑双线均发散。为剥离"RL 调制越界 vs 规则层骨架失效"，跑纯规则零调制 trace（仿 HANDOFF_2026-09-09 D4，但换 53km 长时域）。
 
 **A. 规则裸跑 trace（决定根因）**
 - 命令：`TRACE_HORIZON=15000 TRACE_OUT=outputs/trace_53km_rule python -u tmp_53km_rule_trace.py`（临时脚本，3列×1+1，零调制量喂 get_action_decomposed，init 60km/h 同步）
@@ -802,7 +802,7 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 - **判读（期望 vs 实际）**：期望规则骨架在 53km 仍闭环；实际 **车钩力全程安全（≤793.5kN）**，但**列间间距全程为负**（-254→-978 又到 -581）＝ follower 头车追进前列尾车区间（负间距/追尾趋势），且 vstd 在 0.7~3.1 **高频振荡不锁死**。→ **规则层在 53km 长时域的缺陷是"间距无法保证有界 + 列间速度未锁死"，而非车钩力超限**。这正是 A1-final/v2+chase"vstd 未锁死、末列 still 漂移"隐患在更长里程+58 坡段（<--11.5‰）上的放大。**结论：规则骨架在 53km 需要升级（级联迁就/间距有界），这不是 RL 调参能解的。**
 
 **B. RL(run2) 结果（run2 目录，lr 调参版，seed0）**
-- 命令：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --override dirs.checkpoint_dir=outputs/checkpoints_formation_53km/run2/seed0 ...`（run2 调参 = lr2e-5/clip0.15/entropy0.005/curriculum 密）
+- 命令：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --override dirs.checkpoint_dir=outputs/checkpoints/formation_53km/run2/seed0 ...`（run2 调参 = lr2e-5/clip0.15/entropy0.005/curriculum 密）
 - 数据：ep20 Reward -116524.5 / best +12012.3 / peakCoupler 805kN / viol 0；**ep30 Reward -83033 / peakCoupler 1392kN / viol 389.8**；KL 早停仍频发；job 被 SIGTERM(exit15) 中断。
 - **判读**：相比规则裸跑（coupler 793kN 超限 0），**RL 调制把车钩力顶到 1392kN / viol 389 破安全线**——RL 在"规则骨架本身间距都未锁死"前提上学到的 ed/ab 分配越界。**反向佐证：规则层反而更安全。**
 
@@ -811,7 +811,7 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 2. **即便骨架修好，也要约束 RL 的 ed/ab 调制幅度/车钩力越界**（规则层裸跑 793kN 说明安全底线在规则侧，RL 的目标是"在骨架内学精细调制"而非"越界顶车钩力"）。
 3. 呼应你"规则层泛化弱 + 该不该留"的讨论：**拆层职责**——规则层负责"安全底线 + 间距物理骨架"（不可学、必须留、必须结构完备化）；RL 负责"骨架内的精细调制与跨场景泛化"（可学）。**"规则还必须存在"得到实证**（它的车钩力比 RL 更稳）。
 
-**留痕对象**：裸跑 `outputs/trace_53km_rule/trace.log + metadata`；run2 产物 `outputs/checkpoints_formation_53km/run2/seed0/`。
+**留痕对象**：裸跑 `outputs/trace_53km_rule/trace.log + metadata`；run2 产物 `outputs/checkpoints/formation_53km/run2/seed0/`。
 **临时脚本** `tmp_53km_rule_trace.py` 用后即删（本诊断结论已留此处）。监测定时任务已暂停。
 
 ### 诊断-2026-09-09-53km 追尾真根因：ETCS 紧急制动未传导为空气制动（安全层修复）【物理：MT-2 统一 + Newmark-β + 两段式缓解；剖面 shuozhou_real_53km】
@@ -868,7 +868,7 @@ python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_
 
 **短评估冒烟（60 步，shuozhou_real_53km 起点，3 列×1+1，init 80km/h）**：
 - 命令：`python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --max_steps 60 --n_seed 1 --enable_mpc --out_suffix _smoke_nmpc`
-- 结果：fail **0** / peakCoupler **478kN**（≤1000✓）/ viol 0 / band 100% / meanED 0.992 / MPC求解 **98ms 均值 / 1630ms 峰值**（首步含符号构建）；JSON 含 `mpc_solve_mean_ms / mpc_solve_max_ms / mpc_solve_fail` 落盘 `outputs/results_decompose/eval_decompose_mpc_ms60_smoke_nmpc.json`。
+- 结果：fail **0** / peakCoupler **478kN**（≤1000✓）/ viol 0 / band 100% / meanED 0.992 / MPC求解 **98ms 均值 / 1630ms 峰值**（首步含符号构建）；JSON 含 `mpc_solve_mean_ms / mpc_solve_max_ms / mpc_solve_fail` 落盘 `outputs/results/decompose/eval_decompose_mpc_ms60_smoke_nmpc.json`。
 - 修复前对照：同命令 fail=60（每步都失败回退惰行），但 peakCoupler 473kN/band 100% 貌似正常——**求解失败被规则内层兜底掩盖，必须显式统计 solve_status 失败率**（这正是把 solve_fail 落 JSON 的原因）。
 
 **留痕/边界**：

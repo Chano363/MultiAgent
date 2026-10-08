@@ -15,8 +15,8 @@ export PYTHONUNBUFFERED=1
 
 GRADE=shuozhou_real_53km
 MAX=36000
-CK=outputs/checkpoints_formation
-RES=outputs/results_decompose
+CK=outputs/checkpoints/formation
+RES=outputs/results/decompose
 
 # 完成标记 = 最终 ep120 checkpoint 存在（best 仅是训练中最佳存档，不等于完成）
 done_marker() { echo "$CK/seed$1/mappo_fleet_ep120_dec_ad2_cp_seed$1.pt"; }

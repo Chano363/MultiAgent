@@ -8,7 +8,7 @@
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate traffic_rl
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
-mkdir -p outputs/logs_final_parallel
+mkdir -p outputs/logs/final_parallel
 
 run_seed () {
   local seed="$1" resume="$2"
@@ -16,18 +16,18 @@ run_seed () {
   python run_training.py \
     --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
     --seed "$seed" --episodes 1400 --resume "$resume" --override n_env=4 \
-    --checkpoint_dir "outputs/checkpoints_formation/final_seed${seed}" \
-    --results_dir "outputs/checkpoints_formation/final_seed${seed}/results" \
-    --override "dirs.figures_dir=outputs/checkpoints_formation/final_seed${seed}/figures" \
-    > "outputs/logs_final_parallel/seed${seed}.log" 2>&1
+    --checkpoint_dir "outputs/checkpoints/formation/final_seed${seed}" \
+    --results_dir "outputs/checkpoints/formation/final_seed${seed}/results" \
+    --override "dirs.figures_dir=outputs/checkpoints/formation/final_seed${seed}/figures" \
+    > "outputs/logs/final_parallel/seed${seed}.log" 2>&1
   echo "[parallel] seed${seed} DONE $(date)"
 }
 
 # 并行后台，`wait` 保持本包装进程前台存活直至全部完成（规避 wrapper 回收子进程）
-run_seed 0 outputs/checkpoints_formation/seed0_valid_lean/mappo_fleet_best_dec_ad2_cp_seed0.pt &
-run_seed 1 outputs/checkpoints_formation/seed1/mappo_fleet_best_dec_ad2_cp_seed1.pt &
-run_seed 2 outputs/checkpoints_formation/seed2/mappo_fleet_best_dec_ad2_cp_seed2.pt &
-run_seed 3 outputs/checkpoints_formation/seed3/mappo_fleet_best_dec_ad2_cp_seed3.pt &
-run_seed 4 outputs/checkpoints_formation/seed4/mappo_fleet_best_dec_ad2_cp_seed4.pt &
+run_seed 0 outputs/checkpoints/formation/seed0_valid_lean/mappo_fleet_best_dec_ad2_cp_seed0.pt &
+run_seed 1 outputs/checkpoints/formation/seed1/mappo_fleet_best_dec_ad2_cp_seed1.pt &
+run_seed 2 outputs/checkpoints/formation/seed2/mappo_fleet_best_dec_ad2_cp_seed2.pt &
+run_seed 3 outputs/checkpoints/formation/seed3/mappo_fleet_best_dec_ad2_cp_seed3.pt &
+run_seed 4 outputs/checkpoints/formation/seed4/mappo_fleet_best_dec_ad2_cp_seed4.pt &
 wait
 echo "ALL 5 SEEDS COMPLETE $(date)"

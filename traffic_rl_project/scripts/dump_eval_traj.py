@@ -6,7 +6,7 @@
 约束：长训期间禁止改 `src/**`（铁律）。故本脚本**不改 src**，改为在运行时包装
 `TrainFleetEnv.step` 记录时程；物理与控制逻辑完全走原实现，不复制、不近似。
 
-落盘（时间戳归档，不覆盖）：`outputs/results_decompose/traj_<tag>_<时间戳>/`
+落盘（时间戳归档，不覆盖）：`outputs/results/decompose/traj_<tag>_<时间戳>/`
   - `traj_<tag>.npz`   原始时程数组
   - `traj_<tag>.csv`   同一数据的可读表
   - `metrics.json`     本次指标 + 内嵌 metadata（git_commit / 物理口径 / seed）
@@ -14,7 +14,7 @@
 用法（WSL，traffic_rl 环境）：
     python scripts/dump_eval_traj.py --mode decompose_m0 --out_tag m0_rule_53km
     python scripts/dump_eval_traj.py --mode decompose_m1 --out_tag m1_rl_53km \
-        --checkpoint outputs/checkpoints_formation/adr024_1400ep_seed0/mappo_fleet_last_ep80_dec_ad2_cp_seed0.pt
+        --checkpoint outputs/checkpoints/formation/adr024_1400ep_seed0/mappo_fleet_last_ep80_dec_ad2_cp_seed0.pt
 """
 import argparse
 import json
@@ -157,7 +157,7 @@ def main():
     metrics = ed.eval_method(label, 'decompose', act_fn, ns, act_interval=act_interval)
 
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    outdir = ROOT / 'outputs' / 'results_decompose' / f'traj_{args.out_tag}_{stamp}'
+    outdir = ROOT / 'outputs' / 'results' / 'decompose' / f'traj_{args.out_tag}_{stamp}'
     _save(args.out_tag, metrics, args, outdir)
     print(f'已归档时程: {outdir}（T={len(REC["t_s"])} 步）')
 

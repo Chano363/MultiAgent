@@ -872,7 +872,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **结果（完成后补）**
   - ⏳ 实施中：先完成阶段0 工程奠基（ATP 开关移除），再启动主训练。
 - **产出文件**：
-  - 结果/图表/日志：`outputs/checkpoints_formation/seed{0..4}/`、`outputs/results_*.json`
+  - 结果/图表/日志：`outputs/checkpoints/formation/seed{0..4}/`、`outputs/results_*.json`
   - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`（如跨月）、`VALIDATION_BASELINE.md` 诊断留痕
 
 ### ⚠️ superseded：训练时域口径修正（2026-09-16）
@@ -916,13 +916,13 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 **30ep 续训验证（从 ep841 干净权重，n_env=4、恒 1200 步档，107.7min）**：
 - violations **30ep 全 0**；total_loss **-0.010~+0.001** 小值稳定；peak_coupler **686~875kN**（<1000kN）；reward **9956~11369** 无崩塌。
 - **原发散区 ep849-856 零复发**（ep849 loss=-0.002、ep856[-1.283] -0.010）；KL 早停提前到 epoch 3-4/10（原终段 7-10）。
-- 数据 `outputs/checkpoints_formation/seed0_valid_lean/results/train_history_dec_ad2_cp_seed0.csv`；模型 `.../mappo_fleet_best_dec_ad2_cp_seed0.pt`。
+- 数据 `outputs/checkpoints/formation/seed0_valid_lean/results/train_history_dec_ad2_cp_seed0.csv`；模型 `.../mappo_fleet_best_dec_ad2_cp_seed0.pt`。
 
 **判断**：治本杠杆 **SUCCESS**。留痕 → `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`「诊断-2026-09-19-MAPPO长训终段value发散治本（winsorize + value grad clip + KL早停收紧）」。
 
 **下一步（主线）**：铺 **5-seed（seed0-4）全量 episodes=1400 长训**（新逻辑自带治本杠杆）→ 核对长期稳定 → best-checkpoint 协议产出主结果 → 主对比评估。若 5-seed 长训仍发散，回读诊断按杠杆强度/超参迭代。
 
-**（2026-09-20 更新）5-seed 1400ep 长训已启动，且改并行编排**：诊断出原串行脚本慢的根因=`n_env=4` 是纯串行 for 循环 + 单进程顺序跑 seed0→4，整训练只占 1 核（load~1.0/12 核）。已改 `scripts/launchers/launch_final_5seed_parallel.sh`（每 seed 独立进程各占 1 核，`wait` 聚合；物理保真零改动）。代价=内存带宽竞争使单 ep 150s→268s，净提速 ~2.8×：墙钟 ~12 天→~104h（~4.3 天）。后台 job `job-5d1ee3c78c7441b194f099519f14dbae`，逐 seed 日志 `outputs/logs_final_parallel/seed{N}.log`，留痕见 DIAGNOSTICS-2026-09-20。
+**（2026-09-20 更新）5-seed 1400ep 长训已启动，且改并行编排**：诊断出原串行脚本慢的根因=`n_env=4` 是纯串行 for 循环 + 单进程顺序跑 seed0→4，整训练只占 1 核（load~1.0/12 核）。已改 `scripts/launchers/launch_final_5seed_parallel.sh`（每 seed 独立进程各占 1 核，`wait` 聚合；物理保真零改动）。代价=内存带宽竞争使单 ep 150s→268s，净提速 ~2.8×：墙钟 ~12 天→~104h（~4.3 天）。后台 job `job-5d1ee3c78c7441b194f099519f14dbae`，逐 seed 日志 `outputs/logs/final_parallel/seed{N}.log`，留痕见 DIAGNOSTICS-2026-09-20。
 
 ***
 
@@ -936,7 +936,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   - ✅ = 单测 `pytest tests/ -q --ignore=tests/test_mappo_train.py` → **172 passed**（exit 0）
   - ❌ 失败项：无
 - **方法/关键命令**：回归脚本为临时脚本 `tmp_diag_regress_0930.py`（结论入档后按项目规则已删）；`env.reset()` 有状态残留 → 逐场景重建 env
-- **配置**：权重 `outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`）；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`（起始 1200 步）
+- **配置**：权重 `outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`）；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`（起始 1200 步）
 - **结果（已完成）**：
   - 四场景复测：full **783.4 kN / 0 步**、no_rl 767.7 / 0（**逐字不变**，确认闸门不扰动规则层）、no_traction **955.2 / 0**、no_ab 769.0 / 0
   - **闸门开/关隔离对照**：full_nogate 1156.7 kN / 17 步 → full 783.4 / 0；**口径统一贡献 124→17 步**（门控改读断面力后更早介入，属行为变化）、**闸门贡献 17→0 步**
@@ -991,7 +991,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   - 记录：`DIAGNOSTICS_2026-10.md`（新，含根因 + 文献调研）；`DECISIONS.md` ADR-021；`LEARNINGS.md` LRN-20261001-002
   - 立论：`RESEARCH_POSITIONING.md` §1.6「车钩力定位」加"待修订（ADR-021）"标记 —— **已落实修订**（同日稍后改为"已修订并落地"，见下一条目 + ADR-021「执行闭环」⑦④）
   - 迁入：`VALIDATION_BASELINE.md` 附录 A（仿真设计速览）/ 附录 B（Gotchas 速查）——自根 `AGENTS.md` 下沉
-  - 既有资产（不改）：`outputs/results_decompose/eval_decompose_decompose_m1_ms36000_*_53km.json`
+  - 既有资产（不改）：`outputs/results/decompose/eval_decompose_decompose_m1_ms36000_*_53km.json`
 - **遗留**：全部文档改动**尚未 git 提交**（待用户确认）。
 
 ### [P1/P2/P3] 文献四改造落地（A 充风门 / D 安全层AB权限 / C 车钩力进目标 / B per-agent advantage）- 2026-10-01
@@ -1026,7 +1026,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   7. **D 的梯度投影臂不可达**（嵌套阈值）→ 已删除该臂 + 计数键 + 误导性单测，加源码级断言防回流（LRN-20261001-007）
   8. **主 YAML 与 ADR-017 硬要求不一致**（2026-10-01 补齐）：`episodes: 120`（不足达标量）、缺 `n_env` / `warm_start` / `long_eval_*`、且注释仍含已 SUPERSEDED 的"53km 全程由多段 1200 步拼接覆盖" ⇒ 已按 ADR-017 对齐（`episodes: 1400` / `n_env: 4` / `parallel_traj_len: 0` / `warm_start: true` / `bc_episodes: 3` / `bc_epochs: 30` / `long_eval_interval: 50` / `long_eval_steps: 36000`），`max_steps` 注释改为"env 截断上限 / 评估口径（训练时域由 curriculum 决定）"（ADR-017 §1/§2/§4）
   - ✅ **对齐验证（`--episodes 2` 覆盖短训，exit 0，280.7s）**：日志 `curriculum 边界: [(0, 500), (10, 1000), (20, 1200)]` + `[信用视界] … 有效视界 91.0s | 对照物理滞后≈90s → 覆盖` + `Fleet BC warm start: 采集 27000 条 … 预训练 30 epochs`（BC 分支被触发）；`metadata.json` 实测 `episodes=2`（CLI 覆盖生效 ⇒ YAML 1400 可被正确解析）/ `n_env=4` / `parallel_traj_len=0` / `warm_start=true` / `bc_epochs=30` / `long_eval_interval=50` / `critic=per_agent` / `reward_schema=v2-bounded-overlimit-section-force` / `ab_min_refill_s=222.0`；两集 `viol 0` / pkCpl 561→568 kN。
-  - ⚠️ **验证纪律教训**：该短训**未覆盖 `dirs.figures_dir`**，导致 `outputs/checkpoints_formation/seed0/figures/fig_learning_curve_dec_ad2_cp_seed0.png`（09-25 历史 100-ep 曲线）被 2-ep 版覆盖 —— 已用原始 CSV（未受影响）经同一 `save_training_artifacts` 绘图路径重建。**此后任何短训验证必须同时覆盖 `checkpoint_dir` / `results_dir` / `dirs.figures_dir` 三者**（LRN-20261001-009）。
+  - ⚠️ **验证纪律教训**：该短训**未覆盖 `dirs.figures_dir`**，导致 `outputs/checkpoints/formation/seed0/figures/fig_learning_curve_dec_ad2_cp_seed0.png`（09-25 历史 100-ep 曲线）被 2-ep 版覆盖 —— 已用原始 CSV（未受影响）经同一 `save_training_artifacts` 绘图路径重建。**此后任何短训验证必须同时覆盖 `checkpoint_dir` / `results_dir` / `dirs.figures_dir` 三者**（LRN-20261001-009）。
   9. **`_long_eval` 违规计数 O(n²) 放大**（2026-10-01 为长跑前置审计时发现）：`viol += int(info['coupler_limit_violations'])` 把 episode 级**单调累计**计数器逐步相加 ⇒ 36000 步可达 1e8。同一 bug 在 `evaluate_decompose.py` 已于 09-25 修过、`_long_eval` 漏改。**危害 = 日志误导 + 脆弱性**（`ok` 判据在零违规语义下侥幸等价，落盘元数据未被污染）。已修为每步增量累加 + 新增 `tests/test_metric_accounting.py` + **端到端预检**（真 env、每集触发、exit 0）：`viol 0 / peak 540kN / 达标=True`、best 与 `long_eval_best.json` 正常落盘 ⇒ 1400 ep 长跑不会在 ep50 静默失选优。**同源残留 3 个 live 脚本**（已废止 hierarchical 方案、全仓零引用）刻意未改，避免动历史复现资产；若旧表格引用其 `viol` 须按膨胀处理（LRN-20261001-010）。
   10. **`--mode all` 静默只出 2 行（缺 MPC）**（2026-10-01）：`--enable_mpc` 默认 False 把 MPC 行挡在门外，与 `REPRODUCIBILITY.md` §十「主对比三行」不符，且三行 Δ 摘要（`len(results)>=3`）同步静默跳过 ⇒ 已改为解析后即归一 `all/mpc ⇒ enable_mpc=True`（且在 `build_metadata` 之前，避免 metadata 与实际行为矛盾）。见 LRN-20261001-011。
   11. **MPC 控制器逐回合状态未清零**（2026-10-01）：`_mpc_controller` 只在挂载时 reset 一次，而 `eval_method` 复用同一条 env 跑 `n_seed` 回合 ⇒ `--n_seed 3`（文档口径）的第 2/3 回合继承上一回合的 `_gap0_init`/`_gap_ref`，**回合不独立**。已改为 `rollout()` 内逐回合 reset（`n_seed=1` 等价 ⇒ 旧单 seed MPC 数值不变）。见 LRN-20261001-012。
@@ -1034,8 +1034,8 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   13. **`--decision_interval` 默认 1 与训练的 10 静默失配**（2026-10-01，第三轮审计）：`REPRODUCIBILITY.md` §十 的主对比命令**未传**该参数 ⇒ 照文档跑 D-RL 行会以"每原始步重新决策"执行，而策略是在 10 步动作保持（semi-MDP）下训练的 ⇒ **训练/评估失配**；真正跑过的主结果都显式带了 `10`，故藏了一整轮。与缺口⑩（`--mode all` 静默缺 MPC 行）**同一病根 = CLI 默认值静默决定语义**。已改为**自 ckpt 内嵌 metadata 自动读取**（读不到退回训练标准值 10 并打印），解析置于 `build_metadata` 之前；显式传参行为不变。单测 +5（该文件 14 passed）、真 ckpt 实跑三处一致。见 `DIAGNOSTICS_2026-10.md`「修复-2026-10-01c」/ LRN-20261001-015。
 - **长久计划（本规格明确不做，另排算力）**：
   1. **重训里程碑**：`critic: per_agent` + γ/λ 对齐（1/(1−γλ) ≥ 90 s）+ 新 reward schema，`1400ep × 5 seed`，完整 53km 剖面评估（ADR-017 铁律）
-     - **🟡 seed0 已启动（2026-10-01）**：启动器 `scripts/launchers/launch_retrain_adr021_seed0.sh` ⇒ 全新输出目录 `outputs/checkpoints_formation/adr021_1400ep_seed0/{,results,figures}`（**不覆盖任何历史产物**），日志 `outputs/logs/diagnostics/log_retrain_adr021_seed0_20261001.txt`。判活实证：`pgrep` 到 PID、`ps` 89% CPU、输出目录已建；启动日志已打出 `episodes=1400 / simcase=official / [信用视界] 91.0s → 覆盖`。**机时实测更正 ≈11.7 天/seed**（先前登记"≈3.4 天"**低估 3.4×**，勿再引用）：实测 500 步课时 **271/276/274/278 s/集**（`n_env=4`）+ BC ≈11 min；按 curriculum 折算 1400 集 ≈10.6 天，叠加 28 次 `long_eval` ≈1.1 天。⇒ **`1400 ep × 5 seed` 单机串行 ≈58 天**，**须先定：减课时/减集数，还是并行多机**（详见 `REPRODUCIBILITY.md` §十 推导与 tqdm ETA 低估警示）。恢复命令（ADR-019 `--resume latest`）与"两种调用场合"说明同见 §十。
-     - **🔁 已按 ADR-023 重启（2026-10-02）**：ED 调制带宽 `ed_mod_coef` 0.5 → **1.0**（全幅，动作空间语义变更）⇒ 上面那次 run 停于 **ep55/1400（5h22m，viol 0）**，并按新口径重启：启动器 `scripts/launchers/launch_retrain_adr023_seed0.sh`、输出 `outputs/checkpoints_formation/adr023_1400ep_seed0/{,results,figures}`、日志 `outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt`。旧目录 `adr021_1400ep_seed0`（55 集）**原样保留、标注"旧带宽口径、不得引用"**。机时预期不变（≈11.7 天/seed）。见 `DECISIONS.md` ADR-023 + `REPRODUCIBILITY.md` §十。
+     - **🟡 seed0 已启动（2026-10-01）**：启动器 `scripts/launchers/launch_retrain_adr021_seed0.sh` ⇒ 全新输出目录 `outputs/checkpoints/formation/adr021_1400ep_seed0/{,results,figures}`（**不覆盖任何历史产物**），日志 `outputs/logs/diagnostics/log_retrain_adr021_seed0_20261001.txt`。判活实证：`pgrep` 到 PID、`ps` 89% CPU、输出目录已建；启动日志已打出 `episodes=1400 / simcase=official / [信用视界] 91.0s → 覆盖`。**机时实测更正 ≈11.7 天/seed**（先前登记"≈3.4 天"**低估 3.4×**，勿再引用）：实测 500 步课时 **271/276/274/278 s/集**（`n_env=4`）+ BC ≈11 min；按 curriculum 折算 1400 集 ≈10.6 天，叠加 28 次 `long_eval` ≈1.1 天。⇒ **`1400 ep × 5 seed` 单机串行 ≈58 天**，**须先定：减课时/减集数，还是并行多机**（详见 `REPRODUCIBILITY.md` §十 推导与 tqdm ETA 低估警示）。恢复命令（ADR-019 `--resume latest`）与"两种调用场合"说明同见 §十。
+     - **🔁 已按 ADR-023 重启（2026-10-02）**：ED 调制带宽 `ed_mod_coef` 0.5 → **1.0**（全幅，动作空间语义变更）⇒ 上面那次 run 停于 **ep55/1400（5h22m，viol 0）**，并按新口径重启：启动器 `scripts/launchers/launch_retrain_adr023_seed0.sh`、输出 `outputs/checkpoints/formation/adr023_1400ep_seed0/{,results,figures}`、日志 `outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt`。旧目录 `adr021_1400ep_seed0`（55 集）**原样保留、标注"旧带宽口径、不得引用"**。机时预期不变（≈11.7 天/seed）。见 `DECISIONS.md` ADR-023 + `REPRODUCIBILITY.md` §十。
      - ⚠️ **持久化边界**：本轮经 IDE 的 Shell 工具以 `run_in_background` 承载 ⇒ 进程**随 IDE 会话存活**；若要数天级无人值守，须改用用户自己的 WSL 终端重跑启动器（命令见 `REPRODUCIBILITY.md` §十，教训 `LEARNINGS.md` LRN-20261001-014）。
      - ⚠️ **待裁决（主表口径）**：D-RL 行取 `last_ep1400`（端态、无条件可复现）还是 `best`（long_eval 评估选优）？审计发现 **`best.pt` 不保证存在**（`long_eval` 全不达标则根本不写；`long_eval>0` 时 `_maybe_save_best` 被跳过 ⇒ 唯一来源是达标判据），而 `last_ep{N}`（含 `N=1400`）**保证存在**。既有口径"主结果用完整训练后的 `last`"与 ADR-017 §2 的"long_eval 选优"在 `best` 改由评估指标选出后**不再互斥** ⇒ 须明确。详见 `DIAGNOSTICS_2026-10.md`「审计-2026-10-01-主表 checkpoint 选取」+ `REPRODUCIBILITY.md` §十 存在性对照表。**裁决前不要只跑一行就下结论。**
      - 余下 seed1~4 待排算力（单机 ≈58 天 ⇒ 先定减量或并行）。
@@ -1080,7 +1080,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
   - ⚠️ **A/B 诊断（本轮关键，已据此裁定 ADR-024）**：`ed_mod_coef=1.0` 对 RL **负面** —— 完整剖面 A/B 显示 ep51–55 新口径 `viol 327–694`（旧 0.5 口径全 `0`），1.0 长训 4 次长程评估仅 1 次达标（ep200 末速崩至 30.3km/h）；MPC 侧却无收益 ⇒ 详见 `DIAGNOSTICS_2026-10.md`「冒烟与基线-2026-10-02」。
 - **⛔ 阻塞项（必须明写，不静默跳过）**：RL 侧消融（`--mask_lever ed|ab`）、D-RL 行本体、以及任何"需新口径 ckpt"的对照，**均须等长训产出 ckpt**（旧 ckpt 产于 0.5 带宽，语义已失效 ⇒ 不可代用）；ADR-024 回退后改为等 `adr024` ckpt。
 - **产出文件**：
-  - 结果 JSON / 日志：`outputs/results_decompose/eval_decompose_*_adr023_*.json`、`outputs/logs/diagnostics/log_eval_adr023_*.txt`
+  - 结果 JSON / 日志：`outputs/results/decompose/eval_decompose_*_adr023_*.json`、`outputs/logs/diagnostics/log_eval_adr023_*.txt`
   - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「冒烟与基线-2026-10-02」
 
 ### [P2] ADR-024 回退 ED 调制带宽 1.0 → 0.5 并重启 seed0 长训 — 2026-10-02
@@ -1089,7 +1089,7 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **归属**：P2 · 论文 Experiments（动作空间口径）
 - **动机/背景**：ADR-023 放宽带宽后，完整剖面 A/B 实证"**对 MPC 无收益、对 RL 有害**"（1.0 允许策略整幅撤销规则层 ED ⇒ 持续破 1000 kN）。用户裁决原文："**回退 0.5 并重启（推荐）**"。
 - **完成判据（验收）**：① `ed_mod_coef` 回 0.5 且派生常量 / metadata 自动跟随（无手抄点）；② 定向 + 全量测试通过；③ ADR-024 + 诊断留痕；④ 用**新目录**重启长训并核对 metadata。
-- **方法/关键命令**：停 `adr023_1400ep_seed0`（PID 658）→ `bash scripts/launchers/launch_retrain_adr024_seed0.sh`（新目录 `outputs/checkpoints_formation/adr024_1400ep_seed0`，日志 `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`）
+- **方法/关键命令**：停 `adr023_1400ep_seed0`（PID 658）→ `bash scripts/launchers/launch_retrain_adr024_seed0.sh`（新目录 `outputs/checkpoints/formation/adr024_1400ep_seed0`，日志 `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`）
 - **配置**：同主 YAML（53km / 3 列 1+1 / 1400ep / n_env 4）；唯一变更 = `ed_mod_coef` 默认值 0.5。
 - **结果（完成后补）**
   - ✅ 代码：`MultiLocoController.get_action_decomposed(ed_mod_coef=0.5)`（全仓唯一改点位）；`evaluate_decompose.ED_MOD_COEF` 与 `metadata.ed_mod_coef` 均**派生**自动跟随。
@@ -1106,14 +1106,14 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **完成判据（验收）**：① L2 沙盒 A/B 证明随机化有效（long_eval 达标次数 ON ≥ OFF 且去掉长程灾难）；② 接入主配置后 **seed0 单跑完整 53 km long_eval 达标**（`viol=0 ∧ peak≤1000 kN ∧ 末速∈[40,80]`）；③ 无回归（测试绿）⇒ 再铺 5 seed。
 - **方法/关键命令**：
   - L2 沙盒 A/B：`bash scripts/launchers/launch_debug_routecov_ab_parallel.sh`（OFF=固定起点 / ON=起点随机化，唯一差异 `env_cfg.start_randomization`；各 80 ep）；对照器 `python scripts/tmp_analyze_routecov_ab.py`。
-  - seed0 重训：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --checkpoint_dir outputs/checkpoints_formation/routecov_1400ep_seed0 --results_dir outputs/checkpoints_formation/routecov_1400ep_seed0/results --override dirs.figures_dir=outputs/checkpoints_formation/routecov_1400ep_seed0/figures`
+  - seed0 重训：`python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --checkpoint_dir outputs/checkpoints/formation/routecov_1400ep_seed0 --results_dir outputs/checkpoints/formation/routecov_1400ep_seed0/results --override dirs.figures_dir=outputs/checkpoints/formation/routecov_1400ep_seed0/figures`
 - **配置**：主 YAML 新增 `env_cfg.start_randomization.enabled: true`（seed 缺省 = 继承本次运行 `--seed`，5 seed 各自独立随机化且可复现，见 `train_runner.py`）；其余同 ADR-017 达标配方（1400 ep / n_env 4 / BC 热启动 / long_eval 50）。
 - **结果（部分，完成后补）**
   - ✅ **L2 终局**：long_eval 达标 **ON 2/2 vs OFF 0/2**；OFF ep80 长程灾难（1815 kN / viol 7788 / 末速 17.4）→ ON 同点达标（832 kN / viol 0 / 末速 51.8）。
   - ✅ **分布层**：评估 OOD 83.9% → **4.1%**（visited 口径规范化为"领航列领航机车 grade bin"，与评估采样单元一致）。
   - 🔄 seed0 重训进行中（`routecov_1400ep_seed0`）；**实测速率 ≈3.8 min/ep（22:18→01:32 跑 51 ep）⇒ 全量 ≈4–5 天**（含 long_eval 每次 ~55 min × 28 次）；`conda run` 缓冲 stdout ⇒ 中途看 `results/` CSV 与 `long_eval_best.json`。
 - **遗留/待办**：seed0 long_eval 达标后铺 seed 1–4；顺手修掉 `save_training_artifacts` 与 logger 的 CSV 双写者（已修，统一框架跳过 4 列覆写）。
-- **产出文件**：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「路线覆盖 / L1 / L1-b 更正 / L2 终局」；`configs/experiments/formation_ed_ab_3train_1plus1.yaml`；`src/trainer/train_runner.py`（seed 注入）；`outputs/checkpoints_formation/routecov_1400ep_seed0/`。
+- **产出文件**：`docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「路线覆盖 / L1 / L1-b 更正 / L2 终局」；`configs/experiments/formation_ed_ab_3train_1plus1.yaml`；`src/trainer/train_runner.py`（seed 注入）；`outputs/checkpoints/formation/routecov_1400ep_seed0/`。
 
 ### [P2] 训练提速：n_env 进程级并行 rollout - 2026-10-07
 
@@ -1122,14 +1122,14 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **动机/背景**：单 run 实测 ≈3.8 min/ep ⇒ 全量 1400 ep ≈4–5 天/seed，5 seed 串行 ≈3 周。诊断出根因：GPU 利用率 0%、12 核只有 1 核忙——`train_runner.py` 的 `for ei in range(n_env)` 是**串行**循环，`n_env=4` 只增样本量、不缩短墙钟（单核物理仿真 ≈47.5 ms/env-step）。
 - **方法**：新增 `src/trainer/parallel_rollout.py`——把 n_env 条轨迹分发到 n_env 个常驻进程并行；每条轨迹用**确定性种子** `_traj_seed(seed, ep, ei)`；worker 用 CPU、`torch.set_num_threads(1)`；**轨迹 ei 固定绑定第 ei 个进程**（`Pool.map` 自由调度会因 env 跨回合残留状态导致不可复现，见 LRN-20261007-001）；transitions 回传父进程**按序重放** `store_transition`，父进程仍只 `update()` 一次。
 - **开关**：`n_env_parallel: true`（`ExperimentConfig`，默认 `False` ⇒ 零回归）；仅 `interaction='mappo_fleet'` + `obs='env'` + `reward!='cyclic'` + 非异构时生效。
-- **验证**（`--episodes 2`，重定向三目录到 `outputs/_smoke/`）：
+- **验证**（`--episodes 2`，重定向三目录到 `outputs/smoke/_smoke/`）：
   - ✅ **可复现**：同 seed 连跑 2 次，`train_history` CSV 逐位相同（对照：串行连跑 2 次也逐位相同）。
   - ✅ **提速**：同 horizon 冒烟，串行 ≈77 s/ep → 并行 ≈33 s/ep（含每集父进程 update）；进程启动/建 env 为一次性开销。稳态预期 ≈3–3.5×（4 条轨迹并行 + 串行 update 段）。
   - ⚠️ **数值不与串行逐位相同**（每轨迹独立 RNG 流；两者各自可复现），跨版本对比不可混用。
 - **遗留/待办**：① 长程（1400 ep）实测倍率与内存占用待补；② 首个 long_eval 达标后据此更新 `REPRODUCIBILITY.md` 主训练命令（把 `--override n_env_parallel=true` 写进配方）。
 - **产出文件**：`src/trainer/parallel_rollout.py`（新）；`src/trainer/train_runner.py`（接线）；`src/trainer/config_schema.py`（`n_env_parallel`）；`docs/logs/learnings/LEARNINGS.md` LRN-20261007-001。
 - **2026-10-07 生产落地（B+C）**：
-  - **端到端预检**（`--episodes 2 --override n_env_parallel=true --override warm_start=false --override long_eval_interval=1 --override long_eval_steps=400`，三目录重定向 `outputs/_smoke/parpre_*`）：exit 0，**108.1 s**；日志 `[并行 rollout] 进程级并行已启用：n_env=4`；ep1/ep2 long_eval 均 `达标=True`（peak 578 kN / viol 0 / 末速 40.0 km/h），`long_eval_best.json` 正常落盘 ⇒ **并行 × long_eval 集成无误**（此前冒烟只测过裸 rollout，未跑 long_eval）。预检产物已清理。
+  - **端到端预检**（`--episodes 2 --override n_env_parallel=true --override warm_start=false --override long_eval_interval=1 --override long_eval_steps=400`，三目录重定向 `outputs/smoke/_smoke/parpre_*`）：exit 0，**108.1 s**；日志 `[并行 rollout] 进程级并行已启用：n_env=4`；ep1/ep2 long_eval 均 `达标=True`（peak 578 kN / viol 0 / 末速 40.0 km/h），`long_eval_best.json` 正常落盘 ⇒ **并行 × long_eval 集成无误**（此前冒烟只测过裸 rollout，未跑 long_eval）。预检产物已清理。
   - **生产启动**：停掉两个串行 job（`pilot_routecov_150ep_seed0` @ep25、`routecov_1400ep_seed0` @ep80），改并行重铺 —— `routecov_1400ep_seed0_par` / `routecov_1400ep_seed1_par`（seed0/seed1 两 job 并发，各 `n_env=4` worker ≈5 核，合计 ≈10/12 核）；seed2–4 待有名额再铺。
   - **必须新目录**：复用旧目录会被 `_restore_best` 读到串行 best ⇒ 污染；故并行 run 一律用 `_par` 后缀新目录。
   - **口径**：并行与串行数值不逐位相同 ⇒ 5 seed 全部走并行；串行 `routecov_1400ep_seed0`（ep80 处）作废，目录保留仅供溯源。

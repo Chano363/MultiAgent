@@ -9,7 +9,7 @@ decompose 换架构（ADR-009.1 逐机车电空分工）正式对比评估。
 
 指标：reward / 车钩力峰值 / 超限 / ATP 安全事件 / AB 源·步 / meanED / 速度带保持率 / 末速 /
       列距误差（均值/峰值绝对误差、全程最小实际列距、追尾步数；编队底线，仅多列编组产出）。
-输出：控制台表格 + JSON（outputs/results_decompose/eval_decompose.json）。
+输出：控制台表格 + JSON（outputs/results/decompose/eval_decompose.json）。
 
 用法：
   python src/evaluation/evaluate_decompose.py --mode all --checkpoint <pt> --n_seed 3
@@ -47,8 +47,8 @@ try:
 except Exception:
     pass
 
-DEFAULT_CKPT = 'outputs/checkpoints_formation/seed0/mappo_fleet_best_dec_ad2_cp_seed0.pt'
-RESULTS_DIR = 'outputs/results_decompose'
+DEFAULT_CKPT = 'outputs/checkpoints/formation/seed0/mappo_fleet_best_dec_ad2_cp_seed0.pt'
+RESULTS_DIR = 'outputs/results/decompose'
 
 
 def probe_critic_mode(ckpt_path):

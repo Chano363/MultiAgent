@@ -83,7 +83,7 @@ supersedes: —
 
 #### 六、诚实边界｜"AB 步数越多 → 车钩力峰值越高"的单调相关**被否证**
 
-既有 53km 评估（`outputs/results_decompose/eval_decompose_decompose_m1_ms36000_*_53km.json`，均 `physics_version=29569dcaf78a`）：
+既有 53km 评估（`outputs/results/decompose/eval_decompose_decompose_m1_ms36000_*_53km.json`，均 `physics_version=29569dcaf78a`）：
 
 | 权重 | ab_steps | 断面力峰值 kN | band_rate | 末速 km/h | reward |
 | :--- | ---: | ---: | ---: | ---: | ---: |
@@ -118,7 +118,7 @@ supersedes: —
 5. **补齐训练量 + 正确选权重**（ADR-017）：1400ep × 5 seed，主结果用 `last` 而非"训练 reward 选优的 `best`"。
 
 - **不做（已裁决）**：削减已发 AB 源（X4-b 反证恶化）；在飞波全锁（废 AB 杠杆，ADR-020）。
-- **复现命令 / 产物**：本条为代码 + 既有资产归因，无新命令；既有资产出处 = `outputs/results_decompose/eval_decompose_decompose_m1_ms36000_*_53km.json`（**不覆盖**）。
+- **复现命令 / 产物**：本条为代码 + 既有资产归因，无新命令；既有资产出处 = `outputs/results/decompose/eval_decompose_decompose_m1_ms36000_*_53km.json`（**不覆盖**）。
 - **状态**：归因完成；修复方向写入 `docs/logs/decisions/DECISIONS.md` **ADR-021**（待实验裁决）。
 
 ***
@@ -259,7 +259,7 @@ python tmp_task7_verify.py --scenes d --tag task7_dc
 python tmp_task7_verify.py --scenes c --tag task7_c
 ```
 
-- 权重：`outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt`
+- 权重：`outputs/checkpoints/formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt`
 - 剖面：`shuozhou_real_53km`；决策间隔 `DI=10`；确定性 `select_actions(deterministic=True)`
 - 结果 JSON：`outputs/results/diagnostics/verify_task7_metrics_task7_a.json` / `..._task7_c.json`
 
@@ -297,7 +297,7 @@ python tmp_task7_verify.py --scenes c --tag task7_c
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 
-CKPT=outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt
+CKPT=outputs/checkpoints/formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt
 
 # M0 规则基线
 python src/evaluation/evaluate_decompose.py --mode decompose_m0 \
@@ -313,7 +313,7 @@ python src/evaluation/evaluate_decompose.py --mode decompose_m1 --checkpoint $CK
   --decision_interval 10 --out_suffix _p0_m1_maskab_53km
 ```
 
-- 结果 JSON：`outputs/results_decompose/eval_decompose_decompose_{m0,m1}_ms36000_p0_*.json`
+- 结果 JSON：`outputs/results/decompose/eval_decompose_decompose_{m0,m1}_ms36000_p0_*.json`
 
 #### 四、改动前对照（A 在**全剖面**上的净效应 —— 混合结论）
 
@@ -385,7 +385,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
   --results_dir outputs/_cfgcheck/seed0/results \
   --override dirs.figures_dir=outputs/_cfgcheck/seed0/figures
 ```
-- ⚠️ **验证纪律教训（LRN-20261001-009）**：首跑**漏了 `--override dirs.figures_dir=…`** ⇒ `figures_dir` 回落到 YAML 默认 `outputs/checkpoints_formation/seed0/figures`，**覆写了 09-25 那次 100-ep 历史训练的学习曲线 PNG**。原始 `train_history_dec_ad2_cp_seed0.csv` 未受影响（results 已重定向），已用**同一** `save_training_artifacts` 绘图路径从该 CSV 重建 PNG（无信息丢失）；`tmp_figfix.py` / `/tmp/_figfix` / `outputs/_cfgcheck/` 已全部删除。**此后所有冒烟/验证跑必须同时重定向 `checkpoint_dir` + `results_dir` + `dirs.figures_dir` 三者。**
+- ⚠️ **验证纪律教训（LRN-20261001-009）**：首跑**漏了 `--override dirs.figures_dir=…`** ⇒ `figures_dir` 回落到 YAML 默认 `outputs/checkpoints/formation/seed0/figures`，**覆写了 09-25 那次 100-ep 历史训练的学习曲线 PNG**。原始 `train_history_dec_ad2_cp_seed0.csv` 未受影响（results 已重定向），已用**同一** `save_training_artifacts` 绘图路径从该 CSV 重建 PNG（无信息丢失）；`tmp_figfix.py` / `/tmp/_figfix` / `outputs/_cfgcheck/` 已全部删除。**此后所有冒烟/验证跑必须同时重定向 `checkpoint_dir` + `results_dir` + `dirs.figures_dir` 三者。**
 - **结论**：主训练 YAML 已达 ADR-017 口径且训练入口可正确解析；本节为"配置层"验证，**不等于**性能验证 —— 性能结论仍须按 ADR-017 跑 `1400 ep × 5 seed` 重训 + 完整剖面评估后才成立（ADR-021「执行闭环」⑥ 强制边界）。
 
 ### 修复-2026-10-01-long_eval 违规计数口径（O(n²) 放大）+ 端到端预检
@@ -431,7 +431,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 
 | # | 缺陷 | 证据 | 教训编号 |
 | :--- | :--- | :--- | :--- |
-| ② | `--mode all` **静默只出 2 行**（缺 MPC） | `outputs/results_decompose/eval_decompose_all_ms300_smoke_x1.json` 的 `results` 只有 `decompose_M0_rule` / `decompose_M1_rl` 两个键（`eval_args.enable_mpc=false`） | LRN-20261001-011 |
+| ② | `--mode all` **静默只出 2 行**（缺 MPC） | `outputs/results/decompose/eval_decompose_all_ms300_smoke_x1.json` 的 `results` 只有 `decompose_M0_rule` / `decompose_M1_rl` 两个键（`eval_args.enable_mpc=false`） | LRN-20261001-011 |
 | ③ | MPC 控制器**逐回合状态未清零** | `_mpc_controller` 仅在 `_mount_mpc` 时 reset；`eval_method` 复用同一条 env 跑 `n_seed` 回合 ⇒ 第 2/3 回合继承 `_gap0_init`(初值 1e9)/`_gap_ref` | LRN-20261001-012 |
 | ④ | fair MPC 行**收尾即崩**（`AttributeError: 'FairMPCController' object has no attribute 'solve_statuses'`） | 上节冒烟 `[long_eval]` 之后的 `--mode all` 实跑 traceback（`rollout()` 收尾组装处） | LRN-20261001-013 |
 
@@ -452,10 +452,10 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 命令：
 ```
 python src/evaluation/evaluate_decompose.py --mode all --max_steps 120 --n_seed 2 \
-  --checkpoint outputs/checkpoints_formation/final_seed0_v2/mappo_fleet_last_ep1063_dec_ad2_cp_seed0_seed0.pt \
+  --checkpoint outputs/checkpoints/formation/final_seed0_v2/mappo_fleet_last_ep1063_dec_ad2_cp_seed0_seed0.pt \
   --decision_interval 10 --out_suffix _mpc_ok_check
 ```
-输出（`outputs/results_decompose/eval_decompose_all_ms120_mpc_ok_check.json`）：
+输出（`outputs/results/decompose/eval_decompose_all_ms120_mpc_ok_check.json`）：
 ```
 decompose-M0 规则基线(RL调制恒0): reward +829 | peakCoupler 505kN | viol 0 | ATP事件 288 | AB步 0   | meanED 0.850 | band率 100.00% | 末速 76.4km/h
 decompose-M1 RL(...ep1063..., interval=10): reward +825 | peakCoupler 428kN | viol 0 | ATP事件 288 | AB步 20 | meanED 0.617 | band率 100.00% | 末速 77.0km/h
@@ -463,7 +463,7 @@ MPC(Fair) @ shuozhou_real_53km: reward +831 | peakCoupler 501kN | viol 0 | ATP�
 ------------------------------------------------------------------------------
 Δ(D-RL - D-Rule): Δreward -4 | ΔpeakCoupler -77kN | ΔATP事件 +0
 Δ(D-RL - MPC):    Δreward -7 | ΔpeakCoupler -73kN | ΔATP事件 +0
-已保存: outputs/results_decompose/eval_decompose_all_ms120_mpc_ok_check.json
+已保存: outputs/results/decompose/eval_decompose_all_ms120_mpc_ok_check.json
 ```
 - ✅ **3 行齐全**（此前恒为 2 行）；✅ 三行 Δ 摘要打印（此前 `len(results)>=3` 不成立、整块静默跳过）；✅ `fail 0` 说明 `res.success` 语义可用（非"恒失败"）；✅ JSON 落盘。
 - 单元测试 `python -m pytest tests/test_metric_accounting.py -o addopts= -q` ⇒ **9 passed**（覆盖 ①②③④：行为级 + 源码级防回流）。
@@ -486,13 +486,13 @@ MPC(Fair) @ shuozhou_real_53km: reward +831 | peakCoupler 501kN | viol 0 | ATP�
 python run_training.py \
   --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
   --seed 0 \
-  --checkpoint_dir outputs/checkpoints_formation/adr021_1400ep_seed0 \
-  --results_dir    outputs/checkpoints_formation/adr021_1400ep_seed0/results \
-  --override dirs.figures_dir=outputs/checkpoints_formation/adr021_1400ep_seed0/figures
+  --checkpoint_dir outputs/checkpoints/formation/adr021_1400ep_seed0 \
+  --results_dir    outputs/checkpoints/formation/adr021_1400ep_seed0/results \
+  --override dirs.figures_dir=outputs/checkpoints/formation/adr021_1400ep_seed0/figures
 ```
 
 - 未传 `--episodes` ⇒ 取 YAML 的 **1400**（总目标集数语义，ADR-019）。
-- **三个输出目录全部重定向到全新路径** ⇒ 不覆盖 `outputs/checkpoints_formation/{seed0,final_seed0}/` 等任何历史产物（纪律见 LRN-20261001-009）。
+- **三个输出目录全部重定向到全新路径** ⇒ 不覆盖 `outputs/checkpoints/formation/{seed0,final_seed0}/` 等任何历史产物（纪律见 LRN-20261001-009）。
 
 **二、排障过程：`nohup`/`setsid` 在 IDE Shell 工具内**无效
 
@@ -509,11 +509,11 @@ python run_training.py \
 
 - 进程：`pgrep -af run_training.py` ⇒ `python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 …`（PID 673）。
 - 资源：`ps -o etime,time,pcpu,pmem` ⇒ 89.1% CPU / 4.4% MEM；`nvidia-smi` ⇒ GPU 0% / 145 MiB（**BC 热启动为 CPU 密集阶段**，GPU 空闲属正常）。
-- 产物：`outputs/checkpoints_formation/adr021_1400ep_seed0/` 与 `results/` 已创建。
+- 产物：`outputs/checkpoints/formation/adr021_1400ep_seed0/` 与 `results/` 已创建。
 - 日志 `outputs/logs/diagnostics/log_retrain_adr021_seed0_20261001.txt` 已打出：
   ```
   实验: formation_ed_ab_3train_1plus1 | algorithm=mappo interaction=mappo_fleet | seed=0 episodes=1400 simcase=official
-  checkpoint_dir=outputs/checkpoints_formation/adr021_1400ep_seed0 results_dir=…/results
+  checkpoint_dir=outputs/checkpoints/formation/adr021_1400ep_seed0 results_dir=…/results
   MAPPO设备: cuda
   [信用视界] gamma=0.999 gae_lambda=0.99 | 1/(1-γλ)=91.0 决策步 | 决策间隔 10 原始步 × dt=0.1s = 1.00s/决策步 → 有效视界 91.0s | 对照物理滞后≈90s → 覆盖
   ```
@@ -584,11 +584,11 @@ python run_training.py \
 **三、验证（3 层）**
 
 - **单测**：`tests/test_metric_accounting.py` 新增 5 项 ⇒ 该文件 **14 passed**（原 9 项 + 新 5 项：显式透传 / 自 ckpt 读取 / 缺失退回 10 / 旧 ckpt 无字段退回 / 源码级防回流）。
-- **真实 ckpt 实跑**：`--mode decompose_m1 --checkpoint outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt --max_steps 120 --n_seed 1 --out_suffix _di_fix_check`：
+- **真实 ckpt 实跑**：`--mode decompose_m1 --checkpoint outputs/checkpoints/formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt --max_steps 120 --n_seed 1 --out_suffix _di_fix_check`：
   ```
   [decision-interval] 自 ckpt metadata 读取 decision_interval=10（与训练一致）
   decompose-M1 RL(…ep1623…, interval=10): reward +827 | peakCoupler 494kN | viol 0 | ATP事件 288 | AB步 0 | meanED 0.743 | band率 100.00% | 末速 76.7km/h
-  已保存: outputs/results_decompose/eval_decompose_decompose_m1_ms120_di_fix_check.json
+  已保存: outputs/results/decompose/eval_decompose_decompose_m1_ms120_di_fix_check.json
   ```
 - **三处一致**（产物 `…_ms120_di_fix_check.json`）：行标签 `interval=10`、`metadata.eval_args.decision_interval = 10`、`args.decision_interval = 10`。
 - 同产物另记：`metadata.critic = centralized_scalar`、`metadata.reward_schema = v2-bounded-overlimit-section-force` ⇒ 旧 ckpt（标量价值头）在新脚本下仍可正常装载（`probe_critic_mode` 兜底生效）。
@@ -793,7 +793,7 @@ python run_training.py \
   2. `evaluate_decompose.ED_MOD_COEF` 由**硬编码镜像常量**改为 `inspect.signature(MultiLocoController.get_action_decomposed).parameters['ed_mod_coef'].default` **派生** —— 灭掉 LRN-20261001-017 同族"两处并行演化 ⇒ 静默失配"。
   3. `metadata.build_metadata` 新增键 **`ed_mod_coef`**（动作空间语义：换值即换策略含义，同一 ckpt 行为不同）⇒ 历史运行可比对。
 - **不改** `accel_lo = -0.75`（ADR-022 未裁决项③(a)）：它是控制器**自身**的制动深度参数，且 0.75 m/s² 电制动已大于最陡 −10‰ 的重力分量（≈0.098 m/s²）⇒ 物理上非瓶颈；ADR-023 把它**登记为已声明差异**（规则层 ED 可达 1.0 vs NMPC 期望 ED ≤ 0.75）。
-- **验证（实跑，结果 JSON = `outputs/results_decompose/eval_decompose_mpc_ms300_adr023_coef1_check.json`）**：
+- **验证（实跑，结果 JSON = `outputs/results/decompose/eval_decompose_mpc_ms300_adr023_coef1_check.json`）**：
   ```
   python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --grade shuozhou_real_53km \
     --max_steps 300 --n_seed 1 --out_suffix _adr023_coef1_check
@@ -852,9 +852,9 @@ python run_training.py \
     | **MPC + 规则内层**（`_adr023_mpc_innerrule_53km`） | −3 635 838 | 950 kN | 0 | **622 391** | 4651 | **71.04%** | 40.5 km/h | **0** |
     - ⇒ 补规则内层护盾后 `solve fail 1936→0`、ATP 事件降 **6×**、band **+9pp** ⇒ **"NMPC 弱在缺内层规则护盾"这一判断成立**；但代价是**更保守**（末速 40.5 km/h 擦 `v_min=40` 下限、reward 更差）⇒ 即便补齐护盾，NMPC 仍**远弱于 D-Rule**（`+92 950 / band 97.28%`）。
     - 该结论测的是"MPC 是否缺护盾"，与 ckpt/带宽无关 ⇒ **不受 ADR-024 回退影响，结论可留用**（但数值产于 1.0 口径，标注之）。
-    - 留痕：`outputs/logs/diagnostics/log_eval_adr023_mpc_innerrule_53km.txt`、`outputs/results_decompose/eval_decompose_mpc_ms36000_adr023_mpc_innerrule_53km.json`。
+    - 留痕：`outputs/logs/diagnostics/log_eval_adr023_mpc_innerrule_53km.txt`、`outputs/results/decompose/eval_decompose_mpc_ms36000_adr023_mpc_innerrule_53km.json`。
   - ⛔ **不可跑（须等新口径 ckpt）**：`--mask_lever ed|ab`（ED/AB 杠杆隔离）、D-RL 行本体、任何"需新口径 ckpt"的对照。原因：现有 ckpt 全部产于 `ed_mod_coef=0.5`，在 1.0 口径下**语义失效**（同一 ckpt 的调制幅度翻倍）⇒ 代用即造出训练/评估失配（`EXECUTION_RULES.md` 明令禁止）。
-- **产出**：结果 JSON `outputs/results_decompose/eval_decompose_*_adr023_*.json`；日志 `outputs/logs/diagnostics/log_eval_adr023_*.txt`；计划 `PROJECT_PIPELINE.md`「[P2] 新动作口径（ADR-023）下的冒烟 / 其余两行 baseline / 可跑消融」。
+- **产出**：结果 JSON `outputs/results/decompose/eval_decompose_*_adr023_*.json`；日志 `outputs/logs/diagnostics/log_eval_adr023_*.txt`；计划 `PROJECT_PIPELINE.md`「[P2] 新动作口径（ADR-023）下的冒烟 / 其余两行 baseline / 可跑消融」。
 
 ### 回退-2026-10-02 · ED 调制带宽 1.0 → 0.5（ADR-024 落地）
 
@@ -865,7 +865,7 @@ python run_training.py \
   3. `src/metadata.py` → `_resolve_ed_mod_coef` docstring 指向 ADR-024（派生逻辑不变，键仍为 `ed_mod_coef`）。
   4. 测试：`test_fleet_decompose.py`（`±1.0`→`±0.5`）；`test_metric_accounting.py::test_mpc_bridge_saturation_diag_is_recorded` 按 0.5 口径**重写为二态对照**（U=−0.4 期望 0.4 ≤ 带宽 ⇒ 不越界；U=−0.75 期望 0.75 > 带宽 ⇒ 越界且 AB 预触发）。
 - **验证**：定向测试（`test_metric_accounting` / `test_fleet_decompose` / `test_nmpc_controller`）⇒ **39 passed**；`check_agents_links.py` ⇒ `[OK] AGENTS.md 引用一致性通过（ADR 编号越界检查 **25** 个已有 ADR）`；全量 `pytest tests/ -q` ⇒ **原有 244 项全绿（exit 0）**（本次回退仅改默认证 + 注释 + 测试断言，不新增用例）。
-- **重启**：启动器 `scripts/launchers/launch_retrain_adr024_seed0.sh` → 新目录 `outputs/checkpoints_formation/adr024_1400ep_seed0`；日志 `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`。重启后须核对 `metadata.json` 的 `ed_mod_coef == 0.5`。
+- **重启**：启动器 `scripts/launchers/launch_retrain_adr024_seed0.sh` → 新目录 `outputs/checkpoints/formation/adr024_1400ep_seed0`；日志 `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`。重启后须核对 `metadata.json` 的 `ed_mod_coef == 0.5`。
 - **产物保留（不覆盖不删除）**：`adr021_1400ep_seed0`（0.5 旧结构）、`adr023_1400ep_seed0`（1.0 口径，已回退）；主表两行 baseline 的 `_adr023_*` 结果按"1.0 口径"存档，作 ADR-023 宽带对照证据。
 - **待办**：待 `adr024` 新 ckpt 产出后，重跑主表 D-RL 行 + 两行 baseline（0.5 口径）+ ED/AB 杠杆隔离（`--mask_lever ed|ab`）。
 
@@ -892,13 +892,13 @@ python run_training.py \
 - **验证**：
   - 全量 `pytest tests/ -q` ⇒ **244 passed（exit 0）**。
   - 否决行为差异（合成峰值 100→500 kN @1000 N/步，当前 500 kN 未达反应式 600 kN 阈）：**旧口径 veto=False / 新口径 veto=True**。
-  - 沙盒冒烟（`--episodes 2`，三个输出目录重定向到 `outputs/_smoke/slice16k/`）：**通过**。配置正常加载（`simcase=official`，无"调试工况禁入训练"断言触发）；BC 热启动 27000 条/30 epochs；2 回合 **viol=0**、pkCpl **641 / 745 kN**（<1000）、`gap_min` **179 / 62 m**（>0）；~77 s/回合（500 步窗口）。KL 判据出现**负值**（-0.018 / -0.030），符合新标准估计的行为预期。
+  - 沙盒冒烟（`--episodes 2`，三个输出目录重定向到 `outputs/smoke/_smoke/slice16k/`）：**通过**。配置正常加载（`simcase=official`，无"调试工况禁入训练"断言触发）；BC 热启动 27000 条/30 epochs；2 回合 **viol=0**、pkCpl **641 / 745 kN**（<1000）、`gap_min` **179 / 62 m**（>0）；~77 s/回合（500 步窗口）。KL 判据出现**负值**（-0.018 / -0.030），符合新标准估计的行为预期。
 - **沙盒纪律**：该剖面/配置**只作训练方法迭代**，结果**不得进正文主表**（ADR-017 §3：短训长验方向错误）；沙盒**不缩短单集窗口**（否则 90s 滞后峰值不出现），加速仅来自更短的完整剖面评估。
 - **留痕**：`DECISIONS.md` ADR-025；配置文件 `configs/experiments/_debug_train_method_slice16k.yaml`；剖面 `src/train_dynamics/grade_profile.py::profile_shuozhou_real_53km_slice16k`。
 
 #### 沙盒结果-2026-10-04 · ADR-025 修复的 80 ep 验证（`shuozhou_real_53km_slice16k`）
 
-- **运行**：`scripts/launchers/launch_debug_slice16k_seed0.sh` → `outputs/checkpoints_formation/_debug_train_method_slice16k/`；日志 `outputs/logs/diagnostics/log_debug_slice16k_adr025_seed0_20261003.txt`；端到端 **228.5 min / 80 ep**。
+- **运行**：`scripts/launchers/launch_debug_slice16k_seed0.sh` → `outputs/checkpoints/formation/_debug_train_method_slice16k/`；日志 `outputs/logs/diagnostics/log_debug_slice16k_adr025_seed0_20261003.txt`；端到端 **228.5 min / 80 ep**。
 - **训练窗口（1200 步短窗）逐 10 ep**（干净率 = viol=0 回合占比）：
 
   | ep | 干净率 | 平均峰值 | 最大峰值 | vstd |
@@ -930,7 +930,7 @@ python run_training.py \
   | **880 kN** | **0** | 93.12% | 49.3 km/h | 80.3 / 357.2 m | 19.0 m | 0 | 17 666 | 1 733 | 0.336 |
 
   - ⇒ 与训练内 `long_eval`（peak 968 / viol 0 / band 92.6% / 末速 48.7）**一致**：车钩力守住 ≤1000 kN、破线 0。**两处独立复算互证。**
-  - 结果 JSON：`outputs/results_decompose/eval_decompose_decompose_m1_ms12000_sandbox_best_ep80_slice16k.json`。
+  - 结果 JSON：`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_sandbox_best_ep80_slice16k.json`。
 - **结论**：ADR-025 三项修复**有效**——先消除震荡/爆发，再在完整剖面上把车钩力压回 ≤1000 kN。
 - **未决 / 下一步**：① 沙盒为 15.7km 切片，**不能替代 53km 主口径**（更长累计下坡更难）；须把该 recipe 回迁 `formation_ed_ab_1plus1` 主配置跑 1400 ep 复核；② KL 早停现多在 epoch 1-4 触发（更新偏少），若主口径学习过慢可再调 `target_kl`；③ 沙盒结果是 debug 证据，**不得进正文主表**（ADR-017 §3）。
 
@@ -950,9 +950,9 @@ python run_training.py \
     | --: | --: | --: | --: | --: | --: | --: |
     | 901 kN | 0 | 84.98% | 49.9 km/h | 101.1 / 312.8 m | **72.2 m** | **0 步** |
 
-  - JSON：`outputs/results_decompose/eval_decompose_decompose_m1_ms12000_atpfixcheck.json`。
+  - JSON：`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_atpfixcheck.json`。
   - ⚠️ 该评估是**同一 ckpt 换安全层**的定向检查（非 v3 训练内 A/B），负间距为**整集最小值的偶发事件**，确定性单跑未必复现 ⇒ **决定性证据须看沙盒重跑** `_debug_gapv3_atpfix_slice16k`（同配置同 seed）逐 ep 的 `gap_min<0` 计数与 vstd 轨迹。
-- **沙盒重跑**：`scripts/launchers/launch_debug_gapv3_atpfix_seed0.sh` → `outputs/checkpoints_formation/_debug_gapv3_atpfix_slice16k/`；日志 `outputs/logs/diagnostics/log_debug_gapv3_atpfix_slice16k_seed0_20261004.txt`。判据 = `gap_min<0` 归零、vstd 无阶跃、峰值/band/最小列距三项 ≥ 规则基线。
+- **沙盒重跑**：`scripts/launchers/launch_debug_gapv3_atpfix_seed0.sh` → `outputs/checkpoints/formation/_debug_gapv3_atpfix_slice16k/`；日志 `outputs/logs/diagnostics/log_debug_gapv3_atpfix_slice16k_seed0_20261004.txt`。判据 = `gap_min<0` 归零、vstd 无阶跃、峰值/band/最小列距三项 ≥ 规则基线。
 - **留痕**：`DECISIONS.md` ADR-027；`src/safety_layer.py` `protect()`；`tests/test_safety_layer.py`。
 
 #### 负间距根因-2026-10-04 · 修订：原假设被推翻 + 真实"放大器"（ADR-028）
@@ -1104,8 +1104,8 @@ python run_training.py \
 
 ### 诊断-2026-10-07-「训练效果不好」根因（routecov 主配置 seed0 全量复查）
 
-- **被测对象**：`outputs/checkpoints_formation/routecov_1400ep_seed0_par`（主 YAML + 起点随机化 ON + `n_env_parallel` + reward `v4-atp-aligned-gap`），ckpt ep50/ep100/ep150/ep200/ep240；训练态 CSV 两表；离线全剖面（53km / 36000 步 / DI=10 / 确定性 / seed0）评估 JSON。
-- **判据（一律一手）**：ckpt 内嵌 `metadata`、`train_history_*.csv`、`train_loss_*.csv`、`results_decompose/eval_decompose_*.json`，以及**直接前向 ckpt 权重实测 log_std/σ**（探针 `tmp_probe_ckpt.py`，用后即删）。
+- **被测对象**：`outputs/checkpoints/formation/routecov_1400ep_seed0_par`（主 YAML + 起点随机化 ON + `n_env_parallel` + reward `v4-atp-aligned-gap`），ckpt ep50/ep100/ep150/ep200/ep240；训练态 CSV 两表；离线全剖面（53km / 36000 步 / DI=10 / 确定性 / seed0）评估 JSON。
+- **判据（一律一手）**：ckpt 内嵌 `metadata`、`train_history_*.csv`、`train_loss_*.csv`、`results/decompose/eval_decompose_*.json`，以及**直接前向 ckpt 权重实测 log_std/σ**（探针 `tmp_probe_ckpt.py`，用后即删）。
 
 #### 一、结论（一句话）
 

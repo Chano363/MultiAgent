@@ -3,7 +3,7 @@
 #
 # 为什么重跑：ADR-023 把 decompose 通道的 ED 调制带宽从 0.5 放宽到 1.0（全幅）⇒
 # **动作空间语义变更** ⇒ 旧带宽（0.5）下产出的 ckpt/评估数值对新口径失效。
-# 旧运行 `outputs/checkpoints_formation/adr021_1400ep_seed0`（ep55 后主动停掉）原样保留，
+# 旧运行 `outputs/checkpoints/formation/adr021_1400ep_seed0`（ep55 后主动停掉）原样保留，
 # 仅作"旧带宽口径"留痕，不覆盖、不删除（见 ADR-023「后果」）。
 #
 # 调用方式（同 ADR-021 启动器，教训 LRN-20261001-014）：
@@ -17,9 +17,9 @@
 # 恢复（ADR-019 续训；--episodes 语义 = 「总目标集数」）：
 #   python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
 #     --seed 0 --episodes 1400 --resume latest \
-#     --checkpoint_dir outputs/checkpoints_formation/adr023_1400ep_seed0 \
-#     --results_dir outputs/checkpoints_formation/adr023_1400ep_seed0/results \
-#     --override dirs.figures_dir=outputs/checkpoints_formation/adr023_1400ep_seed0/figures
+#     --checkpoint_dir outputs/checkpoints/formation/adr023_1400ep_seed0 \
+#     --results_dir outputs/checkpoints/formation/adr023_1400ep_seed0/results \
+#     --override dirs.figures_dir=outputs/checkpoints/formation/adr023_1400ep_seed0/figures
 set -e
 
 source ~/miniconda3/etc/profile.d/conda.sh
@@ -29,6 +29,6 @@ cd /mnt/d/Code/MultiAgent/traffic_rl_project
 exec python run_training.py \
   --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
   --seed 0 \
-  --checkpoint_dir outputs/checkpoints_formation/adr023_1400ep_seed0 \
-  --results_dir outputs/checkpoints_formation/adr023_1400ep_seed0/results \
-  --override dirs.figures_dir=outputs/checkpoints_formation/adr023_1400ep_seed0/figures
+  --checkpoint_dir outputs/checkpoints/formation/adr023_1400ep_seed0 \
+  --results_dir outputs/checkpoints/formation/adr023_1400ep_seed0/results \
+  --override dirs.figures_dir=outputs/checkpoints/formation/adr023_1400ep_seed0/figures

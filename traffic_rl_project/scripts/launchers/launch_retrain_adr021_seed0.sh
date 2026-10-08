@@ -24,9 +24,9 @@
 # 恢复（若进程被中断，ADR-019 续训：--episodes 语义为「总目标集数」）：
 #   python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
 #     --seed 0 --episodes 1400 --resume latest \
-#     --checkpoint_dir outputs/checkpoints_formation/adr021_1400ep_seed0 \
-#     --results_dir outputs/checkpoints_formation/adr021_1400ep_seed0/results \
-#     --override dirs.figures_dir=outputs/checkpoints_formation/adr021_1400ep_seed0/figures
+#     --checkpoint_dir outputs/checkpoints/formation/adr021_1400ep_seed0 \
+#     --results_dir outputs/checkpoints/formation/adr021_1400ep_seed0/results \
+#     --override dirs.figures_dir=outputs/checkpoints/formation/adr021_1400ep_seed0/figures
 set -e
 
 source ~/miniconda3/etc/profile.d/conda.sh
@@ -36,6 +36,6 @@ cd /mnt/d/Code/MultiAgent/traffic_rl_project
 exec python run_training.py \
   --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml \
   --seed 0 \
-  --checkpoint_dir outputs/checkpoints_formation/adr021_1400ep_seed0 \
-  --results_dir outputs/checkpoints_formation/adr021_1400ep_seed0/results \
-  --override dirs.figures_dir=outputs/checkpoints_formation/adr021_1400ep_seed0/figures
+  --checkpoint_dir outputs/checkpoints/formation/adr021_1400ep_seed0 \
+  --results_dir outputs/checkpoints/formation/adr021_1400ep_seed0/results \
+  --override dirs.figures_dir=outputs/checkpoints/formation/adr021_1400ep_seed0/figures

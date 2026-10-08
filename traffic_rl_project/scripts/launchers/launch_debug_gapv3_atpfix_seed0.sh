@@ -13,6 +13,6 @@ cd /mnt/d/Code/MultiAgent/traffic_rl_project
 exec python -u run_training.py \
   --experiment configs/experiments/_debug_train_method_slice16k.yaml \
   --seed 0 \
-  --checkpoint_dir outputs/checkpoints_formation/_debug_gapv3_atpfix_slice16k \
-  --results_dir outputs/checkpoints_formation/_debug_gapv3_atpfix_slice16k/results \
-  --override dirs.figures_dir=outputs/checkpoints_formation/_debug_gapv3_atpfix_slice16k/figures
+  --checkpoint_dir outputs/checkpoints/formation/_debug_gapv3_atpfix_slice16k \
+  --results_dir outputs/checkpoints/formation/_debug_gapv3_atpfix_slice16k/results \
+  --override dirs.figures_dir=outputs/checkpoints/formation/_debug_gapv3_atpfix_slice16k/figures

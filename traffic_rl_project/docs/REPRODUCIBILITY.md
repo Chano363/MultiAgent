@@ -158,19 +158,19 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 
 **重训里程碑（ADR-023 口径，2026-10-02 重启 seed0）**：
 
-- ⚠️ **为何重启（ADR-023）**：ED 调制带宽放宽为全幅（`ed_mod_coef` 0.5 → **1.0**）⇒ **动作空间语义变更**（同一 ckpt 行为不同）⇒ 旧带宽（0.5）下产出的 ckpt 与评估数值对新口径失效。旧运行 `outputs/checkpoints_formation/adr021_1400ep_seed0`（启动器 `scripts/launchers/launch_retrain_adr021_seed0.sh`）跑至 **ep55/1400（elapsed 5h22m，viol 0，pkCpl ≤906 kN）** 后主动停掉，其 55 集产物**原样保留**（不覆盖、不删除），仅作"旧带宽口径"留痕，**不得引用**。
+- ⚠️ **为何重启（ADR-023）**：ED 调制带宽放宽为全幅（`ed_mod_coef` 0.5 → **1.0**）⇒ **动作空间语义变更**（同一 ckpt 行为不同）⇒ 旧带宽（0.5）下产出的 ckpt 与评估数值对新口径失效。旧运行 `outputs/checkpoints/formation/adr021_1400ep_seed0`（启动器 `scripts/launchers/launch_retrain_adr021_seed0.sh`）跑至 **ep55/1400（elapsed 5h22m，viol 0，pkCpl ≤906 kN）** 后主动停掉，其 55 集产物**原样保留**（不覆盖、不删除），仅作"旧带宽口径"留痕，**不得引用**。
 - 启动器：`scripts/launchers/launch_retrain_adr023_seed0.sh`（`set -e` + conda 激活 + `exec python run_training.py …`）。
-- 🔁 **再重启（ADR-024 口径，2026-10-02）**：ADR-023 的带宽放宽经完整剖面 A/B 判为"**对 MPC 无收益、对 RL 有害**"，ADR-024 遂回退 `ed_mod_coef` 1.0→0.5 ⇒ **又一次动作语义变更**，`adr023_1400ep_seed0`（ep205/1400 停）作废并原样保留。新启动器 = `scripts/launchers/launch_retrain_adr024_seed0.sh`；新目录 = `outputs/checkpoints_formation/adr024_1400ep_seed0`；日志 = `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`；恢复命令同下，目录整体替换 `adr023` → `adr024`。**主表只引用 `adr024` 及以后的 ckpt**（`adr021` 旧结构、`adr023` 1.0 口径仅作留痕）。
+- 🔁 **再重启（ADR-024 口径，2026-10-02）**：ADR-023 的带宽放宽经完整剖面 A/B 判为"**对 MPC 无收益、对 RL 有害**"，ADR-024 遂回退 `ed_mod_coef` 1.0→0.5 ⇒ **又一次动作语义变更**，`adr023_1400ep_seed0`（ep205/1400 停）作废并原样保留。新启动器 = `scripts/launchers/launch_retrain_adr024_seed0.sh`；新目录 = `outputs/checkpoints/formation/adr024_1400ep_seed0`；日志 = `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`；恢复命令同下，目录整体替换 `adr023` → `adr024`。**主表只引用 `adr024` 及以后的 ckpt**（`adr021` 旧结构、`adr023` 1.0 口径仅作留痕）。
 - ⚠️ **执行方式（实测教训，LRN-20261001-014）**：IDE 的 Shell 工具**在调用返回时会回收本次调用派生的全部进程** —— `nohup setsid … &` 不能让它跨调用存活（存活探针 `nohup setsid sleep 90 … &` 下次调用即查不到进程与文件）。可行两条：① `run_in_background: true`（进程与调用同生命周期，会话内可用）；② 用户自己的 WSL 终端执行下方命令（脱离 IDE 会话，适合数天级）：
   ```
   cd /mnt/d/Code/MultiAgent/traffic_rl_project
   nohup setsid bash scripts/launchers/launch_retrain_adr023_seed0.sh > outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt 2>&1 < /dev/null &
   ```
-- 输出（**全新目录，不覆盖任何历史产物**）：`outputs/checkpoints_formation/adr023_1400ep_seed0/{,results,figures}`；日志 `outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt`。启动实证：`pgrep` 到 `run_training.py … --checkpoint_dir …/adr023_1400ep_seed0`、`results/metadata.json` 已落盘（`episodes=1400` / `critic=per_agent` / `reward_schema=v2-bounded-overlimit-section-force` / **`ed_mod_coef=1.0`** / `simulator_model … simcase=official … grade=shuozhou_real_53km`）。
+- 输出（**全新目录，不覆盖任何历史产物**）：`outputs/checkpoints/formation/adr023_1400ep_seed0/{,results,figures}`；日志 `outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt`。启动实证：`pgrep` 到 `run_training.py … --checkpoint_dir …/adr023_1400ep_seed0`、`results/metadata.json` 已落盘（`episodes=1400` / `critic=per_agent` / `reward_schema=v2-bounded-overlimit-section-force` / **`ed_mod_coef=1.0`** / `simulator_model … simcase=official … grade=shuozhou_real_53km`）。
   - ⚠️ **未提交改动的溯源边界**：本次重启时工作树仍含**未提交**改动（ADR-021/022/023 的代码与文档改动尚未 `git commit`），故 `metadata.json.git_commit`（`ff745cf`）**不覆盖**这些改动 —— ckpt 与工作树的对应依赖"先提交再引用"；正式出主表前须提交并复核 commit 一致性（**待用户指令**）。
 - 中断恢复（ADR-019：`--episodes` = **总目标集数**，非增量）：
   ```
-  python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 1400 --resume latest --checkpoint_dir outputs/checkpoints_formation/adr023_1400ep_seed0 --results_dir outputs/checkpoints_formation/adr023_1400ep_seed0/results --override dirs.figures_dir=outputs/checkpoints_formation/adr023_1400ep_seed0/figures
+  python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 1400 --resume latest --checkpoint_dir outputs/checkpoints/formation/adr023_1400ep_seed0 --results_dir outputs/checkpoints/formation/adr023_1400ep_seed0/results --override dirs.figures_dir=outputs/checkpoints/formation/adr023_1400ep_seed0/figures
   ```
 - ⚠️ **机时预期（2026-10-01 实测更正）**：**≈11.7 天/seed**（先前登记的"≈3.4 天"**低估约 3.4×**，勿再引用）。推导：
   - **实测基准（seed0 长训自身的进度条，非外推猜值）**：500 步课时下 **271 / 276 / 274 / 278 s/集**（`n_env=4` 并行 4 条轨迹 ⇒ 约 0.137 s/env-step）；BC 热启动另耗 **≈11 min**（`Fleet BC warm start: 采集 27000 条 … 30 epochs`）。

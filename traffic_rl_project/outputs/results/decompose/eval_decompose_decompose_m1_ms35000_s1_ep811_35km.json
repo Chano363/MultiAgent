@@ -27,7 +27,7 @@
     "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
     "eval_args": {
       "mode": "decompose_m1",
-      "checkpoint": "outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt",
+      "checkpoint": "outputs/checkpoints/formation/final_seed1/mappo_fleet_last_ep811_dec_ad2_cp_seed1_seed1.pt",
       "grade": "long_downhill_35km",
       "max_steps": 35000,
       "num_trains": 3,
@@ -44,12 +44,12 @@
       "mask_lever": "none",
       "hetero": false,
       "hetero_seed": 0,
-      "out_suffix": "_s0_ep1623_35km"
+      "out_suffix": "_s1_ep811_35km"
     }
   },
   "args": {
     "mode": "decompose_m1",
-    "checkpoint": "outputs/checkpoints_formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt",
+    "checkpoint": "outputs/checkpoints/formation/final_seed1/mappo_fleet_last_ep811_dec_ad2_cp_seed1_seed1.pt",
     "grade": "long_downhill_35km",
     "max_steps": 35000,
     "num_trains": 3,
@@ -66,28 +66,28 @@
     "mask_lever": "none",
     "hetero": false,
     "hetero_seed": 0,
-    "out_suffix": "_s0_ep1623_35km"
+    "out_suffix": "_s1_ep811_35km"
   },
   "results": {
     "decompose_M1_rl": {
-      "reward": -942847.6917217757,
-      "peak_coupler_kN": 1675.4342887415773,
-      "viol": 17377488.0,
-      "safety_events": 699876772.0,
-      "ab_steps": 14671.0,
-      "mean_ed": 0.11656921719048846,
-      "band_rate": 0.5877142857142857,
-      "final_speed_kmh": 20.876047052650264,
+      "reward": -17584521.83662119,
+      "peak_coupler_kN": 1224.6994299531564,
+      "viol": 8325675.0,
+      "safety_events": 18405417.0,
+      "ab_steps": 3220.0,
+      "mean_ed": 0.2156237808951847,
+      "band_rate": 0.6200571428571429,
+      "final_speed_kmh": 17.21561542393806,
       "per_seed": [
         {
-          "reward": -942847.6917217757,
-          "peak_coupler_kN": 1675.4342887415773,
-          "viol": 17377488.0,
-          "safety_events": 699876772.0,
-          "ab_steps": 14671.0,
-          "mean_ed": 0.11656921719048846,
-          "band_rate": 0.5877142857142857,
-          "final_speed_kmh": 20.876047052650264
+          "reward": -17584521.83662119,
+          "peak_coupler_kN": 1224.6994299531564,
+          "viol": 8325675.0,
+          "safety_events": 18405417.0,
+          "ab_steps": 3220.0,
+          "mean_ed": 0.2156237808951847,
+          "band_rate": 0.6200571428571429,
+          "final_speed_kmh": 17.21561542393806
         }
       ]
     }

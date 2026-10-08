@@ -123,21 +123,34 @@ outputs/
 - **R5 作废资产进 `deprecated/`**，保留 + README 声明（物理参数错误 / 仅回溯 / 论文禁引）。
 - **R6 短跑（smoke）验证必须同时覆盖 `checkpoint_dir` / `results_dir` / `dirs.figures_dir` 三者**（否则覆写历史，见 `LEARNINGS.md` LRN-20261001-009）。
 
-### 4. 现状 → 目标 映射（迁移待执行）
+### 4. 现状 → 目标 映射（已于 2026-10-08 全量执行）
 
 | 现状（一级） | 目标 | 迁移状态 |
 |---|---|---|
-| `checkpoints_formation/` | `checkpoints/formation/` | 待迁移 |
-| `checkpoints_ab_gate/` `_gate100/` `_smoke/` | `checkpoints/ab_gate/` … | 待迁移 |
-| `results_decompose/` | `results/decompose/` | 待迁移 |
-| `training_results/` | `results/training/`（图并入 `figures/`） | 待迁移 |
-| `report_figures/` | `figures/report/` | 待迁移 |
+| `checkpoints_formation/` | `checkpoints/formation/` | 已迁移（2026-10-08） |
+| `checkpoints_ab_gate/` `_gate100/` `_smoke/` | `checkpoints/ab_gate/` … | 已迁移（2026-10-08） |
+| `results_decompose/` | `results/decompose/` | 已迁移（2026-10-08） |
+| `training_results/` | `results/training/`（图并入 `figures/`） | 已迁移（2026-10-08） |
+| `report_figures/` | `figures/report/` | 已迁移（2026-10-08） |
 | `sim_validation/` | **保持**（已符合） | 已符合 |
-| `logs_final_v2/` `logs_final_parallel/` | `logs/final_v2/` … | 待迁移 |
-| `_smoke_pa/` | `smoke/_smoke_pa/` | 待迁移 |
+| `logs_final_v2/` `logs_final_parallel/` | `logs/final_v2/` … | 已迁移（2026-10-08） |
+| `_smoke_pa/` | `smoke/_smoke_pa/` | 已迁移（2026-10-08） |
 | `deprecated/` | **保持** | 已符合 |
 
 > **迁移纪律**：批量移动会改到脚本/文档里硬编码的路径，必须**同步 Grep 全仓改旧路径**后再动；长训在跑期间禁止迁移其 `checkpoint_dir`（见本文件「行为性代码冻结」节）。
+>
+> **进度**：**P1 + P2 完成（2026-10-08）**。P1——`outputs/` 根级 92 个散文件清零：启动器 12 → `scripts/launchers/`；诊断日志 62 → `outputs/logs/diagnostics/`；诊断 JSON 15 → `outputs/results/diagnostics/`；图 1 → `outputs/figures/report/`；历史口径 md 2 → `outputs/deprecated/`。P2——§4 映射表 12 个遗留一级目录全量迁入目标树（`training_results/figures` → `figures/training/`，其余 → `results/training/`），并同步改写全仓引用 178 文件 / 927 处**（含归档 `metadata.json` 内嵌路径，经用户拍板接受；`deprecated/**` 作为冻结作废资产不改写）**。迁移后 `check_outputs_layout.py --strict` 通过。
+
+### 5. 机器校验（守卫入口）
+
+- **入口**：`python scripts/check_outputs_layout.py`（在 `traffic_rl_project/` 下运行）。退出码非 0 即存在违规。
+- **校验内容**：
+  1. `outputs/` 根级不得出现任何普通文件（R1 的病灶——历史 92 个散文件正是这样堆出来的）；
+  2. 一级目录只能是目标树成员（§1）；未登记的新增一级目录直接判错（P2 后 `LEGACY_TOP` 已清空，无需 `--strict`）；
+  3. `--strict` 保留为"迁移期"开关（届时回填 `LEGACY_TOP` 把遗留目录降级为警告）。
+- **强制场景**：任何人/agent 往 `outputs/` 落产物后、以及正式提交前，运行该校验必须通过（exit 0）。
+- **为何校验"落盘位置"而非"训练入口"**：历史守卫（`run_training.py` 的 `dirs.*` 校验 / `official_entry_guard` / `training_metadata_guard`）全在 **Python 入口内**，拦不住"临时脚本 + shell 重定向"（`python tmp_x.py | tee outputs/log_x.txt`）；本校验**不看写入方、只看落点**，与之互补。
+- **回归防线**：`tests/test_outputs_layout.py` 已把上述第 1、2 条锁进 pytest。
 
 ## 生图规范（图表 / 曲线，2026-10-02 强制）
 

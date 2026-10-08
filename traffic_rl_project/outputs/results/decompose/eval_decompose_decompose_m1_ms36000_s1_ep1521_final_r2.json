@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "git_commit": "7d8e658c9d5b6bbeca514b2cfe4f8ee453b256b7",
+    "git_commit": "a03ebc31e08ebfea7c02ead53a11daf9d0d7cf62",
     "physics_version": "29569dcaf78a",
     "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus0|grade=shuozhou_real_53km",
     "simulator_model_version": "d8b93f54ff28",
@@ -27,7 +27,7 @@
     "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
     "eval_args": {
       "mode": "decompose_m1",
-      "checkpoint": "outputs/checkpoints_formation/final_seed1/mappo_fleet_best_dec_ad2_cp_seed1.pt",
+      "checkpoint": "outputs/checkpoints/formation/final_seed1/mappo_fleet_last_ep1521_dec_ad2_cp_seed1_seed1.pt",
       "grade": "shuozhou_real_53km",
       "max_steps": 36000,
       "num_trains": 3,
@@ -36,20 +36,20 @@
       "mpc_type": "fair",
       "mpc_gap_min": 20.0,
       "mpc_enforce_coupler": true,
-      "n_seed": 1,
+      "n_seed": 3,
       "eval_seed": 0,
       "init_speed_kmh": 80.0,
       "random_init_speed": false,
-      "decision_interval": 10,
+      "decision_interval": 1,
       "mask_lever": "none",
       "hetero": false,
       "hetero_seed": 0,
-      "out_suffix": "_best_s1_53km"
+      "out_suffix": "_s1_ep1521_final_r2"
     }
   },
   "args": {
     "mode": "decompose_m1",
-    "checkpoint": "outputs/checkpoints_formation/final_seed1/mappo_fleet_best_dec_ad2_cp_seed1.pt",
+    "checkpoint": "outputs/checkpoints/formation/final_seed1/mappo_fleet_last_ep1521_dec_ad2_cp_seed1_seed1.pt",
     "grade": "shuozhou_real_53km",
     "max_steps": 36000,
     "num_trains": 3,
@@ -58,36 +58,56 @@
     "mpc_type": "fair",
     "mpc_gap_min": 20.0,
     "mpc_enforce_coupler": true,
-    "n_seed": 1,
+    "n_seed": 3,
     "eval_seed": 0,
     "init_speed_kmh": 80.0,
     "random_init_speed": false,
-    "decision_interval": 10,
+    "decision_interval": 1,
     "mask_lever": "none",
     "hetero": false,
     "hetero_seed": 0,
-    "out_suffix": "_best_s1_53km"
+    "out_suffix": "_s1_ep1521_final_r2"
   },
   "results": {
     "decompose_M1_rl": {
-      "reward": -20031036.258649368,
-      "peak_coupler_kN": 1250.9215294473347,
-      "viol": 6510780.0,
-      "safety_events": 276150441.0,
-      "ab_steps": 6591.0,
-      "mean_ed": 0.4015864818205073,
-      "band_rate": 0.9808888888888889,
-      "final_speed_kmh": 63.00116425940613,
+      "reward": -6294151.601963292,
+      "peak_coupler_kN": 928.7496139167042,
+      "viol": 36.333333333333336,
+      "safety_events": 30776.666666666668,
+      "ab_steps": 4476.333333333333,
+      "mean_ed": 0.26764316059011944,
+      "band_rate": 0.9935277777777777,
+      "final_speed_kmh": 64.14191047759209,
       "per_seed": [
         {
-          "reward": -20031036.258649368,
-          "peak_coupler_kN": 1250.9215294473347,
-          "viol": 6510780.0,
-          "safety_events": 276150441.0,
-          "ab_steps": 6591.0,
-          "mean_ed": 0.4015864818205073,
-          "band_rate": 0.9808888888888889,
-          "final_speed_kmh": 63.00116425940613
+          "reward": 17037.218359338232,
+          "peak_coupler_kN": 765.1994671170968,
+          "viol": 0.0,
+          "safety_events": 42467.0,
+          "ab_steps": 6226.0,
+          "mean_ed": 0.2769292319271936,
+          "band_rate": 0.9999444444444444,
+          "final_speed_kmh": 65.7698649967968
+        },
+        {
+          "reward": 11374.376742964832,
+          "peak_coupler_kN": 771.2853971498758,
+          "viol": 0.0,
+          "safety_events": 34861.0,
+          "ab_steps": 4845.0,
+          "mean_ed": 0.2649891030827452,
+          "band_rate": 0.9999444444444444,
+          "final_speed_kmh": 66.03720998515993
+        },
+        {
+          "reward": -18910866.400992177,
+          "peak_coupler_kN": 1249.7639774831398,
+          "viol": 109.0,
+          "safety_events": 15002.0,
+          "ab_steps": 2358.0,
+          "mean_ed": 0.26101114676041953,
+          "band_rate": 0.9806944444444444,
+          "final_speed_kmh": 60.61865645081954
         }
       ]
     }

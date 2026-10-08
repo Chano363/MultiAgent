@@ -17,7 +17,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[1]
-ARCHIVE_ROOT = ROOT / 'outputs' / 'results_decompose'
+ARCHIVE_ROOT = ROOT / 'outputs' / 'results' / 'decompose'
 OUT_DIR = ROOT / 'outputs' / 'sim_validation' / 'figures' / '对比曲线'
 
 plt.rcParams.update({

@@ -27,7 +27,7 @@
     "python": "3.10.20 | packaged by conda-forge | (main, Mar  5 2026, 16:42:22) [GCC 14.3.0]",
     "eval_args": {
       "mode": "decompose_m1",
-      "checkpoint": "outputs/checkpoints_formation/seed0/mappo_fleet_ep120_dec_ad2_cp_seed0.pt",
+      "checkpoint": "outputs/checkpoints/formation/seed0/mappo_fleet_ep120_dec_ad2_cp_seed0.pt",
       "grade": "long_downhill_35km",
       "max_steps": 18000,
       "num_trains": 3,
@@ -48,7 +48,7 @@
   },
   "args": {
     "mode": "decompose_m1",
-    "checkpoint": "outputs/checkpoints_formation/seed0/mappo_fleet_ep120_dec_ad2_cp_seed0.pt",
+    "checkpoint": "outputs/checkpoints/formation/seed0/mappo_fleet_ep120_dec_ad2_cp_seed0.pt",
     "grade": "long_downhill_35km",
     "max_steps": 18000,
     "num_trains": 3,

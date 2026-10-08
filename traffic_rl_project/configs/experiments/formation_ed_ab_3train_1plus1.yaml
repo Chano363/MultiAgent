@@ -82,6 +82,6 @@ ckpt_policy: fleet
 log_interval: 10
 
 dirs:
-  checkpoint_dir: outputs/checkpoints_formation/seed0
-  results_dir: outputs/checkpoints_formation/seed0/results
-  figures_dir: outputs/checkpoints_formation/seed0/figures
+  checkpoint_dir: outputs/checkpoints/formation/seed0
+  results_dir: outputs/checkpoints/formation/seed0/results
+  figures_dir: outputs/checkpoints/formation/seed0/figures

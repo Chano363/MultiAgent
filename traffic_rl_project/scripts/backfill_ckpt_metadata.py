@@ -9,8 +9,8 @@
 3. 否则注入 metadata（含 backfill 溯源标记）后原位重存
 
 用法（WSL conda traffic_rl）：
-    python scripts/backfill_ckpt_metadata.py outputs/checkpoints_formation ...          # dry-run
-    python scripts/backfill_ckpt_metadata.py outputs/checkpoints_formation ... --apply  # 写盘
+    python scripts/backfill_ckpt_metadata.py outputs/checkpoints/formation ...          # dry-run
+    python scripts/backfill_ckpt_metadata.py outputs/checkpoints/formation ... --apply  # 写盘
 """
 import argparse
 import json

@@ -65,7 +65,7 @@ supersedes: partial（自 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 按体�
 - **治本修复（已落 `src/controllers/multi_loco_controller.py` L205-214/L245-275）**：
   - `AB_ADD_SOURCE_MAX_RATIO` 0.85 → **0.6**（力比≥0.6 即禁止 RL 新增 AB 源，更早封"高力叠加"）。
   - 新增 `AB_MAX_CONCURRENT_ADD=1`：单步决策内允许新增的 AB 源并发 **≤1**，杜绝多机车同步触发 AB 的压缩波叠加。
-- **验证（重跑同 30-ep 短训，`outputs/checkpoints_ab_gate/`，命令同 9-25 加 `--checkpoint_dir outputs/checkpoints_ab_gate/`）**：
+- **验证（重跑同 30-ep 短训，`outputs/checkpoints/ab_gate/`，命令同 9-25 加 `--checkpoint_dir outputs/checkpoints/ab_gate/`）**：
   | 指标 | 门控前(ab_smoke) | 门控后(ab_gate) | 结论 |
   |---|---|---|---|
   | 末段平均 pkCpl | 1162 kN（破线） | **980.9 kN** | ✓ <1000 |
@@ -73,13 +73,13 @@ supersedes: partial（自 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 按体�
   | 末尾常规 ep viol | ep22=91 | 多数 ep=0 | ✓ |
   - **注意**：ep16 viol148/pk1232、ep18 viol60/pk1163 仍偶发爆发（探索期），源头门控只封"高力下新增源 + 并发"，**未封基线循环制动的 AB 兜底 + 已触发 AB 的滞后传播峰值**；末段已收敛到 viol≈0-9。
 - **结论与下一步**：治本方向正确（AB 激活 + 车钩力<1000 初步可共存）。**正式长训（1400ep）前建议先补一次更长短训（60-100ep）确认偶发爆发收敛**；若仍在，需评估是否在安全层做"预测式 AB 峰值防护"（按位置+波速提前降 ED/退已触发 AB）。
-- **复现命令 / 产物**：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 30 --checkpoint_dir outputs/checkpoints_ab_gate/`，日志 `outputs/logs/diagnostics/log_ab_gate_train.txt`，权重 `outputs/checkpoints_ab_gate/`。
+- **复现命令 / 产物**：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 30 --checkpoint_dir outputs/checkpoints/ab_gate/`，日志 `outputs/logs/diagnostics/log_ab_gate_train.txt`，权重 `outputs/checkpoints/ab_gate/`。
 - **状态**：⚠️ **superseded（见下节 诊断-2026-09-28）**：本节的"末段<1000 / viol≈0"是 **30ep 窗口过短的假象**；100ep 短训证伪（末段 50ep 平均 pkCpl 破线、偶发爆发持续）。源门控治本方向仍成立，但**未收敛**。
 
 ### 诊断-2026-09-28-100ep短训证伪"30ep收敛"（偶发AB爆发持续，末段50ep平均破线） - 2026-09-28
 - **诊断日期**：2026-09-28
 - **主题**：把 9-26 的 30-ep 短训延长到 **100 ep**，检验"源头门控后偶发爆发是否收敛"。结论：**未收敛，30ep 的收敛是窗口太短的假象**。
-- **复现命令**：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 100 --checkpoint_dir outputs/checkpoints_ab_gate100/`；日志 `outputs/logs/diagnostics/log_ab_gate100_train.txt`；耗时 7182.4s (119.7min, 76.3 s/ep)。
+- **复现命令**：`run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 100 --checkpoint_dir outputs/checkpoints/ab_gate100/`；日志 `outputs/logs/diagnostics/log_ab_gate100_train.txt`；耗时 7182.4s (119.7min, 76.3 s/ep)。
 - **原始数据（逐集解析，非估算）**：
   - 100 ep 中 **40 ep 出现 viol>0**。
   - **末段 ep51-100**：pkCpl **avg 1037.6 kN（>1000，破线）**、max **1586 kN**、**23/50 ep 破线**、viol 合计 **1138**。
@@ -89,14 +89,14 @@ supersedes: partial（自 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 按体�
 - **机制解读**：源头门控（`AB_ADD_SOURCE_MAX_RATIO=0.6` + `AB_MAX_CONCURRENT_ADD=1`）只封"**RL 新增** AB 源"；未封 ①规则基线循环制动的 AB 兜底（`get_action_cyclic_braking` 在 ED 不足时触发，陡坡段多机车同触）②已触发 AB 沿 ~1.2km 列车 @200m/s 的**滞后压缩峰值**。故"偶发暴力 AB 吸态"仍周期性出现——与项目记忆记录的已知失败模式一致；9-19 的 value 治本（winsorize + value grad clip + KL 收紧）只解决"破线→value 污染放大"，**未消除爆发源头**。
 - **诚实边界**：本 100ep 为 **from-scratch 探索期**，瞬态破线不等于终态策略不安全（旧 reward 的 1400ep 终态策略曾 53/35km 全 viol 0）。**但本结果足以否定"30ep 即已收敛"的判断**，且暴露"安全层无法在物理上真正兜住 ≤1000kN"这一契约缺口。
 - **下一步（待决策，见下）**：①诊断爆发源（RL 新增 vs 规则基线 AB）；②预测式安全层（按位置+波速提前降 ED/退已触发 AB，使"≤1000kN 硬兜底"名副其实）；③直接 1400ep 全量重训、以终态策略评估为准（接受探索瞬态）。
-- **状态**：**未收敛**；需在"补硬兜底 vs 直接重训"间决策。复现产物 `outputs/checkpoints_ab_gate100/`、`outputs/logs/diagnostics/log_ab_gate100_train.txt`。
+- **状态**：**未收敛**；需在"补硬兜底 vs 直接重训"间决策。复现产物 `outputs/checkpoints/ab_gate100/`、`outputs/logs/diagnostics/log_ab_gate100_train.txt`。
 
 ### 诊断-2026-09-30-100ep破线根因（车钩力口径错配 + AB 通道 + 安全层对 AB 无权限）
 
 - **诊断日期**：2026-09-30
 - **主题**：回答"纯规则基线为什么不破 1000kN？你是怎么诊断的、在什么剖面？"——定位 **100ep 短训权重在同一 1200 步窗口内车钩力 pkCpl 破 1000kN** 的根因。
 - **诊断对象 / 剖面 / 种子**（全部可复现）：
-  - **权重**：`outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`，即 1s 策略节奏）。
+  - **权重**：`outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`，即 1s 策略节奏）。
   - **剖面**：主训练配置 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`（`shuozhou_real_53km`，取**起始 1200 步窗口 = 120s**）。
   - **rollout seed**：2000（`set_seed(2000)`，初速 80 km/h）；编组 3 列 × (1 机车 + 94 货车 + 1 机车) = 6 agent / 96 车/列。
   - **复现方式**：本次诊断脚本为临时脚本（`tmp_diag_exec / metric / metric2 / mech / dt`、`tmp_diag_attr / ab_source`、`tmp_ablate_channel / coact`、`tmp_replay_policy`、`tmp_test_etcs_overlap`），已按项目规则（临时脚本用后即删）在结论入档后删除；**原始输出已全部落盘 `outputs/logs/diagnostics/log_diag_*.txt`（不覆盖，长期保留）**，即为本节全部数据表的证据源。
@@ -192,7 +192,7 @@ supersedes: partial（自 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 按体�
 - **诊断日期**：2026-09-30
 - **主题**：承上一节 ⑧ 的第 ①/② 项（口径统一、给安全层对 AB 的实际权限），**方案落地后在同一 1200 步窗口复测**，验证闸门是否奏效、口径统一是否引入行为变化、速度控制是否受损。
 - **改造落地内容**：见 `docs/logs/decisions/DECISIONS.md` **ADR-018**（全部改动尚未 git 提交）。
-- **诊断对象 / 剖面 / 种子**（与上一节完全一致，控制变量）：权重 `outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`）；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`（`shuozhou_real_53km` 起始 1200 步）；`set_seed(2000)`，初速 80 km/h；3 列 × (1 机车 + 94 货车 + 1 机车) = 6 agent / 96 车/列。
+- **诊断对象 / 剖面 / 种子**（与上一节完全一致，控制变量）：权重 `outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`（`decision_interval=10`）；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`（`shuozhou_real_53km` 起始 1200 步）；`set_seed(2000)`，初速 80 km/h；3 列 × (1 机车 + 94 货车 + 1 机车) = 6 agent / 96 车/列。
 - **复现方式**：临时脚本 `tmp_diag_regress_0930.py`（结论入档后按项目规则删除，方法同上一节骨架）；原始输出落盘 `outputs/logs/diagnostics/log_diag_regress_20260930.txt` / `.json`（不覆盖）。
 - **自检（先跑 no_rl）**：断面力峰值 **767.7 kN @t=1078（train2，车钩#4）、0 步破线**，与上一节记录**分毫不差** ⇒ 复现骨架正确（train1 751.0 亦一致）。
 
@@ -249,7 +249,7 @@ supersedes: partial（自 `docs/logs/diagnostics/DIAGNOSTICS_2026-09.md` 按体�
 
 - **诊断日期**：2026-09-30
 - **主题**：上一节 ⑤ 的"列尾受拉 = 深 AB + 不均匀缓解"，其机制**未经受控隔离**（诊断⑦诚实边界）。遗留①候选 = "逐机车错峰缓解 / eot 缓解双向同步"。本轮用**现成 `eot` 开关**（`_reset_air_brake_command(0, eot=...)`，eot=True 时缓解波从队首+尾部双向传播、提升缓解同步性）做受控对比——若 eot 显著降列尾拉力 ⇒ 证实"缓解不同步"是列尾拉力的因果通道 ⇒ 支撑改造；若 eot 无显著影响 ⇒ 不轻动核心物理。
-- **诊断对象 / 剖面 / 种子**（与前两节完全一致，控制变量）：权重 `outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`；`set_seed(2000)`，初速 80 km/h；1200 步窗口；`decision_interval=10`。
+- **诊断对象 / 剖面 / 种子**（与前两节完全一致，控制变量）：权重 `outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`；剖面 `configs/experiments/formation_ed_ab_3train_1plus1.yaml`；`set_seed(2000)`，初速 80 km/h；1200 步窗口；`decision_interval=10`。
 - **复现方式**：临时脚本 `tmp_diag_eot_isolation.py`（方法同骨架）；原始输出 `outputs/logs/diagnostics/log_diag_eot_isolation_20260930_133819.json`。
 - **结果（同一 full 权重，仅 eot 变量不同）**：
 
@@ -316,16 +316,16 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
 - **诊断日期**：2026-09-30
 - **主题**：复核"长训后期价值函数发散、破线后难以回退"（已写入 PPT 问题页）是否有数据支撑。
 - **现象**：5-seed 续训中偶发车钩力破线 episode（pk 1000–1429 kN），项目叙事归因于"长训后期 value 发散"。
-- **方法（无新仿真）**：只对既有产物做日志/代码复核 —— 解析 `outputs/logs_final_v2/seed*.log` 与 `outputs/logs_final_parallel/seed*.log`（PowerShell `Select-String`；`*.log` 被 .gitignore 忽略，ripgrep 取不到），读 `final_seed1_v2/results/metadata.json`，审 `src/safety_layer.py` / `src/controllers/multi_loco_controller.py` / `src/environments/train_env.py` / `src/trainer/logger.py`。**未运行 `run_training.py`，未占 GPU。**
+- **方法（无新仿真）**：只对既有产物做日志/代码复核 —— 解析 `outputs/logs/final_v2/seed*.log` 与 `outputs/logs/final_parallel/seed*.log`（PowerShell `Select-String`；`*.log` 被 .gitignore 忽略，ripgrep 取不到），读 `final_seed1_v2/results/metadata.json`，审 `src/safety_layer.py` / `src/controllers/multi_loco_controller.py` / `src/environments/train_env.py` / `src/trainer/logger.py`。**未运行 `run_training.py`，未占 GPU。**
 
 **一、训练状态（证据 E1）**
 
-- `pgrep -af run_training.py` 空；`logs_final_v2/seed{0..4}.log` 末次写入 **18:35–18:37**，复核时刻 22:39 → 已停约 4h。GPU `0%, 37MiB`。
+- `pgrep -af run_training.py` 空；`logs/final_v2/seed{0..4}.log` 末次写入 **18:35–18:37**，复核时刻 22:39 → 已停约 4h。GPU `0%, 37MiB`。
 - 断点完好：`final_seed{0..4}_v2/` 最新 `last` 分别 ep1067 / 1073 / 588 / 732 / 757。
 
 **二、观测证据：发散叙事与数据不符（证据 E2/E3）**
 
-按 100 集分箱统计 v1 段（`outputs/logs_final_parallel/seed*.log`，`Select-String` 解析 `Ep N/1400` 行）：
+按 100 集分箱统计 v1 段（`outputs/logs/final_parallel/seed*.log`，`Select-String` 解析 `Ep N/1400` 行）：
 
 | seed | 分箱 | R_avg | pkCpl_max | viol_sum |
 |---|---|---|---|---|
@@ -344,7 +344,7 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
 | seed4 | 100–599 | 11.3k–11.5k | ≤882 | 0 |
 | seed4 | 600–672 | 10,463 | 990 | 0 |
 
-**破线 episode 明细**（v1 `logs_final_parallel` + v2 `logs_final_v2`；`viol` = **车厢·步**计数，非步数）：
+**破线 episode 明细**（v1 `logs/final_parallel` + v2 `logs/final_v2`；`viol` = **车厢·步**计数，非步数）：
 
 | 段 | seed | Ep | R | pkCpl | viol(车厢·步) |
 |---|---|---|---|---|---|
@@ -370,7 +370,7 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
 - E4 `final_seed1_v2/results/metadata.json`：`git_commit=ff745cf`（ADR-018 治本）、`use_coupler_constraint=True`、`decompose=loco_ed_ab`、`resume=...final_seed1/mappo_fleet_best...`、`curriculum=500:0,1000:10,1200:20`、`n_env=4`。
 - E5 口径已统一：喂给安全层的车钩力是**每车断面力视图** `coupler_interface_forces_per_vehicle()`（`train_env.py:335`），非净力。
 - E6 **安全层对 AB 无权限**（关键）：`SafetyLayer.protect()` 在 decompose 路径确有调用（`train_env.py:509`），但其输出只回写 **ED** 通道（`train_env.py:522-524`）；`ab_sources` 在 `train_env.py:474-490` 组装完成后**原样**传给动力学（`:528`），安全层只能把 `ab_command` **升级**为 EMERGENCY（`:517-520`），**从不削减已发出的 AB 源**。该函数 docstring 写的"再映射回 (ED, AB)"与实现不符（实现只映射回 ED）→ **文档-代码不一致**。
-- E7 闸门验证离分布：`outputs/logs/diagnostics/log_diag_regress_20260930.json` 字段 `ckpt=outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`—— ADR-018「闸门 1238→783 kN、0 步超限」的验证用的是 **100 集短训玩具 checkpoint**，**不是** 5-seed 生产 checkpoint；而生产训练实测仍到 1429 kN。
+- E7 闸门验证离分布：`outputs/logs/diagnostics/log_diag_regress_20260930.json` 字段 `ckpt=outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt`—— ADR-018「闸门 1238→783 kN、0 步超限」的验证用的是 **100 集短训玩具 checkpoint**，**不是** 5-seed 生产 checkpoint；而生产训练实测仍到 1429 kN。
 - E8 **"value 发散"无测量**：`src/trainer/logger.py:116-121` 只写 6 个 scalar（reward / peak_coupler_kN / violations / total_loss / gap_err_mean / gap_min_m），**无 `value_loss` / `value_norm_mean/std` / `entropy` / `approx_kl`**；CSV/JSON 也只有 4 列（episode, reward, peak_coupler_kN, violations）。`mappo_agent.py` 计算并返回了 `value_loss`/`value_norm_*`（`:538-564`），但**没有被落盘**。→ 该结论目前**不可证伪**。
 
 **推断（I1/I2，未做因果实验，标注为待验证）**：
@@ -391,7 +391,7 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
   - **可下**：5-seed 训练的**可观测**异常是**孤立、自恢复的车钩力破线 episode**（pk 1000–1429 kN，viol 1–1248 车厢·步），**不是**奖励/损失的单调发散；破线相位因 seed 而异，不支持"长训后期统一发散"。
   - **可下**：安全层对 AB 通道**无权限**（E6）且闸门在波起始处静默（I1），是破线可以被"结构性解释"的两个已确认/高置信点。
   - **不可下**：`value_loss` 是否发散——**未落盘**（E8），须先补 X2 才能断言。PPT 问题页"长训后期价值函数发散"的措辞应改为可观测口径，或补测量后再写。
-- **复现命令 / 产物**：本条无新仿真产物（纯既有产物复核）；证据源 = `outputs/logs_final_v2/seed{0..4}.log`、`outputs/logs_final_parallel/seed{0..4}.log`、`outputs/checkpoints_formation/final_seed1_v2/results/metadata.json`。
+- **复现命令 / 产物**：本条无新仿真产物（纯既有产物复核）；证据源 = `outputs/logs/final_v2/seed{0..4}.log`、`outputs/logs/final_parallel/seed{0..4}.log`、`outputs/checkpoints/formation/final_seed1_v2/results/metadata.json`。
 - **状态**：复核完成，"长训后期 value 发散"**不成立**；破线机制待 X1–X4 判别性实验确认。
 
 ---
@@ -400,7 +400,7 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
 
 - **诊断日期**：2026-09-30
 - **主题**：`metadata.json` 里 `env_cfg.consist_preset=10kt_1plus1` 与 `physics.physics.consist_preset=10kt_1plus0` 并存的出处与成因；闭环「诊断-2026-09-30-100ep破线根因」小节标注的待核项。
-- **现象**：读 `outputs/checkpoints_formation/final_seed1_v2/results/metadata.json`（`git_commit=ff745cf`，`physics_version=29569dcaf78a`）：`env_cfg.consist_preset=10kt_1plus1`，但嵌套 `physics.physics.consist_preset=10kt_1plus0`；`simulator_model` 串为
+- **现象**：读 `outputs/checkpoints/formation/final_seed1_v2/results/metadata.json`（`git_commit=ff745cf`，`physics_version=29569dcaf78a`）：`env_cfg.consist_preset=10kt_1plus1`，但嵌套 `physics.physics.consist_preset=10kt_1plus0`；`simulator_model` 串为
   `NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus0|grade=shuozhou_real_53km`，`simulator_model_version` 连带走样。
 - **方法（无新仿真）**：全仓 Grep `consist_preset`（`*.py`，78 处命中）+ 读 `src/metadata.py` / `src/physics_governance.py` / `src/physics_config.py` / `src/trainer/train_runner.py` / `src/evaluation/evaluate_decompose.py` + 读取上述 `metadata.json`。**未运行训练/评估**。
 
@@ -451,7 +451,7 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
 **六、复现命令 / 产物**
 
 - 证据读取（PowerShell，读 metadata；`*.json` 不受 .gitignore 影响）：
-  `Select-String -Path outputs\checkpoints_formation\final_seed1_v2\results\metadata.json -Pattern 'consist'`
+  `Select-String -Path outputs\checkpoints\formation\final_seed1_v2\results\metadata.json -Pattern 'consist'`
 - 全仓读取点枚举：Grep `consist_preset` over `traffic_rl_project/**.py`（78 处命中，零处读 `PhysicsConfig.consist_preset`）。
 - 测试：`python -m pytest tests/test_physics_governance.py -q`（6 passed）。
 - 本条无新仿真数据产物（纯代码溯源 + 单测）。
@@ -484,7 +484,7 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
 | 同上 | 确定性 | off | **761.0** | 0 | 0 | 0 | 45.1 |
 | `final_seed1_v2/last_ep1043` | 确定性 | on | **627.1** | 0 | 0 | 60 | 56.4 |
 | 同上 | 确定性 | off | **627.1** | 0 | 0 | 0 | 56.4 |
-| `checkpoints_ab_gate100/last_ep100` | 确定性 | on | 639.5 | 0 | 0 | 189 | 40.9 |
+| `checkpoints/ab_gate100/last_ep100` | 确定性 | on | 639.5 | 0 | 0 | 189 | 40.9 |
 | 同上 | 确定性 | off | 628.1 | 0 | 0 | 0 | 41.4 |
 | 同上 | **采样** | on | **1165.6** | **22** | 28 | 755 | 31.8 |
 | 同上 | **采样** | off | **1268.9** | **29** | 199 | 0 | 37.9 |
@@ -528,15 +528,15 @@ python run_training.py ... --episodes 6 --resume /tmp/rs3/cp/mappo_fleet_best_de
   2. 「在飞波锁」确证机制但会废掉 AB 杠杆 → 不作解决方案；「削减已发 AB 源」反事实**否定**（恶化）。
   3. 真正可守住 ≤1000 kN 的路径需另找：候选方向 = ①**约束 AB 源的时空分布**（如按列内位置错峰、限制单位长度内的源密度）而非一刀切锁死；②把"新增源"改为**RL 与规则基线共同决定的有界配额**；③在**断面力口径**下对 AB 相关动作做**双层投影**（ED 已投影，AB 未投影）。需另立实验裁决。
   4. 生产 ckpt 的闸门 no-op 结论**限于本 1200 步窗口**（起始 120s/2.6km），不作全域声明。
-- **⚠️ 更正（2026-10-01 同日后补）："53km 全剖面 D-RL vs D-Rule 在现行物理下不存在"的表述作废。** 全仓复查得：D-RL **@53km** 的既有评估在 `outputs/results_decompose/` 有多份（`decompose_m1_*_53km`：`ep841`(5 seed) / `ep1623` / `ep1521` / `best_s0` / `best_s1` / `ep2265`，均 `physics_version=29569dcaf78a`），方向与"缺证据"相反——**`last` 权重守得住红线且不输规则层**（`ep841` 824.6 kN / band 97.1% / 末速 61.2 km/h / reward +221k；`ep1623` 863.5 / 99.7% / 72.0；`ep1521` 928.7 / 99.4% / 64.1；对照规则层 827.5 / 98.4% / 50.5 / −145k）；**破线者皆为"选错权重/训练不足"**（`best` 1682.5/1250.9、`ep120` 1162.1、`ep2265`(seed0 退化 `ab_steps=0`) 1248.0）。仍未重算的只有：**现行断面力口径 + 修好的 viol 计数**下的 M0 / M1(last) 两行，以及 **`--mask_lever ab` 对照**。详见 `DECISIONS.md` ADR-020「更正」行。
+- **⚠️ 更正（2026-10-01 同日后补）："53km 全剖面 D-RL vs D-Rule 在现行物理下不存在"的表述作废。** 全仓复查得：D-RL **@53km** 的既有评估在 `outputs/results/decompose/` 有多份（`decompose_m1_*_53km`：`ep841`(5 seed) / `ep1623` / `ep1521` / `best_s0` / `best_s1` / `ep2265`，均 `physics_version=29569dcaf78a`），方向与"缺证据"相反——**`last` 权重守得住红线且不输规则层**（`ep841` 824.6 kN / band 97.1% / 末速 61.2 km/h / reward +221k；`ep1623` 863.5 / 99.7% / 72.0；`ep1521` 928.7 / 99.4% / 64.1；对照规则层 827.5 / 98.4% / 50.5 / −145k）；**破线者皆为"选错权重/训练不足"**（`best` 1682.5/1250.9、`ep120` 1162.1、`ep2265`(seed0 退化 `ab_steps=0`) 1248.0）。仍未重算的只有：**现行断面力口径 + 修好的 viol 计数**下的 M0 / M1(last) 两行，以及 **`--mask_lever ab` 对照**。详见 `DECISIONS.md` ADR-020「更正」行。
 - **复现命令 / 产物**（WSL，`conda activate traffic_rl`，仓库根 `traffic_rl_project/`）：
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_formation/final_seed0_v2/mappo_fleet_last_ep1043_dec_ad2_cp_seed0_seed0.pt --tag prod_seed0v2 --scenes full,full_nogate,inflight_lock,revoke`
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_formation/final_seed1_v2/mappo_fleet_last_ep1043_dec_ad2_cp_seed1_seed1.pt --tag prod_seed1v2 --scenes full,full_nogate,inflight_lock,revoke`
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_x1 --scenes full,full_nogate`
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_norl --scenes no_rl,no_rl_nogate`
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_stoch --scenes full_nogate --stochastic`
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_stoch_full --scenes full --stochastic`
-  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints_ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_stoch_x4 --scenes full_nogate,inflight_lock_nogate,revoke_nogate,inflight_lock,revoke --stochastic`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/formation/final_seed0_v2/mappo_fleet_last_ep1043_dec_ad2_cp_seed0_seed0.pt --tag prod_seed0v2 --scenes full,full_nogate,inflight_lock,revoke`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/formation/final_seed1_v2/mappo_fleet_last_ep1043_dec_ad2_cp_seed1_seed1.pt --tag prod_seed1v2 --scenes full,full_nogate,inflight_lock,revoke`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_x1 --scenes full,full_nogate`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_norl --scenes no_rl,no_rl_nogate`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_stoch --scenes full_nogate --stochastic`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_stoch_full --scenes full --stochastic`
+  - `python tmp_diag_x1x4.py --ckpt outputs/checkpoints/ab_gate100/mappo_fleet_last_ep100_dec_ad2_cp_seed0_seed0.pt --tag toy100_stoch_x4 --scenes full_nogate,inflight_lock_nogate,revoke_nogate,inflight_lock,revoke --stochastic`
   - 产物（JSON 内含全部逐列明细）：`outputs/logs/diagnostics/log_diag_x1x4_prod_seed0v2_20261001_000346.json`、`..._prod_seed1v2_20260930_235953.json`、`..._toy100_x1_20261001_001608.json`、`..._toy100_norl_20261001_002139.json`、`..._toy100_stoch_20261001_001349.json`、`..._toy100_stoch_full_20261001_001823.json`、`..._toy100_stoch_x4_20261001_002629.json`（各配同名 `.txt` 摘要）。
   - 检查脚本 `tmp_inspect_regress.py` / `tmp_inspect_ckpt.py` 同为临时脚本，**用后已删**。
 - **状态**：X1/X4 完成并落盘；临时脚本已删；结论要求**修订 ADR-018 的效力表述**（闸门在确定性策略上 no-op）——待用户确认后写入 `DECISIONS.md`（本条目不擅自改 ADR）。
