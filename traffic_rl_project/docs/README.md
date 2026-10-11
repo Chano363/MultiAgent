@@ -22,6 +22,7 @@
 | **文献库目录清单（文件→元数据）** | `docs/papers/README.md`（新增文献必登记；含主题分类表 + 待补清单） |
 | 文献 PDF / 信息卡         | `docs/papers/`（重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
 | 规范 / 模板 / checklist  | `docs/rules/`                                                            |
+| 汇报 / 交流材料（杂项）      | `docs/杂项/`（非研究 SSOT 的临时交流文档，如项目介绍 docx）                        |
 | 阶段一历史成果              | 见「归档区」↓                                                                  |
 
 ## 文责治理（强规范，写文档前必读）
