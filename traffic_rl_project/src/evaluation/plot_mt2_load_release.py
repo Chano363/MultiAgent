@@ -7,7 +7,7 @@
           参数取 params.py CouplerParams 默认值；含 dir_sm=tanh(s_e·dv/friction_v_eps)、
           fric_mag=-fric_amp·dir_sm 的方向平滑逻辑。
     曲线2 参考模型：于宗泽2025《重载列车车钩缓冲装置纵向动力学精细化模型》式(1)(2)
-          字面实现 F = F0 + k·x + sgn(v)·μ(|v|)·FN（docs/papers/于宗泽2025_fulltext.txt
+          字面实现 F = F0 + k·x + sgn(v)·μ(|v|)·FN（docs/papers/01_coupler_physics/于宗泽2025_fulltext.txt
           L132-177）：sgn(v) 加载=+1、|v|=0 取 0、卸载=−1；μ Stribeck：|v|=0→μs、
           0<|v|<ver→μs−(μs−μd)·|v|/ver、|v|>ver→μd。参数与现模型完全相同
           （F0=200kN、k=1.89e7 N/m、μd·FN=500kN、μs·FN=750kN、ver=0.2）；

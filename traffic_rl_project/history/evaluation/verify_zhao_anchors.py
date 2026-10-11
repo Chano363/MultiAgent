@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """【验证】赵紫宁 2022 表5-3 循环制动 8 锚点速度曲线复现 + 张二田 S1 统计对照（P0-2）。
 
-数据源 SSOT：`docs/papers/Zhao2022_fig53_velocity_anchors.csv` + 信息卡 §5.2/§5.6。
+数据源 SSOT：`docs/papers/01_coupler_physics/Zhao2022_fig53_velocity_anchors.csv` + 信息卡 §5.2/§5.6。
 编组：2 万吨 1+1 验证编组（2×HXD1 200t + 216×C80 100t，全长 2684 m，见
       `train_env.py CONSIST_PRESETS['20kt_1plus1_validation']`）。
 操纵结构（表 5-3，时序驱动）：

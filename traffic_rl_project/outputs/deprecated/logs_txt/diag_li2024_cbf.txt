@@ -1,4 +1,4 @@
-# SOURCE: D:\Code\MultiAgent\traffic_rl_project\docs\papers\Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf
+# SOURCE: D:\Code\MultiAgent\traffic_rl_project\docs\papers\03_formation\Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf
 # PAGES: 6
 
 Safe Optimal Train Formation Control in Virtual Coupling

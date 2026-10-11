@@ -2,7 +2,7 @@
 ETCS 目标距离超速防护曲线（"真 ATP"）实现。
 
 依据：欧洲铁路局 ERTMS《Introduction to ETCS Braking Curves》
-(ERA_ERTMS_040026 Version 1.5, 2020)，见 docs/papers/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf。
+(ERA_ERTMS_040026 Version 1.5, 2020)，见 docs/papers/04_safety_mpc/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf。
 
 本模块为**车载超速/限速防护曲线（速度监督）**：
 
