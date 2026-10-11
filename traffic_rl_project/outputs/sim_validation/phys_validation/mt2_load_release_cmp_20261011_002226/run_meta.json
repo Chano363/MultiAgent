@@ -1,0 +1,66 @@
+{
+  "timestamp": "20261011_002226",
+  "section": "MT-2 缓冲器准静态加载-缓释阻抗曲线：当前模型 vs 于宗泽2025 参考",
+  "protocol": {
+    "type": "quasi-static load-hold-release, compression positive",
+    "compression_m": "contact point (|e|=gap, x=0) to stroke 83 mm and back",
+    "speed_mps": 0.01,
+    "hold_samples": 3,
+    "hold_speed_mps": 0.0,
+    "dx_m": 0.0001,
+    "vehicle_setup": "x_front=0, v_front=0 fixed; x_back=e-free_length, v_back=+0.01 loading / 0 hold / -0.01 release"
+  },
+  "params": {
+    "stiffness": 18900000.0,
+    "preload_n": 200000.0,
+    "friction_n": 500000.0,
+    "friction_static_n": 750000.0,
+    "friction_v_er": 0.2,
+    "friction_v_eps": 0.05,
+    "unload_stiffness_ratio": 1.0,
+    "coupler_gap_m": 0.01,
+    "stroke_m": 0.083,
+    "rigid_stiffness_nm": 50000000.0,
+    "max_impulse_n": 2270000.0,
+    "free_length_m": 12.0,
+    "damping": 50000.0
+  },
+  "models": {
+    "current": "src/train_dynamics/coupler.py::coupler_force (scalar, real signature): dir_sm=tanh(s_e*dv/friction_v_eps), fric_mag=-fric_amp*dir_sm, contact=tanh ramp, clip [0, 2270 kN]; friction component isolated by re-evaluating with friction_n=0 and friction_static_n=0",
+    "reference": "Yu2025 Eq.(1)-(2) literal: F = F0 + k*x + sgn(v)*mu(|v|)*FN; sgn: loading=+1, |v|=0 -> 0, release=-1; mu Stribeck (|v|=0 -> mu_s, linear to mu_d at v_er); same F0/k/mu as current model; NO saturation clamp and NO non-negativity clamp (literal Eqs. (1)-(2))"
+  },
+  "metrics": {
+    "loading_end_v_abs_mps": 0.01,
+    "loading_end_friction_kn": {
+      "current": 145.5642938628327,
+      "reference": 737.5,
+      "reference_minus_current": 591.9357061371672
+    },
+    "loading_end_total_kn": {
+      "current": 1914.2642642958633,
+      "reference": 2506.2,
+      "reference_minus_current": 591.9357357041367
+    },
+    "last_5mm_of_loading_delta_kn": {
+      "current": 94.50005476319814,
+      "current_direction": "rise",
+      "reference": 94.5,
+      "reference_direction": "rise",
+      "note": "F(83mm) - F(78mm) on the loading branch, |v| = 0.01 m/s"
+    },
+    "stop_at_83mm_v0_delta_kn": {
+      "current": -145.5642938628327,
+      "current_direction": "fall",
+      "reference": -737.5,
+      "reference_direction": "fall",
+      "note": "F(v=0 hold) - F(last loading point, |v|=0.01 m/s); tests the dv->0 friction-vanishing hypothesis"
+    },
+    "hysteresis_area_kn_mm": {
+      "current": 23193.30727683413,
+      "reference": 122425.00000000003,
+      "reference_over_current": 5.278462383080666
+    }
+  },
+  "figure": "outputs/sim_validation/figures/mt2_coupler/mt2_load_release_comparison.png",
+  "note": "回应导师\"装载缓释曲线太理想\"的定量诊断；仅新增绘图脚本，未修改 src/ 物理逻辑。"
+}

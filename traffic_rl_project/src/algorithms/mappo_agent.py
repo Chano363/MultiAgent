@@ -504,6 +504,10 @@ class MAPPOAgent(BaseRLAgent):
         total_entropy = 0.0
         total_grad_norm = 0.0
         approx_kl = 0.0  # 【2026-09-30 X2】末轮 KL（epochs=0/早停不触发时保持 0）
+        # 【2026-10-08 修复】真实优化器 step 计数：旧分母 = epochs×ceil(len/batch)，
+        # 与实际步数不符——KL 早停触发时实际步数更小 → 上报 loss/entropy/grad_norm
+        # 被稀释（均值口径失真，PIPELINE 并行零碎项）。改为逐 step 计数，早停/尾批天然正确。
+        num_minibatch_steps = 0
 
         for epoch in range(self.epochs):
             indices = np.random.permutation(len(states))
@@ -616,6 +620,7 @@ class MAPPOAgent(BaseRLAgent):
                 total_policy_loss += policy_loss.item()
                 total_value_loss += value_loss.item()
                 total_entropy += entropy.item()
+                num_minibatch_steps += 1
 
             # per-agent KL（batch × agents 平均），避免联合 log_prob 求和导致 KL 被 N 倍放大
             # 【2026-09-19 治本②】收紧早停阈值：1.5→1.2（0.015→0.012），终段不再放任
@@ -632,7 +637,7 @@ class MAPPOAgent(BaseRLAgent):
         self.training_step += 1
         self._clear_buffer()
 
-        num_updates = self.epochs * max((len(states) + self.batch_size - 1) // self.batch_size, 1)
+        num_updates = max(num_minibatch_steps, 1)
         return {
             'total_loss': (total_policy_loss + total_value_loss) / num_updates,
             'policy_loss': total_policy_loss / num_updates,

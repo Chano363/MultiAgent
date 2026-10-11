@@ -26,6 +26,8 @@ tmp_*.py
 tmp_*.sh
 tmp_*.ps1
 tmp_*.bat
+# doc-init 扫描中间产物（2026-10-08）
+.doc-init-*.json
 
 # 项目特定
 prompts.md

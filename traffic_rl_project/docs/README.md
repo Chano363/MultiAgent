@@ -7,6 +7,7 @@
 
 | 想找                   | 去哪                                                                       |
 | -------------------- | ------------------------------------------------------------------------ |
+| **代码知识库（改码前速查）**     | `docs/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` · `TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` · `RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` · `MPC_BASELINE_KNOWLEDGE_BASE.md` |
 | 项目总览 / 任务清单 / 下一步    | `docs/PROJECT_PIPELINE.md`                                               |
 | 研究定位 / 创新点 / 文献库     | `docs/RESEARCH_POSITIONING.md`                                           |
 | **技术/公式 → 论文 引用索引**  | `docs/REFERENCE_INDEX.md`（写作速查）                                    |
@@ -51,6 +52,10 @@
 
 | 文档                                | 角色                           | 状态     |
 | --------------------------------- | ---------------------------- | ------ |
+| `TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` | 代码知识库：列车动力学仿真引擎             | active |
+| `TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` | 代码知识库：编队训练环境与安全层           | active |
+| `RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` | 代码知识库：RL 训练评估框架            | active |
+| `MPC_BASELINE_KNOWLEDGE_BASE.md`  | 代码知识库：MPC 对比基线（NMPC）        | active |
 | `PROJECT_PIPELINE.md`             | 总览+工作计划                      | active |
 | `RESEARCH_POSITIONING.md`         | 定位+文献库                       | active |
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |

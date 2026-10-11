@@ -1148,3 +1148,27 @@ python src/trainer/train_fleet.py --hierarchical --curriculum 300-1000-3000 --gr
 - **待办**：① **先查明硬安全层 `enforce_coupler` 为何未把全剖面峰值钉在 ≤1000 kN**（RL 臂实测 1149–1168 kN，而 `use_coupler_constraint` 默认 True ⇒ 安全层名义上启用却未兜住；此点直接决定"峰值该不该由 RL 学"的定位，**推断待验证**）；② 改地平线至 **≥2500–3000 步（≥ AB 充风 222 s）**对照重训（切片不可替代）；`entropy_coef` 退火 / `log_std` 上限收窄；修 `num_updates` 计量；下游省时只动 `long_eval_interval` / 总 episode。
 
 <!-- 该文档整理/压缩于 2026-10-01 -->
+
+### [P1] 实验计划定稿（obs12 之后）：安全层诊断 → 受控基线 → obs12 对照 → 文献候选迭代 → 终局主训练 - 2026-10-08
+
+- **状态**：计划已定（依据 = ADR-030 三原则 + 「Pilot 裁决-2026-10-08」），**自 Step 0 起执行**
+- **前置口径**：obs12（AB 充风计时进观测，`obs_dim 11→12`）**代码已落地 + 32 测试 + 冒烟通过**，未做受控对照；pilot A/B2/C 裁决与口径修正见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「Pilot 裁决-2026-10-08」。
+- **Step 0 安全层诊断（先行，零训练成本）**：查明 `enforce_coupler` 名义启用（`use_coupler_constraint=True`）为何兜不住全剖面峰值（恒 1112–1168 kN，pilot C 亦 1112）。两假设：**A** 钳动作钳不住已发展的车钩力（力是状态量 ⇒ 立论"硬安全层 ≤1000"叙事需重表述）；**B** decompose 路径未真启用/有 bug。裁决追加至本文档。
+- **Step 1 受控基线规格（ADR-030 ②）**：冻结 commit；**3 训练 seed**；统一症状指标 = 全剖面 viol/peak/band/gap_min/追尾 + 训练侧 value_loss/KL/log_std。基线组二选一（**待拍板**）：**路线甲** = pilot C 配置为基线（250 s 窗 + `log_std_max=0` + lr 2e-5 + ValueNorm decay），变量组仅加 obs12（归因最干净）；**路线乙** = 严守 ADR-017 短窗 1200 步，变量组仅加 obs12（合 ADR-030 原文，但 120 s 窗内考不到破线，症状差异可能测不出）。
+- **Step 2 跑基线组（3 seed，全 episode 预算）**：拿正常波动带宽（补 ADR-030 指出的"无可信基线"缺口）。
+- **Step 3 obs12 对照（唯一变量）**：对比 Step 2 带宽，超出种子噪声才算改善；无差异则归档转下一候选。
+- **Step 4 文献候选逐个迭代（ADR-030 清单，一次一个变量）**：② Hu2026 Mamba 序列模块 → ④ 课程式奖励权重 + 优先经验回放 → ③ Wang2026 分层/空间分段（改动最大，最后）。
+- **Step 5 终局**：最优配置 × 5 seed × 1400 ep（主 YAML）→ 论文主表 vs NMPC（Regime A、逐线 b0 标定，`--mpc_type nmpc`）。MPC 线已基本就位（MPC+规则层全剖面 967 kN / viol 0，图 `nmpc_innerrule_vs_bare_53km.png`）。
+- **并行零碎**：`num_updates` 计量修复（`mappo_agent.py:617` floor/ceil，纯上报口径）；MPC 公平基线程度（tasks.md #1，独立讨论）。
+- **执行留痕**：各步裁决 append 至本文档；诊断细节入 `DIAGNOSTICS_2026-10.md`。
+- **Step 0 裁决（2026-10-08 当日完成）**：假设 B（接线 bug）**排除**——三层防护真实生效（感知缩放 / RL 新增源预测闸门 / 充风门，断面力口径统一）。假设 A **成立（主导）**：感知式钳制看当前力，拦不住 AB 波传播 ~5s 滞后峰值，已建立源不撤销（文档已认，`multi_loco_controller.py` L312-315/L340-348/L366-370）。**伴生缝隙（新发现）**：规则基线自身 AB 兜底（`ed_avail<0.99 → -0.75 档`，L227-229）**不过预测闸门/并发限制** ⇒ ED 耗尽段规则层自己持续追加 AB 源，其滞后峰值即破线主嫌（与峰值跨配置恒定、pilot C RL 收敛后仍 1112 吻合；MPC+规则层行 967 达标反衬）。⇒ "peak 该不该由 RL 学"有了答案候选：**可能根本是规则基线结构性产物**。**新增 Step 0.5（建议先于 Step 1 规格冻结）**：单种子快验（pilot C 配置 + 预测闸门/并发限制覆盖规则基线新增源），裁决缝隙是否即峰值来源。详见 `DIAGNOSTICS_2026-10.md`「安全层诊断-2026-10-08」。
+- **Step 0.5 前置证据更新（2026-10-08 傍晚）**：MPC 行轨迹分析**反驳「AB 兜底主嫌」**（AB 期间峰仅 693 kN、>800 kN 全在 AB=0；MPC 行 967 是末步边界回弹而非全程峰值）——safegate 快验照跑（裁决效力不变），预期下调；**簇间一致性差（gap_err 105 vs 29.5 m）升至 RL 症状榜首**。详见 DIAGNOSTICS「MPC vs RL 破线差异分析-2026-10-08」。另：
+um_updates 计量修复已落地（真实优化器步数计数，治 KL 早停稀释，71 测试绿）；任务 2（RESEARCH_POSITIONING §1.2 限定）**阻塞**——docs/RESEARCH_POSITIONING.md 等 5 文档在工作区呈已删未提交状态，待用户裁决恢复。
+- **状态修正（2026-10-08 晚）**：docs/ 5 文档删除系用户误删，**已恢复**（git checkout，diff 核实无半成品改动残留）；任务 2（RESEARCH_POSITIONING §1.2 claim 收窄段）**已完成**，ADR-030 待办销项。
+- **Step 1 受控基线规格（路线甲，已拍板）**——冻结前置 = safegate 快验裁决（跑完即冻结）：
+  - **代码冻结**：当前改动集（① 基线 AB 源补闸门 ② num_updates 真实步数计数）。safegate 通过 → 纳入；不通过且有害 → revert ①再冻结（基线代码不得含未验证改动）。
+  - **受控档位（3×30 ep，小时级）**：基线组 B = pilot C 配置（--override curriculum=2500:0 --override algo_params.log_std_max=0 + --episodes 30），变量组 V = B + --override env_cfg.use_obs12=true（**以代码实参名为准，启动前核对**）。3 训练 seed {0,1,2}。产物 outputs/checkpoints/formation/ctrl_base_seed{n} / ctrl_obs12_seed{n}；各跑全剖面评估 --n_seed 3。
+  - **裁决规则**：V 相对 B 的改善须超出 3-seed 组间带宽（各指标 min–max 跨度）才算数；无差异 → 归档转 ADR-030 候选②（Mamba 序列模块）。
+  - **扩档**：胜者配置才进 Step 5 终局（5 seed × 1400 ep）；受控档不做全量训练，控成本。
+- **Step 0.5 裁决（2026-10-09）**：**通过**——peak 1112→990.3 kN（2/3 seed <1000）、viol 144→1.67、band 98.05%、gap_min 80.4 m、追尾 0。闸门补齐 + num_updates 修复**纳入基线代码**，冻结。机制修正与细节见 DIAGNOSTICS「Step 0.5 快验裁决-2026-10-09」。
+- **下一步（即刻）**：Step 1 受控组启动——基线组 B（3 seed × 30 ep，pilot C 配置 + 闸门代码）与变量组 V（+obs12，键名启动前核对代码），串行 nohup 链；产物 ctrl_base_seed{n} / ctrl_obs12_seed{n}。

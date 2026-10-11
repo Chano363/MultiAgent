@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8">
+<meta content="width=device-width,initial-scale=1" name="viewport">
+<title>面向长大下坡的重载列车群组自动控制 · 组会汇报</title>
+<style>
+/* ===== Anthropic 学术风格：暖羊皮纸 + 衬线正文 + 陶土点缀 ===== */
+:root{
+  --slate:#141413;--iv-med:#e9e5da;--iv-bg:#f2f0ea;--iv-card:#faf9f5;--cloud:#8d8b83;
+  --stone:#d3d1c9;--oat:#e3dacc;--manilla:#f1e1c3;--clay:#bd6a47;--clay-deep:#a85a39;
+  --serif:'Georgia','Songti SC','SimSun',serif;--sans:'Segoe UI','Microsoft YaHei',sans-serif;
+  --pad-x:72px;--pad-y:56px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#d8d6cf;overflow:hidden;font-family:var(--serif)}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#canvas{width:1280px;height:720px;flex:0 0 auto;background:var(--iv-bg);overflow:hidden;transform-origin:center center;box-shadow:0 10px 60px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.08)}
+/* Slide base — 绝对定位铺满画布，禁止 slide 级 position 覆盖 */
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .45s cubic-bezier(.2,.7,.2,1),visibility .45s;background:var(--iv-bg);padding:var(--pad-y) var(--pad-x);display:grid}
+.slide.active{opacity:1;visibility:visible}
+/* Chrome */
+.chrome-top{position:absolute;top:0;left:0;right:0;height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 var(--pad-x);font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--cloud);z-index:30;pointer-events:none}
+.chrome-bottom{position:absolute;bottom:0;left:0;right:0;height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 var(--pad-x);font-family:var(--sans);font-size:12px;letter-spacing:.06em;color:var(--cloud);z-index:30;pointer-events:none}
+.dots{position:absolute;right:var(--pad-x);bottom:52px;display:flex;gap:6px;z-index:40;pointer-events:none}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--stone);display:block}
+.dots i.on{background:var(--clay);transform:scale(1.35)}
+/* 文字 */
+.kicker{font-family:var(--sans);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--clay);font-weight:600}
+.h-1{font-size:42px;line-height:1.14;font-weight:600;color:var(--slate);margin-top:8px}
+.lead{font-size:19px;line-height:1.55;color:#6b6a64;max-width:56ch}
+.h-display{font-size:96px;line-height:.96;font-weight:300;color:var(--slate);letter-spacing:-.02em}
+.tag{font-family:var(--sans);font-size:11px;letter-spacing:.08em;color:var(--clay);text-transform:uppercase;font-weight:600}
+/* 卡片 */
+.card{background:var(--iv-card);border:1px solid var(--stone);border-radius:20px;padding:16px 20px}
+.card h4{font-size:20px;color:var(--slate);font-weight:600;margin-bottom:8px}
+.card p{font-size:18px;line-height:1.55;color:#55544f}
+.card p.dim{color:var(--cloud);font-size:16px}
+.feature{background:var(--manilla);border-radius:20px;padding:22px 24px}
+/* 表格 */
+.t{width:100%;border-collapse:collapse;font-family:var(--sans);font-size:17px}
+.t th,.t td{padding:7px 9px;text-align:left;border-bottom:1px solid var(--stone)}
+.t th{font-size:14px;letter-spacing:.05em;color:var(--cloud);font-weight:600;text-transform:uppercase}
+.t td.num{font-variant-numeric:tabular-nums;text-align:right}
+.t thead th.num{text-align:center}
+.t tr.hl td{background:rgba(189,106,71,.06)}
+.up{color:var(--clay-deep);font-weight:600}.dn{color:#7d3a24;font-weight:600}
+/* free 布局 */
+.free-head{display:grid;grid-template-columns:auto 1fr;align-items:end;gap:24px}
+.free-head .lead{justify-self:end;align-self:end;max-width:48ch}
+.free-body{margin-top:20px;}
+.free-cols-2{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:stretch}
+.free-cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px;align-items:stretch}
+.free-cols-3 .card,.free-cols-2 .card{height:100%;display:flex;flex-direction:column}
+/* 决策流程 */
+.flow{display:flex;flex-direction:column}
+.step{display:flex;gap:14px;align-items:flex-start}
+.st-num{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--slate);color:#fff;font-family:var(--sans);font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.st-body{flex:1;border-left:3px solid var(--stone);padding:2px 0 2px 16px}
+.st-body h4{font-size:18px;color:var(--slate);margin:0 0 4px}
+.st-body p{font-size:16.5px;line-height:1.5;color:#55544f;margin:0}
+.st-arrow{text-align:center;color:var(--clay);font-size:16px;line-height:1;padding:2px 0 2px 17px}
+/* 第5页 steps 紧凑化（仅.flow 加 pg5-flow 时生效，不影响第8页流程） */
+.pg5-flow{gap:1px}
+.pg5-flow .st-body{padding:1px 0 1px 12px;border-left-width:2px}
+.pg5-flow .st-body h4{font-size:15px;margin-bottom:2px;line-height:1.2}
+.pg5-flow .st-body p{font-size:13.5px;line-height:1.32;color:#55544f}
+.pg5-flow .st-num{width:26px;height:26px;font-size:13px;margin-top:0}
+.pg5-flow .st-arrow{font-size:12px;padding:1px 0 1px 13px;line-height:1}
+/* 架构 */
+.arch-node{border:1px solid var(--stone);background:var(--iv-card);border-radius:16px;padding:12px 16px;margin-bottom:10px}
+.arch-node h4{font-size:17px;color:var(--clay);margin-bottom:6px;font-family:var(--sans);font-weight:600}
+.arch-node .chips{display:flex;gap:8px;flex-wrap:wrap}
+.arch-node .chips span{font-size:15px;color:#55544f;background:var(--iv-bg);border:1px solid var(--stone);padding:4px 10px;border-radius:10px;font-family:var(--sans)}
+.arch-arrow{text-align:center;color:var(--clay);font-size:19px;line-height:1;margin:2px 0}
+/* 图 */
+.img{border:1px solid var(--stone);border-radius:18px;background:var(--iv-card);padding:8px}
+.img img{width:100%;height:auto;display:block;border-radius:12px}
+.imgcap{font-family:var(--sans);font-size:16px;color:var(--cloud);text-align:center;margin-top:8px}
+/* 指标 */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--stone);border:1px solid var(--stone);border-radius:18px;overflow:hidden}
+.metric{background:var(--iv-card);padding:26px 20px;display:flex;flex-direction:column;gap:6px}
+.metric b{font-size:48px;font-weight:300;color:var(--slate);font-family:var(--sans);letter-spacing:-.02em}
+.metric i{font-size:16px;font-style:normal;color:var(--cloud)}
+/* 取出 */
+.take{display:grid;grid-template-columns:auto 1fr;gap:20px;padding:16px 0;border-bottom:1px solid var(--stone);align-items:center}
+.take:last-child{border-bottom:none}
+.take .num{font-family:var(--sans);font-size:42px;font-weight:300;color:var(--clay)}
+.take h4{font-size:22px;color:var(--slate);font-weight:600;margin-bottom:6px}
+.take p{font-size:17px;color:#55544f;line-height:1.5;margin:0}
+/* 小结带 */
+.emphasis{margin-top:20px;padding:16px 20px;border-left:5px solid var(--clay);background:var(--manilla);border-radius:0 16px 16px 0;font-size:20px;line-height:1.55;color:var(--slate)}
+.emphasis b{color:var(--clay-deep)}
+/* 风险 */
+.risk{border:1px solid var(--stone);border-left:4px solid var(--clay);background:var(--iv-card);border-radius:14px;padding:12px 16px;margin-bottom:10px}
+.risk h4{font-size:18px;color:var(--clay-deep);margin-bottom:6px;font-family:var(--sans)}
+.risk p{font-size:16px;line-height:1.5;color:#55544f;margin:0}
+/* agenda */
+.agenda-list{display:flex;flex-direction:column}
+.agenda-item{display:grid;grid-template-columns:60px 1fr auto;gap:20px;padding:18px 0;border-bottom:1px solid var(--stone);align-items:baseline}
+.agenda-item:last-child{border-bottom:none}
+.agenda-item .idx{font-family:var(--sans);font-size:24px;font-weight:300;color:var(--clay)}
+.agenda-item .name{font-size:30px;font-weight:500;color:var(--slate)}
+.agenda-item .en{font-family:var(--sans);font-size:15px;color:var(--cloud)}
+/* 封面 */
+.s-cover{grid-template-rows:1fr auto;padding:56px var(--pad-x) 40px}
+.cover-main{align-self:center;text-align:left;max-width:1160px}
+.cover-zh{font-size:66px;line-height:1.2;font-weight:400;color:var(--slate)}
+.cover-sub{margin-top:24px;font-size:19px;line-height:1.7;color:#6b6a64;max-width:70ch}
+.cover-meta{display:grid;grid-template-columns:repeat(2,max-content);gap:64px;padding-top:22px;border-top:1px solid var(--stone)}
+.cover-meta div label{display:block;font-family:var(--sans);font-size:15px;letter-spacing:.1em;color:var(--cloud);text-transform:uppercase}
+.cover-meta div strong{font-size:26px;color:var(--slate);font-weight:600;font-family:var(--sans)}
+/* 结尾 */
+.s-close{grid-template-columns:1fr 1fr;padding:0}
+.close-left{background:var(--slate);color:#faf9f5;padding:56px 40px 40px 56px;display:flex;flex-direction:column;justify-content:space-between}
+.close-right{background:var(--iv-bg);padding:56px 56px 40px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.close-left h2{font-size:64px;line-height:.98;font-weight:300;margin-top:14px}
+.close-left .csub{font-size:15px;color:#b0aea5;margin-top:14px}
+.close-left .clay{color:var(--clay)}
+/* 仅供参考横幅（旧仿真器结果，重训中） */
+.prelim{display:flex;gap:12px;align-items:flex-start;padding:11px 16px;border:1px dashed #c98a5f;border-left:5px solid #bd6a47;background:#f6e5c4;border-radius:12px;font-family:var(--sans);font-size:16px;line-height:1.6;color:#7d4a2c;margin-top:14px}
+.prelim::before{content:'⚠';font-size:16px;line-height:1;flex-shrink:0;margin-top:1px}
+.prelim b{color:#a85a39}
+/* 方法图例颜色 */
+.legend{border:1px solid var(--stone);border-radius:16px;background:var(--iv-card);padding:14px 16px}
+.legend .lg-title{font-family:var(--sans);font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--clay);font-weight:600;margin-bottom:8px}
+.legend table{border-collapse:collapse;width:100%}
+.legend td{padding:6px 8px;font-size:15.5px;vertical-align:top;line-height:1.45;border-bottom:1px solid var(--stone);color:#55544f}
+.legend tr:last-child td{border-bottom:none}
+.legend td.m{font-weight:600;color:var(--slate);white-space:nowrap;width:120px;font-family:var(--sans);font-size:15px}
+/* slide6 架构图高度约束 */
+.s6-img{padding:0;background:transparent;border:none}
+.s6-img img{height:320px;width:auto;max-width:100%;object-fit:contain;display:block;margin:0 auto;border:1px solid var(--stone);border-radius:12px;background:var(--iv-card)}
+/* 幻灯片10 主结果页紧凑排版 */
+.s10 .t th,.s10 .t td{padding:5px 9px}
+.s10 .free-body{margin-top:12px}
+/* 仿真器建模页紧凑布局 */
+.s6 .arch-node{padding:6px 10px;margin-bottom:5px}
+.s6 .arch-arrow{margin:0}
+.s6 .arch-node .t{font-size:14px}
+.s6 .arch-node .t td{padding:3px 7px}
+.s6 .feature{padding:8px;margin-top:6px}
+/* 动画 */
+.stagger>*{opacity:1;transform:none}
+.slide.active .stagger>*{animation:rise .6s cubic-bezier(.2,.7,.2,1) backwards}
+.slide.active .stagger>*:nth-child(1){animation-delay:.02s}
+.slide.active .stagger>*:nth-child(2){animation-delay:.10s}
+.slide.active .stagger>*:nth-child(3){animation-delay:.18s}
+.slide.active .stagger>*:nth-child(4){animation-delay:.26s}
+.slide.active .stagger>*:nth-child(5){animation-delay:.34s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.nav-note{font-family:var(--sans);font-size:14px;color:var(--cloud)}
+</style>
+</head>
+<body>
+<div id="stage"><div id="canvas" style="transform: scale(0.869531);">
+<!-- ===================== 1 封面 T01 ===================== -->
+<section class="slide s-cover">
+<div class="cover-main">
+<div class="stagger">
+<div class="cover-zh" style="margin-top:20px">
+        面向长大下坡场景基于<br>多智能体强化学习的<br>重载列车群组自动控制方法
+      </div>
+</div>
+</div>
+<div class="cover-meta">
+<div><label>汇报人</label><strong>陈康博</strong></div>
+<div><label>日 期</label><strong>2026-08-31</strong></div>
+</div></section>
+<!-- ===================== 2 议程 T02 ===================== -->
+<section class="slide" style="grid-template-columns:330px 1fr; gap:72px; align-items:center">
+<div class="stagger">
+<span class="kicker">Table of Contents</span>
+<h1 class="h-1" style="font-size:48px; margin-top:16px">汇报大纲</h1>
+<p class="lead" style="margin-top:20px">围绕长大下坡场景下重载列车群组的协同控制，依次介绍研究问题、方法设计、实验结果与待决问题。</p>
+</div>
+<div class="agenda-list stagger">
+<div class="agenda-item"><span class="idx">01</span><span class="name">问题与难点</span><span class="en">Challenge</span></div>
+<div class="agenda-item"><span class="idx">02</span><span class="name">方法：自研仿真器与分层控制</span><span class="en">Method</span></div>
+<div class="agenda-item"><span class="idx">03</span><span class="name">实验结果与验证</span><span class="en">Results</span></div>
+<div class="agenda-item"><span class="idx">04</span><span class="name">待决问题，请老师定优先级</span><span class="en">Open Questions</span></div>
+</div>
+</section>
+<!-- ===================== 3 研究背景与问题 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">01 / Challenge</span><h1 class="h-1">研究背景与问题</h1></div>
+</div>
+<div class="free-body stagger" style="display:grid; grid-template-columns:1.05fr 1fr; gap:28px; align-items:start; margin-top:22px">
+<div style="display:flex; flex-direction:column; gap:12px">
+<div class="card"><h4>海拔与坡度</h4><p>长大下坡（朔黄线主坡 −10.9‰）不能依靠牵引调速，只能采用<b>循环空气制动</b>——调速具有非对称性，只能减速、难以自由加速。</p></div>
+<div class="card"><h4>长车列与车钩力</h4><p>万吨列车长约 1.2 km（101 节），制动/缓解指令沿车列以有限波速传播，造成<b>纵向冲动与车钩力</b>（约束 ≤1000 kN）。</p></div>
+<div class="card"><h4>多列编队防追尾</h4><p>多列车虚拟编队运行时，后车需同时控制速度与车间距；各车独立制动的相位错开可能导致<b>追尾</b>。</p></div>
+</div>
+<div class="img">
+<svg style="width:100%; height:auto" viewBox="0 0 500 296">
+<rect fill="#f2f0ea" height="296" width="500"></rect>
+<defs><linearGradient id="sky2" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#eae4d6"></stop><stop offset="1" stop-color="#f2f0ea"></stop></linearGradient></defs>
+<rect fill="url(#sky2)" height="296" width="500"></rect>
+<line stroke="#d3d1c9" stroke-width="1.5" x1="28" x2="472" y1="252" y2="252"></line>
+<path d="M 60 228 L 200 208 L 340 242 L 468 220" fill="none" stroke="#96713f" stroke-width="3"></path>
+<g fill="#96713f" opacity=".9">
+<rect height="14" rx="1" width="9" x="118" y="188"></rect><rect height="14" rx="1" width="9" x="129" y="188"></rect><rect height="14" rx="1" width="9" x="140" y="188"></rect>
+<rect height="14" rx="1" width="9" x="372" y="220"></rect><rect height="14" rx="1" width="9" x="383" y="220"></rect><rect height="14" rx="1" width="9" x="394" y="220"></rect>
+</g>
+<g fill="#55544f" font-family="Georgia" font-size="13">
+<text x="108" y="182">本务机车</text>
+<text x="330" y="212">后续列车</text>
+</g>
+<line stroke="#bd6a47" stroke-dasharray="5 4" stroke-width="2" x1="70" x2="192" y1="236" y2="236"></line>
+<text fill="#bd6a47" font-size="13.5" x="86" y="266">−10.9‰ 长大下坡段</text>
+<text fill="#8d8b83" font-size="12" x="200" y="166">朔黄线 全长约 23.8 km</text>
+<text fill="#8d8b83" font-size="12" x="350" y="158">多列车虚拟编队</text>
+<path d="M 388 164 L 398 200" fill="none" stroke="#8d8b83" stroke-dasharray="3 3" stroke-width="1.2"></path>
+</svg>
+<div class="imgcap">长大下坡线路剖面与多列编队示意</div>
+</div>
+</div>
+</section>
+<!-- ===================== 4 问题与难点：耦合约束 + 现有空白 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">01 / Challenge</span><h1 class="h-1">问题与难点：耦合约束与现有空白</h1></div>
+</div>
+<div class="free-body stagger">
+<div class="free-cols-3" style="gap:18px; margin-top:12px">
+<div class="card" style="padding:12px 16px; border-top:4px solid #96713f"><h4>长大下坡 ↔ 循环制动</h4><p>只能减速、难以自由加速，调速具有非对称性。</p></div>
+<div class="card" style="padding:12px 16px; border-top:4px solid #96713f"><h4>循环制动 ↔ 车钩力</h4><p>制动波/缓解波传播造成纵向冲动，车钩力可能超限（≤1000 kN）。</p></div>
+<div class="card" style="padding:12px 16px; border-top:4px solid #bd6a47"><h4>多车间距 ↔ 循环制动</h4><p>后车无法预知前车制动意图，独立制动相位错开可能导致追尾。</p></div>
+</div>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:2px 14px; margin-top:14px">
+<table class="t" style="font-size:14.5px">
+<thead><tr><th>现有研究方向</th><th>通常做法</th><th>盲点（对本场景不够）</th></tr></thead>
+<tbody>
+<tr><td><b>单列车长下坡自动驾驶</b></td><td>强化学习学循环制动调速</td><td class="dn">把整列车当单个质点，忽略车钩力</td></tr>
+<tr><td><b>虚拟编队 / 车队协同</b></td><td>多智能体协作保持队形</td><td class="dn">面向城轨/汽车，无车钩力，假设可自由加减速</td></tr>
+<tr><td><b>单列车车钩力优化</b></td><td>行车曲线优化、满足车钩力约束</td><td class="dn">仅单列车、依赖精确模型，未扩到多列协同</td></tr>
+</tbody>
+</table>
+</div>
+<div class="emphasis" style="margin-top:14px">尚无研究同时兼顾<b>多列编队、长大下坡与显式车钩力建模</b>；本研究聚焦<b>多列编队协同控制</b>，直指这一交叉空白。</div>
+</div>
+</section>
+<!-- ===================== 6 方法总览：分层架构 + 决策流程 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">02 / Method</span><h1 class="h-1" style="font-size:28px; line-height:1.15; margin-top:4px">方法：分层架构</h1></div>
+</div>
+<div class="free-body stagger" style="display:grid; grid-template-columns:0.9fr 1.35fr; gap:22px; align-items:start; margin-top:10px">
+<div class="flow pg5-flow">
+<div class="step"><div class="st-num">①</div><div class="st-body"><h4>状态观测 o<sub>i</sub>（11 维 · 每 dt=0.1s 控制步）</h4><p>速度/间距误差 · 车钩力 · 位置 · 尾部坡度 · 前车速度与制动强度</p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">②</div><div class="st-body"><h4>第 2 层 · MAPPO（宏观 · 协同）</h4><p>输出阈值偏移 c<sub>adj</sub> ∈ [−1,1] → 映射带偏 v<sub>adj</sub> = 0.3·c<sub>adj</sub>·5 km/h（错峰制动防追尾）</p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">③</div><div class="st-body"><h4>第 1 层 · 规则循环制动（调速）</h4><p>速度带滞回：v ≥ v<sub>max</sub>+v<sub>adj</sub> → 制动；v ≤ v<sub>min</sub>+v<sub>adj</sub> → 缓解。长大下坡只降不升，靠制动把速度夹回带内</p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">④</div><div class="st-body"><h4>安全层 · ATP 硬约束（保护层）</h4><p>限速 ≤ v<sub>max</sub> · |F<sub>c</sub>| ≤ 1000 kN · 列车间距 ≥ d<sub>min</sub> —— 喂给动力学前修正动作（纯规则、无学习参数）</p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">⑤</div><div class="st-body"><h4>多体纵向动力学（101 质点 · Newmark-β）</h4><p>牵引 − 阻力 − 制动 − 坡度 + 车钩力 + 制动/缓解波传播</p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">⑥</div><div class="st-body"><h4>奖励回报 R<sub>t</sub> + 下一状态 → 返回 ①</h4><p>闭环迭代，直到 3000 步评估结束</p></div></div>
+</div>
+<div>
+<div class="img s6-img" style="padding:10px; background:var(--iv-card); border:1px solid var(--stone); border-radius:12px">
+<img alt="分层 MARL 框架" src="train-marl-talk/assets/arch_layer_mar.svg" style="height:auto; width:100%; max-height:500px; object-fit:contain; display:block; margin:0 auto">
+</div>
+</div>
+</div>
+</section>
+<!-- ===================== 7 仿真器建模 ===================== -->
+<section class="slide s-free-single s6">
+<div class="free-head stagger">
+<div><span class="kicker">02 / Simulator</span><h1 class="h-1">自研仿真器：建模与文献对齐</h1></div>
+</div>
+<div class="free-body stagger" style="display:grid; grid-template-columns:1fr 1.05fr; gap:22px; align-items:start">
+<div>
+<div class="arch-node"><h4 style="font-size:15px">输入</h4><p style="font-size:14px; margin:6px 0 0; color:#55544f">线路剖面（朔黄 23.8 km / 换线 20 km）、编组 1 机车 + 100 货车（万吨）、控制指令 throttle∈[−1,1]。</p></div>
+<div class="arch-arrow">▼</div>
+<div class="arch-node"><h4 style="font-size:15px">物理建模</h4><p style="font-size:14px; margin:6px 0 0; color:#55544f">车钩缓冲器为 MT-2 摩擦迟滞模型（于宗泽 2025）；制动力按实算法制动缸压力升压分档（李蔚 2023），制动/缓解波沿 101 节车列并行传播 200 m/s（Zhang 2025）；运行阻力为标准 Davis 形式（Tang 2020 / Fu 2019），坡度分段线性剖面（樊运新 2024）。</p></div>
+<div class="arch-arrow">▼</div>
+<div class="arch-node"><h4 style="font-size:15px">积分求解</h4><p style="font-size:14px; margin:6px 0 0; color:#55544f">Newmark-β 隐式积分（Newmark 1959），dt = 0.01 s，逐节输出速度 / 位置 / 车钩力 / 加速度。</p></div>
+</div>
+<div>
+<div class="feature" style="text-align:center; font-size:21px; padding:16px">
+m<sub>i</sub> ẍ<sub>i</sub> = F<sub>t,i</sub> − F<sub>r,i</sub> − F<sub>b,i</sub> − F<sub>g,i</sub> + F<sub>c,i−1</sub> − F<sub>c,i</sub>
+<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px 20px; margin-top:10px; font-size:14.5px; color:#55544f; text-align:left">
+<span>m<sub>i</sub>：第 i 节车质量</span><span>ẍ<sub>i</sub>：加速度</span><span>F<sub>t</sub>：牵引力</span><span>F<sub>r</sub>：运行阻力</span><span>F<sub>b</sub>：制动力</span><span>F<sub>g</sub>：坡度分力</span><span>F<sub>c,i±1</sub>：前/后钩车钩力</span>
+</div>
+</div>
+<p class="nav-note" style="margin:12px 0 6px; color:var(--clay-deep); font-weight:600; font-size:15px">与文献对齐</p>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:5px 12px">
+<table class="t" style="font-size:14px">
+<thead><tr><th>基准</th><th>文献工况</th><th class="num">仿真</th><th class="num">文献值</th><th>判定</th></tr></thead>
+<tbody>
+<tr><td><b>A</b>·朔黄实测（张二田2021）</td><td>2 万吨 · 循环制动</td><td class="num">1989 kN</td><td class="num">836~2142 kN</td><td class="up">✓ 落区间</td></tr>
+<tr><td><b>B</b>·万吨单次制动（杨敏）</td><td>−6‰ · 60 km/h 至停车</td><td class="num">651 / 671 kN</td><td class="num">634 kN</td><td class="up">✓ 偏差 +3~6%</td></tr>
+</tbody>
+</table>
+</div>
+<div style="text-align:center; margin-top:10px; font-size:15.5px; color:var(--slate)">双基准均在文献工况下通过 → 车钩力绝对量级可信。</div>
+</div>
+</div>
+</section>
+<!-- ===================== 8 仿真器验证与三大偏差 ===================== -->
+<!-- 已并入「仿真器：建模与文献对齐」页 -->
+<!-- ===================== 9 训练流程 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">02 / Training</span><h1 class="h-1">训练流程：MAPPO + Curriculum 课程学习</h1></div>
+</div>
+<div class="free-body stagger" style="display:grid; grid-template-columns:1fr 1.05fr; gap:28px; align-items:start">
+<div class="flow">
+<div class="step"><div class="st-num">初</div><div class="st-body"><h4>初始化</h4><p>共享策略 π + 集中式评论家 V · 3 个随机种子独立训练</p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">CL</div><div class="st-body"><h4>Curriculum 课程：horizon 300 → 1000 → 3000 步</h4><p></p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">①</div><div class="st-body"><h4>N 列车并行采样轨迹（600 eps）</h4><p></p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">②</div><div class="st-body"><h4>GAE 优势估计 · λ=0.95 γ=0.99</h4><p></p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">③</div><div class="st-body"><h4>PPO clip 更新 · ε=0.2 · 4 epochs</h4><p></p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">④</div><div class="st-body"><h4>KL&gt;0.015 → 提前停止 · 保存 best + final</h4><p></p></div></div>
+<div class="st-arrow">▼</div>
+<div class="step"><div class="st-num">评</div><div class="st-body"><h4>全程评估（确定性策略 3000 步）</h4><p>回报 / 追尾步数 / 峰值车钩力 / 最小间距</p></div></div>
+</div>
+<div>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:6px 14px">
+<table class="t" style="font-size:13px">
+<thead><tr><th>关键超参数</th><th>取值</th></tr></thead>
+<tbody>
+<tr><td>算法</td><td>MAPPO（共享策略 π + 集中评论家 V）</td></tr>
+<tr><td>学习率 / 熵系数</td><td>5×10⁻⁵ / 0.005</td></tr>
+<tr><td>PPO clip / epochs</td><td>ε=0.2 / 4</td></tr>
+<tr><td>GAE（λ, γ）</td><td>0.95 / 0.99</td></tr>
+<tr><td>Curriculum horizon</td><td>300 → 1000 → 3000 步</td></tr>
+<tr><td>并行样本 / 评估</td><td>600 轨迹 · best-checkpoint 确定性 3000 步</td></tr>
+</tbody>
+</table>
+</div>
+<div class="img" style="margin-top:8px"><img alt="5 seed 学习曲线" src="train-marl-talk/assets/fig_phys2_learning_curve_5seed.png" style="max-height:238px; width:auto; object-fit:contain; margin:0 auto"><div class="imgcap">5 seed 训练学习曲线（curriculum horizon 300 → 1000 → 3000 步）</div></div>
+</div>
+</div></section>
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">03 / Robustness</span><h1 class="h-1">健壮性：随机初态下 M-MARL 保持稳健</h1></div>
+</div>
+<div class="free-body stagger">
+<div class="metrics">
+<div class="metric"><b>0</b><i>随机初态追尾步数（55–75 km/h × 5 seed）</i></div>
+<div class="metric"><b>+36,246</b><i>M-MARL 随机初态平均回报</i></div>
+<div class="metric"><b>634 kN</b><i>峰值车钩力，&lt; 1000 kN 守约</i></div>
+<div class="metric"><b>55–75 km/h</b><i>随机初始速度，控制不依赖特定初态</i></div>
+</div>
+<div style="display:grid; grid-template-columns:1.5fr 1fr; gap:24px; margin-top:18px; align-items:center">
+<div class="img"><img alt="随机初态稳健性轨迹" src="train-marl-talk/assets/fig_phys2_m1_delta.png" style="max-height:300px; width:100%; object-fit:contain; margin:0 auto; display:block"><div class="imgcap">随机初态下，第 2 层对循环制动阈值的协同偏移 δ（0＝不干预，纯靠规则巡航）</div></div>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:16px 20px; display:flex; flex-direction:column; gap:12px">
+<h4 style="font-size:16px; color:#141413; margin:0">对行车扰动稳健</h4>
+<p style="font-size:14px; color:#55544f; line-height:1.55; margin:0">把列车初始速度在 55–75 km/h 内随机化后重测，M-MARL 依旧 <b>0 追尾</b>、报 +36,246、峰值车钩力 634 kN，全 seed 满足 1000 kN 安全限——控制不依赖特定初态。</p>
+<div style="padding-top:10px; margin-top:2px; border-top:1px dashed var(--stone); font-size:12.5px; color:var(--cloud); line-height:1.5">随机初态协议（55–75 km/h）× 5 seed；50 种子全量显著性检验待补。</div>
+</div>
+</div>
+</div></section>
+<!-- ===================== 10 主结果 ===================== -->
+<section class="slide s-free-single s10 active">
+<div class="free-head stagger">
+<div><span class="kicker">03 / Main Result</span><h1 class="h-1" style="font-size: 38px; margin-top: 4px;">主结果：M-MARL 0 追尾、车钩力守约，其余降级</h1></div>
+</div>
+<div class="free-body stagger">
+<div class="legend" style="margin-top:8px; padding:10px 14px">
+<div class="lg-title" style="margin-bottom:4px">模型 / 基线 定义</div>
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:2px 20px; margin-top:2px">
+<span><b style="color:var(--slate)">M-MARL</b> — 本文方法：RL 学阈值偏移、多列错峰制动</span>
+<span><b style="color:var(--slate)">No-C · 无协同</b> — 去掉第 2 层协同，仅规则循环制动</span>
+<span><b style="color:var(--slate)">DQN-fair</b> — 同架构/奖励，仅把 MAPPO 换成 DQN</span>
+<span><b style="color:var(--slate)">MPC</b> — 传统模型预测控制，直接控制加速度</span>
+</div>
+</div>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:5px 12px 7px; margin-top:8px">
+<table class="t" style="font-size:14.5px">
+<thead><tr><th style="width:30%">方法</th><th class="num">回报</th><th class="num">追尾步数</th><th class="num">车钩力峰(kN)</th><th class="num">最小间距(m)</th></tr></thead>
+<tbody>
+<tr class="hl"><td><b>M-MARL（本文）</b><div style="font-size:12px;color:var(--cloud);font-weight:400">3 收敛 seed 均值</div></td><td class="num up">+37,342</td><td class="num up">0</td><td class="num">659</td><td class="num">175</td></tr>
+<tr><td>No-C <div style="font-size:12px;color:var(--cloud);font-weight:400">无协同 δ=0</div></td><td class="num">+9,791</td><td class="num dn">69</td><td class="num">543</td><td class="num dn">−45</td></tr>
+<tr><td>DQN-fair <div style="font-size:12px;color:var(--cloud);font-weight:400">同架构 MAPPO→DQN</div></td><td class="num dn">−15,215</td><td class="num dn">157</td><td class="num">463</td><td class="num dn">−116</td></tr>
+<tr><td>MPC <div style="font-size:12px;color:var(--cloud);font-weight:400">传统模型预测控制</div></td><td class="num dn">−115,622</td><td class="num">0</td><td class="num"><span class="dn">1,178 ⚠</span></td><td class="num">105</td></tr>
+</tbody>
+</table>
+</div>
+<div style="display:grid; grid-template-columns:1.15fr 1fr; gap:24px; margin-top:8px; align-items:center">
+<div class="img"><img alt="主对比图" src="train-marl-talk/assets/fig_phys2_main_compare.png" style="max-height:236px; width:auto; object-fit:contain; margin:0 auto"><div class="imgcap">朔黄线固定初态主对比：回报 &amp; 车钩力峰值（红线上限 1000 kN）</div></div>
+<div style="display:flex; flex-direction:column; justify-content:center; gap:9px">
+<div class="card" style="padding:9px 14px"><h4>追尾：协同是必要项</h4><p><b>M-MARL 0 追尾</b>；No-C（同架构仅去掉协同）追尾 69 步、DQN-fair（同架构仅换算法）追尾 157 步——追尾差异来自<b>协同学习</b>，而非分层结构本身。</p></div>
+<div class="card" style="padding:8px 12px"><h4>车钩力 &amp; 掉速</h4><p>规则循环制动方法均守约 &lt;1000 kN、不掉下限；MPC 超限至 1,178 kN、71.6% 时间跌破最低缓解速度（急制动+降速）。</p></div>
+</div>
+</div>
+</div>
+</section>
+<!-- ===================== 11 追尾机理 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">03 / Mechanism</span><h1 class="h-1">追尾机理：失去协同后，间距中途崩溃</h1></div>
+</div>
+<div class="free-body stagger">
+<div class="img" style="max-width:1120px; margin:0 auto"><img alt="M-MARL vs No-C 轨迹" src="train-marl-talk/assets/fig_phys2_traj_h.png" style="width:100%; max-width:1120px; height:auto; object-fit:contain; margin:0 auto; display:block"><div class="imgcap">速度 / 最小列间距 / 峰值车钩力 随时间变化（协同 M-MARL vs 无协同 No-C）</div></div>
+<div style="display:grid; grid-template-columns:1.4fr 1fr; gap:18px; margin-top:8px; align-items:start">
+<div class="card" style="padding:12px 14px"><p style="font-size:14.5px">前 2400 步，M-MARL 与 No-C 的最小间距几乎一致；此后 No-C 因后车无法预知前车制动意图、独立制动的相位越走越错位，其最小间距跌破零（追尾 69 步）。M-MARL 通过协同阈值调整使各列车制动/缓解相位错开，始终保持间距。</p></div>
+<div class="card" style="padding:12px 14px"><h4 style="margin-bottom:8px">崩溃后速度表现</h4><p style="font-size:14.5px; margin-bottom:6px"><b>No-C</b>：<span class="dn">跟随车急制动追赶，间距跌破零（追尾）</span></p><p style="font-size:14.5px"><b>M-MARL</b>：<span class="up">维持循环制动波形，速度在 [40,80] km/h</span></p></div>
+</div>
+</div>
+</section>
+<!-- ===================== 12 鲁棒性 ===================== -->
+<!-- ===================== 13 压力消融 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">03 / Ablation</span><h1 class="h-1">压力消融：间距越压缩，协同增益越大</h1></div>
+</div>
+<div class="free-body stagger" style="display:grid; grid-template-columns:1fr 1.12fr; gap:26px; align-items:start">
+<div>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:6px 14px">
+<table class="t" style="font-size:13px">
+<thead><tr><th>目标间距</th><th>M-MARL</th><th>No-C</th><th>协同增益</th><th>No-C 追尾步数</th></tr></thead>
+<tbody>
+<tr><td>100 m</td><td class="num up">+37,342</td><td class="num">+9,791</td><td class="num up">+27,551</td><td class="num dn">69</td></tr>
+<tr><td>40 m</td><td class="num up">+37,382</td><td class="num dn">−11,137</td><td class="num up">+48,519</td><td class="num dn">179</td></tr>
+</tbody>
+</table>
+<div style="font-family:var(--sans); font-size:11px; color:var(--cloud); margin-top:4px">M-MARL 于 100 m 训练、40 m 直接复用；两间距下 M-MARL 追尾恒为 0。</div>
+</div>
+<div style="display:flex; gap:12px; margin-top:12px; flex-direction:column">
+<div class="card"><h4>M-MARL 对压力稳健</h4><p>回报几乎不变（+37,342 → +37,382），且始终 0 追尾、车钩力 659 kN 守约。</p></div>
+<div class="card"><h4>协同增益单调放大</h4><p>增益 = M-MARL − No-C：+27,551 → +48,519（近翻倍），间距越压、协同越有价值。</p></div>
+</div>
+
+</div>
+<div class="img" style="display:flex; flex-direction:column; justify-content:center"><img alt="压力消融图" src="train-marl-talk/assets/fig_pressure_ablation.png" style="max-height:400px; width:auto; object-fit:contain; margin:0 auto"><div class="imgcap">目标间距压缩下协同增益变化（M-MARL 仅在 100 m 训练，可泛化至 40 m）</div></div>
+</div>
+</section>
+<!-- ===================== 12 鲁棒性/域外实验：扩列 + 换线 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">03 / OOD</span><h1 class="h-1">域外实验：扩列到 5 列、换到更陡的线，都不重训</h1></div>
+</div>
+<div class="free-body stagger" style="display:grid; grid-template-columns:1.05fr 0.95fr; gap:28px; align-items:center; margin-top:16px">
+<!-- Text on left -->
+<div style="display:flex; flex-direction:column; gap:14px">
+<p class="nav-note" style="margin-bottom:2px; color:var(--clay-deep); font-weight:600; font-size:15px">扩列：3 列训练权重 → 5 列直接复用</p>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:8px 14px">
+<table class="t" style="font-size:14px">
+<thead><tr><th>指标</th><th>3 列（训练）</th><th>5 列（零样本扩列）</th></tr></thead>
+<tbody>
+<tr><td>协同增益</td><td class="num">+27,551</td><td class="num">+1,970</td></tr>
+<tr><td>追尾步数</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><td>车钩力峰</td><td class="num">659 kN</td><td class="num">634 kN</td></tr>
+</tbody>
+</table>
+</div>
+<div class="emphasis" style="font-size:15px; margin:0">3 列训练权重直接复用到 5 列，不训练：<b>0 追尾</b>、车钩力 634 kN，协同增益仍为 +1,970（正）。增益还在，只是幅度收窄。</div>
+<p class="nav-note" style="margin:8px 0 2px; color:var(--clay-deep); font-weight:600; font-size:15px">换线：朔黄 23.8 km（−10.9‰）→ 20 km（−9.5~−11.5‰，更陡）</p>
+<div style="border:1px solid var(--stone); border-radius:16px; background:var(--iv-card); padding:8px 14px">
+<table class="t" style="font-size:14px">
+<thead><tr><th>方法</th><th>回报</th><th>追尾步数</th><th>车钩力峰</th></tr></thead>
+<tbody>
+<tr class="hl"><td>M-MARL（照搬）</td><td class="num up">+36,120</td><td class="num up">0</td><td class="num">623 kN</td></tr>
+<tr><td>No-C（无协同）</td><td class="num dn">−6,688</td><td class="num dn">143</td><td class="num">—</td></tr>
+</tbody>
+</table>
+</div>
+<div class="emphasis" style="font-size:15px; margin:0">直接换到更陡的线，仍 <b>0 追尾</b>、回报 +36,120、车钩力 623 kN；No-C 却掉了 143 步。<b>协同这一步，换线也管用</b>。</div>
+</div>
+<!-- Figure on right -->
+<div class="img" style="align-self:center">
+<img alt="3列 vs 5列规模扩展实验结果" src="train-marl-talk/assets/fig_5train_summary.png" style="width:100%; height:auto; max-height:480px; object-fit:contain; display:block; margin:0 auto">
+<div class="imgcap" style="font-size:15px; margin-top:10px">规模扩展：3 列（训练）→ 5 列（零样本复用），M-MARL 零样本泛化不失稳</div>
+</div>
+</div>
+</section>
+<!-- ===================== 16 第二剖面与局限 ===================== -->
+<!-- 已合并进「域外实验」页 -->
+<!-- ===================== 17 待决问题 ===================== -->
+<section class="slide s-free-single">
+<div class="free-head stagger">
+<div><span class="kicker">04 / Gap &amp; Next</span><h1 class="h-1">局限与待补</h1></div>
+</div>
+<div class="free-body stagger" style="display:flex; flex-direction:column">
+<p style="text-align:center; font-size:15px; color:var(--slate); margin-bottom:4px">方法主体已完成、数据齐全；收尾就差三项工程项——不改变结论，只把证据做得更稳。</p>
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:22px; max-width:1180px; width:100%; margin-left:auto; margin-right:auto; align-items:stretch">
+<div style="border:1px solid var(--stone); border-radius:20px; background:var(--iv-card); padding:20px 22px; display:flex; flex-direction:column; gap:10px">
+<div style="display:flex; align-items:center; gap:12px"><span style="width:34px;height:34px;border-radius:50%;background:var(--clay-deep);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none">1</span><h4 style="font-size:16px;color:#141413;margin:0">统计显著性检验</h4></div>
+<p style="font-size:14px;color:#55544f;line-height:1.5">「0 追尾 / 协同增益为正」目前只撑在 5 个随机种子上；把种子补到 50 个，做 Fisher 精确检验 + 效应量，给结论一个显著性置信度。</p>
+<div style="margin-top:auto;padding-top:9px;border-top:1px dashed var(--stone);font-size:12.5px;color:var(--cloud)">待办 · 5 → 50 种子 · Fisher ＋ 效应量</div>
+</div>
+<div style="border:1px solid var(--stone); border-radius:20px; background:var(--iv-card); padding:20px 22px; display:flex; flex-direction:column; gap:10px">
+<div style="display:flex; align-items:center; gap:12px"><span style="width:34px;height:34px;border-radius:50%;background:var(--clay-deep);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none">2</span><h4 style="font-size:16px;color:#141413;margin:0">压力消融中间档位</h4></div>
+<p style="font-size:14px;color:#55544f;line-height:1.5">「间距越压、协同增益越大」目前只有 100 m 与 40 m 两个端点的证据；补上中间档位，让单调关系成一条连续证据链。</p>
+<div style="margin-top:auto;padding-top:9px;border-top:1px dashed var(--stone);font-size:12.5px;color:var(--cloud)">待办 · 补 80 / 60 / 50 m</div>
+</div>
+<div style="border:1px solid var(--stone); border-radius:20px; background:var(--iv-card); padding:20px 22px; display:flex; flex-direction:column; gap:10px">
+<div style="display:flex; align-items:center; gap:12px"><span style="width:34px;height:34px;border-radius:50%;background:var(--clay-deep);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;flex:none">3</span><h4 style="font-size:16px;color:#141413;margin:0">完整剖面评估</h4></div>
+<p style="font-size:14px;color:#55544f;line-height:1.5">主结果 / 追尾机理现在只跑到朔黄线最陡的前 4.6 km（3000 步未到坡底）；补一条完整剖面的长评估，或如实标注为「最陡段 5 min 评估窗」。</p>
+<div style="margin-top:auto;padding-top:9px;border-top:1px dashed var(--stone);font-size:12.5px;color:var(--cloud)">待办 · 完整剖面长评估 / 或改口径</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ===================== 18 结尾 T08（居中 · 与封面同底色） ===================== -->
+<section class="slide" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center">
+<div class="cover-zh">请老师批评指正</div>
+</section>
+<!-- ===== Chrome ===== -->
+<div class="chrome-bottom" style="justify-content:flex-end"><span id="cp">09 / 14</span></div>
+<div class="dots" id="dots"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></div>
+</div></div>
+<script>
+/* ===== 画布居中：flex 居中盒由 #stage 控制，transform 仅做围绕中心缩放 ===== */
+var cv=document.getElementById('canvas');
+function fit(){var s=Math.min(innerWidth/1280,innerHeight/720);cv.style.transform='scale('+s+')';}
+addEventListener('resize',fit);fit();
+/* ===== 翻页 ===== */
+var slides=[].slice.call(document.querySelectorAll('.slide')),idx=0,total=slides.length;
+var dots=document.getElementById('dots');for(var i=0;i<total;i++){var d=document.createElement('i');dots.appendChild(d);}
+function go(n){idx=(n+total)%total;slides.forEach(function(s,k){s.classList.toggle('active',k===idx)});
+  var ds=dots.children;for(var k=0;k<total;k++)ds[k].classList.toggle('on',k===idx);
+  document.getElementById('cp').textContent=(idx<9?'0':'')+(idx+1)+' / '+total;}
+addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){go(idx+1);e.preventDefault();}
+  if(e.key==='ArrowLeft'){go(idx-1);e.preventDefault();}});
+addEventListener('wheel',function(e){if(e.deltaY>15)go(idx+1);else if(e.deltaY<-15)go(idx-1);},{passive:true});
+var sx=0,sy=0,stx=0,sty=0;
+addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>40&&Math.abs(dy)<60){dx>0?go(idx-1):go(idx+1);}},{passive:true});
+/* 鼠标单击翻页：右侧前进，最左 10% 后退 */
+addEventListener('click',function(e){
+  var sel=window.getSelection();if(sel&&sel.toString())return;
+  var x=e.clientX;
+  if(x<innerWidth*0.1){go(idx-1);}else{go(idx+1);}
+});
+/* 点圆点跳页 */
+for(var i=0;i<total;i++){(function(k){dots.children[k].addEventListener('click',function(e){e.stopPropagation();go(k);});})(i);}
+go(0);
+</script>
+
+
+</body></html>
