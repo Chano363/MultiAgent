@@ -84,7 +84,7 @@ change-id: `implement-literature-informed-fixes`
 
 #### Scenario: 默认值不得拍脑袋
 - **WHEN** 设定 `ab_min_refill_s` / `ab_min_hold_s` 默认值
-- **THEN** 必须从 `docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt:566-577` 与项目既有实测（`VALIDATION_BASELINE.md` 空气充风时间项）核定；**无出处则标注 `待核实`，不得编造**
+- **THEN** 必须从 `docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:566-577` 与项目既有实测（`VALIDATION_BASELINE.md` 空气充风时间项）核定；**无出处则标注 `待核实`，不得编造**
 
 ### Requirement: D — 安全层对 AB 的对称权限
 

@@ -119,7 +119,7 @@ owner: Owner + Agent
 
 **背景**：formation-aware 机车级 ED/AB（3列×1+1=6 agents）训练发散（ep20 前 −11万~−12万，进 5000 步段 violations 暴增 213~247、peakCoupler 涨破 1000kN）。复盘发现：上一版把 `_calculate_reward_decomposed` 的 speed_band 从"逐列 ±5/-20"改成"群组均速带二值门槛 +5×3/-20"——3 列异步动力学下几乎不可能同时进带，探索期长期只有惩罚、无正 shaping，策略学不出来。据此从文献库提取多列/列车 RL 奖励设计的权威范式作为重构依据（出处见各条）。
 
-**① Zhang2021 MADRL 列车编队（多列协同，最贴近本项目）**：`docs/papers/Zhang2021_MADRL_TrainPlatoon.txt`（Zhang, Zhao et al., IEEE Access 2021）
+**① Zhang2021 MADRL 列车编队（多列协同，最贴近本项目）**：`docs/papers/03_formation/Zhang2021_MADRL_TrainPlatoon.txt`（Zhang, Zhao et al., IEEE Access 2021）
 - 逐 agent 奖励：`r_n = f(e_{n-1,n}, v_{n-1,n})`，由**距离势场 r_e** 与**速度差势场 r_v** 叠加
 - 连续 APF（artificial potential field）编码，非二值：**越靠近目标奖励越大**（零势点最大）
 - **负项优先、正项隐藏**：只要距离/速度任一项为负（偏离目标），正项被隐藏，输出负；双项皆正才叠加
@@ -127,7 +127,7 @@ owner: Owner + Agent
 - 编队定义：**leader-follower**，follower 只对相邻前车 `e_{n-1,n}` + `v_{n-1,n}` 负责（无需全列齐步）
 - 通信：单向→双向，虚拟 leader 调控规定运行线与路线
 
-**② Guo2025 LSTM-MAPPO 车队（同 MAPPO 算法）**：`docs/papers/Guo2025_MARL_PlatoonConsensus.txt`（Guo et al., Computer-Aided Civil & Infrastructure Engineering 2025）
+**② Guo2025 LSTM-MAPPO 车队（同 MAPPO 算法）**：`docs/papers/03_formation/Guo2025_MARL_PlatoonConsensus.txt`（Guo et al., Computer-Aided Civil & Infrastructure Engineering 2025）
 - 双向协同优化机制，LSTM 捕捉车队长时动态
 - 目标函数显式 minimize 共识误差：间距误差 `eᵈ_{i,i-1}(t)` + 相对速度 `eᵛ_{i,i-1}(t)` + 加速度差 `eᵃ_{i,i-1}(t)`
 - 代价 = leader 与前 `eᵈ_{i,0}`/`eᵛ_{i,0}` trade-off + follower 舒适度
@@ -135,7 +135,7 @@ owner: Owner + Agent
 - **大负值惩罚 −15**：速度低于目标时触发的强惩罚，促使 agent 决策正确方向
 - 效果：平均间距误差 −8.3%、编队平均长度 −19.1%（vs 共识控制）
 
-**③ Zhang2024 DQN 循环制动（长大下坡逼近工况）**：`docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt`（见 V3.5.3）
+**③ Zhang2024 DQN 循环制动（长大下坡逼近工况）**：`docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt`（见 V3.5.3）
 - 长大下坡唯一减速手段 = 循环空气制动（与本项目一致）
 - 奖励直接在**车辆运行约束**（限速 V_min ≤ V ≤ V̄）+ **性能指标**（制动距离）上构建，DQN 可收敛
 - 单列、**忽略车钩力**——本项目在此基础上的增量 = 建模车钩力 + 扩展到多列编队
@@ -152,7 +152,7 @@ owner: Owner + Agent
 ### V3.5.4 Zhao2022 空气制动精细建模验证基准（2026-09-02，文献初始化）
 
 **来源**：赵紫宁（导师王青元）. *重载列车空气制动精细建模与操纵优化.* 西南交通大学硕士学位论文, 2022.
-📄 信息卡（**数据表 SSOT**）→ [`docs/papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md`](papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md)
+📄 信息卡（**数据表 SSOT**）→ [`docs/papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md`](papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md)
 
 **对象**：2 万吨"1+1"编组（2×HXD1 + 216×C80，22 000 t、全长 2 684.2 m），
 国内某货运专线长大下坡 **−12‰**，**30 趟车次 / 近 350 个制动段** LKJ2000 实车数据。
@@ -183,8 +183,8 @@ owner: Owner + Agent
 ### V3.5.5 张二田 2021 实测车钩力验证基准（2026-09-02，文献提取）
 
 **来源**：张二田（国家能源集团朔黄铁路发展有限责任公司）. *朔黄铁路 2 万 t 重载组合列车纵向车钩力分析及应用研究.* 神华科技, 2021, 19(1): 74-78.
-📄 信息卡（**数据表 SSOT**）→ [`docs/papers/张二田2021_朔黄2万t车钩力实测.md`](papers/张二田2021_朔黄2万t车钩力实测.md)
-📄 全文检索件 → `docs/papers/张二田2021_朔黄2万t车钩力_fulltext.txt`（5 页，11.8k 字符）
+📄 信息卡（**数据表 SSOT**）→ [`docs/papers/01_coupler_physics/张二田2021_朔黄2万t车钩力实测.md`](papers/01_coupler_physics/张二田2021_朔黄2万t车钩力实测.md)
+📄 全文检索件 → `docs/papers/01_coupler_physics/张二田2021_朔黄2万t车钩力_fulltext.txt`（5 页，11.8k 字符）
 
 **对象**：2 万 t 重载组合列车（"1+1+可控列尾"，216 辆 C80，21 600 t），朔黄线（神池南—肃宁北），
 长大下坡 **−9.4‰ / −7.5‰**（合计 130 km），19 次循环制动 + 5 编组对比试验 + 极端工况试验。**运营方实车综合试验数据**。
@@ -202,7 +202,7 @@ owner: Owner + Agent
 | S7 | **R7 长梁山隧道单一确定坡度**（−10.2‰ × 12 800 m） | 中部机车前钩压 1031/拉 1089 kN；中间钩压 902/拉 1184 kN；107 位最大拉钩力 **1197 kN**、纵向加速度 **15.26 m/s²** | ⭐ **坡度确定（−10.2‰）+ 长度确定 + 测点确定**，最适合做定量对照 |
 
 **📈 赵紫宁图 5-3 速度曲线锚（精确数据，表 5-3 → CSV）**：
-[`docs/papers/Zhao2022_fig53_velocity_anchors.csv`](papers/Zhao2022_fig53_velocity_anchors.csv)
+[`docs/papers/01_coupler_physics/Zhao2022_fig53_velocity_anchors.csv`](papers/01_coupler_physics/Zhao2022_fig53_velocity_anchors.csv)
 
 ```
 section,start_km,start_speed_kmh,release_km,release_speed_kmh
@@ -219,7 +219,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 ### V3.5.6 刘博阳 2022 列尾压强敏感性基准（2026-09-02，文献提取）
 
 **来源**：刘博阳, 魏伟, 豆飞. *重载列车制动力判断标准及纵向冲动研究.* 大连交通大学学报, 2022, 43(6): 38-44.
-📄 信息卡（**数据表 SSOT**）→ [`docs/papers/刘博阳2022_列尾压强与车钩力.md`](papers/刘博阳2022_列尾压强与车钩力.md)
+📄 信息卡（**数据表 SSOT**）→ [`docs/papers/01_coupler_physics/刘博阳2022_列尾压强与车钩力.md`](papers/01_coupler_physics/刘博阳2022_列尾压强与车钩力.md)
 
 **对象**：2 万 t 1+1+可控列尾（21 600 t），朔黄线宁武西—龙宫（>−9‰ 占 90.1%）；
 魏伟团队 **TABLDSS 联合仿真系统**（2017 国际纵向动力学评测获奖，即 Wu et al. 2018 VSD benchmark 参赛系统）。
@@ -241,7 +241,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 ### V3.5.7 王鼎 2023 大秦线测力车钩实车基准（2026-09-02，文献提取）⭐ 最硬实车锚
 
 **来源**：王鼎, 苗晓雨, 姜成. *大秦线 2 万 t 重载列车货车车钩力跟踪试验研究.* 铁道车辆, 2023, 61(1): 102-105.
-📄 信息卡（**数据表 SSOT**）→ [`docs/papers/王鼎2023_大秦线车钩力跟踪试验.md`](papers/王鼎2023_大秦线车钩力跟踪试验.md)
+📄 信息卡（**数据表 SSOT**）→ [`docs/papers/01_coupler_physics/王鼎2023_大秦线车钩力跟踪试验.md`](papers/01_coupler_physics/王鼎2023_大秦线车钩力跟踪试验.md)
 
 **对象**：中国铁道科学研究院，大秦线湖东—茶坞，**7 列 / 46 次跟踪试验，专用测力车钩**；
 2 万 t（2×HXD1 + 210×C80B，组内 3 辆牵引杆连挂）；
@@ -337,7 +337,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 
 ## 四、ETCS 目标距离超速防护曲线（"真 ATP"）验证基准
 
-> **来源**：《Introduction to ETCS Braking Curves》，欧洲铁路局 / ERTMS（ERA_ERTMS_040026 Version 1.5, 2020），`docs/papers/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf`。本节全部公式与数值均引自该文档（§3 模型、§5 数值示例）。对应 `PROJECT_PIPELINE.md` 立项任务「实现真正的 ATP」，回答答辩质疑"你的 ATP 是假的"。
+> **来源**：《Introduction to ETCS Braking Curves》，欧洲铁路局 / ERTMS（ERA_ERTMS_040026 Version 1.5, 2020），`docs/papers/04_safety_mpc/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf`。本节全部公式与数值均引自该文档（§3 模型、§5 数值示例）。对应 `PROJECT_PIPELINE.md` 立项任务「实现真正的 ATP」，回答答辩质疑"你的 ATP 是假的"。
 > **诚实边界**：本复现聚焦**车载超速/限速防护曲线（速度监督）**，非闭塞/信号层的进场授权（Movement Authority）。"防追尾属信号级 ATP 职权，我们补充车钩力+缩短安全间隔"的叙事据此成立。
 
 ### 4.1 目的：把"假 ATP"升级为"真 ATP"

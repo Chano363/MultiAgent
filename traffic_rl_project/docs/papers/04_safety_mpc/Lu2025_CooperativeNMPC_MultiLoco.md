@@ -8,7 +8,7 @@ source_pdf: Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomoti
 
 # Lu, Zhang, Su 2025 — Cooperative Nonlinear Model Predictive Control for Multiple Locomotives of Heavy Haul Train on Long Steep Downhill Sections
 
-> 本地全文：`docs/papers/Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf`（6 页）。
+> 本地全文：`docs/papers/04_safety_mpc/Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf`（6 页）。
 > **用途**：本项目 **MPC 对比基线的来源**（`src/controllers/nmpc_controller.py`）。
 
 ## 出处

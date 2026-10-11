@@ -19,8 +19,8 @@
 | 每日工作日志（timeline）     | `docs/logs/README.md`（→ `.codebuddy/memory/`)                            |
 | 论文（唯一权威）             | `docs/ITSC_PAPER.md` / `.tex` / `.pdf`                                   |
 | 复现性说明                | `docs/REPRODUCIBILITY.md`                                                |
-| **文献库目录清单（文件→元数据）** | `docs/papers/README.md`（新增文献必登记；含主题分类表 + 待补清单） |
-| 文献 PDF / 信息卡         | `docs/papers/`（重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
+| **文献库目录清单（文件→元数据）** | `docs/papers/README.md`（新增文献必登记；含主题分类表 + 待补清单 + 子目录结构） |
+| 文献 PDF / 信息卡         | `docs/papers/`（按主题分 5 个子目录：`01_coupler_physics/` 车钩与物理仿真 · `02_rl/` 强化学习 · `03_formation/` 列车编队 · `04_safety_mpc/` 安全层/MPC · `05_energy_other/` 节能/其他；重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
 | 规范 / 模板 / checklist  | `docs/rules/`                                                            |
 | 汇报 / 交流材料（杂项）      | `docs/杂项/`（非研究 SSOT 的临时交流文档，如项目介绍 docx）                        |
 | 阶段一历史成果              | 见「归档区」↓                                                                  |
