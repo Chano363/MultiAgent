@@ -52,7 +52,7 @@ supersedes: —
 - 主项 `speed_band_reward` 带内最高 **+6.0/列**（`:739`）；带外 `−0.2×(norm_dev−1)×100`（`:741`，norm_dev=2 → **−20**）。
 - 车钩力项 `coupler_term = −0.2·mean(obs[:,5]) − 0.2·peak_norm`（`:766`），**理论上限 −0.4** ⇒ 单列口径下仅为速度带收益的 **≈6.7%**，多列叠加（gap/rel_anchor 项）后占比更低。
 - **无"超限跳变"**：`−80·ov²` 硬惩罚已于 2026-09-10 回滚（`:757-760` 注释），现行 peak 项只是**线性归一化**、上限 −0.4 ⇒ **破线与不破线在 reward 上几乎不可区分**。
-- **反向推力**：`:822-824` `needs_brake and ab_count<=0 → ab_cost -= 0.5`（"带外/超速却无 AB → 弱惩罚"）⇒ 奖励**显式倒逼"需减速必须靠 AB"**（借自 Zhang2024 需求驱动塑形，见 `docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt:632-655`）。
+- **反向推力**：`:822-824` `needs_brake and ab_count<=0 → ab_cost -= 0.5`（"带外/超速却无 AB → 弱惩罚"）⇒ 奖励**显式倒逼"需减速必须靠 AB"**（借自 Zhang2024 需求驱动塑形，见 `docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:632-655`）。
 - ⇒ 学习信号里**保速度带（+6）远强于控车钩力（≤0.4）**；下坡保带的唯一手段是 AB ⇒ 梯度指向"多用 AB"。
 
 #### 三、断点 2｜AB 通路：`ab_sources` 在安全层之前组装，安全层只回写 ED
@@ -133,7 +133,7 @@ supersedes: —
 
 | 做法 | 代表工作（出处） | 与我们断点的对应 |
 | :--- | :--- | :--- |
-| 进 reward 目标（多目标加权） | Tang2020（本地 `docs/papers/Tang2020_DoubleSwitchQ.pdf`，多机车 + 车钩力建模 + 多目标）；Wang2025 ICIRT DQN（`10.1109/ICIRT66379.2025.11216684`，最大拉力 −9.64% / 最大压力 −28.77%） | 给车钩力**有量级的**目标信号，替换我们 ≈3% 的 shaping |
+| 进 reward 目标（多目标加权） | Tang2020（本地 `docs/papers/02_rl/Tang2020_DoubleSwitchQ.pdf`，多机车 + 车钩力建模 + 多目标）；Wang2025 ICIRT DQN（`10.1109/ICIRT66379.2025.11216684`，最大拉力 −9.64% / 最大压力 −28.77%） | 给车钩力**有量级的**目标信号，替换我们 ≈3% 的 shaping |
 | 进约束集（分层 / MPC） | 魏咪等（本地 PDF，车钩力约束分层框架）；宋宗莹等 2026 Tube-MPC（本地 PDF，`10.11860/j.issn.1673-0291.20250156`，车钩力峰 330.4 kN ≤22% 限值）；Fu2019（本地 PDF，钩缓约束 + 预测控制） | 与 ADR-014"约束"定位一致，但需**可学习的对偶信号**，否则仍是"无梯度" |
 | 运行时 safety filter / CBF | Wabersich & Zeilinger 2021, *A predictive safety filter for learning-based control of constrained nonlinear dynamical systems*, Automatica（arXiv:1812.05506）——**预测式 safety filter** 把约束系统变成"无约束安全系统"；Li, Tong, Giua 2024 CBF-QP（`10.1109/CASE59546.2024.10711420`） | 把 AB 通道纳入 filter 权限范围（补断点 3），且用**预测**而非反应式（破线是 ≈90 s 滞后） |
 
@@ -143,7 +143,7 @@ supersedes: —
 
 | 做法 | 代表工作（出处） | 对应 |
 | :--- | :--- | :--- |
-| 把**最小充风时间**做进动作空间 | Zhang2024（本地 `docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt:566-577`：环境设计"considering ... constraints of the train pipe's air-refilling time"） | 从**动作定义层**杜绝"缓解—再制动"过快循环（正是闸门管不到的规则层通道） |
+| 把**最小充风时间**做进动作空间 | Zhang2024（本地 `docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:566-577`：环境设计"considering ... constraints of the train pipe's air-refilling time"） | 从**动作定义层**杜绝"缓解—再制动"过快循环（正是闸门管不到的规则层通道） |
 | AB 需求驱动塑形（越限罚 / engaged=0 / 释放奖） | Zhang2024（同上，`:632-655` reward 设计） | 我们 `train_fleet_env.py:822-824` 已借用其思想，但**缺"超限"项与"最小间隔"** |
 
 #### 三、信用分配与延迟（对应断点 5）
@@ -173,7 +173,7 @@ supersedes: —
 
 | 改造 | 文献依据 | 代码落点 | 参数与出处 |
 | :--- | :--- | :--- | :--- |
-| **A** AB 最小充风时间 | Zhang2024（本地 `docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt:250-255` 与 `:287-295`：**运行约束 (1) Air-refill time**，式 (9) `t_{b,j+1} − t_{r,j} ≥ T_a`——"释放相时长不得短于最小充风时间 `T_a`"） | `src/controllers/multi_loco_controller.py`（`_ab_gate` + 逐机车 `_ab_on/_ab_last_apply_step/_ab_last_release_step` + `ab_refill_veto_count`/`ab_hold_veto_count`） | `ab_min_refill_s=222.0 s`（**有出处**：式 (9) 的 `T_a`；数值取 `VALIDATION_BASELINE.md:201` 张二田 S6 最短充风 222 s，实测范围 175~512 s 见 `:169` 赵紫宁）；`ab_min_hold_s=0.0` **标 `待核实`**——已复查 Zhang2024 全文，其运行约束**只含"释放相 ≥ T_a"，没有"最短制动保持时长"约束**，故该项**无文献出处**，默认不激活（不编造） |
+| **A** AB 最小充风时间 | Zhang2024（本地 `docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:250-255` 与 `:287-295`：**运行约束 (1) Air-refill time**，式 (9) `t_{b,j+1} − t_{r,j} ≥ T_a`——"释放相时长不得短于最小充风时间 `T_a`"） | `src/controllers/multi_loco_controller.py`（`_ab_gate` + 逐机车 `_ab_on/_ab_last_apply_step/_ab_last_release_step` + `ab_refill_veto_count`/`ab_hold_veto_count`） | `ab_min_refill_s=222.0 s`（**有出处**：式 (9) 的 `T_a`；数值取 `VALIDATION_BASELINE.md:201` 张二田 S6 最短充风 222 s，实测范围 175~512 s 见 `:169` 赵紫宁）；`ab_min_hold_s=0.0` **标 `待核实`**——已复查 Zhang2024 全文，其运行约束**只含"释放相 ≥ T_a"，没有"最短制动保持时长"约束**，故该项**无文献出处**，默认不激活（不编造） |
 | **D** 安全层对 AB 的禁新增源 | Wabersich & Zeilinger 2021（arXiv:1812.05506，预测式 safety filter）+ ADR-021 决策 3 | `src/environments/train_env.py::_step_decomposed`（`safety.protect()` **之后**）；计数再经 `train_fleet_env.py::_step_decomposed_fleet` **跨列车聚合**入 fleet `info` | 复用既有 `SafetyLayer.ab_new_source_veto`（反应式 `ratio≥0.6` **或** 预测式 `P_pred≥0.9·limit`）；env 侧只做**新源丢弃**（0/1），**不撤销已建立源**。⚠️ 曾实现的 `scale<0.5 ⇒ 新源降一档` 梯度臂**可证不可达**，已于 2026-10-01 移除（证明见下） |
 | **C** 车钩力受控超限项进 reward | Tang2020（本地 PDF）/ Wang2025 ICIRT（`10.1109/ICIRT66379.2025.11216684`） | `src/environments/train_fleet_env.py`（`REWARD_SCHEMA` / `COUPLER_OVER_W=6.0` / `COUPLER_OVER_CAP=2.0`；峰值口径改**断面力**） | 超限项 `-6.0·min(peak_norm−1, 2.0)`，上界 **−12.0**（刻意避开已回滚的 `-80·ov²` 量级） |
 | **B** per-agent advantage + 信用视界 | COMA（Foerster 2018 AAAI）/ PRD-MAPPO（Kapoor 2024）/ GAE（Schulman 2016） | `src/algorithms/mappo_agent.py`（`critic` 枚举 / N 维价值头 / per-agent GAE / 去广播 / 视界换算）；`src/trainer/registry.py`；`src/metadata.py`；`src/evaluation/evaluate_decompose.py`（`probe_critic_mode`） | 主 YAML：`critic: per_agent`、`gamma=0.999`、`gae_lambda=0.99` ⇒ 视界 `1/(1−γλ)=91.0` 决策步 ×`DI=10`×`dt=0.1 s` = **91.0 s ≥ 90 s** |
@@ -544,9 +544,9 @@ python run_training.py \
 
 | # | 来源 | 相关条目（原文要点） | 是否可作为「运行期最小 AB 保持时长」 |
 | :-: | :-- | :-- | :-- |
-| 1 | **Zhang2024**（本项目主依据，DQN 循环制动）`docs/papers/Zhang2024_DQN_CyclicBraking_Downhill.txt:246-277` | §2.2 Running Constraints **仅三条**：(1) 充风时间式 (9) `t_{b,j+1} − t_{r,j} ≥ T_a`；(2) 速度限式 (10)；(3) 电制力比例式 (11) | ❌ **无**"最短制动保持时长"这一约束（逐条复核，非摘要判断） |
+| 1 | **Zhang2024**（本项目主依据，DQN 循环制动）`docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:246-277` | §2.2 Running Constraints **仅三条**：(1) 充风时间式 (9) `t_{b,j+1} − t_{r,j} ≥ T_a`；(2) 速度限式 (10)；(3) 电制力比例式 (11) | ❌ **无**"最短制动保持时长"这一约束（逐条复核，非摘要判断） |
 | 2 | **《铁路机车操作规则》**（铁运〔2012〕281 号；技术规章编号 **TG/JW104-2012**；国家铁路局公布文本） | (a) "在长大下坡道前方的**列检作业场**需进行持续一定时间的**保压试验**时，应在列车制动机按全部试验方法试验后，自阀减压 **100 kPa 并保压 3 min**，列车不得发生自然缓解。"<br>(b) "**重载货物列车速度在 30 km/h 以下，不应缓解列车制动。**" | ❌ (a) 是**列检站保压试验**（制动系统气密性/自然缓解检查），**不是运行期操纵时长下限**，场景与语义都不对；<br>❌ (b) 是**速度门限**而非时长 —— 且本项目 `v_min = 11.111 m/s = 40 km/h > 30 km/h` ⇒ 在 53km 主剖面上**恒不触发（空约束）** |
-| 3 | **赵紫宁 2022** 表 5-3（`docs/papers/Zhao2022_AirBrakeRefinedModeling_Optimization.md:254`） | 4 个制动段**制动时长** 212 / 946 / 1358 / 918 s | ❌ 属**实车实测观测值**，不是"不少于 X"的下界 ⇒ 不能反推为约束 |
+| 3 | **赵紫宁 2022** 表 5-3（`docs/papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md:254`） | 4 个制动段**制动时长** 212 / 946 / 1358 / 918 s | ❌ 属**实车实测观测值**，不是"不少于 X"的下界 ⇒ 不能反推为约束 |
 
 **结论与处理**
 
@@ -1217,7 +1217,7 @@ python run_training.py \
 
 ### 文献对齐-2026-10-07 —— 新论文逐篇差异与可借鉴项（一手，供 ADR-030 落定）
 
-**背景**：用户质疑"文献里都没提及、我的改进都没依据文献"。故把本轮新入库的 9 篇论文（fulltext 于 2026-10-07 20:47 提取）逐篇核对，只为回答"同一失效模式（长时制动滞后 vs 长窗口溃散）文献怎么解"，**不作二手转述**。全部结论只来自 `docs/papers/*_fulltext.txt` 实际文本。
+**背景**：用户质疑"文献里都没提及、我的改进都没依据文献"。故把本轮新入库的 9 篇论文（fulltext 于 2026-10-07 20:47 提取）逐篇核对，只为回答"同一失效模式（长时制动滞后 vs 长窗口溃散）文献怎么解"，**不作二手转述**。全部结论只来自 `docs/papers/*/*_fulltext.txt` 实际文本。
 
 **一、逐篇差异（明写事实）**
 

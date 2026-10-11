@@ -4,19 +4,31 @@
 > 与 `docs/REFERENCE_INDEX.md`（**技术/公式 → 论文**，写作速查）互补：本页按「文献」组织，RefIndex 按「技术点」组织。
 > 索引入口：本页由 `docs/README.md` 登记。
 
+## 目录结构（分主题子目录）
+
+| 子目录 | 主题 | 对应内容 |
+| :--- | :--- | :--- |
+| `01_coupler_physics/` | ① 车钩构建、物理环境仿真 | 纵向动力学 · 车钩/缓冲器 · 空气制动 · 循环制动 · 长大下坡 |
+| `02_rl/` | ② 强化学习 | RL 算法 / 单列车 RL 基线 |
+| `03_formation/` | ③ 列车编队 | 多智能体 · 群组协同 · 虚拟耦合编队 |
+| `04_safety_mpc/` | ④ 安全层 / MPC | MPC 对比基线 · 安全层 / ETCS |
+| `05_energy_other/` | ⑤ 节能 / 其他 | 节能对照 · Related Work |
+
+另有 `arxiv_src/`（3 个 arXiv 源码树，原位保留）。
+
 ## 维护规则（新增文献必做）
 
-1. **落地**：把文件放进 `docs/papers/`，命名 = `作者年份_主题.ext`（如 `Guo2025_MARL_PlatoonConsensus.pdf`）或中文题名。
+1. **落地**：把文件放进对应主题子目录 `docs/papers/<子目录>/`，命名 = `作者年份_主题.ext`（如 `Guo2025_MARL_PlatoonConsensus.pdf`）或中文题名；同一文献的 PDF / 信息卡 / fulltext / csv 配套件放同一子目录。
 2. **登记**：在本页对应主题表**新增一行**（文件 / 题名 / 作者·年份 / 出处·DOI / 用途）。
 3. **三处同步**：若该文献被正文引用，须同时更新 `docs/REFERENCE_INDEX.md`（技术点）与 `docs/refs.bib`（BibTeX）；新增 PDF 信息卡（同名 `.md`）时在本页「文件」列一并列出。
 4. **辅助件约定**：同名 `.md` = **该文献数据 SSOT**；`*_fulltext.txt` = 字符检索件；`*.csv` = 提取数据（如 `Zhao2022_fig53_velocity_anchors.csv`）。
 5. **不可得文献**：只记入页末「暂无本地文件（待补 / 不可得）」，不为其建占位页。
 
-**当前状态**：本地文件 70 个（PDF / txt / md / html / csv），已按主题归类如下。
+**当前状态**：本地文件 79 个（PDF / txt / md / html / csv），已按子目录归类如下（「文件」列均为所在子目录内文件名）。
 
 ---
 
-## 一、纵向动力学 / 车钩力 / 缓冲器
+## 一、`01_coupler_physics/` — 车钩构建 / 物理环境仿真
 
 | 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
 | :--- | :--- | :--- | :--- | :--- |
@@ -37,54 +49,54 @@
 | `大秦线2万t重载列车货车车钩力跟踪试验研究_王鼎.pdf`、`王鼎2023_大秦线车钩力跟踪试验.md`、`王鼎2023_大秦线车钩力跟踪试验_fulltext.txt` | 大秦线 2 万 t 重载列车货车车钩力跟踪试验研究 | 王鼎, 苗晓雨, 姜成 / 2023 | 铁道车辆 61(1):102-105, DOI 10.3969/j.issn.1002-7602.2023.01.021 | ⭐ 46 次测力车钩实测（判据 D1-D6，2250 kN） |
 | `重载列车制动力判断标准及纵向冲动研究_刘博阳.pdf`、`刘博阳2022_列尾压强与车钩力.md`、`刘博阳2022_制动力判断标准_fulltext.txt` | 重载列车制动力判断标准及纵向冲动研究 | 刘博阳, 魏伟, 豆飞 / 2022 | 大连交通大学学报 43(6):38-44, DOI 10.13291/j.cnki.djdxac.2022.06.007 | 列尾压强→拉钩力（判据 L1-L6） |
 | `Fu2019_CouplerConstraint_HeavyHaul.pdf` | 基于钩缓约束的重载列车驾驶过程优化 | Fu / 2019（出处待补） | — | 车钩力 1000/2250 kN 上限（安全层阈值来源） |
-| `Tang2020_DoubleSwitchQ.pdf` | 多机车 RL + 车钩力多目标（Double-Switch Q） | Tang / 2020（出处待补） | — | 多机车 RL 基线 |
 | `重载组合列车纵向力优化的联合制动分析及研究_李蔚.pdf` | 重载组合列车纵向力优化的联合制动分析及研究 | 李蔚 / 2023（出处待补） | — | Newmark-β + Picard 来源（数值积分） |
-
-## 二、空气制动 / 循环制动 / 长大下坡
-
-| 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
-| :--- | :--- | :--- | :--- | :--- |
 | `重载列车空气制动精细建模与操纵优化.pdf`、`Zhao2022_AirBrakeRefinedModeling_Optimization.pdf`、`.md`、`_fulltext.txt`、`Zhao2022_fig53_velocity_anchors.csv` | 重载列车空气制动精细建模与操纵优化 | 赵紫宁 / 2022 | 西南交通大学 硕士论文[D] | 三段式空气制动精细模型（信息卡 = 数据 SSOT） |
 | `不同万吨编组列车空气制动特性对纵向动力学性能影响_周占松.pdf` | 不同万吨编组列车空气制动特性对纵向动力学性能影响 | 周占松 / 2026（出处待补） | — | 编组 × 空气制动特性 |
-| `Zhang2024_DQN_CyclicBraking_Downhill.pdf`、`.txt` | 长大下坡循环空气制动 DQN | Changfan Zhang 等 / 2024 | MDPI Algorithms 17(5):190, DOI 10.3390/a17050190 | RL 循环制动基线（忽略车钩力→创新空间；T_a 充风约束） |
-| `information-15-00271.pdf` | Cyclic Air Braking Strategy for Heavy Haul Trains on Long Downhill Sections Based on Q-Learning Algorithm | Changfan Zhang, Shuo Zhou, Jing He, Lin Jia / 2024 | MDPI Information 15(5):271, DOI 10.3390/info15050271 | Q-Learning 循环制动（同组后继工作） |
-| `An-Optimization-Method-of-Heavy-Haul-Train-Driving-Strategy-Based-on-Dueling-DQN.pdf` | An Optimization Method of Heavy Haul Train Driving Strategy Based on Dueling DQN | Qida Si, Lu Jiang, Qi Wang, Youbin Su, Zhiming Xiao, Yuxuan Han, Ming Chai / 2025 | 2025 IEEE ICIRT, DOI 10.1109/ICIRT66379.2025.11216735 | Dueling DQN 驾驶策略（长陡下坡） |
 | `rs-11-2024-0048.pdf` | Research on optimization and evaluation method of heavy-haul train cyclic braking manipulation | Wen He, Chongyi Chang, Lan Li, Yupan Song / 2025 | Railway Sciences（OA）, DOI 10.1108/RS-11-2024-0048 | 高精度 LTD + 遗传算法循环制动优化 |
 | `编组方式对3万吨重载列车循环制动工况纵向冲动的影响_樊运新.pdf` | 编组方式对 3 万吨重载列车循环制动工况纵向冲动的影响 | 樊运新 / 2024（出处待补） | — | 编组方式 → 循环制动冲动 |
 | `货车连挂方式对万吨重载列车循环制动过程纵向冲动影响分析_王宏宇.pdf` | 货车连挂方式对万吨重载列车循环制动过程纵向冲动影响分析 | 王宏宇 / 出处待补 | — | 连挂方式 → 循环制动冲动 |
 | `考虑车钩力约束的重载列车运行优化分层框架与迭代求解方法_魏咪.pdf` | 考虑车钩力约束的重载列车运行优化分层框架与迭代求解方法 | 魏咪 / 2024（出处待补） | — | ⭐ 车钩力约束分层框架（最重要对标） |
+| `Zhang2025_20kT_LongitudinalDynamics_Braking.pdf` | 20 kT 制动纵向动力学（EOT 拉钩力 780→489 kN，−37%） | Zhang / 2025（出处待补） | — | 纵向动力学 / 车钩力 |
 
-## 三、多智能体 / 群组协同（MARL）
+## 二、`02_rl/` — 强化学习
+
+| 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
+| :--- | :--- | :--- | :--- | :--- |
+| `Tang2020_DoubleSwitchQ.pdf` | 多机车 RL + 车钩力多目标（Double-Switch Q） | Tang / 2020（出处待补） | — | 多机车 RL 基线 |
+| `Zhang2024_DQN_CyclicBraking_Downhill.pdf`、`.txt` | 长大下坡循环空气制动 DQN | Changfan Zhang 等 / 2024 | MDPI Algorithms 17(5):190, DOI 10.3390/a17050190 | RL 循环制动基线（忽略车钩力→创新空间；T_a 充风约束） |
+| `information-15-00271.pdf` | Cyclic Air Braking Strategy for Heavy Haul Trains on Long Downhill Sections Based on Q-Learning Algorithm | Changfan Zhang, Shuo Zhou, Jing He, Lin Jia / 2024 | MDPI Information 15(5):271, DOI 10.3390/info15050271 | Q-Learning 循环制动（同组后继工作） |
+| `An-Optimization-Method-of-Heavy-Haul-Train-Driving-Strategy-Based-on-Dueling-DQN.pdf` | An Optimization Method of Heavy Haul Train Driving Strategy Based on Dueling DQN | Qida Si, Lu Jiang, Qi Wang, Youbin Su, Zhiming Xiao, Yuxuan Han, Ming Chai / 2025 | 2025 IEEE ICIRT, DOI 10.1109/ICIRT66379.2025.11216735 | Dueling DQN 驾驶策略（长陡下坡） |
+| `wang-et-al-2026-hierarchical-reinforcement-learning-for-long-distance-multi-objective-optimization-of-heavy-haul-trains.pdf` | Hierarchical RL for Long-Distance Multi-Objective Optimization of Heavy-Haul Trains via Sequential Task Assignment Across Spatial Segments | Jianhua Wang, Cong Wang, Qingyuan Wang, Yiding Yu, Xiaoyun Feng / 2026 | IET Intelligent Transport Systems, DOI 10.1049/itr2.70254 | 分层 RL + 车钩力（单列车） |
+| `Huang2025_EITO_ExpertSystemDRL.pdf` | 专家系统 + DRL 列车运行 | Huang / 2025（出处待补） | — | Related Work |
+
+## 三、`03_formation/` — 列车编队
 
 | 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
 | :--- | :--- | :--- | :--- | :--- |
 | `Song2026_MAPPO_HeavyHaulGroup.html` | 重载列车群组 + MAPPO（定位最接近） | 宋宗莹 等 / 2026 | 预印本, DOI 10.61951/SciencepaperOnline.202605.0114（**仅摘要页，全文不可得**） | 最接近本项目的群组 MARL |
 | `Song2026_TubeMPC_VirtualCoupling.pdf` | 虚拟编组 + 传统空气制动协同（Tube-MPC，fence 压缩） | 宋宗莹 等 / 2026 | 北京交通大学学报 50(2):116-131, DOI 10.11860/j.issn.1673-0291.20250156 | 虚拟耦合 MPC 对照 |
-| `wang-et-al-2026-hierarchical-reinforcement-learning-for-long-distance-multi-objective-optimization-of-heavy-haul-trains.pdf` | Hierarchical RL for Long-Distance Multi-Objective Optimization of Heavy-Haul Trains via Sequential Task Assignment Across Spatial Segments | Jianhua Wang, Cong Wang, Qingyuan Wang, Yiding Yu, Xiaoyun Feng / 2026 | IET Intelligent Transport Systems, DOI 10.1049/itr2.70254 | 分层 RL + 车钩力（单列车） |
 | `Guo2025_MARL_PlatoonConsensus.pdf`、`.txt` | Enhanced consensus control architecture for autonomous platoon utilizing multi-agent reinforcement learning | Xin Guo 等 / 2025 | Computer-Aided Civil and Infrastructure Engineering, DOI 10.1111/mice.13463 | 车队 MARL 共识控制（间距 −8.3% / 编队长 −19.1%） |
 | `Zhang2021_MADRL_TrainPlatoon.pdf`、`.txt` | Multi-Agent Deep Reinforcement Learning Based Consistency Control in Train Platoon Systems | Xinran Zhang, Gaofeng Nie, Wanli Ni, Hui Tian / 2021 | 会议（IEEE；venue 待核） | leader-follower + 人工势场群组一致性 |
 | `Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem in CBTC Systems.pdf` | Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem in CBTC Systems | Guanlin Jing, Yifei Zou, Zuyuan Zhang, Jiguo Yu, Dongxiao Yu, Xiuzhen Cheng / 2025 | Tsinghua Science and Technology, DOI 10.26599/TST.2025.9010067 | VCTS + MARL（城轨 CBTC） |
 | `electronics-15-01823.pdf` | Predictive Mamba-Enhanced Multi-Agent Reinforcement Learning Control for Virtual Coupling of High-Speed Trains | Han Hu, Qingsheng Feng, Zhun Han, Wangyang Liu, Hong Li / 2026 | MDPI Electronics 15: 1823, DOI 10.3390/electronics15091823 | PM-MASAC 高铁虚拟编组 |
 | `Hua2024_MARL_CACC_EnergyEfficiency.pdf`、`.txt` | Communication-Efficient MARL for Platoon Stability and Energy-efficiency Co-optimization in CACC of CAVs | Min Hua 等 / 2024（出处待补） | — | CACC MARL 节能（+5.8%） |
-| `Huang2025_EITO_ExpertSystemDRL.pdf` | 专家系统 + DRL 列车运行 | Huang / 2025（出处待补） | — | Related Work |
+| `Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf` | Safe Optimal Train Formation Control in Virtual Coupling Using Control Barrier Functions | Y. Li, Y. Tong, A. Giua / 2024 | 2024 IEEE CASE, DOI 10.1109/CASE59546.2024.10711420 | CBF/CLF + QP 安全控制 |
+| `1037_Corrected_FINAL_ITSC_2025.pdf` | Virtual Coupling Train Following Control Using High Order Control Barrier Functions | Yike Li, Yin Tong, Alessandro Giua / 2025 | ITSC 2025（IEEE；DOI 待核） | HOCBF 虚拟耦合跟随控制（RBD 安全） |
 
-## 四、安全层 / 虚拟耦合 / MPC
+## 四、`04_safety_mpc/` — 安全层 / MPC
 
 | 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
 | :--- | :--- | :--- | :--- | :--- |
 | `Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf`、`Lu2025_CooperativeNMPC_MultiLoco.md` | Cooperative Nonlinear MPC for Multiple Locomotives of Heavy Haul Train on Long Steep Downhill Sections | Ran Lu, Miao Zhang, Shuai Su / 2025 | 2025 IEEE ICIRT, DOI 10.1109/ICIRT66379.2025.11216780 | ⭐ **本项目 MPC 基线来源**（`NMPCController`） |
-| `Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf` | Safe Optimal Train Formation Control in Virtual Coupling Using Control Barrier Functions | Y. Li, Y. Tong, A. Giua / 2024 | 2024 IEEE CASE, DOI 10.1109/CASE59546.2024.10711420 | CBF/CLF + QP 安全控制 |
-| `1037_Corrected_FINAL_ITSC_2025.pdf` | Virtual Coupling Train Following Control Using High Order Control Barrier Functions | Yike Li, Yin Tong, Alessandro Giua / 2025 | ITSC 2025（IEEE；DOI 待核） | HOCBF 虚拟耦合跟随控制（RBD 安全） |
 | `Safe_Reinforcement_Learning_Control_of_High-Speed_Maglev_Train_Levitation_System_Considering_Aerodynamic_Lift_Force.pdf` | Safe RL Control of High-Speed Maglev Train Levitation System Considering Aerodynamic Lift Force | 作者待核 / 2025 | CIYCEE 2025（会议稿；DOI 待核） | HOCBF + 扰动观测器安全层（RL+安全层结构参考） |
 | `ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf` | Introduction to ETCS Braking Curves | ERA / 2020 | 欧盟铁路局（ERA） | ETCS 制动曲线（EBI/SBI 单调表） |
 
-## 五、节能 / 其他（Related Work）
+## 五、`05_energy_other/` — 节能 / 其他（Related Work）
 
 | 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
 | :--- | :--- | :--- | :--- | :--- |
 | `Heineken2023_OptimalControl_EnergyEfficient.pdf` | 最优控制节能（Pontryagin） | Heineken / 2023（出处待补） | — | 节能对照 |
 | `Yang2024_ACSd_EnergyEfficientTrain.pdf` | 蚁群算法节能 | Yang / 2024（出处待补） | — | 节能对照 |
-| `Zhang2025_20kT_LongitudinalDynamics_Braking.pdf` | 20 kT 制动纵向动力学（EOT 拉钩力 780→489 kN，−37%） | Zhang / 2025（出处待补） | — | 纵向动力学 / 车钩力 |
 
 ---
 

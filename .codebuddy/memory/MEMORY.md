@@ -87,7 +87,7 @@
 
 **三篇 CBF 文献已下载精读**（txt 存档 `outputs/diag_*.txt`，PDF 在 `docs/papers/`）：
 - **Li 2024**（CASE, `10.1109/CASE59546.2024.10711420`）：VC 编队 CBF+CLF+QP，单质点、无车钩力、连续控制
-- **Li 2025**（ITSC, `docs/papers/1037_Corrected_FINAL_ITSC_2025.pdf`）：VC 跟随 HOCBF+QP，RBD 间距拆两个 CBF（b₁=d−θ−d₀, b₂=d−d₀）处理 max 不可微 + T2T 时滞启发式；单质点、无车钩力
+- **Li 2025**（ITSC, `docs/papers/03_formation/1037_Corrected_FINAL_ITSC_2025.pdf`）：VC 跟随 HOCBF+QP，RBD 间距拆两个 CBF（b₁=d−θ−d₀, b₂=d−d₀）处理 max 不可微 + T2T 时滞启发式；单质点、无车钩力
 - **Zhao 2025**（CIYCEE, `10.1109/CIYCEE67631.2025.11308942`）：SAC+HOCBF 安全层修正 RL 动作（可微优化嵌入）+DOB；磁悬浮单点、无车钩力
 
 **后续 CBF 论文创新点（三者都没做）**：将**车钩力约束纳入 CBF/HOCBF** 的重载列车虚拟耦合协同——长大下坡+多列+离散空气制动（波速时滞），CBF 过滤器把列间间距+限速+列内车钩力（代理）约束最小干预强制在物理层，与 MARL 集成。架构借鉴 Zhao2025，间距 CBF 搬 Li2025 的 b₁/b₂ 拆分，车钩力 CBF 为原创（需代理模型）。复用：`fair_mpc_controller.py` 的 SLSQP 骨架 + M-DQN 无安全层 2111kN 对比数据。

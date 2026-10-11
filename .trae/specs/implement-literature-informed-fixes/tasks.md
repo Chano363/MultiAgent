@@ -22,7 +22,7 @@
     - **A 在全剖面上是"混合"效应（三配置一致）**：A 总是压低 AB 用量，但在 RL 参与的配置里**峰值一律升高、band 一律变差**（M1：1350→1643.49 kN / 99.62%→91.58%；仅 ED：1023→1037.50 kN / 97.07%→95.85%）⇒ **A 必须与 C+B 一起重训**；破线步数符号随配置变（M1 905→77 大降、仅 ED 21→44 反升）
 
 - [x] Task 3: 改造 A —— AB 最小充风时间进动作空间（Zhang2024）
-  - [x] SubTask 3.1: 核定 `ab_min_refill_s` / `ab_min_hold_s` 默认值（自 `papers/Zhang2024_DQN_CyclicBraking_Downhill.txt:250-255 / :287-295` + `VALIDATION_BASELINE.md` 充风时间项）；无出处则标 `待核实`
+  - [x] SubTask 3.1: 核定 `ab_min_refill_s` / `ab_min_hold_s` 默认值（自 `papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:250-255 / :287-295` + `VALIDATION_BASELINE.md` 充风时间项）；无出处则标 `待核实`
     - 结果：**文献依据已定位到式** —— Zhang2024 运行约束 (1) Air-refill time 的**式 (9)** `t_{b,j+1} − t_{r,j} ≥ T_a`（释放相 ≥ 最小充风时间），本实现与之一致；`ab_min_refill_s=222.0 s`（`T_a` 取 `VALIDATION_BASELINE.md:201` 张二田 S6 最短充风；范围 175~512 s 见 `:169` 赵紫宁2022）；`ab_min_hold_s=0.0` 且标 **`待核实`**——**已复查 Zhang2024 全文，其运行约束无"最短制动保持时长"一项**，故无出处、默认不激活（不编造）
     - **【2026-10-01 补：`ab_min_hold_s` 扩检结案（负结果）】** 追加检索《铁路机车操作规则》（铁运〔2012〕281 号 / TG/JW104-2012，国家铁路局公布文本）与赵紫宁2022 实测表 ⇒ **确认无"运行期最小 AB 保持时长"的可用出处**：Zhang2024 §2.2 仅三条运行约束；操规最接近的两条为"列检站减压 100 kPa 保压 **3 min**"（**站内保压试验**，非运行约束）与"重载列车 **v<30 km/h 不应缓解**"（**速度门限**非时长，且本场景 `v_min=40 km/h` ⇒ 空约束）；赵紫宁表 5-3 制动时长 212~1358 s 属**实测观测值**非下界。⇒ 标签由开放的 `待核实` 改为**已结案**，值保持 `0.0` 不激活。落点：`DIAGNOSTICS_2026-10.md`「检索-2026-10-01」、`REFERENCE_INDEX.md` 落地映射新增行、`configs/…yaml` + `multi_loco_controller.py` 注释同步、ADR-021 遗留② 状态更新、`PROJECT_PIPELINE.md` A 条目同步。
   - [x] SubTask 3.2: 在 `MultiLocoController` 维护逐机车 AB 计时状态，于 `get_action_decomposed()` 拒绝"充风不足新增源 / 保持不足释放源"，暴露 veto 计数

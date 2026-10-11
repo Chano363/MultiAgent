@@ -627,4 +627,4 @@ owner: Owner
   - MPC 基线：① 车钩力显式进代价与约束函数（Song2026）；② Tube/补偿器抗 AB 时滞（Song2026）；③ 循环制动 GA 寻优作额外对照（He2025，车钩力降 21–23.9%）。
 - **验证（已做）**：`tests/test_fleet_decompose.py`（形状/取值域）、`test_train_fleet_env.py`、`test_train_env.py` **32 passed**；冒烟（`--episodes 2`，输出重定向 `outputs/smoke/_smoke/adr030_*`）运行中。
 - **刻意不做**：本轮**不动**奖励、安全层、地平线（保持单变量）；受控基线（3 seed + 统一症状口径）待本变量冒烟通过后另立规格。
-- **相关**：`DIAGNOSTICS_2026-10.md`「文献对齐-2026-10-07」（逐篇差异与可借鉴项，append-only）；ADR-017（训练时域 ≤1200 步）；ADR-021（车钩力进目标的口径）；`src/environments/train_fleet_env.py`、`tests/test_fleet_decompose.py`；文献 `docs/papers/Wang2026_hierRL_fulltext.txt`、`Song2026_TubeMPC_fulltext.txt`、`Hu2026_PMMASAC_fulltext.txt`、`He2025_CyclicGA_fulltext.txt`、`Si2025_DuelingDQN_fulltext.txt`、`Zhang2024_QLearning_fulltext.txt`。
+- **相关**：`DIAGNOSTICS_2026-10.md`「文献对齐-2026-10-07」（逐篇差异与可借鉴项，append-only）；ADR-017（训练时域 ≤1200 步）；ADR-021（车钩力进目标的口径）；`src/environments/train_fleet_env.py`、`tests/test_fleet_decompose.py`；文献 `docs/papers/02_rl/Wang2026_hierRL_fulltext.txt`、`Song2026_TubeMPC_fulltext.txt`、`Hu2026_PMMASAC_fulltext.txt`、`He2025_CyclicGA_fulltext.txt`、`Si2025_DuelingDQN_fulltext.txt`、`Zhang2024_QLearning_fulltext.txt`。
