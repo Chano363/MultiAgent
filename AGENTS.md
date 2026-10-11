@@ -115,7 +115,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 文献库（docs/papers/）
 
-**论文双重用途**：既是文献引用，更是**项目正确性的验证基准**（见 `docs/VALIDATION_BASELINE.md`）。PDF（10 篇）+ arXiv 源码（3 篇）+ 信息卡全清单见 `docs/papers/` 与 `docs/RESEARCH_POSITIONING.md` §二。MCP `scholar-search` 已配置（Semantic Scholar + arXiv 双通道；需 `mcp==1.9.3`）。
+**论文双重用途**：既是文献引用，更是**项目正确性的验证基准**（见 `docs/VALIDATION_BASELINE.md`）。PDF（10 篇）+ arXiv 源码（3 篇）+ 信息卡全清单见 `docs/papers/` 与 `docs/REFERENCE_INDEX.md`。MCP `scholar-search` 已配置（Semantic Scholar + arXiv 双通道；需 `mcp==1.9.3`）。
 
 - **从文献学到的经验必须登记引用文档**：凡从论文借鉴的思想 / 公式 / 设计 / 数据，或决策（ADR）/ 诊断调研中**据以定案**的文献解法，一律写入 `docs/REFERENCE_INDEX.md`（技术/公式 → 来源 → 本地文件 / DOI），禁止"用了不注明"；新增引用同步 `docs/papers/` + `refs.bib` + 该表（三处）。未核实到 DOI 的只给 venue/年份，不编号。
 
@@ -136,3 +136,28 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 > 各文档的「何时读」条件已由 README 承载，本文件不再复制清单。
 
 > **⚠️ 校验能力边界（勿当万灵药）**：`scripts/check_agents_links.py`（见 `docs/rules/EXECUTION_RULES.md`）只保证**引用卫生**（ADR 编号存在 / docs 路径非断链 / 个别数值内联警示），**不保证**内容规范、不误导、不循环论证。三者分别靠：① 内容规范 = ADR review + 人审（机器查不了语义）；② 防误导 = 写前追问"这是流水还是立论、措辞是否含糊、推测是否写成结论"；③ **防循环论证 = 引用必须锚定外部独立权威**（原始论文 / DOI / 领域公认），**禁止用"本项目自己的历史"当作"外部标准证明"**。**请勿因存在校验而省略 ①②③ 的人工判断。**
+
+## 文档导航
+
+- `traffic_rl_project/docs/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md`：改列车纵向动力学/车钩/制动/坡度物理前必读；否则口径漂移导致训练评估不同源。
+- `traffic_rl_project/docs/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md`：改观测/动作/奖励/安全层/curriculum 前必读；否则破坏 1000kN 硬约束与 log_prob 一致性。
+- `traffic_rl_project/docs/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md`：跑训练/评估或改 trainer/配置前必读；否则 metadata 不合规或覆写历史产物。
+- `traffic_rl_project/docs/MPC_BASELINE_KNOWLEDGE_BASE.md`：改 NMPC 或跑 MPC 对比实验前必读；否则破坏对比公允性。
+
+## 领域地图（doc-init）
+
+<!-- 覆盖度复核基线：2026-10-08 · 源码指纹 扫描 10152 文件 / Python 1867 · JavaScript 11 · TypeScript 2 / 5 子模块 · 基线提交 76a922e -->
+
+| 领域 | 入口锚点 |
+|------|---------|
+| 列车动力学仿真引擎 | traffic_rl_project/src/train_dynamics/ · traffic_rl_project/src/physics_config.py |
+| 编队训练环境与安全层 | traffic_rl_project/src/environments/ · traffic_rl_project/src/safety_layer.py |
+| RL 训练评估框架 | traffic_rl_project/run_training.py · traffic_rl_project/src/trainer/ · traffic_rl_project/src/algorithms/ · traffic_rl_project/src/evaluation/ |
+| MPC 对比基线 | traffic_rl_project/src/controllers/ |
+| 研究立论与决策治理 | traffic_rl_project/docs/RESEARCH_POSITIONING.md · traffic_rl_project/docs/logs/decisions/DECISIONS.md |
+| 验证基准与仿真设计 | traffic_rl_project/docs/VALIDATION_BASELINE.md · traffic_rl_project/tests/ |
+| 执行规范与产物管理 | traffic_rl_project/docs/rules/EXECUTION_RULES.md · traffic_rl_project/scripts/check_outputs_layout.py |
+| 文献库与引用 | traffic_rl_project/docs/papers/ · traffic_rl_project/docs/REFERENCE_INDEX.md |
+| 阶段一历史归档 | traffic_rl_project/history/ · traffic_rl_project/docs/learning_report.md |
+| 文献参考实现（第三方参考代码，非主链） | traffic_rl_project/reference/ |
+| Agent 工具技能资产（非业务代码） | .trae/skills · .codebuddy/skills |

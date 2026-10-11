@@ -366,8 +366,19 @@ class MultiLocoController:
         # ⇒ 本步不发这个新源（final[i,1]=0）。已 on 的源不受影响（不撤销已建立源）。
         for i in range(self.num_locomotives):
             if (baseline[i, 1] < 0 and final[i, 1] < 0
-                    and not self._ab_on[i] and not self._ab_gate(i, True)):
-                final[i, 1] = 0.0
+                    and not self._ab_on[i]):
+                # [Step 0.5 quick-check 2026-10-08] (see DIAGNOSTICS 2026-10-08 safety-layer note)
+                emergency = vel >= v_max
+                allowed = (
+                    emergency
+                    or (cur_coupler_ratio < self.AB_ADD_SOURCE_MAX_RATIO
+                        and added_ab_sources < self.AB_MAX_CONCURRENT_ADD
+                        and not ab_add_vetoed)
+                )
+                if allowed and self._ab_gate(i, True):
+                    added_ab_sources += 1
+                else:
+                    final[i, 1] = 0.0
         # 【ADR-021 决策1】提交本步 AB 状态（基于 final）：记录 0→1 的施加时刻 / 1→0 的释放时刻。
         for i in range(self.num_locomotives):
             new_on = bool(final[i, 1] < 0)
