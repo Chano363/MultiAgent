@@ -115,7 +115,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 文献库（docs/papers/）
 
-**论文双重用途**：既是文献引用，更是**项目正确性的验证基准**（见 `docs/VALIDATION_BASELINE.md`）。PDF（10 篇）+ arXiv 源码（3 篇）+ 信息卡全清单见 `docs/papers/` 与 `docs/REFERENCE_INDEX.md`。MCP `scholar-search` 已配置（Semantic Scholar + arXiv 双通道；需 `mcp==1.9.3`）。
+**论文双重用途**：既是文献引用，更是**项目正确性的验证基准**（见 `docs/VALIDATION_BASELINE.md`）。PDF（10 篇）+ arXiv 源码（3 篇）+ 信息卡全清单见 `docs/papers/` 与 `docs/REFERENCE_INDEX.md`。**文献按主题分 5 个子目录存放**（`01_coupler_physics/` 车钩与物理仿真 · `02_rl/` 强化学习 · `03_formation/` 列车编队 · `04_safety_mpc/` 安全层/MPC · `05_energy_other/` 节能/其他，清单见 `traffic_rl_project/docs/papers/README.md`）。MCP `scholar-search` 已配置（Semantic Scholar + arXiv 双通道；需 `mcp==1.9.3`）。
 
 - **从文献学到的经验必须登记引用文档**：凡从论文借鉴的思想 / 公式 / 设计 / 数据，或决策（ADR）/ 诊断调研中**据以定案**的文献解法，一律写入 `docs/REFERENCE_INDEX.md`（技术/公式 → 来源 → 本地文件 / DOI），禁止"用了不注明"；新增引用同步 `docs/papers/` + `refs.bib` + 该表（三处）。未核实到 DOI 的只给 venue/年份，不编号。
 
