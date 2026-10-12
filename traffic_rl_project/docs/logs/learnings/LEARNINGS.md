@@ -25,7 +25,7 @@ Corrections, insights, and knowledge gaps captured during development.
 **Area**: docs
 
 ### Summary
-README 必须极简省 token：优先链接到详细文档而非内联内容。用户原话：README "太冗余，浪费我的token"——旧 README 内联了算法对比/动作观测空间/reward 函数/文献引用/阶段二计划等表格，均已在 learning_report.md 与 project_rules.md 中。
+README 必须极简省 token：优先链接到详细文档而非内联内容。用户原话：README "太冗余，浪费我的token"——旧 README 内联了算法对比/动作观测空间/reward 函数/文献引用/阶段二计划等表格，均已在 learning_report.md 与 project_rules.md 中。（补注 2026-10-12：`learning_report.md` 已删除，git 历史可查；本条仅存原话背景，不作现行引用。）
 Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟随链接看细节。
 
 ### Suggested Action
@@ -117,7 +117,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 
 - **期望 vs 实际**
   - 期望：给定 `--resume <ckpt>` 就该从该权重接着训。
-  - 实际：旧实现是 `if resume_pt and Path(resume_pt).exists():` —— **路径不存在就直接跳过加载分支**，既不报错也不提示，直接 from-scratch 重训。现实复现：`PROJECT_PIPELINE.md` 记载 5-seed 长训"**原 launch resume 源已 MISS**"，权重停在 ep 992/992/521/661/671。
+  - 实际：旧实现是 `if resume_pt and Path(resume_pt).exists():` —— **路径不存在就直接跳过加载分支**，既不报错也不提示，直接 from-scratch 重训。现实复现：`docs/logs/progress/PROGRESS_2026-09.md` 记载 5-seed 长训"**原 launch resume 源已 MISS**"，权重停在 ep 992/992/521/661/671。
 - **根因**：把"是否续训"交给 `Path.exists()` 的**静默布尔**决定，且没有任何"我打算续训但没成功"的守卫；`--episodes` 语义又只是"再跑 N 集"，人工算剩余集数时连"其实没续上"也看不出来。
 - **解决**：
   1. `resolve_checkpoint()` 对不存在的路径**直接抛 `FileNotFoundError`**（禁止静默从头）；支持具体文件 / `latest|last` / 目录自动取最新 `_ep{N}`。
@@ -777,7 +777,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
   实际要 ≈58 天 ⇒ 必须先裁决"减课时/减集数"还是"并行多机/多卡"。**错的机时会误导方向性决策**，
   与"文档不误导"是同一条铁律。
 - **解决（本轮）**：
-  1. `REPRODUCIBILITY.md` §十、`PROJECT_PIPELINE.md` 长久计划 1、`DIAGNOSTICS_2026-10.md`
+  1. `REPRODUCIBILITY.md` §十、`docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1、`DIAGNOSTICS_2026-10.md`
      「启动-2026-10-01」四处把 ≈3.4 天**原地更正为 ≈11.7 天**，并**写明原估算作废**（不留旧数）；
   2. 更正文里**带上可复核的推导**（实测 `s/ep` → 按 curriculum 分段折算 → 加 `long_eval`），
      使下一位读者能自己重算，而不是再抄一个数字。

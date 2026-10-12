@@ -355,3 +355,112 @@
   year    = {2026},
   doi     = {10.3390/electronics15091823}
 }
+@article{rong2025_heavyhaul_dynamics,
+  author  = {容嘉欣 and others},
+  title   = {更大牵引质量重载列车动力学建模与仿真分析},
+  journal = {机械},
+  volume  = {52},
+  number  = {7},
+  pages   = {57--64},
+  year    = {2025}
+}
+
+% ----------------------------------------------------------------------------
+% E. MPC × 空气制动文献调研入库（2026-10-12, 来源 = DIAGNOSTICS_2026-10.md
+%    「文献调研-2026-10-12」；元数据经 Crossref/OpenAlex/期刊页面核实）
+% ----------------------------------------------------------------------------
+
+@article{zhang2014_tcst_ecp,
+  author  = {Zhang, Lijun and Zhuan, Xiangtao},
+  title   = {Optimal Operation of Heavy-Haul Trains Equipped With Electronically
+             Controlled Pneumatic Brake Systems Using Model Predictive Control
+             Methodology},
+  journal = {IEEE Transactions on Control Systems Technology},
+  volume  = {22},
+  number  = {1},
+  pages   = {13--22},
+  year    = {2014},
+  doi     = {10.1109/TCST.2013.2238235},
+  note    = {ECP-MPC 开山作：ECP 逐车连续可控假设绕开气动时滞；车钩力作罚项。
+             摘要级（无本地全文，信息卡 docs/papers/04_safety_mpc/Zhang2014_TCST_ECP_MPC.md）}
+}
+
+@article{liu2022_rtmpc_stop,
+  author  = {刘晓宇 and 荀径 and 高士根 and 阴佳腾},
+  title   = {高速列车精确停车的鲁棒自触发预测控制},
+  journal = {自动化学报},
+  volume  = {48},
+  number  = {1},
+  pages   = {171--181},
+  year    = {2022},
+  doi     = {10.16383/j.aas.c200039},
+  note    = {制动曲线生成-跟踪两级；制动模型一阶惯性+纯滞后(Td=1.0s, τ=0.4s)进状态方程；
+             明言 ATO 通常不能直接控制各车厢制动力。全文 docs/papers/04_safety_mpc/Liu2022_ATO_BrakeDelayModel.txt}
+}
+
+@article{yu2023_milp_refill,
+  author  = {Yu, Huazhen and Wang, Yihui and D'Ariano, Andrea and Lai, Anzheng and Huang, Youneng},
+  title   = {Mixed Integer Linear Programming Based Speed Profile Optimization for
+             Heavy-Haul Trains},
+  journal = {Journal of Advanced Transportation},
+  volume  = {2023},
+  pages   = {6649871},
+  year    = {2023},
+  doi     = {10.1155/2023/6649871},
+  note    = {重载列车长大下坡 MILP 速度剖面：显式建模空气制动指令时滞+充风时间；
+             刚体多质点模型（无车钩力）。部分全文 docs/papers/04_safety_mpc/Yu2023_MILP_RefillTime_Downhill.txt}
+}
+
+@article{zhang2026_jas_couplercomp,
+  author  = {Zhang, Jilie and Chen, Zhiyong and Guo, Ge},
+  title   = {A Distributed Braking Scheme for Heavy-Haul Trains Using Coupler
+             Force Compensation},
+  journal = {IEEE/CAA Journal of Automatica Sinica},
+  volume  = {13},
+  number  = {4},
+  pages   = {877--887},
+  year    = {2026},
+  doi     = {10.1109/JAS.2025.125870},
+  note    = {ECP 车钩力前馈补偿+分布式列队控制（非 MPC）；批评 MPC 的 QP 实时性。
+             部分全文 docs/papers/04_safety_mpc/Zhang2026_JAS_CouplerCompensation.txt}
+}
+
+@inproceedings{zhao2026_ccdc_epcoord,
+  author    = {Zhao, Hongyi and Wang, Qingyuan and Jiang, Haochen and Sun, Pengfei},
+  title     = {{MPC} with Electro-Pneumatic Coordination for Impulse Suppression in
+               Heavy-Haul Trains on Long Steep Downhills},
+  booktitle = {2026 38th Chinese Control and Decision Conference (CCDC)},
+  pages     = {6036--6043},
+  year      = {2026},
+  doi       = {10.1109/CCDC69976.2026.11559852},
+  note      = {电空协调：AB 不进优化变量、速度误差触发循环「减压-保压-缓解」；
+               车钩力峰降>8%（据 DIAGNOSTICS 调研，摘要级，信息卡
+               docs/papers/04_safety_mpc/Zhao2026_CCDC_ElectroPneumaticCoordination.md）}
+}
+
+@article{farooqi2018_shrinking,
+  author  = {Farooqi, Hafsa and Fagiano, Lorenzo and Colaneri, Patrizio},
+  title   = {Efficient Train Operation via Shrinking Horizon Parametrized
+             Predictive Control},
+  journal = {IFAC-PapersOnLine},
+  volume  = {51},
+  number  = {20},
+  pages   = {203--208},
+  year    = {2018},
+  doi     = {10.1016/j.ifacol.2018.11.014},
+  note    = {输入参数化把离散模式集化为 NLP 保持 shrinking-horizon MPC。
+             本地 docs/papers/04_safety_mpc/Farooqi2018_ParametrizedMPC.pdf}
+}
+
+@article{li2025_fsmpc_stop,
+  author  = {李蔚 and 曹悦 and 娄永梅 and 黄苏苏 and 何怡霏},
+  title   = {基于FSMPC的列车精准停车阶段动态优化研究},
+  journal = {铁道科学与工程学报},
+  volume  = {22},
+  number  = {10},
+  pages   = {4424--4435},
+  year    = {2025},
+  doi     = {10.19713/j.cnki.43-1423/u.T20250035},
+  note    = {地铁精确停车 FSMPC：有限控制集枚举+制动级位↔减速度静态映射+PSO 逐级位辨识时滞
+             +HMM 预测电空转换。全文 docs/papers/04_safety_mpc/Li2025_FSMPC_BrakeNotch.txt}
+}

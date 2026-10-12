@@ -1,7 +1,7 @@
 # AGENTS.md
 
 > **本文件 = 导航 + 立论指针入口**（不承载进度表、不复制研究阶段细节）。
-> 环境/训练/留痕等**执行规范**见 `traffic_rl_project/docs/rules/EXECUTION_RULES.md`；进度流水见 `traffic_rl_project/docs/PROJECT_PIPELINE.md`；仿真设计/Gotchas/文献清单等细节已下沉到 `docs/`（见下方「何时读什么」）。
+> 环境/训练/留痕等**执行规范**见 `traffic_rl_project/docs/rules/EXECUTION_RULES.md`；进度与计划见 `traffic_rl_project/docs/PROJECT_PIPELINE.md`（逐条执行流水已按月拆至 `traffic_rl_project/docs/logs/progress/` 目录，按月分文件）；仿真设计/Gotchas/文献清单等细节已下沉到 `docs/`（见下方「何时读什么」）。
 
 ## Repo layout
 
@@ -41,7 +41,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 ## 阶段二研究定位（立论主轴）
 
 **论文题目**：面向长大下坡场景基于多智能体强化学习的重载列车群组自动控制方法
-**研究对象**：一万吨级 1+1 重载列车群组（单机牵引万吨列车，1 机 + \~100 节货车，群组由多列组成）
+**研究对象**：一万吨级 1+1 重载列车群组（每列 = 首/尾双机车 + 94 节货车，`consist_preset: 10kt_1plus1`；3 列 × 2 = 6 台机车智能体，群组由多列组成，每列内部有车钩力）
 
 **核心创新点：车钩力 + 多列群组 + 长大下坡 协同控制**（编队 = 最终目的，MARL = 实现手段）。现有长大下坡 RL 工作（Zhang2024 DQN、Liu2021 DDQN、Wang2025 DQN）**均明确忽略车钩力**（⚠️ 仅指这些单列、车钩力未入模者，**勿推广为"文献都忽略"**——Wang2026 单列重载 RL 已含车钩力、Song2026 多列 Tube-MPC 已含车钩力约束，见 `RESEARCH_POSITIONING.md` §1.2 / ADR-030；真空白 = "多列群组 × 车钩力 × MARL"）；本项目在长大下坡循环制动场景下**显式建模车钩力**，并扩展到多列群组协同。实现方式（2026-09-08 ADR-013）= **RL 定策 + 底层控制器安全执行**（非纯 RL 直控 100 车厢）。
 
@@ -59,7 +59,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-02** 最新为 **ADR-023**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
+> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-12** 最新为 **ADR-031**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/做消融/加对比。
 > **文档规范出处**：文档治理/角色/三态/判断树 = `docs/README.md` + `docs/rules/README.md`（唯一规范）。
 
@@ -104,7 +104,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 **4 条判断规则（改/增前先问）**
 
-1. **属于哪个角色？** 实验/诊断 → `logs/diagnostics/`（按月文件）；重大决策 → `logs/decisions/DECISIONS.md`（ADR）；踩坑/教训 → `logs/learnings/LEARNINGS.md`；工作计划 → `PROJECT_PIPELINE.md`；流水 → `.codebuddy/memory/`。判断树见 `docs/rules/README.md` 第四节。
+1. **属于哪个角色？** 实验/诊断 → `logs/diagnostics/`（按月文件）；重大决策 → `logs/decisions/DECISIONS.md`（ADR）；踩坑/教训 → `logs/learnings/LEARNINGS.md`；工作计划 → `PROJECT_PIPELINE.md`；已完结的执行条目按月归档 → `docs/logs/progress/`（按月分文件）；当天流水 → `.codebuddy/memory/`。判断树见 `docs/rules/README.md` 第四节。
 2. **核心立论 vs 流水？** 立论（RESEARCH_POSITIONING / 论文 / 规范）可**覆盖式修订**（动机存档进 ADR）；流水**只追加**，历史结论绝不篡改，被推翻就在原位标 `superseded` 并指向新结果。
 3. **文件会不会过大？** 单文件接近 ~200KB 必须按 `类型/时间` **物理拆分**（如 `DIAGNOSTICS_YYYY-MM.md`、`VERIFICATION_LOGS_V*.md`）；**删除文档不留 stub，一次性 Grep 全仓改写所有旧路径**。
 4. **导航是否登记？** 新建/移动/拆分任何文档必须同步 `docs/README.md`（唯一索引入口），用 Grep 全仓改旧路径指向现存文件。
@@ -139,10 +139,10 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 文档导航
 
-- `traffic_rl_project/docs/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md`：改列车纵向动力学/车钩/制动/坡度物理前必读；否则口径漂移导致训练评估不同源。
-- `traffic_rl_project/docs/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md`：改观测/动作/奖励/安全层/curriculum 前必读；否则破坏 1000kN 硬约束与 log_prob 一致性。
-- `traffic_rl_project/docs/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md`：跑训练/评估或改 trainer/配置前必读；否则 metadata 不合规或覆写历史产物。
-- `traffic_rl_project/docs/MPC_BASELINE_KNOWLEDGE_BASE.md`：改 NMPC 或跑 MPC 对比实验前必读；否则破坏对比公允性。
+- `traffic_rl_project/docs/knowledge/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md`：改列车纵向动力学/车钩/制动/坡度物理前必读；否则口径漂移导致训练评估不同源。
+- `traffic_rl_project/docs/knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md`：改观测/动作/奖励/安全层/curriculum 前必读；否则破坏 1000kN 硬约束与 log_prob 一致性。
+- `traffic_rl_project/docs/knowledge/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md`：跑训练/评估或改 trainer/配置前必读；否则 metadata 不合规或覆写历史产物。
+- `traffic_rl_project/docs/knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md`：改 NMPC 或跑 MPC 对比实验前必读；否则破坏对比公允性。
 
 ## 领域地图（doc-init）
 
@@ -158,6 +158,6 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 | 验证基准与仿真设计 | traffic_rl_project/docs/VALIDATION_BASELINE.md · traffic_rl_project/tests/ |
 | 执行规范与产物管理 | traffic_rl_project/docs/rules/EXECUTION_RULES.md · traffic_rl_project/scripts/check_outputs_layout.py |
 | 文献库与引用 | traffic_rl_project/docs/papers/ · traffic_rl_project/docs/REFERENCE_INDEX.md |
-| 阶段一历史归档 | traffic_rl_project/history/ · traffic_rl_project/docs/learning_report.md |
+| 阶段一历史归档 | traffic_rl_project/history/（`training_results_standardized.md` / `learning_report.md` 均已删，git 历史可查） |
 | 文献参考实现（第三方参考代码，非主链） | traffic_rl_project/reference/ |
 | Agent 工具技能资产（非业务代码） | .trae/skills · .codebuddy/skills |

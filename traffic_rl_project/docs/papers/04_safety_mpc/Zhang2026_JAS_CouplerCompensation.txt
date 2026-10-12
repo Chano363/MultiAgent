@@ -1,0 +1,153 @@
+================================================================================
+本地文献正文摘录（字符检索件）| traffic_rl_project/docs/papers/04_safety_mpc/
+================================================================================
+题名: A Distributed Braking Scheme for Heavy-Haul Trains Using Coupler Force Compensation
+作者: Jilie Zhang（西南交通大学）, Zhiyong Chen（通讯, University of Newcastle / 中央大学）, Ge Guo（东北大学）
+出处: IEEE/CAA Journal of Automatica Sinica, 2026, 13(4): 877-887. DOI: 10.1109/JAS.2025.125870（开放获取）
+      收稿 2025-01-12 / 录用 2025-08-18
+来源URL: https://www.ieee-jas.com/en/article/doi/10.1109/JAS.2025.125870
+抓取: 2026-10-12（WebFetch）。
+⚠️ 覆盖范围 = 部分正文：Abstract ~ §II 式(4) 处截断；
+   §III 分布式控制器设计 / §IV 鲁棒性分析 / §V 实验（MATLAB + Universal Mechanism）/ §VI 结论【未获取】
+   （PowerShell/curl 连 ieee-jas.com 均失败，WebFetch 输出上限截断）。
+关键事实（仅据已读部分）:
+  - 前提假设 = **ECP**（电控空气制动）制动系统。
+  - 方案 = **车钩力前馈补偿器**（对消前后邻车作用于本车钩的车钩力）+ 协同控制器（补偿后列车
+    退化为多车列队 platooning 问题，逐车独立二维系统）——**非 MPC**。
+  - 明确批评 MPC：QP 求解难以满足长编组重载列车实时计算/内存要求；集中式设计需在车辆质量改变时重新设计。
+  - 多质点级联纵向模型：车钩 = 弹簧-阻尼（式(2)(3)），阻力含滚动/曲线/坡道/气动项（式(1)）。
+用途: MPC×空气制动文献调研（DIAGNOSTICS_2026-10.md「文献调研-2026-10-12」）
+  —— 流派1"ECP 连续力近似"阵营中转向非 MPC 的代表（车钩力前馈补偿 + 分布式列队）。
+================================================================================
+
+Article Contents
+
+Abstract
+
+I. Introduction
+
+II. Problem Formulation and Preliminaries
+
+III. Design of A Distributed Controller
+
+IV. Robust Analysis and Redesign
+
+V. Experimental Study
+
+A Braking on Long and Steep Downhills
+
+B Robustness Analysis
+
+C Simulation Over Complex Terrains
+
+VI. Conclusion
+
+Appendix A
+
+References
+
+**Article Navigation**  >  [IEEE/CAA Journal of Automatica Sinica](https://www.ieee-jas.net/)  > [2026](https://www.ieee-jas.net/archive_list_en.htm?#2026)  >  [13(4): 877-887](https://www.ieee-jas.net/article/2026/4)
+
+J. Zhang, Z. Chen, and G. Guo, “A distributed braking scheme for heavy-haul trains using coupler force compensation,” IEEE/CAA J. Autom. Sinica, vol. 13, no. 4, pp. 877–887, Apr. 2026. doi: 10.1109/JAS.2025.125870
+
+ **Citation:** J. Zhang, Z. Chen, and G. Guo, “A distributed braking scheme for heavy-haul trains using coupler force compensation,” *IEEE/CAA J. Autom. Sinica*, vol. 13, no. 4, pp. 877–887, Apr. 2026.  doi: [10.1109/JAS.2025.125870](http://dx.doi.org/10.1109/JAS.2025.125870)
+
+J. Zhang, Z. Chen, and G. Guo, “A distributed braking scheme for heavy-haul trains using coupler force compensation,” IEEE/CAA J. Autom. Sinica, vol. 13, no. 4, pp. 877–887, Apr. 2026. doi: 10.1109/JAS.2025.125870
+
+ **Citation:**   J. Zhang, Z. Chen, and G. Guo, “A distributed braking scheme for heavy-haul trains using coupler force compensation,” *IEEE/CAA J. Autom. Sinica*, vol. 13, no. 4, pp. 877–887, Apr. 2026.  doi: [10.1109/JAS.2025.125870](http://dx.doi.org/10.1109/JAS.2025.125870)
+
+
+
+ PDF**( 1826 KB)**
+
+# A Distributed Braking Scheme for Heavy-Haul Trains Using Coupler Force Compensation
+
+##### doi: [10.1109/JAS.2025.125870](https://doi.org/10.1109/JAS.2025.125870)
+
+- Jilie Zhang<sup> ,  </sup>, 
+
+- Zhiyong Chen<sup> ,  ,  </sup>, 
+
+- Ge Guo<sup> , </sup>
+
+**Funds:**   The work was supported by the National Natural Science Foundation of China (62373312, 62173079, 62573104), the Fundamental Research Funds for the Central Universities (2682025XJ007), and Hebei Natural Science Foundation (F2025501051)
+
+More Information
+
+- **Author Bio:**
+**Jilie Zhang**  received the B.S. degree in automation from Liaoning University of Technology in 2007 and the M.S. degree in control theory and control engineering from Kunming University of Science and Technology in 2010. He received the Ph.D. degree in the College of Information Science and Engineering, Northeastern University in 2014. He is currently a Professor at Southwest Jiaotong University. His current research interests include heavy-haul train control, vehicle platoon, and multi-agent system
+
+**Zhiyong Chen**  received the B.E. degree in automation from the University of Science and Technology of China in 2000, and the M.Phil. and Ph.D. degrees in mechanical and automation engineering from the Chinese University of Hong Kong, China, in 2002 and 2005, respectively. He worked as a Research Associate at the University of Virginia, Charlottesville, VA, USA, from 2005 to 2006. In 2006, he joined The University of Newcastle, Callaghan, NSW, Australia, where he is currently a Professor. He was also a Changjiang Chair Professor with Central South University. His research interests include nonlinear systems and control, biological systems, and reinforcement learning. Dr. Chen is/was an Associate Editor of *Automatica*, *IEEE Transactions on Automatic Control*, *IEEE Transactions on Neural Networks and Learning Systems*, and *IEEE Transactions on Cybernetics*
+
+**Ge Guo**  (Senior Member, IEEE) received the B.S. degree and PhD degree from Northeastern University in 1994 and 1998, respectively. From May 2000 to April 2005, he was with Lanzhou University of Technology as a Professor and the director of the Institute of Intelligent Control and Robots. He then joined Dalian Maritime University as a Professor with the Department of Automation. Since 2018, he has been a Professor with Northeastern University (NEU) and the director of the Center of Intelligent Transportation Systems of NEU. He has published over 260 international journal papers within his areas of interest, which include intelligent transportation systems, cyber-physical systems, etc. Dr. Guo is a Senior Editor of *IEEE Transactions on Intelligent Transportation Systems*, an Associate Editor of *IEEE Transactions on Vehicular Technology*, *IEEE Transactions on Intelligent Transportation Systems*, *IEEE Transactions on Intelligent Vehicles*, *Information Sciences*, *IEEE Intelligent Transportation Systems Magazine*, *ACTA Automatica Sinica*, *China Journal of Highway and Transport* and *Journal of Control and Decision*, etc. He won several awards including the Chinese Association of Automation (CAA) Young Scientist Award, the First Prize of Natural Science Award of Hebei Province, the First Prize of Science and Technology Progress Award of Gansu Province, etc
+
+- **Corresponding author:**   Zhiyong Chen, e-mail: [zhiyong.chen@newcastle.edu.au](mailto:zhiyong.chen@newcastle.edu.au)
+
+- **Received Date:**  2025-01-12
+
+- **Revised Date:** 2025-05-07
+
+- **Accepted Date:** 2025-08-18
+
+  Abstract
+
+- ### Abstract
+ In this paper, a novel distributed braking scheme is proposed for automatic heavy-haul trains equipped with an electronically controlled pneumatic (ECP) braking system. The scheme consists of a coupler force compensator and a cooperative controller. The compensator is designed to counteract the coupler force acting on each car, i.e., the forces from its front and rear adjacent cars. With this compensation, the braking control problem is transformed into a platooning problem of multiple vehicles. The cooperative controller then regulates the velocity and position of adjacent cars. Numerical studies using MATLAB and the Universal Mechanism simulator are conducted to verify the effectiveness and superiority of the proposed scheme.
+
+**Keywords:**
+    - Coupler force, 
+
+    - distributed braking control, 
+
+    - heavy-haul trains, 
+
+    - platooning control, 
+
+    - robust control
+
+FullText(HTML)
+
+- ### I. Introduction
+
+Heavy-haul railways are an efficient means of transporting resources and goods, such as coal, petroleum, and raw minerals, from inland regions to coastal areas. This mode of transport is particularly important for countries with vast territories and abundant natural resources, such as the United States, China, Canada, Australia, and South Africa. For instance, heavy-haul railways account for more than 60% of the total coal transportation in China.
+
+At present, heavy-haul trains are operated by drivers with experience, as opposed to the automatic train operation (ATO) technology, which is widely used in metro subways and high-speed railways [1]-[3]. The target running curve for ATO can be generated through various methods [4], [5]. Although ATO technology holds promise for improving safety, energy efficiency, and punctuality, its application to heavy-haul trains is challenging due to the coupler forces between cars (locomotives and wagons) during the starting, coasting, and braking phases. This difficulty arises because heavy-haul trains are often several kilometers long and weigh tens of thousands of tons, leading to significant longitudinal impulses between cars, particularly during braking. This issue cannot be ignored. Therefore, effective braking control becomes increasingly crucial and challenging, attracting significant attention from researchers.
+
+In the early stages, heavy-haul trains were modeled as a single-mass point system in [6]-[8] due to their relatively few cars and weight. The work in [6] solved the local energy minimization problem by designing an optimal train control strategy, [7] developed a fuzzy predictive control approach to reduce energy consumption during train operation while adhering to speed limits, and [8] proposed a robust adaptive sliding mode control strategy to guarantee internal stability and satisfactory tracking performance for the ATO system with unknown parameters, model uncertainty, and external disturbances. All of these works treat the entire train as a single mass. While this simplifies controller design and reduces computational complexity, it may pose a potential safety risk during braking due to the neglect of coupler forces between interconnected cars.
+
+With the increasing length and weight of trains, braking control has been studied for more accurate models. For example, the multiple-point-mass model was first reported in [9], based on the linearization method for coupler forces [10]. Many control algorithms have been derived based on this model, such as open-loop control [11], [12], closed-loop optimal control [13], [14], and model predictive control (MPC) [15]-[17]. The open-loop optimal scheduling method in [11] and [12] for a heavy-haul train with coupler forces provides guidance for subsequent closed-loop designs. The work in [13] developed a closed-loop cruise controller to optimize state (displacement and speed) errors and inputs, demonstrating the advantages of the closed-loop controller compared to open-loop strategies such as optimal scheduling and heuristic scheduling. The reference [14] introduced adaptive fencing control technology to adapt to changes in track topology in practice. These techniques were also summarized in [18].
+
+The aforementioned methods do not account for input constraints and model mismatches, which are influenced by locomotive power limitations and modeling accuracy. These issues were addressed using MPC in [15] and [16], where a penalized optimization approach was employed to improve the operation of heavy-haul trains. Subsequently, [17] introduced a Gaussian-like function to enhance train performance by dynamically adjusting the weight of the velocity tracking term in the objective function based on the current velocity tracking error.
+
+However, MPC requires solving a quadratic programming problem using methods such as those described in [19]-[21]. This makes it difficult to meet the real-time computational and memory requirements for implementing the controller in long heavy-haul trains. In addition, the limited bandwidth of control signals in the communication system can lead to uneven coupler forces. In fact, all existing controllers based on a centralized (holistic) design scheme share these limitations and must be redesigned when car masses change. In such a scheme, braking control signals are computed centrally and then distributed to each car from the lead locomotive.
+
+To overcome the shortcomings of centralized design, this paper adopts a new distributed scheme for designing local braking controllers, inspired by vehicle platooning technology [22]. Specifically, we introduce a coupler force compensator that counteracts the resultant force from front and rear coupler forces using fully actuated approaches [23], [24]. This compensation effectively eliminates the coupling effect between adjacent cars. As a result, the train model with coupler forces is reduced to a vehicle platooning model. Unlike conventional methods, the cooperative controller can then be synthesized individually for the resulting two-dimensional system, reducing computational complexity and communication bandwidth. Moreover, the controller design is independent of the car masses and exhibits robustness against aerodynamic resistance.
+
+To implement the proposed distributed controller, two technical requirements must be met: i) the control signal must be computed by the local CPU in each car; and ii) the positions and velocities of adjacent cars must be obtained through sensors or communication devices such as cables or wireless systems. Nevertheless, this new design can serve as a technical foundation for ATO systems in heavy-haul trains, enabling increased speed and load capacity due to its distributed architecture. In summary, the proposed braking scheme provides the following key technical features: i) it operates by decoupling the coupler forces; ii) it requires lower communication bandwidth; iii) the controller for each car can be designed independently; iv) it is robust to variations in car mass and aerodynamic drag; and v) it enables smoother and safer operation in complex terrain.
+
+### II. Problem Formulation and Preliminaries
+
+A heavy-haul train consists of locomotives (${L}_{i}$) and wagons (${W}_{i}$) (see Fig. 1). Locomotives are capable of generating both traction and braking forces, whereas wagons provide only braking forces. Since this work considers only the braking scheme, we do not distinguish between them, and both are collectively referred to as cars. For a heavy-haul train that includes the effect of coupler forces, and referring to [25], its cascaded mass-point longitudinal model equipped with an electronically controlled pneumatic (ECP) braking system is recast as
+![](https://aka.doubaocdn.com/s/9c9BQ0csXV)
+**Figure                                  1.** The cascaded mass-point longitudinal model of a heavy-haul train.
+DownLoad:  Full-Size ImgPowerPoint
+$\begin{matrix} & {\overset{˙}{p}}_{i}(t)={v}_{i}(t) \\ & {m}_{i}{\overset{˙}{v}}_{i}(t)={u}_{i}(t)+{f}_{i}(t)−{f}_{i+1}(t)−{f}_{{w}_{i}}(t)−{f}_{{a}_{i}}(t), \\ & i=1,…,N\end{matrix}$    (1)  
+
+where
+$\begin{matrix}{f}_{i+1}(t)= & {k}_{i+1}({p}_{i+1}(t)−{p}_{i}(t)+{d}_{i,i+1}) \\ & +{c}_{i+1}({\overset{˙}{p}}_{i+1}(t)−{\overset{˙}{p}}_{i}(t))\end{matrix}$    (2)  
+
+is the rear coupler force of the ${i}_{\text{th}}$ car; note that ${f}_{i+1}(t)=0$ when $i=N$. Similarly,
+$\begin{matrix}{f}_{i}(t)={k}_{i}({p}_{i}(t)−{p}_{i−1}(t)+{d}_{i−1,i})+{c}_{i}({\overset{˙}{p}}_{i}(t)−{\overset{˙}{p}}_{i−1}(t))\end{matrix}$    (3)  
+
+is the front coupler force; ${f}_{i}(t)=0$ when $i=1$.
+
+In these equations, ${p}_{i}(t)$ and ${v}_{i}(t)$ denote the position and velocity of the ${i}_{\text{th}}$ car, respectively. The term ${d}_{i,j}$ represents the spacing between car *i* and its adjacent car $j=i\pm1$, where ${d}_{i,j}>0$ if i<j and di,j<0 otherwise. The variable ${m}_{i}$ denotes the measurable mass of the ${i}_{\text{th}}$ car.
+
+Additionally, ${f}_{{w}_{i}}(t)={f}_{{r}_{i}}+{f}_{{s}_{i}}+{f}_{{c}_{i}}$, where ${f}_{{r}_{i}}={m}_{i}({c}_{0}+{c}_{v}{v}_{i})$ is the rolling resistance, ${f}_{{s}_{i}}=0.004{m}_{i}(0.5{d}_{{w}_{i}}/R)$ is the curve resistance, with ${d}_{{w}_{i}}$ denoting the car length and *R* the curve radius, ${f}_{{c}_{i}}=\pm9.98{m}_{i}sin⁡({\theta}_{i})$ is the gravitational resistance due to the slope angle ${\theta}_{i}$, and ${f}_{{a}_{i}}(t)={m}_{i}{c}_{a}{v}_{i}(t{)}^{2}$ is the aerodynamic drag. Assume uniform aerodynamic drag, i.e., ${f}_{{a}_{i}}={f}_{a}$, $i=1,…,N$. The parameters ${k}_{i}$ and ${c}_{i}$ are the spring and damping coefficients, respectively. The constants ${c}_{0},{c}_{v}$, and ${c}_{a}$ are general resistance coefficients. The term ${u}_{i}(t)$ represents the control input force, which specifically refers to the braking force in this paper.
+
+An autonomous heavy-haul train (or an ATO system) operates according to a predetermined schedule such as a cruise curve, which can be written as
+$\begin{matrix}{\overset{˙}{x}}_{0}(t)=A{x}_{0}(t)+B{a}_{0}(t)\end{matrix}$    (4)  
+
+where $A=[\begin{matrix}0 & 1 \\ 0 & 0\end{matrix}]$, $B=[\begin{matrix}0 \\ 1\end{matrix}]$, and ${x}_{0}(t)=[\begin{matrix}{p}_{0}(t) \\ {v}_{0}(t)\end{matrix}]$. Here, ${p}_{0}(t)$, ${v}_{0}(t)$ and ${a}_{0}(t)$ denote the cruise position, velocity, and acceleration, respectively.
+
+To meet the requirements of punctuality, safety, and efficiency,

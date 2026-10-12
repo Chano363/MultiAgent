@@ -24,7 +24,7 @@
 4. **辅助件约定**：同名 `.md` = **该文献数据 SSOT**；`*_fulltext.txt` = 字符检索件；`*.csv` = 提取数据（如 `Zhao2022_fig53_velocity_anchors.csv`）。
 5. **不可得文献**：只记入页末「暂无本地文件（待补 / 不可得）」，不为其建占位页。
 
-**当前状态**：本地文件 79 个（PDF / txt / md / html / csv），已按子目录归类如下（「文件」列均为所在子目录内文件名）。
+**当前状态**：本地文件 86 个（PDF / txt / md / html / csv），已按子目录归类如下（「文件」列均为所在子目录内文件名）。
 
 ---
 
@@ -88,6 +88,13 @@
 | 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
 | :--- | :--- | :--- | :--- | :--- |
 | `Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf`、`Lu2025_CooperativeNMPC_MultiLoco.md` | Cooperative Nonlinear MPC for Multiple Locomotives of Heavy Haul Train on Long Steep Downhill Sections | Ran Lu, Miao Zhang, Shuai Su / 2025 | 2025 IEEE ICIRT, DOI 10.1109/ICIRT66379.2025.11216780 | ⭐ **本项目 MPC 基线来源**（`NMPCController`） |
+| `Zhang2014_TCST_ECP_MPC.md`（信息卡，无本地全文） | Optimal Operation of Heavy-Haul Trains Equipped With ECP Brake Systems Using MPC Methodology | Lijun Zhang, Xiangtao Zhuan / 2014 | IEEE Trans. Control Systems Technology 22(1):13-22, DOI 10.1109/TCST.2013.2238235 | ECP-MPC 开山作；ECP 假设绕开气动时滞（摘要级，元数据 Crossref 核实） |
+| `Liu2022_ATO_BrakeDelayModel.txt` | 高速列车精确停车的鲁棒自触发预测控制 | 刘晓宇, 荀径, 高士根, 阴佳腾 / 2022 | 自动化学报 48(1):171-181, DOI 10.16383/j.aas.c200039 | 制动曲线生成-跟踪两级；制动模型一阶惯性+纯滞后 Td=1.0s/τ=0.4s 进状态方程（全文） |
+| `Yu2023_MILP_RefillTime_Downhill.txt`（部分正文，至 §3.3） | Mixed Integer Linear Programming Based Speed Profile Optimization for Heavy-Haul Trains | Huazhen Yu, Yihui Wang, Andrea D'Ariano, Anzheng Lai, Youneng Huang / 2023 | Journal of Advanced Transportation 2023:6649871, DOI 10.1155/2023/6649871（OA） | MILP 显式建模空气制动指令时滞+充风时间（长大下坡）；刚体模型无车钩力 |
+| `Zhang2026_JAS_CouplerCompensation.txt`（部分正文，至 §II） | A Distributed Braking Scheme for Heavy-Haul Trains Using Coupler Force Compensation | Jilie Zhang, Zhiyong Chen, Ge Guo / 2026 | IEEE/CAA J. Autom. Sinica 13(4):877-887, DOI 10.1109/JAS.2025.125870（OA） | ECP 车钩力前馈补偿+分布式列队（非 MPC）；批评 MPC QP 实时性 |
+| `Zhao2026_CCDC_ElectroPneumaticCoordination.md`（信息卡，无本地全文） | MPC with Electro-Pneumatic Coordination for Impulse Suppression in Heavy-Haul Trains on Long Steep Downhills | Hongyi Zhao, Qingyuan Wang, Haochen Jiang, Pengfei Sun / 2026 | 2026 38th IEEE CCDC:6036-6043, DOI 10.1109/CCDC69976.2026.11559852 | 电空协调：AB 不进优化变量、速度误差触发循环「减压-保压-缓解」，车钩力峰降>8%（摘要级，元数据 OpenAlex 核实） |
+| `Farooqi2018_ParametrizedMPC.pdf` | Efficient Train Operation via Shrinking Horizon Parametrized Predictive Control | Hafsa Farooqi, Lorenzo Fagiano, Patrizio Colaneri / 2018 | IFAC-PapersOnLine 51(20):203-208, DOI 10.1016/j.ifacol.2018.11.014 | 输入参数化把离散模式集化为 NLP（discrete MPC 对照） |
+| `Li2025_FSMPC_BrakeNotch.txt` | 基于FSMPC的列车精准停车阶段动态优化研究 | 李蔚, 曹悦, 娄永梅, 黄苏苏, 何怡霏 / 2025 | 铁道科学与工程学报 22(10):4424-4435, DOI 10.19713/j.cnki.43-1423/u.T20250035 | FSMPC 有限集枚举+制动级位↔减速度静态映射+HMM 预测电空转换（全文） |
 | `Safe_Reinforcement_Learning_Control_of_High-Speed_Maglev_Train_Levitation_System_Considering_Aerodynamic_Lift_Force.pdf` | Safe RL Control of High-Speed Maglev Train Levitation System Considering Aerodynamic Lift Force | 作者待核 / 2025 | CIYCEE 2025（会议稿；DOI 待核） | HOCBF + 扰动观测器安全层（RL+安全层结构参考） |
 | `ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf` | Introduction to ETCS Braking Curves | ERA / 2020 | 欧盟铁路局（ERA） | ETCS 制动曲线（EBI/SBI 单调表） |
 
@@ -111,6 +118,7 @@
 | Yu 等 2023 重载虚拟编组 | MDPI Sustainability 15(18):13425, DOI 10.3390/su151813425 | OA，可下载 |
 | Liu & Xu 2024 虚拟编组 | MDPI Sensors 24(13):4231, DOI 10.3390/s24134231 | OA，可下载 |
 | 何晖等 2023 | 中国铁道科学 44(6):196-205（无 DOI） | 付费墙，不可得 |
+| 魏文军等 2026 长大下坡虚拟编组分层控制 | 铁道科学与工程学报 23(4):1612-1624（共13页，DOI 待查） | 待补；与本项目同场景（长大下坡+虚拟编组+分层），需对标：非 RL（LQ+迭代 MPC），空气制动力当总扰动、无车钩力 |
 | 马骏峰等 2025 | 铁道科学与工程学报 22(10):4388-4397, DOI 10.19713/j.cnki.43-1423/u.T20242047 | 待补 |
 | Yu2022 / Hessel2019（MAPPO + PopArt） | NeurIPS 2022 / AAAI 2019 | 算法依据 |
 | Liu2025 虚拟耦合 MARL | IEEE ITS Magazine 2025 | train=agent 分解 |

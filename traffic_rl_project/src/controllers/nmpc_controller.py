@@ -190,7 +190,11 @@ class NMPCController:
         k = float(cp.stiffness) / n_chain
         f0 = float(cp.preload_n)
         fric = float(cp.friction_n)
-        v_eps = float(cp.friction_v_eps)
+        # 【2026-10-11】plant 侧速度法已把 friction_v_eps 收窄到 0.002（sign(Δv)），
+        # 但本符号代理要进 IPOPT：过窄的 tanh 陡梯度（dv≈0 处斜率 ~fric/ε）会让
+        # NLP 求解卡顿/抖振。代理本就是光滑近似（非 plant 精确复刻），保留下限
+        # 0.05 = 维持既有 NMPC 基线行为不随 plant 参数漂移（对比可比性）。
+        v_eps = max(float(cp.friction_v_eps), 0.05)
         # 间隙死区：|s|<=gap 弹性项为 0（平滑近似）
         abs_s = ca.sqrt(s * s + 1e-8)
         s_eff = ca.fmax(0.0, abs_s - gap) * ca.tanh(s / (gap + 1e-6))

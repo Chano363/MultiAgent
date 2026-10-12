@@ -1,0 +1,63 @@
+{
+  "section": "容嘉欣2025 图8/图9 开环对照（12‰ 长大下坡）",
+  "timestamp": "20261011_210732",
+  "source_paper": "更大牵引质量重载列车动力学建模与仿真分析, 机械 2025, 52(7):57-64",
+  "literature_anchor": {
+    "fig9_2w_tension_kN": 1059.8,
+    "fig9_2w_compression_kN": 1109.1,
+    "fig9_2w_max_accel_ms2": 6.06,
+    "fig8_3w_tension_kN": 596.6,
+    "fig8_3w_compression_kN": 503.8,
+    "fig8_3w_max_accel_ms2": 3.18
+  },
+  "config": {
+    "grade_permille": -12.0,
+    "dt": 0.1,
+    "max_steps": 4000,
+    "init_speed_kmh": 65.0,
+    "consist": "10kt_1plus0",
+    "n_vehicles": 101,
+    "brake_min": -0.2,
+    "brake_service": -0.5,
+    "brake_emg": -0.8,
+    "openloop_schedule": [
+      [
+        0,
+        60,
+        0.0
+      ],
+      [
+        60,
+        140,
+        null
+      ],
+      [
+        140,
+        240,
+        0.0
+      ],
+      [
+        240,
+        320,
+        null
+      ],
+      [
+        320,
+        400,
+        0.0
+      ]
+    ],
+    "speed_band_kmh": [
+      40,
+      80
+    ]
+  },
+  "modes": [
+    "openloop_min",
+    "openloop_emg",
+    "rule_emg",
+    "rule_service",
+    "rule_min"
+  ],
+  "note": "开环指令为纯时间函数、不读状态；rule 为现有闭环（预缓和缩放 + env 与控制器双层安全钳制）。"
+}

@@ -1,0 +1,776 @@
+================================================================================
+本地文献全文（字符检索件）| traffic_rl_project/docs/papers/04_safety_mpc/
+================================================================================
+题名: 高速列车精确停车的鲁棒自触发预测控制
+      Robust Self-triggered Model Predictive Control for Accurate Stopping of High-speed Trains
+作者: 刘晓宇, 荀径(通信作者), 高士根, 阴佳腾（北京交通大学 轨道交通控制与安全国家重点实验室）
+出处: 自动化学报, 2022, 48(1): 171-181. DOI: 10.16383/j.aas.c200039
+来源URL: http://www.aas.net.cn/cn/article/doi/10.16383/j.aas.c200039?viewType=HTML
+抓取: 2026-10-12（PowerShell 抓取期刊开放 HTML 全文页 → 提取纯文本；覆盖 = 全文正文，含参考文献 40 条）
+关键数字/事实:
+  - 制动模型 = 一阶惯性 + 纯滞后: Ac(s) = 1/(τs+1)·e^{-Td·s}·At(s)，Td = 1.0 s，τ = 0.4 s（式(1)(2)）。
+  - 停车控制采用"制动曲线生成 - 制动曲线跟踪"两级式结构。
+  - 明言：现有列车运行控制系统中 ATO 通常不能直接控制各车厢的制动力（单质点建模的依据）。
+  - 鲁棒自触发 MPC（RSMPC）：避免每采样步求解线性约束 QP，减少控制输出频繁切换。
+用途: MPC×空气制动文献调研（DIAGNOSTICS_2026-10.md「文献调研-2026-10-12」）
+  —— 流派3 分层/触发/级联 + 流派4 秒级时滞写进预测模型的代表文献。
+================================================================================
+
+
+
+E-mail Alert
+
+RSS
+
+中文核心
+
+EI
+
+中国科技核心
+
+Scopus
+
+CSCD
+
+英国科学文摘
+
+首页
+
+期刊介绍
+
+基本信息
+
+收录与获奖
+
+期刊在线
+
+优先发表
+
+当期目录
+
+过刊浏览
+
+专刊专题
+
+优秀综述
+
+高级检索
+
+编委会
+
+现任编委会
+
+历届编委会
+
+投稿指南
+
+投稿须知
+
+文件下载
+
+其他
+
+订阅信息
+
+联系我们
+
+高级检索
+
+所有 标题 作者 关键词 摘要 Doi 栏目 作者地址 基金 中图分类号
+
+首页
+
+期刊介绍
+
+基本信息
+
+收录与获奖
+
+期刊在线
+
+优先发表
+
+当期目录
+
+过刊浏览
+
+专刊专题
+
+优秀综述
+
+高级检索
+
+编委会
+
+现任编委会
+
+历届编委会
+
+投稿指南
+
+投稿须知
+
+文件下载
+
+其他
+
+订阅信息
+
+联系我们
+
+留言板
+
+尊敬的读者、作者、审稿人, 关于本刊的投稿、审稿、编辑和出版的任何问题, 您可以本页添加留言。我们将尽快给您答复。谢谢您的支持!
+
+姓名
+
+邮箱
+
+手机号码
+
+标题
+
+留言内容
+
+验证码
+
+高速列车精确停车的鲁棒自触发预测控制
+
+刘晓宇 ,
+
+荀径 ,
+
+高士根 ,
+
+阴佳腾
+
+智能预览
+
+下载
+1865
+
+文章导航 > 自动化学报
+
+>
+2022 >
+48(1): 171-181
+
+刘晓宇, 荀径, 高士根, 阴佳腾. 高速列车精确停车的鲁棒自触发预测控制. 自动化学报, 2022, 48(1): 171−181 doi: 10.16383/j.aas.c200039
+
+引用本文:
+
+刘晓宇, 荀径, 高士根, 阴佳腾. 高速列车精确停车的鲁棒自触发预测控制. 自动化学报, 2022, 48 (1): 171−181 doi: 10.16383/j.aas.c200039
+
+Liu Xiao-Yu, Xun Jing, Gao Shi-Gen, Yin Jia-Teng. Robust self-triggered model predictive control for accurate stopping of high-speed trains. Acta Automatica Sinica, 2022, 48(1): 171−181 doi: 10.16383/j.aas.c200039
+
+Citation:
+
+Liu Xiao-Yu, Xun Jing, Gao Shi-Gen, Yin Jia-Teng. Robust self-triggered model predictive control for accurate stopping of high-speed trains. Acta Automatica Sinica, 2022, 48 (1): 171−181 doi: 10.16383/j.aas.c200039
+
+刘晓宇, 荀径, 高士根, 阴佳腾. 高速列车精确停车的鲁棒自触发预测控制. 自动化学报, 2022, 48(1): 171−181 doi: 10.16383/j.aas.c200039
+
+引用本文:
+
+刘晓宇, 荀径, 高士根, 阴佳腾. 高速列车精确停车的鲁棒自触发预测控制. 自动化学报, 2022, 48 (1): 171−181 doi: 10.16383/j.aas.c200039
+
+Liu Xiao-Yu, Xun Jing, Gao Shi-Gen, Yin Jia-Teng. Robust self-triggered model predictive control for accurate stopping of high-speed trains. Acta Automatica Sinica, 2022, 48(1): 171−181 doi: 10.16383/j.aas.c200039
+
+Citation:
+
+Liu Xiao-Yu, Xun Jing, Gao Shi-Gen, Yin Jia-Teng. Robust self-triggered model predictive control for accurate stopping of high-speed trains. Acta Automatica Sinica, 2022, 48 (1): 171−181 doi: 10.16383/j.aas.c200039
+
+PDF下载
+( 1865 KB)
+
+高速列车精确停车的鲁棒自触发预测控制
+
+doi: 10.16383/j.aas.c200039
+
+刘晓宇 1 , ,
+
+荀径 1 , ,
+
+高士根 1 , ,
+
+阴佳腾 1 ,
+
+1.
+北京交通大学轨道交通控制与安全国家重点实验室 北京 100044
+
+基金项目: 国家自然科学基金(61790570, 61790573)资助
+
+详细信息
+
+作者简介:
+刘晓宇：北京交通大学电子信息工程学院硕士研究生. 2017年获得北京交通大学学士学位. 主要研究方向为轨道交通运行优化与控制, 模型预测控制. E-mail: bjtulxy@bjtu.edu.cn
+
+荀径：北京交通大学轨道交通控制与安全国家重点实验室副教授. 2012年获得北京交通大学博士学位. 2008年到2009年加州大学伯克利分校PATH访问学者. 主要研究方向为先进的列车控制方法, 铁路运输优化问题, 交通流理论, 元胞自动机和强化学习等. 本文通信作者. E-mail: jxun@bjtu.edu.cn
+
+高士根：北京交通大学轨道交通控制与安全国家重点实验室副教授. 2016年获得北京交通大学电子信息工程学院博士学位. 主要研究方向为列车智能控制和多车协同优化. E-mail: sggao@bjtu.edu.cn
+
+阴佳腾：北京交通大学轨道交通控制与安全国家重点实验室副教授. 2018年获得北京交通大学博士学位. 2015年至2016年威斯康星大学麦迪逊分校、2019年苏黎世联邦理工学院访问学者. 主要研究方向为轨道交通运行优化与控制, 最优控制, 机器学习与离散优化. E-mail: jtyin@bjtu.edu.cn
+
+计量
+
+文章访问数:
+2685
+
+HTML全文浏览量:
+1105
+
+PDF下载量:
+441
+
+被引次数: 0
+
+出版历程
+
+收稿日期:
+2020-01-17
+
+录用日期:
+2020-05-15
+
+网络出版日期:
+2021-12-29
+
+刊出日期:
+2022-01-25
+
+Robust Self-triggered Model Predictive Control for Accurate Stopping of High-speed Trains
+
+LIU Xiao-Yu 1
+,
+,
+
+XUN Jing 1
+,
+,
+
+GAO Shi-Gen 1
+,
+,
+
+YIN Jia-Teng 1
+,
+
+1.
+
+State Key Laboratory of Rail Traffic Control and Safety, Beijing Jiaotong University, Beijing 100044
+
+Funds: Supported by National Natural Science Foundation of China (61790570, 61790573)
+
+More Information
+
+Author Bio:
+
+LIU Xiao-Yu 　Master student at the School of Electronic and Information Engineering, Beijing Jiaotong University. He received his bachelor degree from Beijing Jiaotong University in 2017. His research interest covers optimization and control of railway systems, and model predictive control
+
+XUN Jing 　Associate professor at the State Key Laboratory of Rail Traffic Control and Safety, Beijing Jiaotong University. He received his Ph.D. degree from Beijing Jiaotong University in 2012. From 2008 to 2009, he was a visiting scholar with the PATH, University of California at Berkeley. His research interest covers advanced train control methods, optimization problem in rail transport, traffic flow theory, cellular automata, and reinforcement learning. Corresponding author of this paper
+
+GAO Shi-Gen 　Associate professor at the State Key Laboratory of Rail Traffic Control and Safety, Beijing Jiaotong University. He received his Ph.D. degree from Beijing Jiaotong University in 2016. His research interest covers intelligent train control and cooperative optimization of multiple trains
+
+YIN Jia-Teng 　Associate professor at the State Key Laboratory of Rail Traffic Control and Safety, Beijing Jiaotong University. He received his Ph.D. degree from Beijing Jiaotong University in 2018. He was a visiting scholar at University of Wisconsin Madison (2015-2016) and Swiss Federal Institute of Technology Zurich (ETH) (2019). His research interest covers control and optimization of railway trains, optimal control, machine learning, and discrete optimization
+
+摘要
+
+HTML全文
+
+图 (11)
+
+表 (1)
+
+参考文献 (40)
+
+相关文章
+
+施引文献
+
+资源附件 (0)
+
+访问统计
+
+摘要
+
+摘要:
+列车精确停车作为列车自动运行(Automatic train operation, ATO)系统的一项核心功能, 对高速列车的安全和高效运行至关重要. 本文针对高速列车停车过程的特点, 考虑在避免控制输出频繁切换的前提下实现高精度的停车曲线跟踪, 提出了基于模型预测控制(Model predictive control, MPC)的精确停车算法. 针对列车停车过程中外部不确定性阻力干扰, 采用鲁棒模型预测控制方法, 提高对外部干扰的鲁棒性. 引入自触发控制策略, 以进一步减少控制输出的频繁切换, 提高停车过程的舒适度. 该方法不需要每个采样时间都求解线性约束二次规划问题, 降低了对系统采样和通信能力的要求, 提高了算法的实用性. 分析结果表明, 高速列车精确停车控制方法的稳定性和性能指标的次优性可以得到保证. 基于高速列车实际运行数据的仿真结果验证了算法的有效性.
+
+关键词:
+
+高速列车 /
+
+列车自动运行 /
+
+精确停车 /
+
+模型预测控制 /
+
+自触发控制
+
+Abstract:
+Accurate stopping is a key technology of the automatic train operation (ATO) system and plays an important role in safe and efficient train operations. This paper presents a model predictive control (MPC) based train stop control method according to the characteristics of train stopping processes, which can realize high-precision speed tracking and avoid frequent switching of control output. Considering the uncertain disturbance from the external environment, a robust MPC method is adopted to improve the robustness for external disturbances. Then, a self-triggered control scheme is introduced to reduce the frequent switches of the control output. Furthermore, the control scheme does not require calculating the linear constraints quadratic programming problem at all times resulting in lower sampling and communication requirements. The stability and sub-optimality of the approach can be guaranteed. The simulation results based on the real-life operation data verify the effectiveness of the proposed method.
+
+Key words:
+
+High-speed train /
+
+automatic train operation (ATO) /
+
+accurate stopping /
+
+model predictive control (MPC) /
+
+self-triggered control
+
+HTML全文
+
+图
+1
+
+列车制动控制过程
+
+Fig.
+1
+
+Diagram of train braking control process
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+2
+
+列车制动模型
+
+Fig.
+2
+
+Train braking system model
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+3
+
+PID列车停车控制的速度−位置曲线
+
+Fig.
+3
+
+PID speed-distance profile of train stopping
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+4
+
+MPC列车停车控制的速度−位置曲线
+
+Fig.
+4
+
+MPC speed-distance profile of train stopping
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+5
+
+RMPC列车停车控制的速度−位置曲线 ( $ N = 5 $ )
+
+Fig.
+5
+
+RMPC speed-distance profile of train stopping ( $ N = 5 $ )
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+6
+
+RMPC列车停车控制的速度−位置曲线 ( $ N = 10 $ )
+
+Fig.
+6
+
+RMPC speed-distance profile of train stopping ( $ N = 10 $ )
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+7
+
+RMPC不同预测时域下的速度跟踪误差
+
+Fig.
+7
+
+RMPC speed tracking error of different horizons
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+8
+
+RSMPC列车停车控制的速度−位置曲线 ( $ N = 5 $ )
+
+Fig.
+8
+
+RSMPC speed-distance profile of train stopping ( $ N = 5 $ )
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+9
+
+RSMPC列车停车控制的速度−位置曲线 ( $ N = 10 $ )
+
+Fig.
+9
+
+RSMPC speed-distance profile of train stopping ( $ N = 10 $ )
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+10
+
+RSMPC不同预测时域下的速度跟踪误差
+
+Fig.
+10
+
+RSMPC speed tracking error of different horizons
+
+下载:
+全尺寸图片
+幻灯片
+
+图
+11
+
+不同预测时域下RMPC和RSMPC的停车精度
+
+Fig.
+11
+
+Stopping error of different prediction horizons with RMPC and RSMPC
+
+下载:
+全尺寸图片
+幻灯片
+
+表
+1
+
+仿真参数设置
+
+Table
+1
+
+The simulation parameters
+
+参数 取值
+
+最大制动加速度 −1.07 m/s 2
+列车重量 490 t
+基本阻力 5.4 + 0.0098 v + 0.00163 v 2
+采样间隔 T 0.2 s
+制动模型时延 T d 1.0 s
+制动模型时间常数$\tau$ 0.4 s
+制动起始点速度 20 m/s
+制动起始点位置 0 m
+停车点位置 400 m
+限速 20 m/s
+参考制动加速度 −0.5 m/s 2
+
+下载: 导出CSV
+
+参考文献 (40)
+
+[1]
+
+宁滨, 董海荣, 郑伟, 荀径, 高士根, 王洪伟, 孟令云, 李浥东. 高速铁路运行控制与动态调度一体化的现状与展望. 自动化学报, 2019, 45(12): 2208-2217
+Ning Bin, Dong Hai-Rong, Zheng Wei, Xun Jing, Gao Shi-Gen, Wang Hong-Wei, Meng Ling-Yun, Li Yi-Dong. Integration of train control and online rescheduling for high-speed railways: challenges and future. Acta Automatica Sinica, 2019, 45(12): 2208-2217
+
+[2]
+
+Dong H, Ning B, Cai B, Hou Z. Automatic train control system development and simulation for high-speed railways. IEEE Circuits and Systems Magazine, 2010, 10(2): 6-8 doi: 10.1109/MCAS.2010.936782
+
+[3]
+
+Hou Z, Wang Y, Yin C, Tang T. Terminal iterative learning control based station stop control of a train. International Journal of Control, 2011, 84(7): 1263-1274 doi: 10.1080/00207179.2011.569030
+
+[4]
+
+Jin S, Hou Z, Chi R. Optimal terminal iterative learning control for the automatic train stop system. Asian Journal of Control, 2015, 17(5): 1992-1999 doi: 10.1002/asjc.1065
+
+[5]
+
+Guo G, Wang Q. Fuel-Efficient En Route Speed Planning and Tracking Control of Truck Platoons. IEEE Transactions on Intelligent Transportation Systems, 2019, 20(8): 3091-3103 doi: 10.1109/TITS.2018.2872607
+
+[6]
+
+Guo G, Li D. Adaptive Sliding Mode Control of Vehicular Platoons With Prescribed Tracking Performance. IEEE Transactions on Vehicular Technology, 2019, 68(8): 7511-7520 doi: 10.1109/TVT.2019.2921816
+
+[7]
+
+佘守宪, 赵雁. 加加速度(加速度的时间变化率)——冲击、乘座舒适性、缓和曲线. 物理与工程, 2001, 11(3): 7-12, 22 doi: 10.3969/j.issn.1009-7104.2001.03.002
+She Shou-Xian, Zhao Yan. Jerk (the time rate of change of acceleration) - impact, passenger's comfortability, transition curve. Physics and Engineering, 2001, 11(3): 7-12, 22 doi: 10.3969/j.issn.1009-7104.2001.03.002
+
+[8]
+
+Chen D, Chen R, Li Y, Tang T. Online learning algorithms for train automatic stop control using precise location data of balises. IEEE Transactions on Intelligent Transportation Systems, 2013, 14(3): 1526-1535 doi: 10.1109/TITS.2013.2265171
+
+[9]
+
+Yasunobu S, Miyamoto S, Ihara H. A fuzzy control for train automatic stop control. Transactions of the Society of Instrument and Control Engineers, 1983, 19(11): 873-880 doi: 10.9746/sicetr1965.19.873
+
+[10]
+
+Yasunobu S, Murai Y. Predictive fuzzy control and parking control. In: Proceedings of 1995 American Control Conference. Washington, USA: IEEE, 1995. 2277−2281
+
+[11]
+
+Chen D, Gao C. Soft computing methods applied to train station parking in urban rail transit. Applied Soft Computing, 2012, 12(2): 759-767 doi: 10.1016/j.asoc.2011.10.016
+
+[12]
+
+于振宇, 陈德旺. 城轨列车制动模型及参数辨识. 铁道学报, 2011, 33(10): 37-40 doi: 10.3969/j.issn.1001-8360.2011.10.007
+Yu Zhen-Yu, Chen De-Wang. Modeling and system identification of the braking system of urban rail vehicles. Journal of the China Railway Society, 2011, 33(10): 37-40 doi: 10.3969/j.issn.1001-8360.2011.10.007
+
+[13]
+
+Wu P, Wang Q. Research of the automatic train stop control based on adaptive generalized predictive control. In: Proceedings of the 33rd Chinese Control Conference. Nanjing, China: IEEE, 2014. 3399-3404
+
+[14]
+
+罗仁士, 王义惠, 于振宇, 唐涛. 城轨列车自适应精确停车控制算法研究. 铁道学报, 2012, 30(4): 64-68 doi: 10.3969/j.issn.1001-8360.2012.04.011
+Luo Ren-Shi, Wang Yi-Hui, Yu Zhen-Yu, Tang Tao. Adaptive stopping control of urban rail vehicle, Journal of the China Railway Society. 2012, 30(4): 64-68 doi: 10.3969/j.issn.1001-8360.2012.04.011
+
+[15]
+
+王青元, 吴鹏, 冯晓云, 张彦栋. 基于自适应终端滑模控制的城轨列车精确停车算法. 铁道学报, 2016, 38(2): 56-63 doi: 10.3969/j.issn.1001-8360.2016.02.008
+Wang Qing-Yuan, Wu Peng, Feng Xiao-Yun, Zhang Yan-Dong, Precise automatic train stop control algoritm based on adaptive terminal sliding mode control. Journal of the China Railway Society, 2016, 38(2): 56-63 doi: 10.3969/j.issn.1001-8360.2016.02.008
+
+[16]
+
+Qin S J, Badgwell T A. A survey of industrial model predictive control technology. Control Engineering Practice, 2003, 11(7): 733-764 doi: 10.1016/S0967-0661(02)00186-7
+
+[17]
+
+席裕庚, 李德伟, 林姝. 模型预测控制——现状与挑战. 自动化学报, 2013, 39(3): 222-236 doi: 10.1016/S1874-1029(13)60024-5
+Xi Yu-Geng, Li De-Wei, Lin Shu. Model Predictive Control - Status and Challenges. Acta Automatica Sinica, 2013, 39(3): 222-236 doi: 10.1016/S1874-1029(13)60024-5
+
+[18]
+
+Wang X, Tang T. Optimal operation of high-speed train based on fuzzy model predictive control. Advances in Mechanical Engineering, 2017, 9(3): 1-14
+
+[19]
+
+汪仁智, 李德伟, 席裕庚. 采用预测控制的地铁节能优化控制算法. 控制理论与应用, 2017, 34(9): 1129-1135 doi: 10.7641/CTA.2017.60861
+Wang Ren-Zhi, Li De-Wei, Xi Yu-Geng. Metro energy saving optimization algorithm by using model predictive control. Control Theory & Applications, 2017, 34(9): 1129-1135 doi: 10.7641/CTA.2017.60861
+
+[20]
+
+Farooqi H, Fagiano L, Colaneri P, Barlini D. Shrinking horizon parametrized predictive control with application to energy-efficient train operation. Automatica, 2020, 112(2020), 108635
+
+[21]
+
+Liu X, Xun J, Ning B, Yuan L. An approach for accurate stopping of high-speed train by using model predictive control. In: Proceedings of 2019 IEEE Intelligent Transportation Systems Conference. Auckland, NZ: IEEE, 2019. 846−851
+
+[22]
+
+Mayne D Q, Rawlings J B, Rao C V, Scokaert P O. Constrained model predictive control: Stability and optimality. Automatica, 2000, 36(6): 789-814 doi: 10.1016/S0005-1098(99)00214-9
+
+[23]
+
+席裕庚. 预测控制 (第2版). 北京: 国防工业出版社, 2013
+Xi Yu-Geng. Predictive control, 2nd ed. Beijing: Nationnal Defence Industry Press, 2013
+
+[24]
+
+陈虹. 模型预测控制. 北京: 科学出版社, 2013
+Chen Hong. Model Predictive control. Beijing: Science Press, 2013
+
+[25]
+
+Chisci L, Rossiter J A, Zappa G. Systems with persistent disturbances: predictive control with restricted constraints. Automatica, 2001, 37(7): 1019-1028 doi: 10.1016/S0005-1098(01)00051-6
+
+[26]
+
+Mayne D Q, Seron M M, Rakovi S V. Robust model predictive control of constrained linear systems with bounded disturbances. Automatica, 2005, 41(2): 219-224 doi: 10.1016/j.automatica.2004.08.019
+
+[27]
+
+Velasco M, Fuertes J, Marti P. The self triggered task model for real-time control systems. In: Proceedings of the 24th IEEE Real-Time Systems Symposium. Washington, USA: IEEE, 1995. 67-70
+
+[28]
+
+Berglind J B, Gommans T M P, Heemels W P M H. Self-triggered MPC for constrained linear systems and quadratic costs. IFAC Proceedings Volumes, 2012, 45(17): 342-348 doi: 10.3182/20120823-5-NL-3013.00058
+
+[29]
+
+Xun J, Yin J, Liu R, Liu F, Zhou Y, Tang T. Cooperative control of high-speed trains for headway regulation: A self-triggered model predictive control based approach. Transportation Research Part C: Emerging Technologies, 2019, 102(2019): 106-120
+
+[30]
+
+Brunner F D, Heemels W P M H, Allgower F. Robust self-triggered MPC for constrained linear systems. In: Proceedings of 2014 European Control Conference. Strasbourg, FR: IEEE, 2014. 472−477
+
+[31]
+
+Aydiner E, Brunner F D, Heemels W P M H, Allgower F. Robust self-triggered model predictive control for discrete-time linear systems based on homothetic tubes. In: Proceedings of 2015 European Control Conference. Linz, AT: IEEE, 2015. 1587−1593
+
+[32]
+
+Brunner F D, Heemels W P M H, Allgower F. Robust self-triggered MPC for constrained linear systems: A tube-based approach. Automatica, 2016, 72(2016): 73-83
+
+[33]
+
+Yin J, Tang T, Yang L, Xun J, Huang Y, Gao Z. Research and development of automatic train operation for railway transportation systems: A survey. Transportation Research Part C: Emerging Technologies, 2017, 85(2017): 548-572
+
+[34]
+
+王呈, 陈晶, 荀径, 李开成. 基于混合滤波最大期望算法的高速列车建模. 自动化学报, 2019, 45(12): 2260-2267
+Wang Cheng, Chen Jing, Xun Jing, Li Kai-Cheng. Hybrid filter based expectation maximization algorithm for high-speed train modeling. Acta Automatica Sinica, 2019, 45(12): 2260-2267
+
+[35]
+
+谢国, 金永泽, 黑新宏, 姬文江, 高士根, 高桥圣, 望月宽. 列车动力学模型时变环境参数自适应辨识. 自动化学报, 2019, 45(12): 2268-2280
+Xie Guo, Jin Yong-Ze, Hei Xin-Hong, Ji Wen-Jiang, Gao Shi-Gen, Takahashi Sei, Mochizuki Hiroshi. Adaptive identification of time-varying environmental parameters in train dynamics model. Acta Automatica Sinica, 2019, 45(12): 2268-2280
+
+[36]
+
+Davis W J. The tractive resistance of electric locomotives and cars. General Electr. Rev., 1926, 29(10): 685-708
+
+[37]
+
+Liu X, Ning B, Xun J, Wang C, Xiao X, Liu T. Parameter identification of train basic resistance using multi-innovation theory. IFAC-PapersOnLine, 2018, 51(18): 637-642 doi: 10.1016/j.ifacol.2018.09.352
+
+[38]
+
+Rakovic S V, Kerrigan E C, Kouramas K I, Mayne D Q. Invariant approximations of the minimal robust positively invariant set. IEEE Transactions on Automatic Control, 2005, 50(3): 406-410 doi: 10.1109/TAC.2005.843854
+
+[39]
+
+Kolmanovsky I, Gilbert E G. Maximal output admissible sets for discrete-time systems with disturbance inputs. In: Proceedings of 1995 American Control Conference. Seattle, US: IEEE, 1995. 1995−1999
+
+[40]
+
+Chen H, Allgower F. A quasi-infinite horizon nonlinear model predictive control scheme with guaranteed stability. Automatica, 1998, 34(10): 1205-1217 doi: 10.1016/S0005-1098(98)00073-9
+
+相关文章
+
+施引文献
+
+资源附件 (0)
+
+访问统计
+
+智能预览
+
+下载
+1865
+
+手机阅读
+
+导出引用
+
+XML下载
+
+图(11) / 表(1)
+
+计量
+
+文章访问数:
+2685
+
+HTML全文浏览量:
+1105
+
+PDF下载量:
+441
+
+被引次数: 0
+
+出版历程
+
+收稿日期:
+2020-01-17
+
+录用日期:
+2020-05-15
+
+网络出版日期:
+2021-12-29
+
+刊出日期:
+2022-01-25
+
+目录
+
+× Close
+
+导出文件
+
+文件类别
+
+RIS(可直接使用Endnote编辑器进行编辑)
+
+Bib(可直接使用Latex编辑器进行编辑)
+
+Txt
+
+引用内容
+
+引文——仅导出文章的Citation信息
+
+引文和摘要——导出文章的Citation信息和文章摘要信息
+
+导出
+关闭
+
+/
+
+下载:
+全尺寸图片 幻灯片
+
+返回文章
+
+分享
+
+用微信扫码二维码
+
+分享至好友和朋友圈
+
+返回
+
+版权所有 © 《自动化学报》编辑部   京ICP备14019135号-6
+
+地址：北京中关村东路95号 邮政编码：100190 E-mail： aas_editor@ia.ac.cn
+
+电话：010-82544677 (日常咨询和稿件处理)， 010-82544653 (费用管理、催审、寄刊)
+
+本系统由
+北京仁和汇智信息技术有限公司
+开发  技术支持：
+info@rhhz.net
+

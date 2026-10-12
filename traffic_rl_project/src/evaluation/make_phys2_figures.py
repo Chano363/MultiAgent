@@ -57,10 +57,10 @@ def main():
     ax.plot(t, m1['gap_1'], color='tab:blue', lw=1.2, label='M-MARL（本文）')
     ax.axhline(0, color='k', ls='-', lw=0.8)
     ax.axhline(5, color='r', ls='--', lw=1.0)
-    ax.text(t.iloc[-1] * 0.02, 6.5, '追尾阈值 5 m', fontsize=8, color='red')
+    ax.text(t.iloc[-1] * 0.02, 6.5, '安全间距阈值 5 m', fontsize=8, color='red')
     ax.set_ylabel('列1-列2 间距 (m)')
     ax.legend(loc='upper right', fontsize=9)
-    ax.set_title('间距保持（M-MARL 守住间距；No-C 追尾穿透，见负值）', fontsize=11)
+    ax.set_title('间距保持（M-MARL 守住间距；No-C 列距跌破 0，见负值）', fontsize=11)
 
     ax = axes[2]
     ax.plot(t, m3['coupler_peak_kN'], color='tab:red', lw=1.0, label='No-C（无协同）')
@@ -71,7 +71,7 @@ def main():
     ax.set_xlabel('时间 (min)')
     ax.legend(loc='upper right', fontsize=9)
     ax.set_ylim(0, 1200)
-    ax.set_title('列内车钩力（M-MARL/No-C 均守 1000 kN 限值；M-MARL 由协同避免追尾急制动放大）',
+    ax.set_title('列内车钩力（M-MARL/No-C 均守 1000 kN 限值；M-MARL 由协同避免间距告急的急制动放大）',
                  fontsize=11)
 
     for ax in axes:
@@ -161,7 +161,7 @@ def main():
         if c > 0:
             # 正值柱：标注置于数值标签上方；负值柱：标注置于零线上方，避免与数值重叠
             yt = b.get_height() + 10 if b.get_height() >= 0 else 3
-            ax.text(b.get_x() + b.get_width() / 2, yt, f'追尾{c}步', ha='center',
+            ax.text(b.get_x() + b.get_width() / 2, yt, f'安全违约 {c} 步', ha='center',
                     fontsize=8.5, color='#a5372f')
     ax.set_ylim(min(reward) / 1000 - 8, max(reward) / 1000 + 12)
 
@@ -191,7 +191,7 @@ def main():
         ('M-MARL（完整 5 seed 均值，含未收敛）', '+30162±8884', '9.8', '633', '97', '1.4'),
         ('No-C 无协同（δ=0）', '+9791', '69', '543', '-45', '2.0'),
     ]
-    md = ["| 方法 | 奖励 | 追尾步数 | 车钩力峰值(kN) | 最小间距(m) | 循环制动 |",
+    md = ["| 方法 | 奖励 | 安全违约步数(列距<5m) | 车钩力峰值(kN) | 最小间距(m) | 循环制动 |",
           "|:--|:--|:--|:--|:--|:--|"]
     for r in rows:
         md.append('| ' + ' | '.join(r) + ' |')

@@ -24,7 +24,9 @@ from .braking import (
     notch_from_throttle, cyclic_braking_degrade,
     tail_pressure_to_cyl_ratio, cylinder_pressure_gradient,
 )
-from .coupler import coupler_force, friction_magnitude_n
+from .coupler import (
+    RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N, STIFFNESS_BASE_N_PER_M,
+)
 from .params import TrainConsist, CouplerParams
 
 
@@ -225,23 +227,23 @@ class TrainDynamics:
     def _coupler_interface_forces_vec(
         self, e: np.ndarray = None, dv: np.ndarray = None
     ) -> np.ndarray:
-        """相邻车钩断面力（向量化核心，MT-2 迟滞模型）。
+        """相邻车钩断面力（向量化核心，MT-2 迟滞模型：查表 + 速度法）。
 
-        模型结构（于宗泽2025式(1)(2)，杨敏2023图2-6，李蔚2023多段线性同构）：
+        模型结构（容嘉欣2025 式(2) 速度法 + 图4(b) 货车 MT-2 fl/fu 曲线，
+        2026-08-30「预压+线性刚度±Stribeck」解析式已废止，见 coupler.py 模块头）：
 
-            MT-2:   F_mag = contact·(F0 ± F_fric(|dv|)) + k_eff·x_el + 刚性限位
-            加载(s_e·dv<0)取 +摩擦、满刚度；卸载取 −摩擦、刚度×unload_ratio
-            → 迟滞环耗能（【R0-A/B】卸载软化 + Stribeck）
-            F_on_front = sgn(e)·F_mag，|F_mag| ∈ [0, F_max]
+            f0(x) = [fl(x) + fu(x)]/2，half = [fl(x) − fu(x)]/2
+            F_mag = contact·(f0 − tanh(s_e·dv/ε)·half) + rigid，|F_mag| ≤ F_max
+            加载(s_e·dv<0)取 fl、卸载取 fu → 迟滞环耗能；dv→0 回中线 f0
+            F_on_front = sgn(e)·F_mag
 
         实现要点（数值稳健性）：
         - 车钩间隙 gap：|e|≤gap 时无接触无力；接触渐入用 tanh 平滑（宽度
-          ±4mm），避免接触瞬间预压力硬跳变注入数值能量。
-        - 加载/卸载方向因子与摩擦共用同一 tanh(s_e·dv/ε) 平滑：加载 ⟺
-          s_e·dv<0；dv→0 时摩擦→0、k_eff→(1+u)k/2（静止阻抗介于加载/卸载
-          曲线之间，于宗泽式(5) 弱锁定），连续无硬切换。
-        - 摩擦幅值用 MT-2 Stribeck（|v|=0 静摩擦 → |v|≥v_er 动摩擦，
-          于宗泽式(2)线性过渡）。方向恒反对相对运动 → 纯耗散。
+          ±4mm），避免接触瞬间力硬跳变注入数值能量。
+        - 速度法方向因子用窄带 tanh(s_e·dv/ε)（ε=friction_v_eps，默认
+          0.002 m/s）：摩擦幅值**不随速度大小衰减**（旧 Stribeck 幅值调制
+          在准静态 0.01 m/s 下只剩 19.7%，是装载缓释曲线失真的根因），
+          仅按 sign(Δv) 选支；dv→0 连续回到 f0，无硬切换。
         - 行程限位：x_el > stroke 后叠加刚性接触力（金属打满不可压缩），
           且在饱和封顶之外独立叠加（否则限位力被封顶削弱 → 位移漂移）。
 
@@ -264,37 +266,28 @@ class TrainDynamics:
         s_e = np.tanh(e / gap)
         # 有符号间隙距离：>0 接触压缩/拉伸量，<0 在游隙内
         d = np.abs(e) - gap
-        # 接触渐入系数（0→1，半宽 4mm）：预压力/摩擦力随接触平滑建立
+        # 接触渐入系数（0→1，半宽 4mm）：阻抗随接触平滑建立
         contact = 0.5 * (1.0 + np.tanh(d / 0.004))
         # 有效弹性变形（游隙内为 0）
         x_el = np.maximum(d, 0.0)
         # 行程限位：缓冲器打满后金属接触，力剧增约束位移
         rigid = cp['rigid_stiffness_nm'] * np.maximum(x_el - cp['stroke_m'], 0.0)
 
-        # 加载/卸载方向（与摩擦共用平滑）：loading ⟺ s_e·dv<0
+        # 速度法方向因子：加载 ⟺ s_e·dv<0；sign(Δv) 窄带 tanh 平滑（无硬切换）
         dir_sm = np.tanh(s_e * dv / cp['friction_v_eps'])
-        load_factor = 0.5 * (1.0 - dir_sm)
 
-        # 【R0-A】卸载刚度软化：k_eff = u + (1−u)·load_factor
-        # 加载=满刚度、卸载=u、静止=(1+u)/2；MT-2 文献标定 u=1.0（式(1) 弹性对称）
-        u = np.clip(cp['unload_stiffness_ratio'], 0.0, 1.0)
-        k_eff = u + (1.0 - u) * load_factor          # 逐耦合刚度比例（u~1.0）
-        # 刚度乘弹性变形（单段，全列 MT-2）
-        k_term = cp['stiffness'] * x_el * k_eff
+        # 查容嘉欣图4(b) fl/fu 表（stiffness = 全局增益）→ 中线 f0、半宽 half
+        gain = cp['stiffness'] / STIFFNESS_BASE_N_PER_M
+        fl_x = np.interp(x_el, RONG2025_X_M, RONG2025_FL_N)
+        fu_x = np.interp(x_el, RONG2025_X_M, RONG2025_FU_N)
+        f0 = 0.5 * (fl_x + fu_x) * gain
+        half = 0.5 * (fl_x - fu_x) * gain
 
-        # 摩擦幅值（恒 ≥0）：MT-2 Stribeck（于宗泽式(2)）
-        abs_dv = np.abs(dv)
-        # |v|=0 静摩擦 → |v|≥v_er 动摩擦，线性过渡；v_er<=0 视为禁用（恒动摩擦）
-        er_on = cp['friction_v_er'] > 0.0
-        r = np.where(er_on, np.minimum(abs_dv / np.maximum(cp['friction_v_er'], 1e-12), 1.0), 1.0)
-        fric_amp = cp['friction_static_n'] + (cp['friction_n'] - cp['friction_static_n']) * r
-        fric_mag = -fric_amp * dir_sm   # 恒反对相对运动 → 纯耗散
-
-        # 阻抗幅值（可饱和部分）：预压力+摩擦（接触渐入门控）+ 弹性，
+        # 阻抗幅值（可饱和部分）：选支结果（接触渐入门控），
         # 封顶于缓冲器最大阻抗力（MT-2 2270 kN）
-        f_imp = contact * (cp['preload_n'] + fric_mag) + k_term
+        f_imp = contact * (f0 - dir_sm * half)
         f_imp = np.clip(f_imp, 0.0, cp['max_impulse_n'])
-        # 【bug修复 2026-08-30】刚性限位力必须在饱和封顶之外独立叠加！
+        # 刚性限位力必须在饱和封顶之外独立叠加！
         # 若一起 clip，行程打满后限位力被封顶削弱 → 无法约束位移 →
         # 车钩相对位移漂移，全列力雪崩饱和。
         f_mag = f_imp + rigid
@@ -511,24 +504,28 @@ class TrainDynamics:
         )
 
     def step_vehicles(self, throttle: np.ndarray, brake_notch: np.ndarray):
-        """按每节车独立控制推进一个时间步（半隐式 Euler）。
+        """按每节车独立控制推进一个时间步。
+
+        【2026-10-12 数值稳定修复】容嘉欣2025 查表迟滞模型在小行程段
+        （0–10mm）局部斜率 ~43 kN/mm，旧半隐式 Euler（dt=0.1s）在车钩链
+        上振荡指数放大 → 3 步内撞刚性限位爆炸（test_grade_updates_with_position
+        实证）。改为与 step_vehicles_ed_ab 相同的 ≤0.01s 子步 + Newmark-β
+        隐式积分路径：控制力（牵引/连续制动当量）在迭代外固定，状态力
+        （阻力/坡度/车钩）由 Newmark 内部计算，保持与主路径物理同源。
 
         Args:
             throttle: 每节车 throttle（0~1）
             brake_notch: 每节车制动档位（0~1，连续映射，兼容旧接口）
         """
-        forces = (
-            self._tractive_forces_per_vehicle(throttle)
-            + self._braking_forces_per_vehicle(brake_notch)
-            - self._resistance_forces()
-            + self._grade_forces()
-            + self._coupler_forces()
-        )
-        acc = forces / self.masses_kg
-        self.vel = self.vel + acc * self.dt
-        self.vel = np.maximum(self.vel, 0.0)
-        self.pos = self.pos + self.vel * self.dt
-        self.time += self.dt
+        n_sub = max(1, int(np.ceil(self.dt / 0.01)))
+        h = self.dt / n_sub
+        for _ in range(n_sub):
+            # 控制力 = 牵引 + 连续制动当量（不依赖位置/速度，迭代外固定）
+            control_forces = (
+                self._tractive_forces_per_vehicle(throttle)
+                + self._braking_forces_per_vehicle(brake_notch)
+            )
+            self._step_newmark(control_forces, h)
         self._update_grade_from_profile()
 
     def step_vehicles_ed_ab(

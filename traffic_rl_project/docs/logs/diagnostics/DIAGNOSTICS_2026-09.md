@@ -1721,7 +1721,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
 ### 诊断-2026-09-24-MPC对比基线@53km完整剖面首跑（Regime A 公平版）
 
 - **背景**：MPC 对比基线（ADR-016 免重辨识立论）首跑。评估入口 `src/evaluation/run_mpc_baseline.py`（新建，复用 `evaluate_m1_m3_long.py` 的 `make_env`/`run_episode` 同口径 + `build_metadata` 内嵌 JSON 时间戳归档）。两形态：`mpc_dir`（直接加速，无内层）/ `mpc_rule`（直接加速 + 规则循环制动内层兜底，`inner_rule_cyclic=True`），与 D-RL like-for-like 公平基线。本机环境为 Windows Python 3.13（WSL 未装），MPC 仅依赖 numpy+scipy SLSQP，可独立运行。
-- **协议**：剖面 `shuozhou_real_53km`（真实 53.2km 纵断面），独立完整剖面单跑 **35000 步**（非多段拼接；初版 bug 曾按模块级 `MAX_STEPS=15000`=23.8km 旧协议截断，已修：run_baseline 内同步 `ev.MAX_STEPS=max_steps`）。B=5×10 控制分块，gap_min=20m，coupler 约束开，SLSQP。确定性 1 seed（seed0），初速 65km/h。结果 JSON：`outputs/results_mpc_baseline/results_mpc_baseline_{mpc_rule,mpc_dir}_s0_gshuozhou_real_53km_H5x10_20260924_01*.json`（含 metadata：git_commit/physics_version/simulator_model=NeTrainSim-multibody|MT-2|ED+AB-relief-wave）。
+- **协议**：剖面 `shuozhou_real_53km`（真实 53.2km 纵断面），独立完整剖面单跑 **35000 步**（非多段拼接；初版 bug 曾按模块级 `MAX_STEPS=15000`=23.8km 旧协议截断，已修：run_baseline 内同步 `ev.MAX_STEPS=max_steps`）。B=5×10 控制分块，gap_min=20m，coupler 约束开，SLSQP。确定性 1 seed（seed0），初速 65km/h。结果 JSON：`outputs/deprecated/results_mpc_baseline/results_mpc_baseline_{mpc_rule,mpc_dir}_s0_gshuozhou_real_53km_H5x10_20260924_01*.json`（含 metadata：git_commit/physics_version/simulator_model=NeTrainSim-multibody|MT-2|ED+AB-relief-wave）。
 - **复现命令**（Windows PowerShell，cwd=traffic_rl_project，PYTHONPATH=项目根）：
   `python src/evaluation/run_mpc_baseline.py --mode mpc_rule --grade shuozhou_real_53km --n_seed 1 --max_steps 35000`（mpc_dir 同参换 `--mode mpc_dir`）。
 - **数据表（完整 53km，35000 步，seed0）**：

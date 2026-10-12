@@ -11,8 +11,18 @@
     【2026-09-07 ADR】原 C 机车 QKX100 弹性胶泥分区（式(3)(4)）已按决策统一回
     MT-2（A 范式，成熟论文"分车型归一对"），本测试随 QKX100 移除删除相关用例。
 
+    【2026-10-11 速度法重建】A/B 已被容嘉欣2025 图4(b) fl/fu 查表 + 速度法
+    sign(Δv) 选支取代（装载缓释曲线失真修复，见 coupler.py 模块头与
+    DIAGNOSTICS_2026-10.md「诊断-2026-10-11-外部反馈两问」问②）：
+    - 摩擦幅值不再随速度大小衰减（Stribeck 幅值调制废止）→ 原
+      test_mt2_stribeck_slow_speed_higher_impedance 改写为"分支由方向决定、
+      幅值与速度大小无关 + 对齐文献 fl 读点"；
+    - 加载/卸载阻抗不再用解析式 F0±F_fric+k·x，改查 fl/fu 表 → 相关断言
+      改为对齐数字化读点（±30 kN 读数误差，rel 容差 0.03~0.05）。
+
 文献硬锚点：
     - MT-2：最大阻抗 2270 kN、行程 83 mm、预压力 ~200 kN（于宗泽/李蔚表1）
+    - 容嘉欣2025 图4(b)：fl/fu 迟滞曲线数字化读点（40mm: fl≈1182 / fu≈345 kN）
     - 张二田 S3：循环制动峰值车钩力出现在缓解阶段
 
 其余为标定约束，本测试把标定约束固化成回归门禁。
@@ -25,7 +35,7 @@ import numpy as np
 import pytest
 
 
-from src.train_dynamics.coupler import coupler_force
+from src.train_dynamics.coupler import coupler_force, RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N
 from src.train_dynamics.params import (
     VehicleParams, LocomotiveParams, CouplerParams, TrainConsist,
 )
@@ -44,54 +54,70 @@ def _mt2(**kw):
     return base
 
 
+def _lit(x_m: float, branch: str) -> float:
+    """按行程查容嘉欣图4(b) 数字化表（牛顿）。branch ∈ {'fl', 'fu'}。"""
+    tbl = RONG2025_FL_N if branch == 'fl' else RONG2025_FU_N
+    return float(np.interp(x_m, RONG2025_X_M, tbl))
+
+
 # ---------------------------------------------------------------------------
 # 文献锚点：MT-2 加载阻抗
 def test_mt2_loading_impedance_at_stroke_2270kn():
-    """加载、动摩擦区（|dv|>>v_er）：行程打满时阻抗 ≈ 2270 kN（于宗泽/李蔚表1）。"""
+    """加载、行程打满：阻抗 ≈ 2270 kN（于宗泽/李蔚表1 = 图4(b) fl(83mm) 锚点）。"""
     kw = _mt2()
     # x_back 取 stroke+gap：x_el = |e|−gap 恰 = 行程 83mm（无刚性限位）
     f = coupler_force(0.0, 0.0, -1.0 + STROKE + 0.01, 1.0, kw['stiffness'], 0.0, 1.0,
                       preload_n=kw['preload_n'], friction_n=kw['friction_n'])
-    # 200 + 500 + 1.89e7·0.083 = 2268.7 kN，行程打满恰达最大阻抗（无刚性限位）
     assert f == pytest.approx(2.27e6, rel=0.03)
 
 
 def test_mt2_unloading_impedance_smaller_everywhere():
-    """【R0-A/B】同压缩量下卸载阻抗 < 加载阻抗（于宗泽："阻抗在卸载初期较小"）。
+    """【速度法】同行程下卸载阻抗 fu < 加载阻抗 fl（容嘉欣："阻抗在卸载初期较小"）。
 
-    机制 = 摩擦项翻转（式(1) 弹性对称，u=1.0），非弹性软化（见 params.py
-    unload_stiffness_ratio 文档：u=0.4 突破实测带，已复核弃用）。"""
+    【2026-10-11】行程坐标修正：e = gap + x_mm（原版漏加 gap，x_el 实为 0，
+    断言靠 unload 被 clip 到 0 而非真实曲线分离）。现直接断言查表口径：
+    fu/fl 比值 = 文献读点比。"""
     kw = _mt2()
     ratios = []
     for x_mm in (10, 20, 40, 60, 80):
-        x = x_mm / 1000.0
+        x = 0.01 + x_mm / 1000.0   # e = gap + 行程 → x_el = 行程
         load = coupler_force(0.0, 0.0, -1.0 + x, 1.0, kw['stiffness'], 0.0, 1.0,
                              preload_n=kw['preload_n'], friction_n=kw['friction_n'])
-        unload = coupler_force(0.0, 0.0, -1.0 + x, 1.0, kw['stiffness'], 0.0, 1.0,
-                               preload_n=kw['preload_n'], friction_n=kw['friction_n'],
-                               # 卸载：v_front>v_back
-                               ) if False else coupler_force(
-            0.0, 1.0, -1.0 + x, 0.0, kw['stiffness'], 0.0, 1.0,
-            preload_n=kw['preload_n'], friction_n=kw['friction_n'])
+        unload = coupler_force(0.0, 1.0, -1.0 + x, 0.0, kw['stiffness'], 0.0, 1.0,
+                               preload_n=kw['preload_n'], friction_n=kw['friction_n'])
         assert unload < load, f"x={x_mm}mm 卸载阻抗未低于加载阻抗"
+        # 对齐文献读点（±30 kN 读数误差）。10mm 点额外含符号平滑因子
+        # s_e=tanh(e/gap)=tanh(2)=0.964 + 接触渐入 0.993 → 合计 −4.2%（协议效应，
+        # 非表读数偏差），故该点容差放宽；20mm 起 s_e≥0.995，用常规容差。
+        rel = 0.06 if x_mm == 10 else 0.03
+        assert load == pytest.approx(_lit(x_mm / 1000.0, 'fl'), rel=rel)
+        assert unload == pytest.approx(_lit(x_mm / 1000.0, 'fu'), rel=max(rel, 0.05))
         ratios.append(unload / max(load, 1.0))
-    # 卸载初期（小压缩量）阻抗最小（≤0.5×加载）——于宗泽"卸载初期较小"
+    # 卸载初期（小行程）阻抗最小：fu(10)/fl(10) = 87/332 ≈ 0.26 ≤ 0.5
     assert ratios[0] <= 0.5
 
 
-def test_mt2_stribeck_slow_speed_higher_impedance():
-    """【R0-B】MT-2 运动速度越慢摩擦力越大（于宗泽式(2)）：
-    加载阻抗在低速（|v|<v_er，静摩擦区）高于高速（动摩擦区）。"""
+def test_mt2_branch_by_dv_sign_speed_magnitude_independent():
+    """【2026-10-11 容嘉欣速度法】摩擦幅值**不随速度大小衰减**，仅 sign(Δv) 选支。
+
+    旧 Stribeck 幅值调制（f_slow > f_fast）已废止：其与方向 tanh 相乘造成
+    准静态双重削减（0.01 m/s 只剩 19.7%），是装载缓释曲线失真根因。现断言：
+    1) 准静态 0.01 m/s 与快速 1 m/s 加载阻抗一致（幅值与速度大小无关）；
+    2) 加载支 = 文献 fl(40mm) ≈ 1182 kN（±30 kN 读数误差）；
+    3) 换向（卸载支）= 文献 fu(40mm) ≈ 345 kN。"""
     kw = _mt2()
-    x = 0.04
-    f_slow = coupler_force(0.0, 0.0, -1.0 + x, 0.1, kw['stiffness'], 0.0, 1.0,
+    x = 0.05  # e=0.05 → x_el = 0.04 = 40mm
+    f_slow = coupler_force(0.0, 0.0, -1.0 + x, 0.01, kw['stiffness'], 0.0, 1.0,
                            preload_n=kw['preload_n'], friction_n=kw['friction_n'])
     f_fast = coupler_force(0.0, 0.0, -1.0 + x, 1.0, kw['stiffness'], 0.0, 1.0,
                            preload_n=kw['preload_n'], friction_n=kw['friction_n'])
-    assert f_slow > f_fast
-    # 高速渐近 = 纯动摩擦（与旧常数摩擦模型一致，锚点不漂移）
-    f_expected_dyn = kw['preload_n'] + kw['friction_n'] + kw['stiffness'] * (x - 0.01)
-    assert f_fast == pytest.approx(f_expected_dyn, rel=0.02)
+    assert f_slow == pytest.approx(f_fast, rel=0.01)
+    assert f_fast == pytest.approx(_lit(0.04, 'fl'), rel=0.03)
+    # 换向：v_front>v_back 卸载
+    f_unload = coupler_force(0.0, 1.0, -1.0 + x, 0.0, kw['stiffness'], 0.0, 1.0,
+                             preload_n=kw['preload_n'], friction_n=kw['friction_n'])
+    assert f_unload == pytest.approx(_lit(0.04, 'fu'), rel=0.05)
+    assert f_unload < f_fast
 
 
 def test_mt2_hysteresis_loop_dissipative():

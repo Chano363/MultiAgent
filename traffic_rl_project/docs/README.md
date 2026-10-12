@@ -7,13 +7,14 @@
 
 | 想找                   | 去哪                                                                       |
 | -------------------- | ------------------------------------------------------------------------ |
-| **代码知识库（改码前速查）**     | `docs/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` · `TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` · `RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` · `MPC_BASELINE_KNOWLEDGE_BASE.md` |
+| **代码知识库（改码前速查）**     | `docs/knowledge/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` · `knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` · `knowledge/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` · `knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md` |
 | 项目总览 / 任务清单 / 下一步    | `docs/PROJECT_PIPELINE.md`                                               |
 | 研究定位 / 创新点 / 文献库     | `docs/RESEARCH_POSITIONING.md`                                           |
 | **技术/公式 → 论文 引用索引**  | `docs/REFERENCE_INDEX.md`（写作速查）                                    |
 | 论文↔项目验证基准（对照）        | `docs/VALIDATION_BASELINE.md`                                            |
 | 验证执行日志（V 系列过程记录）     | `docs/logs/verification/`（按月/按 V 拆分）                               |
 | 实验/诊断数据记录（按月拆分）     | `docs/logs/diagnostics/`（`DIAGNOSTICS_YYYY-MM.md`）                      |
+| 阶段二执行流水（按月拆分）       | `docs/logs/progress/`（`PROGRESS_YYYY-MM.md`，2026-10-12 自 `PROJECT_PIPELINE.md` 拆出，append-only） |
 | **新**重大决策记录（ADR）     | `docs/logs/decisions/DECISIONS.md`                                      |
 | 踩坑 / 失败教训            | `docs/logs/learnings/LEARNINGS.md`                                      |
 | 每日工作日志（timeline）     | `docs/logs/README.md`（→ `.codebuddy/memory/`)                            |
@@ -23,7 +24,7 @@
 | 文献 PDF / 信息卡         | `docs/papers/`（按主题分 5 个子目录：`01_coupler_physics/` 车钩与物理仿真 · `02_rl/` 强化学习 · `03_formation/` 列车编队 · `04_safety_mpc/` 安全层/MPC · `05_energy_other/` 节能/其他；重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
 | 规范 / 模板 / checklist  | `docs/rules/`                                                            |
 | 汇报 / 交流材料（杂项）      | `docs/杂项/`（非研究 SSOT 的临时交流文档，如项目介绍 docx）                        |
-| 阶段一历史成果              | 见「归档区」↓                                                                  |
+| 阶段一历史成果              | `traffic_rl_project/history/`（原 `training_results_standardized.md` 已删，git 历史可查）      |
 
 ## 文责治理（强规范，写文档前必读）
 
@@ -53,15 +54,16 @@
 
 | 文档                                | 角色                           | 状态     |
 | --------------------------------- | ---------------------------- | ------ |
-| `TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` | 代码知识库：列车动力学仿真引擎             | active |
-| `TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` | 代码知识库：编队训练环境与安全层           | active |
-| `RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` | 代码知识库：RL 训练评估框架            | active |
-| `MPC_BASELINE_KNOWLEDGE_BASE.md`  | 代码知识库：MPC 对比基线（NMPC）        | active |
-| `PROJECT_PIPELINE.md`             | 总览+工作计划                      | active |
+| `knowledge/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` | 代码知识库：列车动力学仿真引擎             | active |
+| `knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` | 代码知识库：编队训练环境与安全层           | active |
+| `knowledge/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` | 代码知识库：RL 训练评估框架            | active |
+| `knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md`  | 代码知识库：MPC 对比基线（NMPC）        | active |
+| `PROJECT_PIPELINE.md`             | 总览+工作计划（执行流水按月拆至 `logs/progress/`）                | active |
 | `RESEARCH_POSITIONING.md`         | 定位+文献库                       | active |
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
+| `logs/progress/PROGRESS_2026-08.md` / `PROGRESS_2026-09.md` / `PROGRESS_2026-10.md` | 阶段二执行流水（按月拆分，append-only；2026-10-12 自 `PROJECT_PIPELINE.md` 迁出，内容零丢失） | active |
 | `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
@@ -88,11 +90,8 @@
 
 | 文档                                                          | 说明                                     |
 | ----------------------------------------------------------- | -------------------------------------- |
-| `learning_report.md`                                        | 阶段一完整技术报告（历史成果）                        |
-| `training_results_standardized.md`                          | 阶段一学术成果报告                              |
 | `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
-| `HANDOFF_2026-09-09.md` / `HANDOFF_2026-09-10.md` / `HANDOFF_2026-09-22.md`、`GROUP_MEETING_TALK_PLAN.md` | 阶段性交接/会议/备忘（任务已转移到 `PROJECT_PIPELINE`；`HUMAN_TODO.md` 已删） |
-> **最新交接**：`logs/HANDOFF_2026-09-22.md`（MPC 对比基线专项：现状 + 接下来全部工作；supersede `docs/logs/HANDOFF_2026-09-10.md`，后者 supersede `docs/logs/HANDOFF_2026-09-09.md`） |
+> 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`）已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。
 
 ### 归档区（已有，保持）
 
@@ -121,7 +120,7 @@
 | **评估链路四处口径缺陷修复**（2026-10-01）：`_long_eval` viol O(n²) / `--mode all` 缺 MPC 行 / MPC 状态残留 / `solve_statuses` 崩溃 | `DIAGNOSTICS_2026-10.md`「修复-2026-10-01…」两节；`LEARNINGS.md` LRN-20261001-010~013；`tests/test_metric_accounting.py`；`REPRODUCIBILITY.md` §十（MPC 成本提示） |
 | **重训启动 / 长跑运维**（2026-10-01 seed0）：启动器、输出目录、`--resume latest` 恢复、机时**实测 ≈11.7 天/seed**（原估 3.4 天作废）、**进程持久化边界** | `scripts/launchers/launch_retrain_adr021_seed0.sh`；`REPRODUCIBILITY.md` §十「重训里程碑」；`DIAGNOSTICS_2026-10.md`「启动-2026-10-01…」；`LEARNINGS.md` LRN-20261001-014 / -016 |
 | **ADR-024 动作带宽回退**（2026-10-02）：`ed_mod_coef` 1.0→0.5（放宽对 MPC 无收益、对 RL 有害）；五项 baseline/消融结果 | `DECISIONS.md` ADR-023 / ADR-024；`DIAGNOSTICS_2026-10.md`「放宽 / 冒烟与基线 / 回退-2026-10-02」；`scripts/launchers/launch_retrain_adr024_seed0.sh` |
-| **路线覆盖修复：训练起点随机化**（2026-10-07）：固定起点使训练只见 −1.5‰（评估 OOD 83.9%）；L2 A/B 证明随机化有效（long_eval 达标 0/2→2/2，OOD→4.1%）；已接入主配置并启动 seed0 重训 | `DIAGNOSTICS_2026-10.md`「路线覆盖 / L1 / L1-b 更正 / L2 终局」；`PROJECT_PIPELINE.md`「路线覆盖修复」；`configs/experiments/formation_ed_ab_3train_1plus1.yaml` |
+| **路线覆盖修复：训练起点随机化**（2026-10-07）：固定起点使训练只见 −1.5‰（评估 OOD 83.9%）；L2 A/B 证明随机化有效（long_eval 达标 0/2→2/2，OOD→4.1%）；已接入主配置并启动 seed0 重训 | `DIAGNOSTICS_2026-10.md`「路线覆盖 / L1 / L1-b 更正 / L2 终局」；`docs/logs/progress/PROGRESS_2026-10.md`「路线覆盖修复」；`configs/experiments/formation_ed_ab_3train_1plus1.yaml` |
 | **验证基准 / 复现**：论文↔仿真数据对照 + 实验诊断 + 复现命令                               | `VALIDATION_BASELINE.md`；`logs/verification/`；`logs/diagnostics/`；`REPRODUCIBILITY.md` |
 | **文献库 / 立论来源**：PDF + 信息卡 + 数据基准                                     | `RESEARCH_POSITIONING.md` 文献库；`docs/papers/`                                                          |
 | **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `logs/learnings/LEARNINGS.md`（唯一 SSOT；原 `AGENTS.md` Gotchas 已迁入此处与 `VALIDATION_BASELINE.md`）                                                      |

@@ -64,11 +64,12 @@ def main():
             ax1.text(b_.get_x() + b_.get_width() / 2, b_.get_height() + 1.2,
                      ('+%.1fk' % (v / 1000)) if v > 0 else ('%.1fk' % (v / 1000)),
                      ha='center', fontsize=9.5)
-    # 追尾标注：置于两柱最高值上方（No-C 两列均 28 步，M-MARL 恒 0）
+    # 安全违约标注（列距<5 m）：置于两柱最高值上方（No-C 两列均 28 步，M-MARL 恒 0）
+    # 【口径 2026-10】弃用自造词"追尾"，统一文献口径"安全违约"。
     for i, c in enumerate(coll_nc):
         if c > 0:
             ax1.text(x[i], max(reward_nc[i], reward_m[i]) / 1000 + 4.2,
-                     f'No-C 追尾{c:.0f}步', ha='center', fontsize=8.5, color='#a5372f')
+                     f'No-C 安全违约 {c:.0f} 步', ha='center', fontsize=8.5, color='#a5372f')
     ax1.set_xticks(x); ax1.set_xticklabels(labels, fontsize=11)
     ax1.set_ylabel('累计回报 (×10³)')
     ax1.set_ylim(0, ymax + 8)

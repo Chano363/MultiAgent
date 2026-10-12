@@ -17,6 +17,7 @@ owner: Owner
 ## ADR-编号 决策标题 - 日期
 - 状态：决策 / 实施 / 修订 / superseded
 - 背景（动机、约束）/ 选项与权衡 / 结论（选 X，理由）/ 后果（验证结果、新约束）/ 相关（PIPELINE / 诊断 / LEARNINGS 链接）
+- **SSOT 联动（必查）**：若本决策改变立论口径 → 落 ADR 当次同步核对/覆盖 `docs/RESEARCH_POSITIONING.md` 对应节（先例：ADR-022 覆盖 §1.6 基线表述），并在「相关」写明；改完在本文件核对清单打钩即视为联动完成
 ```
 
 ## 已补录的历史决策（ADR-002 \~ ADR-007）
@@ -37,7 +38,7 @@ owner: Owner
   - 集成遇 TRAE 密钥遮罩坑（`sk-...` env 被替换成 `\u2026`），已用 `LLM_CRED_FILE`<本地 key 文件路径>绕开（[server.py L52-72](file:///D:/Code/MultiAgent/Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)）
   - 评审结论反哺论文：标题改 "Hierarchical Hybrid MARL"、补 "MPC+规则内层" 公平基线、20km/5 列结果补全指标升独立小节
   - 新依赖约束：OpenRouter 公端点 `independence_verified=unverified`；更严格独立需私有部署 ump/challenge 端点
-- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（诊断-2026-09-02-ARIS 试点）；`docs/PROJECT_PIPELINE.md` ARIS 条目；ARIS 仓库 `docs/TRAE_ARIS_RUNBOOK_CN.md`
+- 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（诊断-2026-09-02-ARIS 试点）；`docs/docs/logs/progress/PROGRESS_2026-09.md` ARIS 条目；ARIS 仓库 `docs/TRAE_ARIS_RUNBOOK_CN.md`
 
 ## 条目区
 
@@ -285,8 +286,8 @@ owner: Owner
   2. **评估时域 = 独立完整剖面**（35km 等目标剖面单独跑全程），**不做"多段 1200 步拼接覆盖"**。
   3. **跨线方向正确**：长且复杂剖面（53km）训练 → 未见过剖面（35km）验证；验证剖面须满足"未在训练见过 + 落训练状态分布内"。短/简单训练 → 复杂验证（反向）错误，因 OOD 失守。
   4. **总训练量达标为硬要求**：收敛 ≠ 训练充分。120 episodes 不足，目标对齐同类 on-policy 论文量级。
-- 后果：`PROJECT_PIPELINE.md` ADR-014 阶段1 加 superseded 注明时域修正；`RESEARCH_POSITIONING.md` 若含"全程/拼接"表述依此覆盖修订；`AGENTS.md` 规范性问题区补本条指针。
-- **执行闭环（2026-10-01）**：主训练配置 `configs/experiments/formation_ed_ab_3train_1plus1.yaml` 曾**未达本条硬要求**（`episodes: 120`、缺 `n_env`/`warm_start`/`long_eval_*`、注释仍留"多段 1200 步拼接覆盖"旧表述；`env_cfg.max_steps: 36000` 注释误标"53km 全程训练"）。已按本条对齐并验证：`episodes: 1400`（§4）+ `n_env: 4` / `parallel_traj_len: 0`（§1）+ `warm_start: true`（BC 热启动）+ `long_eval_interval: 50` / `long_eval_steps: 36000`（§2 完整剖面独立评估）+ `max_steps` 注释更正为"env 截断上限 / 评估口径（训练时域由 curriculum 决定，`TrainRunner` 每集覆盖）"。验证方式 = `--episodes 2` 覆盖短训（exit 0），`metadata.json` 实测上述字段全部生效（criterion：CLI 覆盖生效 ⇒ YAML 值可被正确解析）。**快速迭代用 `--episodes N` 覆盖，勿改 YAML 主值**。详见 `PROJECT_PIPELINE.md` 四改造「本轮补齐的完整性缺口」⑧、`REPRODUCIBILITY.md` §十。
+- 后果：`docs/docs/logs/progress/PROGRESS_2026-09.md` ADR-014 阶段1 加 superseded 注明时域修正；`RESEARCH_POSITIONING.md` 若含"全程/拼接"表述依此覆盖修订；`AGENTS.md` 规范性问题区补本条指针。
+- **执行闭环（2026-10-01）**：主训练配置 `configs/experiments/formation_ed_ab_3train_1plus1.yaml` 曾**未达本条硬要求**（`episodes: 120`、缺 `n_env`/`warm_start`/`long_eval_*`、注释仍留"多段 1200 步拼接覆盖"旧表述；`env_cfg.max_steps: 36000` 注释误标"53km 全程训练"）。已按本条对齐并验证：`episodes: 1400`（§4）+ `n_env: 4` / `parallel_traj_len: 0`（§1）+ `warm_start: true`（BC 热启动）+ `long_eval_interval: 50` / `long_eval_steps: 36000`（§2 完整剖面独立评估）+ `max_steps` 注释更正为"env 截断上限 / 评估口径（训练时域由 curriculum 决定，`TrainRunner` 每集覆盖）"。验证方式 = `--episodes 2` 覆盖短训（exit 0），`metadata.json` 实测上述字段全部生效（criterion：CLI 覆盖生效 ⇒ YAML 值可被正确解析）。**快速迭代用 `--episodes N` 覆盖，勿改 YAML 主值**。详见 `docs/logs/progress/PROGRESS_2026-10.md` 四改造「本轮补齐的完整性缺口」⑧、`REPRODUCIBILITY.md` §十。
 - 相关：ADR-013（formation-aware RL=唯一手段）、ADR-014（claim/动作结构 Q）、ADR-016（免重辨识成本、跨线 Regime A）；文献实证见 `docs/papers/`（Zhang2024/Guo2025/Zhang2021/Hua2024）
 
 ## ADR-018 车钩力口径统一（断面力）+ 安全层对 AB 的"减"权限（治本落地） - 2026-09-30
@@ -307,7 +308,7 @@ owner: Owner
 
 - **状态**：实施（已落地 + 单测 + 端到端冒烟验证）
 - **背景**：统一训练框架 `run_training.py` → `TrainRunner` 的旧 `--resume` 是"半成品"，三个硬伤：
-  1. **静默从头重训**：`if resume_pt and Path(resume_pt).exists()` —— 路径写错/文件不存在直接跳过加载，**不报错、直接白跑数小时**。现实复现：`PROJECT_PIPELINE.md` 记载 5-seed 长训"原 launch resume 源已 MISS"（`final_seed{0..4}` 停在 ep 992/992/521/661/671）。
+  1. **静默从头重训**：`if resume_pt and Path(resume_pt).exists()` —— 路径写错/文件不存在直接跳过加载，**不报错、直接白跑数小时**。现实复现：`docs/docs/logs/progress/PROGRESS_2026-09.md` 记载 5-seed 长训"原 launch resume 源已 MISS"（`final_seed{0..4}` 停在 ep 992/992/521/661/671）。
   2. **集数语义混乱**：`--episodes` = "再跑 N 集"，须人工算剩余（诊断记录曾致 seed2 超跑到 ep70）。
   3. **进度/历史/最优态不恢复**：`TrainingLogger._init_csv` 与 `save_training_artifacts` **全量覆写** CSV/JSON/学习曲线 PNG ⇒ 曲线只剩续训段；`best` 只从**新** `results_dir` 的 history 读 ⇒ 换目录即丢。
 - **选项与权衡**：
@@ -326,7 +327,7 @@ owner: Owner
   - **端到端冒烟**（小窗口 60 步，`/tmp/rs2`、`/tmp/rs3`）：1 ep → `--resume --episodes 3` 输出"**已训 1 ep，目标总 3 ep，本轮跑 2 ep**"、CSV **3 行连续**（ep1/2/3）、`best` 继承（+400.5 未重置）；`--resume latest` 三信号一致（`metadata.done_ep=3` / history 3 行 / 文件名 `ep3`）；路径不存在 → `FileNotFoundError`（不再静默重训）；`--resume-weights-only` 正常。
   - **冒烟中修掉的两处真实缺陷**（详见 LEARNINGS）：① `device=cuda` 下 `torch.get_rng_state()` 经 `map_location=cuda` 变成 GPU ByteTensor → `set_rng_state` 抛 `TypeError`（补 `.cpu()`）；② logger 的 `ckpt_meta` lambda 用**自增前**的 `global_ep` → `last.pt` 内嵌 `done_ep` 比文件名少 1（改 `global_ep + 1`）。
 - **后果 / 待办**：① legacy 训练入口不享受本改造（如需须另行迁移）；② "续训 `final_seed{0..4}` best 到 1400ep" 现可安全执行（建议新输出目录 `final_seed{N}_v2` 防覆盖）；③ 本次改动**尚未 git 提交**。
-- **相关**：`docs/PROJECT_PIPELINE.md` P3「训练框架续训改造 - 2026-09-30」；`docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md`「诊断-2026-09-30-续训框架端到端验证」；`docs/logs/learnings/LEARNINGS.md` LRN-20260930-004/005/006。
+- **相关**：`docs/docs/logs/progress/PROGRESS_2026-09.md` P3「训练框架续训改造 - 2026-09-30」；`docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md`「诊断-2026-09-30-续训框架端到端验证」；`docs/logs/learnings/LEARNINGS.md` LRN-20260930-004/005/006。
 
 ## ADR-020 修订 ADR-018 第 3 条效力表述：AB 新增源闸门在确定性驱动策略上是 no-op；并否决"削减已发 AB 源"方向 - 2026-10-01
 
@@ -408,7 +409,7 @@ owner: Owner
   - ⚠️ **A 在全剖面上的净效应是"混合"，不是纯改善（必须与 C+B 一起用）**：三个配置一致显示 —— A **总是压低 AB 用量**（M1 −52.9% / 仅 ED −23.3% / M0 0），但**在 RL 参与的两个配置里都使峰值升高、band 变差**（M1：1350 → 1643.49 kN，+21.7%；band 99.62% → 91.58%，−8.04 pt。仅 ED：1023 → 1037.50 kN；band 97.07% → 95.85%）。破线步数则符号不一致（M1 905 → 77 大降；仅 ED 21 → 44 反升）。物理解读：旧权重靠 AB 保速度带，A 掐掉 RL 的 AB 新增源后策略"想用却用不了"⇒ 控速变差并在个别时刻出现更高峰值。⇒ **A 的价值必须叠加 C（车钩力进目标）+ B（信用分配修复）重训后才可能兑现**。**窗口口径警示**：12000 步 A on/off 表的"峰值略降"**只在首 1200 s 成立**，全剖面上符号反转（LRN-20261001-008）。
   - **未分离残余**：上述全剖面对照是"A(+D)"而非"A 单独"（冻结副本不含 D 的 env 侧否决；D 在 12000 步与 M0 行上均表现为 no-op，全剖面贡献未单独量化）。
 - **⑥ 强制边界**：**C 改 reward 口径 + B 改训练算法 ⇒ 全部旧 ckpt 失效**，任何最终性能结论**必须**按 ADR-017 跑 **1400 ep × 5 seed** 重训 + 独立完整剖面评估后才成立。本节 P0 三行仅作**方向性判据**。
-- **⑦ 遗留 / 长久计划**（见 `PROJECT_PIPELINE.md`）：① 按 C+B 重训（1400 ep × 5 seed）并出主表 —— **🟡 seed0 已于 2026-10-01 启动**（`scripts/launchers/launch_retrain_adr021_seed0.sh` ⇒ `outputs/checkpoints/formation/adr021_1400ep_seed0/`，登记见 `REPRODUCIBILITY.md` §十 / `PROJECT_PIPELINE.md` 长久计划 1）；② `ab_min_hold_s` 与 `ab_min_refill_s=222 s` 的实车核实 —— **`ab_min_hold_s` 已文献结案（2026-10-01，负结果：无运行期最小保持时长出处 ⇒ 保持 0.0 不激活；见 `DIAGNOSTICS_2026-10.md`「检索-2026-10-01」+ `REFERENCE_INDEX.md` 落地映射）；`ab_min_refill_s=222 s` 已由两独立来源同量级佐证（张二田 S6 实测 222 s + 大秦线报道 ≈210 s），仅余"实车数据正式核实"一项**需线下获取实车记录，非本环境可完成**；③ 完整预测式 safety filter（含 veto 阈值与梯度 AB 权限、来源感知、filter/策略一致性，Pfrommer 2022）；④ **立论侧已同步**：`RESEARCH_POSITIONING.md` §1.6「车钩力定位」的"待修订"标记已改为**"已修订并落地"**（含 `−6·min(pn−1,2)` / 上界 −12 / 仍不作均值最小化）；`AGENTS.md` 同项同步；`ITSC_PAPER.md` 已加**【2026-10-01 口径/目标/算法三重变更声明】**（正文旧数值不得作现行结果引用）。**待重训裁定的只是"该超限项权重是否保留/放大"**，不再是措辞修订。
+- **⑦ 遗留 / 长久计划**（见 `docs/logs/progress/PROGRESS_2026-10.md`）：① 按 C+B 重训（1400 ep × 5 seed）并出主表 —— **🟡 seed0 已于 2026-10-01 启动**（`scripts/launchers/launch_retrain_adr021_seed0.sh` ⇒ `outputs/checkpoints/formation/adr021_1400ep_seed0/`，登记见 `REPRODUCIBILITY.md` §十 / `docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1）；② `ab_min_hold_s` 与 `ab_min_refill_s=222 s` 的实车核实 —— **`ab_min_hold_s` 已文献结案（2026-10-01，负结果：无运行期最小保持时长出处 ⇒ 保持 0.0 不激活；见 `DIAGNOSTICS_2026-10.md`「检索-2026-10-01」+ `REFERENCE_INDEX.md` 落地映射）；`ab_min_refill_s=222 s` 已由两独立来源同量级佐证（张二田 S6 实测 222 s + 大秦线报道 ≈210 s），仅余"实车数据正式核实"一项**需线下获取实车记录，非本环境可完成**；③ 完整预测式 safety filter（含 veto 阈值与梯度 AB 权限、来源感知、filter/策略一致性，Pfrommer 2022）；④ **立论侧已同步**：`RESEARCH_POSITIONING.md` §1.6「车钩力定位」的"待修订"标记已改为**"已修订并落地"**（含 `−6·min(pn−1,2)` / 上界 −12 / 仍不作均值最小化）；`AGENTS.md` 同项同步；`ITSC_PAPER.md` 已加**【2026-10-01 口径/目标/算法三重变更声明】**（正文旧数值不得作现行结果引用）。**待重训裁定的只是"该超限项权重是否保留/放大"**，不再是措辞修订。
 - **相关**：ADR-014 / ADR-018 / ADR-020（被本闭环修订执行面）、ADR-013（RL 定策 + 底层执行）、ADR-017（训练量）；`docs/REFERENCE_INDEX.md`（四改造的文献→代码映射）；`LEARNINGS.md` LRN-20261001-006（冻结副本事故）/ -007（不可达梯度臂）/ -008（短窗口结论不可外推 + 有效域判定）。
 
 ## ADR-022 MPC 对比基线唯一化为 NMPC；删除 fair / 简化 MPC 及其旧评估脚本 - 2026-10-01
@@ -453,7 +454,7 @@ owner: Owner
   4. **不改** `accel_lo = -0.75`（ADR-022 未裁决项③(a)）：它是**控制器自身**的制动深度参数，且 0.75 m/s² 电制动已大于最陡 −10‰ 的重力分量（≈0.098 m/s²），物理上不是瓶颈 ⇒ 保持原值并在此**登记为已声明差异**（规则层 ED 可达 1.0 vs NMPC 期望 ED ≤ 0.75）；若日后要彻底对齐另立 ADR。
 - **后果 / 待办**：
   - ⚠️ **动作空间语义变更 ⇒ 按旧带宽（0.5）产出的 D-RL 训练与评估数值对新口径失效**。本次已**主动停掉** seed0 长训（PID 673，ep55/1400，elapsed 5h22m）并按新口径**重启**（新输出目录 `adr023_1400ep_seed0`）；旧目录 `adr021_1400ep_seed0` 的 55 集产物**原样保留**（不覆盖、不删除），按"旧带宽口径、待重跑"标注。
-  - `P0 三行基线`、`AB 通道裁定（--mask_lever ab）` 等基于**旧 ckpt + 旧带宽**的结论一并作废，随 A/B/C/D 重训后的复核同批重做（见 `PROJECT_PIPELINE.md` 长久计划）。
+  - `P0 三行基线`、`AB 通道裁定（--mask_lever ab）` 等基于**旧 ckpt + 旧带宽**的结论一并作废，随 A/B/C/D 重训后的复核同批重做（见 `docs/logs/progress/PROGRESS_2026-10.md` 长久计划）。
   - 放宽的是**决策可见的动作范围，不是安全边界**：安全仍由 SafetyLayer（ETCS 限速/防追尾）、车钩力安全层（`enforce_coupler`）、`_coupler_throttle_scale`、AB 充风门与单步并发门共同约束。
 - **验证（实跑）**：`evaluate_decompose --mode mpc --mpc_type nmpc --max_steps 300 --n_seed 1` ⇒ `桥接越权请求 **0** 步·机车`（改前 455），其余指标几乎不变（`reward +2221 / peak 318kN / viol 0 / band 100% / meanED 0.500 / 末速 73.4km/h / 求解 69ms 均值 / fail 0`）；定向测试 **39 passed**；全量回归与 `check_agents_links.py` 见 `DIAGNOSTICS_2026-10.md`「放宽-2026-10-02」。
 - **相关**：ADR-022（其未裁决项③(b) 由本 ADR 裁决）、ADR-021（reward / 信用视界改造，动作语义按其口径继续）、ADR-009.1（decompose 动作结构）、ADR-016（Regime A 不失公允口径）；`DIAGNOSTICS_2026-10.md`「放宽-2026-10-02」；`LEARNINGS.md` LRN-20261001-017（同族：镜像常量 / 跨通道语义搬迁）。
@@ -628,3 +629,21 @@ owner: Owner
 - **验证（已做）**：`tests/test_fleet_decompose.py`（形状/取值域）、`test_train_fleet_env.py`、`test_train_env.py` **32 passed**；冒烟（`--episodes 2`，输出重定向 `outputs/smoke/_smoke/adr030_*`）运行中。
 - **刻意不做**：本轮**不动**奖励、安全层、地平线（保持单变量）；受控基线（3 seed + 统一症状口径）待本变量冒烟通过后另立规格。
 - **相关**：`DIAGNOSTICS_2026-10.md`「文献对齐-2026-10-07」（逐篇差异与可借鉴项，append-only）；ADR-017（训练时域 ≤1200 步）；ADR-021（车钩力进目标的口径）；`src/environments/train_fleet_env.py`、`tests/test_fleet_decompose.py`；文献 `docs/papers/02_rl/Wang2026_hierRL_fulltext.txt`、`Song2026_TubeMPC_fulltext.txt`、`Hu2026_PMMASAC_fulltext.txt`、`He2025_CyclicGA_fulltext.txt`、`Si2025_DuelingDQN_fulltext.txt`、`Zhang2024_QLearning_fulltext.txt`。
+
+
+## ADR-031 车钩物理口径切换：容嘉欣2025 图4(b) 查表 + 速度法 sign(Δv)（废止 Stribeck 解析式）；step_vehicles 积分统一 Newmark - 2026-10-12
+
+- **状态**：决策（已落地：`coupler.py` / `train.py` / `params.py` / `nmpc_controller.py` 改完；车钩专项 51 测试 + 全量回归通过；曲线对照与开环对照已归档出图；**旧 checkpoint 重评未做**）
+- **背景（两轮外部反馈）**：导师①"车速完全不符合预期，震荡太厉害"→ 开环对照（`verify_rong2025_openloop.py`）判别锅在控制器；②"装载缓释曲线也是错的"→ 定量诊断（`DIAGNOSTICS_2026-10.md`「修复-2026-10-11」）出旧模型根因：`tanh(s_dv/0.05)` 方向因子 × Stribeck 幅值**双重削减**，准静态 0.01 m/s 下摩擦只剩 19.7%，迟滞环面积仅为文献 1/5.3（23193 vs 62091 kN·mm）。
+- **决策**：经用户确认，换用学姐推荐的**容嘉欣2025《更大牵引质量重载列车动力学建模与仿真分析》机械 52(7):57-64 图4(b) 货车 MT-2** 口径：
+  1. **fl/fu 数字化查表**（400dpi 渲染 + 网格标定，读数误差 ±30 kN；fl(83mm)=2270 kN 锚定 MT-2 额定阻抗）；
+  2. **速度法选支**：f0=(fl+fu)/2，f = f0 − sign(s_e·Δv)·(fl−fu)/2（加载→fl、卸载→fu、Δv=0→f0）；摩擦幅值不随速度衰减，只由方向选支（`dir_sm = tanh(s_e·dv/ε)` 平滑近似）；
+  3. `friction_v_eps` 0.05→0.002（准静态 0.01 m/s 即 99.99% 分支分离）；NMPC 侧 `v_eps = max(ε, 0.05)` 下限保护 IPOPT。
+- **连带修复（数值稳定性，唯一真 bug）**：`train.py::step_vehicles` 旧半隐式 Euler（dt=0.1）在新模型 0–10mm 段局部斜率 ~43 kN/mm（旧线性 18.9）下车钩链振荡指数发散（`test_grade_updates_with_position` 实证：3 步撞刚性限位爆炸）→ 改为 **≤0.01s 子步 + Newmark-β 隐式积分**，与 `step_vehicles_ed_ab` 同源，消除两条积分路径的稳定性差异。
+- **测试基准重标定（3 项，均为新物理真实响应，非回归）**：
+  - S4：−6‰ 缓坡缓解峰值 1248 kN = fl(47mm) 查表值（旧 659 kN 是 Stribeck 衰减失真产物）→ 断言 1000→1300 kN；
+  - L1：拉钩力 1847/1553/1349 kN **反单调**（弱制动→缓解拉伸行程大→查表 fl 高段），旧"单调递增"是旧 Stribeck 模型标定 → 保留"峰值出现于缓解段"机理断言（L3）+ 量级区间 400–2200 kN；
+  - decompose：缓解后 −2‰ 坡度 + Davis 阻力净减速 ≈ −0.01 m/s² 为真实物理 → 改"速度不塌缩（v>20 m/s）+ 缓解 15s 钩力 <300 kN"双断言。
+- **验证**：装载缓释曲线对照（分支分离 772.4 vs 文献 772.5 kN；迟滞环 61894 vs 62091 kN·mm = **1.00×**，最大偏差 加载 20.9/卸载 7.9 kN）；容嘉欣图8/图9 开环对照重跑（归档 `rong2025_openloop_20261012_001654`）；全量 `pytest tests/ -q` 除既有 `outputs/deprecated/results_mpc_baseline/` 未登记外 **0 失败**。
+- **影响与待办**：**旧 checkpoint 在新物理下数值不可直接引用**（两侧物理同源铁律），重评另案（用户已同意"随后"）；S4 主表"缓坡不超限"的 claim 措辞需按 1300 kN 新口径复核（实车 1000 kN 含液体缓冲器因素，仿真器纯 MT-2 摩擦缓冲器）。
+- **相关**：`DIAGNOSTICS_2026-10.md`「诊断-2026-10-11-外部反馈两问」「修复-2026-10-12-装载缓释曲线」；ADR-011（MT-2 统一，不变）；ADR-018（断面力口径，不变）；`REFERENCE_INDEX.md` 容嘉欣2025 条目 + `docs/refs.bib` `rong2025_heavyhaul_dynamics`；产物 `outputs/sim_validation/figures/mt2_coupler/`、`outputs/sim_validation/phys_validation/mt2_load_release_cmp_20261012_001039/`。

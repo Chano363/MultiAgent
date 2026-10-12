@@ -132,7 +132,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 
 - `docs/rules/EXECUTION_RULES.md`：训练/评估留痕、产物目录、生图规范 SSOT
 - `docs/REPRODUCIBILITY.md`：复现命令与机时实测（≈11.7 天/seed）
-- `docs/PROJECT_PIPELINE.md`：进度流水
+- `docs/PROJECT_PIPELINE.md`：总览 + 工作计划（执行流水见 `docs/logs/progress/PROGRESS_YYYY-MM.md`）
 - `TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md`：被训练的环境
 - `MPC_BASELINE_KNOWLEDGE_BASE.md`：对比基线
 - `docs/logs/learnings/LEARNINGS.md`：LRN-20261001-009 等踩坑
