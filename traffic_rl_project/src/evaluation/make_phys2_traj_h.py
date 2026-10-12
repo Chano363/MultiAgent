@@ -1,4 +1,4 @@
-"""第10页(追尾机理)轨迹图：改成 1 行 × 3 列横向布局（速度/间距/车钩力）。
+"""第10页(间距安全机理)轨迹图：改成 1 行 × 3 列横向布局（速度/间距/车钩力）。
 输入 outputs/results_phys2/traj_{m1_full_seed0|m3_full}.csv
 输出 outputs/figures/fig_phys2_traj_h.png（中文 CJK 字体）。
 """
@@ -70,7 +70,7 @@ ax.plot(t, m3['gap_1'], color='tab:red', lw=1.0, label='No-C（无协同）')
 ax.plot(t, m1['gap_1'], color='tab:blue', lw=1.3, label='M-MARL（本文）')
 ax.axhline(0, color='k', ls='-', lw=0.8)
 ax.axhline(5, color='r', ls='--', lw=1.0)
-ax.text(t.iloc[-1] * 0.01, 8.0, '追尾阈值 5 m', fontsize=9, color='red')
+ax.text(t.iloc[-1] * 0.01, 8.0, '安全间距阈值 5 m', fontsize=9, color='red')
 ax.set_xlabel('时间 (min)'); ax.set_ylabel('列1-列2 间距 (m)')
 ax.legend(loc='upper right', fontsize=9)
 ax.set_title('间距保持', fontsize=13)

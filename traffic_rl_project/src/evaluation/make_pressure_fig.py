@@ -56,15 +56,16 @@ fig.savefig('outputs/figures/fig_pressure_ablation.png', dpi=150)
 plt.close()
 print('已生成 outputs/figures/fig_pressure_ablation.png')
 
-# 图2：No-C 追尾步数 vs target_gap
+# 图2：No-C 安全违约步数（列距 < 5 m）vs target_gap
+# 【口径 2026-10】弃用自造词"追尾步数"，统一文献口径"安全违约"（safety violation）。
 fig, ax = plt.subplots(figsize=(9, 5))
 ax.plot(GAPS, NOC_COLL, 'o-', color='#c0504d', linewidth=2, markersize=8,
-        label='No-C（无协同）追尾步数')
+        label='No-C（无协同）安全违约步数')
 ax.plot([GAPS[0], GAPS[1]], [0, 0], 's--', color='#2d6a9f', linewidth=2, markersize=8,
         label='M-MARL（协同，恒为 0)')
 ax.set_xlabel('目标间距 (m)')
-ax.set_ylabel('追尾步数')
-ax.set_title('压力下 No-C 追尾增、M-MARL 恒 0 追尾')
+ax.set_ylabel('安全违约步数（列距 < 5 m）')
+ax.set_title('压力下 No-C 安全违约增加、M-MARL 恒 0 安全违约')
 ax.set_xticks(GAPS)
 ax.legend()
 ax.grid(alpha=0.3)

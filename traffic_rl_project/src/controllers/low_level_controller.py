@@ -45,6 +45,14 @@ class TrainLowLevelController:
         self.coupler_force_limit_n = coupler_force_limit_n
         # 是否执行车钩力约束（消融实验：enforce_coupler=False 模拟"忽略车钩力"控制）
         self.enforce_coupler = enforce_coupler
+        # 【2026-10-11 分级制动】循环制动只在**深超速**时才用调用方给的深档，
+        # 刚过上限一律用浅档（= 深档幅值 × shallow_ratio，-0.8 → -0.2 = MIN 档，
+        # 对齐文献「最小常用制动」口径）。依据：开环/闭环档位扫描实测
+        # （DIAGNOSTICS_2026-10.md「开环对照-2026-10-11」）——
+        #   纯 EMERGENCY(-0.8)：压钩 990 kN 贴限、掉速至 31.2 km/h、进出带 18 次、反转 2.85 次/min
+        #   纯 MIN(-0.2)     ：压钩 512 kN、掉速 39.6、进出带 11 次、反转 0.75 次/min
+        self.shallow_ratio = 0.25
+        self.deep_notch_margin_kmh = 5.0
         self._safety = SafetyLayer(
             num_vehicles=num_vehicles,
             coupler_force_limit_n=coupler_force_limit_n,
@@ -139,7 +147,17 @@ class TrainLowLevelController:
             self._cyclic_braking = False         # 低速 → 缓解
         # 中间区间维持 self._cyclic_braking（制动/缓解交替）
 
-        throttle = float(brake_notch if self._cyclic_braking else release_throttle)
+        if not self._cyclic_braking:
+            throttle = float(release_throttle)
+        else:
+            # 分级制动：刚过上限用浅档（最小常用制动），深超速才用调用方给的深档。
+            # 恒定深档是速度大摆与车钩力震荡的主放大器——一次深制动直接把速度
+            # 打穿下限（实测 80→31 km/h），再反复"深制动↔缓解"循环（见 __init__ 注释）。
+            overshoot_kmh = (vel - eff_v_max) * 3.6
+            if overshoot_kmh >= self.deep_notch_margin_kmh:
+                throttle = float(brake_notch)    # 深超速兜底，保留调用方档位意图
+            else:
+                throttle = float(np.sign(brake_notch) * abs(brake_notch) * self.shallow_ratio)
 
         # 车钩力约束（可开关，消融实验用）
         snapshot = self._state_snapshot(train_env)

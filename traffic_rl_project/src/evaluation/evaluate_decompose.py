@@ -7,8 +7,10 @@ decompose 换架构（ADR-009.1 逐机车电空分工）正式对比评估。
   - 单机单控    ：旧架构 1+0（TrainFleetEnv hierarchical=True, coor_adj=0，
                   单机车 ED/AB 由 train_env 内部拆分）——P3.5 完成判据的"vs 单机+单控"
 
-指标：reward / 车钩力峰值 / 超限 / ATP 安全事件 / AB 源·步 / meanED / 速度带保持率 / 末速 /
-      列距误差（均值/峰值绝对误差、全程最小实际列距、追尾步数；编队底线，仅多列编组产出）。
+指标：reward / 车钩力峰值 / 超限 / ATP 安全事件（主表安全指标 = ATP 触发次数）/ AB 源·步 /
+      meanED / 速度带保持率 / 末速 / 列距误差（均值/峰值绝对误差、全程最小实际列距；
+      编队底线，仅多列编组产出）。追尾（实际列距≤0）**不作指标**——评估入口 assert 守卫，
+      非 0 判该行评估无效（既定决策 2026-10：主表报 ATP 触发次数，见 rollout 尾部断言）。
 输出：控制台表格 + JSON（outputs/results/decompose/eval_decompose.json）。
 
 用法：
@@ -285,7 +287,12 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         out['gap_err_mean_abs_m'] = gap_err_abs_sum / max(n, 1)   # 平均绝对列距误差（m）
         out['gap_err_peak_abs_m'] = gap_err_abs_peak              # 峰值绝对列距误差（m）
         out['gap_min_m'] = gap_min_over_ep                        # 全程最小实际列间距（m）
-        out['rear_end_steps'] = int(rear_end_steps)               # 实际列距≤0（追尾/穿透）步数
+    # 【既定决策 2026-10｜追尾不作指标】"追尾步数"默认恒 0、且与"防追尾属 ATP 职权"
+    # 的安全叙事矛盾（曾三令五申要求移除，2026-09 只改了后被 ADR-022 删除的
+    # evaluate_m1_m3_long.py ⇒ 现行入口漏改，本次补齐）。物理穿透（实际列距 ≤0）一旦
+    # 出现即判**该行评估无效并报错**；主表安全指标 = ATP 触发次数（safety_events）。
+    assert rear_end_steps == 0, (
+        f"评估无效：实际列距≤0（物理穿透）{rear_end_steps} 步，该行结果作废")
     if _mpc is not None and getattr(_mpc, 'solve_times', None) and _mpc.solve_times[st0:]:
         st = _mpc.solve_times[st0:]
         out['mpc_solve_mean_ms'] = float(np.mean(st) * 1e3)
@@ -322,16 +329,19 @@ def eval_method(name, mode, act_fn, args, act_interval=1):
             extra += f" | fail {agg['mpc_solve_fail']:.0f}"
     if 'mpc_bridge_ed_saturated' in agg:
         extra += f" | 桥接越权请求 {agg['mpc_bridge_ed_saturated']:.0f} 步·机车"
-    # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距 + 追尾步数。逐项守卫，
+    # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距。逐项守卫，
     # 单列编组无该组键（不产出）时不打印，避免 KeyError 连累整行不落盘（LRN-20261001-013 同族）。
+    # 追尾不打印（既定决策：移出主表，评估入口以 assert rear_end_steps == 0 守卫）。
     if 'gap_min_m' in agg:
         extra += (f" | 列距误差 {agg['gap_err_mean_abs_m']:.1f}m均值/"
-                  f"{agg['gap_err_peak_abs_m']:.1f}m峰值 | 最小列距 {agg['gap_min_m']:.1f}m "
-                  f"| 追尾 {agg['rear_end_steps']:.0f}步")
+                  f"{agg['gap_err_peak_abs_m']:.1f}m峰值 | 最小列距 {agg['gap_min_m']:.1f}m")
+    # 【术语 2026-10-12】标签只用描述性中文 + 文献已有概念，不自造指标名：
+    #   车钩超限 = coupler limit violations；ATP 触发次数 = ATP interventions；
+    #   速度带内占比 = time within permissible speed band；列距/最小列距 = spacing error / min spacing
     print(f"{name}: reward {agg['reward']:+.0f} | peakCoupler {agg['peak_coupler_kN']:.0f}kN | "
-          f"viol {agg['viol']:.0f} | ATP事件 {agg['safety_events']:.0f} | "
-          f"AB步 {agg['ab_steps']:.0f} | meanED {agg['mean_ed']:.3f} | "
-          f"band率 {agg['band_rate']:.2%} | 末速 {agg['final_speed_kmh']:.1f}km/h" + extra)
+          f"车钩超限 {agg['viol']:.0f} | ATP触发次数 {agg['safety_events']:.0f} | "
+          f"空气制动步 {agg['ab_steps']:.0f} | meanED {agg['mean_ed']:.3f} | "
+          f"速度带内占比 {agg['band_rate']:.2%} | 末速 {agg['final_speed_kmh']:.1f}km/h" + extra)
     return agg
 
 
@@ -340,8 +350,7 @@ def _gap_delta_str(a, b):
     if a is None or b is None or 'gap_min_m' not in a or 'gap_min_m' not in b:
         return ''
     return (f" | Δ列距误差 {a['gap_err_mean_abs_m']-b['gap_err_mean_abs_m']:+.1f}m | "
-            f"Δ最小列距 {a['gap_min_m']-b['gap_min_m']:+.1f}m | "
-            f"Δ追尾 {a['rear_end_steps']-b['rear_end_steps']:+.0f}步")
+            f"Δ最小列距 {a['gap_min_m']-b['gap_min_m']:+.1f}m")
 
 
 # --------------------------------------------------------------------------- #
@@ -579,12 +588,12 @@ def main():
             print('-' * 78)
             print(f"Δ(D-RL - D-Rule): Δreward {m1['reward']-m0['reward']:+.0f} | "
                   f"ΔpeakCoupler {m1['peak_coupler_kN']-m0['peak_coupler_kN']:+.0f}kN | "
-                  f"ΔATP事件 {m1['safety_events']-m0['safety_events']:+.0f}"
+                  f"ΔATP触发次数 {m1['safety_events']-m0['safety_events']:+.0f}"
                   + _gap_delta_str(m1, m0))
         if mp is not None:
             print(f"Δ(D-RL - MPC):    Δreward {m1['reward']-mp['reward']:+.0f} | "
                   f"ΔpeakCoupler {m1['peak_coupler_kN']-mp['peak_coupler_kN']:+.0f}kN | "
-                  f"ΔATP事件 {m1['safety_events']-mp['safety_events']:+.0f}"
+                  f"ΔATP触发次数 {m1['safety_events']-mp['safety_events']:+.0f}"
                   + _gap_delta_str(m1, mp))
     elif len(results) >= 2 and 'decompose_M1_rl' in results:
         m1, m0 = results['decompose_M1_rl'], results.get('decompose_M0_rule')
@@ -592,7 +601,7 @@ def main():
             print('-' * 78)
             print(f"Δ(D-RL - D-Rule): Δreward {m1['reward']-m0['reward']:+.0f} | "
                   f"ΔpeakCoupler {m1['peak_coupler_kN']-m0['peak_coupler_kN']:+.0f}kN | "
-                  f"ΔATP事件 {m1['safety_events']-m0['safety_events']:+.0f}"
+                  f"ΔATP触发次数 {m1['safety_events']-m0['safety_events']:+.0f}"
                   + _gap_delta_str(m1, m0))
 
     os.makedirs(RESULTS_DIR, exist_ok=True)

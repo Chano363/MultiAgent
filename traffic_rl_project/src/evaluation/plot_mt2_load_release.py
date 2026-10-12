@@ -1,25 +1,28 @@
-"""【2026-10-11】MT-2 缓冲器准静态加载-缓释阻抗曲线：当前模型 vs 于宗泽2025 参考。
+"""【2026-10-11】MT-2 缓冲器准静态加载-缓释阻抗曲线：当前模型 vs 容嘉欣2025 图4(b) 读点。
 
-导师反馈"车钩装载缓释曲线是错的，做得太理想"——本脚本做定量诊断（只新增绘图脚本，
-不修改 src/ 任何物理逻辑）：
+背景（两轮导师反馈）：①"装载缓释曲线太理想/是错的" → 定量诊断出旧模型根因
+（tanh 方向因子 × Stribeck 幅值双重削减，准静态 0.01 m/s 下摩擦只剩 19.7%，
+迟滞环为参考 1/5.3）；②经用户确认**换用学姐推荐的容嘉欣2025 口径**修复：
+src/train_dynamics/coupler.py 已改为图4(b) fl/fu 查表 + 速度法 sign(Δv) 选支。
 
-    曲线1 当前模型：src/train_dynamics/coupler.py::coupler_force（真实签名），
-          参数取 params.py CouplerParams 默认值；含 dir_sm=tanh(s_e·dv/friction_v_eps)、
-          fric_mag=-fric_amp·dir_sm 的方向平滑逻辑。
-    曲线2 参考模型：于宗泽2025《重载列车车钩缓冲装置纵向动力学精细化模型》式(1)(2)
-          字面实现 F = F0 + k·x + sgn(v)·μ(|v|)·FN（docs/papers/01_coupler_physics/于宗泽2025_fulltext.txt
-          L132-177）：sgn(v) 加载=+1、|v|=0 取 0、卸载=−1；μ Stribeck：|v|=0→μs、
-          0<|v|<ver→μs−(μs−μd)·|v|/ver、|v|>ver→μd。参数与现模型完全相同
-          （F0=200kN、k=1.89e7 N/m、μd·FN=500kN、μs·FN=750kN、ver=0.2）；
-          无饱和封顶、无非负截断（式(1)(2) 字面，元数据中注明）。
+本脚本画三条曲线（数据/绘图分离，只读模型，不改 src/）：
+
+    当前模型：coupler_force 真实调用（2026-10-11 查表+速度法），
+          摩擦分量 = 总力 − 中线 f0（同一接触/符号重构，见 evaluate_current）。
+    文献读点：容嘉欣2025 图4(b) 货车 MT-2 fl/fu 数字化读点（与 plant 同源，
+          作为 ground truth 叠加核对实现保真度——协议效应（接触渐入/游隙/
+          dv→0 回中线）造成的残差由 max_abs_dev 指标量化）。
+    旧模型（冻结快照）：2026-10-11 前的「预压+线性刚度 ± Stribeck、
+          eps=0.05」解析式逐行复刻（evaluate_previous），供 before/after 对照，
+          不修改 src/ 历史逻辑。
 
 协议（准静态循环，压缩为正）：两车位置/速度使压缩量从接触点（|e|=gap、x=0）以
 v=0.01 m/s 匀速压到 83 mm → 停止（v=0）采样 → 以 0.01 m/s 匀速释放回接触点。
 
 量化指标（归档 JSON + 图内注释，全英文）：
-    - 加载末段（|v|=0.01 m/s 处）两模型摩擦分量与总阻抗差值（kN）；
-    - 加载末端最后 5 mm 内力变化方向（数据说了算，不预写结论）；
-    - 运动停止于 83 mm（v=0）瞬间的阻抗变化（检验 dv→0 摩擦消失假设）；
+    - 加载末段（|v|=0.01 m/s）分支分离量与总阻抗：当前 / 文献 / 旧模型（kN）；
+    - 当前模型相对文献读点的最大绝对偏差（加载支、卸载支，kN）；
+    - 加载末端最后 5 mm 内力变化方向；83 mm 停止（v=0）瞬间的阻抗变化；
     - 迟滞环面积（加载-卸载围成，kN·mm，1 N·m = 1 kN·mm）。
 
 产出：
@@ -30,7 +33,8 @@ v=0.01 m/s 匀速压到 83 mm → 停止（v=0）采样 → 以 0.01 m/s 匀速�
 
 用法（WSL traffic_rl）：
     python src/evaluation/plot_mt2_load_release.py             # 默认复用最近归档，仅重画
-    python src/evaluation/plot_mt2_load_release.py --source new # 强制重算并新建归档（首跑）
+    python src/evaluation/plot_mt2_load_release.py --source new # 强制重算并新建归档
+    注：物理口径 2026-10-11 变更后旧归档自动判为过期（缺新键）→ 回退重算。
 """
 import sys
 import json
@@ -48,7 +52,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from src.train_dynamics.params import CouplerParams
-from src.train_dynamics.coupler import coupler_force
+from src.train_dynamics.coupler import (
+    coupler_force, RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N,
+    STIFFNESS_BASE_N_PER_M,
+)
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 logger = logging.getLogger('MT2LoadRelease')
@@ -63,6 +70,14 @@ CSV_NAME = 'mt2_load_release.csv'
 V_Q = 0.01        # 准静态加载/释放速度（m/s）
 N_HOLD = 3        # 最大压缩处 v=0 停止采样点数
 DX = 1e-4         # 压缩量步长（m，0.1 mm）
+
+MODEL_VERSION = 'rong2025_table_velocity_method_2026-10-11'
+# 归档格式键（缺任一 → 旧口径归档，判过期回退重算）
+ARCHIVE_KEYS = ('compression_m', 'v_back_mps', 'phase', 't_s',
+                'current_n', 'current_separation_n',
+                'literature_n', 'literature_separation_n',
+                'previous_n', 'previous_friction_n')
+PREVIOUS_EPS = 0.05   # 旧模型方向平滑带宽（2026-10-11 前 friction_v_eps 默认）
 
 
 # ---------------------------------------------------------------------------
@@ -89,7 +104,7 @@ def build_protocol(stroke_m, gap_m, free_length_m):
 
 
 # ---------------------------------------------------------------------------
-# 两模型逐步取力（压缩为正）
+# 三模型逐步取力（压缩为正）
 # ---------------------------------------------------------------------------
 def coupler_kwargs(p: CouplerParams) -> dict:
     """CouplerParams → coupler_force 关键字（真实签名）。"""
@@ -111,39 +126,76 @@ def coupler_kwargs(p: CouplerParams) -> dict:
 
 
 def evaluate_current(x_el, v_back, p: CouplerParams):
-    """当前模型：coupler_force 总阻抗 + 摩擦分量（N，压缩为正）。
+    """当前模型（2026-10-11 查表+速度法）：总阻抗 + 分离量（N，压缩为正）。
 
-    摩擦分量 = F(全参数) − F(摩擦置零)；其余项（contact、k_eff、preload）在两次
-    调用中完全相同（k_eff 只依赖 load_factor=0.5·(1−dir_sm)，与摩擦参数无关）。
+    分离量 = 总力 − 中线 f0·contact·s_e（同一接触/符号重构）：加载 = +(fl−fu)/2、
+    卸载 = −(fl−fu)/2、v=0 回 0。旧"friction_n 置零"隔离法已失效（friction_n
+    不再参与查表模型计算）。
     """
     kw = coupler_kwargs(p)
-    kw0 = dict(kw)
-    kw0['friction_n'] = 0.0
-    kw0['friction_static_n'] = 0.0
     free, gap = p.free_length_m, p.coupler_gap_m
+    gain = p.stiffness / STIFFNESS_BASE_N_PER_M
+    tot = np.empty(len(x_el))
+    sep = np.empty(len(x_el))
+    for i, (xi, vi) in enumerate(zip(x_el, v_back)):
+        x_back = (xi + gap) - free          # e = xi + gap（前车 x_front=0, v_front=0）
+        f = coupler_force(0.0, 0.0, x_back, float(vi), **kw)
+        tot[i] = f
+        s_e = np.tanh((xi + gap) / gap)
+        contact = 0.5 * (1.0 + np.tanh(max(xi, 0.0) / 0.004))
+        fl_x = float(np.interp(xi, RONG2025_X_M, RONG2025_FL_N))
+        fu_x = float(np.interp(xi, RONG2025_X_M, RONG2025_FU_N))
+        mid = s_e * contact * 0.5 * (fl_x + fu_x) * gain
+        sep[i] = f - mid
+    return tot, sep
+
+
+def evaluate_literature(x_el, v_back):
+    """容嘉欣2025 图4(b) 数字化读点直读（N，压缩为正）。
+
+    速度法字面：f = f0 + sign(Δv)·(fl−fu)/2，Δv=0 → f0（协议 v=0 hold 点）。
+    无接触渐入/游隙（文献曲线本身，作为 ground truth 参照）。
+    """
+    fl = np.interp(x_el, RONG2025_X_M, RONG2025_FL_N)
+    fu = np.interp(x_el, RONG2025_X_M, RONG2025_FU_N)
+    sg = np.sign(v_back)                    # v_front=0 → 加载 v_back>0
+    tot = 0.5 * (fl + fu) + sg * 0.5 * (fl - fu)
+    sep = sg * 0.5 * (fl - fu)
+    return tot, sep
+
+
+def evaluate_previous(x_el, v_back, p: CouplerParams):
+    """旧模型冻结快照（2026-10-11 前 coupler_force 逐行复刻）：总阻抗 + 摩擦分量。
+
+    公式：dir_sm=tanh(s_e·dv/0.05)、k_eff=k·(u+(1−u)·load_factor)（u=1.0）、
+    fric_amp=Stribeck(|dv|, v_er=0.2, μs=750k, μd=500k)、
+    f = clip(contact·(F0 − fric_amp·dir_sm) + k_eff·x_el) 。
+    仅用于 before/after 对照留痕，不改 src/ 历史逻辑。
+    """
+    gap, free = p.coupler_gap_m, p.free_length_m
+    u = float(np.clip(p.unload_stiffness_ratio, 0.0, 1.0))
     tot = np.empty(len(x_el))
     fric = np.empty(len(x_el))
     for i, (xi, vi) in enumerate(zip(x_el, v_back)):
-        x_back = (xi + gap) - free          # e = xi + gap（前车 x_front=0, v_front=0）
-        f_tot = coupler_force(0.0, 0.0, x_back, float(vi), **kw)
-        f_f0 = coupler_force(0.0, 0.0, x_back, float(vi), **kw0)
-        tot[i] = f_tot
-        fric[i] = f_tot - f_f0
-    return tot, fric
-
-
-def evaluate_reference(x_el, v_back, p: CouplerParams):
-    """于宗泽2025 式(1)(2) 字面实现：F = F0 + k·x + sgn(v)·μ(|v|)·FN（N，压缩为正）。"""
-    sgn = np.sign(v_back)                    # 加载=+1、|v|=0→0、卸载=−1
-    av = np.abs(v_back)
-    mu = np.where(
-        av == 0.0, p.friction_static_n,
-        np.where(av < p.friction_v_er,
-                 p.friction_static_n
-                 + (p.friction_n - p.friction_static_n) * av / p.friction_v_er,
-                 p.friction_n))
-    fric = sgn * mu
-    tot = p.preload_n + p.stiffness * x_el + fric
+        e = xi + gap
+        dv = 0.0 - vi                        # v_front=0
+        s_e = np.tanh(e / gap)
+        contact = 0.5 * (1.0 + np.tanh(xi / 0.004)) if xi > 0.0 else 0.5
+        x_i = max(xi, 0.0)
+        rigid = p.rigid_stiffness_nm * max(x_i - p.stroke_m, 0.0)
+        dir_sm = np.tanh(s_e * dv / PREVIOUS_EPS)
+        load_factor = 0.5 * (1.0 - dir_sm)
+        k_term = p.stiffness * (u + (1.0 - u) * load_factor) * x_i
+        r = min(abs(dv) / p.friction_v_er, 1.0) if p.friction_v_er > 0 else 1.0
+        fric_amp = p.friction_static_n + (p.friction_n - p.friction_static_n) * r
+        fric_mag = -fric_amp * dir_sm
+        f_imp = float(np.clip(contact * (p.preload_n + fric_mag) + k_term,
+                              0.0, p.max_impulse_n))
+        tot[i] = s_e * (f_imp + rigid)
+        # 摩擦分量隔离：同点 fric_amp→0 重算（k_eff 只依赖 dir_sm，两次一致）
+        f_base = float(np.clip(contact * p.preload_n + k_term,
+                               0.0, p.max_impulse_n))
+        fric[i] = tot[i] - s_e * (f_base + rigid)
     return tot, fric
 
 
@@ -155,54 +207,72 @@ def _trapz(y, x):
     return float(trap(y, x))
 
 
-def compute_metrics(x_el, phase, cur_tot, cur_fric, ref_tot, ref_fric):
+def compute_metrics(x_el, phase, cur_tot, cur_sep, lit_tot, lit_sep,
+                    prv_tot, prv_fric):
     li = np.flatnonzero(phase == 'load')
     hi = np.flatnonzero(phase == 'hold')
+    ui = np.flatnonzero(phase == 'unload')
     i_end = li[-1]
     i_5mm = li[x_el[li] >= x_el[i_end] - 0.005][0]
     i_hold = hi[0]
-
-    d5_cur = (cur_tot[i_end] - cur_tot[i_5mm]) / 1e3
-    d5_ref = (ref_tot[i_end] - ref_tot[i_5mm]) / 1e3
-    dstop_cur = (cur_tot[i_hold] - cur_tot[i_end]) / 1e3
-    dstop_ref = (ref_tot[i_hold] - ref_tot[i_end]) / 1e3
-
-    # 迟滞环面积：加载支 − 卸载支（同一压缩量网格上积分），1 N·m = 1 kN·mm
-    ui = np.flatnonzero(phase == 'unload')
     x_u = x_el[ui][::-1]
     assert np.allclose(x_el[li], x_u)          # 加载/卸载支同一压缩量网格
-    area_cur = _trapz(cur_tot[li] - cur_tot[ui][::-1], x_el[li])
-    area_ref = _trapz(ref_tot[li] - ref_tot[ui][::-1], x_el[li])
+
+    def d5(y):
+        return float((y[i_end] - y[i_5mm]) / 1e3)
+
+    def dstop(y):
+        return float((y[i_hold] - y[i_end]) / 1e3)
 
     def direction(d):
         return 'rise' if d > 0 else ('fall' if d < 0 else 'flat')
 
+    area_cur = _trapz(cur_tot[li] - cur_tot[ui][::-1], x_el[li])
+    area_lit = _trapz(lit_tot[li] - lit_tot[ui][::-1], x_el[li])
+    area_prv = _trapz(prv_tot[li] - prv_tot[ui][::-1], x_el[li])
+    dev_load = float(np.max(np.abs(cur_tot[li] - lit_tot[li])) / 1e3)
+    dev_unload = float(np.max(np.abs(cur_tot[ui] - lit_tot[ui])) / 1e3)
+
+    d5_cur, d5_lit, d5_prv = d5(cur_tot), d5(lit_tot), d5(prv_tot)
+    ds_cur, ds_lit, ds_prv = dstop(cur_tot), dstop(lit_tot), dstop(prv_tot)
+
     return {
-        'loading_end_v_abs_mps': V_Q,
-        'loading_end_friction_kn': {
-            'current': float(cur_fric[i_end] / 1e3),
-            'reference': float(ref_fric[i_end] / 1e3),
-            'reference_minus_current': float((ref_fric[i_end] - cur_fric[i_end]) / 1e3),
+        'protocol_speed_mps': V_Q,
+        'loading_end_branch_separation_kn': {
+            'current': float(cur_sep[i_end] / 1e3),
+            'literature': float(lit_sep[i_end] / 1e3),
+            'previous': float(prv_fric[i_end] / 1e3),
+            'note': 'F - midline f0 at the last loading point (|v|=0.01 m/s)',
         },
         'loading_end_total_kn': {
             'current': float(cur_tot[i_end] / 1e3),
-            'reference': float(ref_tot[i_end] / 1e3),
-            'reference_minus_current': float((ref_tot[i_end] - cur_tot[i_end]) / 1e3),
+            'literature': float(lit_tot[i_end] / 1e3),
+            'previous': float(prv_tot[i_end] / 1e3),
+        },
+        'max_abs_dev_from_literature_kn': {
+            'loading_branch': dev_load,
+            'release_branch': dev_unload,
+            'note': 'max |current - Rong2025 readpoints| over each branch; '
+                    'residual comes from contact ramp / gap / dv->0 midpoint',
         },
         'last_5mm_of_loading_delta_kn': {
-            'current': float(d5_cur), 'current_direction': direction(d5_cur),
-            'reference': float(d5_ref), 'reference_direction': direction(d5_ref),
+            'current': d5_cur, 'current_direction': direction(d5_cur),
+            'literature': d5_lit, 'literature_direction': direction(d5_lit),
+            'previous': d5_prv, 'previous_direction': direction(d5_prv),
             'note': 'F(83mm) - F(78mm) on the loading branch, |v| = 0.01 m/s',
         },
         'stop_at_83mm_v0_delta_kn': {
-            'current': float(dstop_cur), 'current_direction': direction(dstop_cur),
-            'reference': float(dstop_ref), 'reference_direction': direction(dstop_ref),
-            'note': 'F(v=0 hold) - F(last loading point, |v|=0.01 m/s); '
-                    'tests the dv->0 friction-vanishing hypothesis',
+            'current': ds_cur, 'current_direction': direction(ds_cur),
+            'literature': ds_lit, 'literature_direction': direction(ds_lit),
+            'previous': ds_prv, 'previous_direction': direction(ds_prv),
+            'note': 'F(v=0 hold) - F(last loading point); velocity method '
+                    'returns to the midline f0 when motion stops',
         },
         'hysteresis_area_kn_mm': {
-            'current': float(area_cur), 'reference': float(area_ref),
-            'reference_over_current': float(area_ref / area_cur) if area_cur else None,
+            'current': float(area_cur),
+            'literature': float(area_lit),
+            'previous': float(area_prv),
+            'current_over_literature': float(area_cur / area_lit) if area_lit else None,
         },
     }
 
@@ -210,27 +280,36 @@ def compute_metrics(x_el, phase, cur_tot, cur_fric, ref_tot, ref_fric):
 # ---------------------------------------------------------------------------
 # 图（策展目录，允许覆盖；图内文字全英文）
 # ---------------------------------------------------------------------------
-def make_figure(x_el, phase, cur_tot, ref_tot, metrics, out: Path):
+def make_figure(x_el, phase, cur_tot, lit_tot, prv_tot, metrics, out: Path):
     out.parent.mkdir(parents=True, exist_ok=True)
     li = np.flatnonzero(phase == 'load')
     ui = np.flatnonzero(phase == 'unload')
     hi = np.flatnonzero(phase == 'hold')
     x_mm = x_el * 1000.0
+    # 文献读点：每 2 mm 取一个点（≈20 点/支），marker 叠加（索引须相对支内数组）
+    sel_li = (np.round(x_mm[li] * 10) % 20) == 0
+    sel_ui = (np.round(x_mm[ui] * 10) % 20) == 0
 
     fig, ax = plt.subplots(figsize=(9.5, 6.5))
-    ax.plot(x_mm[li], cur_tot[li] / 1e3, color='#1f77b4', lw=1.8,
+    ax.plot(x_mm[li], prv_tot[li] / 1e3, color='#7f7f7f', lw=1.4, ls='-.',
+            label='Previous model, loading')
+    ax.plot(x_mm[ui], prv_tot[ui] / 1e3, color='#7f7f7f', lw=1.4, ls=':',
+            label='Previous model, release')
+    ax.plot(x_mm[li], lit_tot[li] / 1e3, color='#2ca02c', lw=1.0,
+            label='Rong2025 Fig. 4(b) readpoints, loading')
+    ax.plot(x_mm[ui], lit_tot[ui] / 1e3, color='#2ca02c', lw=1.0,
+            label='Rong2025 Fig. 4(b) readpoints, release')
+    ax.plot(x_mm[li][sel_li], lit_tot[li][sel_li] / 1e3, ls='none',
+            marker='o', ms=4.5, mfc='white', mec='#2ca02c', mew=1.2)
+    ax.plot(x_mm[ui][sel_ui], lit_tot[ui][sel_ui] / 1e3, ls='none',
+            marker='s', ms=4.5, mfc='white', mec='#2ca02c', mew=1.2)
+    ax.plot(x_mm[li], cur_tot[li] / 1e3, color='#1f77b4', lw=2.0,
             label='Current model, loading')
-    ax.plot(x_mm[ui], cur_tot[ui] / 1e3, color='#1f77b4', lw=1.8, ls='--',
+    ax.plot(x_mm[ui], cur_tot[ui] / 1e3, color='#1f77b4', lw=2.0, ls='--',
             label='Current model, release')
-    ax.plot(x_mm[li], ref_tot[li] / 1e3, color='#d62728', lw=1.8,
-            label='Yu2025 Eq.(1)-(2) reference, loading')
-    ax.plot(x_mm[ui], ref_tot[ui] / 1e3, color='#d62728', lw=1.8, ls='--',
-            label='Yu2025 Eq.(1)-(2) reference, release')
     ax.plot([x_mm[hi[0]]], [cur_tot[hi[0]] / 1e3], marker='x', ms=8, mew=2.0,
             color='#1f77b4', ls='none',
             label='Held at maximum compression, zero speed')
-    ax.plot([x_mm[hi[0]]], [ref_tot[hi[0]] / 1e3], marker='x', ms=8, mew=2.0,
-            color='#d62728', ls='none')
 
     ax.axhline(1000, color='red', ls='--', lw=1.0)
     ax.text(55.0, 1030, '1000 kN coupler force limit', color='red', fontsize=8)
@@ -240,21 +319,30 @@ def make_figure(x_el, phase, cur_tot, ref_tot, metrics, out: Path):
     m = metrics
     lines = [
         'Loading and release speed 0.01 m/s',
-        'Friction at loading end: %.1f kN current, %.1f kN reference'
-        % (m['loading_end_friction_kn']['current'],
-           m['loading_end_friction_kn']['reference']),
-        'Total resistance at loading end: %.1f kN current, %.1f kN reference'
+        'Branch separation at loading end: %.1f kN current, %.1f kN literature, '
+        '%.1f kN previous'
+        % (m['loading_end_branch_separation_kn']['current'],
+           m['loading_end_branch_separation_kn']['literature'],
+           m['loading_end_branch_separation_kn']['previous']),
+        'Total resistance at loading end: %.1f kN current, %.1f kN literature, '
+        '%.1f kN previous'
         % (m['loading_end_total_kn']['current'],
-           m['loading_end_total_kn']['reference']),
-        'Change over last 5 mm of loading: %+.1f kN current, %+.1f kN reference'
-        % (m['last_5mm_of_loading_delta_kn']['current'],
-           m['last_5mm_of_loading_delta_kn']['reference']),
-        'Change when motion stops at 83 mm: %+.1f kN current, %+.1f kN reference'
-        % (m['stop_at_83mm_v0_delta_kn']['current'],
-           m['stop_at_83mm_v0_delta_kn']['reference']),
-        'Hysteresis loop area: %.0f kN mm current, %.0f kN mm reference'
+           m['loading_end_total_kn']['literature'],
+           m['loading_end_total_kn']['previous']),
+        'Max |current - literature|: %.1f kN loading, %.1f kN release'
+        % (m['max_abs_dev_from_literature_kn']['loading_branch'],
+           m['max_abs_dev_from_literature_kn']['release_branch']),
+        'Hysteresis loop area: %.0f kN mm current, %.0f kN mm literature, '
+        '%.0f kN mm previous'
         % (m['hysteresis_area_kn_mm']['current'],
-           m['hysteresis_area_kn_mm']['reference']),
+           m['hysteresis_area_kn_mm']['literature'],
+           m['hysteresis_area_kn_mm']['previous']),
+        'Change over last 5 mm of loading: %+.1f kN current, %+.1f kN literature'
+        % (m['last_5mm_of_loading_delta_kn']['current'],
+           m['last_5mm_of_loading_delta_kn']['literature']),
+        'Change when motion stops at 83 mm: %+.1f kN current, %+.1f kN literature'
+        % (m['stop_at_83mm_v0_delta_kn']['current'],
+           m['stop_at_83mm_v0_delta_kn']['literature']),
     ]
     ax.text(0.015, 0.985, '\n'.join(lines), transform=ax.transAxes, va='top',
             ha='left', fontsize=8.2,
@@ -262,9 +350,9 @@ def make_figure(x_el, phase, cur_tot, ref_tot, metrics, out: Path):
 
     ax.set_xlabel('Compression (mm)')
     ax.set_ylabel('Resistance (kN)')
-    ax.set_title('Quasi-static Loading and Release Resistance of the MT-2 Buffer',
+    ax.set_title('MT-2 Buffer Load-Release Resistance and Rong2025 Readpoints',
                  fontsize=12)
-    ax.legend(fontsize=8.5, loc='lower right')
+    ax.legend(fontsize=8.0, loc='lower right')
     ax.grid(alpha=0.3)
     fig.tight_layout()
     fig.savefig(out, dpi=150, bbox_inches='tight')
@@ -287,10 +375,14 @@ def find_latest_archive():
 
 def load_archive(archdir):
     d = np.load(archdir / NPZ_NAME, allow_pickle=False)
+    missing = [k for k in ARCHIVE_KEYS if k not in d.files]
+    if missing:
+        raise KeyError(f'旧口径归档缺键 {missing}（物理口径已变更，需重算）')
     return dict(x_el=d['compression_m'], v_back=d['v_back_mps'],
                 phase=d['phase'], t=d['t_s'],
-                cur_tot=d['current_n'], cur_fric=d['current_friction_n'],
-                ref_tot=d['reference_n'], ref_fric=d['reference_friction_n'])
+                cur_tot=d['current_n'], cur_sep=d['current_separation_n'],
+                lit_tot=d['literature_n'], lit_sep=d['literature_separation_n'],
+                prv_tot=d['previous_n'], prv_fric=d['previous_friction_n'])
 
 
 def save_archive(archdir, data, metrics, p: CouplerParams, stamp: str):
@@ -299,21 +391,27 @@ def save_archive(archdir, data, metrics, p: CouplerParams, stamp: str):
     np.savez_compressed(
         archdir / NPZ_NAME,
         compression_m=data['x_el'], v_back_mps=data['v_back'], phase=data['phase'],
-        t_s=data['t'], current_n=data['cur_tot'], current_friction_n=data['cur_fric'],
-        reference_n=data['ref_tot'], reference_friction_n=data['ref_fric'])
+        t_s=data['t'],
+        current_n=data['cur_tot'], current_separation_n=data['cur_sep'],
+        literature_n=data['lit_tot'], literature_separation_n=data['lit_sep'],
+        previous_n=data['prv_tot'], previous_friction_n=data['prv_fric'])
     pd.DataFrame({
         'phase': data['phase'],
         't_s': data['t'],
         'compression_mm': data['x_el'] * 1000.0,
         'v_back_mps': data['v_back'],
         'current_kn': data['cur_tot'] / 1e3,
-        'current_friction_kn': data['cur_fric'] / 1e3,
-        'reference_kn': data['ref_tot'] / 1e3,
-        'reference_friction_kn': data['ref_fric'] / 1e3,
+        'current_separation_kn': data['cur_sep'] / 1e3,
+        'literature_kn': data['lit_tot'] / 1e3,
+        'literature_separation_kn': data['lit_sep'] / 1e3,
+        'previous_kn': data['prv_tot'] / 1e3,
+        'previous_friction_kn': data['prv_fric'] / 1e3,
     }).to_csv(archdir / CSV_NAME, index=False)
     meta = {
         'timestamp': stamp,
-        'section': 'MT-2 缓冲器准静态加载-缓释阻抗曲线：当前模型 vs 于宗泽2025 参考',
+        'model_version': MODEL_VERSION,
+        'section': 'MT-2 缓冲器准静态加载-缓释阻抗曲线：当前模型（容嘉欣图4(b) 查表+速度法）'
+                   ' vs 文献读点 vs 旧模型冻结快照',
         'protocol': {
             'type': 'quasi-static load-hold-release, compression positive',
             'compression_m': 'contact point (|e|=gap, x=0) to stroke 83 mm and back',
@@ -328,21 +426,22 @@ def save_archive(archdir, data, metrics, p: CouplerParams, stamp: str):
                     'coupler_gap_m', 'stroke_m', 'rigid_stiffness_nm',
                     'max_impulse_n', 'free_length_m', 'damping']},
         'models': {
-            'current': 'src/train_dynamics/coupler.py::coupler_force (scalar, real '
-                       'signature): dir_sm=tanh(s_e*dv/friction_v_eps), '
-                       'fric_mag=-fric_amp*dir_sm, contact=tanh ramp, clip [0, 2270 kN]; '
-                       'friction component isolated by re-evaluating with friction_n=0 '
-                       'and friction_static_n=0',
-            'reference': 'Yu2025 Eq.(1)-(2) literal: F = F0 + k*x + sgn(v)*mu(|v|)*FN; '
-                         'sgn: loading=+1, |v|=0 -> 0, release=-1; mu Stribeck '
-                         '(|v|=0 -> mu_s, linear to mu_d at v_er); same F0/k/mu as '
-                         'current model; NO saturation clamp and NO non-negativity '
-                         'clamp (literal Eqs. (1)-(2))',
+            'current': 'src/train_dynamics/coupler.py::coupler_force (2026-10-11 '
+                       'Rong2025 fl/fu table + velocity method): '
+                       'f = contact*(f0 - tanh(s_e*dv/eps)*half), eps=0.002, '
+                       'stiffness gain = stiffness/1.89e7; separation = F - f0 term',
+            'literature': 'Rong2025 Fig.4(b) digitalized MT-2 readpoints '
+                          '(400 dpi render, 500 kN/20 mm grid calibration, '
+                          'column-wise trace, +-30 kN reading error), '
+                          'f = f0 + sign(dv)*(fl-fu)/2 literal',
+            'previous': 'frozen snapshot of pre-2026-10-11 coupler_force: '
+                        'F0 + k*load_factor*x +- Stribeck(|dv|), dir tanh(dv/0.05); '
+                        'friction isolated by fric_amp->0 re-evaluation',
         },
         'metrics': metrics,
         'figure': str(FIG_PATH),
-        'note': '回应导师"装载缓释曲线太理想"的定量诊断；仅新增绘图脚本，'
-                '未修改 src/ 物理逻辑。',
+        'note': '装载缓释曲线按用户确认切换到容嘉欣2025 口径（学姐推荐文献）；'
+                '旧模型以冻结快照形式保留在本归档供 before/after 对照。',
     }
     (archdir / 'run_meta.json').write_text(
         json.dumps(meta, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -352,7 +451,7 @@ def save_archive(archdir, data, metrics, p: CouplerParams, stamp: str):
 def main():
     ap = argparse.ArgumentParser(description='MT-2 加载-缓释准静态阻抗曲线（数据与绘图分离）')
     ap.add_argument('--source', choices=['auto', 'new'], default='auto',
-                    help='auto：复用最近归档仅重画（缺则重算）；new：强制重算并新建归档')
+                    help='auto：复用最近归档仅重画（缺/过期则重算）；new：强制重算并新建归档')
     ap.add_argument('--archive', default=None, help='指定归档目录')
     args = ap.parse_args()
 
@@ -365,44 +464,47 @@ def main():
         logger.warning('归档 %s 缺 %s，改为重算', reuse, NPZ_NAME)
         reuse = None
 
+    data = None
     if reuse is not None:
-        logger.info('== 复用归档数据 %s（跳过重算） ==', reuse)
-        data = load_archive(reuse)
-    else:
+        try:
+            data = load_archive(reuse)
+            logger.info('== 复用归档数据 %s（跳过重算） ==', reuse)
+        except KeyError as exc:
+            logger.warning('归档 %s 过期（%s）→ 重算', reuse, exc)
+            reuse = None
+
+    if data is None:
         logger.info('== 重算：准静态加载(0.01 m/s) → 停止 → 释放 ==')
         x_el, v_back, phase, t = build_protocol(p.stroke_m, p.coupler_gap_m,
                                                 p.free_length_m)
-        cur_tot, cur_fric = evaluate_current(x_el, v_back, p)
-        ref_tot, ref_fric = evaluate_reference(x_el, v_back, p)
+        cur_tot, cur_sep = evaluate_current(x_el, v_back, p)
+        lit_tot, lit_sep = evaluate_literature(x_el, v_back)
+        prv_tot, prv_fric = evaluate_previous(x_el, v_back, p)
         data = dict(x_el=x_el, v_back=v_back, phase=phase, t=t,
-                    cur_tot=cur_tot, cur_fric=cur_fric,
-                    ref_tot=ref_tot, ref_fric=ref_fric)
+                    cur_tot=cur_tot, cur_sep=cur_sep,
+                    lit_tot=lit_tot, lit_sep=lit_sep,
+                    prv_tot=prv_tot, prv_fric=prv_fric)
 
     metrics = compute_metrics(data['x_el'], data['phase'], data['cur_tot'],
-                              data['cur_fric'], data['ref_tot'], data['ref_fric'])
+                              data['cur_sep'], data['lit_tot'], data['lit_sep'],
+                              data['prv_tot'], data['prv_fric'])
 
-    fe = metrics['loading_end_friction_kn']
+    se = metrics['loading_end_branch_separation_kn']
     te = metrics['loading_end_total_kn']
-    d5 = metrics['last_5mm_of_loading_delta_kn']
-    ds = metrics['stop_at_83mm_v0_delta_kn']
+    dev = metrics['max_abs_dev_from_literature_kn']
     ha = metrics['hysteresis_area_kn_mm']
-    logger.info('[self-check] 加载末段(|v|=0.01) 摩擦分量: 当前 %.1f kN vs 参考 %.1f kN '
-                '(差 %.1f kN)', fe['current'], fe['reference'],
-                fe['reference_minus_current'])
-    logger.info('[self-check] 加载末段总阻抗: 当前 %.1f kN vs 参考 %.1f kN (差 %.1f kN)',
-                te['current'], te['reference'], te['reference_minus_current'])
-    logger.info('[self-check] 最后5mm: 当前 %+.1f kN (%s) vs 参考 %+.1f kN (%s)',
-                d5['current'], d5['current_direction'],
-                d5['reference'], d5['reference_direction'])
-    logger.info('[self-check] 83mm处停止(v=0): 当前 %+.1f kN (%s) vs 参考 %+.1f kN (%s)',
-                ds['current'], ds['current_direction'],
-                ds['reference'], ds['reference_direction'])
-    logger.info('[self-check] 迟滞环面积: 当前 %.0f vs 参考 %.0f kN·mm (比 %.1f×)',
-                ha['current'], ha['reference'],
-                ha['reference'] / ha['current'] if ha['current'] else float('nan'))
+    logger.info('[self-check] 加载末段(|v|=0.01) 分支分离: 当前 %.1f kN vs 文献 %.1f kN '
+                'vs 旧模型 %.1f kN', se['current'], se['literature'], se['previous'])
+    logger.info('[self-check] 加载末段总阻抗: 当前 %.1f kN vs 文献 %.1f kN vs 旧模型 %.1f kN',
+                te['current'], te['literature'], te['previous'])
+    logger.info('[self-check] 当前 vs 文献读点最大偏差: 加载支 %.1f kN、卸载支 %.1f kN',
+                dev['loading_branch'], dev['release_branch'])
+    logger.info('[self-check] 迟滞环面积: 当前 %.0f vs 文献 %.0f vs 旧模型 %.0f kN·mm '
+                '(当前/文献 = %.2f×)', ha['current'], ha['literature'], ha['previous'],
+                ha['current_over_literature'] or float('nan'))
 
-    make_figure(data['x_el'], data['phase'], data['cur_tot'], data['ref_tot'],
-                metrics, FIG_PATH)
+    make_figure(data['x_el'], data['phase'], data['cur_tot'], data['lit_tot'],
+                data['prv_tot'], metrics, FIG_PATH)
 
     if reuse is None:
         archdir = ARCH_ROOT / f'{ARCH_PREFIX}{stamp}'

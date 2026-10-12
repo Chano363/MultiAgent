@@ -41,9 +41,6 @@ src/
 │   └── optimized_ppo.py             # PPO（不稳定，不推荐）
 └── utils/
 configs/                             # YAML 超参数
-docs/
-├── learning_report.md               # 完整学习报告 → **新开发者第1步读这个**
-└── training_results_standardized.md # 正式学术报告
 docs/rules/EXECUTION_RULES.md        # 执行规范 → **开始干活前先读这个**
 ```
 
@@ -51,8 +48,6 @@ docs/rules/EXECUTION_RULES.md        # 执行规范 → **开始干活前先读�
 
 0. [PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md) — **Pipeline 总览 + 下一步计划（先读这个）**
 1. [EXECUTION_RULES.md](docs/rules/EXECUTION_RULES.md) — 执行规范、易错点（必须先读）
-2. [learning_report.md](docs/learning_report.md) — 全部技术细节、文献调研、下一步计划
-3. [training_results_standardized.md](docs/training_results_standardized.md) — 正式训练结果报告
 
 ## 文档索引
 
@@ -60,10 +55,7 @@ docs/rules/EXECUTION_RULES.md        # 执行规范 → **开始干活前先读�
 |:--|:--|
 | [PROJECT_PIPELINE.md](docs/PROJECT_PIPELINE.md) | 全项目工作流程 Pipeline、两阶段进度、下一步行动清单 |
 | [EXECUTION_RULES.md](docs/rules/EXECUTION_RULES.md) | 执行规范（环境、训练、代码约束、metadata） |
-| [learning_report.md](docs/learning_report.md) | 阶段一完整技术报告 |
-| [training_results_standardized.md](docs/training_results_standardized.md) | 阶段一学术成果报告 |
-| [ppt_plan.md](docs/ppt_plan.md) | 导师汇报 PPT 提纲 |
-| [LEARNINGS.md](../.learnings/LEARNINGS.md) | 调试踩坑记录 |
+| [LEARNINGS.md](docs/logs/learnings/LEARNINGS.md) | 调试踩坑记录 |
 
 ## 易错点（节省排查时间）
 

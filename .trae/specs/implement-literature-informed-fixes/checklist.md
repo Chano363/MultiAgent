@@ -82,7 +82,7 @@
 - [x] `DIAGNOSTICS_2026-10.md` 追加两个小节（「改造-2026-10-01-文献四改造落地」/「诊断-2026-10-01-P0 三行基线与 AB 通道裁定」），含数据表 + 完整命令 + seed + 机制解释
 - [x] `DECISIONS.md` ADR-021 状态更新 + 末节「执行闭环」（四改造落地 / P0 三行 / AB 通道净负裁定 + 不据此砍动作维度 / D 梯度臂删除 / 验收 / 边界 / 遗留）
 - [x] **不新增 ADR-022**（reward 口径版本标识与 `critic` 枚举属接口契约，已在 ADR-021「执行闭环」① + `REFERENCE_INDEX.md` 落地映射中，单独立 ADR 属重复）
-- [x] `PROJECT_PIPELINE.md` 登记长久计划（重训里程碑 / 跨线 / 完整预测式 safety filter / 重训后复核 AB 通道 / 改动前全剖面对照）
+- [x] `docs/logs/progress/PROGRESS_2026-10.md` 登记长久计划（重训里程碑 / 跨线 / 完整预测式 safety filter / 重训后复核 AB 通道 / 改动前全剖面对照）
 - [x] `LEARNINGS.md`（-006 冻结副本击穿 / -007 不可达梯度臂 + 猴补式单测）+ `.codebuddy/memory/2026-10-01.md` 同步
 - [x] 未对 append-only 日志做历史改写（仅追加；`DIAGNOSTICS`/`LEARNINGS`/`DECISIONS` 均追加，逻辑类文件为覆盖式修订）
 
@@ -92,7 +92,7 @@
 - [x] `n_env: 4` / `parallel_traj_len: 0`（§1 短窗口并行 rollout）、`warm_start: true` / `bc_episodes: 3` / `bc_epochs: 30`、`long_eval_interval: 50` / `long_eval_steps: 36000`（§2 完整剖面独立评估）
 - [x] `max_steps` / `curriculum` 注释更正为 ADR-017 口径（训练时域 = curriculum ≤1200，`TrainRunner` 每集覆盖 env 上限；评估 = 独立完整剖面，**不再**写"多段 1200 步拼接"）
 - [x] 训练入口验证（`--episodes 2`，exit 0）：curriculum 边界打印正确、`有效视界 91.0s → 覆盖`、BC 热启动被触发、`metadata.json` 全部新字段生效且无解析报错 / 无 schema 异常
-- [x] 登记：`REPRODUCIBILITY.md` §十、ADR-017「执行闭环」、`DIAGNOSTICS_2026-10.md` 新节、`PROJECT_PIPELINE.md` 缺口⑧、`docs/README.md` 映射行、根 `AGENTS.md` Key commands
+- [x] 登记：`REPRODUCIBILITY.md` §十、ADR-017「执行闭环」、`DIAGNOSTICS_2026-10.md` 新节、`docs/logs/progress/PROGRESS_2026-10.md` 缺口⑧、`docs/README.md` 映射行、根 `AGENTS.md` Key commands
 - [x] ⚠️ 验证跑**未**污染历史产物（首跑漏覆盖 `figures_dir` 已修复：从原始 CSV 重建 PNG；`outputs/_cfgcheck/`、临时脚本、`/tmp/_figfix` 全部清理；记 LRN-20261001-009）
 
 ## Task 10 — 评估链路四处口径缺陷（长跑 + 主对比表前置审计）
@@ -103,7 +103,7 @@
 - [x] ④ `FairMPCController` 补 `solve_statuses`（`__init__` + `reset()` + 每次 `minimize` 后 append，口径 = 求解器自身收敛标志）+ `rollout` 收尾 `getattr` 降级保护（缺状态源不崩、不产键）
 - [x] 实跑验证：`_long_eval` 每集触发（`viol 0 / 达标=True` / best 落盘）；`--mode all --n_seed 2`（fair）⇒ **3 行齐全 + fail 0 + 三行 Δ 摘要 + JSON 落盘**
 - [x] 新增 `tests/test_metric_accounting.py`（9 项，行为级 3 + 源码级 6）
-- [x] 留痕：`DIAGNOSTICS_2026-10.md` 两节 / `LEARNINGS.md` LRN-010~013 / `PROJECT_PIPELINE.md` 缺口⑨~⑫ / `docs/README.md` 映射行 / `REPRODUCIBILITY.md` §十（含 MPC 算力提示）
+- [x] 留痕：`DIAGNOSTICS_2026-10.md` 两节 / `LEARNINGS.md` LRN-010~013 / `docs/logs/progress/PROGRESS_2026-10.md` 缺口⑨~⑫ / `docs/README.md` 映射行 / `REPRODUCIBILITY.md` §十（含 MPC 算力提示）
 - [x] 未静默改动 3 个已废止脚本的同源 `viol` 写法（登记备查，避免动历史复现资产）
 - [x] **未改变任何已发布数值**：①只影响日志显示（判据语义等价）；③仅 `n_seed>1` 生效（`n_seed=1` 等价）；④此前**该路径根本跑不到**（②挡住），故不存在"已有 fair MPC 全剖面数值"被改动
 
@@ -123,7 +123,7 @@
 - [x] 进程**跨工具调用存活**已实证（非"启动打印"）：`pgrep` 到 PID 673、`ps -o etime,time,pcpu` = 04:42/04:34/96.8% CPU、输出目录已建
 - [x] 启动日志证实配置按 ADR-021 生效：`episodes=1400 / simcase=official` + `[信用视界] gamma=0.999 gae_lambda=0.99 | 有效视界 91.0s → 覆盖`
 - [x] ⚠️ **持久化边界已显式登记**：本次由 IDE 后台作业承载（随 IDE 会话）；数天级无人值守须由用户在自己的 WSL 终端重跑启动器（命令见 `REPRODUCIBILITY.md` §十，教训 LRN-20261001-014）
-- [x] 登记：`REPRODUCIBILITY.md` §十「重训里程碑」/ `PROJECT_PIPELINE.md` 长久计划 1（🟡）/ `DIAGNOSTICS_2026-10.md`「启动-2026-10-01…」/ `LEARNINGS.md` LRN-20261001-014 / `docs/README.md` 映射行
+- [x] 登记：`REPRODUCIBILITY.md` §十「重训里程碑」/ `docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1（🟡）/ `DIAGNOSTICS_2026-10.md`「启动-2026-10-01…」/ `LEARNINGS.md` LRN-20261001-014 / `docs/README.md` 映射行
 - [x] **机时实测更正**：≈3.4 天/seed **作废**（低估 3.4×）⇒ 实测 500 步课时 271/276/274/278 s/集 + BC ≈11 min，按 curriculum 折算 1400 集 ≈10.6 天 + 28 次 `long_eval` ≈1.1 天 ⇒ **≈11.7 天/seed**；`5 seed` 单机串行 ≈58 天。四处文档同步更正（含可复核推导）
 - [ ] seed1~4 重训（待排算力，不属本条）
 - [ ] ⚠️ **遗留裁决（需用户定，涉 ADR-017 训练量铁律）**：≈58 天/5seed 不可行 ⇒ 「减课时/减集数」vs「并行多机/多卡」
@@ -137,6 +137,6 @@
 - [x] 顺带修正 docstring 中不可用示例 `--mode decompose` ⇒ `--mode decompose_m1`
 - [x] 单测 +5 ⇒ `tests/test_metric_accounting.py` **14 passed**（含源码级防回流：默认必须为 `None`、解析须早于 `build_metadata`）
 - [x] 真 ckpt 实跑：打印读到 `10`、行标签 `interval=10`、JSON `metadata.eval_args` 与 `args` 三处一致；旧标量 ckpt 仍可装载
-- [x] 留痕：`DIAGNOSTICS_2026-10.md`「修复-2026-10-01c」/ LRN-20261001-015 / `PROJECT_PIPELINE.md` 缺口⑬ / `REPRODUCIBILITY.md` §十 / `EXECUTION_RULES.md`（冻结规范精确化为"产物依赖闭包"）
+- [x] 留痕：`DIAGNOSTICS_2026-10.md`「修复-2026-10-01c」/ LRN-20261001-015 / `docs/logs/progress/PROGRESS_2026-10.md` 缺口⑬ / `REPRODUCIBILITY.md` §十 / `EXECUTION_RULES.md`（冻结规范精确化为"产物依赖闭包"）
 - [x] 边界：**不违反**长训期间的代码冻结 —— 该文件全仓无模块 import，不在训练进程的产物依赖闭包内
 - [x] **未改变任何已显式指定 `--decision_interval` 的历史结果**（唯一行为变化在"未传参"这一此前未被用作主结果的路径上）

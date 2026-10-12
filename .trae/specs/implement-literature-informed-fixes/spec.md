@@ -18,7 +18,7 @@ change-id: `implement-literature-informed-fixes`
 - **D｜安全层对 AB 的"投影 / 禁新增"权限**（Wabersich & Zeilinger 2021 预测式思想 + ADR-021 决策 3）：`train_env._step_decomposed` 中 AB 源当前绕过安全层；补齐与 ED **对称**的权限。**不撤销已建立源**（X4-b 已反证恶化）。
 - **C｜车钩力受控超限项进 reward**（Tang2020 / Wang2025）：奖励补"超限"非线性项（**量纲受控**，替代已回滚的 `-80·ov²`），且**峰值改用断面力口径**（现用每车净力，少报 ≈7.8× ⇒ reward 看不见真正的破线）。
 - **B｜per-agent advantage + 信用视界对齐**（COMA Foerster2018 / PRD-MAPPO Kapoor2024）：把 `update()` 里"单标量 advantage 广播到 6 台机车"改为 per-agent；并把 γλ 视界从 17 s 拉到 ≥ 物理滞后窗口（≈90 s）。
-- **长久计划**：以上改造的重训/多 seed/跨线验证里程碑登记进 `PROJECT_PIPELINE.md`（不在本次跑完）。
+- **长久计划**：以上改造的重训/多 seed/跨线验证里程碑登记进 `docs/logs/progress/PROGRESS_2026-10.md`（不在本次跑完）。
 
 ## Impact
 
@@ -141,7 +141,7 @@ change-id: `implement-literature-informed-fixes`
 
 ### Requirement: ADR-021 状态与排序
 
-ADR-021 的 P0–P3 由"待裁决"推进为"**代码已落地 + 验证另排**"；P0 三行基线作为**改动前**的验证 harness；重训里程碑登记进 `PROJECT_PIPELINE.md` 长久计划。
+ADR-021 的 P0–P3 由"待裁决"推进为"**代码已落地 + 验证另排**"；P0 三行基线作为**改动前**的验证 harness；重训里程碑登记进 `docs/logs/progress/PROGRESS_2026-10.md` 长久计划。
 
 ## REMOVED Requirements
 

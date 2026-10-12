@@ -14,6 +14,7 @@
 | `docs/rules/` | 规范 + 模板（本文档体系就是它） | 修订走 review，只更新不覆盖历史规则记录 | 项目 Owner |
 | `docs/README.md` | **导航地图**：所有文档入口，唯一索引 | 增删文档时同步 | 项目 Owner |
 | `docs/PROJECT_PIPELINE.md` | 总览 + 工作计划清单（任务追加走 TEMPLATE_WORKPLAN） | append-only，历史✅保留 | Owner + Agent |
+| `docs/logs/progress/PROGRESS_YYYY-MM.md` | **阶段二执行流水**（自 PIPELINE 按月迁出的历史执行条目） | append-only，按月新建承接文件 | Owner + Agent |
 | `docs/VALIDATION_BASELINE.md` | 论文↔项目**验证基准**（公式/数据对照）；历史诊断已留此处 | append-only | Owner + Agent |
 | `docs/logs/diagnostics/DIAGNOSTICS_YYYY-MM.md` | **新的**实验/诊断数据记录（按月拆分，append-only） | append-only | Agent + Owner |
 | `docs/logs/decisions/DECISIONS.md` | **新的**重大决策记录（ADR：背景→选项→结论→后果） | append-only，废弃标 superseded | Owner + Agent |
@@ -38,6 +39,7 @@
 | 场景 | 用哪个模板 |
 |---|---|
 | 追加工作计划到 `PROJECT_PIPELINE.md` | `TEMPLATE_WORKPLAN.md` |
+| 已完结的执行条目按月归档到 `logs/progress/` | `TEMPLATE_WORKPLAN.md`（整条原样迁出，标题不变） |
 | 记录一次失败/踩坑到 `docs/logs/learnings/LEARNINGS.md` | `TEMPLATE_FAILURE.md` |
 | 沉淀一条可复用历史经验（区别于一次性教训） | `TEMPLATE_EXPERIENCE.md` |
 | 新建任何文档前 | `CHECKLIST_NEW_DOC.md`（必读） |
@@ -50,6 +52,7 @@
 ├─ 我做了个重要技术/方向决策                     → logs/decisions/DECISIONS.md
 ├─ 我踩坑了、修了、怎么避免复发                  → logs/learnings/LEARNINGS.md
 ├─ 我新增一个要做的任务/计划                      → PROJECT_PIPELINE.md（TEMPLATE_WORKPLAN）
+├─ 一条历史任务的执行记录/结果（PIPELINE 已过长）    → 按月追加到 logs/progress/PROGRESS_YYYY-MM.md（append-only）
 ├─ 今天的工作流水（做了什么/卡在哪）              → .codebuddy/memory/YYYY-MM-DD.md（每日日志）
 ├─ 一条能复用的方法论/知识（有出处、有反例）       → TEMPLATE_EXPERIENCE 沉淀
 └─ 论文/对外交付物                                → docs/ITSC_PAPER.*（唯一权威）

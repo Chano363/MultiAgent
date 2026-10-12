@@ -337,7 +337,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 
 ## 四、ETCS 目标距离超速防护曲线（"真 ATP"）验证基准
 
-> **来源**：《Introduction to ETCS Braking Curves》，欧洲铁路局 / ERTMS（ERA_ERTMS_040026 Version 1.5, 2020），`docs/papers/04_safety_mpc/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf`。本节全部公式与数值均引自该文档（§3 模型、§5 数值示例）。对应 `PROJECT_PIPELINE.md` 立项任务「实现真正的 ATP」，回答答辩质疑"你的 ATP 是假的"。
+> **来源**：《Introduction to ETCS Braking Curves》，欧洲铁路局 / ERTMS（ERA_ERTMS_040026 Version 1.5, 2020），`docs/papers/04_safety_mpc/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf`。本节全部公式与数值均引自该文档（§3 模型、§5 数值示例）。对应 `docs/logs/progress/PROGRESS_2026-09.md` 立项任务「实现真正的 ATP」，回答答辩质疑"你的 ATP 是假的"。
 > **诚实边界**：本复现聚焦**车载超速/限速防护曲线（速度监督）**，非闭塞/信号层的进场授权（Movement Authority）。"防追尾属信号级 ATP 职权，我们补充车钩力+缩短安全间隔"的叙事据此成立。
 
 ### 4.1 目的：把"假 ATP"升级为"真 ATP"
@@ -439,7 +439,7 @@ I（提示，留给司机反应） → P（许可速度，超限预警） → W�
 
 **任务**：把 ETCS 曲线接入多列群组环境（`TrainFleetEnv`），使"防追尾由车载 ATP 保证"的叙事在**多列**层面落地——前列尾车位置作为后列的前瞻式监督目标。
 
-**改动（对应 `PROJECT_PIPELINE.md` ATP 任务步骤 4/5）**：
+**改动（对应 `docs/logs/progress/PROGRESS_2026-09.md` ATP 任务步骤 4/5）**：
 | 文件 | 改动 | 作用 |
 |:--|:--|:--|
 | `src/safety_layer.py` | 反应式限速从"ETCS 未生效时兜底"改为**恒在** | 修复漏洞：ETCS 只监督给定前方目标点，前列很远时允许速度高、会漏掉 80km/h 线速上限；改为 ETCS（前瞻防追尾）+ 反应式（线速兜底）共存 |

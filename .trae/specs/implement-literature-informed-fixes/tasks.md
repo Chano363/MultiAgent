@@ -24,7 +24,7 @@
 - [x] Task 3: 改造 A —— AB 最小充风时间进动作空间（Zhang2024）
   - [x] SubTask 3.1: 核定 `ab_min_refill_s` / `ab_min_hold_s` 默认值（自 `papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:250-255 / :287-295` + `VALIDATION_BASELINE.md` 充风时间项）；无出处则标 `待核实`
     - 结果：**文献依据已定位到式** —— Zhang2024 运行约束 (1) Air-refill time 的**式 (9)** `t_{b,j+1} − t_{r,j} ≥ T_a`（释放相 ≥ 最小充风时间），本实现与之一致；`ab_min_refill_s=222.0 s`（`T_a` 取 `VALIDATION_BASELINE.md:201` 张二田 S6 最短充风；范围 175~512 s 见 `:169` 赵紫宁2022）；`ab_min_hold_s=0.0` 且标 **`待核实`**——**已复查 Zhang2024 全文，其运行约束无"最短制动保持时长"一项**，故无出处、默认不激活（不编造）
-    - **【2026-10-01 补：`ab_min_hold_s` 扩检结案（负结果）】** 追加检索《铁路机车操作规则》（铁运〔2012〕281 号 / TG/JW104-2012，国家铁路局公布文本）与赵紫宁2022 实测表 ⇒ **确认无"运行期最小 AB 保持时长"的可用出处**：Zhang2024 §2.2 仅三条运行约束；操规最接近的两条为"列检站减压 100 kPa 保压 **3 min**"（**站内保压试验**，非运行约束）与"重载列车 **v<30 km/h 不应缓解**"（**速度门限**非时长，且本场景 `v_min=40 km/h` ⇒ 空约束）；赵紫宁表 5-3 制动时长 212~1358 s 属**实测观测值**非下界。⇒ 标签由开放的 `待核实` 改为**已结案**，值保持 `0.0` 不激活。落点：`DIAGNOSTICS_2026-10.md`「检索-2026-10-01」、`REFERENCE_INDEX.md` 落地映射新增行、`configs/…yaml` + `multi_loco_controller.py` 注释同步、ADR-021 遗留② 状态更新、`PROJECT_PIPELINE.md` A 条目同步。
+    - **【2026-10-01 补：`ab_min_hold_s` 扩检结案（负结果）】** 追加检索《铁路机车操作规则》（铁运〔2012〕281 号 / TG/JW104-2012，国家铁路局公布文本）与赵紫宁2022 实测表 ⇒ **确认无"运行期最小 AB 保持时长"的可用出处**：Zhang2024 §2.2 仅三条运行约束；操规最接近的两条为"列检站减压 100 kPa 保压 **3 min**"（**站内保压试验**，非运行约束）与"重载列车 **v<30 km/h 不应缓解**"（**速度门限**非时长，且本场景 `v_min=40 km/h` ⇒ 空约束）；赵紫宁表 5-3 制动时长 212~1358 s 属**实测观测值**非下界。⇒ 标签由开放的 `待核实` 改为**已结案**，值保持 `0.0` 不激活。落点：`DIAGNOSTICS_2026-10.md`「检索-2026-10-01」、`REFERENCE_INDEX.md` 落地映射新增行、`configs/…yaml` + `multi_loco_controller.py` 注释同步、ADR-021 遗留② 状态更新、`docs/logs/progress/PROGRESS_2026-10.md` A 条目同步。
   - [x] SubTask 3.2: 在 `MultiLocoController` 维护逐机车 AB 计时状态，于 `get_action_decomposed()` 拒绝"充风不足新增源 / 保持不足释放源"，暴露 veto 计数
   - [x] SubTask 3.3: 参数经 config/实验 YAML 透传并进 metadata
   - [x] SubTask 3.4: 单测 —— 充风窗口内新增被拒 / 保持窗口内释放被拒 / 窗口外不干预
@@ -63,13 +63,13 @@
     - 结果：**222 passed / exit 0**（1039.55 s = 17 min 19 s；`pytest.ini` 的 `-qq` 抑制末行，故运行时用 `-o addopts=` 覆盖以取汇总行），见 `outputs/log_pytest_final.txt`
     - 注：D 的那条"梯度臂"误导性单测已随不可达分支一并删除（见 SubTask 4.2 更正）
   - [x] SubTask 7.4: 明确声明边界：C/B 改变训练目标/算法 ⇒ **旧权重失效**，最终性能结论需重训
-    - 声明落在：`DIAGNOSTICS_2026-10.md`「改造…」五-⚠️ 边界 + 「P0…」二-⚠️三条边界 + ADR-021「执行闭环」⑥ + `PROJECT_PIPELINE.md` 长久计划 1
+    - 声明落在：`DIAGNOSTICS_2026-10.md`「改造…」五-⚠️ 边界 + 「P0…」二-⚠️三条边界 + ADR-021「执行闭环」⑥ + `docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1
 
 - [x] Task 8: 留痕 + 决策闭环 + 长久计划登记
   - [x] SubTask 8.1: `DIAGNOSTICS_2026-10.md` 追加两个小节：`### 诊断-2026-10-01-P0 三行基线与 AB 通道裁定`、`### 改造-2026-10-01-文献四改造落地（A/D/C/B）`（数据表 + 完整命令 + seed + 物理/机制解释）
   - [x] SubTask 8.2: `DECISIONS.md`：更新 ADR-021 状态 + 写入末节 **「执行闭环」**（四改造落地表 / P0 三行 / **AB 通道裁定 = 净负（旧权重）+ 不据此砍动作维度 + 重训后复核义务** / D 梯度臂删除 / 验收 / 边界 / 遗留）
     - **不新增 ADR-022**：reward 口径版本标识（`reward_schema`）与 `critic` 枚举属**接口契约**，已写在 ADR-021「执行闭环」① 与 `REFERENCE_INDEX.md` 落地映射中；单独立 ADR 会与 ADR-021 重复（防文档膨胀）
-  - [x] SubTask 8.3: `PROJECT_PIPELINE.md` 登记**长久计划**（5 项：重训里程碑 / 跨线 / 完整预测式 safety filter / 重训后复核 AB 通道去留 / 改动前全剖面对照）
+  - [x] SubTask 8.3: `docs/logs/progress/PROGRESS_2026-10.md` 登记**长久计划**（5 项：重训里程碑 / 跨线 / 完整预测式 safety filter / 重训后复核 AB 通道去留 / 改动前全剖面对照）
   - [x] SubTask 8.4: `LEARNINGS.md` 记本改造踩坑（LRN-20261001-006 冻结副本击穿、LRN-20261001-007 不可达梯度臂 + 猴补式单测）；`REFERENCE_INDEX.md` 落地映射同步 D 的更正；`.codebuddy/memory/2026-10-01.md` 同步
 
 - [x] Task 9（收口时自查发现的缺口）：主训练 YAML 按 **ADR-017** 对齐 + 训练入口验证
@@ -78,7 +78,7 @@
   - [x] SubTask 9.2: 新增 `n_env: 4` / `parallel_traj_len: 0`（§1 + 诊断-2026-09-10）、`warm_start: true` / `bc_episodes: 3` / `bc_epochs: 30`（诊断-2026-09-15）、`long_eval_interval: 50` / `long_eval_steps: 36000`（§2 + 诊断-2026-09-22）
   - [x] SubTask 9.3: 更正 `max_steps` / `curriculum` 注释为 ADR-017 §1/§2 口径（训练时域 = curriculum ≤1200 步，`TrainRunner` 每集覆盖 env 上限；评估 = 独立完整剖面）
   - [x] SubTask 9.4: **训练入口验证**（`--episodes 2` 覆盖，exit 0，280.7 s）：日志 `curriculum 边界: [(0,500),(10,1000),(20,1200)]` + `有效视界 91.0s → 覆盖` + `Fleet BC warm start: 采集 27000 条 … 30 epochs`；`metadata.json` 实测 `episodes=2`（覆盖链通 ⇒ YAML 1400 可解析）/ `n_env=4` / `parallel_traj_len=0` / `warm_start=true` / `bc_epochs=30` / `long_eval_interval=50` / `critic=per_agent` / `reward_schema=v2-bounded-overlimit-section-force`；2 集 `viol 0`。
-  - [x] SubTask 9.5: 登记 —— `REPRODUCIBILITY.md` §十（主训练口径 + 覆盖纪律）、`DECISIONS.md` ADR-017「执行闭环」、`DIAGNOSTICS_2026-10.md`「验证-2026-10-01-主训练 YAML 按 ADR-017 对齐」、`PROJECT_PIPELINE.md` 缺口⑧、`docs/README.md` 映射行、根 `AGENTS.md`「Key commands」
+  - [x] SubTask 9.5: 登记 —— `REPRODUCIBILITY.md` §十（主训练口径 + 覆盖纪律）、`DECISIONS.md` ADR-017「执行闭环」、`DIAGNOSTICS_2026-10.md`「验证-2026-10-01-主训练 YAML 按 ADR-017 对齐」、`docs/logs/progress/PROGRESS_2026-10.md` 缺口⑧、`docs/README.md` 映射行、根 `AGENTS.md`「Key commands」
   - ⚠️ SubTask 9.6（教训，非计划内）：首跑**漏覆盖 `dirs.figures_dir`** ⇒ 覆写了 09-25 历史学习曲线 PNG；已从原始 CSV 经同一绘图路径重建（无信息丢失）+ 记 `LRN-20261001-009`（此后冒烟跑必须同时重定向三个输出目录）
 
 - [x] Task 10（为 1400 ep 长跑 + 主对比表做前置审计）：评估链路**四处**口径缺陷修复
@@ -90,7 +90,7 @@
   - [x] SubTask 10.5：新增 `tests/test_metric_accounting.py`（9 项，行为级 + 源码级防回流）；定向 9 passed
   - [x] SubTask 10.6：**实跑验证** —— ①`_long_eval` 每集触发（真 env，exit 0）：`viol 0 / peak 540kN / 达标=True` + best 与 `long_eval_best.json` 落盘；②`--mode all --n_seed 2`（fair）：**3 行齐全** + `fail 0` + 三行 Δ 摘要 + JSON 落盘
   - [x] SubTask 10.7：顺带测出算力事实并落文档：MPC 单次求解 ≈1025 ms ⇒ 53km MPC 行 ≈10.3 h/seed、`--n_seed 3` ≈31 h（已补进 `REPRODUCIBILITY.md` §十）
-  - [x] SubTask 10.8：留痕 —— `DIAGNOSTICS_2026-10.md`「修复-2026-10-01」+「修复-2026-10-01b」两节（含完整命令/输出/危害定级）；`LEARNINGS.md` LRN-20261001-010~013；`PROJECT_PIPELINE.md` 缺口 ⑨~⑫；`docs/README.md` 映射行
+  - [x] SubTask 10.8：留痕 —— `DIAGNOSTICS_2026-10.md`「修复-2026-10-01」+「修复-2026-10-01b」两节（含完整命令/输出/危害定级）；`LEARNINGS.md` LRN-20261001-010~013；`docs/logs/progress/PROGRESS_2026-10.md` 缺口 ⑨~⑫；`docs/README.md` 映射行
   - ⚠️ SubTask 10.9（刻意不做，登记备查）：3 个 live 脚本同源 `viol` 计数写法（`compare_m1_baselines.py:53` / `evaluate_fleet_hier_80.py:46` / `compare_m1_init80.py:46`）属已废止 hierarchical 方案且全仓零引用 ⇒ 不静默改历史复现资产；若旧表引用其 `viol` 须按 O(n²) 膨胀处理
 
 - [x] Task 11（长久计划第 1 项首次落地）：启动 ADR-021 口径 seed0 1400 ep 重训
@@ -98,9 +98,9 @@
   - [x] SubTask 11.1: 启动器 `outputs/launch_retrain_adr021_seed0.sh`（`set -e` + conda 激活 + `exec python`），**三输出目录全部改指全新路径**（`outputs/checkpoints_formation/adr021_1400ep_seed0/{,results,figures}`）⇒ 零覆盖历史产物
   - [x] SubTask 11.2: 排障"长跑进程持久化"—— 两次 `nohup`/`setsid` 脱壳**均静默失败**（无进程、log 文件未创建）；存活探针 `nohup setsid sleep 90 …` 下次调用即查不到 ⇒ 判定 IDE Shell 工具**返回时回收本次调用的全部派生进程**（LRN-20261001-014）
   - [x] SubTask 11.3: 改用 IDE Shell 工具 `run_in_background: true` + **前台等待**启动 ⇒ **成功**：`PID 673` / 89.1% CPU / 输出目录已建；日志打出 `episodes=1400 / simcase=official / [信用视界] 91.0s → 覆盖`
-  - [x] SubTask 11.4: 登记 —— `REPRODUCIBILITY.md` §十「重训里程碑」（启动器 / 两种调用场合 / 输出路径 / `--resume latest` 恢复命令 / 机时 ≈3.4 天 —— ⚠️ **该项机时已作废**，实跑实测更正为 **≈11.7 天/seed**，见 SubTask 11.6）；`PROJECT_PIPELINE.md` 长久计划 1 状态 🟡；`DIAGNOSTICS_2026-10.md`「启动-2026-10-01…」；`LEARNINGS.md` LRN-20261001-014；启动器注释更正为"两种场合行为不同"
+  - [x] SubTask 11.4: 登记 —— `REPRODUCIBILITY.md` §十「重训里程碑」（启动器 / 两种调用场合 / 输出路径 / `--resume latest` 恢复命令 / 机时 ≈3.4 天 —— ⚠️ **该项机时已作废**，实跑实测更正为 **≈11.7 天/seed**，见 SubTask 11.6）；`docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1 状态 🟡；`DIAGNOSTICS_2026-10.md`「启动-2026-10-01…」；`LEARNINGS.md` LRN-20261001-014；启动器注释更正为"两种场合行为不同"
   - ⚠️ SubTask 11.5（边界，显式登记）：本次由 **IDE 后台作业**承载 ⇒ 进程随 IDE 会话存活；**数天级无人值守须由用户在自己的 WSL 终端重跑启动器**（命令已写入 `REPRODUCIBILITY.md` §十）。seed1~4 待排算力。
-  - [x] **SubTask 11.6（实跑后更正机时，本轮）**：启动时登记的 **≈3.4 天/seed 作废**（低估 **3.4×**）。实跑由训练自身进度条实测 500 步课时 **271 / 276 / 274 / 278 s/集**（`n_env=4`）+ BC ≈11 min；按 curriculum 折算 1400 集 ≈10.6 天，加 28 次 `long_eval` ≈1.1 天 ⇒ **≈11.7 天/seed**；**`1400 ep × 5 seed` 单机串行 ≈58 天**（原按 3.4 天会误得"两周可完成"）。两个低估来源：① 拿短训总墙钟 ÷ 集数当每集耗时（分子被 BC 稀释）；② tqdm 的 ETA 按当前课时线性外推（`105~108 h`），不随 curriculum 升到 1000/1200 步调整。更正落点：`REPRODUCIBILITY.md` §十（含推导）/`PROJECT_PIPELINE.md` 长久计划 1/`DIAGNOSTICS_2026-10.md`「启动-2026-10-01」四、/`docs/README.md` 映射行/`EXECUTION_RULES.md` 背景行；教训 `LEARNINGS.md` **LRN-20261001-016**。
+  - [x] **SubTask 11.6（实跑后更正机时，本轮）**：启动时登记的 **≈3.4 天/seed 作废**（低估 **3.4×**）。实跑由训练自身进度条实测 500 步课时 **271 / 276 / 274 / 278 s/集**（`n_env=4`）+ BC ≈11 min；按 curriculum 折算 1400 集 ≈10.6 天，加 28 次 `long_eval` ≈1.1 天 ⇒ **≈11.7 天/seed**；**`1400 ep × 5 seed` 单机串行 ≈58 天**（原按 3.4 天会误得"两周可完成"）。两个低估来源：① 拿短训总墙钟 ÷ 集数当每集耗时（分子被 BC 稀释）；② tqdm 的 ETA 按当前课时线性外推（`105~108 h`），不随 curriculum 升到 1000/1200 步调整。更正落点：`REPRODUCIBILITY.md` §十（含推导）/`docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1/`DIAGNOSTICS_2026-10.md`「启动-2026-10-01」四、/`docs/README.md` 映射行/`EXECUTION_RULES.md` 背景行；教训 `LEARNINGS.md` **LRN-20261001-016**。
     - ⚠️ **遗留裁决（需用户定）**：`1400 ep × 5 seed` 单机 ≈58 天不可行 ⇒ 须在「减课时/减集数」与「并行多机/多卡」之间抉择（**涉及 ADR-017 训练量铁律 ⇒ 属决策，不由 Agent 单方改**）。
 
 - [x] Task 12（长训在跑期间做的主表路径第三轮审计）：评估链路**第五处**口径缺陷
@@ -110,13 +110,13 @@
   - [x] SubTask 12.3: 顺带修正模块 docstring 中**不可用**的示例 `--mode decompose`（不在 `choices` 内，会 argparse 报错）⇒ `--mode decompose_m1`
   - [x] SubTask 12.4: 单测 +5（`tests/test_metric_accounting.py` ⇒ **14 passed**）：显式透传 / 自 ckpt 读取 / 缺失退回 10 / 旧 ckpt 无字段退回 / 源码级防回流（默认必须为 `None` + 解析须早于 `build_metadata`）
   - [x] SubTask 12.5: **真 ckpt 实跑验证**（`--mode decompose_m1 --max_steps 120 --n_seed 1 --out_suffix _di_fix_check`）：打印 `[decision-interval] 自 ckpt metadata 读取 decision_interval=10`；行标签 `interval=10`；JSON 的 `metadata.eval_args.decision_interval` 与 `args.decision_interval` **三处一致**；旧标量 ckpt 仍可装载（`critic=centralized_scalar` 兜底生效）
-  - [x] SubTask 12.6: 登记 —— `DIAGNOSTICS_2026-10.md`「修复-2026-10-01c」+ 索引；`LEARNINGS.md` LRN-20261001-015（并归纳"CLI 默认值静默决定语义"这一**模式**，第二次复发）；`PROJECT_PIPELINE.md` 缺口⑬；`REPRODUCIBILITY.md` §十；`EXECUTION_RULES.md` 冻结规范精确化；`.codebuddy/memory/2026-10-01.md` 补充 8
+  - [x] SubTask 12.6: 登记 —— `DIAGNOSTICS_2026-10.md`「修复-2026-10-01c」+ 索引；`LEARNINGS.md` LRN-20261001-015（并归纳"CLI 默认值静默决定语义"这一**模式**，第二次复发）；`docs/logs/progress/PROGRESS_2026-10.md` 缺口⑬；`REPRODUCIBILITY.md` §十；`EXECUTION_RULES.md` 冻结规范精确化；`.codebuddy/memory/2026-10-01.md` 补充 8
   - ⚠️ SubTask 12.7（边界）：不改动任何**已显式指定** `--decision_interval` 的历史结果；唯一行为变化发生在"未传该参数"这一此前**未被用作主结果**的路径上
 
 - [x] Task 12.8（同轮追加，纯读取 + 文档）：主表 checkpoint 选取审计
   - [x] 发现：`train_runner.py` 三类 checkpoint **存在性不同** —— `last_ep{N}`（含末集）**保证存在**；`ep{N}` periodic 存在多份；**`best_{cp_tag}` 仅当某次 `long_eval` 达标才写 ⇒ 可能根本不存在**（`long_eval>0` 时 `_maybe_save_best` 被跳过，`:300-302`）
   - [x] 危害：`REPRODUCIBILITY.md` §十 主对比命令写的是 `--checkpoint <best.pt>` ⇒ 若不存在会报路径错，而**实际训练成功** ⇒ 易误判"训练失败"
-  - [x] 落地：`REPRODUCIBILITY.md` §十 补"存在性对照表 + 跑前 `ls` 确认"；`PROJECT_PIPELINE.md` 长久计划 1 登记待裁决；`DIAGNOSTICS_2026-10.md`「审计-2026-10-01-主表 checkpoint 选取」+ 索引
+  - [x] 落地：`REPRODUCIBILITY.md` §十 补"存在性对照表 + 跑前 `ls` 确认"；`docs/logs/progress/PROGRESS_2026-10.md` 长久计划 1 登记待裁决；`DIAGNOSTICS_2026-10.md`「审计-2026-10-01-主表 checkpoint 选取」+ 索引
   - [ ] ⚠️ **待用户裁决①**：主表 D-RL 行取 `last_ep1400`（端态、无条件可复现）还是 `best`（long_eval 评估选优）？—— 既有口径"主结果用完整训练的 last"与 ADR-017 §2 的"long_eval 选优"在 `best` 改由**评估指标**选出后**不再互斥**；**裁决前不要只跑一行就下结论**
   - [ ] ⚠️ **待用户裁决②**：`1400 ep × 5 seed` 单机 ≈**58 天** ⇒ 「减课时/减集数」vs「并行多机/多卡」（涉 ADR-017 训练量铁律，不由 Agent 单方改）
   - [x] 边界：**未改动任何代码**（纯读取 + 文档），不触及长训的代码冻结边界
@@ -126,7 +126,7 @@
   - [x] SubTask 12.9.1: 定位两套冲突语义 —— `get_action_accel`（`multi_loco_controller.py:377-394`）产**绝对 ED 深度 ∈[0,1]、永不为负**；`get_action_decomposed`（`:272-323`）按**加性调制**消费 `clip(baseline + 0.5·ed_mod)`；`mpc_act` 把前者直接当后者，**Fair 与 NMPC 共用**
   - [x] SubTask 12.9.2: **实测确认**（临时探针，跑完即删）：`mpc_act` col0=[0.75]×6 / col1=0；同态规则基线 `ed=[1.0,0.7]` ⇒ 实际 `final_ed` **打满 1.0**。与 `MPC(Fair) meanED=1.000` vs `M0 0.850` 观测一致 ⇒ ① 指令不兑现 ② 结构性不能减闸/牵引
   - [x] SubTask 12.9.3: 附带发现 —— 默认 `--mpc_type fair` 未开 `inner_rule_cyclic`（NMPC 开了），而该类注释称该开关正是"消解 strawman"手段 ⇒ 文档默认路径恰是没开的那条
-  - [x] SubTask 12.9.4: 登记 —— `DIAGNOSTICS_2026-10.md`「审计-2026-10-01b」+ 索引（含实测输出与三层证据）；`REPRODUCIBILITY.md` §十 🔴 警示；`PROJECT_PIPELINE.md` 长久计划 2b
+  - [x] SubTask 12.9.4: 登记 —— `DIAGNOSTICS_2026-10.md`「审计-2026-10-01b」+ 索引（含实测输出与三层证据）；`REPRODUCIBILITY.md` §十 🔴 警示；`docs/logs/progress/PROGRESS_2026-10.md` 长久计划 2b
   - [ ] ⚠️ **待用户裁决（立论铁律，Agent 不单方改）**：(甲) 反解加性关系 / (乙) MPC 直接权限 / (丙) 仅开 `inner_rule_cyclic`（只修默认不一致）。**任选都会改 MPC 行数值 ⇒ 出主表前必须裁决**
   - [x] 边界：**未改任何代码**（仅新增/删除一个临时探针脚本）；与 `DIAGNOSTICS_2026-09.md:53` 的既有 unresolved 条目是**两层不同问题**（本条即使按旧处方"加规则内层"也修不好）
 

@@ -15,6 +15,13 @@
 | 卡点/踩坑 | 简短现象；**正式深层根因走** `docs/logs/learnings/LEARNINGS.md` |
 | 明日 / 下一步 | 待办回填到 `PROJECT_PIPELINE.md` 计划 |
 
+## 本目录还有什么
+
+| 目录/文件 | 内容 |
+|---|---|
+| `progress/PROGRESS_YYYY-MM.md` | 阶段二**执行流水**（2026-10-12 自 `docs/PROJECT_PIPELINE.md` 按月迁出；append-only） |
+| `diagnostics/` `decisions/` `learnings/` `verification/` | 诊断 / 决策 / 踩坑 / 验证日志（见 `docs/rules/README.md` 角色表） |
+
 ## 已有日志
 | 文件 | 日期 |
 |---|---|

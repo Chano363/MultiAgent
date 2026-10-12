@@ -211,52 +211,55 @@ def test_air_brake_force_continuous_reduction_backward_compat():
 
 
 # ---------------------------------------------------------------------------
-# 车钩力（MT-2 摩擦式迟滞模型：预压力 F0 + 弹性力 + 库仑摩擦 + 死区游隙
-#   + 【R0-A】卸载刚度软化 + 【R0-B】Stribeck 速度相关摩擦）
+# 车钩力（MT-2 摩擦式迟滞模型：容嘉欣2025 fl/fu 查表 + 速度法 sign(Δv) 选支，
+#   + 死区游隙 + 接触渐入 + 行程刚性限位；2026-10-11 起解析式已废止）
 def test_coupler_spring_force():
-    """恢复力（预压力+弹性）：拉伸产生拉力（负）、压紧产生推力（正），随位移增大（弹性区间内未打满行程）。
+    """恢复力（查表中线 f0）：拉伸产生拉力（负）、压紧产生推力（正），随位移增大。
 
-    【R0-A 2026-09-06】dv=0 静止时 load_factor=0.5 → k_eff=(1+u)k/2；MT-2 默认
-    u=1.0（弹性对称）→ k_eff=k（静止阻抗在摩擦翻转带内，于宗泽式(5) 弱锁定）。
+    【2026-10-11 速度法重建】dv=0（静止）→ 速度法回中线 f0=(fl+fu)/2
+    （容嘉欣式(2) Δv=0 基准曲线），40mm 行程处 = (1182+345)/2 ≈ 763 kN。
+    旧断言（于宗泽解析式 preload + k·x）随解析式废止改写为查表口径。
     """
-    k, c, L = 5.0e6, 5.0e4, 1.0
-    preload, gap = 2.0e5, 0.01
-    u = 1.0  # unload_stiffness_ratio 默认值（MT-2 弹性对称，式(1)）
-    x = 0.05  # 有效伸长 x-gap=0.04，远小于行程 0.083 → 纯弹性区间
+    from src.train_dynamics.coupler import RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N
+    k, c, L = 1.89e7, 5.0e4, 1.0
+    x = 0.05  # e=±0.05 → 行程 x-gap=0.04 = 40mm，远小于行程 0.083
     # 静止位置 e=0，死区内 → 力≈0
     f_rest = coupler_force(0.0, 0.0, -1.0, 0.0, k, c, L)
     assert abs(f_rest) < 500.0
-    # 拉长 x：前车受向后拉力（负），幅值 ≈ preload + 0.7k*(x-gap)
+    # 拉长 x：前车受向后拉力（负）
     f = coupler_force(0.0, 0.0, -1.0 - x, 0.0, k, c, L)
     assert f < 0.0
-    assert abs(f) == pytest.approx(preload + (1.0 + u) / 2.0 * k * (x - gap), rel=0.10)
-    # 压紧 x：前车受向前推力（正），幅值同为 preload + 0.7k*(x-gap)
+    # 压紧 x：前车受向前推力（正），幅值 = 文献中线 f0(40mm)
     f2 = coupler_force(0.0, 0.0, -1.0 + x, 0.0, k, c, L)
     assert f2 > 0.0
-    assert f2 == pytest.approx(preload + (1.0 + u) / 2.0 * k * (x - gap), rel=0.10)
+    f0_40mm = 0.5 * (np.interp(0.04, RONG2025_X_M, RONG2025_FL_N)
+                     + np.interp(0.04, RONG2025_X_M, RONG2025_FU_N))
+    assert abs(f2) == pytest.approx(f0_40mm, rel=0.03)
+    # 压缩/拉伸对称（同一行程、同一中线）
+    assert abs(f) == pytest.approx(abs(f2), rel=1e-3)
 
 
 def test_coupler_hysteresis_friction():
-    """MT-2 库仑摩擦恒反对相对运动：加载阻抗 > 卸载阻抗（迟滞环耗能，替代线性阻尼）。
+    """MT-2 库仑摩擦恒反对相对运动：加载阻抗 > 卸载阻抗（迟滞环耗能）。
 
-    【R0-A 2026-09-06】加载 = preload+fric+k·x_el（满刚度）；
-    卸载 = preload−fric+u·k·x_el（u=1.0 时仅摩擦翻转，下限截 0）。
+    【2026-10-11 速度法重建】加载 = 查表 fl(40mm) ≈ 1182 kN、卸载 = fu ≈ 345 kN
+    （容嘉欣图4(b) 数字化读点，±30 kN）；旧断言（preload±friction+k·x 解析式）
+    随解析式废止改写。半宽随行程增大（月牙形），此处仅锚 40mm 读点。
     """
-    k, c, L = 5.0e6, 5.0e4, 1.0
-    preload, friction, u = 2.0e5, 5.0e5, 1.0
-    x = 0.05  # 压缩 0.05（e=+0.05 超死区，x_el=0.04 < 行程 → 纯弹性区间）
-    # 加载 dv=v_front-v_back=1-2=-1<0（越压越紧，|dv|>>v_er 动摩擦），摩擦增阻
+    from src.train_dynamics.coupler import RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N
+    k, c, L = 1.89e7, 5.0e4, 1.0
+    x = 0.05  # e=+0.05 超死区，x_el=0.04 = 40mm < 行程 → 表区间内
+    # 加载 dv=v_front-v_back=1-2=-1<0（越压越紧），选 fl 支
     load = coupler_force(0.0, 1.0, -1.0 + x, 2.0, k, c, L)
-    # 卸载 dv=2-1=+1>0（松脱），摩擦减阻 + 卸载刚度软化
+    # 卸载 dv=2-1=+1>0（松脱），选 fu 支
     unload = coupler_force(0.0, 2.0, -1.0 + x, 1.0, k, c, L)
-    x_el = x - 0.01
-    load_expect = preload + friction + k * x_el
-    unload_expect = max(preload - friction + u * k * x_el, 0.0)
-    assert load == pytest.approx(load_expect, rel=0.05)
-    assert unload == pytest.approx(unload_expect, rel=0.05)
+    assert load == pytest.approx(np.interp(0.04, RONG2025_X_M, RONG2025_FL_N), rel=0.03)
+    assert unload == pytest.approx(np.interp(0.04, RONG2025_X_M, RONG2025_FU_N), rel=0.05)
     assert load > unload
-    # 迟滞环宽度 = closed form（卸载被下限截 0 时宽度即 load）
-    assert (load - unload) == pytest.approx(load_expect - unload_expect, rel=0.05)
+    # 迟滞环半宽 = 文献 (fl−fu)/2 在 40mm 处 ≈ 418 kN
+    assert (load - unload) == pytest.approx(
+        np.interp(0.04, RONG2025_X_M, RONG2025_FL_N)
+        - np.interp(0.04, RONG2025_X_M, RONG2025_FU_N), rel=0.05)
 
 
 def test_coupler_action_reaction():

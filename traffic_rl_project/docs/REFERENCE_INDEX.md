@@ -6,7 +6,8 @@
 
 | 技术/公式 | 来源 | 文件 |
 | :--- | :--- | :--- |
-| MT-2 摩擦式迟滞缓冲器（Stribeck 静750/动500 kN，v_er=0.2，饱和2270kN@83mm） | 于宗泽2025《重载列车车钩缓冲装置纵向动力学精细化模型》 | `于宗泽2025_fulltext.txt` |
+| MT-2 摩擦式迟滞缓冲器（Stribeck 静750/动500 kN，v_er=0.2，饱和2270kN@83mm）【旧解析口径，已被下行容嘉欣2025 查表口径取代，见 ADR-031】 | 于宗泽2025《重载列车车钩缓冲装置纵向动力学精细化模型》 | `于宗泽2025_fulltext.txt` |
+| MT-2 货车装载-缓释阻抗曲线 fl/fu 数字化查表（fl(83mm)=2270kN 锚定）+ 速度法 sign(Δv) 选支（加载→fl、卸载→fu、Δv=0→f0）——当前实现口径 | 容嘉欣2025《更大牵引质量重载列车动力学建模与仿真分析》机械 52(7):57-64 图4(b) | `容嘉欣_更大牵引质量_提取文本.md` + `更大牵引质量重载列车动力学建模与仿真分析_容嘉欣(1).pdf` |
 | 车钩间隙死区（0.01m）→ 间隙放大车钩力（60km/h 0.01 vs 0.018m 差 52.14kN） | 杨敏《车钩间隙对重载列车纵向冲击动力学的影响》 | `车钩间隙对重载列车纵向冲击动力学的影响_杨敏.pdf` |
 | 车钩力正常/紧急上限 1000/2250kN | Fu2019《基于钩缓约束的重载列车驾驶过程优化》 | `Fu2019_CouplerConstraint_HeavyHaul.pdf` |
 | 多体纵向耦合运行安全框架（超长列车） | Krishna2020 | `Krishna2020_OverlongHeterogeneity_运行安全.md` |
@@ -72,6 +73,13 @@
 | 改进 MPC 协同控制 | Wang2026（**≠** MARL 表的 `Wang2026_HRL`；本行 = bib `wang2026_cooperative_mpc`） | —（无本地，铁路运输与经济 2026） |
 | 单列多体 NMPC 循环制动（Shuozhou） | Yang2025 | —（无本地，IEEE ITSC 2025） |
 | **多机车协同 NMPC（长陡下坡）**：多质点模型 + 电/空制动协同 + 车钩力缓代价 + 车钩力/限速/执行器硬约束 + AB 波传播延迟 —— **本项目 MPC 基线来源** | Lu2025 | `Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf` |
+| ECP 逐车连续可控假设 + MPC（ECP 假设绕开气动时滞；车钩力作罚项）——ECP-MPC 开山作（**摘要级**） | Zhang & Zhuan 2014（IEEE TCST 22(1):13-22, DOI 10.1109/TCST.2013.2238235） | `Zhang2014_TCST_ECP_MPC.md` |
+| 制动模型一阶惯性+纯滞后（**Td=1.0 s, τ=0.4 s**）进状态方程；「制动曲线生成−跟踪」两级；明言 ATO 通常不能直接控制各车厢制动力 | 刘晓宇2022（自动化学报 48(1):171-181） | `Liu2022_ATO_BrakeDelayModel.txt` |
+| MILP 速度剖面：空气制动**指令时滞 + 充风时间**显式建模（长大下坡）；刚体模型（无车钩力）；0-1+big-M 线性化 | Yu2023（J. Adv. Transp. 2023:6649871） | `Yu2023_MILP_RefillTime_Downhill.txt`（部分正文：至 §3.3） |
+| ECP 车钩力**前馈补偿** + 分布式列队控制（非 MPC；批评 MPC 的 QP 实时性） | Zhang2026（IEEE/CAA JAS 13(4):877-887） | `Zhang2026_JAS_CouplerCompensation.txt`（部分正文：至 §II） |
+| 电空协调 MPC：**AB 不进优化变量**、速度误差触发循环「减压-保压-缓解」，车钩力峰降 >8%（**摘要级**） | Zhao2026（IEEE CCDC 2026, DOI 10.1109/CCDC69976.2026.11559852） | `Zhao2026_CCDC_ElectroPneumaticCoordination.md` |
+| Shrinking-horizon **输入参数化** MPC（离散模式集化为 NLP） | Farooqi 2018（IFAC-PapersOnLine 51(20):203-208） | `Farooqi2018_ParametrizedMPC.pdf` |
+| FSMPC 有限控制集枚举 + **制动级位↔减速度静态映射** + PSO 逐级位辨识时滞 + HMM 预测电空转换（地铁精确停车） | 李蔚2025（铁道科学与工程学报 22(10):4424-4435） | `Li2025_FSMPC_BrakeNotch.txt` |
 
 ## 节能 / 其他（Related Work）
 

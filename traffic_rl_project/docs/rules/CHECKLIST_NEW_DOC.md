@@ -28,6 +28,11 @@
 - [ ] 归档前内容已冻结备份（git 有记录）
 - [ ] `docs/README.md` 导航已把它移到"归档区"
 
+## 如果改立论文档（`RESEARCH_POSITIONING.md` / 规范类）
+- [ ] **禁写裸当前值**：会随实验变的数值/状态（系数、episodes、进度）必须带 **ADR 编号 + 日期**，或直接写成**指针**（YAML / PIPELINE / DECISIONS）；无锚点裸数值 = 必然过期（教训：`ed_mod_coef` 曾停在已被 ADR-024 回退的 1.0）
+- [ ] **ADR 联动核对**：新 ADR 改变立论口径时，落 ADR 当次**同步核对/覆盖** `RESEARCH_POSITIONING.md` 对应节，并在 ADR「相关」注明（先例：ADR-022 覆盖 §1.6 基线表述）
+- [ ] **不复制别处清单**：进度 → PIPELINE、文献清单 → papers/README、决策 → DECISIONS；立论文档只留指针，清单双份登记必然漂移
+
 ## 收尾
 - [ ] `docs/README.md` 导航同步更新
 - [ ] `AGENTS.md` 的文档清单章节同步（若引用被改）

@@ -96,7 +96,7 @@ python -m pytest tests/test_nmpc_controller.py tests/test_metric_accounting.py -
 
 ## §8 相关文档
 
-- `docs/logs/HANDOFF_2026-09-22.md`：MPC 对比基线专项交接（现状 SSOT）
+- ~~`docs/logs/HANDOFF_2026-09-22.md`~~：MPC 对比基线专项交接（**已删除**，git 历史可查；现状以本文件 + ADR 为准）
 - `docs/logs/decisions/DECISIONS.md`：ADR-016 / ADR-022
 - `docs/REPRODUCIBILITY.md` §十：MPC 成本提示
 - `TRAIN_DYNAMICS_KNOWLEDGE_BASE.md`：共用物理与 `grade_at`

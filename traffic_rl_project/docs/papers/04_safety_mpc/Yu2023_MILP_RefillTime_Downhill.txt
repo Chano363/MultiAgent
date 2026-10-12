@@ -1,0 +1,129 @@
+================================================================================
+本地文献正文摘录（字符检索件）| traffic_rl_project/docs/papers/04_safety_mpc/
+================================================================================
+题名: Mixed Integer Linear Programming Based Speed Profile Optimization for Heavy-Haul Trains
+作者: Huazhen Yu, Yihui Wang, Andrea D'Ariano, Anzheng Lai, Youneng Huang
+出处: Journal of Advanced Transportation, Vol. 2023, Article ID 6649871（Hindawi 开放获取）.
+      DOI: 10.1155/2023/6649871（已核实：页面原生标注）
+      收稿 2023-04-20 / 发表 2023-12-27
+来源URL: https://www.hindawi.com/journals/jat/2023/6649871/
+抓取: 2026-10-12（WebFetch）。
+⚠️ 覆盖范围 = 部分正文：Abstract ~ §3.3.3 Air Brake Force 开头处截断；
+   §4 MILP 求解方法 / §5 实验 / §6 结论【未获取】（PowerShell 直连 Hindawi/Wiley 均 403 反爬，
+   本机无 curl，WebFetch 输出上限截断）。
+关键事实（仅据已读部分）:
+  - 重载列车长大下坡（LSD）MILP 速度剖面优化；空气制动 + 电制动联合。
+  - 显式建模空气制动**时间特性**：指令时滞（command delay）+ 气压变化过程 + **充风时间（air-filled time）**约束；
+    声称"首次考虑空气制动力的时间特性"。
+  - 刚体多质点模型（rigid multimass model）——**无车钩力**建模。
+  - 中性段（分相区, neutral section）内电制动置零的空间约束；坡度/曲线/阻力分段线性化用 0-1 变量 + big-M；
+    基本阻力用 PWA 逼近；CPLEX 求解；粗/细双粒度混合方案。
+用途: MPC×空气制动文献调研（DIAGNOSTICS_2026-10.md「文献调研-2026-10-12」）
+  —— 流派4 中**少数把充风（百秒级）时滞写进优化模型**的文献之一（非 MPC，为离线 MILP）。
+================================================================================
+
+# [Journal of Advanced Transportation](https://www.hindawi.com/journals/jat)
+
+Journal overview[For authors](https://www.hindawi.com/journals/jat/guidelines) [For reviewers](https://www.hindawi.com/publish-research/reviewers) [For editors](https://www.hindawi.com/publish-research/editors) [Table of Contents](https://www.hindawi.com/journals/jat/contents/)Special Issues
+
+1. [Journal of Advanced Transportation](https://www.hindawi.com/journals/jat/)/
+
+2. [2023](https://www.hindawi.com/journals/jat/contents/year/2023/)/
+
+3. Article/
+
+On this page
+
+[Abstract](https://www.hindawi.com/journals/jat/2023/6649871/#abstract) [Introduction](https://www.hindawi.com/journals/jat/2023/6649871/#introduction) [Literature Review](https://www.hindawi.com/journals/jat/2023/6649871/#literature-review) [Model Formulation](https://www.hindawi.com/journals/jat/2023/6649871/#model-formulation) [Conclusions](https://www.hindawi.com/journals/jat/2023/6649871/#conclusions) [Data Availability](https://www.hindawi.com/journals/jat/2023/6649871/#data-availability) [Conflicts of Interest](https://www.hindawi.com/journals/jat/2023/6649871/#conflicts-of-interest) [Acknowledgments](https://www.hindawi.com/journals/jat/2023/6649871/#acknowledgments) [References](https://www.hindawi.com/journals/jat/2023/6649871/#references) [Copyright](https://www.hindawi.com/journals/jat/2023/6649871/#copyright) [Related Articles](https://www.hindawi.com/journals/jat/2023/6649871/#related-articles)
+
+**Research Article |Open Access**
+
+Volume2023|Article ID6649871|[https://doi.org/10.1155/2023/6649871](https://doi.org/10.1155/2023/6649871)
+
+# Mixed Integer Linear Programming Based Speed Profile Optimization for Heavy-Haul Trains
+
+Huazhen Yu,<sup>1</sup>Yihui Wang,<sup>1</sup>Andrea D’Ariano,<sup>2</sup>Anzheng Lai,<sup>1</sup>and**Youneng Huang** <sup>1,3</sup>
+
+**Academic Editor:** Maria Vittoria Corazza
+
+**Received** 20 Apr 2023
+
+**Revised** 18 Sept 2023
+
+**Accepted** 28 Oct 2023
+
+**Published** 27 Dec 2023
+
+#### Abstract
+
+Automatic heavy-haul train (HHT) operation technology has recently received considerable attention in the field of rail transportation. In this paper, a discrete-time-based mathematical formulation is proposed to address the speed profile optimization problem in order to ensure the safe, efficient, and economical operation of heavy-haul trains (HHTs). Due to the presence of long and steep downgrades (LSDs) on some heavy-haul lines, the brake forces of the HHT are typically jointly determined by air braking and electric braking. The time characteristics of the air braking, such as the command delay and the change process caused by the air pressure, are taken into account, and then formulas are presented to calculate the air brake force. In addition, the influence of the neutral section on the control of the electric braking is considered via space-based constraints. The resulting problem is a nonlinear optimal control problem. To achieve linearization, auxiliary 0-1 binary variables and the big-M approach are introduced to transform the nonlinear constraints regarding slope, curve, neutral section, air brake force, and air-filled time into linear constraints. Moreover, piecewise affine (PWA) functions are used to approximate the basic resistance of the HHT. Finally, a mixed integer linear programming (MILP) model is developed, which can be solved by CPLEX. The experiments are carried out using data from a heavy-haul railway line in China, and the results show that the proposed approach is effective and flexible.
+
+#### 1. Introduction
+
+Heavy-haul transportation is of great importance for improving transport efficiency, increasing economic profits, and lowering transport costs. It has developed rapidly in many countries. Specifically, the axle load of heavy-haul trains (HHTs) has increased significantly to improve the transport capacity, which in turn presents higher requirements for the drivers of HHTs. Moreover, the increase in weight and size of HHTs is also limited by the infrastructure and the hauling capacity of the locomotives. In particular, the application of the automatic train operation (ATO) system for HHTs [[1](https://www.hindawi.com/journals/jat/2023/6649871/#B1)–[3](https://www.hindawi.com/journals/jat/2023/6649871/#B3)] has attracted increasing attention from researchers in recent years, compared with the traditional manual operation.
+
+With the increasing demand for iron ore year by year in Australia, the AutoHaul system [[2](https://www.hindawi.com/journals/jat/2023/6649871/#B2)] developed by Rio Tinto has been applied to achieve autonomous heavy-haul train (HHT) operation in 2018. There are three main benefits to this endeavour in preference to manual operation. The first is to increase productivity by shortening cycle times and eliminating stops for driver changes. Furthermore, operating costs would be reduced with fewer drivers and lower fuel consumption. The third is to reduce the possibility of driver error, thereby improving the safety of HHT operations. However, the implementation of the ATO system in Chinese HHTs is a challenging open issue due to the differences in HHT speed control methods between Australia and China. Specifically, HHTs in Australian railways have achieved automatic operation through the electronically controlled pneumatic (ECP) braking mode, which allows all wagons to receive control commands consistently [[4](https://www.hindawi.com/journals/jat/2023/6649871/#B4)]. HHTs in China are still equipped with conventional air brake systems, where control commands are delivered with a transmission delay depending on the speed of the air wave and the length of the HHT.
+
+Although there has been much research on the application of ATO in Chinese urban rail transit [[5](https://www.hindawi.com/journals/jat/2023/6649871/#B5)–[7](https://www.hindawi.com/journals/jat/2023/6649871/#B7)]. Researchers have mainly focused on the following two critical issues: the speed profile optimization that can be achieved off-line and the train speed controller design with real-time performance. In order to achieve improved performance of train operation, there are still many challenges in the operation of HHTs. Passenger trains, such as urban rail trains and high-speed trains, are mainly controlled by traction and electric braking, which has higher control accuracy and faster response time than air braking; in particular, air braking is only applied when the electric brake force is too small to stop the train at low speed without considering the effect on the next regime. For HHTs, due to their large tractive mass and many sections with long and steep downgrades (LSDs), air braking and electric braking should be applied collaboratively to keep the speed within the given limits, i.e., speed limit and minimum release speed. In particular, we note that the air braking should be applied intermittently for the operation of HHTs on LSDs, as shown in Figure[1](https://www.hindawi.com/journals/jat/2023/6649871/fig1/). This strategy is also known as the cyclic air braking, where the driver should consider when to apply or release the air brakes and the amount of pressure reduction, taking into account the effect on the next brake application or release, until the trains have left the LSDs [[8](https://www.hindawi.com/journals/jat/2023/6649871/#B8)]. In addition, electric braking prevents the sharp increase in the speed of HHTs and makes the air-filled times of the train pipes more sufficient. It is noted that the electric brake force should be equal to zero when HHTs are running in a neutral section.
+
+
+
+
+
+Figure 1
+
+Diagram of the HHT operation on LSDs.
+
+Train speed profile optimization [[9](https://www.hindawi.com/journals/jat/2023/6649871/#B9),[10](https://www.hindawi.com/journals/jat/2023/6649871/#B10)] is commonly formulated as an optimal control problem aimed at enhancing train operation performance by optimizing the outputs like regime sequences and switching points. This study centers on the optimization of strategies aimed at ensuring the safe, efficient, and economical operation of HHTs on LSDs. While various approaches like pontryagin maximum principle (PMP) [[11](https://www.hindawi.com/journals/jat/2023/6649871/#B11)], approximate dynamic programming (ADP) [[12](https://www.hindawi.com/journals/jat/2023/6649871/#B12),[13](https://www.hindawi.com/journals/jat/2023/6649871/#B13)], quadratic programming (QP) [[14](https://www.hindawi.com/journals/jat/2023/6649871/#B14),[15](https://www.hindawi.com/journals/jat/2023/6649871/#B15)], mixed integer linear programming (MILP) [[16](https://www.hindawi.com/journals/jat/2023/6649871/#B16)], and heuristic algorithms (HAs) [[17](https://www.hindawi.com/journals/jat/2023/6649871/#B17)–[19](https://www.hindawi.com/journals/jat/2023/6649871/#B19)] have been used to develop HHT operation strategies, there exists a notable gap in the discussions pertaining to critical aspects. Specifically, the time characteristics of air braking, and a constraint within engineering applications where power supply is interrupted while travelling through the neutral section, have not been adequately addressed. Furthermore, the cycle air braking strategy was not taken into consideration in [[14](https://www.hindawi.com/journals/jat/2023/6649871/#B14),[15](https://www.hindawi.com/journals/jat/2023/6649871/#B15)], warranting further investigation. In addition, the complexity of line conditions makes it challenging for the PMP to yield optimal solutions, while the results obtained from both ADP and HAs are approximate solutions. On the other hand, mathematical programming methods like QP and MILP benefit from mature commercial solvers that ensure the identification of globally optimal solutions [[20](https://www.hindawi.com/journals/jat/2023/6649871/#B20),[21](https://www.hindawi.com/journals/jat/2023/6649871/#B21)]. This study was conducted building upon the aforementioned discussion. The main contributions of this paper are summarized as follows:(1)A formula is developed to calculate air brake force, considering time characteristics for the first time. Subsequently, a discrete-time-based MILP model is presented to optimize the HHT speed profile. In this model, the total running time is divided into multiple intervals.(2)Real-world line conditions and operational constraints, including slopes, neutral sections, and air-filled times, are considered. To facilitate approximate linearization, the big-M approach and binary variables are introduced.(3)A hybrid scheme that integrates coarse-grained and fine-grained models is devised to strike a balance between computation efficiency and accuracy. Then this complex challenge is tackled by using the well-known solver CPLEX. Moreover, a series of experiments are conducted to demonstrate the solutions achieved.
+
+The remainder of this paper is organized as follows. Section[2](https://www.hindawi.com/journals/jat/2023/6649871/#literature-review)delves into the existing literature concerning the optimization of HHT operation strategies. Section[3](https://www.hindawi.com/journals/jat/2023/6649871/#model-formulation)outlines the model of the HHT running on LSDs integrating a neutral section. Moving forward, the discrete-time-based MILP approach is given in Section[4](https://www.hindawi.com/journals/jat/2023/6649871/#solution-approach). The effectiveness and flexibility of the proposed approach are validated through simulation experiments in Section[5](https://www.hindawi.com/journals/jat/2023/6649871/#case-study). Finally, conclusions are drawn in Section[6](https://www.hindawi.com/journals/jat/2023/6649871/#conclusions).
+
+#### 2. Literature Review
+
+The optimization of train operation has been aptly described as an optimal control problem, as noted in [[5](https://www.hindawi.com/journals/jat/2023/6649871/#B5)]. Various optimization methods have been employed to improve the operation performance of long HHTs.
+
+In early years, the researchers from the Scheduling and Control Group (SCG) of the University of South Australia developed the FreightMiser system to reduce fuel consumption for long-haul trains, and optimal speed profiles for relatively simple scenarios, such as isolated steep uphill or downhill sections, were obtained using PMP [[22](https://www.hindawi.com/journals/jat/2023/6649871/#B22)]. Subsequently, another PMP-based approach was proposed in [[11](https://www.hindawi.com/journals/jat/2023/6649871/#B11)] for the purpose of energy saving, which considered the operation requirements of a Chinese HHT. However, the pursuit of rigorous mathematical solutions led to model simplification, ignoring factors such as changing slopes and air braking characteristics. With the improvement of computing power, recent years have witnessed a multistage decision process to determine the control sequence for HHTs running on LSDs, where lookup-table-based [[12](https://www.hindawi.com/journals/jat/2023/6649871/#B12)] and value-iteration-based [[13](https://www.hindawi.com/journals/jat/2023/6649871/#B13)] ADP were used to yield safety-centric, cost-effective, and operationally efficient driving strategies. The advent of deep Q-network (DQN) [[23](https://www.hindawi.com/journals/jat/2023/6649871/#B23)] mitigated the challenge of high-dimensional spaces by approximating action-value functions with neural networks. Furthermore, a QP-based approach was developed to address the multiobjective trajectory optimization problem in the context of HHTs. This approach encompassed considerations of key constraints, including line resistance, neutral section, as well as traction and electric braking, as highlighted in [[14](https://www.hindawi.com/journals/jat/2023/6649871/#B14)]. Moreover, a purposeful selection scheme was designed to obtain the optimal weighting factors [[15](https://www.hindawi.com/journals/jat/2023/6649871/#B15)]. Notably, these investigations were conducted on railway scenarios characterized by less intricate line conditions and the absence of LSDs. In addition, HAs find predominant application in resolving the HHT operation strategy on LSDs due to their less stringent model requirements. For instance, to ensure safety and improve efficiency during operations, methods like particle swarm optimization (PSO) [[17](https://www.hindawi.com/journals/jat/2023/6649871/#B17)], genetic algorithm (GA) [[18](https://www.hindawi.com/journals/jat/2023/6649871/#B18)], and artificial bee colony (ABC) [[19](https://www.hindawi.com/journals/jat/2023/6649871/#B19)] have been embraced. These algorithms enable the identification of optimized switching points for air brake application and release. In the realm of optimizing train speed profiles, MILP has established itself as a widely recognized and effective method. Its utility spans across urban rail trains [[24](https://www.hindawi.com/journals/jat/2023/6649871/#B24)–[26](https://www.hindawi.com/journals/jat/2023/6649871/#B26)], high-speed trains [[27](https://www.hindawi.com/journals/jat/2023/6649871/#B27),[28](https://www.hindawi.com/journals/jat/2023/6649871/#B28)], and medium-speed maglev trains [[29](https://www.hindawi.com/journals/jat/2023/6649871/#B29)]. Notably, it has recently been employed in the domain of HHT [[16](https://www.hindawi.com/journals/jat/2023/6649871/#B16)], where the linearization description of the air brake force and the air-filled time constraint is not well treated and still full of challenges.
+
+However, in the aforementioned studies, when addressing air braking, the force was calculated using empirical formulas on the assumption of instantaneous characteristics due to the complex working principle of the air brake system, and the delay of air brake application or release, as well as the progression of air brake force alteration were overlooked. Moreover, real constraints such as the neutral section were not given due consideration. To highlight achievements and gaps in existing research, a brief comparison of the most relevant literature is presented in Table[1](https://www.hindawi.com/journals/jat/2023/6649871/tab1/).
+
+Table 1
+
+Comparison of relevant publications on method and model.
+
+#### 3. Model Formulation
+
+##### 3.1. Assumptions
+
+In this paper, we make the following assumptions:(1)The pressure reduction for brake control typically ranges from 50 to 140 kPa in intervals of 10 kPa. On lines with LSDs, a pressure reduction of 50 kPa can be employed to control the speed of the HHT. It is important to note that routine stops and stops resulting from suboptimal control are not taken into account.(2)The output for electric brake control is expressed as a ratio of the characteristic curve.
+
+##### 3.2. Notations
+
+For a better understanding of the paper, Table[2](https://www.hindawi.com/journals/jat/2023/6649871/tab2/)lists the notations used in this section.
+
+Table 2
+
+Notations for model formulation.
+
+##### 3.3. Longitudinal Dynamics of the HHT
+
+In this paper, the HHT is regarded as a rigid multimass model when running on the line, as in [[30](https://www.hindawi.com/journals/jat/2023/6649871/#B30)], to reduce unnecessary complexity.
+
+When the HHT withcars runs on LSDs,,is the number of locomotives andis the number of wagons.,is the index of cars andis the mass of car.The continuous-time model of the HHT moving along the track is expressed as follows:whereis the position of the HHT,andare the mass and speed of the HHT,is the time of the HHT running,is the electric brake force provided by the locomotives,is the air brake force acting on all cars, andandare the basic and line resistances.
+
+###### 3.3.1. Resistance
+
+The basic resistance [[31](https://www.hindawi.com/journals/jat/2023/6649871/#B31)], related to the speed of the train, can be expressed as follows:where[[32](https://www.hindawi.com/journals/jat/2023/6649871/#B32)],,,andare positive coefficients related to the type of car.denotes the gravity constant. As the number of locomotives is much smaller than that of wagons, it can be assumed that the unit basic resistance of a locomotive is the same as that of a wagon.
+
+The line resistances [[31](https://www.hindawi.com/journals/jat/2023/6649871/#B31)] composed by the slope and curve resistances can be computed as follows:whereis the empirical coefficient.
+
+For the position of the car,the gradient is measured byand the curve resistance can be calculated by the curve radius,which can be described by the following piecewise linear functions:whereis the position of car,is the physical length between carsand,and;are the starting and ending positions of slopes,are the gradient of slopes;are the starting and ending positions of curves, andare the radius of curves.
+
+###### 3.3.2. Electric Brake Force
+
+The electric brake force [[31](https://www.hindawi.com/journals/jat/2023/6649871/#B31)] can be formulated as follows:whereis the output ratio andis the maximum electric brake force that can be achieved according to the characteristics of a locomotive.
+
+###### 3.3.3. Air Brake Force
+
+The air brake force [[31](https://www.hindawi.com/journals/jat/2023/6649871/#B31)] is generated by compressed air, and it can be calculated as follows:where for car,is the pressure acting on each brake shoe, andis the brake shoe friction coefficient.is the number of brake shoes equipped on a car.whereis the diameter of the brake cylinder,is the transmission efficiency of the braking device,is the braking leverage, andis the number of brake cylinders equipped on a car.
+
+In equation ([7a](https://www.hindawi.com/journals/jat/2023/6649871/#EEq7a)),is a constant for a given brake system. Therefore,

@@ -204,10 +204,21 @@ def test_decompose_ab_release_command_issued():
     assert all(x == AirBrakeNotch.RELEASE for x in st), \
         "缓解指令未生效：残留空气制动未缓解（ab_command=None bug 回归）"
     # 缓解后列车在陡坡应重新加速（不再被拖停）
+    # 【2026-10-12 容嘉欣查表迟滞后】无牵引惰行 + 平均坡度 -2‰ + 24.4 m/s
+    # Davis 阻力下，列车净加速度约 -0.01 m/s²（真实物理：坡度拉力 < 滚动+空气
+    # 阻力），缓解压缩的弹性回弹叠加后短期内呈振荡微降。原"50 步必加速"断言
+    # 是旧低刚度线性车钩标定的，新物理下不再成立。改用"速度不塌缩 + 缓解后
+    # 车钩力逐步消散"两断言，同样拦截"残留制动拖停"bug（残留制动 → 速度
+    # 持续大幅下降 + 钩力长期保持高位）。
     v0 = float(tr.dynamics.vel[0])
-    for _ in range(50):
+    for _ in range(150):
         tr.step(release)
-    assert float(tr.dynamics.vel[0]) > v0
+    v_end = float(tr.dynamics.vel[0])
+    f_end = float(np.max(np.abs(tr.dynamics.coupler_interface_forces()))) / 1e3
+    assert v_end > 20.0, \
+        f"缓解后列车速度塌缩（{v_end:.2f} m/s），疑似残留制动未释放"
+    assert f_end < 300.0, \
+        f"缓解 15s 后车钩力仍 {f_end:.0f} kN，疑似残留制动力未消散"
 
 
 def test_decompose_mask_lever_isolates_modulation():
