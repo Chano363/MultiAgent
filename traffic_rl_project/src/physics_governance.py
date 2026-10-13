@@ -18,7 +18,7 @@ class SimCase(Enum):
 
 # 【2026-09-30】运行派生键：这些字段由**本次运行的 env_cfg**（实验 YAML 的 .env_cfg）
 # 决定，而非 PhysicsConfig 的固版默认值。metadata 的 physics 块必须反映本次运行，
-# 否则会静默误报——实例：主实验已切 `10kt_1plus1`（3列×1+1=6 机车智能体），
+# 否则会静默误报——实例：主实验已切 `20kt_1plus108_1plus108`（3列×头/中部双机车=6 机车智能体，ADR-035；此前为 `10kt_1plus1`），
 # 但 physics 块仍报固版默认 `10kt_1plus0`，污染 simulator_model / simulator_model_version。
 # 溯源见 docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md「诊断-2026-09-30-metadata 编组不一致溯源」。
 RUN_DERIVED_KEYS = ("consist_preset",)

@@ -119,15 +119,15 @@ def resolve_decision_interval(args) -> int:
 def run_consist(mode):
     """本次评估实际使用的编组预设（`make_env` 与 metadata 共用同一表达式）。
 
-    mode='decompose' → 3列×1+1（本脚本主对比）；mode='single' → 旧架构 1+0。
+    mode='decompose' → 3列×1+1（本脚本主对比，头/中部双机车 2 万吨，对齐朔黄线实际运营编组 ADR-035）；mode='single' → 旧架构 1+0。
     """
-    return '10kt_1plus1' if mode == 'decompose' else '10kt_1plus0'
+    return '20kt_1plus108_1plus108' if mode == 'decompose' else '10kt_1plus0'
 
 
 def make_env(mode, args):
     """mode: 'decompose'（多列机车级 ED/AB，decompose 模式）| 'single'（1+0 旧架构单机单控）。"""
     num_trains = getattr(args, 'num_trains', 3)
-    # 主训练场景：3列×1+1=6 机车智能体（10kt_1plus1），53km，全程 36000 步
+    # 主训练场景：3列×头/中部双机车=6 机车智能体（20kt_1plus108_1plus108，ADR-035），全程 36000 步
     cfg = {
         'num_trains': 1 if mode == 'single' else num_trains,
         'consist_preset': run_consist(mode),

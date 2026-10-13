@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════════════
 # formation-aware 机车级 ED/AB 分工（唯一 RL 落位，ADR-013）
-#   3 列 × 1+1（每列 首/尾 双机车）= 6 agents（每台机车 = 智能体）
+#   3 列 × 1+1（每列 首/中部 双机车，对齐朔黄线实际运营 2 万吨编组，ADR-035）= 6 agents（每台机车 = 智能体）
 #   以【编队】为上下文：观测含列间间距误差 obs[10]，奖励含 gap 编队项
 #   底层规则循环制动 + 车钩力安全层（enforce_coupler≤1000kN）确定性执行
 # 入口：python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml
@@ -24,7 +24,7 @@ algo_params:                  # 【2026-09-09 发散调参 run2】降lr/收clip/
 env_type: fleet                # TrainFleetEnv（多列编队环境，3 列）
 env_cfg:
   num_trains: 3
-  consist_preset: 10kt_1plus1  # 每列 1机车+94货车+1机车（多机车分布式动力，index [0,95]）
+  consist_preset: 20kt_1plus108_1plus108  # 每列 1机车+108货车+1机车+108货车（朔黄线实际运营 2 万吨「1+1」组合列车，头+中部机车，index [0,109]；对齐 Zhang2024/张二田2021/Zhao2022，ADR-035）
   grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 【主训练】朔黄线宁武西→北大牛真实纵断面 49.6km（50 实测坡段，统一线路表）；23.8km 仅作历史复现
   v_max: 22.222                # 80 km/h
   v_min: 11.111                # 40 km/h（编队目标速度带）
