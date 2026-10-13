@@ -18,7 +18,7 @@
 
 ## §1 业务背景与核心概念
 
-论文对比实验的唯一 MPC 基线 = **NMPCController**（ADR-022；旧 `FairMPCController`/简化 MPC 已删除，历史 MPC 数值作废）。对比规范（ADR-016，用户口径：只留"逐线公平标定"一种比法）：不按坡道换 MPC 模型；MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定），D-RL 跨线严格零微调。立论 = **免重辨识成本**。
+论文对比实验的唯一 MPC 基线代码 = **NMPCController**（ADR-022；旧 `FairMPCController`/简化 MPC 已删除，历史 MPC 数值作废）。对比规范（ADR-016，用户口径：只留"逐线公平标定"一种比法）：不按坡道换 MPC 模型；MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定），D-RL 跨线严格零微调。立论 = **编队上下文协同增益**（ADR-032；旧"免重辨识成本"已废止）。**⚠️ 主表角色已由 ADR-034（2026-10-13）修订：NMPC 退出主表**（related work 文本，"方法与场景不匹配，忠实复现不成立"）；**主表 MPC 行 = Formation-MPC**（following Song2026 虚拟编组 MPC 架构、显式关掉车钩约束；同仿真器 + 逐线喂图纸 + 同档调参力度；**只主张编队指标胜出，绝不主张车钩指标胜出**）。
 
 技术构成：casadi + IPOPT；列内**集中质量（lumped）多体**（ADR-022 术语）；MT-2 车钩；Regime A 逐线 `grade_at` 重喂与在线标定 b0。
 

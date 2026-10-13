@@ -25,11 +25,11 @@ env_type: fleet                # TrainFleetEnv（多列编队环境，3 列）
 env_cfg:
   num_trains: 3
   consist_preset: 10kt_1plus1  # 每列 1机车+94货车+1机车（多机车分布式动力，index [0,95]）
-  grade_profile: shuozhou_real_53km       # 【2026-09-09 新主主线】朔黄线真实纵断面 53.2km（58 实测坡段）；23.8km 仅作历史复现
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 【主训练】朔黄线宁武西→北大牛真实纵断面 49.6km（50 实测坡段，统一线路表）；23.8km 仅作历史复现
   v_max: 22.222                # 80 km/h
   v_min: 11.111                # 40 km/h（编队目标速度带）
   target_gap: 100.0            # 安全列距目标
-  max_steps: 36000             # 【env 截断上限 / 评估口径】=3600s，53km 全程（avg≥~14.8m/s 跑满 53.2km）。
+  max_steps: 36000             # 【env 截断上限 / 评估口径】=3600s，49.6km 全程（avg≥~13.8m/s 跑满 49.6km）。
                                # ⚠️ **训练实际每集长度由 curriculum 决定（≤1200 步，ADR-017 §1）**——train_runner
                                # 每集 `env.max_steps = parallel_len` 覆盖本值；本值只在无 curriculum 时作回退、以及评估时生效。
   max_accel: 1.0
@@ -63,7 +63,7 @@ episodes: 1400                 # 【ADR-017 §4 硬要求：总训练量达标�
                                # ⚠️ **快速迭代请用 CLI 覆盖 `--episodes N`，勿改本值**（否则主训练又落在不足量上）。
 curriculum: 500:0,1000:10,1200:20   # 【2026-09-15 诊断固化 + ADR-017 §1】方案3-A 证实 1200 步全程安全收敛（viol=0/pkCpl≤839kN，best +10543）。
                                # 训练时域固定为已验证安全域（短集 ≤1200 步）；2000 档即崩（方案1 FAIL），不再上探。
-                               # ⚠️ 评估时域 ≠ 训练时域（ADR-017 §2）：完整剖面（53km）**独立单独跑**；
+                               # ⚠️ 评估时域 ≠ 训练时域（ADR-017 §2）：完整剖面（49km）**独立单独跑**；
                                # 旧注释里的"53km 全程由多段 1200 步评估拼接覆盖"**已 SUPERSEDED**，禁止再引用。
 n_env: 4                       # 【ADR-017 配套 + 诊断-2026-09-10】并行 rollout ≥4 条独立短轨迹：advantage 信噪比 ×n_env，
                                # 且 value 不被单条长轨迹绑架。配合 curriculum horizon ≤1200 步使用（>1200 会放大缓冲区方差）。
@@ -74,8 +74,8 @@ bc_epochs: 30                  # 与已验证配方一致（schema 默认 5 偏�
 long_eval_interval: 50         # 【2026-09-22 + ADR-017 配套】每 50 ep 跑一次**完整剖面（36000 步）确定性评估**，
                                # best 改由 viol / 车钩力 / 末速 驱动，而非训练窗口（1200 步≈2.4km）reward
                                # ⇒ 防"短视激进、长程崩"的权重当选（诊断-2026-09-22）。
-                               # 成本提示：每次完整剖面评估 ≈1 个 53km 评估的机时（实测 ~55 min），可调大以省算力。
-long_eval_steps: 36000         # 评估时域 = 53km 全程
+                               # 成本提示：每次完整剖面评估 ≈1 个 49km 评估的机时（实测 ~55 min），可调大以省算力。
+long_eval_steps: 36000         # 评估时域 = 49km 全程
 init_speed_kmh: 80.0
 simcase: official
 ckpt_policy: fleet

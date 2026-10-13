@@ -1,0 +1,1648 @@
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+基于多智能体强化学习的重载列车群组协同
+控制
+宋宗莹1，李烁2，王兴中1，杨迎泽3,*
+1 国家能源集团，中国神华能源股份有限公司，北京100011
+2 长沙理工大学电气与信息工程学院，长沙410114
+3 中南大学计算机学院，长沙410083
+摘要：为了探索提升重载铁路运输系统效率的新方法，本文研究了由多列独立重载列车组成运
+营编组的智能协同控制问题。其核心挑战在于：在严格的安全约束下，于宏观运行层面实现多
+列车的速度同步、间距保持以及整体能效优化。针对该问题的高维、非线性及分布式决策特征，
+本文提出了一种完全数据驱动的多智能体强化学习框架。该框架摒弃了对精确解析模型的依
+赖，将每列车建模为一个智能体，通过与环境的不断试错交互来自主学习协同控制策略。本文
+首先建立了详细的重载列车纵向动力学模型，将其作为智能体交互的高保真仿真环境。此外，
+设计了以多智能体近端策略优化（MAPPO）算法为核心的训练框架，并辅以基于势场的安全
+引导奖励和多目标优化奖励。仿真实验表明，与标准的多智能体近端策略优化基准相比，所提
+出的数据驱动框架在确保零安全违规的前提下，能够显著提高列车组的速度同步精度，并降低
+整体牵引能耗。
+关键词：重载列车；列车组协同控制；数据驱动控制
+中图分类号：U27
+Cooperative Control for Heavy-Haul Train
+Groups Based on Multi-Agent Reinforcement
+Learning
+Zongying Song1, Shuo Li2, Xingzhong Wang1, Yingze Yang3,*
+1 China Shenhua Energy Company Limited, Beijing 100011, China
+2 School of Electrical and Information Engineering, Changsha University of Science &
+Technology, Changsha 410114, China
+Foundations: National Energy Investment Group Key Technology Project (GJNY-22-7), Beijing National Railway Re-
+search and Design Institute of Signal and Communication Technology Project (2300-K1220053)
+Author Introduction: Zongying Song (1985-), male, senior engineer, research interests: railway signaling and train control
+systems;
+Shuo Li (1982-), male, professor, Ph.D. supervisor, research interests: train control and electrical systems;
+Xingzhong Wang (1980-), male, senior engineer, research interests: heavy-haul railway operation organization and scheduling
+optimization;
+Yingze Yang (Corresponding author) (1981-), male, M.S. candidate, research interests: intelligent transportation and data-
+driven modeling.
+- 1 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+3 School of Computer Science and Engineering, Central South University, Changsha 410083,
+China
+Abstract: To explore novel methodologies for enhancing the eﬀiciency of heavy-haul railway
+transport systems, this paper investigates the intelligent cooperative control problem of
+multiple independent heavy-haul trains forming an operational group. The core challenge lies
+in achieving speed synchronization, distance maintenance, and overall energy eﬀiciency
+optimization of multiple trains at the macroscopic operation level under strict safety
+constraints. Addressing the high-dimensionality, nonlinearity, and distributed decision-making
+characteristics of this problem, this paper proposes a fully data-driven multi-agent
+reinforcement learning framework. Abandoning reliance on precise analytical models, each
+train is modeled as an agent that autonomously learns cooperative control strategies through
+continuous trial-and-error interaction with the environment. This paper first establishes a
+detailed longitudinal dynamics model of heavy-haul trains as a high-fidelity simulation
+environment for agent interaction. Furthermore, a training framework is designed centered on
+the Multi-Agent Proximal Policy Optimization algorithm, supplemented by
+potential-field-based safety guidance rewards and multi-objective optimization rewards.
+Simulation experiments demonstrate that compared with the standard Multi-Agent Proximal
+Policy Optimization baseline, the proposed data-driven framework can significantly improve
+the speed synchronization accuracy of the group and reduce overall traction energy
+consumption while ensuring zero safety violations.
+Key words: heavy-haul train; train group cooperative control; data-driven control
+0
+Introduction
+Heavy-haul railway transportation serves as the core carrier within the bulk cargo lo-
+gistics system, where its transportation eﬀiciency is directly correlated with the stability of
+energy and raw material supply chains [1]. To further exploit line capacity and reduce opera-
+tional costs, the operational mode of heavy-haul trains is progressively evolving from traditional
+single-train operations toward Virtual Coupling and automatic driving technologies based on
+Vehicle-to-Vehicle (V2V) communication [2].
+However, a heavy-haul train is intrinsically a
+high-dimensional multi-mass system characterized by significant time delays and strong non-
+linearities[3], subject to constraints imposed by locomotive traction forces, complex nonlinear
+coupler forces, and air braking systems with pronounced hysteresis characteristics [1, 4]. In
+high-density Virtual Coupling scenarios, a fundamental contradiction exists between the re-
+sponse lag of actuators and the demands for high-frequency cooperative control. If control
+strategies fail to adequately account for the aforementioned dynamic constraints, severe safety
+incidents—such as longitudinal impulses, coupler breakage, or even derailment—may easily
+- 2 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+occur [1].
+Faced with these complex dynamic challenges, existing industrial control strategies ex-
+hibit distinct limitations in the cooperative control tasks of heavy-haul train groups. Although
+Proportional-Integral-Derivative (PID) control dominated early single-locomotive control due
+to its structural simplicity[5], its theoretical performance ceiling remains insuﬀicient when sat-
+isfying the requirements of multi-agent cooperation within strongly nonlinear environments [6].
+PID controllers rely on fixed gain parameters tuned for specific operating conditions, lacking the
+adaptive capacity to handle system parameter perturbations[7]; consequently, they struggle to
+cope with dynamic uncertainties introduced by variations in load status, marshaling length, and
+line gradients [6]. More critically, PID is fundamentally a feedback control mechanism based on
+current error, lacking feedforward compensation capabilities for the system’s large time delays.
+For instance, when dealing with signal propagation delays in air braking systems that can last
+tens of seconds, PID control logic fails to effectively suppress longitudinal impulses during the
+braking wave propagation, easily triggering chain collisions and stretching between vehicles,
+which causes coupler stress to exceed safety thresholds [6]. To address multi-variable coupling
+and hard constraint issues, Model Predictive Control (MPC) has become a mainstream research
+focus in academia in recent years. However, in the process of practical engineering translation,
+MPC faces two major challenges: computational complexity and model mismatch [8]. On one
+hand, as an ultra-high-dimensional system, the state space complexity of a heavy-haul train
+grows rapidly with the number of vehicles; a train comprising 200 wagons involves over 400
+state variables. Solving such large-scale, non-convex, and nonlinear optimization problems in
+real-time on computationally constrained onboard embedded platforms is extremely diﬀicult,
+making it hard to meet millisecond-level real-time control requirements [8]. On the other hand,
+the control precision of MPC depends on the accuracy of the internal prediction model. To
+reduce computational load, existing MPC schemes often employ simplified multi-mass models
+or linearize the system, ignoring non-smooth gap characteristics between couplers and com-
+plex fluid dynamic details [8].
+This structural deviation between the simplified model and
+the physical system leads to significant prediction errors during critical condition transitions,
+and in extreme environments, it may even generate erroneous instructions that compromise
+operational safety [8].
+Given the real-time performance and applicability defects of model-based methods, Multi-
+Agent Reinforcement Learning (MARL) offers a novel data-driven paradigm for resolving this
+problem [9]. The spatial distribution and local interaction characteristics of heavy-haul train
+groups naturally align with the “Centralized Training, Decentralized Execution” (CTDE) ar-
+chitecture of MARL. Unlike MPC, which relies on high-precision models, MARL possesses
+model-free characteristics, enabling it to directly extract nonlinear features such as coupler
+gaps and braking hysteresis through interaction with the environment, thereby circumvent-
+- 3 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+ing biases introduced by modeling simplification.
+Furthermore, the CTDE paradigm shifts
+computation-intensive policy optimization to the offline phase, while online control requires
+only lightweight neural network inference. This compresses instruction generation time to the
+millisecond level, significantly enhancing the system’s responsiveness to transient disturbances.
+Despite the theoretical advantages of MARL, its practical deployment remains confronted
+by three primary challenges [10]. First is the issue of safety assurance: classic RL relies on the
+“soft constraints” of reward functions, which cannot mathematically guarantee hard physical
+constraints such as coupler forces. In exploration phases or Out-of-Distribution (OOD) scenar-
+ios, this can easily lead to prohibited actions, violating the “Fail-Safe” criterion of industrial
+control [11].
+Second is the Sim-to-Real gap: existing training environments are often con-
+structed based on simplified dynamics[12], making it diﬀicult to reproduce complex wheel-rail
+contact and time-varying resistance found on real lines, resulting in significant performance
+degradation or instability of policy models in physical environments [10].
+Finally, there is
+the bias in communication environment assumptions: mainstream algorithms often presuppose
+ideal communication, ignoring inevitable delays and packet losses in complex electromagnetic
+environments like mountains or tunnels[12, 13]. Research indicates that cooperative decision-
+making based on outdated information can trigger longitudinal oscillations in train groups,
+severely undermining cooperative stability [14].
+Addressing the aforementioned issues, this paper proposes a cooperative control enhance-
+ment framework for heavy-haul train groups that integrates the mechanism of Artificial Poten-
+tial Fields (APF). The main contributions of this paper are as follows:
+1. The cooperative control problem of heavy-haul train groups is modeled as a Multi-Agent
+Reinforcement Learning task, utilizing the CTDE paradigm to achieve model-free, dis-
+tributed real-time cooperative control without the need for precise analytical models.
+2. Artificial Potential Field theory is introduced to optimize the reward mechanism, re-
+constructing discrete safety constraints such as collision avoidance and coupler breakage
+prevention into continuous, differentiable potential energy penalties, thereby providing
+agents with explicit gradient information for risk avoidance.
+3. A high-fidelity simulation platform containing complex longitudinal dynamic characteris-
+tics is constructed, verifying the effectiveness of the introduced potential field mechanism
+in improving algorithm convergence speed and ensuring operational safety.
+The remainder of this paper is organized as follows: Section 1 elaborates on the system
+modeling of heavy-haul train groups; Section 2 introduces the proposed Multi-Agent Reinforce-
+ment Learning method enhanced by potential fields; Section 3 presents experimental results
+and analysis; and Section 4 concludes the paper.
+- 4 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+1
+System Modeling
+Constructing a high-fidelity simulation interactive environment and a rational group infor-
+mation topology serves as the foundation for researching the cooperative control of heavy-haul
+train groups.
+This chapter aims to establish a system model oriented towards data-driven
+control from two dimensions: physical evolution mechanisms and information interaction ar-
+chitecture. Specifically, by introducing nonlinear coupler characteristics and complex line re-
+sistances, a multi-point mass longitudinal dynamics model is constructed to accurately capture
+the longitudinal impulse and energy transfer processes under long formation conditions. Fur-
+thermore, combined with the actual operation conditions of heavy-haul railways, the commu-
+nication topology of the train group is established, and the local observation space and action
+space of the agents are defined, thereby completing the mapping from physical entities to the
+multi-agent reinforcement learning environment.
+1.1
+Longitudinal Dynamics Model of a Single Heavy-Haul Train
+Distinct from simplified single-point mass models often employed in traditional control
+research, this section establishes a longitudinal dynamics model based on a multi-point mass
+system. This approach allows for the accurate capture of critical heavy-haul characteristics,
+including long formations, large inertia, and complex transmission of coupler forces [15]. Specif-
+ically, a heavy-haul train comprising M vehicles (locomotives and wagons) is discretized into
+a multi-body system connected by nonlinear spring-damper units representing coupler connec-
+tions[16]. This model accurately simulates internal longitudinal impulses and energy transfer
+processes, thereby providing a high-fidelity interactive environment for subsequent data-driven
+algorithms.
+Figure 1: Schematic diagram of force analysis for a single heavy-haul train.
+For the j-th vehicle in the train (j = 1, 2, ..., M), the longitudinal dynamics equation is
+- 5 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+governed by Newton’s second law as follows:
+mj ˙vj = Ft,j −Fb,j −Rj(vj, sj) + Fc,j−1→j −Fc,j→j+1
+(1)
+where mj and vj denote the mass and velocity of the j-th vehicle, respectively; Ft,j represents
+the traction force applied to the locomotive nodes; Fb,j indicates the combined braking force
+considering system delays; Rj(vj, sj) is the total running resistance composed of the basic
+Davis resistance and additional line resistances (gradient and curve); and Fc,j−1→j and Fc,j→j+1
+denote the internal nonlinear coupler forces acting on the vehicle.
+To facilitate high-level decision-making for group cooperation while maintaining simulation
+fidelity, the dynamics of the entire train are encapsulated into an input-output module. We
+model the train as a system that receives a normalized total traction/braking command ui(t)
+from the cooperative controller and outputs the actual running state, including the macroscopic
+speed vi(t) (pilot locomotive or average speed), position si(t), and estimated maximum coupler
+force. Internally, the command ui(t) is distributed to various power units via a vehicle dynamics
+actuator, which accounts for multi-locomotive synchronization and air braking wave propaga-
+tion delays. Consequently, for the agent in the cooperative control layer, the dynamic process
+of a single train is abstracted as a nonlinear mapping relation ˙vi(t) = f(vi(t), ui(t), Θi, ξ(t)),
+where Θi contains fixed parameters such as train mass and formation length, and ξ(t) represents
+time-varying environmental disturbances such as line gradient and aerodynamic drag.
+1.2
+Group Communication Topology and State Space
+The heavy-haul train group consists of N homogeneous or heterogeneous heavy-haul train
+units. To ensure system robustness and minimize communication bandwidth usage, this study
+adopts the Predecessor-Following combined with Global Broadcast communication topology,
+which is widely recognized in engineering practice for its maturity and reliability [17]. Within
+this topology, the i-th train (i = 2, . . . , N) acquires real-time running state information of
+its immediate predecessor i −1 via Vehicle-to-Vehicle (V2V) communication links [18], while
+simultaneously receiving the global reference command vref(t) from the ground dispatch center
+via the Train-to-Ground wireless network. As the group leader, the first train (i = 1), having
+no physical predecessor, makes decisions primarily based on global reference commands and
+line speed limit information, serving as the benchmark to guide the subsequent trains.
+Under this topology, the local observation space ot
+i of the i-th agent at time t is defined as
+a high-dimensional state vector:
+ot
+i = [vi(t),
+ai(t),
+∆vi,i−1(t),
+∆si,i−1(t),
+ev,i(t),
+ϕ(si(t))]
+(2)
+where vi(t) and ai(t) denote the real-time velocity and acceleration of the ego train, respectively;
+∆vi,i−1(t) = vi−1(t) −vi(t) represents the relative velocity with respect to the preceding train;
+- 6 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+∆si,i−1(t) = si−1(t)−si(t)−Li−1 denotes the net spacing, with Li−1 being the formation length
+of the preceding train; ev,i(t) = vref(t) −vi(t) indicates the tracking error relative to the global
+reference speed; and ϕ(si(t)) is the vectorized encoding of line environment features, including
+gradient, curve radius, and speed limits at position si(t).
+The action ut
+i is defined as a continuous scalar representing the normalized traction or
+braking control command within the range [−1, 1]. Specifically, positive values (ut
+i ∈(0, 1])
+map to the traction throttle opening, corresponding to the application of locomotive traction
+force; conversely, negative values (ut
+i ∈[−1, 0]) map to the braking level of air or dynamic
+braking systems. This continuous design enables the agent to generate fine-grained control
+outputs, thereby effectively mitigating longitudinal impulses associated with discrete notch
+switching.
+2
+Data-Driven Multi-Agent Reinforcement Learning
+Framework
+Addressing the inherent strong nonlinear coupling and multi-objective conflicts in the coop-
+erative control of heavy-haul train groups, traditional control methods based on analytical mod-
+els often fail to balance precision [19], real-time performance, and generalization capabilities.
+Therefore, this chapter constructs a fully data-driven MARL control framework, transforming
+the cooperative cruising problem into a sequential decision-making process within a complex
+dynamic environment. This framework is centered on the MAPPO algorithm and adopts a
+CTDE architecture to adapt to actual train communication constraints. By designing a com-
+posite reward mechanism that integrates potential field safety guidance and energy eﬀiciency
+optimization, it solves the exploration dilemma under sparse rewards. Furthermore, relying
+on a high-fidelity simulation environment for closed-loop iteration, the framework achieves
+autonomous evolution and robustness improvement of cooperative strategies.
+2.1
+Fundamentals of the MAPPO Algorithm
+Given the characteristics of continuous action spaces, high state dimensions, and dynamic
+environmental changes in heavy-haul train group cooperative control tasks, this paper selects
+the MAPPO algorithm [20, 21], which has demonstrated superior performance and robustness
+in multi-agent cooperative tasks. The framework adopts a CTDE architecture, aiming to solve
+the non-stationarity problem caused by the simultaneous evolution of agent strategies in multi-
+agent environments, while simultaneously satisfying the requirements of actual train operations
+for distributed real-time decision-making.
+- 7 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+2.1.1
+Algorithm Principles
+Under this architecture, each heavy-haul train is treated as an independent agent, and the
+system comprises two core neural network components working in tandem. The Distributed
+Execution Policy Network, denoted as πθi, operates during the inference or actual operation
+phase.
+It receives only the agent’s local observation vector ot
+i and maps this input to the
+probability distribution parameters of the action via a Multi-Layer Perceptron. Subsequently,
+it samples to obtain the continuous traction or braking control command ut
+i.
+This design
+ensures that the train can independently complete cooperative driving tasks relying solely on
+Vehicle-to-Vehicle communication and local perception.
+Conversely, the Centralized Training Value Network, denoted as Vϕ, is introduced during
+the training phase to assist the Actor in learning the global optimal policy. This network has
+access to global state information st, including observation information of all trains, global
+environmental parameters, and unobserved hidden states. The Critic network calculates the
+Generalized Advantage Estimation by evaluating the value of the current joint state, thereby
+providing low-variance guidance signals for the gradient updates of each Actor network. No-
+tably, after training is completed, the Critic network is detached and does not participate in
+online control.
+2.1.2
+Algorithm Optimization Objectives
+The core of the MAPPO algorithm lies in guaranteeing the monotonic improvement of
+training by limiting the step size of policy updates. For the policy network, its optimization
+objective is to maximize an objective function with a Clipped term to avoid performance collapse
+caused by excessive policy update magnitudes:
+LCLIP (θ) = ˆEt
+[
+min
+(
+ρt(θ) ˆAt, clip(ρt(θ), 1 −ϵ, 1 + ϵ) ˆAt
+)
++ σS[πθi](ot
+i)
+]
+(3)
+where ρt(θ) represents the probability ratio of the new strategy to the old strategy, and ϵ
+serves as the clipping hyperparameter used to constrain this probability ratio within the interval
+[1 −ϵ, 1 + ϵ]. The term ˆAt denotes the GAE function, measuring the advantage degree of the
+current action relative to the average level. Additionally, S[πθi] is the policy entropy term with
+the coeﬀicient σ, which regulates the balance between exploration and exploitation to prevent
+premature convergence to local optima. The value network Vϕ is updated by minimizing the
+Mean Squared Error between the predicted value and the real return:
+LV F (ϕ) = ˆEt
+[(
+Vϕ(st) −ˆRt
+)2]
+(4)
+where ˆRt is the discounted actual cumulative return. Through the alternating iterative
+updates of the Actor and Critic, the heavy-haul train group can gradually learn eﬀicient coop-
+- 8 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+erative strategies that satisfy safety constraints and optimize energy eﬀiciency under complex
+line conditions.
+2.2
+Reward Function Design
+In reinforcement learning frameworks that do not rely on precise analytical models, the
+design of the reward function dictates the direction of agent policy iteration and the perfor-
+mance boundaries of final convergence. Addressing the multi-objective optimization challenges
+faced in the cooperative control of heavy-haul train, specifically the need to simultaneously
+achieve high-precision speed tracking, compact formation maintenance, and minimal energy
+consumption under the premise of strictly guaranteeing operational safety, a single reward sig-
+nal is insuﬀicient. Therefore, this paper designs a multi-dimensional composite reward function
+mechanism, transforming sparse terminal task objectives into dense single-step guidance sig-
+nals. The total reward rt
+i for agent i at time t is defined as the weighted sum of three sub-reward
+terms: cooperative tracking, safety potential field guidance, and operational energy eﬀiciency.
+2.2.1
+Cooperative Tracking Reward
+The cooperative tracking reward aims to guide each heavy-haul train agent to strictly
+follow global dispatch commands at the macroscopic level. This reward term focuses not only
+on the punctuality of individual trains but also emphasizes the relative state stability among
+the train group, thereby suppressing the longitudinal multi-point mass oscillation effects caused
+by the long formation of heavy-haul trains [19]. The specific formal definition is as follows:
+rt
+i,track = −
+[
+α1(vt
+i −vt
+ref)2 + α2(dt
+i −ddesired)2 + α3(vt
+i −vt
+i−1)2]
+(5)
+where the first term (vt
+i −vt
+ref)2 represents the speed tracking error penalty, guiding the
+train to closely follow the global reference speed vt
+ref to ensure adherence to the schedule and
+compliance with line speed limits.
+The second term (dt
+i −ddesired)2 denotes the inter-train
+distance maintenance error penalty, where dt
+i is the actual spacing and ddesired is the preset
+ideal economic cruising distance. This distance is typically set as a fixed or dynamic value
+slightly larger than the minimum safe braking distance to balance line capacity and operational
+risks. The third term (vt
+i −vt
+i−1)2 is the relative velocity error penalty, introducing a damping
+mechanism that encourages the ego train to maintain a relatively static state with respect to
+the preceding train. This is critical for suppressing coupler force impacts caused by frequent
+acceleration and deceleration. Finally, α1, α2, α3 are positive weight coeﬀicients used to adjust
+the priority among speed tracking precision, spacing maintenance capability, and formation
+stability.
+- 9 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+2.2.2
+Safety Guidance Reward
+During the initial phase of reinforcement learning training, the random exploration of
+agents is highly prone to violating hard safety constraints. Relying solely on simple episode
+termination or fixed penalties leads to sparse rewards, making it diﬀicult for agents to derive
+effective collision avoidance strategies. To address this, inspired by Artificial Potential Field
+methods [22, 23], this paper constructs a repulsive potential function based on relative distance.
+This transforms discrete safety constraints into continuously differentiable penalty signals. The
+safety potential function U(dt
+i) regarding the relative net spacing dt
+i is defined as:
+U(dt
+i) =
+
+
+
+
+
+
+
+
+
+1
+2η
+(
+1
+dt
+i−dlimit −
+1
+dbarrier−dlimit
+)2
+,
+dlimit < dt
+i < dbarrier
+0,
+dt
+i ≥dbarrier
+Mpenalty,
+dt
+i ≤dlimit
+(6)
+Algorithm 1 MAPPO-based Cooperative Control Training Process
+1: Initialize Actor parameters θi, Critic parameters ϕ, and Replay Buffer D.
+2: for episode = 1 to Mmax do
+3:
+Reset environment and obtain initial observation o0.
+4:
+for step t = 1 to Tepisode do
+5:
+for agent i = 1 to N do
+6:
+Generate action distribution πθi(·|ot
+i) and sample action ut
+i.
+7:
+end for
+8:
+Execute joint action ut = [ut
+1, . . . , ut
+N] in simulation environment.
+9:
+Observe next state st+1, local observations ot+1, and reward rt.
+10:
+Store transition (ot, ut, rt, ot+1) in Buffer D.
+11:
+end for
+12:
+if Buffer size > Bmin then
+13:
+for epoch = 1 to Kupdate do
+14:
+Sample mini-batch of trajectories from D.
+15:
+Calculate Generalized Advantage Estimation (GAE) ˆA.
+16:
+Update Critic ϕ by minimizing LV F (ϕ) (Eq. 4).
+17:
+Update Actor θ by maximizing LCLIP (θ) (Eq. 3).
+18:
+end for
+19:
+Clear Buffer D (on-policy).
+20:
+end if
+21:
+Decay exploration noise variance.
+22: end for
+- 10 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+where dlimit represents the physically impassable absolute danger boundary, determined by
+the relative braking distance model to ensure collision avoidance even under extreme braking
+conditions. As spacing approaches this boundary, the potential value tends towards infinity
+(truncated to Mpenalty), simulating a rigid repulsive force. dbarrier serves as the trigger threshold
+for the safety potential field, creating a buffer warning zone. When dt
+i ≥dbarrier, the train is in
+the absolute safety zone with zero potential, allowing the agent to focus on other objectives.
+The coeﬀicient η determines the steepness of the potential field gradient. This design provides
+a smooth yet drastically increasing gradient signal within the buffer zone, enabling agents to
+perceive impending risks and apply braking in advance, significantly improving exploration
+eﬀiciency. The final safety guidance reward is:
+rt
+i,safety = −U(dt
+i)
+(7)
+2.2.3
+Energy Eﬀiciency and Running Smoothness Reward
+Given the “heavy loads and long formations” characteristic of heavy-haul railways, it is
+essential to incorporate running economy and smoothness into optimization objectives [24, 25].
+The reward function rt
+i,econ is designed to suppress oscillations in control inputs and penalize
+high energy consumption:
+rt
+i,econ = −
+[
+α4E(ut
+i, vt
+i) + α5
+(at
+i −at−1
+i
+∆t
+)2]
+(8)
+where the Energy Eﬀiciency Optimization Term E(ut
+i, vt
+i), typically defined as the square
+of the normalized control force or instantaneous power, penalizes the magnitude of control
+actions.
+This effectively suppresses “sawtooth” driving behaviors and encourages coasting.
+The Smoothness and Jerk Constraint Term characterizes the rate of change of acceleration.
+Since jerk is directly correlated with the rate of change of coupler forces in multi-point mass
+models, explicitly penalizing it forces the agent to learn smooth control curves, ensuring running
+smoothness and protecting vehicle connecting devices. α4 and α5 are the corresponding weight
+coeﬀicients.
+2.3
+Training Process
+Based on the constructed simulation environment and the MAPPO algorithm, the training
+process is conducted within an episodic iterative framework. The detailed execution flow is
+presented in Algorithm 1.
+3
+Simulation Experiments and Results Analysis
+To validate the effectiveness and robustness of the proposed MAPPO-based cooperative
+control framework for heavy-haul train groups, this section details the construction of a high-
+- 11 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+fidelity simulation platform. The experiments are designed to simulate a scenario involving
+three heavy-haul trains under complex operating conditions, including starting, acceleration,
+cruising, and deceleration.
+The primary objective is to verify the algorithm’s capability to
+achieve precise speed tracking and safe distance maintenance while strictly adhering to physical
+constraints such as coupler forces.
+3.1
+Experimental Design
+3.1.1
+Simulation Setup and Control Objectives
+Time(s)
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+Time(s)
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Velocity(m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Velocity(m/s)
+Hold(0-10s)
+Accel
+Cruise
+Decel
+Low Cruise
+Reference 
+Velocity
+Reference 
+Velocity
+Time(s)
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Velocity(m/s)
+Hold(0-10s)
+Accel
+Cruise
+Decel
+Low Cruise
+Reference 
+Velocity
+Figure 2: Reference Velocity Profile Design.
+The experimental scenario simulates a cooperative formation consisting of N = 3 homoge-
+neous heavy-haul trains, denoted as Train 1, Train 2, and Train 3. Unlike simplified single-mass
+models, this study adopts the multi-point mass longitudinal dynamics model established in Sec-
+tion 1 to accurately capture internal force transmission. Specifically, each train unit consists
+of one locomotive and 19 heavy-duty wagons. The mass of the locomotive is 150, 000 kg, and
+each wagon weighs 80, 000 kg, resulting in a total single train mass of 1, 670 t. Regarding dy-
+namics, the connections between vehicles are modeled using nonlinear spring-damper elements
+to simulate hysteresis effects and slack characteristics.
+To ensure formation stability and decouple error propagation, a Virtual Leader strategy
+within a Predecessor-Following topology is employed. Train 1 acts as the leader and tracks
+a Virtual Reference Point moving strictly according to the global schedule and optimal speed
+profile vref(t) to prevent oscillation amplification at the head of the formation. Meanwhile,
+Train 2 and Train 3 operate in follower mode, tracking the state of their immediate predecessor
+via V2V communication while simultaneously referencing the global guidance.
+The simulation covers a complete operation cycle to test the dynamic adaptability of the
+MARL agents, encompassing starting, acceleration, cruising, and braking phases. Throughout
+these phases, the control objectives are set to minimize the speed tracking error and distance
+error while strictly ensuring that the maximum internal coupler force remains within the safety
+- 12 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+threshold of ±1000 kN and the inter-train distance never breaches the safety wall defined in
+Equation (9).
+3.1.2
+Reference Velocity Profile Design
+To comprehensively evaluate the dynamic response and cooperative performance of the
+heavy-haul train group under varying operating conditions, a specific reference velocity profile
+vref(t) is designed for the Virtual Leader as shown in Figure 2. The operation cycle is divided
+into five distinct phases to rigorously test the agents’ ability to handle traction, braking, and
+state transitions. The specific time intervals, velocity targets, and operational objectives for
+each phase are detailed in Table 1.
+Table 1: Description of Simulation Phases.
+Phase
+Time (s)
+Target Velocity
+Hold
+0 −10
+0 m/s
+Acceleration
+10 −110
+Ramp to 19.5 m/s
+High-Speed Cruise
+110 −310
+Constant 19.5 m/s
+Deceleration
+310 −410
+Ramp to 11.1 m/s
+Low-Speed Cruise
+> 410
+Constant 11.1 m/s
+3.2
+Results Analysis
+Based on the high-fidelity simulation platform and the reference velocity profile defined
+in Section 4.1, this section presents a comprehensive comparative analysis of the experimental
+results. To explicitly verify the effectiveness of the safety guidance mechanism proposed in this
+paper, the APF-MAPPO (MAPPO integrated with Artificial Potential Field) framework is
+benchmarked against the baseline Standard MAPPO algorithm. The comparative evaluation is
+conducted across four critical dimensions: training convergence, tracking precision, operational
+safety.
+3.2.1
+Training Convergence Analysis
+The evolution of the average episodic reward during the training process of the proposed
+APF-MAPPO framework is illustrated in Figure 3. The light grey curve represents the raw
+reward fluctuation for each episode, while the solid blue curve depicts the moving average with
+a window size of N = 50, providing a clearer view of the learning trend.
+As shown in Figure 3, the training process over 2,000 episodes evolves through three identi-
+fiable phases. Initially, from episode 0 to 500, the curve exhibits low rewards hovering between
+−8000 and −6000 with high variance, attributed to frequent safety violations during random ex-
+ploration. A rapid learning phase follows between episodes 500 and 1200, where a sharp upward
+trend emerges as agents learn to evade potential field penalties and optimize control strategies.
+- 13 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+Episode
+0
+250
+500
+1000
+750
+1250
+1500
+1750
+2000
+0
+250
+500
+1000
+750
+1250
+1500
+1750
+2000
+Episode
+0
+250
+500
+1000
+750
+1250
+1500
+1750
+2000
+Moving Avg
+Raw Reward
+Raw Reward
+Moving Avg
+Raw Reward
+Average Reward
+0
+-4000
+-2000
+-6000
+-8000
+-10000
+-12000
+0
+-4000
+-2000
+-6000
+-8000
+-10000
+-12000
+Average Reward
+0
+-4000
+-2000
+-6000
+-8000
+-10000
+-12000
+Episode
+0
+250
+500
+1000
+750
+1250
+1500
+1750
+2000
+Moving Avg
+Raw Reward
+Average Reward
+0
+-4000
+-2000
+-6000
+-8000
+-10000
+-12000
+Figure 3: Training Convergence Analysis.
+Finally, beyond episode 1200, the reward stabilizes near zero with minimal variance, indicating
+a successful transition from stochastic exploration to deterministic exploitation. This conver-
+gence confirms that the proposed multi-objective reward function provides effective gradient
+signals, enabling the system to locate the global optimum eﬀiciently.
+3.2.2
+Tracking Precision and Formation Control Analysis
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+Time(s)
+(a)
+Time(s)
+(a)
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+Time(s)
+(b)
+Time(s)
+(b)
+Train1
+Train2
+Train3
+Target
+Train1
+Train2
+Train3
+Target
+Train1
+Train2
+Train3
+Target
+Train1
+Train2
+Train3
+Target
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+Time(s)
+(a)
+0
+100
+200
+400
+300
+500
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed(m/s)
+Time(s)
+(b)
+Train1
+Train2
+Train3
+Target
+Train1
+Train2
+Train3
+Target
+Figure 4: Tracking Precision and Speed Synchronization.
+- 14 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+This section evaluates the cooperative performance from three perspectives: velocity track-
+ing, spatial-temporal consistency, and distance maintenance.
+First, to evaluate the dynamic response capabilities, Figure 4 presents the velocity tracking
+curves. As shown in Figure 4(a), the Standard MAPPO strategy exhibits significant limitations,
+specifically showing substantial overshoot reaching nearly 21 m/s during the acceleration-to-
+cruising transition and significant hysteresis during deceleration. The wide spatial distribution
+between the curves indicates poor synchronization. In contrast, the proposed APF-MAPPO
+method in Figure 4(b) demonstrates superior fidelity. The velocity curves tightly adhere to the
+reference trajectory, eliminating overshoot and responding immediately to braking demands.
+The high clustering of curves proves that the Artificial Potential Field acts as a cohesive force
+for synchronization.
+Travel distance (km)
+(a)
+Travel distance (km)
+(a)
+0
+1
+2
+4
+3
+5
+6
+7
+0
+1
+2
+4
+3
+5
+6
+7
+Travel distance (km)
+(a)
+0
+1
+2
+4
+3
+5
+6
+7
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+Travel distance (km)
+(a)
+0
+1
+2
+4
+3
+5
+6
+7
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+Travel distance (km)
+(b)
+Travel distance (km)
+(b)
+0
+1
+2
+4
+3
+5
+6
+7
+0
+1
+2
+4
+3
+5
+6
+7
+Travel distance (km)
+(b)
+0
+1
+2
+4
+3
+5
+6
+7
+20.0
+15.0
+10.0
+17.5
+12.5
+7.5
+5
+2.5
+0
+Speed (m/s)
+Travel distance (km)
+(b)
+0
+1
+2
+4
+3
+5
+6
+7
+Train1
+Train2
+Train3
+Train1
+Train2
+Train3
+Train1
+Train2
+Train3
+Train1
+Train2
+Train3
+Figure 5: Spatial-Temporal Consistency Analysis.
+To further visualize the formation’s spatial distribution, Figure 5 plots the Velocity-
+Position (v −s) phase plane. The baseline strategy in Figure 5(a) shows instability, with fluc-
+tuating horizontal distances between curves indicative of the “accordion effect.” Conversely,
+the APF-MAPPO method shown in Figure 5(b) demonstrates excellent spatial consistency.
+The trajectories of followers are almost perfect geometric translations of the leader’s trajec-
+tory, maintaining a constant horizontal spacing of approximately 2 km and confirming strictly
+- 15 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+maintained cruising speeds.
+Regarding formation maintenance, Figure 6 illustrates the time-varying spacing error. The
+baseline strategy in Figure 6(a) reveals a severe inability to maintain rigidity, with errors
+accumulating to a peak of 310 m and failing to converge. However, the APF-enhanced strategy
+shown in Figure 6(b) is significantly more effective. Although an initial deviation occurs during
+acceleration, the error quickly converges to a stable value of approximately 130 m, representing
+a 58% reduction compared to the baseline. Crucially, the error curves become flat horizontal
+lines during cruising, indicating the potential field locks the trains into a fixed relative position.
+Time(s)
+(a)
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+Time(s)
+(a)
+0
+100
+200
+400
+300
+500
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+300
+200
+250
+150
+100
+50
+0
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Time(s)
+(a)
+0
+100
+200
+400
+300
+500
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Train2
+Train3
+Train2
+Train3
+Time(s)
+(a)
+0
+100
+200
+400
+300
+500
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Train2
+Train3
+Time(s)
+(b)
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+Time(s)
+(b)
+0
+100
+200
+400
+300
+500
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+300
+200
+250
+150
+100
+50
+0
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Time(s)
+(b)
+0
+100
+200
+400
+300
+500
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Train2
+Train3
+Train2
+Train3
+Time(s)
+(b)
+0
+100
+200
+400
+300
+500
+Distance error (m)
+300
+200
+250
+150
+100
+50
+0
+Train2
+Train3
+Figure 6: Formation Maintenance and Distance Error.
+3.2.3
+Operational Safety Analysis
+Internal longitudinal coupler force serves as a decisive metric for safety. Figure 7 compares
+the simulated coupler forces for the two control strategies.
+As illustrated in Figure 7(a), the Standard MAPPO strategy exhibits noticeable instabil-
+ity, particularly during the initial starting phase where a sharp oscillation occurs. The force
+abruptly dips to a compression value of approximately −250 kN before surging to tension, cre-
+ating a “whiplash” effect that indicates a failure to synchronize acceleration instantly. In com-
+parison, the proposed APF-MAPPO method shown in Figure 7(b) demonstrates superior ride
+- 16 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+comfort. The coupler force profile is remarkably smooth, rising gradually from zero to a peak
+traction of approximately 300 kN without negative compression spikes during startup. This
+indicates that the Artificial Potential Field effectively acts as a virtual damper. By eliminat-
+ing high-frequency oscillations and sudden jerks, the strategy significantly reduces mechanical
+fatigue and ensures the maximum coupler force remains well within safe limits throughout the
+operation.
+Maximum Coupling Force(N)
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+Maximum Coupling Force(N)
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+(b)
+Time(s)
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+Time(s)
+0
+100
+200
+400
+300
+500
+(b)
+Time(s)
+0
+100
+200
+400
+300
+500
+1e6
+Maximum Coupling Force(N)
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+(b)
+Time(s)
+0
+100
+200
+400
+300
+500
+1e6
+Maximum Coupling Force(N)
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+Maximum Coupling Force(N)
+1.5
+0.5
+1.0
+0.0
+-0.5
+-1.0
+-1.5
+(a)
+Time(s)
+0
+100
+200
+400
+300
+500
+0
+100
+200
+400
+300
+500
+Time(s)
+0
+100
+200
+400
+300
+500
+(a)
+Time(s)
+0
+100
+200
+400
+300
+500
+1e6
+Train1
+Train2
+Train3
+Train1
+Train2
+Train3
+Train1
+Train2
+Train3
+Train1
+Train2
+Train3
+Figure 7: Coupler Force and Ride Comfort.
+4
+Conclusion
+This paper deeply investigated the topic of heavy-haul train group cooperative control,
+which holds significant engineering importance.
+Addressing the dependence of traditional
+model-driven methods on precise mathematical models and their limitations, this paper pio-
+neered and implemented a fully data-driven multi-agent reinforcement learning solution frame-
+work. The main work and conclusions include:
+1. Established a highly engineered heavy-haul train multi-point mass longitudinal dynamics
+simulation model, providing a realistic training and testing environment for data-driven
+algorithms.
+- 17 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+2. Designed a purely data-driven learning framework centered on MAPPO, integrating coop-
+erative tracking, potential field safety guidance, and multi-objective economic optimiza-
+tion.
+3. Through systematic simulation experiments and comparative analysis, verified that the
+comprehensive performance of the proposed framework in ensuring operational safety,
+improving speed synchronization accuracy, reducing overall energy consumption, and im-
+proving running smoothness is significantly superior to traditional methods, and demon-
+strates excellent adaptive capabilities and robustness.
+This study successfully demonstrates the immense potential of data-driven methods in com-
+plex industrial cooperative control problems, providing a new technical path for the intelligent
+upgrade of heavy-haul railway operations.
+References
+[1] Bo Zhang, Guoyun Liu, Shun Guo, Zhaorui Chang, Siqi Hu, Xingwen Wu, and Wubin Cai.
+Research on longitudinal dynamics of 20,000-ton heavy haul trains considering braking
+characteristics. Mathematics, 14(1):158, 2025.
+[2] Xiaoquan Yu, Wei Li, Shuo Li, Yingze Yang, and Jun Peng. Cooperative reference ve-
+locity regulation control for virtual coupling systems of heavy-haul trains. Sustainability,
+15(18):13425, 2023.
+[3] Wanming Zhai, Sebastian Stichel, and Liang Ling. Train–track coupled dynamics problems
+in heavy-haul rail transportation. Vehicle System Dynamics, pages 1–54, 2025.
+[4] Kaizhong Liu, Zhiwei Wang, Yao Luo, Mingtao Zhang, Pengfei Liu, and Weihua Zhang.
+Heavy-haul train braking simulation with fluid dynamics-based air braking system. IEEE
+Transactions on Intelligent Transportation Systems, 2025.
+[5] Yongfeng Liu, Xueliang Wu, Pingle Ma, and Xuancheng Yuan. Optimization and validation
+of traction performance for an eight-axle heavy-haul locomotive during gradient starting.
+Scientific Reports, 2025.
+[6] J. Luo et al. Comparison of pid and adaptive algorithms in heavy-duty control systems.
+Energies, 2025. Discusses PID limitations in dynamic environments.
+[7] Stephen Bassi Joseph, Emmanuel Gbenga Dada, Afeez Abidemi, David Opeoluwa Oye-
+wola, and Ban Mohammed Khammas. Metaheuristic algorithms for pid controller param-
+eters tuning: Review, approaches and open problems. Heliyon, 8(5), 2022.
+- 18 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+[8] Lijun Zhang, Xiangtao Zhuan, and Xiaohua Xia. Optimal operation of heavy haul trains
+using model predictive control methodology. In Proceedings of 2011 IEEE International
+Conference on Service Operations, Logistics and Informatics, pages 402–407. IEEE, 2011.
+[9] RexCharles Donatus, Kumater Ter, Ore-Ofe Ajayi, and Daniel Udekwe. Multi-agent rein-
+forcement learning in intelligent transportation systems: A comprehensive survey. arXiv
+preprint arXiv:2508.20315, 2025.
+[10] Haoyu Dong, Zhengmao He, Yang Li, Zhibin Li, Xinyu Yi, and Zhe Zhao. Closing the
+reality gap: Zero-shot sim-to-real deployment for dexterous force-based grasping and ma-
+nipulation. arXiv preprint arXiv:2601.02778, 2026.
+[11] Akifumi Wachi, Xun Shen, and Yanan Sui. A survey of constraint formulations in safe
+reinforcement learning. arXiv preprint arXiv:2402.02025, 2024.
+[12] Scotty D Craig, Kevin Gary, Jamie C Gorman, Vipin Verma, and Robert LiKamWa. A
+synthetic training environment for assessing changes in team dynamics with the generalized
+intelligent framework for tutoring.
+In Generalized Intelligent Framework for Tutoring
+(GIFT) Users Symposium (GIFTSym12), page 97, 2024.
+[13] Sicong Jiang, Seongjin Choi, and Lijun Sun. Communication-aware reinforcement learning
+for cooperative adaptive cruise control. arXiv preprint arXiv:2407.08964, 2024.
+[14] Guo Wang, Tao Yang, Zhe Dong, Guoyu Du, Yitao Yang, and Yalei Geng. Research on
+the development of heavy-haul railway wireless communication systems. In International
+Conference on Information Processing and Network Provisioning, pages 292–307. Springer,
+2024.
+[15] Xiaodong Zhao, Tao Tang, Di Wang, and Shuai Su. Distributed fixed-time formation con-
+trol for heavy haul trains based on sliding mode control. Physica A: Statistical Mechanics
+and its Applications, 633:129428, 2024.
+[16] Leiting Wang, Yang Jin, Wangxiang Li, and Chenyang Tang. Analysis of the nonlinear dy-
+namic behavior of longitudinal systems in heavy-haul trains. Electronic Research Archive,
+33(2), 2025.
+[17] Miguel A Vaquero-Serrano and Jesus Felez. A control algorithm for a coordinated stop
+of a convoy at stations in a virtual coupling system based on a predecessor-leader follow-
+ing communication topology. In 2023 IEEE 26th International Conference on Intelligent
+Transportation Systems (ITSC), pages 1152–1157. IEEE, 2023.
+[18] Jesus Felez and Miguel Angel Vaquero-Serrano. Virtual coupling in railways: A compre-
+hensive review. Machines, 11(5):521, 2023.
+- 19 -
+10.61951/SciencepaperOnline.202605.0114
+
+˖ڍመ੾᝶஠ڙጲ
+http://www.paper.edu.cn
+[19] Xueying Fang, Yuxuan Cai, Zhaosheng Qiu, Yao Peng, and Xiaoyong Zhang. Cooperative
+tracking control combining with reinforcement learning for heavy-haul trains.
+In 2025
+IEEE International Symposium on Parallel and Distributed Processing with Applications
+(ISPA), pages 1137–1144. IEEE, 2025.
+[20] Chao Yu, Akash Velu, Eugene Vinitsky, Jiaxuan Gao, Yu Wang, Alexandre Bayen, and
+Yi Wu. The surprising effectiveness of ppo in cooperative multi-agent games. In Advances
+in Neural Information Processing Systems, volume 35, pages 24611–24624, 2022.
+[21] Yicheng Guo, Jiaqi Liu, Rongjie Yu, Peng Hang, and Jian Sun. Mappo-pis: A multi-
+agent proximal policy optimization method with prior intent sharing for cavs’cooperative
+decision-making. In European Conference on Computer Vision, pages 244–263. Springer,
+2024.
+[22] Yuebin Zhou, Yunling Yue, Bolun Yan, Linkun Li, Jinsheng Xiao, and Yuan Yao. Col-
+laborative target tracking algorithm for multi-agent based on mappo and bctd. Drones,
+9(8):521, 2025.
+[23] Luoyin Zhao, Zheping Yan, Yuqing Wang, and Raye Chen-Hua Yeow. Formation control of
+multi-agent system with local interaction and artificial potential field. Advanced Robotics
+Research, page 202500055, 2025.
+[24] Shuai Su, Xiaoyu Wang, Tao Tang, Guopeng Wang, and Yuan Cao. Energy-eﬀicient opera-
+tion by cooperative control among trains: A multi-agent reinforcement learning approach.
+Control Engineering Practice, 116:104901, 2021.
+[25] Jia Liu, Yuemiao Wang, Yirong Liu, Xiaoyu Li, Fuwang Chen, and Shaofeng Lu. Energy-
+eﬀicient train control based on energy consumption estimation model and deep reinforce-
+ment learning. Electronics, 14(24):4939, 2025.
+- 20 -
+10.61951/SciencepaperOnline.202605.0114

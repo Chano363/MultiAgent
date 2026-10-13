@@ -24,7 +24,7 @@ env_type: fleet
 env_cfg:
   num_trains: 3
   consist_preset: 10kt_1plus1
-  grade_profile: shuozhou_real_53km_slice16k   # ⚠️ 沙盒剖面（≈15.7km 切片）
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km_slice16k   # ⚠️ 沙盒剖面（≈16.0km 切片）
   v_max: 22.222
   v_min: 11.111
   target_gap: 100.0

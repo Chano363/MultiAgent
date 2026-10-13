@@ -403,8 +403,8 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', type=int, default=200)
     parser.add_argument('--num_trains', type=int, default=3)
     parser.add_argument('--preset', type=str, default='10kt_1plus0')
-    parser.add_argument('--grade', type=str, default='shuozhou_real_53km',
-                        help='坡度剖面（默认朔黄完整真实纵断面 53.2km，循环制动）')
+    parser.add_argument('--grade', type=str, default='shuozhou_ningwuxi_beidaniu_49km',
+                        help='坡度剖面（默认朔黄宁武西→北大牛真实纵断面 49.6km，循环制动）')
     parser.add_argument('--target_speed', type=float, default=None,
                         help='巡航参考速度（默认取限速区间中值）')
     parser.add_argument('--target_gap', type=float, default=100.0)

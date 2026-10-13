@@ -647,3 +647,76 @@ owner: Owner
 - **验证**：装载缓释曲线对照（分支分离 772.4 vs 文献 772.5 kN；迟滞环 61894 vs 62091 kN·mm = **1.00×**，最大偏差 加载 20.9/卸载 7.9 kN）；容嘉欣图8/图9 开环对照重跑（归档 `rong2025_openloop_20261012_001654`）；全量 `pytest tests/ -q` 除既有 `outputs/deprecated/results_mpc_baseline/` 未登记外 **0 失败**。
 - **影响与待办**：**旧 checkpoint 在新物理下数值不可直接引用**（两侧物理同源铁律），重评另案（用户已同意"随后"）；S4 主表"缓坡不超限"的 claim 措辞需按 1300 kN 新口径复核（实车 1000 kN 含液体缓冲器因素，仿真器纯 MT-2 摩擦缓冲器）。
 - **相关**：`DIAGNOSTICS_2026-10.md`「诊断-2026-10-11-外部反馈两问」「修复-2026-10-12-装载缓释曲线」；ADR-011（MT-2 统一，不变）；ADR-018（断面力口径，不变）；`REFERENCE_INDEX.md` 容嘉欣2025 条目 + `docs/refs.bib` `rong2025_heavyhaul_dynamics`；产物 `outputs/sim_validation/figures/mt2_coupler/`、`outputs/sim_validation/phys_validation/mt2_load_release_cmp_20261012_001039/`。
+
+## ADR-032 立论重构：废止"免重辨识成本"claim，改押"编队上下文协同增益"；主表四行（含 NMPC） - 2026-10-12
+
+- **状态**：决策 + 已落地（`RESEARCH_POSITIONING.md` §1.6 覆盖式修订；`AGENTS.md` / `rules/EXECUTION_RULES.md` 免重辨识节 / `knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md` / `REPRODUCIBILITY.md` 指针同步；`tasks.md` #9 关闭）
+- **背景（grill-me 拷打会话，2026-10-12，用户亲自处决旧 claim）**：
+  1. **成本差不可量化**：标定成本"人天清单表"无可靠可引出处；且**坡度图纸天然先于线路运营存在**（不存在"先通车再补测坡度"），同门指出 MPC 本无"缺坡度数据"问题——免重辨识的事实前提不成立；
+  2. **叙事不算学术贡献**：省工程标定功夫是工程收益，不构成 research claim；
+  3. ADR-016 删除 Regime B 后，claim 失去"MPC 不重辨识失配"这一（本就）不占篇幅的支撑，仅剩的成本叙事也塌了。
+- **决策**：
+  1. **废止** ADR-014/ADR-016 的"免重辨识成本"主 claim，连带废止 §1.6「标定成本量化口径」口径 1–4（口径 4 本就"不做"）。
+  2. **新主 claim（M1，唯一必做）= 编队上下文协同增益**：面向长大下坡多列重载列车群组，**以编队为上下文**的机车级 MARL 协同调制，相比**列车独立决策**（编队上下文遮蔽消融组，新增训练）与 **D-Rule**，显著改善列距误差（spacing error）与速度带一致性，车钩力 ≤1000kN 落地率不劣化。
+  3. **主表四行**：D-RL（独立）/ D-RL（formation）/ D-Rule / **NMPC**。NMPC 进表依据：① 领域标准方法（本地库先例 = Zhang & Zhuan 2014 ECP-MPC 开山、Lu2025 多机车协同 NMPC〔本项目基线来源〕、Yang2025 朔黄 NMPC 循环制动同场景、Liu2022 ATO）；② 导师点名。**Regime A 逐线公平标定协议（ADR-016）与 NMPC 唯一基线（ADR-022）不变**，但 NMPC 行**不承载 claim**——claim 证据来自消融列。同类论文调研佐证：同域重载/列车 RL 四篇（Zhang2024/Si2025/Wang2026/Hu2026）均不比 MPC；比 MPC 的先例 = Guo2025（道路车队，其场景标准控制器即 MPC）。
+  4. **证伪与止损**：独立组先 **1 seed 冒烟**，编队增益（列距/速度带）不显著即止损（转降级策略：改 claim 或换对照），不烧满 5 seed 预算。
+  5. **辅证储备（不入本轮 claim）**：**M2** = 跨线零微调 + 车辆参数变化泛化轴（`long_downhill_20km/35km` 剖面就绪后并入；导师范畴）；**M3** = 分层架构安全段（ATP 缺口 1/2 **主训练开跑前一次修**，见 `LITERATURE_FINDINGS.md` §4.3；架构叙述、不承载 claim）。
+  6. **达标口径**：spacing error **±5%** / velocity error **±2%** 借 Hu2026（`Hu2026_PMMASAC_fulltext.txt:1234`）；主表安全指标 = ATP 触发次数（口径 SSOT = `LITERATURE_FINDINGS.md` §2）。
+- **保留不变**：编队三底线（多列编队 + 车钩力 ≤1000kN + 安全列距）、单套 formation-aware RL 落位（ADR-013）、Regime A 公平标定（ADR-016）、NMPC 唯一基线（ADR-022）、D-RL 跨线严格零微调协议（降为 M2 储备）、安全不归功 MARL（ADR-014/021）、断面力口径（ADR-018）、训练/评估时域三维度（ADR-017）。
+- **相关**：ADR-014（旧 claim 源头）、ADR-016（免重辨识 reframe + Regime A，协议部分仍生效）、ADR-022、ADR-013、ADR-030（claim 措辞收窄）；证据调研 = 2026-10-12 会话对比设计调研（本地 10 篇精读 + 网络 5 源）。
+
+## ADR-033 真空白表述精确化 + Wang2025 归组修正 + 禁用"绝对首创" - 2026-10-13
+
+- **状态**：决策 + 已落地（`RESEARCH_POSITIONING.md` §1.2 表行 28/30 与收窄注 33/35、`AGENTS.md` 立论段、`PROJECT_PIPELINE.md` 立论条 覆盖式修订）
+- **背景（2026-10-13 首创性质疑会话，用户要求"只搜几个关键词"核验）**：
+  1. 用户担心"多列群组 × 车钩力 × MARL 真空白"被夸大——做编组的工作物理模型里可能考虑车钩力但不写进 RL 目标；
+  2. 5 组关键词网络检索 + 本地库一手反查，核验中发现 **§1.2 表自相矛盾**：行 28 把 Wang2025 与 Zhang2024/Liu2021 并列写"明确忽略车钩力"，但 `REFERENCE_INDEX.md:37` 与 `DIAGNOSTICS_2026-10.md:136/178` 一致记 Wang2025（ICIRT, DOI 10.1109/ICIRT66379.2025.11216684）车钩力**已进 reward 多目标**（拉 −9.64%/压 −28.77%）；
+  3. 原文核对：那句 "interaction forces between cars are not taken into account" 仅出自 `Zhang2024_DQN_CyclicBraking_Downhill.txt:153` → **行 28 属误列**。
+- **核验命中（边界全景）**：
+  - **Song2026 MAPPO**（宋宗莹等，中国科技论文在线，`03_formation/Song2026_MAPPO_HeavyHaulGroup.html`）：**多列群组 + MARL**，但车钩力**不进奖励/指标**（奖励 = 势场安全引导 + 速度同步 + 牵引能耗；页面全文无"车钩/coupler"）→ **最接近的对手**；
+  - Song2026 Tube-MPC：多列 + 车钩约束，但 MPC 非 RL；Wang2025 ICIRT / Wang2026 / Tang2020：车钩进 RL 目标，但单列；
+  - 网络新初筛（未精读，标待核）：IEEE 11487264（虚拟耦合 MAPPO 制动）、MDPI Electronics 15-01823（高速虚拟耦合 MASAC）、IEEE 11245469（单列车厢级势场+DRL）——均无"多列+车钩进 RL 目标"证据。
+- **决策**：
+  1. **Wang2025 ICIRT 从"忽略车钩力"组移至边界组**（单列、车钩进 reward），引用误列修正；Liu2021 无本地一手，标注保留按同组引用；
+  2. **真空白精确化为 "多列群组 × 车钩力进 RL 目标 × MARL"**（原 "× 车钩力 ×" 未区分"物理建模"与"进 RL 目标"，会被 Song2026 MAPPO 这类工作顶破）；
+  3. **论文措辞纪律：禁用"绝对首创"，写"据系统检索未见"**（检索无命中 ≠ 不存在，证据纪律）；已知边界四篇（Wang2025/Wang2026 单列、Song2026 Tube-MPC 非 RL、Song2026 MAPPO 车钩不进目标）在 §1.2 主动引用划界；
+  4. **安全三层归因维持不变**（ADR-014/021）：底线 ≤1000kN = 安全层（不归功 MARL）；MARL 安全价值 = 峰值更低 + 安全层介入频率更低（可量化，进消融对比）；列距/速度带 = 编队上下文 + MARL（主 claim 领域）。
+- **相关**：ADR-030（claim 收窄源头）、ADR-032（主 claim）、ADR-014/021（安全归因）。
+
+## ADR-034 论文对比体系定稿：三范式定义 + 主表重构（NMPC 退表 / Formation-MPC 进表）+ 不可主张清单 + 三项不加 + H1–H3 预注册 - 2026-10-13
+
+- **状态**：决策 + 已落地（`RESEARCH_POSITIONING.md` §1.6 覆盖式修订、`AGENTS.md` 规范性问题段同步）
+- **背景（grill-me 拷问会话续，2026-10-13，用户多轮挑战立论漏洞）**：
+  1. 用户三连问："标准 RL 为什么做不到？其他虚拟编组论文怎么可能没有编队观测？我们是应用还是改进标准算法？"——暴露"标准方法"无定义、"唯一差别是编队观测"站不住；
+  2. 一手核验：Wang2026 全文（动作空间 L660-690 / 奖励 L708-715 / 1100kN 三处措辞 L22/L1203/L1315）、刘博阳2022 信息卡、Zhang2024 约束集、Hu2026/Zhang2021 贡献段；
+  3. 用户纠正两处我的错误：①"MPC 逐线标定=部署负担"违反 ADR-032 定稿（图纸天然存在）②"软通道无论文做硬机制"当**前人缺点**属拿我们的目标审判别人 = 稻草人；
+  4. Wang2026 撞车发现：同 1+1 编组、同 ED 21 级离散 + AB 0/1 混合动作、同 f_c 进状态、同 AB 最小充风时间（已登记借鉴 Zhang2024）。
+- **决策**：
+  1. **"标准方法"= 三范式**（从事实文献推导，非主观定义）：①行业规则/驾驶规程（刘博阳2022 试闸判据 + 张二田2021 实测 + Zhang2024 循环制动血统）②模型优化（MPC/MILP：Fu2019 / Lu2025 / Song2026 Tube-MPC）③RL（单列 DQN/DDQN → 多列 vanilla MARL）。**"标准方法做不了"的精确表述**：不是算法不行，是四个场景硬需求（车钩硬底线 / 90s 充风时滞决策频率 / 编队上下文观测 / 异构动作）无一能被"原样泛化、零附加机制"满足。
+  2. **主表重构（覆盖 ADR-032 决策 3 的"四行含 NMPC"）**：
+     - **NMPC 退出主表**→ related work 文本，措辞"方法与场景不匹配，忠实复现不成立"（忠实复现解决不了本场景问题、改动则失去权威性——用户裁定自建变体无说服力）；
+     - **新增 Formation-MPC 行**：following Song2026 虚拟编组 MPC 架构、**显式关掉车钩约束**（送编队自由度 = 防稻草人核心论据）；公允标定三条件 = 同仿真器 + 逐线喂坡度图纸（Regime A 公平标定协议，**非成本/劣势叙事**）+ 同档调参力度；**写作红线：只主张编队指标（列距/速度带）胜出，绝不主张车钩指标胜出**（他们缺的正是车钩约束，赢车钩是废话）；
+     - **最终主表**：D-Rule / 单列 RL 范式行 / Formation-MPC / D-RL(formation) + **D-RL(独立) 消融列（claim 唯一承载）**；防守句式 "all comparisons hold the algorithm fixed to isolate the contribution of the formation-aware formulation"。
+  3. **贡献表述去首创化公式**（四篇一手文献核验，无一篇用"首次/first/to the best of our knowledge"）："机制 + 与具体基线对照（Unlike / Compared to / 与XX基准相比）+ 量化收益"；ADR-033 决策 3（禁"绝对首创"、写"据系统检索未见"）不变。
+  4. **Wang2026 撞车清单（不可主张，写作红线）**：机车级 ED/AB 分工、车钩进状态/奖励、AB 最小充风——**均不得写为创新点**；可主张 delta 收敛为两条 = **多列群组 MARL + 硬保证通道（安全层）**（与 ADR-033 真空白边界吻合）。
+  5. **承诺等级论证的定位**：软承诺（"Simulation results demonstrate that..."——证据挂靠 runs：Wang2026 摘要/结果/结论三处均如此）vs 硬承诺（证据挂靠机制：约束写进优化 / 安全层 by construction）——**只用于解释我们自己为什么加安全层，不作前人缺点**（前人从未承诺硬保证，批评其"没机制"= 稻草人，用户裁定）。**前人缺点收敛为一条**：前人局限于单列场景，无人在多列车组层面处理车钩力（描述性空白，衔接 ADR-033）。
+  6. **规则层定位与措辞**：血统 = 文献锚定（三把闸/试闸判据：刘博阳2022 §二、张二田2021；浅档分级对齐"最小常用制动"）+ 自研调参（ADR-026 原话）+ 三条闭环反馈分支（接近上限预缓和 / `SafetyLayer.protect()` / AB 禁新增源 veto）为我们所加；措辞只许 **"literature-anchored rule baseline"，禁 "industry standard"**。规则范式盲区的文献论据 = **刘博阳2022 §3**：三列车试闸判据全过、列尾压强差 8 kPa（司机不可感知），第一把闸缓解时最大拉钩力 742→1337 kN（+80%）——代理判据与车钩力真值之间的结构性盲区。
+  7. **三项不加（实验裁剪）**：
+     - **不做安全层关断消融**（用户否决）：规则层/安全层非贡献物，不证价值；纯 RL 直控 1439 kN 失败实证（`src/controllers/low_level_controller.py` L75-L79 注释）仅作架构动机文字；
+     - **不加外部 MARL 算法行**：自建外部实现 = 稻草人风险（用户已用同一逻辑枪毙自建 NMPC 变体）；Song2026/Zhang2021 基线均为自己 vanilla 版或更弱方法，领域无外部算法行标配；防守句式替代，审稿人点名时 revision 补；
+     - **不加单智能体参照行**：裸比混淆四变量（信息量 / 联合动作探索难度 / 奖励结构 / 网络容量），归因不干净；why-MARL 用结构性论证（分散执行可部署性 + 逐机车信用分配 + 规模可扩展性）；revision 预案同上。
+  8. **分维度对比结构**：多列编队 × 车钩主表与单列车钩维度**分开，不跨维度合并**；**单列车钩附录 = 防御展品**（对照 Wang2026/Tang2020 软通道形态：f_c 仅状态编码 + reward 加权、无安全层；只作架构形态对照与承诺等级说明，**无胜负主张**）——防"你们单列车钩不如软通道方法"攻击（三篇编组论文基线全是算法，无人与单列比）。
+  9. **H1–H3 预注册（预期效果可证伪化）**：**H1** formation 观测相对独立观测，列距违规/列距误差显著下降；**H2** 两组车钩超限 = 0 且 formation 峰值更低（MARL 安全价值 = 峰值更低 + 安全层介入频率更低，ADR-033 决策 4 口径）；**H3** 旅行时间/能耗不劣于 D-Rule（安全不以效率崩塌为代价）。达标口径 ±5%/±2% 借 Hu2026（ADR-032 决策 6 不变）。
+  10. **写作组装项**：论文加"前人效果量化表"（Wang2026 1100kN/均值 72.82/−105.91 kN、Song2026、Hu2026、Zhang2024；数据已在 `REFERENCE_INDEX.md` 与 §1.2，纯组装活）。
+- **保留不变**：编队三底线与单套 formation-aware RL 落位（ADR-013）、Regime A 公平标定协议（ADR-016，**成本叙事仍废止**）、断面力口径（ADR-018）、训练/评估时域三维度（ADR-017）、主 claim = 编队上下文协同增益 + 1 seed 冒烟止损（ADR-032）、真空白表述与安全三层归因（ADR-033）、受控超限项（ADR-021）。
+- **相关**：ADR-032（主 claim 与四行主表的被覆盖方）、ADR-033（真空白边界 / 禁首创）、ADR-016（Regime A）、ADR-026（规则层自研调参出处）、ADR-013（两层 RL 废止背景）。
+
+### ADR-034 补录（2026-10-13 同日）—— Song2026 MAPPO 全文入库，三项核验 + 决策 5 的动机锚升级
+
+- **触发**：用户下载宋宗莹2026 原文全文 PDF（20 页，中国科技论文在线 DOI 10.61951/SciencepaperOnline.202605.0114），已重命名入库 `docs/papers/03_formation/Song2026_MAPPO_HeavyHaulGroup.pdf`（`.html` 保留为旧摘要页存档），三处登记（papers/README、REFERENCE_INDEX、refs.bib）同步。
+- **一手核验（此前仅凭 HTML 页面，现升级为全文一手）**：
+  1. **奖励 = 三段加权**（§2.2：cooperative tracking + safety potential field guidance + operational energy efficiency，式 6/7/8），**无任何车钩项**——"车钩力不进目标"由 PDF 全文坐实（中文"车钩"0 命中；safety reward = 势场 U(d)，只管间距）；
+  2. **基线 = 标准 MAPPO 基准**（摘要"与标准的多智能体近端策略优化基准相比"），全文**无消融**（"消融"0 命中）、**无安全层**（"安全层"0 命中）——决策 7 中"领域无外部算法行/消融标配"的判断进一步坐实；
+  3. **⚠️ 决定性发现（动机锚升级）**：其 Introduction 自述挑战 1 原文——*"classic RL relies on the 'soft constraints' of reward functions, **which cannot mathematically guarantee hard physical constraints such as coupler forces**. In exploration phases or Out-of-Distribution (OOD) scenarios, this can easily lead to prohibited actions, violating the 'Fail-Safe' criterion of industrial control."*
+- **对决策 5 的影响（不推翻，升级）**：仍不将"软通道无硬机制"写作前人缺点（对方未作硬承诺），但**"硬保证通道"delta 的动机锚从"我方自述"升级为"最接近对手自述的领域公认挑战"**——论文写法：引 Song2026 自述挑战 1 作动机（引用其承认的 open problem，非批评其工作），再给我们的确定性安全层作答。**零稻草人风险**：对手论文自己说软约束不行，我们补硬机制 = 应答而非审判。
+- **状态**：证据补录 + 登记完成；决策 1–10 均不变。

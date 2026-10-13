@@ -45,7 +45,7 @@ curve = EtcsBrakingCurve(
     assumed_accel_during_buildup=0.2, # 建立期内最不利正向加速（下坡净加速）
     speed_err_mps=0.35,               # 速度测量误差
     driver_time_i_to_p=9.0, driver_time_p_to_ebi=4.0,  # ETCS 固定
-    grade_at=PROFILES["shuozhou_real_53km"]().grade_at,
+    grade_at=PROFILES["shuozhou_ningwuxi_beidaniu_49km"]().grade_at,
 )
 
 # 前方目标：停车点（模拟停留列车 / 需停车），距 x_far 约 6.5km
@@ -84,7 +84,7 @@ trig_x, trig_v = (float(xs[trig_idx[0]]), float(SBI_v[trig_idx[0]])) if trig_idx
 # --------------------------------------------------------------------------- #
 # 3) 坡度剖面（下图为背景，体现 EBD 受坡道影响）
 # --------------------------------------------------------------------------- #
-grades_kmh_free = np.array([PROFILES["shuozhou_real_53km"]().grade_at(float(x)) * 1000.0 for x in xs])
+grades_kmh_free = np.array([PROFILES["shuozhou_ningwuxi_beidaniu_49km"]().grade_at(float(x)) * 1000.0 for x in xs])
 
 # --------------------------------------------------------------------------- #
 # 4) 绘图

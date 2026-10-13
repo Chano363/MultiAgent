@@ -21,6 +21,7 @@
 | `docs/logs/learnings/LEARNINGS.md` | 踩坑/失败教训（走 TEMPLATE_FAILURE） | append-only | Agent |
 | `.codebuddy/memory/YYYY-MM-DD.md` | 每日工作日志（timeline，见 `docs/logs/README.md`） | 每日一篇，不覆盖 | Agent |
 | `docs/papers/` | 文献 PDF + 提取数据（`RESEARCH_POSITIONING.md` 索引） | 新增 | Owner |
+| `docs/papers/LITERATURE_FINDINGS.md` | **文献讨论成果**：逐篇证据（文件:行号）+ 指标术语对照 + 防追尾机制分级 + ATP 诚实边界（`RESEARCH_POSITIONING.md` §1.7 的证据层，立论结论仍以立论文档为准） | 立论态：可覆盖式修订 | Owner + Agent |
 | `docs/ITSC_PAPER.md/.tex/.pdf` | 论文（唯一权威版本），其余版本移 archive | 冻结后进 archive | Owner |
 
 ## 二、八条最佳实践纪律（大厂对齐）
@@ -55,6 +56,7 @@
 ├─ 一条历史任务的执行记录/结果（PIPELINE 已过长）    → 按月追加到 logs/progress/PROGRESS_YYYY-MM.md（append-only）
 ├─ 今天的工作流水（做了什么/卡在哪）              → .codebuddy/memory/YYYY-MM-DD.md（每日日志）
 ├─ 一条能复用的方法论/知识（有出处、有反例）       → TEMPLATE_EXPERIENCE 沉淀
+├─ 从文献核实/讨论出的证据、术语口径、同类工作对照   → docs/papers/LITERATURE_FINDINGS.md（立论文档只留结论指针）
 └─ 论文/对外交付物                                → docs/ITSC_PAPER.*（唯一权威）
 ```
 

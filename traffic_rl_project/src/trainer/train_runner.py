@@ -463,7 +463,7 @@ class TrainRunner:
             logger.warning(f"[long_eval] ep{global_ep}: 多智能体 list 暂不支持长程评估选优，跳过")
             return
         long_steps = int(getattr(cfg, 'long_eval_steps', 36000) or 36000)
-        grade = getattr(cfg, 'long_eval_grade', '') or cfg.env_cfg.get('grade_profile', 'shuozhou_real_53km')
+        grade = getattr(cfg, 'long_eval_grade', '') or cfg.env_cfg.get('grade_profile', 'shuozhou_ningwuxi_beidaniu_49km')
         init_kmh = float(getattr(cfg, 'long_eval_init_speed_kmh', 80.0) or 80.0)
         eval_cfg = dict(cfg.env_cfg)
         eval_cfg['max_steps'] = long_steps

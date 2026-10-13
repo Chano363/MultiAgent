@@ -244,7 +244,7 @@ def fig_release_curve(data, out):
 # ---------------------------------------------------------------------------
 def run_cyclic_shuozhou(max_steps=32000, init_speed=65.0 / 3.6, dt=0.1,
                         consist_preset='10kt_1plus1',
-                        grade_profile='shuozhou_real_53km'):
+                        grade_profile='shuozhou_ningwuxi_beidaniu_49km'):
     from src.controllers.low_level_controller import TrainLowLevelController
     env = make_env(consist_preset=consist_preset, grade_profile=grade_profile,
                    max_steps=max_steps, init_speed=init_speed)
@@ -581,7 +581,7 @@ def main():
             'section': '物理曲线验证图',
             'scenarioA': {'consist': '10kt_1plus1', 'grade': 0.0, 'brake': 'SERVICE(-0.5)',
                           'brake_s': 35.0, 'release_s': 50.0},
-            'scenarioB': {'consist': '10kt_1plus1', 'grade_profile': 'shuozhou_real_53km',
+            'scenarioB': {'consist': '10kt_1plus1', 'grade_profile': 'shuozhou_ningwuxi_beidaniu_49km',
                           'max_steps': 32000, 'init_speed_kmh': 65,
                           'v_range_kmh': [40, 80], 'brake_notch': -0.8, 'release_throttle': 0.5},
             'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + '

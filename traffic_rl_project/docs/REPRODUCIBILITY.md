@@ -35,7 +35,7 @@
 > （`make_m1m3_figures.py` / `make_5train_fig.py` / `eval_phys2_*` / `eval_dqn_multitrain.py`）
 > **已删除**；② `FairMPCController` / 简化 `MPCController` **已删除**，MPC 基线唯一化
 > 为 `NMPCController`（`evaluate_decompose.py --mpc_type nmpc`）；③ M1/M3/M4 语义代号
-> 已废止（ADR-013 起）、主场景改为 `shuozhou_real_53km`（ADR-017/021）。
+> 已废止（ADR-013 起）、主场景改为 `shuozhou_ningwuxi_beidaniu_49km`（2026-10-12 换统一线路表重建；ADR-017/021 时为 `shuozhou_real_53km`，已删除）。
 > **现行入口** = §十（主训练）与 `evaluate_decompose.py`；历史结果文件原样保留在 `outputs/`。
 
 **主 checkpoint**：`outputs/checkpoints/mappo_fleet_best_cp_seed0_orig.pt`（3列，固定初态65，M1 +36,446）
@@ -148,7 +148,7 @@ tectonic ITSC_PAPER.tex     # → ITSC_PAPER.pdf（6页，0 Overfull）
 python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed {0..4}
 ```
 
-- 配置：`configs/experiments/formation_ed_ab_3train_1plus1.yaml`（3 列×1+1=6 agent，53km `shuozhou_real_53km`，curriculum 上限 1200 步，MAPPO）
+- 配置：`configs/experiments/formation_ed_ab_3train_1plus1.yaml`（3 列×1+1=6 agent，49.6km `shuozhou_ningwuxi_beidaniu_49km`，curriculum 上限 1200 步，MAPPO）
 
 - **主训练口径（ADR-017 达标，2026-10-01 已对齐并验证）**：本 YAML 直接写达标值 —— `episodes: 1400`（总训练量达标）+ `n_env: 4` / `parallel_traj_len: 0`（并行 4 条独立短轨迹，≤1200 步）+ `warm_start: true`（BC 热启动）+ `long_eval_interval: 50` / `long_eval_steps: 36000`（每 50 ep 完整剖面确定性评估选优）。物理与分析口径同节下文。
   - ⚠️ **快速迭代不要改本值**：用 CLI 覆盖 `--episodes N`（如 `--episodes 2`），YAML 保持 1400；否则主训练又落在不足量上。
@@ -183,7 +183,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
   - ⚠️ **并行 rollout 可用**（2026-10-07 新增）：`--override n_env_parallel=true` 把 n_env 条轨迹改走进程级并行（见 `src/trainer/parallel_rollout.py`），预期 ≈3× 提速；**并行与串行数值不逐位相同**，同一次 5-seed 对比必须统一走同一条路径。
 - ⚠️ 日志为 `>` 重定向 ⇒ **块缓冲**，分钟级延迟属正常；判活用 `pgrep -af run_training.py` + `ps -o etime,pcpu -p <pid>`。
 
-**评估（主对比三行 D-RL / D-Rule / MPC @53km）**：
+**评估（主对比三行 D-RL / D-Rule / MPC @49.6km）**：
 
 ```
 python src/evaluation/evaluate_decompose.py --mode all --checkpoint <best.pt 或 last_ep1400.pt 路径> \
@@ -192,9 +192,9 @@ python src/evaluation/evaluate_decompose.py --mode all --checkpoint <best.pt 或
 
 - ⚠️ **2026-10-01 修复说明**：`--mode all` 此前因 `--enable_mpc` 默认 `store_true=False` 而**静默只出 2 行（缺 MPC）** —— 与本节"三行"口径不符，且三行 Δ 摘要（`len(results)>=3`）会同步静默跳过。现已归一为 `all/mpc ⇒ enable_mpc=True`（见 `LEARNINGS.md` LRN-20261001-011 / `DIAGNOSTICS_2026-10.md`「修复-2026-10-01b」）。
 - ⚠️ **`--decision_interval` 已改为自动读取（2026-10-01）**：该参数此前默认写死 **1**，而训练用 **10** ⇒ 上面的命令（**未显式传参**）会让 D-RL 行以"每原始步重新决策"跑，与训练的半 MDP 失配。现默认 `None` = **自 ckpt 内嵌 metadata 读取**（读不到退回训练标准值 10 并打印提示）；显式传 `--decision_interval N` 行为不变。**上表命令无需再手动加该参数**（LRN-20261001-015）。
-- ⚠️ **成本提示（实测，NMPC=唯一基线）**：`NMPC(IPOPT)` 实测 **74 ms/步均值 / 1693 ms 峰值**（3 列 1+1，300 步窗口，峰值在首步符号构建）⇒ 53km（36000 步）**MPC 行 ≈0.74 h/seed**，`--n_seed 3` 时**仅 MPC 一行 ≈2.2 h**（比已删除的 fair/SLSQP 快约 9×）。D-RL/D-Rule 行各 ≈57 min（实测 400 步 ≈38 s 外推）。排期时请分开估算。
+- ⚠️ **成本提示（实测，NMPC=唯一基线）**：`NMPC(IPOPT)` 实测 **74 ms/步均值 / 1693 ms 峰值**（3 列 1+1，300 步窗口，峰值在首步符号构建）⇒ 49.6km（36000 步）**MPC 行 ≈0.74 h/seed**，`--n_seed 3` 时**仅 MPC 一行 ≈2.2 h**（比已删除的 fair/SLSQP 快约 9×）。D-RL/D-Rule 行各 ≈57 min（实测 400 步 ≈38 s 外推）。排期时请分开估算。
 - MPC 的「求解失败次数」口径 = **求解器自身收敛标志**（NMPC：IPOPT 状态，非 `optimal` 记 `fail:<msg>`），见 LRN-20261001-013。
-- ✅ **MPC 基线唯一化为 NMPC（2026-10-01，ADR-022）**：`--mpc_type` 只留 `nmpc`（旧 `fair`=FairMPCController / `--mpc_simple` 及其控制器文件**已删除**；`--mpc_enforce_coupler` 随之移除）。主表命令**请显式带 `--mpc_type nmpc`**。`inner_rule_cyclic` 由硬编码改为显式 `--mpc_inner_rule_cyclic`（**默认 False = like-for-like**：decompose 通道里 env 本来就无条件施加规则基线，置 True 等于 MPC 叠两层护盾，仅复现历史 `mpc_rule` 用）。
+- ✅ **MPC 基线唯一化为 NMPC（2026-10-01，ADR-022）**：`--mpc_type` 只留 `nmpc`（旧 `fair`=FairMPCController / `--mpc_simple` 及其控制器文件**已删除**；`--mpc_enforce_coupler` 随之移除）。主表命令**请显式带 `--mpc_type nmpc`**。`inner_rule_cyclic` 由硬编码改为显式 `--mpc_inner_rule_cyclic`（**默认 False = like-for-like**：decompose 通道里 env 本来就无条件施加规则基线，置 True 等于 MPC 叠两层护盾，仅复现历史 `mpc_rule` 用）。⚠️ **2026-10-13 ADR-034：主表角色修订**——NMPC 退出主表（转 related work 文本），主表 MPC 行 = Formation-MPC（Song2026 架构 + 关车钩约束；实现与评估命令待实验设计时另行登记）。
 - ✅ **MPC 行"动作桥接量纲错配"已修复（2026-10-01，甲方=反解加性关系，用户裁定）**：原 `mpc_act` 经 `get_action_accel` 产生**绝对 ED 深度 ∈[0,1]**（且永不为负），却喂给 decompose 的**加性 `ed_mod` 通道**（`final_ed = clip(baseline_ed + 0.5·ed_mod)`）⇒ ① 指令不被兑现（实测指令 0.75 → 实际 ED 打满 1.0，与 `meanED=1.000` 观测一致）；② **MPC 结构上不能减闸/施加牵引**；③ AB 通道恒 0（落在 ±0.15 死区）= 无 AB 权限。**现改为**：`mpc_act` 先复算规则基线（`_rule_baseline_edab`，保存/还原闩锁）再反解 `ed_mod = clip((desired_ed − baseline_ed)/0.5, ±1)`，并按 MPC 意图给 `ab_mod`（想停/加速→抑制；需求 `desired_ed ≥ 0.7` →预触发兜底）⇒ **MPC 与 D-RL 动作权限完全一致**，唯一差异 = 决策来源（ADR-016 不失公允）。
   - ⚠️ **已知近似（有界、可审计）**：规则基线以**未协调**带边复算（env 内部对 follower 会叠 `coordination_adj`，其依赖"前一列已 step 后的位置"，在 `env.step` 之前不可复现）⇒ follower 处于带边附近时基线估计有偏差（≤0.5 ED 深度）。**不影响安全性**（env 侧 clip + SafetyLayer + ETCS 全程生效），只影响请求的交付精度。要精确需改闭包内 env ⇒ 需停训。
   - ⚠️ **MPC 行历史数值全部作废，须重跑**（控制器更换 + 桥接口径已修）。详见 `DIAGNOSTICS_2026-10.md`「修复-2026-10-01d」/「删除-2026-10-01」+ `DECISIONS.md` ADR-022。
@@ -222,7 +222,7 @@ python src/evaluation/evaluate_decompose.py --mode all --checkpoint <best.pt 或
   - ⇒ **跑主表前先 `ls` 确认**；`best` 不存在时不要以为训练失败，改用 `last_ep1400`。
   - ⚠️ **待裁决（影响主表口径，需用户确认）**：项目既有口径为"主结果用**完整训练后的 `last`**（1400 ep），不用训练 reward 选出的 `best`"（用户既定偏好）；但 ADR-017 §2 又要求 `long_eval` 用完整剖面**选优**。二者在"`best` 现由评估指标而非训练 reward 选出"之后**不再互斥** ⇒ 须明确：主表 D-RL 行取 `last_ep1400`（端态、无条件可复现），还是取 `best`（评估选优）。**裁决前不要只跑一行就下结论。**
 
-**跨线评估（免重辨识，Regime A 协议，ADR-016）**：
+**跨线评估（Regime A 协议，ADR-016；2026-10-12 起 M2 储备）**：
 
 ```
 # D-RL / D-Rule 行（跨线零微调）
@@ -233,7 +233,7 @@ python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --grade <
 
 > 注：`--mode` 的合法取值是 `all / decompose_m1 / decompose_m0 / mpc / single`（无 `decompose`；旧文档写 `--mode decompose` 属笔误，2026-10-01 更正）。
 
-- 跨线协议（2026-09-16 ADR-016）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 逐线**重喂该线** **`grade_at`** **图纸 + 在线标定 b0**（Regime A 公平标定），不再提供 no-reidentification 的 Regime B。核心 claim = **免重辨识成本**（零重标定代价的 MARL ≈ 逐线重标定后的 MPC）。
+- 跨线协议（2026-09-16 ADR-016，2026-10-12 起作 M2 储备）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 逐线**重喂该线** **`grade_at`** **图纸 + 在线标定 b0**（Regime A 公平标定），不再提供 no-reidentification 的 Regime B。核心 claim（2026-10-12 ADR-032）= **编队上下文协同增益**（旧"免重辨识成本"已废止）。
 
 **消融（杠杆隔离）**：`--mask_lever ed/ab`（ED-only / AB-only），留痕见 `docs/logs/diagnostics/`。
 

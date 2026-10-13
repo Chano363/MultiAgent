@@ -113,7 +113,7 @@ class TrainFleetEnv:
         config = config or {}
         self.num_trains = config.get('num_trains', 3)
         self.consist_preset = config.get('consist_preset', '10kt_1plus0')
-        self.grade_profile = config.get('grade_profile', 'shuozhou_real_53km')  # 主训练默认=朔黄完整真实纵断面 53.2km
+        self.grade_profile = config.get('grade_profile', 'shuozhou_ningwuxi_beidaniu_49km')  # 主训练默认=朔黄宁武西→北大牛真实纵断面 49.6km
         # 限速区间（m/s）：对齐 Zhang2024（朔黄线 23.8km 长大下坡循环制动）[40,80] km/h。
         # 依据（V5.24 系统核对）：
         # - 上限 80 km/h = 朔黄线实际线路限速（Zhang2024: "speed limit on this line was 80 km/h"，
