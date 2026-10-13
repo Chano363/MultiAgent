@@ -13,7 +13,7 @@ from src.physics_governance import (
     RUN_DERIVED_KEYS, official_world_config,
 )
 
-RUN_CONSIST = '10kt_1plus1'   # 主实验真实编组（3列×1+1=6 机车智能体）
+RUN_CONSIST = '20kt_1plus108_1plus108'   # 主实验真实编组（3列×头/中部双机车=6 机车智能体，ADR-035）
 
 
 def test_no_env_cfg_keeps_official_snapshot():

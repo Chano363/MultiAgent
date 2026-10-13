@@ -720,3 +720,20 @@ owner: Owner
   3. **⚠️ 决定性发现（动机锚升级）**：其 Introduction 自述挑战 1 原文——*"classic RL relies on the 'soft constraints' of reward functions, **which cannot mathematically guarantee hard physical constraints such as coupler forces**. In exploration phases or Out-of-Distribution (OOD) scenarios, this can easily lead to prohibited actions, violating the 'Fail-Safe' criterion of industrial control."*
 - **对决策 5 的影响（不推翻，升级）**：仍不将"软通道无硬机制"写作前人缺点（对方未作硬承诺），但**"硬保证通道"delta 的动机锚从"我方自述"升级为"最接近对手自述的领域公认挑战"**——论文写法：引 Song2026 自述挑战 1 作动机（引用其承认的 open problem，非批评其工作），再给我们的确定性安全层作答。**零稻草人风险**：对手论文自己说软约束不行，我们补硬机制 = 应答而非审判。
 - **状态**：证据补录 + 登记完成；决策 1–10 均不变。
+
+## ADR-035 研究对象编组对齐朔黄线实际运营：万吨首/尾 1+1 → 2 万吨头/中部 1+1（`20kt_1plus108_1plus108`）- 2026-10-13
+
+- **状态**：决策 + 已落地（主训练 YAML、`RESEARCH_POSITIONING.md` §研究对象/§1.1/§1.4、`AGENTS.md`、`evaluate_decompose.py`、`test_physics_governance.py`、`physics_governance.py` 注释同步）
+- **背景（学姐建议 + 调查核验，2026-10-13）**：
+  1. 学姐意见 = "最好用现实中已经在运营的编组模式"；用户问"头尾 1+1 可以吗"。
+  2. 调查结论（一手 = `张二田2021_朔黄2万t车钩力_fulltext.txt` + `Zhao2022` 全文 + `Zhang2024_DQN` 全文 §4.1 + 网络核实）：**朔黄线实际运营编组 = 头车 + 108 C80 + 中部车 + 108 C80 + 可控列尾（2 万吨「1+1」，2016 起常态化、破 10 万列）**；3 万吨「1+1+1+1」= 4 机车（头+中×2+尾，2025 常态化）。**"头尾双机车、无中部机车"的万吨编组在朔黄线无运营先例**（尾部补机仅见于宝成秦岭/嫩林线等区段临时加挂）。
+  3. **同类论文编组逐位一致**：Zhang2024 DQN（"1 HXD1 + 108 freight cars + 1 HXD1 + 108 freight cars"）、Zhao2022（同型「1+1」）、张二田2021（实车同型）——我们原 `10kt_1plus1`（1+94+1 头尾）与全部对标文献不同构，审稿可质疑编组真实性。
+- **选项与权衡**：① 每列 2 万吨头/中部（逐位对齐文献，立论 SSOT 研究对象改口径）② 保留万吨仅移机车到中部（改动最小但吨位仍无运营先例）③ 先冒烟后改文档。**用户拍板 = ①**。
+- **结论**：主训练编组切 `consist_preset: 20kt_1plus108_1plus108`（预设已存在，`train_env.py:73`，原为编组规模效应验证而建）；每列 = 头/中部双机车（index [0,109]）+ 216 货车 ≈ 21976 t（与张二田实车 21600 t 同量级）；3 列群组 = 6 机车智能体不变（`loco_indices` 从编组定义动态推导，decompose/观测/奖励结构零代码改动）。
+- **后果（⚠️ 执行影响，均待重跑）**：
+  1. **旧 checkpoint 全部失效**（编组规模/观测归一化随编组变），主训练须重跑；YAML 其余参数（curriculum/γ/BC/long_eval）暂不动，冒烟若发散再按 ADR-017 调参纪律处理。
+  2. **物理量级变化**：单列 2 万吨循环制动车钩力实测锚 = 均值 1021 kN / 峰值 1429 kN（张二田 S1）——预期超限频率上升，安全层介入更频繁；这反而**强化**"车钩力在长大下坡群组中不可忽略"的立论。
+  3. **术语联动**：论文"1+1"从此**双义须区分**——单列内部 = 朔黄实际运营组合列车（头+中部机车）；列间 = 虚拟耦合群组（本项目编队对象）。
+  4. `20kt_1plus1_validation`（赵紫宁参数版）保留作验证专用，不作研究对象；`10kt_1plus1` 预设保留（历史 runs 复现用），不再作主实验。
+- **SSOT 联动**：`RESEARCH_POSITIONING.md` 研究对象行 / §1.1 / §1.4 已覆盖式修订（动机存本 ADR）；`AGENTS.md` 研究对象行同步；日志类（DIAGNOSTICS/PROGRESS/LEARNINGS 历史条目）按 append-only 不改。
+- **相关**：ADR-009（智能体分解重构，1+1 起源）、ADR-013（RL 落位不变）、ADR-017（重训时域纪律）、张二田2021（编组与实车锚）、Zhang2024（对标编组）、Zhao2022（同型编组）。
