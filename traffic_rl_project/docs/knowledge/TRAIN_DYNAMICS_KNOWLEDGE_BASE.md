@@ -18,14 +18,14 @@
 
 ## §1 业务背景与核心概念
 
-万吨级 1+1 重载列车（1 机车 + ~100 节货车）纵向动力学仿真，服务长大下坡（朔黄线 53.2km）循环制动场景的 MARL 研究。物理模型是训练/评估/对比基线的共同底座——**两侧物理同源**是铁律。
+万吨级 1+1 重载列车（1 机车 + ~100 节货车）纵向动力学仿真，服务长大下坡（朔黄线 49.6km）循环制动场景的 MARL 研究。物理模型是训练/评估/对比基线的共同底座——**两侧物理同源**是铁律。
 
 核心概念（正文规范术语）：
 - **ED（电制动）**：连续量；**AB（空气制动）**：离散档位（`AirBrakeNotch`：RELEASE/MIN/SERVICE/EMERGENCY），沿制动波速传播。
 - **车钩断面力**：相邻车厢间单钩受力，指标口径 SSOT = `TrainDynamics.coupler_interface_forces()`（ADR-018）；安全线 1000 kN。
 - **MT-2 车钩**：唯一车钩模型（ADR-011），含间隙、迟滞、Stribeck 摩擦、刚性限位。
 - **循环制动**：长大下坡充风-制动循环；段间衰减是基线物理（`enable_cyclic_degrade=True`）。
-- **坡度剖面**：`GradeProfile.grade_at()` 按位置查询无量纲坡度；主剖面 `shuozhou_real_53km`。
+- **坡度剖面**：`GradeProfile.grade_at()` 按位置查询无量纲坡度；主剖面 `shuozhou_ningwuxi_beidaniu_49km`。
 - **"多体"** = 集中质量（lumped）多体（ADR-022），非离散有限元。
 
 ## §1.5 架构总览
@@ -90,7 +90,7 @@ graph TD
 | target_speed_mps | 20.0 | 巡航参考速度（限速带中值） | 编队速度带中心 |
 | target_gap_m | 100.0 | 目标列距 | 编队间距项 |
 | consist_preset | '10kt_1plus0' | 论文编组 | 多列 1+1 时在此改 |
-| grade_profile | 'shuozhou_real_53km' | 主训练剖面 | history 'shuozhou_23800' 仅 Zhang2024 复现 |
+| grade_profile | 'shuozhou_ningwuxi_beidaniu_49km' | 主训练剖面 | history 'shuozhou_23800' 仅 Zhang2024 复现 |
 | coupler_force_limit_n | 1.0e6 | 1000 kN 底线 | 不可逾越（主轴铁律） |
 | enable_cyclic_degrade | True | 循环制动段间衰减 | 关掉 = 非基线物理（R0-D） |
 

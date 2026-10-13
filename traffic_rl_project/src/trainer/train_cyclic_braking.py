@@ -18,8 +18,8 @@ Zhang2024（Algorithms 2024,17,190）在朔黄线真实线路上用 DQN 学**单
 我们验证：MAPPO 能否学会循环制动，且车钩力守住 1000kN（Zhang2024 无此指标）。
 
 用法（WSL）：
-    python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_real_53km
-    # 默认 max_steps=15000；53.2km 完整纵断面全程需按步长折算（见下）
+    python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_ningwuxi_beidaniu_49km
+    # 默认 max_steps=15000；49.6km 完整纵断面全程需按步长折算（见下）
 """
 
 import sys

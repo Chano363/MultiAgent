@@ -3,6 +3,7 @@
 > 本页 = **文献库清单**：本地文件 → 题名 / 作者·年份 / 出处·DOI / 用途。
 > 与 `docs/REFERENCE_INDEX.md`（**技术/公式 → 论文**，写作速查）互补：本页按「文献」组织，RefIndex 按「技术点」组织。
 > 索引入口：本页由 `docs/README.md` 登记。
+> **文献讨论成果（逐篇证据 / 指标术语对照 / 防追尾机制分级 / ATP 诚实边界）**：[`LITERATURE_FINDINGS.md`](LITERATURE_FINDINGS.md) —— 写 Related Work、指标表、图表标签前先读它；本页只管"有哪些文献"，不管"讨论出了什么"。
 
 ## 目录结构（分主题子目录）
 
@@ -73,7 +74,7 @@
 
 | 本地文件 | 题名 | 作者 / 年份 | 出处 / DOI | 用途 / 关联 |
 | :--- | :--- | :--- | :--- | :--- |
-| `Song2026_MAPPO_HeavyHaulGroup.html` | 重载列车群组 + MAPPO（定位最接近） | 宋宗莹 等 / 2026 | 预印本, DOI 10.61951/SciencepaperOnline.202605.0114（**仅摘要页，全文不可得**） | 最接近本项目的群组 MARL |
+| `Song2026_MAPPO_HeavyHaulGroup.pdf` | 重载列车群组 + MAPPO（定位最接近） | 宋宗莹 等 / 2026 | 预印本, DOI 10.61951/SciencepaperOnline.202605.0114（**全文 PDF 20 页已入库 2026-10-13**；同名 `.html` 为原摘要页存档） | 最接近本项目的群组 MARL |
 | `Song2026_TubeMPC_VirtualCoupling.pdf` | 虚拟编组 + 传统空气制动协同（Tube-MPC，fence 压缩） | 宋宗莹 等 / 2026 | 北京交通大学学报 50(2):116-131, DOI 10.11860/j.issn.1673-0291.20250156 | 虚拟耦合 MPC 对照 |
 | `Guo2025_MARL_PlatoonConsensus.pdf`、`.txt` | Enhanced consensus control architecture for autonomous platoon utilizing multi-agent reinforcement learning | Xin Guo 等 / 2025 | Computer-Aided Civil and Infrastructure Engineering, DOI 10.1111/mice.13463 | 车队 MARL 共识控制（间距 −8.3% / 编队长 −19.1%） |
 | `Zhang2021_MADRL_TrainPlatoon.pdf`、`.txt` | Multi-Agent Deep Reinforcement Learning Based Consistency Control in Train Platoon Systems | Xinran Zhang, Gaofeng Nie, Wanli Ni, Hui Tian / 2021 | 会议（IEEE；venue 待核） | leader-follower + 人工势场群组一致性 |

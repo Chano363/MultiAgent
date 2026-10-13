@@ -46,7 +46,7 @@
 | :--- | :--- | :--- |
 | MAPPO 算法 + PopArt value 归一化（returns~1e4-1e5 → value_loss~1e8 数值稳定） | Yu2022 / Hessel2019 | —（无本地，NeurIPS 2022 / AAAI 2019） |
 | 多机车 RL + 车钩力 + 多目标（Double-Switch Q） | Tang2020 | `Tang2020_DoubleSwitchQ.pdf` |
-| 重载列车群组 + MAPPO（定位最接近） | 宋宗莹2026 | `Song2026_MAPPO_HeavyHaulGroup.html` |
+| 重载列车群组 + MAPPO（定位最接近；**其自述挑战1 = "reward 软约束无法数学保证车钩力等硬物理约束"，作硬保证通道动机锚**；奖励 = 协同跟踪+势场安全+能耗三段，无车钩项；基线 = 标准 MAPPO、无消融、无安全层） | 宋宗莹2026 | `Song2026_MAPPO_HeavyHaulGroup.pdf`（全文 2026-10-13 入库；`.html` 为旧摘要页） |
 | 虚拟编组 + 传统空气制动协同（Tube-MPC，fence 压缩） | 宋宗莹2026 | `Song2026_TubeMPC_VirtualCoupling.pdf` |
 | 分层 RL + **状态编码**（累计缓解时间 `t_r` / 车钩力 `f_c` 进状态；空间分段顺序分配） | Wang2026_HRL | `Wang2026_hierRL_fulltext.txt` |
 | Dueling DQN 驾驶策略（AB 建立/释放延迟进状态；最小充风约束） | Si2025 | `An-Optimization-Method-of-Heavy-Haul-Train-Driving-Strategy-Based-on-Dueling-DQN.pdf` |

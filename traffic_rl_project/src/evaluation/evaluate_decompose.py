@@ -475,9 +475,9 @@ def main():
     p.add_argument('--mode', choices=['all', 'decompose_m1', 'decompose_m0', 'mpc', 'single'],
                    default='all')
     p.add_argument('--checkpoint', default=DEFAULT_CKPT)
-    p.add_argument('--grade', default='shuozhou_real_53km')
+    p.add_argument('--grade', default='shuozhou_ningwuxi_beidaniu_49km')
     p.add_argument('--max_steps', type=int, default=36000,
-                   help='评估时域（36000=完整 53.2km；15000=23.8km）')
+                   help='评估时域（36000=完整 49.6km；15000=23.8km）')
     p.add_argument('--num_trains', type=int, default=3,
                    help='decompose 多列群组列数（主训练=3，6 机车智能体）')
     p.add_argument('--enable_mpc', action='store_true',

@@ -13,7 +13,7 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 # "白跑一晚无日志"）。评估脚本已在源头做行缓冲 + 进度心跳，此处 export 作双保险。
 export PYTHONUNBUFFERED=1
 
-GRADE=shuozhou_real_53km
+GRADE=shuozhou_ningwuxi_beidaniu_49km
 MAX=36000
 CK=outputs/checkpoints/formation
 RES=outputs/results/decompose

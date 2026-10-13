@@ -11,6 +11,7 @@
 | 项目总览 / 任务清单 / 下一步    | `docs/PROJECT_PIPELINE.md`                                               |
 | 研究定位 / 创新点 / 文献库     | `docs/RESEARCH_POSITIONING.md`                                           |
 | **技术/公式 → 论文 引用索引**  | `docs/REFERENCE_INDEX.md`（写作速查）                                    |
+| **文献讨论成果（证据/口径/机制）** | `docs/papers/LITERATURE_FINDINGS.md`（指标术语对照 · 防追尾机制分级 · ATP 诚实边界；写 Related Work / 指标表前读） |
 | 论文↔项目验证基准（对照）        | `docs/VALIDATION_BASELINE.md`                                            |
 | 验证执行日志（V 系列过程记录）     | `docs/logs/verification/`（按月/按 V 拆分）                               |
 | 实验/诊断数据记录（按月拆分）     | `docs/logs/diagnostics/`（`DIAGNOSTICS_YYYY-MM.md`）                      |
@@ -61,6 +62,7 @@
 | `PROJECT_PIPELINE.md`             | 总览+工作计划（执行流水按月拆至 `logs/progress/`）                | active |
 | `RESEARCH_POSITIONING.md`         | 定位+文献库                       | active |
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
+| `papers/LITERATURE_FINDINGS.md`   | 文献讨论成果：逐篇证据 + 指标术语对照 + 防追尾机制分级 + ATP 诚实边界（`RESEARCH_POSITIONING.md` §1.7 的证据层） | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
 | `logs/progress/PROGRESS_2026-08.md` / `PROGRESS_2026-09.md` / `PROGRESS_2026-10.md` | 阶段二执行流水（按月拆分，append-only；2026-10-12 自 `PROJECT_PIPELINE.md` 迁出，内容零丢失） | active |
@@ -123,6 +125,7 @@
 | **路线覆盖修复：训练起点随机化**（2026-10-07）：固定起点使训练只见 −1.5‰（评估 OOD 83.9%）；L2 A/B 证明随机化有效（long_eval 达标 0/2→2/2，OOD→4.1%）；已接入主配置并启动 seed0 重训 | `DIAGNOSTICS_2026-10.md`「路线覆盖 / L1 / L1-b 更正 / L2 终局」；`docs/logs/progress/PROGRESS_2026-10.md`「路线覆盖修复」；`configs/experiments/formation_ed_ab_3train_1plus1.yaml` |
 | **验证基准 / 复现**：论文↔仿真数据对照 + 实验诊断 + 复现命令                               | `VALIDATION_BASELINE.md`；`logs/verification/`；`logs/diagnostics/`；`REPRODUCIBILITY.md` |
 | **文献库 / 立论来源**：PDF + 信息卡 + 数据基准                                     | `RESEARCH_POSITIONING.md` 文献库；`docs/papers/`                                                          |
+| **指标术语 / 防追尾机制 / ATP 边界 的文献依据**（写 Related Work、指标表、图表标签前）            | `docs/papers/LITERATURE_FINDINGS.md`（结论口径仍以 `RESEARCH_POSITIONING.md` §1.5/§1.6/§1.7 为准）                        |
 | **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `logs/learnings/LEARNINGS.md`（唯一 SSOT；原 `AGENTS.md` Gotchas 已迁入此处与 `VALIDATION_BASELINE.md`）                                                      |
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 

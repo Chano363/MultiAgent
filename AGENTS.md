@@ -27,7 +27,7 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python -m pytest tests/ -q
 
-# 阶段二主训练（53km，formation-aware 机车级 ED/AB；YAML 已按 ADR-017 达标：1400 ep / n_env 4 / BC 热启动 / long_eval）
+# 阶段二主训练（49.6km，formation-aware 机车级 ED/AB；YAML 已按 ADR-017 达标：1400 ep / n_env 4 / BC 热启动 / long_eval）
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed {0..4}
 
@@ -41,9 +41,9 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 ## 阶段二研究定位（立论主轴）
 
 **论文题目**：面向长大下坡场景基于多智能体强化学习的重载列车群组自动控制方法
-**研究对象**：一万吨级 1+1 重载列车群组（每列 = 首/尾双机车 + 94 节货车，`consist_preset: 10kt_1plus1`；3 列 × 2 = 6 台机车智能体，群组由多列组成，每列内部有车钩力）
+**研究对象**：一万吨级 1+1 重载列车群组（单机牵引万吨列车，1 机 + \~100 节货车，群组由多列组成）
 
-**核心创新点：车钩力 + 多列群组 + 长大下坡 协同控制**（编队 = 最终目的，MARL = 实现手段）。现有长大下坡 RL 工作（Zhang2024 DQN、Liu2021 DDQN、Wang2025 DQN）**均明确忽略车钩力**（⚠️ 仅指这些单列、车钩力未入模者，**勿推广为"文献都忽略"**——Wang2026 单列重载 RL 已含车钩力、Song2026 多列 Tube-MPC 已含车钩力约束，见 `RESEARCH_POSITIONING.md` §1.2 / ADR-030；真空白 = "多列群组 × 车钩力 × MARL"）；本项目在长大下坡循环制动场景下**显式建模车钩力**，并扩展到多列群组协同。实现方式（2026-09-08 ADR-013）= **RL 定策 + 底层控制器安全执行**（非纯 RL 直控 100 车厢）。
+**核心创新点：车钩力 + 多列群组 + 长大下坡 协同控制**（编队 = 最终目的，MARL = 实现手段）。现有长大下坡 RL 工作中 **Zhang2024 DQN、Liu2021 DDQN 明确忽略车钩力**（⚠️ 仅指这些单列、车钩力未入模者，**勿推广为"文献都忽略"**——Wang2025 ICIRT 单列但车钩力已进 reward、Wang2026 单列重载 RL 已含车钩力、Song2026 多列 Tube-MPC 已含车钩力约束、Song2026 MAPPO 多列+MARL 但车钩力不进目标，见 `RESEARCH_POSITIONING.md` §1.2 / ADR-030；真空白 = **"多列群组 × 车钩力进 RL 目标 × MARL"**，论文写"据系统检索未见"、禁用"绝对首创"）；本项目在长大下坡循环制动场景下**显式建模车钩力**，并扩展到多列群组协同。实现方式（2026-09-08 ADR-013）= **RL 定策 + 底层控制器安全执行**（非纯 RL 直控 100 车厢）。
 
 > **⚠️ 主轴与 RL 落位（ADR-013，铁律）**：论文**最终目的是"编队"**（多列群组长大下坡保持安全列距 + 速度带一致 + 车钩力 ≤1000 kN）；MARL 只是手段。**仅保留一套 formation-aware RL = 机车级 ED/AB 分工**（每台机车 = 智能体，ED 连续 / AB 离散档位，以编队为上下文）；底层由列内规则循环制动 + 车钩力安全层确定性执行。**废止**"编队层 RL + 列内层 RL 两层叠加 = T-MARL"（ADR-012→013）。
 
@@ -59,13 +59,14 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-12** 最新为 **ADR-031**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
+> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-13** 最新为 **ADR-034**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/做消融/加对比。
 > **文档规范出处**：文档治理/角色/三态/判断树 = `docs/README.md` + `docs/rules/README.md`（唯一规范）。
 
 - **主轴**：多列编队 + 队内车钩力 ≤1000 kN + 安全列距 = 不可逾越底线；AB+ED 分工、1+1 = 锦上添花（不当主线）。
-- **MPC 对比只留 Regime A**（ADR-016，B 已废止）：不按坡道换 MPC 模型；MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定），D-RL 跨线严格零微调。立论 = **"免重辨识成本"**（零重标定代价的 MARL ≈ 逐线重标定后的 MPC）；不再提供"MPC 不重辨识失配"论证。Protocol 逐实验标 A。**MPC 基线唯一 = `NMPCController`**（ADR-022：旧 `FairMPCController`/简化 MPC 已删除；主表显式 `--mpc_type nmpc`，历史 MPC 数值作废）。
-- **车钩异构（E4-H）【SUPERSEDED，不承担立论】**：主 claim 只押"免重辨识成本"；`--hetero` 仅作可选鲁棒性（默认齐次零回归），不进正文主表。
+- **MPC 对比只留 Regime A**（ADR-016，B 已废止）：MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定协议，**非成本/劣势叙事**），D-RL 跨线严格零微调。立论 = **"编队上下文协同增益"**（ADR-032；旧"免重辨识成本"已废止）——claim 证据只落消融列（独立 vs formation），基线行均不承载 claim。**主表结构（ADR-034，2026-10-13）**：D-Rule / 单列 RL 范式行 / **Formation-MPC**（following Song2026 架构、显式关车钩约束防稻草人；**只主张编队指标胜出，绝不主张车钩指标**）/ D-RL + 消融列；**NMPC 已退出主表**（related work 文本，"方法与场景不匹配，忠实复现不成立"）；**三项不加**：安全层关断消融 / 外部 MARL 算法行 / 单智能体参照行（后两项 revision 预案，why-MARL 用结构性论证）。防守句式 "all comparisons hold the algorithm fixed..."。
+- **车钩异构（E4-H）【SUPERSEDED，不承担立论】**：主 claim = 编队上下文协同增益（ADR-032）；`--hetero` 仅作可选鲁棒性（默认齐次零回归），不进正文主表。
+- **不可主张清单 + 措辞纪律（ADR-034，Wang2026 撞车）**：**机车级 ED/AB 分工、车钩进状态/奖励、AB 最小充风均不可写为创新点**（Wang2026 已做同款）；可主张 delta 仅两条 = 多列群组 MARL + 硬保证通道。规则层措辞只许 **"literature-anchored rule baseline"**（禁 "industry standard"）；前人缺点只写"局限于单列场景、无人在多列车组层面处理车钩力"一条；"软通道 vs 硬承诺"只用于解释自家架构，不作前人批评；贡献句式 = 机制 + 与具体基线对照 + 量化收益，**禁"首次/首创"**（写"据系统检索未见"）。H1–H3 预注册见 RESEARCH_POSITIONING §1.6。
 - **训练/评估时域**（ADR-017，铁律）：三条独立维度不可混——① 单条 rollout 时域（on-policy 窗口）② 评估时域（覆盖剖面）③ 总训练量（episodes 预算）。**训练 = 短窗口；评估 = 独立完整剖面单独跑（非"多段拼接"）**；跨线方向 = 长复杂剖面训 → 未见过剖面验。**具体数值见 ADR-017，勿在本文件复制以免随 SSOT 漂移。**
 - **车钩力定位**（ADR-014，**已由 ADR-021 决策 2 修订并落地执行**）：硬安全层（≤1000 kN）+ 观测上下文 + 安全层；**不作均值最小化对象**。现允许**受控的"超限"非线性项**进目标（`-6.0·min(peak_norm−1, 2.0)`，上界 −12；仅在 `peak_norm>1` 生效；仍不作均值最小化、安全叙事不归功于 MARL）——落地与量级核对见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」四、。指标口径 SSOT = `coupler_interface_forces()`（断面力，ADR-018）。
 
@@ -77,7 +78,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## Config files
 
-- `traffic_rl_project/configs/experiments/formation_ed_ab_3train_1plus1.yaml` — **主训练配置**（formation-aware 机车级 ED/AB，3 列×1+1=6 agent，53km，curriculum 上限 1200 步）
+- `traffic_rl_project/configs/experiments/formation_ed_ab_3train_1plus1.yaml` — **主训练配置**（formation-aware 机车级 ED/AB，3 列×1+1=6 agent，49.6km，curriculum 上限 1200 步）
 - YAML `.get()` 路径需与 YAML 结构严格匹配，否则静默回退默认值（YAML 禁科学计数法，用 `0.0003`）。
 
 ## Code conventions

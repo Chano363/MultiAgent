@@ -220,83 +220,70 @@ SHUOZHOU_REAL_SPEED_LIMIT = SpeedLimitProfile(segments=[
 ])
 
 
-def profile_shuozhou_real_53km() -> GradeProfile:
-    """朔黄线宁武西→北大牛真实长大下坡纵断面（≈53.2km，**真实线路数据**）。
+def profile_shuozhou_ningwuxi_beidaniu_49km() -> GradeProfile:
+    """朔黄线宁武西→北大牛真实长大下坡纵断面（49.6km，**真实线路数据**）。
 
-    【来源 = 同行真实数据，非设计/合成】取自 `simulation(1)/data_line/line_grade.xlsx`
-    （车站索引 sheet3：宁武西 / 龙宫 / 北大牛），58 个实测坡段端点，建议起始里程
-    逐段（米）衔接自洽（脚本校验通过）。坡度 -1.2‰~-12.0‰ 连续变坡，属典型
-    长大下坡循环制动剖面，比现有手写 `shuozhou_23800`（Zhang2024 Table2 手工表）
-    更完整真实（23800m→53205m）。
+    【来源 = 真实线路数据，非设计/合成】取自
+    `reference/simulation/data_line/朔黄铁路_完整线路信息表_表3表4补充版.xlsx`
+    （`统一线路表` sheet，表头在第 2 行；宁武西 K15.9 → 北大牛 K65.5），
+    0.1km 粒度里程-坡度数据合并为 50 个坡段，逐段（米）衔接自洽（脚本校验通过）。
+    坡度 -1.3‰~-12.0‰ 连续变坡，属典型长大下坡循环制动剖面；该表同时被
+    表4 标注为长大下坡区段（≥6‰ 且 ≥8km 判定）。
 
-    用途：作为"真实线路"额外验证工况，可评估动力学对真实纵断面的复现
-    （长坡多段变坡下循环制动 / 车钩力守 1000kN）。坡度 sign：负值=下坡（与全局一致）。
-
-    坡度段（start_m, ‰）：
-        0–809: -1.5;  809–1309: -5.0;  1309–1859: -1.3;  1859–2389: -9.0
-        2389–2894: -10.0;  2894–3809: -6.2;  3809–10209: -10.2（长坡）
-        10209–16609: -10.2;  16609–17159: -10.8;  17159–17659: -12.0
-        …（多段 -8~-12‰ 交替变坡，进口/出口均长大下坡）
+    用途：主训练真实线路剖面（长坡多段变坡下循环制动 / 车钩力守 1000kN）。
+    坡度 sign：负值=下坡（与全局一致）。总长 49600m（0–49.6km，重基到 0）。
     """
     return GradeProfile(segments=[
-        GradeSegment(0.0, -1.5),
-        GradeSegment(809.000, -5.0),
-        GradeSegment(1309.000, -1.3),
-        GradeSegment(1859.000, -9.0),
-        GradeSegment(2389.000, -10.0),
-        GradeSegment(2894.000, -6.2),
-        GradeSegment(3809.000, -10.2),
-        GradeSegment(10209.100, -10.2),
-        GradeSegment(16609.200, -10.8),
-        GradeSegment(17159.200, -12.0),
-        GradeSegment(17659.200, -10.7),
-        GradeSegment(17959.200, -12.0),
-        GradeSegment(18959.200, -9.6),
-        GradeSegment(19709.200, -10.8),
-        GradeSegment(21059.200, -11.3),
-        GradeSegment(21709.200, -10.1),
-        GradeSegment(22259.200, -10.8),
-        GradeSegment(22509.200, -9.4),
-        GradeSegment(24578.000, -10.3),
-        GradeSegment(24778.000, -8.9),
-        GradeSegment(25278.000, -1.5),
-        GradeSegment(26948.000, -8.0),
-        GradeSegment(27368.000, -10.9),
-        GradeSegment(27994.180, -11.2),
-        GradeSegment(28744.180, -10.8),
-        GradeSegment(32144.180, -9.0),
-        GradeSegment(32694.180, -10.9),
-        GradeSegment(33770.430, -12.0),
-        GradeSegment(34520.430, -10.8),
-        GradeSegment(34870.430, -11.0),
-        GradeSegment(35070.430, -11.4),
-        GradeSegment(35420.430, -11.2),
-        GradeSegment(36270.430, -11.0),
-        GradeSegment(37020.430, -12.0),
-        GradeSegment(37870.430, -11.0),
-        GradeSegment(38370.430, -10.5),
-        GradeSegment(40020.430, -11.5),
-        GradeSegment(40570.430, -12.0),
-        GradeSegment(41370.430, -11.0),
-        GradeSegment(42270.430, -10.0),
-        GradeSegment(43520.430, -10.5),
-        GradeSegment(44570.430, -11.5),
-        GradeSegment(45070.430, -12.0),
-        GradeSegment(45450.520, -10.6),
-        GradeSegment(46800.520, -12.0),
-        GradeSegment(47203.190, -10.5),
-        GradeSegment(48203.190, -8.3),
-        GradeSegment(48405.860, -5.5),
-        GradeSegment(48605.860, -2.5),
-        GradeSegment(48805.860, -1.2),
-        GradeSegment(50005.860, -2.0),
-        GradeSegment(50205.860, -5.0),
-        GradeSegment(50405.860, -8.5),
-        GradeSegment(50605.860, -10.8),
-        GradeSegment(51555.860, -12.0),
-        GradeSegment(51855.860, -11.0),
-        GradeSegment(52305.860, -12.0),
-        GradeSegment(53205.860, -11.4),
+        GradeSegment(0.000, -1.5),
+        GradeSegment(544.500, -5.0),
+        GradeSegment(1044.500, -1.3),
+        GradeSegment(1594.500, -9.0),
+        GradeSegment(2124.500, -10.0),
+        GradeSegment(2629.500, -6.2),
+        GradeSegment(3544.500, -10.2),
+        GradeSegment(9944.600, -10.2),
+        GradeSegment(16344.700, -10.8),
+        GradeSegment(16894.700, -12.0),
+        GradeSegment(17394.700, -10.7),
+        GradeSegment(17694.700, -12.0),
+        GradeSegment(18694.700, -9.6),
+        GradeSegment(19444.700, -10.8),
+        GradeSegment(20794.700, -11.3),
+        GradeSegment(21444.700, -10.1),
+        GradeSegment(21994.700, -10.8),
+        GradeSegment(22244.700, -9.4),
+        GradeSegment(24313.500, -11.3),
+        GradeSegment(24513.500, -8.9),
+        GradeSegment(25013.500, -1.5),
+        GradeSegment(26683.500, -8.0),
+        GradeSegment(27103.500, -10.9),
+        GradeSegment(27729.680, -11.2),
+        GradeSegment(28479.680, -10.8),
+        GradeSegment(31879.680, -9.0),
+        GradeSegment(32429.680, -10.9),
+        GradeSegment(33505.930, -12.0),
+        GradeSegment(34255.930, -10.6),
+        GradeSegment(34605.930, -11.0),
+        GradeSegment(34805.930, -11.4),
+        GradeSegment(35155.930, -11.2),
+        GradeSegment(36005.930, -11.0),
+        GradeSegment(36755.930, -12.0),
+        GradeSegment(37605.930, -11.0),
+        GradeSegment(38105.930, -10.5),
+        GradeSegment(39755.930, -11.5),
+        GradeSegment(40305.930, -12.0),
+        GradeSegment(41105.930, -11.0),
+        GradeSegment(42005.930, -10.0),
+        GradeSegment(43255.930, -10.5),
+        GradeSegment(44305.930, -11.5),
+        GradeSegment(44805.930, -12.0),
+        GradeSegment(45186.020, -10.6),
+        GradeSegment(46536.020, -12.0),
+        GradeSegment(46938.690, -10.5),
+        GradeSegment(47938.690, -8.3),
+        GradeSegment(48161.360, -6.5),
+        GradeSegment(48361.360, -2.5),
+        GradeSegment(48561.360, -1.5),
     ])
 
 
@@ -315,8 +302,8 @@ def _slice_profile(profile: GradeProfile, start_m: float, end_m: float) -> Grade
     return GradeProfile(segments=segs)
 
 
-def profile_shuozhou_real_53km_slice16k() -> GradeProfile:
-    """【训练方法调试沙盒，**非论文工况**】shuozhou_real_53km 的 21.06–37.02 km 切片（≈16.0 km）。
+def profile_shuozhou_ningwuxi_beidaniu_49km_slice16k() -> GradeProfile:
+    """【训练方法调试沙盒，**非论文工况**】shuozhou_ningwuxi_beidaniu_49km 的 20.79–36.76 km 切片（≈16.0 km）。
 
     目的：训练方法（奖励 / 信用分配 / 动作权限）迭代时的快速沙盒——物理模型、编组、
     安全层与主剖面**完全一致**，仅剖面更短（含 -12‰ 陡坡 + -1.5‰ 缓坡交替，保留
@@ -325,7 +312,7 @@ def profile_shuozhou_real_53km_slice16k() -> GradeProfile:
     ⚠️ 纪律：本剖面**只作 debug 沙盒**，其训练/评估结果**不得进论文正文主表、不得引用**
     （ADR-017 §3：长且复杂剖面训练→未见剖面验证才成立，短训长验方向错误）。
     """
-    return _slice_profile(profile_shuozhou_real_53km(), 21059.2, 37020.43)
+    return _slice_profile(profile_shuozhou_ningwuxi_beidaniu_49km(), 20794.7, 36755.93)
 
 
 PROFILES = {
@@ -336,6 +323,6 @@ PROFILES = {
     'long_downhill_20km': profile_long_downhill_20km,  # 第二长下坡剖面（普适性）
     'long_downhill_35km': profile_long_downhill_35km,  # 第三长下坡剖面（35km，synthetic）
     'long_downhill_50km': profile_long_downhill_50km,  # 第四长下坡剖面（50km，synthetic，剧变点/边界）
-    'shuozhou_real_53km': profile_shuozhou_real_53km,  # 朔黄线真实纵断面（同行 data_line，真实数据）
-    'shuozhou_real_53km_slice16k': profile_shuozhou_real_53km_slice16k,  # ⚠️ 仅训练方法调试沙盒，不进正文/主表
+    'shuozhou_ningwuxi_beidaniu_49km': profile_shuozhou_ningwuxi_beidaniu_49km,  # 朔黄线宁武西→北大牛真实纵断面 49.6km（统一线路表）
+    'shuozhou_ningwuxi_beidaniu_49km_slice16k': profile_shuozhou_ningwuxi_beidaniu_49km_slice16k,  # ⚠️ 仅训练方法调试沙盒，不进正文/主表
 }

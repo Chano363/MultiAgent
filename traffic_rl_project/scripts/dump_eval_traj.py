@@ -137,7 +137,7 @@ def main():
     p.add_argument('--checkpoint', default=ed.DEFAULT_CKPT)
     p.add_argument('--mpc_inner_rule_cyclic', action='store_true', default=False,
                    help='MPC 是否再叠一层规则循环护盾（默认 False = 与 D-RL 各一层，like-for-like）')
-    p.add_argument('--grade', default='shuozhou_real_53km')
+    p.add_argument('--grade', default='shuozhou_ningwuxi_beidaniu_49km')
     p.add_argument('--max_steps', type=int, default=36000)
     p.add_argument('--num_trains', type=int, default=3)
     p.add_argument('--n_seed', type=int, default=1)

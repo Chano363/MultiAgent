@@ -4,9 +4,9 @@
 不触发训练、不启动仿真，可在训练进行中安全执行。
 
 产出（outputs/figures/report/）：
-  fig_a_profile_53km.png        主训练剖面纵断面（53.2 km 真实，英文标注）
-  坡度剖面/fig_grade_shuozhou_real_53km.png / fig_grade_long_downhill_35km.png
-                                53.2 km 与 35 km 纵断面（策展目录，英文标注）
+  fig_a_profile_49km.png        主训练剖面纵断面（49.6 km 真实，英文标注）
+  坡度剖面/fig_grade_shuozhou_ningwuxi_beidaniu_49km.png / fig_grade_long_downhill_35km.png
+                                49.6 km 与 35 km 纵断面（策展目录，英文标注）
   fig_b_training_curves.png     5 seed 训练曲线（return / 车钩力峰值 / 超限次数）
   fig_c_coupler_gate_isolation.png  车钩力安全层闸门开/关隔离对照（断面力峰值）
   fig_d_reward_design.png       奖励塑形曲线（领航列速度带 / 跟随列相对锚定 / 列间距）
@@ -120,12 +120,12 @@ def _draw_profile(prof, title, outpaths):
 
 
 def fig_profile():
-    """53.2 km 真实剖面 + 35 km 设计剖面的纵断面图（英文标注，供汇报/论文）。"""
+    """49.6 km 真实剖面 + 35 km 设计剖面的纵断面图（英文标注，供汇报/论文）。"""
     _draw_profile(
-        PROFILES['shuozhou_real_53km'](),
-        'Shuohuang line longitudinal profile (53.2 km, 58 measured segments)',
-        [OUT / 'fig_a_profile_53km.png',
-         PROFILE_DIR / 'fig_grade_shuozhou_real_53km.png'],
+        PROFILES['shuozhou_ningwuxi_beidaniu_49km'](),
+        'Shuohuang line longitudinal profile (49.6 km, 50 measured segments)',
+        [OUT / 'fig_a_profile_49km.png',
+         PROFILE_DIR / 'fig_grade_shuozhou_ningwuxi_beidaniu_49km.png'],
     )
     _draw_profile(
         PROFILES['long_downhill_35km'](),

@@ -11,6 +11,8 @@
 
 > **【2026-09-09 主训练剖面升级】** 主训练剖面已由 `shuozhou_23800`（朔黄 23.8km，手写/Zhang2024 复现）**升级为 `shuozhou_real_53km`（朔黄线宁武西→北大牛完整真实纵断面 53.2km，取自真实线路数据 `simulation(1)/data_line/line_grade.xlsx`）**。正文 Abstract / Protocol / 主结果章节中的 **23.8 km 与数值均为剖面升级前的训练产物**；用新 53.2km 真实剖面重训后，需同步替换正文数值与剖面声明（本稿在数据补齐前不得当作论文最终结果引用，见顶部声明）。
 
+> **【2026-10-12 主训练剖面再重建】** 主训练剖面已改为 **`shuozhou_ningwuxi_beidaniu_49km`（宁武西→北大牛 49.6km，50 实测坡段）**，取自统一线路表 `reference/simulation/data_line/朔黄铁路_完整线路信息表_表3表4补充版.xlsx`；原 `shuozhou_real_53km`（53.2km/58 段，源 `line_grade.xlsx`）**已从代码删除**，历史产物/日志中的 `shuozhou_real_53km` 数值仅作历史记录。
+
 > **⚠️【2026-10-01 口径 / 目标 / 算法三重变更声明】** 本稿正文全部数值产生于**旧口径 + 旧目标 + 旧算法**，与现行 SSOT **不可混用**：
 > 1. **车钩力口径**（ADR-018）：现行 SSOT 为 `coupler_interface_forces()`（单钩**断面力**，长度 n−1）；正文的 `coupler peak / viol` **须逐份核对对应结果 JSON 的 `physics_version`**，与现行口径（`physics_version=1eab36352fd3`）不同源的数值**不可直接对照**。
 > 2. **reward 口径**（ADR-021 决策 2 + C 改造）：已改为 `reward_schema=v2-bounded-overlimit-section-force`，新增**受控超限项** `−6·min(peak_norm−1, 2)`（上界 −12）。⇒ 正文 reward 数值与"只靠线性车钩力 shaping"的叙事**已过时**。
