@@ -1,0 +1,196 @@
+{
+  "middle20kt_correct_default_01": {
+    "summary": {
+      "steps": 600,
+      "speed_min_kmh": 65.02069400651308,
+      "speed_max_kmh": 80.37850979004182,
+      "peak_kn": 916.7630764252309,
+      "jerk_rms": 0.014529353371101327,
+      "jerk_peak": 0.23093622110046397,
+      "command_switches": 4,
+      "violations": 0,
+      "safety_events": 16398,
+      "physical_ed_change_rms_per_s": 0.5402332719310622,
+      "physical_ed_max_step_increase": 1.0,
+      "physical_ed_max_step_decrease": 0.6116664900876106,
+      "min_gap_m": 365.1393453944638,
+      "negative_gap_steps": 0,
+      "requested_notch_switches": 4,
+      "stored_head_notch_switches": 2,
+      "elapsed_s": 60.00000000000001,
+      "mean_speed_kmh": 72.99308346101913,
+      "distance_leader_m": 1205.537663068695,
+      "leader_end_m": 17205.537663068695,
+      "last_tail_end_m": 8643.416171696033,
+      "max_vehicle_speed_kmh": 81.31432461233081,
+      "overspeed_train_steps": 113,
+      "subenv_safety_events": 16398,
+      "full_route_completed": false
+    },
+    "physics_hash": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c",
+    "controller_hash": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5",
+    "runtime": [
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": false,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      },
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": false,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      },
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": false,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      }
+    ]
+  },
+  "middle20kt_air_upgrade_ff_after_01": {
+    "summary": {
+      "steps": 600,
+      "speed_min_kmh": 65.01425121164927,
+      "speed_max_kmh": 79.7371533733313,
+      "peak_kn": 2026.0393291646244,
+      "jerk_rms": 0.06618533070416242,
+      "jerk_peak": 0.2709261758450765,
+      "command_switches": 2,
+      "violations": 7344,
+      "safety_events": 2174,
+      "physical_ed_change_rms_per_s": 2.32234774340152,
+      "physical_ed_max_step_increase": 0.8002998887866488,
+      "physical_ed_max_step_decrease": 0.75,
+      "min_gap_m": 350.9099878820307,
+      "negative_gap_steps": 0,
+      "requested_notch_switches": 2,
+      "stored_head_notch_switches": 4,
+      "elapsed_s": 60.00000000000001,
+      "mean_speed_kmh": 71.60006581694547,
+      "distance_leader_m": 1161.9993048294564,
+      "leader_end_m": 17161.999304829456,
+      "last_tail_end_m": 8640.586529957309,
+      "max_vehicle_speed_kmh": 80.16722100687653,
+      "overspeed_train_steps": 12,
+      "subenv_safety_events": 2174,
+      "full_route_completed": false
+    },
+    "physics_hash": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c",
+    "controller_hash": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5",
+    "runtime": [
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      },
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      },
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      }
+    ]
+  },
+  "middle20kt_section_ed_after_01": {
+    "summary": {
+      "steps": 600,
+      "speed_min_kmh": 65.01310243963259,
+      "speed_max_kmh": 79.21298113433669,
+      "peak_kn": 2261.761731328893,
+      "jerk_rms": 0.07540287107596054,
+      "jerk_peak": 0.29710496493784433,
+      "command_switches": 2,
+      "violations": 10124,
+      "safety_events": 1317,
+      "physical_ed_change_rms_per_s": 2.6181891779643465,
+      "physical_ed_max_step_increase": 0.75,
+      "physical_ed_max_step_decrease": 0.75,
+      "min_gap_m": 350.67132548862355,
+      "negative_gap_steps": 0,
+      "requested_notch_switches": 2,
+      "stored_head_notch_switches": 4,
+      "elapsed_s": 60.00000000000001,
+      "mean_speed_kmh": 71.32767480981448,
+      "distance_leader_m": 1156.425147604372,
+      "leader_end_m": 17156.425147604372,
+      "last_tail_end_m": 8638.156182312352,
+      "max_vehicle_speed_kmh": 80.45723083910784,
+      "overspeed_train_steps": 16,
+      "subenv_safety_events": 1317,
+      "full_route_completed": false
+    },
+    "physics_hash": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c",
+    "controller_hash": "d6d065830fd82adc804a2101ebc0665b0a897335fe8e4ee52a78587479ba4503",
+    "runtime": [
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      },
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      },
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0
+      }
+    ]
+  },
+  "default_old_new_identity": {
+    "rows": true,
+    "physical_loco_ed": true,
+    "physical_ab": true
+  }
+}

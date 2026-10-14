@@ -913,3 +913,7 @@ um_updates 计量修复已落地（真实优化器步数计数，治 KL 早停�
 - 用户明确要求推送此前完成工作。提交包含已保留控制/空气执行正确性修复、ETCS越界回退、诊断与绘图入口、相关原生契约及文献/进度记录；未启用失败候选，不改主YAML、车钩参数或1000kN阈值。D盘仿真原始档与冻结候选不纳入正式代码，路径见本流水。
 - 提交前check_agents_links、check_outputs_layout、diffcheck通过；两万吨原生训练入口2回合×20步冒烟成功、模型/metadata落D:/Codex/Documents/Train/push_validation_20261014。warm_start关闭、未达batch size故无梯度更新，非训练收敛/整线验收。
 - 全量pytest首次C盘tmp_path权限失败，不算功能回归证据；已停止旧进程并使用D盘独立basetemp重跑，目前仍在运行，未宣称全量通过。远程origin/xmc-dev无新增提交；origin/ckb-dev有新工作，本次不自动合入，后续按owner共同审查物理执行修复。性能仍存在超速/车钩超限，50/140kPa映射缺口尚未解决。
+
+#### D盘实验档案补传 - 2026-10-14
+
+- 用户要求补推原始数据和冻结副本。extended/pressure两组37个完成诊断运行，共306个原有文件约311.35MiB，逐文件SHA256核对一致；空目录/无result+trajectory的测试壳不上传。正式代码不导入归档，不启用未采用策略。入口outputs/sim_validation/phys_validation/controller_repair_20261014/README.md；publication_manifest.json登记仓库相对路径、原路径和校验值；图独立放figures/controller_repair_20261014。旧元数据原样保留、不重标模型，文档索引已登记。原D盘数据仍保留。本批不含更早日期档案、论文PDF或训练检查点。

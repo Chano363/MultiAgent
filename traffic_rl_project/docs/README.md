@@ -130,3 +130,8 @@
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 
 <!-- 该文档整理/压缩于 2026-10-01 -->
+
+### 底层控制器实验交接档案（2026-10-14）
+
+- [归档说明与重画命令](../outputs/sim_validation/phys_validation/controller_repair_20261014/README.md)：37个完成运行、原始轨迹/结果元数据/源码快照、冻结候选和原报告；非正式已验收控制器。
+- [文件清单与SHA256](../outputs/sim_validation/phys_validation/controller_repair_20261014/publication_manifest.json)；图片位于 ../outputs/sim_validation/figures/controller_repair_20261014/。历史D盘路径保留出处，读取时使用仓库相对路径。
