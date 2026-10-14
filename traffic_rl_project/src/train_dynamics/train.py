@@ -117,6 +117,8 @@ class TrainDynamics:
         self._air_brake_delay_remaining = np.zeros(n)
         # 制动波目标档位（并行倒数用）：delay 减到 0 时该车按 pending 档位激活
         self._air_brake_pending = np.full(n, None, dtype=object)
+        self._air_brake_upgrade_pending = np.full(n, None, dtype=object)
+        self._air_brake_upgrade_delay = np.zeros(n)
         # 缓解波状态：_air_brake_releasing[i]=True 表示该节"已接收缓解指令、等待传播解除制动"
         # 真实空气制动缓解是"缓解波"按波速从车头向后传播（车头先缓、车尾后缓），
         # 这种不同步正是"缓解后车钩力最大"（张二田/刘博阳/王宏宇/李蔚 一致）的物理根源。
@@ -195,6 +197,24 @@ class TrainDynamics:
         if getattr(self, '_grade_profile', None) is not None:
             self.grade = self._grade_profile.grades_for_positions(self.pos)
 
+    def _reset_air_brake_state(self):
+        """Start a fresh episode without old notches, waves or release state."""
+        n = self.num_vehicles
+        self._brake_pressure = np.zeros(n)
+        self._brake_reduction_override_kpa = None
+        self._air_brake_active = np.zeros(n, dtype=bool)
+        self._air_brake_notch = np.full(n, AirBrakeNotch.RELEASE, dtype=object)
+        self._air_brake_releasing = np.zeros(n, dtype=bool)
+        self._air_brake_delay_remaining = np.zeros(n)
+        self._air_brake_delay_total = np.zeros(n)
+        self._air_brake_pending = np.full(n, None, dtype=object)
+        self._air_brake_upgrade_pending = np.full(n, None, dtype=object)
+        self._air_brake_upgrade_delay = np.zeros(n)
+        self._air_brake_release_frac = np.ones(n)
+        self._air_brake_exhaust_t = np.zeros(n)
+        self._brake_segment = 0
+        self._brake_was_active = False
+
     def set_initial(self, pos: np.ndarray = None, vel: np.ndarray = None):
         """设置初始位置/速度（米, 米/秒）。"""
         if pos is not None:
@@ -203,26 +223,14 @@ class TrainDynamics:
             self.vel = np.asarray(vel, dtype=float)
         # Newmark 上一步加速度清零（episode 间不残留）
         self._acc0 = np.zeros(self.num_vehicles)
-        self._brake_pressure = np.zeros(self.num_vehicles)
-        self._brake_reduction_override_kpa = None
-        self._air_brake_pending = np.full(self.num_vehicles, None, dtype=object)
-        # 【R0-D/E】episode 间不残留：衰减段号/缓解排气计时归零
-        self._brake_segment = 0
-        self._brake_was_active = False
-        self._air_brake_exhaust_t = np.zeros(self.num_vehicles)
+        self._reset_air_brake_state()
 
     def set_initial_speed(self, speed_mps: float):
         """全体车辆初始速度一致。"""
         self.vel = np.full(self.num_vehicles, speed_mps)
         # Newmark 上一步加速度清零（episode 间不残留）
         self._acc0 = np.zeros(self.num_vehicles)
-        self._brake_pressure = np.zeros(self.num_vehicles)
-        self._brake_reduction_override_kpa = None
-        self._air_brake_pending = np.full(self.num_vehicles, None, dtype=object)
-        # 【R0-D/E】episode 间不残留：衰减段号/缓解排气计时归零
-        self._brake_segment = 0
-        self._brake_was_active = False
-        self._air_brake_exhaust_t = np.zeros(self.num_vehicles)
+        self._reset_air_brake_state()
 
     def _coupler_interface_forces_vec(
         self, e: np.ndarray = None, dv: np.ndarray = None
@@ -593,18 +601,20 @@ class TrainDynamics:
                        else (None if ab_command is None else ab_command))
             is_braking_cmd = (cmd_now is not None
                               and cmd_now != AirBrakeNotch.RELEASE)
-            if self.enable_cyclic_degrade and is_braking_cmd and not self._brake_was_active:
-                self._brake_segment += 1
-            self._brake_was_active = is_braking_cmd
+            # None means HOLD, not RELEASE. Keep the same braking episode
+            # through vetoed new-source requests or a later emergency upgrade.
+            if cmd_now is not None:
+                if self.enable_cyclic_degrade and is_braking_cmd and not self._brake_was_active:
+                    self._brake_segment += 1
+                self._brake_was_active = is_braking_cmd
             if ab_sources:
                 # 多源制动：多个位置同时发出空气制动指令（分布式动力）
                 # 尾部/中部动力源需要双向传播以提升制动同步
                 cmd = ab_sources[0][1]
                 if cmd != AirBrakeNotch.RELEASE:
                     for idx, notch in ab_sources:
-                        if not self._air_brake_active[idx]:
-                            self._apply_air_brake_command(
-                                notch, idx, bidirectional=True)
+                        self._apply_air_brake_command(
+                            notch, idx, bidirectional=True)
                 else:
                     if np.any(self._air_brake_active):
                         self._reset_air_brake_command(0, eot=eot)
@@ -616,8 +626,7 @@ class TrainDynamics:
                 pass
             elif ab_command != AirBrakeNotch.RELEASE:
                 # 单源制动（向后兼容）
-                if not self._air_brake_active[brake_origin]:
-                    self._apply_air_brake_command(ab_command, brake_origin)
+                self._apply_air_brake_command(ab_command, brake_origin)
             else:
                 # 缓解：仅在确实处于制动状态时释放
                 # 【bug修复】缓解波传播中（车头 _air_brake_releasing[0] 已触发）不重复
@@ -798,8 +807,24 @@ class TrainDynamics:
         activated = pending_mask & (self._air_brake_delay_remaining <= 0.0)
         for i in np.where(activated)[0]:
             self._air_brake_active[i] = True
-            self._air_brake_notch[i] = self._air_brake_pending[i]
+            if self._air_notch_rank(self._air_brake_pending[i]) > self._air_notch_rank(self._air_brake_notch[i]):
+                self._air_brake_notch[i] = self._air_brake_pending[i]
             self._air_brake_pending[i] = None
+
+        upgrade_mask = np.array([n is not None for n in self._air_brake_upgrade_pending])
+        self._air_brake_upgrade_delay[upgrade_mask] -= dt
+        for i in np.where(upgrade_mask & (self._air_brake_upgrade_delay <= 0))[0]:
+            notch = self._air_brake_upgrade_pending[i]
+            if (self._air_brake_releasing[i] or not self._air_brake_active[i]
+                    or self._air_notch_rank(notch) > self._air_notch_rank(self._air_brake_notch[i])):
+                if self._air_brake_releasing[i]:
+                    self._brake_pressure[i] *= self._air_brake_release_frac[i]
+                self._air_brake_notch[i] = notch
+                self._air_brake_active[i] = True
+                self._air_brake_releasing[i] = False
+                self._air_brake_exhaust_t[i] = 0.0
+                self._air_brake_release_frac[i] = 1.0
+            self._air_brake_upgrade_pending[i] = None
 
         # 【缓解波传播修复 2026-08-22】连续波前并行释放（替代原"逐节串行等待"）。
         # 原实现依赖 releasing[i-1]（前一节已释放才倒计时本节的独立满 delay），导致
@@ -837,6 +862,11 @@ class TrainDynamics:
         # 【EOT 缓解波】EOT 时 delay 已在 _reset_air_brake_command 设为 min(到头,到尾)/波速，
         # 正向传播循环按此 delay 递减即可实现"两端向中间缓解"，无需单独反向循环。
 
+    @staticmethod
+    def _air_notch_rank(notch):
+        return {None: -1, AirBrakeNotch.RELEASE: 0, AirBrakeNotch.MIN: 1,
+                AirBrakeNotch.SERVICE: 2, AirBrakeNotch.EMERGENCY: 3}[notch]
+
     def _apply_air_brake_command(
         self,
         cmd_notch: AirBrakeNotch,
@@ -859,25 +889,47 @@ class TrainDynamics:
         )
         cum_len = self._vehicle_cum_lengths()
 
-        if not self._air_brake_active[vehicle_idx]:
+        if (not self._air_brake_active[vehicle_idx]
+                or self._air_brake_releasing[vehicle_idx]
+                or self._air_notch_rank(cmd_notch) > self._air_notch_rank(self._air_brake_notch[vehicle_idx])):
             self._air_brake_active[vehicle_idx] = True
             self._air_brake_notch[vehicle_idx] = cmd_notch
             # 若该节正在缓解波传播中，清除缓解状态（重新制动）
             if self._air_brake_releasing[vehicle_idx]:
+                # Resume filling from effective cylinder pressure, not full pressure.
+                self._brake_pressure[vehicle_idx] *= self._air_brake_release_frac[vehicle_idx]
                 self._air_brake_releasing[vehicle_idx] = False
                 self._air_brake_exhaust_t[vehicle_idx] = 0.0
-            # E7：重新制动时恢复满制动力（清除缓解衰减）
+            # Effective pressure has been preserved above; clear the release multiplier.
             self._air_brake_release_frac[vehicle_idx] = 1.0
 
             def _enqueue(j: int, distance: float):
                 """将第 j 节挂入制动波（并行倒数，取更早到达的波）。"""
-                if self._air_brake_active[j] and not self._air_brake_releasing[j]:
-                    return  # 已在制动（非缓解中）→ 保持现档位
+                delay = max(distance / wave_speed, 0.0)
+                active = self._air_brake_active[j] and not self._air_brake_releasing[j]
+                pending = self._air_brake_pending[j]
+                if active or pending is not None:
+                    existing = self._air_brake_notch[j] if active else pending
+                    if self._air_notch_rank(cmd_notch) > self._air_notch_rank(existing):
+                        # Preserve the earlier weaker wave; upgrade on its own
+                        # finite-delay wave. Repeated requests never restart it.
+                        queued = self._air_brake_upgrade_pending[j]
+                        if (queued is None or self._air_notch_rank(cmd_notch) > self._air_notch_rank(queued)
+                                or (cmd_notch == queued and delay < self._air_brake_upgrade_delay[j])):
+                            self._air_brake_upgrade_pending[j] = cmd_notch
+                            self._air_brake_upgrade_delay[j] = delay
+                        return
+                    if active or self._air_notch_rank(cmd_notch) < self._air_notch_rank(existing):
+                        return
                 if self._air_brake_releasing[j]:
-                    # 取消缓解波：恢复满制动，改挂制动波
-                    self._air_brake_releasing[j] = False
-                    self._air_brake_release_frac[j] = 1.0
-                    self._air_brake_exhaust_t[j] = 0.0
+                    # Keep exhausting until the new application wave arrives.
+                    # Its timer must not overwrite the release-wave timer.
+                    queued = self._air_brake_upgrade_pending[j]
+                    if (queued is None or self._air_notch_rank(cmd_notch) > self._air_notch_rank(queued)
+                            or (cmd_notch == queued and delay < self._air_brake_upgrade_delay[j])):
+                        self._air_brake_upgrade_pending[j] = cmd_notch
+                        self._air_brake_upgrade_delay[j] = delay
+                    return
                 delay = max(distance / wave_speed, 0.0)
                 # 多源时保留更早到达的波（delay 更小者）
                 if (self._air_brake_pending[j] is None
@@ -912,20 +964,24 @@ class TrainDynamics:
         # 否则缓解波传播中，尚在倒计时的制动波会继续激活车辆 → 缓解后
         # 残留车辆被延迟激活满制动 → 列车永远刹住不缓解。
         self._air_brake_pending[:] = None
+        self._air_brake_upgrade_pending[:] = None
+        self._air_brake_upgrade_delay[:] = 0.0
         cum_len = self._vehicle_cum_lengths()
         wave_speed = AIR_BRAKE_PROPAGATION_SPEED_SERVICE
         # 【R0-E 2026-09-06】源头车辆不再瞬时释放（旧实现 active=False 立即归零）：
         # 保持 active/notch 不变，进入"缓解排气"状态（delay=0 → 立即开始按
         # exp(-t/τ) 排风），由 _advance_air_brake_propagation 完成衰减与释放。
-        if vehicle_idx < n and self._air_brake_active[vehicle_idx]:
+        if (vehicle_idx < n and self._air_brake_active[vehicle_idx]
+                and not self._air_brake_releasing[vehicle_idx]):
             self._air_brake_releasing[vehicle_idx] = True
             self._air_brake_delay_remaining[vehicle_idx] = 0.0
             self._air_brake_delay_total[vehicle_idx] = 0.0
             self._air_brake_exhaust_t[vehicle_idx] = 0.0
             self._air_brake_release_frac[vehicle_idx] = 1.0
-            # 对后方仍在制动的车辆设置缓解波延迟（按距离/波速）
+            # Only newly releasing vehicles need a wave. Existing exhaust must
+            # continue without pressure restoration or a restarted timer.
             for j in range(vehicle_idx + 1, n):
-                if self._air_brake_active[j]:
+                if self._air_brake_active[j] and not self._air_brake_releasing[j]:
                     distance = cum_len[j] - cum_len[vehicle_idx]
                     delay = max(distance / wave_speed, 0.0)
                     # EOT：尾部（倒数第1节）也作为缓解源，缓解波双向传播 →

@@ -171,3 +171,20 @@
 ---
 
 维护：新增引用三处同步（`docs/papers/` + `refs.bib` + 本表）；自研项（winsorization、value grad clip、KL 0.012、5-seed 并行）在论文中声明"ours"，不混入文献。
+
+## ETCS 执行接口复核补充（2026-10-13）
+
+| 技术/公式或实现边界 | 一手来源 | 本地落点 |
+| :--- | :--- | :--- |
+| ETCS 监督速度/位置并发出制动介入，实际制动系统负责执行；介入映射不能丢失最终安全制动 | ERA_ERTMS_040026 v1.5 §3.1.1–3.1.2；[官方说明](https://www.era.europa.eu/domains/european-rail-traffic-management-system/braking-curves)及[官方原文](https://www.era.europa.eu/system/files/2022-11/Introduction%20to%20ETCS%20braking%20curves.pdf) | `papers/04_safety_mpc/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf`；`src/environments/train_env.py::_step_decomposed` 执行既有安全层投影。ED=1/0.75 是本项目投影映射，不是 ERA 指定的车辆常数；非完整 ETCS 认证实现。 |
+
+- 2026-10-13 执行补充：本项目 `etcs_permitted` 对应常用制动，接口现将其传给既有空气 SERVICE 档，避免仅加强 ED、空气仍缓解；请求紧急档不降级。SERVICE 档及源优先级映射是项目实现选择，ERA 说明支持监督/执行分工，不规定本列车必须采用这一电空分配；不新增车辆常数或认证结论。
+
+## 电制动前馈试验边界（2026-10-13）
+
+- 自研推导：令 ED 总制动力抵消 `max(Σ(F_grade − F_Davis + F_air_signed), 0)`，能力不足则饱和；使用现有动力学当前坡度、Davis、已生效空气力及 ED 力映射求逆，不移植论文车辆参数、不读取未来轨迹。落点 `MultiLocoController::_grade_feedforward_actions`，默认关闭、独立诊断。
+- 动力学来源沿用 `train_dynamics/train.py`、`resistance.py`、`braking.py` 与既有 `VALIDATION_BASELINE.md`；G=9.8066 沿用动力学，24 次二分是数值精度。下限连续投入复用既有控制裕量 0.5 m/s，属工程控制选择，非论文限定值；性能只认真实归档复核，不将静态力平衡等同于动态稳定性证明。
+
+### 近上限普通电制动渐进投入（2026-10-14）
+
+- ed_prelimit：自研规则执行试验，只复用既有AB_SUPPRESS_MARGIN_MPS=0.5m/s构建近上限ED渐进窗口，不是论文规定的提前量，不将10/50秒保持移植为常数。默认关闭，空气/循环阈值及ATP权限不变。真实两万吨60s对照、冻结源和局限见D:/Codex/Documents/Train/controller_extended_20261014/两万吨底层控制器复核.md；不作为论文整线主表证据。

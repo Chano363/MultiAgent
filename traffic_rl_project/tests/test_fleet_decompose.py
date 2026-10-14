@@ -30,6 +30,68 @@ def _make_decompose_fleet(num_trains=1, max_steps=20):
     })
 
 
+def test_explicit_grade_feedforward_configuration_reaches_controllers():
+    env = TrainFleetEnv({'num_trains': 1, 'consist_preset': '10kt_1plus1',
+                         'grade_profile': 'long_downhill', 'decompose': 'loco_ed_ab',
+                         'ed_grade_feedforward': True, 'max_steps': 3})
+    try:
+        env.reset(options={'speed': 65 / 3.6})
+        assert all(c.ed_grade_feedforward for c in env.multi_loco_controllers)
+        obs, _, _, _, _ = env.step(np.zeros((env.num_agents, 2)))
+        assert np.all(np.isfinite(obs))
+    finally:
+        env.close()
+
+
+def test_follower_speed_cap_is_passed_as_an_offset(monkeypatch):
+    """The real control chain must honor the preceding train's absolute cap."""
+    env = _make_decompose_fleet(num_trains=3)
+    env.reset(seed=0, options={'speed': 65.0 / 3.6})
+    env.trains[0].dynamics.vel[:] = 40.0 / 3.6
+    captured = []
+    for ti in (1, 2):
+        ctrl = env.multi_loco_controllers[ti]
+        original = ctrl.get_action_decomposed
+
+        def record(*args, _ti=ti, _original=original, **kwargs):
+            preceding_speed = float(env.trains[_ti - 1].dynamics.vel[0])
+            captured.append((kwargs['v_max'] + kwargs['v_max_adj'],
+                             preceding_speed + env.LEAD_TAIL_OFFSET_MPS))
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(ctrl, 'get_action_decomposed', record)
+    try:
+        env.step(np.zeros((env.num_agents, 2)))
+        assert len(captured) == 2
+        for actual_cap, preceding_cap in captured:
+            assert actual_cap <= preceding_cap + 1e-9
+    finally:
+        env.close()
+
+
+def test_rule_controller_sees_this_steps_preceding_train_target(monkeypatch):
+    env = _make_decompose_fleet(num_trains=3)
+    env.reset(seed=0, options={'speed': 65 / 3.6})
+    captured = []
+    for ti in (1, 2):
+        ctrl = env.multi_loco_controllers[ti]
+        original = ctrl.get_action_decomposed
+
+        def record(tr, *args, _ti=ti, _original=original, **kwargs):
+            targets = tr.etcs_targets
+            captured.append(bool(targets) and
+                            targets[0].position_m == env.trains[_ti - 1].dynamics.pos[-1] and
+                            targets[0].speed_mps == env.trains[_ti - 1].dynamics.vel[0])
+            return _original(tr, *args, **kwargs)
+
+        monkeypatch.setattr(ctrl, 'get_action_decomposed', record)
+    try:
+        env.step(np.zeros((env.num_agents, 2)))
+        assert captured == [True, True]
+    finally:
+        env.close()
+
+
 def test_decompose_agent_count_and_shapes():
     """decompose 模式：智能体 = 机车数（1+1 编组单列 = 2），obs/action 形状匹配。"""
     env = _make_decompose_fleet(num_trains=1)
@@ -115,18 +177,18 @@ def test_decompose_baseline_ab_fallback_on_steep_grade():
 
 
 def test_decompose_ab_suppress_allowed_when_far_below_vmax():
-    """AB 抑制：远离超速（vel < v_max-0.5）且基线 AB 激活时，RL 抑制生效。"""
+    """整列最高速度远离上限且基线 AB 激活时，RL 抑制生效。"""
     env = _make_decompose_fleet()
     env.reset(options={'speed': 81.0 / 3.6})
     _shift_into_steep(env)
     ctrl = env.multi_loco_controllers[0]
-    # 制动降速至脱离 v_max 裕量（vel < v_max - 0.5），且 ED 仍不足（基线 AB 保持）
+    # 全部车辆降速至脱离 v_max 裕量，且 ED 仍不足（基线 AB 保持）。
     suppress = np.zeros((2, 2))
     suppress[:, 1] = 1.0  # ab_mod=+1 → 请求抑制
     found = False
     for _ in range(150):
         tr = env.trains[0]
-        if (tr.dynamics.vel[0] < env.v_max - MultiLocoController.AB_SUPPRESS_MARGIN_MPS
+        if (np.max(tr.dynamics.vel) < env.v_max - MultiLocoController.AB_SUPPRESS_MARGIN_MPS
                 and ctrl._ed_ab_price(tr) < 0.99):
             final, base = ctrl.get_action_decomposed(
                 tr, suppress, v_max=env.v_max, v_min=env.v_min)
@@ -183,13 +245,19 @@ def test_decompose_fleet_multi_train_shape():
 def test_decompose_ab_release_command_issued():
     """【bug回归 2026-09-05】decompose 无 AB 源时必须发 RELEASE（None 不缓解残留制动）。
 
-    场景：陡坡施加 SERVICE AB 后切缓解 → 空气制动须真正缓解（否则列车被残留
+    场景：缓坡施加 SERVICE AB 后切缓解 → 空气制动须真正缓解（否则列车被残留
     制动拖停，15000 步全程评估实证）。"""
     from src.train_dynamics.braking import AirBrakeNotch
     env = _make_decompose_fleet()
-    env.reset(options={'speed': 81.0 / 3.6})
-    _shift_into_steep(env)
+    # Isolate air-brake release below the line limit. At 81 km/h rule C
+    # legitimately retains ED, so force dissipation is not a pure AB test.
+    # Overspeed execution is covered by real actuator contracts separately.
+    env.reset(options={'speed': 78.0 / 3.6})
     tr = env.trains[0]
+    # Keep every vehicle below the line limit throughout this release-only
+    # contract; a steep transition may legitimately trigger fresh ATP braking.
+    from src.train_dynamics.grade_profile import GradeProfile, GradeSegment
+    tr.dynamics.set_grade_profile(GradeProfile([GradeSegment(0, -2.0)]))
     ab_actions = np.array([[0.0, -0.75], [0.0, -0.75]])
     for _ in range(30):
         tr.step(ab_actions)
