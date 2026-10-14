@@ -28,6 +28,7 @@ import numpy as np
 from src.environments.train_env import COUPLER_FORCE_LIMIT_N
 from src.train_dynamics.braking import AirBrakeNotch, notch_from_throttle
 from src.train_dynamics.etcs_braking import G_RAIL
+from src.train_dynamics.resistance import G as DYNAMICS_GRAVITY
 
 
 class MultiLocoController:
@@ -45,6 +46,13 @@ class MultiLocoController:
         mask_lever: str = 'none',
         ab_min_refill_s: float = 222.0,
         ab_min_hold_s: float = 0.0,
+        ed_recovery_rate_per_s: float = 0.0,
+        ed_baseline_projection: str = 'legacy',
+        anticipate_etcs: bool = False,
+        ed_recovery_scope: str = 'all',
+        ed_grade_feedforward: bool = False,
+        ed_physics_availability: bool = False,
+        ed_prelimit: bool = False,
     ):
         self.num_vehicles = num_vehicles
         self.loco_indices = list(loco_indices)
@@ -54,6 +62,31 @@ class MultiLocoController:
         self.coupler_force_limit_n = coupler_force_limit_n
         self.enforce_coupler = enforce_coupler
         self.ed_priority = ed_priority  # 电空分工：ED 优先打满，ED 不足才引 AB
+        # Controller tuning, not a vehicle constant or a literature constraint.
+        # Disabled by default: the 1/s trial increased full-route overspeed
+        # and violation counts. Positive values are experimental opt-ins.
+        self.ed_recovery_rate_per_s = float(ed_recovery_rate_per_s)
+        if not np.isfinite(self.ed_recovery_rate_per_s) or self.ed_recovery_rate_per_s < 0:
+            raise ValueError('ed_recovery_rate_per_s must be finite and nonnegative')
+        self._previous_ed = None
+        if ed_recovery_scope not in ('all', 'coupler'):
+            raise ValueError('ed_recovery_scope must be all or coupler')
+        self.ed_recovery_scope = ed_recovery_scope
+        self.ed_grade_feedforward = bool(ed_grade_feedforward)
+        self.ed_physics_availability = bool(ed_physics_availability)
+        # Diagnostic-only: 120 s and second-route trials increased overspeed.
+        # Short-window smoothing is insufficient evidence for default use.
+        self.ed_prelimit = bool(ed_prelimit)
+        self._ed_recovery_pending = np.zeros(self.num_locomotives, dtype=bool)
+        # Preserve the established baseline protection by default. Removing it
+        # increased first-window interface violations from 170 to 1008.
+        # Single projection remains an explicit diagnostic option.
+        if ed_baseline_projection not in ('single', 'legacy'):
+            raise ValueError('ed_baseline_projection must be single or legacy')
+        self.ed_baseline_projection = ed_baseline_projection
+        # Experimental: use the existing service supervision ceiling earlier
+        # in normal control. No ETCS/vehicle constants are changed.
+        self.anticipate_etcs = bool(anticipate_etcs)
         # 【2026-09-05 杠杆隔离消融】mask_lever∈{'none','ed','ab'}：
         #   - 'none'：两根杠杆（ed_mod/ab_mod）都生效（默认，一致性不变）
         #   - 'ed'  ：禁用 ed_mod（仅 ab_mod 生效）→ 验证"AB 错峰杠杆"的独立贡献
@@ -154,21 +187,27 @@ class MultiLocoController:
           缓坡/低速时 ≥ 1 → ED 足够、AB 保持缓解（ED 优先）。
         """
         dyn = train_env.dynamics
-        v = max(float(dyn.vel[0]), 1.0)
         m_total_kg = sum(float(vp.mass_t) for vp in dyn.consist.vehicles) * 1000.0
-        m_loco_kg = sum(
-            float(vp.mass_t) for vp in dyn.consist.vehicles if vp.is_locomotive
-        ) * 1000.0
-        p_ed_w = sum(
-            float(vp.max_power_kw) for vp in dyn.consist.vehicles if vp.is_locomotive
-        ) * 1000.0
         grades = np.asarray(dyn.grade, dtype=float)
         prof = getattr(dyn, '_grade_profile', None)
         if prof is not None:
             # 坡度从剖面按当前位置实时取（reset 后 dyn.grade 可能尚未刷新）
             grades = prof.grades_for_positions(dyn.pos)
         steepest_down = max(0.0, -float(np.min(grades))) if grades.size else 0.0
-        f_ed = min(p_ed_w / v, m_loco_kg * G_RAIL * 0.35)  # 粘着上限 μ=0.35 保守
+        # Query the same efficiency, adhesion and per-locomotive speeds as
+        # the actuator, including the existing distributed ED allocation.
+        nominal = np.zeros(self.num_vehicles)
+        nominal[self.loco_indices] = [
+            1.0 - self._ed_stagger(i) for i in range(self.num_locomotives)]
+        if self.ed_physics_availability:
+            f_ed = max(0.0, -float(np.sum(dyn._electric_braking_forces(nominal))))
+        else:
+            # Keep the established gate until paired dynamics accept the new
+            # estimate: grade-4 trials increased air-brake coupler violations.
+            v = max(float(dyn.vel[0]), 1.0)
+            locos = [vp for vp in dyn.consist.vehicles if vp.is_locomotive]
+            f_ed = min(sum(vp.max_power_kw for vp in locos) * 1000.0 / v,
+                       sum(vp.mass_t for vp in locos) * 1000.0 * G_RAIL * 0.35)
         f_req = m_total_kg * G_RAIL * steepest_down
         if f_req <= 1e-6:
             return 1.5  # 无下坡需求 → ED 富余
@@ -202,23 +241,78 @@ class MultiLocoController:
     # ------------------------------------------------------------------ #
     # 主接口 1：循环制动
     # ------------------------------------------------------------------ #
+    def _operating_ceiling(self, train_env, v_max, v_max_adj):
+        ceiling = min(v_max, v_max + v_max_adj)
+        if self.anticipate_etcs:
+            curve = getattr(train_env, 'etcs_curve', None)
+            targets = getattr(train_env, 'etcs_targets', ())
+            if curve is not None and targets:
+                _, service_ceiling = train_env.safety._etcs_check(
+                    float(train_env.dynamics.pos[0]), float(train_env.dynamics.vel[0]),
+                    curve, targets)
+                if service_ceiling is not None and np.isfinite(service_ceiling):
+                    ceiling = min(ceiling, max(0.0, service_ceiling))
+        return ceiling
+
+    def _grade_feedforward_actions(self, train_env):
+        """Invert existing ED physics to offset net downhill force, read-only."""
+        dyn = train_env.dynamics
+        act = np.zeros((self.num_locomotives, 2))
+        if not self.num_locomotives:
+            return act
+        profile = getattr(dyn, '_grade_profile', None)
+        grades = profile.grades_for_positions(dyn.pos) if profile is not None else dyn.grade
+        required = max(0.0, float(np.sum(
+            -dyn.masses_kg * DYNAMICS_GRAVITY * grades
+            - dyn._resistance_forces() + dyn._air_braking_forces())))
+        if required <= 0.0:
+            return act
+        weights = np.array([1.0 - self._ed_stagger(i) for i in range(self.num_locomotives)])
+        command = np.zeros(self.num_vehicles)
+
+        def capacity(level):
+            command[self.loco_indices] = level * weights
+            return -float(np.sum(dyn._electric_braking_forces(command)))
+
+        if capacity(1.0) <= required:
+            level = 1.0  # Insufficient ED: saturate, keep the existing AB fallback.
+        else:
+            lo, hi = 0.0, 1.0
+            for _ in range(24):  # Numerical inverse precision, not a vehicle constant.
+                mid = (lo + hi) / 2.0
+                if capacity(mid) >= required:
+                    hi = mid
+                else:
+                    lo = mid
+            level = hi
+        act[:, 0] = level * weights
+        return act
+
     def get_action_cyclic_braking(
         self, train_env, v_max: float = 80.0 / 3.6, v_min: float = 40.0 / 3.6,
         brake_notch: float = -0.75, release_throttle: float = 0.0,
         v_max_adj: float = 0.0, v_min_adj: float = 0.0,
+        _scale_ed: bool = True,
     ) -> np.ndarray:
         """规则循环制动（超速→制动 / 低速→缓解 / 中段维持），输出 (num_loco,2)。
 
         制动时电空分工：ED 优先打满；ED 可用度不足或坡度极大时才引入 AB 源，
         且每机车错峰（公司主体 = 分布式动力）。
         """
-        eff_v_max = v_max + v_max_adj
-        eff_v_min = v_min + v_min_adj
+        # Formation offsets may lower the braking ceiling, never raise the
+        # absolute line limit. Match the environment's all-vehicle metric.
+        eff_v_max = self._operating_ceiling(train_env, v_max, v_max_adj)
+        # Chase must not collapse the apply/release band. Reuse the existing
+        # control speed margin (not a new vehicle/air-brake time constant).
+        release_ceiling = max(0.0, eff_v_max - self.AB_SUPPRESS_MARGIN_MPS)
+        eff_v_min = min(v_min + v_min_adj, release_ceiling)
         vel = float(train_env.dynamics.vel[0])  # 队首速度
+        max_vel = float(np.max(train_env.dynamics.vel))
 
-        if vel >= eff_v_max:
+        formation_ceiling = min(v_max, v_max + v_max_adj)
+        if vel >= eff_v_max or max_vel >= formation_ceiling:
             self._cyclic_braking = True
-        elif vel <= eff_v_min:
+        elif vel <= eff_v_min and max_vel <= release_ceiling:
             self._cyclic_braking = False
 
         if self._cyclic_braking:
@@ -227,7 +321,7 @@ class MultiLocoController:
             ed_avail = self._ed_ab_price(train_env)
             # 是否需要 AB：ED 可用度不足时才引入空气制动兜底（长大下坡 ED 功率受限）
             ab_nominal = 0.0 if ed_avail >= 0.99 else float(brake_notch)
-            scale = self._coupler_throttle_scale(train_env)
+            scale = self._coupler_throttle_scale(train_env) if _scale_ed else 1.0
             act = np.zeros((self.num_locomotives, 2), dtype=float)
             for i in range(self.num_locomotives):
                 # 错峰：越靠后的机车电制动深度略低（由机车 index 偏移量决定），
@@ -235,9 +329,34 @@ class MultiLocoController:
                 stagger = self._ed_stagger(i)
                 ed = float(np.clip(1.0 - stagger, 0.0, 1.0)) * scale
                 act[i, 0] = ed
-                act[i, 1] = float(ab_nominal) * scale if ab_nominal != 0.0 else 0.0
+                # AB is a discrete notch, not a continuously scalable force.
+                # Source admission is handled by the decompose gates and environment.
+                act[i, 1] = float(ab_nominal)
             return act
         else:
+            if self.ed_prelimit:
+                # Ordinary ED only: do not advance cyclic/air thresholds.
+                head_start = max(eff_v_min, eff_v_max - self.AB_SUPPRESS_MARGIN_MPS)
+                all_start = max(eff_v_min, formation_ceiling - self.AB_SUPPRESS_MARGIN_MPS)
+                ramp = np.clip(max(
+                    (vel - head_start) / max(eff_v_max - head_start, 1e-6),
+                    (max_vel - all_start) / max(formation_ceiling - all_start, 1e-6)), 0.0, 1.0)
+                if ramp > 0.0:
+                    act = np.zeros((self.num_locomotives, 2))
+                    act[:, 0] = [ramp * (1.0 - self._ed_stagger(i))
+                                 for i in range(self.num_locomotives)]
+                    if _scale_ed:
+                        act[:, 0] *= self._coupler_throttle_scale(train_env)
+                    return act
+            if self.ed_grade_feedforward and vel >= eff_v_min:
+                act = self._grade_feedforward_actions(train_env)
+                # Blend from coasting at the floor to force balance within the
+                # existing control speed margin; avoid a 0/full switch there.
+                blend = np.clip((vel - eff_v_min) / self.AB_SUPPRESS_MARGIN_MPS, 0.0, 1.0)
+                act[:, 0] *= blend
+                if _scale_ed:
+                    act[:, 0] *= self._coupler_throttle_scale(train_env)
+                return act
             ed_nominal = 0.0
             ab_nominal = 0.0
 
@@ -254,7 +373,7 @@ class MultiLocoController:
     # ------------------------------------------------------------------ #
     # 主接口 3：decompose RL 调制（ADR-009.1 空电分工，逐机车 RL 智能体）
     # ------------------------------------------------------------------ #
-    # RL 提前触发的 AB 兜底档位（MIN 档，负值 → 该机车成为 AB 波源）
+    # RL 提前触发的 AB 兜底档位（SERVICE；-0.4 经现有映射为 SERVICE）
     AB_FALLBACK_NOTCH = -0.4
     # 距 v_max 不足该裕量（m/s）时禁止抑制 AB（AB 兜底不被轻率关闭 → 防 EB 兜不住超速）
     AB_SUPPRESS_MARGIN_MPS = 0.5
@@ -290,17 +409,22 @@ class MultiLocoController:
             **唯一定义**（evaluate_decompose / metadata 派生读取，勿手抄常量）。
           * ab_mod > +0.5：抑制本机车 AB 源（仅当 vel < v_max - AB_SUPPRESS_MARGIN_MPS
             才生效——远离超速才允许关兜底，"ED 优先"可学且安全）；
-          * ab_mod < -0.5：提前触发本机车 MIN 档 AB 兜底（错峰/预判性引入）。
+          * ab_mod < -0.5：提前触发本机车 SERVICE 档 AB 兜底（错峰/预判性引入）。
         """
         baseline = self.get_action_cyclic_braking(
             train_env, v_max=v_max, v_min=v_min,
             v_max_adj=v_max_adj, v_min_adj=v_min_adj,
+            _scale_ed=self.ed_baseline_projection == 'legacy',
         )
         # 【ADR-021 决策1】AB 计时：本方法每个原始 dt 步调用一次（见 __init__ 前提说明）。
         self._ab_step += 1
         final = baseline.copy()
         vel = float(train_env.dynamics.vel[0])
+        max_vel = float(np.max(train_env.dynamics.vel))
         rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
+        operating_ceiling = self._operating_ceiling(train_env, v_max, v_max_adj)
+        formation_ceiling = min(v_max, v_max + v_max_adj)
+        ab_suppress_ceiling = operating_ceiling if self.anticipate_etcs else formation_ceiling
         # 【2026-09-10】当前列内耦合器力/上限比（安全层源头门控用；本次决策内统一评估一次）
         cur_coupler_ratio = 0.0
         if self.enforce_coupler and self.num_vehicles:
@@ -330,13 +454,13 @@ class MultiLocoController:
             final[i, 0] = float(np.clip(baseline[i, 0] + ed_mod_coef * ed_mod, 0.0, 1.0))
             if baseline[i, 1] < 0 and ab_mod > 0.15:
                 # 抑制本机车 AB 源：仅当远离超速裕量才生效（保住"AB 兜底"安全性）
-                if vel < v_max - self.AB_SUPPRESS_MARGIN_MPS:
+                if max_vel < ab_suppress_ceiling - self.AB_SUPPRESS_MARGIN_MPS:
                     # 【ADR-021 决策1】释放该源需过"最小保持时间"门
                     # （ab_min_hold_s>0 时才可能拒绝；默认 0.0 恒允许=零回归）。
                     if self._ab_gate(i, False):
                         final[i, 1] = 0.0
             elif baseline[i, 1] >= 0 and ab_mod < -0.15:
-                # 提前触发 MIN 档兜底（RL 学"何时/哪台机车引入 AB"）
+                # 提前触发 SERVICE 档兜底（RL 学"何时/哪台机车引入 AB"）
                 # 【2026-09-10 安全层源头门控：防暴力 AB 吸态】车钩力由安全层兜底（SSOT），
                 # 不靠 reward 惩罚。但感知式 _coupler_throttle_scale 按"当前时刻"力钳制，
                 # 拦不住 RL 新增 AB 源沿列传播的**滞后峰值**（1km 列车 @200m/s 波速 ~5s，
@@ -353,14 +477,43 @@ class MultiLocoController:
                     final[i, 1] = self.AB_FALLBACK_NOTCH
                     added_ab_sources += 1
                 # 否则高力下/已限并发时禁止新增源（final[i,1] 保持 baseline 的 0 → 不引入新 AB）
-        # 【2026-09-09 修复：decompose 调制必须过车钩力投影】基线 get_action_cyclic_braking
-        # 已应用 _coupler_throttle_scale，但 RL 调制后的 final 此前直接返回，导致 RL 可在
-        # 车钩力接近上限时把 ED 顶满（+ed_mod_coef）/触发 AB，突破 1000kN 底线（ep41-50
-        # 实测 peakCoupler 1366-1417kN、viol 138-794 发散）。与 get_action_accel 的
-        # ed_throttle *= scale 对齐：调制输出同样按比例钳制（车钩力>80%上限 → 制动缓和）。
+        # Single mode uses a nominal baseline and one final ED projection.
+        # Legacy mode retains the original baseline protection as well, for
+        # isolated replay of its effect on coupler forces.
+        # AB uses discrete source admission, not continuous depth scaling.
         scale = self._coupler_throttle_scale(train_env)
+        if self.ed_recovery_scope == 'coupler':
+            # Track a recovery episode only while braking remains requested.
+            # A normal release ends it; the next cyclic application stays fast.
+            self._ed_recovery_pending &= final[:, 0] > 0
+            if scale < 1.0:
+                self._ed_recovery_pending |= self._cyclic_braking | (final[:, 0] > 0)
+                if scale == 0.0 and self.ed_grade_feedforward:
+                    # A fully protected feedforward request is not coasting.
+                    # Recover its intent only here; avoid adding observer state.
+                    floor = min(v_min + v_min_adj, max(
+                        0.0, operating_ceiling - self.AB_SUPPRESS_MARGIN_MPS))
+                    if vel > floor:
+                        self._ed_recovery_pending |= (
+                            self._grade_feedforward_actions(train_env)[:, 0] > 0)
         final[:, 0] *= scale
-        final[:, 1] *= scale
+        # Fast safety reductions, slow recovery: never exceed the currently
+        # projected request, and never delay ED at the speed ceiling. ATP is
+        # applied separately by the environment and retains final authority.
+        if (self._previous_ed is not None and self.ed_recovery_rate_per_s > 0
+                and vel < operating_ceiling and max_vel < formation_ceiling):
+            limited = np.minimum(
+                final[:, 0], self._previous_ed + self.ed_recovery_rate_per_s * self.dt)
+            if self.ed_recovery_scope == 'coupler':
+                if scale >= 1.0:
+                    self._ed_recovery_pending &= limited < final[:, 0]
+                final[:, 0] = np.where(self._ed_recovery_pending, limited, final[:, 0])
+            else:
+                final[:, 0] = limited
+        self._previous_ed = final[:, 0].copy()
+        # Do not move an established AB source across notch boundaries in
+        # response to instantaneous coupler force. Keep the discrete request;
+        # new-source veto, refill and ATP retain their existing authority.
         # 【ADR-021 决策1】规则层自身新增的 AB 源同受充风门约束（gate 判定须在"提交状态"之前）：
         # baseline[i,1]<0 = 规则层要求该机车发 AB；若 final 仍 <0 且本步由 off→on 而充风门拒绝
         # ⇒ 本步不发这个新源（final[i,1]=0）。已 on 的源不受影响（不撤销已建立源）。
@@ -368,7 +521,7 @@ class MultiLocoController:
             if (baseline[i, 1] < 0 and final[i, 1] < 0
                     and not self._ab_on[i]):
                 # [Step 0.5 quick-check 2026-10-08] (see DIAGNOSTICS 2026-10-08 safety-layer note)
-                emergency = vel >= v_max
+                emergency = max_vel >= v_max
                 allowed = (
                     emergency
                     or (cur_coupler_ratio < self.AB_ADD_SOURCE_MAX_RATIO
@@ -445,5 +598,22 @@ class MultiLocoController:
         )
         return float(v_adj), float(v_min_adj), float(traction)
 
+    def record_executed_ed(self, ed):
+        """Anchor opt-in recovery to the last post-safety actuator command."""
+        value = np.asarray(ed, dtype=float)
+        if (value.shape != (self.num_locomotives,) or not np.all(np.isfinite(value))
+                or np.any(value < 0.0) or np.any(value > 1.0)):
+            raise ValueError('Executed ED must be one finite fraction per locomotive')
+        if self.ed_recovery_rate_per_s > 0:
+            self._previous_ed = value.copy()
+
     def reset(self):
         self._cyclic_braking = False
+        self._previous_ed = None
+        self._ed_recovery_pending[:] = False
+        self._ab_step = 0
+        self._ab_on = [False] * self.num_locomotives
+        self._ab_last_release_step = [-10 ** 9] * self.num_locomotives
+        self._ab_last_apply_step = [-10 ** 9] * self.num_locomotives
+        self.ab_refill_veto_count = 0
+        self.ab_hold_veto_count = 0

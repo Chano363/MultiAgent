@@ -133,6 +133,31 @@ def test_guaranteed_decel_speed_profile():
     assert curve.guaranteed_decel(30.0) == pytest.approx(1.1)
 
 
+def test_speed_above_profile_keeps_last_band_instead_of_unrelated_default():
+    curve = _make_curve(speed_profile=[(40 / 3.6, 0.426), (60 / 3.6, 0.401),
+                                        (80 / 3.6, 0.382)])
+    for speed in [80.001, 81, 88]:
+        assert curve.nominal_decel(speed / 3.6) == pytest.approx(0.382)
+        assert curve.nominal_decel(-speed / 3.6) == pytest.approx(0.382)
+
+
+def test_braking_distance_does_not_shrink_when_crossing_profile_upper_speed():
+    curve = _make_curve(speed_profile=[(40 / 3.6, 0.426), (60 / 3.6, 0.401),
+                                        (80 / 3.6, 0.382)])
+    target = EbdTarget(10000.0, 0.0, kind='stop')
+    distances = [curve.braking_distance(v / 3.6, 0.0, target) for v in [79.9, 80, 81, 88]]
+    assert all(b >= a for a, b in zip(distances, distances[1:]))
+
+
+def test_single_band_distance_matches_fixed_curve_above_band():
+    stepped = _make_curve(speed_profile=[(80 / 3.6, 0.382)])
+    fixed = _make_curve(nominal_emergency_decel=0.382)
+    target = EbdTarget(10000.0, 0.0, kind='stop')
+    for speed in [81, 88]:
+        assert stepped.braking_distance(speed / 3.6, 0, target) == pytest.approx(
+            fixed.braking_distance(speed / 3.6, 0, target))
+
+
 # ---------------------------------------------------------------------------
 # EBI：建立时间 + 速度误差
 # ---------------------------------------------------------------------------

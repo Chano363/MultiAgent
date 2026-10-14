@@ -102,7 +102,10 @@ class EtcsBrakingCurve:
             for v_hi, a_step in self.speed_profile:
                 if v_abs <= v_hi:
                     return float(a_step)
-            return a
+            # Continue the final speed band: the fixed-curve default may be
+            # unrelated to this configured train and must not replace it when
+            # speed exceeds the table (especially during overspeed).
+            return float(self.speed_profile[-1][1])
         return self._nominal_base
 
     def guaranteed_decel(self, v_mps: float) -> float:
