@@ -1,0 +1,101 @@
+{
+  "source": "E:\\wx\\xwechat_files\\wxid_zo4ng1tx19se22_84f2\\temp\\RWTemp\\2026-10\\6de70b565c621fbbb30d056284634dbe\\朔黄铁路_完整线路信息表_表3表4补充版.xlsx",
+  "sha256": "e88ef1ee27843b0295afdbeac7d8da359cda2913f117fd6b9f11675dcc5333a9",
+  "origin_km": 15.9,
+  "end_km": 65.5,
+  "limits": [
+    {
+      "km": 0,
+      "limit_kmh": 45,
+      "source_row": 3
+    },
+    {
+      "km": 2.4,
+      "limit_kmh": 75,
+      "source_row": 27
+    },
+    {
+      "km": 15.9,
+      "limit_kmh": 70,
+      "source_row": 162
+    },
+    {
+      "km": 20.2,
+      "limit_kmh": 75,
+      "source_row": 205
+    },
+    {
+      "km": 39.9,
+      "limit_kmh": 70,
+      "source_row": 402
+    },
+    {
+      "km": 41.4,
+      "limit_kmh": 75,
+      "source_row": 417
+    },
+    {
+      "km": 82.8,
+      "limit_kmh": 80,
+      "source_row": 831
+    },
+    {
+      "km": 139.2,
+      "limit_kmh": 75,
+      "source_row": 1395
+    },
+    {
+      "km": 241,
+      "limit_kmh": 80,
+      "source_row": 2413
+    },
+    {
+      "km": 402.4,
+      "limit_kmh": 60,
+      "source_row": 4027
+    },
+    {
+      "km": 405.2,
+      "limit_kmh": 40,
+      "source_row": 4055
+    },
+    {
+      "km": 408.3,
+      "limit_kmh": 10,
+      "source_row": 4086
+    }
+  ],
+  "reference_cycles": [
+    {
+      "start_km": 21,
+      "release_window_km": [
+        25,
+        25
+      ],
+      "release_speed_kmh": 33
+    },
+    {
+      "start_km": 28,
+      "release_window_km": [
+        40,
+        42
+      ],
+      "release_speed_kmh": 60,
+      "conflict": "Main sheet K40 conditional release; table3 K42 station release"
+    },
+    {
+      "start_km": 46,
+      "release_window_km": [
+        64,
+        65
+      ],
+      "release_speed_kmh": 55
+    }
+  ],
+  "not_applied": [
+    "50 kPa mapping",
+    "fixed ED forces",
+    "50 s ED hold",
+    "hard release at reference positions"
+  ]
+}

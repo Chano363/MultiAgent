@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Frozen experiment evidence: preserve original bytes and SHA256.
+traffic_rl_project/outputs/sim_validation/phys_validation/controller_repair_20261014/** -text
+traffic_rl_project/outputs/sim_validation/figures/controller_repair_20261014/** -text
