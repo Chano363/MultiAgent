@@ -513,11 +513,21 @@ class TrainFormationEnv:
                 depth = max(depth, notch_depth(notch_from_throttle(float(act[k, 1]))))
             proj_throttle[loco_idx] = -depth
         actions_modified = False
+        atp_ed_vehicles = set()
         if self.enable_safety:
             original = proj_throttle.copy()
             proj_throttle = self.safety.protect(proj_throttle, self._state_snapshot())
             actions_modified = not np.allclose(proj_throttle, original, atol=1e-9)
             self._safety_events += len(self.safety.last_events)
+            # ATP may increase braking even when the controller requested
+            # coasting/traction or coupler protection removed its ED request.
+            for ev in self.safety.last_events:
+                if ev.get('rule') in ('etcs_ebi', 'etcs_permitted'):
+                    atp_ed_vehicles.update(self.loco_indices)
+                elif ev.get('rule') == 'overspeed' and ev.get('vehicle') in self.loco_indices:
+                    # Rule C is a per-vehicle projection. Do not turn a wagon
+                    # overspeed event into an all-locomotive ED override.
+                    atp_ed_vehicles.add(ev['vehicle'])
             # 【2026-09-09 安全层真制动修复】ETCS EBI 触发的"紧急制动"此前只翻译成
             # 机车 ED 加深，ab_command 恒 RELEASE → 长大下坡上万瓦列车仅 2 台机车
             # 电制动刹不住，67 实证 ETCS 疯狂报 EBI(3643次)仍穿透前列(gaps→-776)。
@@ -532,15 +542,29 @@ class TrainFormationEnv:
                     # 最强制动：丢弃动作源、只发车头紧急（沿波速传全列），确保紧急生效。
                     ab_sources = []
                     break
+                elif ev.get('rule') in ('etcs_permitted', 'overspeed'):
+                    # Both service supervision and line overspeed must reach
+                    # the air actuator. Rule C follows coupler protection in
+                    # protect(), so a routine new-source veto cannot erase it.
+                    # A weaker action source would otherwise shadow this
+                    # single-source command. Preserve requested emergency.
+                    ab_command = (AirBrakeNotch.EMERGENCY
+                                  if (ab_command == AirBrakeNotch.EMERGENCY
+                                      or any(n == AirBrakeNotch.EMERGENCY for _, n in ab_sources))
+                                  else AirBrakeNotch.SERVICE)
+                    ab_sources = []
         # 依据安全层修正，更新每机车**牵引与 ED**（安全层持最终权限）：
         # - 牵引：安全层把正向指令压到 ≤0（规则 A/B 取消、规则 C/D 覆盖为制动）时，
         #   throttle 必须同步归零——否则牵引绕过安全层（ADR-029 根因）；
-        # - ED：安全层钳降则同步降 ED（原有行为，仅封顶不加深）。
+        # - ED：普通保护只减权；ATP 介入时执行其最终制动深度。
         for k, loco_idx in enumerate(self.loco_indices):
             throttle[loco_idx] = min(throttle[loco_idx],
                                      max(proj_throttle[loco_idx], 0.0))
-            ed_throttle[loco_idx] = min(ed_throttle[loco_idx],
-                                        max(-proj_throttle[loco_idx], 0.0))
+            protected_depth = max(-proj_throttle[loco_idx], 0.0)
+            if loco_idx in atp_ed_vehicles:
+                ed_throttle[loco_idx] = protected_depth
+            else:
+                ed_throttle[loco_idx] = min(ed_throttle[loco_idx], protected_depth)
 
         # 【ADR-021 决策3 2026-10-01】安全层对 AB 的"减权限"（禁新增源）。
         # 有效域 = 环境**本步收到的全部新申请 AB 源**（含规则层与 RL 层，因为 env 无法区分
@@ -598,6 +622,9 @@ class TrainFormationEnv:
             'safety_events': int(self._safety_events),
             'reward': reward,
             'executed_actions': np.array(act, dtype=float),
+            # Actual fraction sent to physics after all safety projections.
+            # Existing executed_actions remains the requested ED/AB pair.
+            'actual_loco_ed': ed_throttle[self.loco_indices].copy(),
             'actions_modified': bool(actions_modified),
             'decomposed_actions': act.copy(),
             # 【ADR-021 决策3】安全层 AB 权限诊断（新增键，既有键不删）

@@ -292,6 +292,8 @@ class TrainFleetEnv:
                     mask_lever=self.mask_lever,
                     ab_min_refill_s=self.ab_min_refill_s,
                     ab_min_hold_s=self.ab_min_hold_s,
+                    ed_grade_feedforward=bool(config.get('ed_grade_feedforward', False)),
+                    ed_prelimit=bool(config.get('ed_prelimit', False)),
                 )
                 for tr in self.trains
             ]
@@ -650,7 +652,13 @@ class TrainFleetEnv:
                 prev_tail = self.trains[ti - 1].dynamics.pos[-1]
                 gap_err = (prev_tail - self._train_heads[ti]) - self._dynamic_gap()
             # 规则基线（ED 优先 + 错峰 + AB 兜底）——观测告诉 RL"规则本步想做什么"
-            base = ctrl.get_action_cyclic_braking(tr, v_max=self.v_max, v_min=self.v_min)
+            # Preview the rule's features without committing its hysteresis
+            # state. Only the actual control step may change braking mode.
+            braking_before_preview = ctrl._cyclic_braking
+            try:
+                base = ctrl.get_action_cyclic_braking(tr, v_max=self.v_max, v_min=self.v_min)
+            finally:
+                ctrl._cyclic_braking = braking_before_preview
             coupler = np.abs(dyn._coupler_forces())
             ab_state = dyn.air_brake_state()
             ab_active_frac = float(np.mean([x != AirBrakeNotch.RELEASE for x in ab_state]))
@@ -746,7 +754,10 @@ class TrainFleetEnv:
                 # 停在 ~2400m 缩不回。修复：共同速度锁只约束 leader；follower 上限改用
                 # "lead 速度 + 允许offset"，让级联追前列真正生效，间距靠 coordination_adj
                 # 的 gap 抬带/牵引收缩，防追尾由 rel_speed 抑制 + 前置 ETCS(gap) 监督兜底。
-                v_bound_max = min(v_bound_max, lead_speed + self.LEAD_TAIL_OFFSET_MPS)
+                # The controller expects an offset relative to self.v_max,
+                # whereas preceding speed + margin is an absolute speed cap.
+                follower_cap_adj = lead_speed + self.LEAD_TAIL_OFFSET_MPS - self.v_max
+                v_bound_max = min(v_bound_max, follower_cap_adj)
                 # 【等速冻结消除 chase 2026-09-09】三列等速时 coordination_adj 追的偏置
                 # 因 rel_speed≈0 / gap_err 恒定而无累积 → 间距在 ~1300m 冻结。补救：当
                 # follower 仍明显落后（gap_err>死区）时，把缓解线(v_min)抬高到
@@ -756,6 +767,14 @@ class TrainFleetEnv:
                     chase_v = float(np.clip(
                         lead_speed + self.LEAN_CHASE_DELTA_MPS, self.v_min, self.v_max))
                     v_bound_min = max(v_bound_min, chase_v - self.v_min)
+            # Refresh the same target used by the safety layer before the
+            # rule controller decides; never anticipate from last-step data.
+            if ti > 0:
+                leading_tail = float(self.trains[ti - 1].dynamics.pos[-1])
+                lead_speed = float(self.trains[ti - 1].dynamics.vel[0])
+                tr.set_etcs_targets([EbdTarget(
+                    position_m=leading_tail, speed_mps=lead_speed, kind='gap',
+                )])
             final_edab, _ = ctrl.get_action_decomposed(
                 tr, rl, v_max=self.v_max, v_min=self.v_min,
                 v_max_adj=v_bound_max, v_min_adj=v_bound_min,
@@ -771,14 +790,10 @@ class TrainFleetEnv:
             a += n_loco
             ab_count += int(np.sum(final_edab[:, 1] < 0))
             ed_sum += float(np.sum(final_edab[:, 0]))
-            # ETCS 前列尾车监督（与旧模式同语义；decompose 下安全层经投影钳 ED）
-            if ti > 0:
-                leading_tail = float(self.trains[ti - 1].dynamics.pos[-1])
-                lead_speed = float(self.trains[ti - 1].dynamics.vel[0])
-                tr.set_etcs_targets([EbdTarget(
-                    position_m=leading_tail, speed_mps=lead_speed, kind='gap',
-                )])
             _pt_info = tr.step(final_edab)[-1]
+            feedback = getattr(ctrl, 'record_executed_ed', None)
+            if feedback is not None and 'actual_loco_ed' in _pt_info:
+                feedback(_pt_info['actual_loco_ed'])
             # 【ADR-021 决策3 / D】聚合本列的安全层 AB 权限计数（子环境 info 上抛）
             ab_safety_vetoed_count += int(bool(_pt_info.get('ab_safety_vetoed', False)))
             self._train_heads[ti] = float(tr.dynamics.pos[0])
