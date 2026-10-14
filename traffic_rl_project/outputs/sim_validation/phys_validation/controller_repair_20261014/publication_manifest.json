@@ -1,0 +1,1865 @@
+{
+  "status": "experimental archives; not accepted production policies",
+  "source_roots": [
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014",
+    "D:\\Codex\\Documents\\Train\\controller_pressure_20261014"
+  ],
+  "skipped_empty_or_incomplete": [
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_upgrade_archive_test_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\archive_test_hold_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\archive_test_hold_fields_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\archive_test_nested_trial_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\archive_test_reapply_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\availability_archive_test_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_bounds_archive_test_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\force_archive_test_01",
+    "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_regression_01",
+    "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\archive_contract_01",
+    "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\archive_hysteresis_01",
+    "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\archive_reset_01"
+  ],
+  "files": [
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\result.json",
+      "bytes": 7800,
+      "sha256": "3c5c0700451a58c4295849e19e89e63f2a4fe1f9b04d59eca2b568a9f627ad04"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\train_dynamics_source.py",
+      "bytes": 55297,
+      "sha256": "b14ba8e04d96b59332d7c8b28c401d07d7f01001e02ba91b7607a03c4bd7a5fd"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "f0e87e438e91c547871cc27ba65d3311ea5df2e739231f62b472edd5c95500b5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/air_reapply_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\air_reapply_after_01\\trajectory.npz",
+      "bytes": 10551661,
+      "sha256": "9851d75245725d2b1ed0418842d443d63cb9032f797454d08d57bb6e05167032"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\result.json",
+      "bytes": 7800,
+      "sha256": "3cedf632b64b0592098a8cb7bdec2a73297d1d321aaa1fa1c75bcece906cd62b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\train_dynamics_source.py",
+      "bytes": 55297,
+      "sha256": "b14ba8e04d96b59332d7c8b28c401d07d7f01001e02ba91b7607a03c4bd7a5fd"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "fc4dffa2faf1bdf6201075a9b221a1b35fae4145ca859cd9375ca9835f756bb8"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/anticipate_reapply_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\anticipate_reapply_after_01\\trajectory.npz",
+      "bytes": 10558071,
+      "sha256": "25cebcf7f4160ac7dd9ca4f18d906c9c1e5e70d0aec653f1ada15fa1b9b64fdc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\controller_source.py",
+      "bytes": 37245,
+      "sha256": "7f3bb2df6c4996e82292134d598bee6f62aa8f52a4405d80b30bfce1d5220a28"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\result.json",
+      "bytes": 7874,
+      "sha256": "efc3ec15728137d17c81f2022d2ecdeabf6ac66c6a0cddb9cafb756680658672"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\train_dynamics_source.py",
+      "bytes": 55297,
+      "sha256": "b14ba8e04d96b59332d7c8b28c401d07d7f01001e02ba91b7607a03c4bd7a5fd"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "042b49f28f1b82ee51bbba092cf4722b2970bf5544b3f9c93355589c9e10dee8"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/balanced_ed_second_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_second_after_01\\trajectory.npz",
+      "bytes": 10503286,
+      "sha256": "71dc6a305b052da2b69d14f8e3b6b44ee1d70a76d162e828ec102389ae836da1"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/balanced_ed_trial_source_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\balanced_ed_trial_source_01.py",
+      "bytes": 37864,
+      "sha256": "f9ca3d228f43e8937faa5d2474ac81bbc9c5eb30ae4cdb7388a7d90f30f33982"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\fleet_env_source.py",
+      "bytes": 76287,
+      "sha256": "5cc675ececdbf997b4dbed365cf83a7349f5364382071792bf544d229f38550c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\result.json",
+      "bytes": 7877,
+      "sha256": "152320ea7634c3ba2764c07c94c2a2dc5b487d8144eafe524115acbdc96b0ace"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\train_dynamics_source.py",
+      "bytes": 55665,
+      "sha256": "93b35aa383facd1551f4f6241fa9f9fd791ef3c7c77aecc4cb277d680df664fc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "ceb3397c93c1aa658abeddf8f0e12a38ce8d6baf3c429a6355a653359f04fa6f"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/build_time_only_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_after_01\\trajectory.npz",
+      "bytes": 10384425,
+      "sha256": "a94732c452d31f85ae60dbd27a3ee9ad1b23f8eb7d58cc807f79ee68dcb03a4e"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/build_time_only_fleet_trial_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\build_time_only_fleet_trial_01.py",
+      "bytes": 77429,
+      "sha256": "5ba06f36be96788b1146abc2a9d49e26a609dae77a79f3ac10fe9d125948febf"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\fleet_env_source.py",
+      "bytes": 111938,
+      "sha256": "864d8fdf4c9fb2c6a0d3c20e2bab2409f11888e1ded9e9779a5f7e01447c0f6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\result.json",
+      "bytes": 7878,
+      "sha256": "87c658d56f7e783ec62ba7817dff8578b09ee537fd6452cd2aa73b149143bb02"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\train_dynamics_source.py",
+      "bytes": 55464,
+      "sha256": "07d2ffa0c88aafe71a4547f34966e2e7bd9ae3b6dfa36a92e03165a6065719b0"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\train_env_source.py",
+      "bytes": 34905,
+      "sha256": "ab3dcf8f9915dc20c22858cf6b66fddede04d09d47cda40d55ba6c49cea3e9bf"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "b2d6581dfe0abde54249bce2db39f869437e1ba4b641ee6dd615a9f1086d70cd"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/distributed_atp_after_02/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_after_02\\trajectory.npz",
+      "bytes": 10647773,
+      "sha256": "c47c062ab46980fd58720469eefe5a81e2a25b3fd13f9297b21e3ed80bb5ae8c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/distributed_atp_comparison_01.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_comparison_01.json",
+      "bytes": 16577,
+      "sha256": "c226930f17004c31645270ce61d8d7789523c6e69eaa49ff636ff5f39c69ae18"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/distributed_atp_fleet_trial_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\distributed_atp_fleet_trial_01.py",
+      "bytes": 113081,
+      "sha256": "67bdc9e1a7f029e4a163e7875da1764ad593f0dbff2098a7b378815589a79706"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/early_trigger_and_prelimit_comparison.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\early_trigger_and_prelimit_comparison.json",
+      "bytes": 22794,
+      "sha256": "72296191b3076b08d358af572d0feef02dfc1515a79c3ec6b0b3cae72e6c5676"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/early_trigger_trial_source_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\early_trigger_trial_source_01.py",
+      "bytes": 36876,
+      "sha256": "1f7f82eb0fa348efe94dc4a401d42917eb855dbb5fc60265a4d48ae2bbd11942"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/ed_prelimit_trial_source_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\ed_prelimit_trial_source_01.py",
+      "bytes": 37588,
+      "sha256": "21309583b695c919abfd75dec622be9eed30d5f703363311570f95d1fafabf72"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/etcs_bounds_comparison.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_bounds_comparison.json",
+      "bytes": 15575,
+      "sha256": "0c3a4c9c2f389773c43aa1dffb3040f534a7d69bbd4e9e06396e8d60c03676f7"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/etcs_model_capacity_fleet_trial_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_model_capacity_fleet_trial_01.py",
+      "bytes": 78614,
+      "sha256": "8128715ee81acb2700860eba7544c61d2a030c7a0dcf99c135c44b0634f2dfd8"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\result.json",
+      "bytes": 7458,
+      "sha256": "deb01e824da14cd47fa4b4c13ea4d36558a8ccd9a1699aab8ca524152cac64eb"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "55470e24a91a5d09f3cc0c0c12c4dd237400f4c8434640c4f55f1b2a74e59146"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/etcs_profile_bounds_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\etcs_profile_bounds_after_01\\trajectory.npz",
+      "bytes": 10571455,
+      "sha256": "a22476f4ee5436ab26b7b552fbf9709713f68ac935fd05c73b53d44321305435"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/hold_and_build_time_comparison_01.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_and_build_time_comparison_01.json",
+      "bytes": 24875,
+      "sha256": "c867fc235d0271207b804203e1483b46e81eac755ccf491913b494cf855e1f37"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\result.json",
+      "bytes": 7800,
+      "sha256": "2a750923950b9a74dd4ff60c81427c28d0c1e5798dc87b601ad9cfc9e89d3f43"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\train_dynamics_source.py",
+      "bytes": 55665,
+      "sha256": "93b35aa383facd1551f4f6241fa9f9fd791ef3c7c77aecc4cb277d680df664fc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "d414ea0e158f05c4f9a30835f4605520d764f35500c4633aa412990c5d752bc4"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/hold_segment_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\hold_segment_after_01\\trajectory.npz",
+      "bytes": 10528763,
+      "sha256": "b90abf0a01d35e1ad85944637a4c303916394de912ee79bfa8b8b77d3b122888"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\result.json",
+      "bytes": 7239,
+      "sha256": "013f37c2017a3582f8089a851aea61cbba11ed9540e0abb5cf6121fa8b240a1d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\trajectory.csv",
+      "bytes": 241287,
+      "sha256": "9ed7e5a26dcabbd1ea397a3617cd6bcbd2e0e4575a401f1c18ab62747ea14824"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_120_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_120_after_01\\trajectory.npz",
+      "bytes": 17140346,
+      "sha256": "7f7f50582d6268e63cf7e93b47af9e4734a3d1c5acd2241068c37cea0504872a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/line_air_priority_comparison.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_comparison.json",
+      "bytes": 30620,
+      "sha256": "83866ac3c6880f48c6a02e95f4355f5bfb5a3a76bbcb4501a5b3c425fb72c6d4"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\result.json",
+      "bytes": 7243,
+      "sha256": "708835de5be3fc0ab44606682e99d02efd9cf319ca10a008a579a1c34dfb7572"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "a2cb6d6822be6e6cd1bc95a0c93d3ba480c47db7c3eb4c52ae68af964997f17a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/line_air_priority_second_default_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\line_air_priority_second_default_01\\trajectory.npz",
+      "bytes": 10563558,
+      "sha256": "ebd9d11e7b672c21e3f0f5a070d985f1e86b51f5f484ca1803c39486556fa6b1"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\controller_source.py",
+      "bytes": 36107,
+      "sha256": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\result.json",
+      "bytes": 7117,
+      "sha256": "21d0013439d237e2e79f3a2e3b0ff7a65433f2b8cd2c4754d02f67b6a414034d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\trajectory.csv",
+      "bytes": 24207,
+      "sha256": "03a98cb5c437f1aa8db5e771ffb7678043775eb134ec247d9ae1006b295b3076"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_after_01\\trajectory.npz",
+      "bytes": 1229653,
+      "sha256": "a3c5918ad1c41163c4208cb12baf9fffc9af30a2eead0e0bae9aefddec400260"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\controller_source.py",
+      "bytes": 36107,
+      "sha256": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\result.json",
+      "bytes": 7110,
+      "sha256": "5ea1ef31eefeddff2523ccab23758b81ca2492145af5d30b78d4c6afa4d33316"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "c45e062351ff731ad9d4f12a77f69bed1c0e7fd3a8d3a3e617a43d2754cf9028"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_air_upgrade_ff_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_air_upgrade_ff_after_01\\trajectory.npz",
+      "bytes": 7974051,
+      "sha256": "797a4315cb12f78260fe10ee9a14599f89161fd90cbba52acb44b792293c3e48"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_braking_baseline_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_braking_baseline_01\\controller_source.py",
+      "bytes": 35493,
+      "sha256": "816cdd1d9cba075535c5f1bcd60187c53de93622cf640d0432ada03aceb2815e"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_braking_baseline_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_braking_baseline_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_braking_baseline_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_braking_baseline_01\\result.json",
+      "bytes": 6357,
+      "sha256": "20a52e742f3429c8e08f2b34330f35b674ee2f7a4f763e452eb5725a47fd2e01"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_braking_baseline_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_braking_baseline_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_braking_baseline_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_braking_baseline_01\\trajectory.csv",
+      "bytes": 241287,
+      "sha256": "c9e0eaa283054fa6b730fd456d68f6d8203142f0c9432e6f3e47d854e0b99521"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_braking_baseline_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_braking_baseline_01\\trajectory.npz",
+      "bytes": 302600,
+      "sha256": "a9cb0f1cacf4870ccb892482b765bfbf59743504e240d6507dce9dcec585a67d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_after_01\\controller_source.py",
+      "bytes": 35502,
+      "sha256": "3bdcb73a8685cca682d74515bfb3376a74eafb39e2412ec948e019dfd76a262c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_after_01\\result.json",
+      "bytes": 5494,
+      "sha256": "86dec28f4748dd965cf8a30ec73bbf5b0ccb7f2265adecc79b234ab65b843815"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_after_01\\trajectory.csv",
+      "bytes": 78063,
+      "sha256": "f4c4e07be8878e725c2b5ca98bf311bb4a69955ff319ad5711ab4990f999d04d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_after_01\\trajectory.npz",
+      "bytes": 53888,
+      "sha256": "a569678aecdc124de15814e7b8a071124eaecbcf5bf46505024f551398e10410"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_before_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_before_01\\controller_source.py",
+      "bytes": 35493,
+      "sha256": "816cdd1d9cba075535c5f1bcd60187c53de93622cf640d0432ada03aceb2815e"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_before_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_before_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_before_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_before_01\\result.json",
+      "bytes": 5608,
+      "sha256": "8353c796791d781ac0948e8d1989c9d2920fa77a97ff61bbe85b35eee0fea2bc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_before_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_before_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_before_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_before_01\\trajectory.csv",
+      "bytes": 78063,
+      "sha256": "304879f75dd72466267f275559500584ef77d8abcfc89b1520fd0414d1e09e82"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_capacity_grade4_before_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_capacity_grade4_before_01\\trajectory.npz",
+      "bytes": 50336,
+      "sha256": "083010343965c38f350ca5d05912001443a6bc8ad85a39ccfeb220fca7360213"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\controller_source.py",
+      "bytes": 36107,
+      "sha256": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\result.json",
+      "bytes": 7109,
+      "sha256": "92ca71f429aa6bd07f8237668c572c6dc4f4c0b03ecf991fbbfc8cb8b915ef19"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "f35e6171d6d0bc4322e171888078ef073e0f731a3a8bca3db59abb79dd124cd7"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_correct_default_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_correct_default_01\\trajectory.npz",
+      "bytes": 6243045,
+      "sha256": "45bd157f493cfd72f254592615a59b2c5812f38e3520f8c144c15bfefc1498c4"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_after_01\\controller_source.py",
+      "bytes": 36107,
+      "sha256": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_after_01\\result.json",
+      "bytes": 6590,
+      "sha256": "f1b34e5bc6f8b10ac12bc9a25adad5d59a167f4ff10a62f79ae729c6b472522c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "edd0027e9fc1c905820417c11ced990e426b14f497c11f3b6aafb91472b2a393"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_after_01\\trajectory.npz",
+      "bytes": 156914,
+      "sha256": "687b74f980e813699b24b89dc10734d89abaca741cd33b8789a796a731553764"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_before_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_before_01\\controller_source.py",
+      "bytes": 36107,
+      "sha256": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_before_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_before_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_before_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_before_01\\result.json",
+      "bytes": 6596,
+      "sha256": "7f842dc4c6e95942f72c7c3aa0aced328fb0dc16de778565907b3917f51871af"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_before_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_before_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_before_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_before_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "f35e6171d6d0bc4322e171888078ef073e0f731a3a8bca3db59abb79dd124cd7"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_ed_before_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_ed_before_01\\trajectory.npz",
+      "bytes": 131923,
+      "sha256": "c865fc0cd5970fc2b40462e140108e4d2dbe8bd5bc4f2ee1812de9e034725449"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\controller_source.py",
+      "bytes": 36273,
+      "sha256": "6afd5f114c548b8f3b2beccfbbaa19191ec53de7e4b73d37456521be42c4acd1"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\result.json",
+      "bytes": 7197,
+      "sha256": "5795adb3694559501596f841f7cf49cc70c432f5a170c0d1f1a02434b42df148"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "81a42511535d0387127afbb1492759c9b3ce204331eb81243f07d03792503445"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_early_trigger_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_early_trigger_after_01\\trajectory.npz",
+      "bytes": 6519541,
+      "sha256": "7ed0151ecc93bdc231ac086ee37d23e986f67f48d2bdf1d69dc78b5df03df2e2"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_capacity_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_capacity_after_01\\controller_source.py",
+      "bytes": 35502,
+      "sha256": "3bdcb73a8685cca682d74515bfb3376a74eafb39e2412ec948e019dfd76a262c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_capacity_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_capacity_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_capacity_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_capacity_after_01\\result.json",
+      "bytes": 6429,
+      "sha256": "4682e20c98a6b4c92ee34da4addba06f5cddc927d9b17e1021fe19f985b97104"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_capacity_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_capacity_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_capacity_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_capacity_after_01\\trajectory.csv",
+      "bytes": 60387,
+      "sha256": "4642c755c7ad8467b7e397cde5151b5aeb54abc1dbf8a1f313e42ae17eff1628"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_capacity_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_capacity_after_01\\trajectory.npz",
+      "bytes": 66045,
+      "sha256": "06ccf0a0dab450143bbc74f7019bc133e716b97710ff3eb636bb7c54710c5af2"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\controller_source.py",
+      "bytes": 36973,
+      "sha256": "52eae814bad624ceaddfe9aa0d95bc0936b5f5e6fc51806ca46193209000a006"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\result.json",
+      "bytes": 7207,
+      "sha256": "4709acc23dd0833a31cd3cb93b5b3f876446028272e929711a31ce73f08adc90"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "974cb7f96af6aeb32da5806027ca6f3ac0e1565521f9aafde73f2ced1fb8baf5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_ed_prelimit_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_ed_prelimit_after_01\\trajectory.npz",
+      "bytes": 6044596,
+      "sha256": "0c4be3b38423a8b838e49c7a58800db8ff1bfc380b96ca04e1a8279d6e65ec84"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_local_force_ff_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_local_force_ff_01\\controller_source.py",
+      "bytes": 36107,
+      "sha256": "0305ceb1ff52111ff9a7ad3ac3c12711f21fc504f535ae7d98d1f7e1edc51fd5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_local_force_ff_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_local_force_ff_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_local_force_ff_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_local_force_ff_01\\result.json",
+      "bytes": 6942,
+      "sha256": "448e582487e9c38ab51e618ab907e3825b90bdfe9552c9022bea6ec420071411"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_local_force_ff_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_local_force_ff_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_local_force_ff_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_local_force_ff_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "edd0027e9fc1c905820417c11ced990e426b14f497c11f3b6aafb91472b2a393"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_local_force_ff_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_local_force_ff_01\\trajectory.npz",
+      "bytes": 7839782,
+      "sha256": "85cad4a6d006525e64a938397d86d0d0e2976fd0572fa77dc8a5ec43cf458837"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_sbi_exit_trial_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_sbi_exit_trial_01\\controller_source.py",
+      "bytes": 37477,
+      "sha256": "65f95ee2644ebea9d2b43e3714deda5d4aac65eebdfb02460bc07469c78f8406"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_sbi_exit_trial_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_sbi_exit_trial_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_sbi_exit_trial_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_sbi_exit_trial_01\\result.json",
+      "bytes": 6677,
+      "sha256": "fc65ad6822f5ed8c69555808a429c1cce6eced6c819b1378ecbe704281f688b9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_sbi_exit_trial_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_sbi_exit_trial_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_sbi_exit_trial_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_sbi_exit_trial_01\\trajectory.csv",
+      "bytes": 60387,
+      "sha256": "4642c755c7ad8467b7e397cde5151b5aeb54abc1dbf8a1f313e42ae17eff1628"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_sbi_exit_trial_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_sbi_exit_trial_01\\trajectory.npz",
+      "bytes": 66025,
+      "sha256": "9897602ab42370b703993e2a34c5cc1b44610a39edce1ced147c9d80bc2c2f86"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\controller_source.py",
+      "bytes": 36041,
+      "sha256": "d6d065830fd82adc804a2101ebc0665b0a897335fe8e4ee52a78587479ba4503"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\fleet_env_source.py",
+      "bytes": 75871,
+      "sha256": "7cde2667d141952b53bdeea910a10379cb76ed4acccdcabfc6eefd0820db1993"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\result.json",
+      "bytes": 7180,
+      "sha256": "d4116bc91ec43047d5d1289c2566938e82bcf3214b4a3daf6d2afefbf92bca4b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "2084e63e860ac5392eb77fd1079447f0e72e8c0e649373d6c0928f32e44ad618"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/middle20kt_section_ed_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\middle20kt_section_ed_after_01\\trajectory.npz",
+      "bytes": 8179886,
+      "sha256": "c27ddf91eb6dcdbff451dd5feb3fcb05cf7f22d57f04bd5ac3047b8a4ef45c8b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\fleet_env_source.py",
+      "bytes": 77452,
+      "sha256": "7e7c76fd12ab7817b423b9a1a00e8ffb2eb3b474ef2bdbf3c8b5ab826b9f8917"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\result.json",
+      "bytes": 8065,
+      "sha256": "ee95c2a19489147999c61bd1608aeece48b77e628a2d29d82a57091f70a2c3dc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "f776ab2e4dc6ebc5d442015aac73b485a85ca72fa40007a9c1f6447870885c83"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/model_capacity_curve_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_after_01\\trajectory.npz",
+      "bytes": 10357888,
+      "sha256": "ab636a36c35d3cd1ef4b7c380685339f0da587bb2edcd583c348d87c60354269"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/model_capacity_curve_comparison_01.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\model_capacity_curve_comparison_01.json",
+      "bytes": 1996,
+      "sha256": "541af35926d2329aa502f33e14b84a4df78e5525ddb59486528b74188e812c5f"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\result.json",
+      "bytes": 7803,
+      "sha256": "04c0e667415d8551dc0e484777f41185bc6849b09cf7e25d3941d1d2574282db"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\train_dynamics_source.py",
+      "bytes": 55464,
+      "sha256": "07d2ffa0c88aafe71a4547f34966e2e7bd9ae3b6dfa36a92e03165a6065719b0"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "d414ea0e158f05c4f9a30835f4605520d764f35500c4633aa412990c5d752bc4"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_after_01\\trajectory.npz",
+      "bytes": 10528763,
+      "sha256": "b90abf0a01d35e1ad85944637a4c303916394de912ee79bfa8b8b77d3b122888"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\result.json",
+      "bytes": 7785,
+      "sha256": "77fec8df80db59a535be28cd98e9eb3653f5cba87c4d9b1547f0483cfdbf1101"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\train_dynamics_source.py",
+      "bytes": 55464,
+      "sha256": "07d2ffa0c88aafe71a4547f34966e2e7bd9ae3b6dfa36a92e03165a6065719b0"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\trajectory.csv",
+      "bytes": 241287,
+      "sha256": "6a47cab762985641d15445fa55efbfa9c66c5df72aa2caefd0e20ddb02002b04"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/overlap_release_first_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\overlap_release_first_after_01\\trajectory.npz",
+      "bytes": 17084837,
+      "sha256": "53509c6fbb5199a7b0b27300b4707eaa9929c260576df705546d3715429e8f80"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\controller_source.py",
+      "bytes": 37054,
+      "sha256": "62ab08917b00b5f31f5c22a48365e68218681c017bc5349424563775b07bbf23"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\result.json",
+      "bytes": 7199,
+      "sha256": "5c81ce64cb78b5848d630918d84c4ce0f7e93cb034393f5e229fecef1161f4a5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\trajectory.csv",
+      "bytes": 241287,
+      "sha256": "3af731f30649c196b047ba8319fa76b16111703c8ad7a27c5d98730326d6a84d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_after_01\\trajectory.npz",
+      "bytes": 14372821,
+      "sha256": "c0125be1f656d6e8eec3a2aee192265f7eabf60668b87a1a2f3d51606de7e6fa"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\controller_source.py",
+      "bytes": 37054,
+      "sha256": "62ab08917b00b5f31f5c22a48365e68218681c017bc5349424563775b07bbf23"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\result.json",
+      "bytes": 7204,
+      "sha256": "5f086c8256f23fd5e6cb3b5b32737dc93f29e6e84c68c5476e134b93a8eb98bd"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\trajectory.csv",
+      "bytes": 241287,
+      "sha256": "ed141e2861f181cfbee2a4f69ab628c2bd6dc1cdaab7e7dfeb57bb965cf5975a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_120_before_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_120_before_01\\trajectory.npz",
+      "bytes": 17342856,
+      "sha256": "0d452e2bcff83ed8407320befba715557d185b334c138a203fa148345b6fc4e7"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/prelimit_long_and_second_comparison.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_long_and_second_comparison.json",
+      "bytes": 30545,
+      "sha256": "c5ad4494ccd51ed406e9b2d8fa122d0a34c5dd3e78d9481a4b60437bfde05e04"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\controller_source.py",
+      "bytes": 37054,
+      "sha256": "62ab08917b00b5f31f5c22a48365e68218681c017bc5349424563775b07bbf23"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\result.json",
+      "bytes": 7222,
+      "sha256": "dbaf7f44f2b1dada94b7a72f99419fc9beab7a22c39c3fd0bb3d5cab0f903c7a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "98095ed0747b83af8e0a92959789efb39f0f1c424ae58c870ed0ffa678c15fcf"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_after_01\\trajectory.npz",
+      "bytes": 10445723,
+      "sha256": "85fd819c861b5addd2db74060f663f182dd7e6aca65f6676eae657e2e8ec81b6"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\controller_source.py",
+      "bytes": 37054,
+      "sha256": "62ab08917b00b5f31f5c22a48365e68218681c017bc5349424563775b07bbf23"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\result.json",
+      "bytes": 7213,
+      "sha256": "b1d6d89ad6acc60b64aff0447260d6b62725fd0a516354dcf1b9383bac19c079"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\train_dynamics_source.py",
+      "bytes": 54490,
+      "sha256": "9b37a5bf31e6ff5032b1f83612c8ab7443bf92cc2bca18d46472f3a41173177c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\train_env_source.py",
+      "bytes": 34550,
+      "sha256": "2c03fa69f127763f016528766477a9593713550629ed7c01cffaf5c5bfb52c2d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "9f781732e78cd791ca652e7eddcbb564756a0b80fb3d3fe9422a13dcac2a5148"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/prelimit_second_before_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\prelimit_second_before_01\\trajectory.npz",
+      "bytes": 10556072,
+      "sha256": "32f41dd9b71b11b221e2e93d09eddbed9629bdc69fdbbda0c37e8ed9de2ad81f"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/reapply_strategy_rounds_01.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\reapply_strategy_rounds_01.json",
+      "bytes": 32765,
+      "sha256": "c0f65c626b8bb07e0c4783965950dc62fbcc297dbc00c10e986f71f1bb5f6836"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/sbi_exit_trial_source_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\sbi_exit_trial_source_01.py",
+      "bytes": 38108,
+      "sha256": "40810ab708ecfa1cb906aff2bed70e3547099f4e5edcdede005e764ffeb8cfc9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/comparisons/section_and_current_default_comparison.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\section_and_current_default_comparison.json",
+      "bytes": 6859,
+      "sha256": "737d17a194cabab477d1a053fdfb2f0bd72296594722a8746ce35e133a580910"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/frozen_sources/section_ed_trial_source_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\section_ed_trial_source_01.py",
+      "bytes": 36639,
+      "sha256": "be72128a62dc30caefcc220bd2e679eb04ff6d5e0d88e45d72413c436a9bf67b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/extended/reports/两万吨底层控制器复核.md",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_extended_20261014\\两万吨底层控制器复核.md",
+      "bytes": 17953,
+      "sha256": "ada351df283d7c8d0f91c16e305dd589aae8fea7d37c5303bf3dab1dd681454c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/build_route_trial_03.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\build_route_trial_03.py",
+      "bytes": 3107,
+      "sha256": "d45d7d0669165393396666f385aa06bec4d9b1b35a9f04e1b1602f44676d9880"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\fleet_env_source.py",
+      "bytes": 76055,
+      "sha256": "f3ac17e0a8ef36860d1eb07afe4f9088762bc76a7b49dc133fa8ef3769393d3b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\result.json",
+      "bytes": 8121,
+      "sha256": "f321273bdd60c55e52eeb0b3f3e3997efaf3fe1fbf5cf58420bced33db49d4e6"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\train_dynamics_source.py",
+      "bytes": 55514,
+      "sha256": "a7858f948e07fa9eb3522c42335840929de51c1db02adb658f57e484b966ff25"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "2ab8020ad6ea070a693056a9e61b17e9ec18741eacb9d457a1452142ec00f231"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/chase_release_after_02/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_after_02\\trajectory.npz",
+      "bytes": 10375706,
+      "sha256": "6ff4670586f186924e00dc5217a6a6602f7d6893fafc6e3ba9b1b0e56a1f69da"
+    },
+    {
+      "repository_path": "outputs/sim_validation/figures/controller_repair_20261014/pressure/chase_release_comparison_02.png",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_comparison_02.png",
+      "bytes": 332241,
+      "sha256": "6c328bc365ba0d92b070c748e9e248adcd92fdc7b42f757b95bf0da22825dede"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/chase_release_trial_02.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\chase_release_trial_02.py",
+      "bytes": 77193,
+      "sha256": "cd7e85b493f2633dee16d7528f5c100b4ea1dca95d099fba9c41747b30d47841"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/check_chase_release_02.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\check_chase_release_02.py",
+      "bytes": 1591,
+      "sha256": "45fe83b5b8544fd6362ec5c3ab166614d2673e04072cd0b8fdcc31880fc6bb6b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/check_route_trial_03.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\check_route_trial_03.py",
+      "bytes": 1279,
+      "sha256": "de62c487b4319ff46d460f4efe526475e13b91f1c51c955479f395a5b9b6d61c"
+    },
+    {
+      "repository_path": "outputs/sim_validation/figures/controller_repair_20261014/pressure/cyclic_braking_120s_20261014.png",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\cyclic_braking_120s_20261014.png",
+      "bytes": 477341,
+      "sha256": "ba49ef307548a5ea37946a2e0bac3691fed872b07006d41f1b7847b46bb912a8"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/diagnostic_pressure_source_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\diagnostic_pressure_source_01.py",
+      "bytes": 27663,
+      "sha256": "0a3f8e341ddcd6a4b3254b916f32e1899d51e553770983de37f29005200d53d5"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\controller_source.py",
+      "bytes": 38965,
+      "sha256": "6d5ccbf63997258f111004bce46dff10da906a27582d012656b31ba89fa53fe2"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\result.json",
+      "bytes": 7997,
+      "sha256": "052ca67e535e4d21f0257667b03589b16f4d4d874f9c3eab231a7f4b06ad7524"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\train_dynamics_source.py",
+      "bytes": 55665,
+      "sha256": "93b35aa383facd1551f4f6241fa9f9fd791ef3c7c77aecc4cb277d680df664fc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "0a2bea6a3b0db4a313f50dc2e3bfdf91b75a7521adfe85f4945209ce59e82232"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/ed_exit_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_after_01\\trajectory.npz",
+      "bytes": 11737625,
+      "sha256": "7d096de017442edd833201003ecadba4f8b494c6210a7f1097e6e94797b394da"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/ed_exit_trial_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\ed_exit_trial_01.py",
+      "bytes": 39623,
+      "sha256": "01499300f547094ae2ae88ac2855c9fcaaaf808271324e9496e0d2a96248c631"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/plot_cyclic_braking_120s.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\plot_cyclic_braking_120s.py",
+      "bytes": 2419,
+      "sha256": "21aeec98fbcbaf7dc463269eb6be86f34df6886e3cdd1a5bf4544cc4f96adaee"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/comparisons/pressure_and_exit_comparison_01.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_and_exit_comparison_01.json",
+      "bytes": 17450,
+      "sha256": "908010fec863b7bc383ca70a6340a58d07293112494881d8be03921beab70c28"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\result.json",
+      "bytes": 7929,
+      "sha256": "29a9481305eab73d5b40c49c26a6e73ed94cc802fd375ba675b7f36506c2b36a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\train_dynamics_source.py",
+      "bytes": 55665,
+      "sha256": "93b35aa383facd1551f4f6241fa9f9fd791ef3c7c77aecc4cb277d680df664fc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "d414ea0e158f05c4f9a30835f4605520d764f35500c4633aa412990c5d752bc4"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/pressure_baseline_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\pressure_baseline_01\\trajectory.npz",
+      "bytes": 11737751,
+      "sha256": "4daaea4006fd1a3d4bbd5aba639f71b7aefb3bab91c9cebf2714e958ef892f31"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/publish_archives_20261014.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\publish_archives_20261014.py",
+      "bytes": 2695,
+      "sha256": "7b37d407c56f50e1e0375c32860beac37f8195eb2dc935652e9f4940d2c697cf"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\result.json",
+      "bytes": 8036,
+      "sha256": "111490d46b9b5e434d69c17fce12c0e688f0b905f6d8568c7a123d415380de9b"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\train_dynamics_source.py",
+      "bytes": 55514,
+      "sha256": "a7858f948e07fa9eb3522c42335840929de51c1db02adb658f57e484b966ff25"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "d414ea0e158f05c4f9a30835f4605520d764f35500c4633aa412990c5d752bc4"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reset_baseline_02/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\reset_baseline_02\\trajectory.npz",
+      "bytes": 11737751,
+      "sha256": "4daaea4006fd1a3d4bbd5aba639f71b7aefb3bab91c9cebf2714e958ef892f31"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\fleet_env_source.py",
+      "bytes": 78302,
+      "sha256": "2a655cf83561173147e8a63ca6bc8d91a7228445c711a6032e1e154ce1ff03ad"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\result.json",
+      "bytes": 8103,
+      "sha256": "c9079a08154b5c2d3cc3a812476704a2995bc5ae91e63263d8f7bda731ce0a26"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\train_dynamics_source.py",
+      "bytes": 55514,
+      "sha256": "a7858f948e07fa9eb3522c42335840929de51c1db02adb658f57e484b966ff25"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "9932967faf9304b7888605920bdb77e6c298d12ed07355fb77b4af881ded4fbe"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_baseline_03/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_baseline_03\\trajectory.npz",
+      "bytes": 8755560,
+      "sha256": "990cfa51d11905bc485f045774c88306ba44c0c1f5280bdfac1946ac28381b13"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/route_limits_baseline_03.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_limits_baseline_03.py",
+      "bytes": 79460,
+      "sha256": "7f22774946b1251c5a78c7cd89393b6457b393d4be4daaad0085bfc168a78929"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/comparisons/route_operating_reference_03.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_operating_reference_03.json",
+      "bytes": 1976,
+      "sha256": "2c10d137e0367a1b07806f2d1b8e232b4c4c0c42c72389c889fc66ae682bdd02"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\controller_source.py",
+      "bytes": 37207,
+      "sha256": "9beefd16561ac6f5574a997aab09f4aa8a3ed3bd2522faa4bd7798d390b57c21"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\fleet_env_source.py",
+      "bytes": 78413,
+      "sha256": "2952100f458be60c677fd63975796e76fba68ad7f7533b7e7255278cab181542"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\result.json",
+      "bytes": 8119,
+      "sha256": "d09047ffdd4e21a86d4af87708a78165485094fd1ad6df9f917527dc1d993790"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\train_dynamics_source.py",
+      "bytes": 55514,
+      "sha256": "a7858f948e07fa9eb3522c42335840929de51c1db02adb658f57e484b966ff25"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "0fa8a5d65201564aaf018ed1ec96101206d1e7b36ba7f05422581d985c449813"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/route_phase_after_03/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_after_03\\trajectory.npz",
+      "bytes": 8699671,
+      "sha256": "bd00a08175f5144217023aa99e43ca97c1ed87ed6c1e56cb451cef57c5c749a7"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/route_phase_candidate_03.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\route_phase_candidate_03.py",
+      "bytes": 79571,
+      "sha256": "3b97e0d40b831685cf0d69a08db86841ad000f7d210c3d50178f597f7863d0a3"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/frozen_sources/sbi_air_hysteresis_trial_01.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_air_hysteresis_trial_01.py",
+      "bytes": 39827,
+      "sha256": "6fac133fa4ca070927fcd1778d67c8a01a22975b273d0a1ff39ab445599039d7"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/controller_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\controller_source.py",
+      "bytes": 39165,
+      "sha256": "b55cb604ee410da5d9ba0fdeb01eb1d0254eabb658b5bbe12d63f1fbed36217d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/etcs_braking_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\etcs_braking_source.py",
+      "bytes": 21163,
+      "sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/fleet_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\fleet_env_source.py",
+      "bytes": 75943,
+      "sha256": "f23699a1eb50748ab6f7332c8551c85dd9c39c9b560b5dbfe027287ee2085c6a"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/result.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\result.json",
+      "bytes": 8125,
+      "sha256": "4ee99fa876e94d836a6cf85f5df7118380b2452b30432e623725288554ffa829"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/train_dynamics_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\train_dynamics_source.py",
+      "bytes": 55665,
+      "sha256": "93b35aa383facd1551f4f6241fa9f9fd791ef3c7c77aecc4cb277d680df664fc"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/train_env_source.py",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\train_env_source.py",
+      "bytes": 34803,
+      "sha256": "c75cad4b0e2a9196d69f6129e803e406df22c286f0ccc6d7137c4c5efd715d97"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/trajectory.csv",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\trajectory.csv",
+      "bytes": 120687,
+      "sha256": "e9d10368ace3962cca5f180fe9e6a7131651576a3725b8a804653e6cbf51a29d"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/sbi_hysteresis_after_01/trajectory.npz",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_after_01\\trajectory.npz",
+      "bytes": 12072750,
+      "sha256": "dfa9db00dcd9703dfe30e95b00a7c96281e8f717974565932a3fad0ba4f7b4ff"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/comparisons/sbi_hysteresis_comparison_01.json",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\sbi_hysteresis_comparison_01.json",
+      "bytes": 17395,
+      "sha256": "d6e135d2973a55affed48646158731b1c46704730a552443b43e3e3d4afe42ce"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reports/分车压力与安全退出复核_20261014.md",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\分车压力与安全退出复核_20261014.md",
+      "bytes": 4121,
+      "sha256": "4db1763356011d8f8e4933051e53ae9cedb1753f51f7f495f2f209cbd116ce94"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reports/线路限速与制动阶段对接复核_20261014.md",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\线路限速与制动阶段对接复核_20261014.md",
+      "bytes": 4211,
+      "sha256": "f00d553712f43d54c238fdc5491b07f770fdcfad7c18bed73745c158743de2d6"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reports/编队追赶与循环制动交权对照_20261014.md",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\编队追赶与循环制动交权对照_20261014.md",
+      "bytes": 3078,
+      "sha256": "732250ee2d515198c350cd03af3f91513981c27b6bd31c701abb7687a33e8397"
+    },
+    {
+      "repository_path": "outputs/sim_validation/phys_validation/controller_repair_20261014/pressure/reports/退出滞回与回合重置修复_20261014.md",
+      "original_path": "D:\\Codex\\Documents\\Train\\controller_pressure_20261014\\退出滞回与回合重置修复_20261014.md",
+      "bytes": 3125,
+      "sha256": "e25d270fd52248a58d65d44348678ad5804300e5a3d619a293420686807f90a2"
+    }
+  ],
+  "notes": [
+    "Original metadata retained byte-for-byte; local paths remain historical provenance. Use repository_path for access.",
+    "Legacy sources and physical models differ between runs. Compare only compatible protocols and hashes.",
+    "Reports are original D-drive documents copied for publication, not rewritten."
+  ]
+}

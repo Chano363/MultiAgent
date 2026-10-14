@@ -19,61 +19,29 @@ V_MIN = 40.0 / 3.6
 
 
 # --------------------------------------------------------------------------- #
-# 极简 stub（不起完整仿真）：只暴露 MultiLocoController 依赖的最小属性
-# --------------------------------------------------------------------------- #
-class _FakeVehicle:
-    def __init__(self, mass_t, is_locomotive, max_power_kw=0.0):
-        self.mass_t = mass_t
-        self.is_locomotive = is_locomotive
-        self.max_power_kw = max_power_kw
+# Use production dynamics for controller capability queries.
+_OPEN_ENVS = []
 
 
-class _FakeDynamics:
-    def __init__(self, n, loco_indices, vel=5.0, grade=0.0):
-        self.n = n
-        self.vel = np.full(n, vel, dtype=float)
-        self.pos = np.arange(n, dtype=float) * 12.0
-        self.grade = np.full(n, grade, dtype=float)
-        self._grade_profile = None
-        # 车体质量/power 取小值 → 让 _ed_ab_price < 0.99（陡坡高速时规则层真实触发 AB）
-        self.consist = type('C', (), {'vehicles': [
-            _FakeVehicle(200.0 if i in loco_indices else 100.0,
-                         i in loco_indices,
-                         300.0 if i in loco_indices else 0.0)
-            for i in range(n)
-        ]})()
-
-    def coupler_interface_forces_per_vehicle(self):
-        return np.zeros(self.n)
+@pytest.fixture(autouse=True)
+def close_gate_environments():
+    yield
+    while _OPEN_ENVS:
+        _OPEN_ENVS.pop().close()
 
 
-class _FakeSafety:
-    def __init__(self, veto=False):
-        self.veto = veto
-
-    def ab_new_source_veto(self, snapshot):
-        return bool(self.veto)
-
-
-class _StubTrainEnv:
-    def __init__(self, n=4, loco_indices=(0, 2), vel=5.0, grade=0.0, veto=False):
-        self.n = n
-        self.dynamics = _FakeDynamics(n, set(loco_indices), vel=vel, grade=grade)
-        self.safety = _FakeSafety(veto)
-
-    def _state_snapshot(self):
-        return {
-            'vel': self.dynamics.vel,
-            'coupler_forces': self.dynamics.coupler_interface_forces_per_vehicle(),
-            'gaps': np.full(self.n, 1.0),
-            'emergency': False,
-            'dt': 0.1,
-        }
+def _StubTrainEnv(vel=5.0, grade=0.0):
+    from src.train_dynamics.grade_profile import GradeProfile, GradeSegment
+    env = TrainFormationEnv({'consist_preset': '20kt_1plus108_1plus108'})
+    env.reset(options={'speed': vel})
+    env.dynamics.set_grade_profile(GradeProfile([GradeSegment(0, grade * 1000)]))
+    _OPEN_ENVS.append(env)
+    return env
 
 
 def _ctrl(**kw):
     return MultiLocoController(
-        num_vehicles=4, loco_indices=[0, 2], dt=0.1,
+        num_vehicles=218, loco_indices=[0, 109], dt=0.1,
         coupler_force_limit_n=1.0e6, **kw)
 
 
