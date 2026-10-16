@@ -1493,3 +1493,155 @@ python run_training.py \
 
 **验证**：`py_compile` 6 个改动文件全部通过；`pytest tests/ -q`（WSL conda traffic_rl）= **仅 1 例失败，即既有失败 `test_outputs_layout::test_top_level_dirs_are_registered`（`outputs/deprecated/results_mpc_baseline/` 未登记一级目录，与本次删脚本无关、删除该脚本也不解决目录登记）**，其余全部通过、无新增回归（源码级断言 `test_metric_accounting` 不涉及 rear_end/追尾/collision，已核对）。
 
+
+### 规则层标定轮 A–H-2026-10-15/16 —— 单列运营口径迭代（MARL 前置；验收 ADR-036 制动工况档）
+
+> 计划：`.trae/documents/rule-layer-operating-calibration-plan.md`（P0–P3）。入口：`diagnose_low_level_control.py --config configs/experiments/single_20kt_coupler_rulecal.yaml`，单列 1 列 20kt「1+1」，49.6 km 全剖面（steps 36000，start_randomization 强制关）。**验收线：峰值 ≤1350 kN / 均速 ≥60 km/h / viol≈0 / 不贴 40/80**。数据全部一手核自各归档 `result.json`。
+
+| 组 | 配置差分（相对上一组） | 峰值 kN | viol | 均速 | 超速步 | jerk_rms | 归档 |
+|---|---|---|---|---|---|---|---|
+| A | 旧基线（SERVICE 140 kPa、无速度门） | 3174 | 38682 | 61.0 | 2252 | 0.0174 | `rulecal_20261014/A_baseline_140kpa` |
+| B | CYCLIC 50 kPa + 触发/缓解门 65/55 | 2834 | 14189 | 67.2 | 1940 | 0.0136 | `rulecal_20261014/B_cyclic50_gates` |
+| C | + ED 缓解协同（抬 900 kN 持 50 s） | 2448 | 4886 | 67.0 | 2014 | 0.0152 | `rulecal_20261014/C_ed_coordination` |
+| D | 速度门改 62/52 | 2681 | 9049 | 63.0 | 1446 | 0.0153 | `rulecal_20261014/D_gates62_52_edcoord` |
+| E | + scale 豁免（缓解 boost 不乘 scale） | 2660 | 7051 | 67.2 | 2185 | 0.0144 | `rulecal_20261015/E_boost_exempt` |
+| F | 撤 E，boost 降到 300 kN | 2851 | 9199 | 67.2 | 1827 | 0.0132 | `rulecal_20261015/F_scale_boost300` |
+| **G** | **=F + 缓解门 45（当前最优）** | **2203** | **1738** | **66.0** | **173** | **0.0106** | `rulecal_20261015/G_release45_boost300` |
+| H | =G + 制动分支 ED floor 不乘 scale | 2247 | 2039 | 66.0 | 198 | 0.0112 | `rulecal_20261015/H_floor_unscaled` |
+
+**逐组机理（为什么好/坏）**：
+- A→B：50 kPa 循环档 + 独立速度门（表3 口径）减小单次制动能量，viol -63%；D 证明门 62/52 反而更差（缓解过早 → 循环频次升），**门 65/55 + 缓解 45 组合保留**。
+- C：ED 缓解协同时序削峰 2834→2448（缓解转换时刻车钩力峰值，靳新元2018/张二田2021 同证该位置敏感）。
+- E/F：**两个负结果**——① 缓解 boost 豁免 scale 使峰值 2448→2660（压缩期满档 ED 拖慢前部 → 后部撞更狠，撤销）；② 仅降 boost 到 300 kN 无缓解门配合反而 2851。缓解门 45 才是 G 突破的主因（超速步 1827→173）。
+- G→H：G 峰值团簇定位（t521/671-715/1569 三段，>1350 仅 251/27024 步）→ 主团簇 t≈671-715（2203 kN@74 km/h）归因双源钳零：安全层规则 A `release` + 控制器 `_coupler_throttle_scale` 把 floor×scale 砍到 0（前部无 ED 只剩 AB、后部全制动 → 8 s 内 1200→2203）。**H 只修控制器侧（floor 不乘 scale，13 单测绿），实测 2247/2039 —— 未达标且 viol 反升**，证明**主钳制源仍在安全层规则 A 的 release 钳零**。
+- **验收状态：A–H 全部未达（峰值 ≤1350 需再降 853 kN；均速 66.0 已达标、viol 1738 距"≈0"远）**。下一机制 = I 组：接通安全层规则 A 既有 `coupler_override='min_brake'` 档的配置入口（此前该档只在多列第 2 层用过，单列无入口、只能默认 `release` 钳零）。
+
+**登记**：ADR-037 待 I 组达标后随 P3 登记（DECISIONS.md）。表3 数据源已记 `REFERENCE_INDEX.md`「循环制动 / 长大下坡」段（operating practice 措辞，非行业标准、非首创叙事）。
+
+### 规则层标定轮 I/J-2026-10-16 —— 安全层规则 A 接线验证 + decompose floor 二次清零修复
+
+| 组 | 配置差分（相对上一组） | 峰值 kN | viol | 均速 | 超速步 | jerk_rms | 归档 |
+|---|---|---|---|---|---|---|---|
+| **G** | （H 前最优） | **2203** | **1738** | **66.0** | **173** | 0.0106 | `rulecal_20261015/G_release45_boost300` |
+| H | + 制动分支 ED floor 不乘 scale | 2247 | 2039 | 66.0 | 198 | 0.0112 | `rulecal_20261015/H_floor_unscaled` |
+| I | = H + `coupler_override=min_brake`（安全层规则 A 档位接线，train_env/fleet 透传） | 2247 | 2039 | 66.0 | 198 | 0.0112 | `rulecal_20261016/I_minbrake` |
+| J | = I + **decompose 末段 floor 兜底**（`final[:,0] *= scale` 后 `max(+floor)`，循环制动分支） | 2530 | 1984 | 65.9 | 214 | 0.0105 | `rulecal_20261016/J_floor_decomp` |
+
+**I 组结论（负结果，机理已一手核实）**：
+- `coupler_override=min_brake` 接线**生效**（result.json `env_cfg.coupler_override="min_brake"`，train_env_source 快照含接线；2 条接线单测绿，全量 pytest 361 项 100% 绿）。
+- 但 I 与 H **轨迹逐位相同**（rows/physical_loco_ed/physical_ab/coupler_interface_force_n 全等）→ 该开关对本场景零差异。原因：规则 A 命中 146 步、2039 次 viol 全部为**货车区间**断面力超限（idx 73–177），`min_brake` 只改"制动动作保留 MIN 档"，而货车 `proj_throttle=0`（非机车无动作），min_brake/release 分支均不动作；机车位（0/109）`proj_throttle<0`（ED 制动）虽走 min_brake 分支，但归档 `safety_rule_counts` 显示动作修正不改变轨迹（ED 物理值已由控制器侧决定）。
+- **I≡H 逐位相同 → 主团簇 2247 kN 的钳制源不是安全层规则 A 档位**（推翻 H 组"release 零断是主钳制源"的假设）。
+
+**J 组根因（一手代码 + 归档时间线证实，H≡I 共同根因）**：
+- 归档时间线：t=6650 ratio 0.64 → t=6700 ratio **1.06**（scale=0）时 `physical_loco_ed=[0,0]` → t=6750 峰值 **2247 kN**（75 km/h）；t=6850 ratio 0.70 时 ED 恢复 [1.0,0.7] → 力回落。
+- 代码链：H 组已让 baseline 制动分支保住 300 kN floor（`max(ed, ed_floor)` 不乘 scale，[multi_loco_controller.py](file:///d:/Code/MultiAgent/traffic_rl_project/src/controllers/multi_loco_controller.py) 制动分支），但 decompose 主流程随后 **L591 `final[:, 0] *= scale` 把保住的 floor 二次清零**（ratio≥1 → scale=0 → ED=0）→ 前部无 ED 只剩 AB、后部全制动 → 压缩正反馈 → 主团簇。
+- **修复（J 组）**：L591 之后加兜底 `if ed_release_coordination and _cyclic_braking: final[:,0] = max(final[:,0], floor)`——与 baseline 同口径（表3 循环期 ED 恒持 300 kN），默认关（协调关/非制动段）= 旧行为零回归；3 条新单测（decompose floor 存活 / 协调关零回归 / 非制动段不抬）+ 相关 45 测试绿。
+- **验收状态：A–I 全部未达；J 组评估完成 = 负结果**（2530/1984/65.9，峰值反超 I 的 2247）。
+
+**J 组判读（负结果，floor 已生效但方向与 E 组同构）**：
+- floor 确实生效：峰值步 t=6770（2530 kN，ratio 1.69）`physical_loco_ed=[0.38,·]` ≠ 0（I/H 同位置为 [0,0]）。
+- 但方向与 E 组负结果同构：压缩期保住前部 ED → 前部被拖慢 → 后部以更大相对速度撞上（峰值 +283 kN）。
+- **更底层根因链（归档一手核实，v3 探针修正）**：头车 `physical_ab` 于 **t=6635 由 cyclic→service**（此时 `v_max=80.03` 正跨 80 线，规则 C 索引 2 命中 10 次 → ATP 规则 C 事后把全列动作改 SERVICE 单源猛刹，`ab_command_to_physics` 同步切 SERVICE 至 t=6691；中部车 109 至 t=6700 才转 service——**头波滞后传播**）；`argmax 断面力` 随时间 11→19→48→126（头波向中部传播）；此前 t=6550–6620 规则层自身 CYCLIC 双源在充风门/新源门间反复开合（source 2→0 抖动 4 次）。机理：**最陡段 CYCLIC(50 kPa) 制动力不足 → 车速缓爬到 80 跨线 → ATP 事后全列单源 SERVICE 猛刹 → 头波撞中后部 → 主团簇**。
+
+**K 组机制（2026-10-16 实现）**：规则层 AB **预升级**——新旋钮 `cyclic_ab_upgrade_kmh`（默认 None=旧行为零回归）：循环制动分支中 `max_vel ≥ 门` 时把 CYCLIC(50 kPa) 兜底档提前升为 SERVICE(140 kPa)，即规则层自己发起的**错峰双源**升档（受充风/并发/veto 门约束），先于 ATP 规则 C 事后整列单源猛刹；裕量耗尽即自然进入正常循环制动。接线：controller `__init__` + 制动分支 → fleet `config.get` + `MultiLocoController` 透传；3 新单测（默认关零回归 / 76 门触发升级 / fleet 透传），相关 110 测试绿。K 评估（= J 口径 + `cyclic_ab_upgrade_kmh=76.0`，留 4 km/h 升压裕量）归档 `rulecal_20261016/K_preupgrade76`（运行中）。
+
+**K 组结果与判读 - 2026-10-16**（append-only，K 评估完成回填）
+
+- K 评估（= J 口径 + `cyclic_ab_upgrade_kmh=76.0`）完成，`rulecal_20261016/K_preupgrade76`，exit 0，full_route_completed=true（steps 30336）。
+- **数值（ADR-036 制动工况档：峰 ≤1350 / 均速 ≥60 / viol≈0 / 不贴 40-80）**：peak **1931 kN** / mean **58.8 km/h** / viol **1283** / speed_min 38.3 / speed_max 80.6（band-viol 步 716）→ **未达标**（J 对照：2530 / 65.9 / 214，band-viol 279）。
+- **预升级机制确实生效（一手归档核实）**：头车 AB 通道在 **ruleC=0 且 cb=on 且 v_max≥76** 时出现 SERVICE(-0.75) 命令 **374 步**（首次 t=911s），同一条件下 J 组 0 次（J 恒为 CYCLIC 哨兵 -0.05，3214 步）→ 升级路径在 ATP 之前由规则层自己发起；头车 phys ab 分布 cyclic 15026 / service 3789（J：17788 / 1415）。
+- **但仍被规则 C 事后猛刹穿透**：三次头车 release→service 转换（t=884 / 1180 / 1476s）均发生在 **v_max 刚跨 80、ruleC 0→N 同步跳变**的时刻（J 侧 t=620/664 同型）→ 76 km/h 预升级只覆盖"循环制动已开启"窗口；当车速由 release 态（`_cyclic_braking` 未 latch）直接爬向 80 时，预升级分支（要求 `ab_nominal == CYCLIC_AB_SENTINEL`）不成立，规则 C 仍抢先。
+- **代价机理（与 E/J 同构的第三次复现）**：预升级把 CYCLIC 换成 SERVICE（β_c 0.17→0.75，制动力 ×4.4），最陡段三轮 SERVICE→release 循环把头车速度压到 **36.6~40.5 km/h**（J 仅 39.7 且只 7 步；K <40 km/h 共 1570 步，最大超速段 81.6）→ 均速跌到 58.8、viol 从 214 涨到 1283、峰值团簇（t=995–1002 head/mid 双 SERVICE、v=40.5 缓解时头车 release 中部仍 service → 拉扯，-1931 kN @idx0）。
+- **结论：K = 负结果**——峰值较 J 改善（2530→1931）但**换来了低速破线（38.3<40）与 viol 暴涨**，验收线四项中三项恶化。峰值 >1350 步数 548（J 263）。
+- **下一步方向（L 组待设计）**：① 预升级不应只挂在 CYCLIC 哨兵上，release 态爬速窗口（v≥76 且未 latch）同样需要规则层先行 AB 源；② 升级档太强——SERVICE(140 kPa) 在最陡段过刹，考虑中间档（MIN 70 kPa 或 β 中间减压）或缩短 SERVICE 持续（缓解门提前）；③ 低速破线须一并进验收判据（本轮教训：只盯峰值会换一种失败）。
+
+**L 组机制（2026-10-16 实现）**：修复 K 遗留方向①——预升级条件原只挂 `ab_nominal == CYCLIC_AB_SENTINEL`，ED-only 空窗（`ab_nominal == 0.0`，ED 足够、AB 源未开）漏检；改为 `ab_nominal in (0.0, CYCLIC_AB_SENTINEL)`（`multi_loco_controller.py` 制动分支，含 L 组中文注释），使 release 态爬速窗口也由规则层先行 SERVICE 升档。新增单测 `test_cyclic_ab_upgrade_ed_only_window`，该文件 22 项绿；全量 pytest exit 0（100% 进度点无 F/E）。
+
+**L 组结果与判读 - 2026-10-16**（append-only，L 评估完成回填）
+
+- L 评估（= K 口径 + ED-only 空窗预升级）完成，`rulecal_20261016/L_edwindow76`，exit 0，full_route_completed=true（steps 29093，全程完跑）。
+- **数值（ADR-036 制动工况档四线 + 低速≥40）**：peak **2840.5 kN** / mean **61.3 km/h** / viol **7986** / speed_min **39.5** / speed_max 80.9（max_vehicle 81.8）→ **四项中三项未达标**（仅均速 ≥60 PASS；K 对照 1931 / 58.8 / 1283 / 38.3）。
+- **修复确实生效（一手归档核实）**：AB 物理分布 SERVICE 步数 **783312 → 1782253**（cyclic 3293542 → 727454），即 ED-only 空窗确实被预升级接管；命令切换 36 → 50、规则 C 触发段 6 段 484 步 → **13 段 1235 步**。
+- **代价机理 = K 方向②被放大**：SERVICE 使用量 ×2.3 → 最陡段过刹更频繁更深（head<40 步 233 → 304；|F|>1350 步 548 → **1769**；overspeed 步 483 → **1234**）。过刹-反弹振荡幅度变大：低速压到 39.5 后最陡下坡回冲到 81.8（跨 80 线 1234 步）。峰值步 t=2672s @ head=39.9 km/h、cb=False、断面 115——**缓解时刻头车已 release 而中部仍 service 的拉扯团簇**（与 K 同型但更晚更强）。
+- **结论：L = 负结果**——方向①（空窗覆盖）单独采纳反而恶化：预升级覆盖越多，SERVICE 过刹与振荡越强。峰值 +910 kN、viol ×6.2、超速步 ×2.5；仅均速（58.8→61.3）与低速（38.3→39.5）微升但仍破 40 线。
+- **下一步方向（M 组设计）**：L 证明**方向①必须与方向②联合**。方向②候选（按 K 段落排序）：① 升级档降强度——SERVICE(140 kPa) → MIN(70 kPa) 中间档（β 介于 CYCLIC 0.17 与 SERVICE 0.75 之间，升压仍先于 ATP 但过刹减半）；② 缓解门提前——`cyclic_release_kmh` 45→55（表3 缓解 50-60 区间，有出处），缩短 SERVICE 持续、避免压到 36-40。M 先做①（单变量、直接对应 L 的过刹证据），②视结果决定。
+
+**M 组机制（2026-10-16 实现）**：新旋钮 `cyclic_ab_upgrade_notch`（默认 `'service'` = K/L 行为零回归，非法值 ValueError 拒绝）——预升级档强度可选 `'min'`：升级时 ab_nominal 发 −0.15 → `notch_from_throttle` → **MIN(70 kPa, β 0.20)**，介于 CYCLIC(0.17) 与 SERVICE(0.75) 之间：升压仍先于 ATP 事后猛刹（方向①保留），过刹幅度大减（方向②）。接线：controller `__init__` + 制动分支 → fleet `config.get` + 透传；2 新单测（min 档 + 默认 service 零回归 + fleet 透传 + 非法值拒绝），标定文件 24 项绿。M 评估（= L 口径 + `cyclic_ab_upgrade_notch=min`）归档 `rulecal_20261016/M_min_upgrade`（运行中）。
+
+**M 组结果与判读 - 2026-10-16**（append-only，M 评估完成回填）
+
+- M 评估完成，`rulecal_20261016/M_min_upgrade`，exit 0，full_route_completed=true（steps 29809，全程完跑）。全量 pytest 同步 exit 0。
+- **数值（ADR-036 四线 + 低速≥40）**：peak **2464.3 kN** / mean **59.9 km/h** / viol **5011** / speed_min **38.8** / speed_max 80.8（max_vehicle 81.6）→ **四线全未达标**（L 对照 2840.5 / 61.3 / 7986 / 39.5；K 对照 1930.9 / 58.8 / 1283 / 38.3）。
+- **方向②（降强度）确实生效且相对 L 全面改善**：|F|>1350 步 1769→**1022**、overspeed 步 1234→**763**、head<40 步 304→**184**、ruleC 总步 1235→**764**、viol 7986→5011、峰值 2840→2464。AB 分布验证：升级档确实落 MIN（physical min 25854 步），cyclic 回升至 2443239（L 仅 727454）→ L 的 SERVICE 过量被 MIN 替代。
+- **代价 = 均速微跌破线**：mean 61.3→59.9（L PASS → M FAIL，差 0.1 km/h）；speed_min 39.5→38.8 仍破 40。MIN 制动力弱于 SERVICE，刹得更浅 → 单次过刹更小但次数/时长不足以把均速顶回 60。
+- **新暴露：起步段团簇（M 特有）**：M 起步 t=14–26s 出现 2464 kN @ head 71.2–74.5、argmax 断面 112–123（中后部），此前 >1350 步 131（K 起步 0 步、L 20 步）。起步段全列 physical_ab ≈ release（0–500 步 min 1 / service 9），**非 AB 过刹所致**，为 -12‰ 陡坡上 79.3 km/h 初速起步的内部压缩波（升级档差异只通过 ED/少量 service 介入间接影响）。此项与验收主线（峰值仍由中后段主导：late peak 2275 kN @ t=2969s head 77.0）分开看待。
+- **结论：M = 负结果，但方向②方向正确**——相对 L 六项核心指标全改善（viol −37%、超速 −38%、超线步 −42%、峰值 −13%），唯均速跌线。K/L/M 三组均未达标，且失败模式互补：K 峰值最低但均速/低速差，L 均速过线但过刹爆炸，M 居中但两头不靠。
+- **下一步方向（N 组设计）**：M 的低速/viol 残余来自 SERVICE 持续过长（缓解门 45 仍偏低，压到 40 以下才释放）。N = **M + 缓解门提前 `cyclic_release_kmh` 45→55**（表3 缓解 50–60 区间，有出处；K 方向②候选②）：更早释放避免压入 40 以下，同时缩短制动循环周期、抬均速。若 N 均速过线仍卡峰值，再评估升级门 76→72（更早介入平缓化）。
+- **N 组已启动（2026-10-16）**：无需新代码（缓解门为既有旋钮），评估 = M 口径 + `cyclic_release_kmh=55.0`，归档 `rulecal_20261016/N_release55`（运行中）。
+**N 组结果与判读 - 2026-10-16**（append-only，N 评估完成回填）
+
+- N 评估完成，`rulecal_20261016/N_release55`，exit 0，full_route_completed（steps 27564，全程完跑）。
+- **数值**：peak **3030.7 kN** FAIL / mean **64.7 km/h** PASS / viol **12312** FAIL / speed_min **48.4** PASS（head<40 步 = **0**）/ speed_max 80.6（max_vehicle 81.7）→ **低速与均速两条线首次同时过，峰值与 viol 爆掉**。
+- **对照链（M→N 仅改缓解门 45→55）**：mean 59.9→64.7、min 38.8→48.4、head<40 步 184→0——**方向②的缓解门杠杆对低速/均速非常有效**；代价 = peak 2464→3031、viol 5011→12312、overspeed 763→1223、ruleC 步 764→1224。
+- **峰值根因（探针 t=2728s）**：head 74.3、cb=True、**rule A 车钩规则正触发 116 步**（全程 rule A 共 23297 事件），断面 121（中后部）；>1350 步 1322 中 825 步与 rule A 同窗、219 步与 rule C 同窗、1028 步在循环制动中。末段 head 处 AB=service（升级档），尾部 release → **高能态下（均速 64.7）ATP/service 波 + 车钩规则介入互激**；另有起步团簇 14-26s pk=2464（与 M 逐位相同，min 升级档起步特性，K 的 service 档起步仅 1221 未超线）。
+- **结论：N = 负结果，但证明缓解门 55 把低速/均速两线彻底解决**；剩余矛盾收敛为两条：① 峰值（起步 2464 = min 档特性；末段 3031 = 高速态 rule A/C 介入）② viol（release 55 使高速段能量增大 → 规则触发暴增）。
+- **O 组设计 = L 口径（升级档回 service）+ 缓解门 55**：L 的 service 升级档压制 rule C（L 起步仅 20 步超线、K service 起步 1221）且均速已过线，L 仅缺低速（min 39.5）；N 已证 release 55 对 min/mean 的增益（+9.6/+4.8）。O 组同时针对起步峰值（service 档）与低速/均速（release 55），归档 `rulecal_20261016/O_release55_service`。
+
+**O 组结果与判读 - 2026-10-16**（append-only；O = L 口径 service 升级 + 缓解门 55，归档 `rulecal_20261016/O_release55_service`）
+
+- O 评估完成，exit 0，full_route_completed（steps 26218）。**负结果且比 N 更差**：peak **3056.5** / mean 68.1 PASS / viol **14892** / min 49.8 PASS（head<40=0）/ |F|>1350 步 **2451**（四组最差）。O 相对 N 仅把升级档 min→service → ruleC 步 120782→**253936 翻倍**、ruleA 827→1390，峰值集中在低速 50–57 段（top4 段 v=50..57）——**service 升级档 + release 55 高能量态叠加，rule C 正反馈主导**，确认 service 升级档在 release 55 下不可用。
+- **四组超线步四分位对比（关键证据）**：K = [97, 320, 98, **33**]（548 步，起步 0 超线、峰值 1931 四组最低）；L = [93, 450, 423, 802]；N = [241, 466, 203, 412]；O = [282, 679, 332, **1158**]。**K 在峰值/超线步/起步三项仍为最优，仅差均速 58.8（差 1.2）与低速 38.3（差 1.7）**；K 峰值段 t=995–1002s @ v=40..41 = release 45 之后的低速深坑——正是缓解门杠杆可覆盖之处。
+- **P 组设计 = K 口径 + 缓解门 45→50**（表3 缓解 50–60 区间取下限；M→N 已证 45→55 对 min/mean 增益 +9.6/+4.8，取 50 折中避免 N/O 的高速能量爆）：保留 K 的 service 升级低峰值特性 + 抬 release 补均速/低速。归档 `rulecal_20261016/P_release50_service`（运行中）。
+
+**P 组结果与判读 - 2026-10-16**（append-only；P = K 口径 + 缓解门 45→50，归档 `rulecal_20261016/P_release50_service`）
+
+- P 评估完成，exit 0，full_route_completed（steps 27945）。**负结果但三条线首次同时过**：peak **2496.0** FAIL / mean **63.9** PASS / viol **7002** FAIL / min **44.6** PASS（head<40 步 = 0，不贴带）→ 均速、低速、40 下限三线首过，仅峰值与 viol 两项未达标，**当前全轮最佳组合**（K 1931 峰值最低但 mean/min 双破；P 三线过、峰值 2496）。
+- 对照链：K→P 仅改缓解门 45→50：mean 58.8→63.9、min 38.3→44.6、head<40 233→0，代价 peak 1931→2496、viol 1283→7002、ruleC 53189→195839。缓解门杠杆确认有效但抬高整体能量（ruleC 近 4 倍）。
+- **峰值根因（探针 t=2626s）**：head 45.4（release 门 50 之下已触发缓解 cb=False），**全列 ab 仍处 service 波未散**（head/断面141 均 service），rule A 车钩规则介入 69 步；头车 48.3→45.4 急减速 2.9 km/h 而中后部 service 推挤 → 压缩波峰 2496。|F|>1350 步 1650 中 790 步与 rule A 同窗、1093 步在 cb 中。峰值段分布：低速 44–49（3 段）、中速 65–68（2 段）、高速 78–80（3 段）——**缓解时刻的 service 波拖尾**为最大源。
+- **Q 组设计 = P + `ed_release_boost_kn` 300→900**（回表3「缓解前抬再生力」原始口径；F 组曾试 300 是部标"逐步退"来源）：峰值恰在缓解时刻附近，缓解前抬更大再生力 = 头车缓解后仍有力拉住车列，缓冲 service 波拖尾推挤，直接针对 P 峰值根因；归档 `rulecal_20261016/Q_boost900`（运行中）。
+
+**Q 组结果与判读 - 2026-10-16**（append-only；Q = P + `ed_release_boost_kn` 300→900，归档 `rulecal_20261016/Q_boost900`）
+
+- Q 评估完成，exit 0，full_route_completed（steps 28185）。**负结果但三线继续同过、viol 近腰斩**：peak **2405.8** FAIL / mean **63.3** PASS / viol **3790** FAIL / min **42.2** PASS（head<40 = 0）。对照 P（2496/63.9/7002/44.6）：viol −46%、ruleA 13513→7448（近半）、|F|>1350 步 1650→1450；四分位 [93,352,296,**709**] vs P [93,516,491,550] → 前三季度全面改善、**超线向末季度集中**。抬 ED 缓解协同有效但峰值仅 −90 kN。
+- **速度桶分布（1450 超线步）**：v∈[70,81) 923 步 / [40,55) 318 / [55,70) 209 —— 高速段超线成为主体（P 时 [70,81) 仅 562），低速段 582→318 大降，缓解门+boost 对低速拖尾段有效。
+- **峰值段机制（probe_q2/q4/q5，压钩定案）**：峰值 t=2616s @ 断面 116 = **-2406 kN 压钩**（有符号：全程 F>1350 拉钩 7618 格、F<-1350 压钩 3705 格；峰值段拉钩分量仅 +942）。时序 = **缓解波头→尾单向传播不同步**：t≈2597 头车先缓解（arf 头 0.81→0.10）、ED boost（-490→-102→0 kN）在 t≈2610 归零、尾车仍全制动（尾车速度 51→41.7 km/h），t=2610 头-尾差 +7.85；随后尾车释放反弹（48.3）而头车被按住（46.8）→ **速度反转**（head-tail = -1.56），中后部上撞断面 116 → -2358/-2406；t≈2625 全列释放完，力骤降至 88。ruleA 在团簇中 3398 步为**结果**（力超线后介入）非主因；cb=False、ruleC=0。
+- 结论：**峰值根因 = 单向缓解波 25-30 s 传播期内头尾制动力/速度反转**，非 ED boost 强度（Q 已证 300→900 只改 −90）。P→Q 拉钩超线被压但压钩段集中末季度。
+- **R 组设计 = Q + `eot=true`（可控尾车双向缓解波）**：`train.py::_reset_air_brake_command(eot=True)` 已实现尾部同为缓解源、各车延迟取 min(到头, 到尾)/波速，传播时间减半（25-30 s → ~13-15 s），直接消速度反转窗口；fleet 一直未透传该键（本次补齐 `train_fleet_env.py` tr_cfg，默认 False 零回归 + `test_eot_wired_through_fleet` 单测绿）。文献锚 = Zhang2025 大秦线 20kT EOT 拉钩 780→489 kN（-37%）（REFERENCE_INDEX「纵向动力学 / 车钩力」段已录）。归档 `rulecal_20261016/R_eot`。
+
+**R 组结果与判读 - 2026-10-16**（append-only；R = Q + `eot=true` 双向缓解波，归档 `rulecal_20261016/R_eot`）
+
+- R 评估完成，exit 0，full_route_completed（steps 27897）。**负结果但全轮最大跃升**：peak **1822.9** FAIL / mean **63.96** PASS / viol **946** FAIL / min **44.3** PASS（head<40 = 0）。对照 Q（2405.8/63.3/3790/42.2）：峰值 **−24%**、viol **−75%**、|F|>1350 步 1450→**974**、ruleA 600→**312**、ruleC 1410→1663。四线中均速/低速继续过，峰值与 viol 缺口大缩。
+- **EOT 机制验证（决定性证据）**：有符号超线格 **F<-1350 压钩 = 0**（Q 时 3705 格、P 时 8892 格）——**速度反转压钩被彻底消除**；低速段超线 v∈[40,55) 318→**32**（缓解段超线基本消失）。F>1350 拉钩 7618→5770。峰值段全部转移到 **v=78-80 高速制动段**（top8 中 7 段 v≥77.9、cb=True；峰值 t=2181s @ v=78.8 cb=True loc=133），速度桶 [70,81) 814/974 = 主体。
+- 结论：R 确认峰值根因链条第一环（单向缓解波→压钩）已拆除；**剩余矛盾 = 高速段拉钩**：v≥76 预升级 SERVICE(140 kPa) 档制动波头撞中后部（AB 分布 service 7880 步），top8 段 pk 1525-1823，目标 1350 还差 473（35%）。
+- **S 组设计 = R + `cyclic_ab_upgrade_notch=min`**（升级档 service→MIN(70 kPa, β 0.20) 中间档，直接降高速段制动波强度；M 组曾证 min 六项全改善但当时 release45 口径均速跌线，现 release50+eot 口径均速有裕度 63.96，风险 = 升级力度不足被规则 C 抢先（K/L 教训），实测定夺）。归档 `rulecal_20261016/S_min_upgrade`。
+
+**S 组结果与判读 - 2026-10-16**（append-only；S = R + `cyclic_ab_upgrade_notch=min`，归档 `rulecal_20261016/S_min_upgrade`）
+
+- S 评估完成，exit 0，full_route_completed（steps 27721）。**负结果且比 R 差**：peak **2562.2** FAIL / mean 64.37 PASS / viol 5061 FAIL / min 44.7 PASS（head<40 = 0）。对照 R（1822.9/63.96/946/44.3）：峰值 +40%、viol +435%、超线步 974→1120。四分位 [173,193,236,518]。
+- 机理：升级档 service→min(70 kPa) **力度不足** → 循环制动次数 cb 19447→20912、service 残留 6387 步，**起步段 t=14-28s @ v=71-74 首次爆 2562 kN**（ruleA=115，R 起步无超线）；min 档弱波头 + 更多循环事件反而放大拉钩。与 M 组教训一致：**中间档路线在 release50+eot 口径下同样不成立**——service 太强（R 高速拉钩）与 min 太弱（S 起步+全程更差）两头都试过，升级档本身不是最优杠杆。
+- **R 剩余峰值探针（T 组依据）**：>1500 kN 格点步 312 中 **264 步 ruleA 触发（85%）**、ruleC 仅 29、超速 v>80 叠加 0-2 步 → **不是 ATP 猛刹/超速**，全部 top8 段 cb=100%（v=78-80 循环制动中）→ 根因 = **高速段 service(140 kPa) 预升级波头强度**（R 的 service 7880 步集中在 v≥76）。
+- **T 组设计 = R + `cyclic_ab_upgrade_kmh` 76→79**：升级门提到 79（近上限），让 v=76-79 主体循环段回落 cyclic 50 kPa 弱波头，service 仅在真贴限速边缘触发；风险 = 制动力减弱被规则 C 抢先（K/L 教训，但 R 口径规则 C 仅 1663 步、超线叠加 29，风险低），实测定夺。归档 `rulecal_20261016/T_gate79`。
+
+**T 组结果与判读 - 2026-10-16**（append-only；T = R + `cyclic_ab_upgrade_kmh` 76→79，归档 `rulecal_20261016/T_gate79`）
+
+- T 评估完成，exit 0，full_route_completed（steps 28547）。**负结果**：peak **2374.4** FAIL / mean 62.51 PASS / viol 2235 FAIL / min 44.4 PASS（head<40 = 0）。对照 R（1822.9/63.96/946/44.3）：峰值 +30%、viol +136%，仅超线步 974→848 略降、超线格 F>1350 5770→7133。四分位 [37,165,62,584]。
+- 机理：门提到 79 后 v=76-79 主体循环段回落 cyclic 弱波头 → **制动力不足 → 速度缓爬**，新峰值 t=2394s @ v=72.7-74.5（ruleA=66）与尾部低速段回潮（v∈[40,55) 超线 32→167、t=2430 v=54 / t=2462 v=44 团簇 1525-1879）。**门下移=K（1931）/上移=T（2374）均差于 R（1823）→ gate76 是 eot 口径下该维度的局部最优点**；升级档 service/min 两档（R/S）与门 76/79（R/T）四象限已扫完，**升级机制维度无进一步空间**。
+- **U 组设计 = R + `coupler_override` 方向感知**（新档 `direction`）：R 探针已证 >1500 步 85% 落在 ruleA 介入期间，而 R 压钩格 F<-1350 = 0 → ruleA 现行 min_brake 对**拉钩**方向保留 70 kPa 继续加尾部拉力、对主超线区是反效果；方向感知 = **拉钩 → release**（减尾部拉力直接泄力）、**压钩 → min_brake**（保留既有保护，零回归路径）。风险 = H 组曾证 release 钳零是团簇源，但那次主控为压钩场景，当前压钩=0，实测定夺。默认 `release` 旧行为零回归。归档 `rulecal_20261016/U_dir_release`。
+
+**U 组结果与判读 - 2026-10-16**（append-only；U = R + `coupler_override=direction` 方向感知，归档 `rulecal_20261016/U_dir_release`）
+
+- U 实现：`train.py` 带符号断面力视图 `coupler_interface_forces_per_vehicle_signed()`（正=拉/负=压，取相邻幅值大者）+ train_env/low_level_controller 双透传 `coupler_forces_signed` + safety_layer 规则 A 分流（拉钩→release 泄力、压钩→min_brake 保留；缺视图回退 release 零回归；非法值 ValueError）+ 4 新单测（安全层+环境 35 项绿、全量 pytest exit 0）。
+- U 评估完成，exit 0，full_route_completed（steps 27883）。**负结果且比 R 差**：peak **2153.5** FAIL / mean 64.00 PASS / viol 3323 FAIL / min 44.3 PASS（head<40 = 0）。对照 R（1822.9/63.96/946/44.3）：峰值 +18%、viol +251%、超线步 974→1124、ruleA 312→**469**。四分位 [34,240,275,575]。
+- 机理：拉钩方向 release 钳零 → 制动力突失 → 后部继续受拉 → **ruleA 触发更频繁（再制动循环正反馈）**，超线格 F>1350 5770→9694，峰值转移到末段 t=2784s @ v=69-74（ruleA=120）。**"拉钩→泄力"假设被实测推翻**（与 H 组"release 钳零是团簇源"同构）；ruleA 干预方式两头（min_brake=R、release=U）均已试，**该维度无空间**。
+- **V 组设计 = R + 预测式 AB 源 veto 收紧**（新维度：`coupler_veto_margin` 默认 0.9 → 0.75，按滞后时域外推峰值 ≥0.75·limit 即禁止**新增** AB 源，直对高速段 service 波头叠加超线的成因；R 剩余峰值全在 cb=True 的 service 波头撞中后部，veto 是"事前禁止新波源"而非"事后改档"，与已扫的升级档/门/override 三维度机制正交）。须先确认该参数透传链（SafetyLayer 已有参数，train_env 构造是否透传待查），默认 0.9 零回归。归档 `rulecal_20261016/V_veto75`。
+
+**V/W 组结果与判读 - 2026-10-16**（append-only；并行评估，V = R + veto margin 0.75 预测路，W = R + veto ratio 0.45 反应路，归档 `V_veto75`/`W_veto45`）
+
+- 透传验证：`verify_veto.py` 实测 default margin 0.90/ratio 0.60 → override 0.75/0.45 **生效**（train_env→SafetyLayer 链路通）。
+- V = **负结果且逐位等于 R**（1822.9/63.96/946/44.3，steps/四分位/超线格全同）。机理：反应式门 `p0 ≥ 0.6·limit`（900 kN）**永远先于预测式外推触发**，margin=0.75 从未参与决策 → veto 维度被反应式门主导，预测路是死代码路径。透传生效但参数不参与，**margin 无空间**。
+- W = **负结果且比 R 差**：2511.5/63.73/4486/44.1，超线格 5770→11500、ruleA 312→599。机理：ratio 0.45（450 kN 即禁新 AB 源）**过激**——正常循环阶段大量步骤处于该禁未禁状态，制动时序混乱叠加。**veto 反应路 0.6→0.45 方向错**，两路（V/W）均无空间。
+- **R 峰值微观机理定案（probe_r2/r3 单步深挖）**：峰值 t=2181s 全列 v≈78.7-79.4；**t=-10s 尾 81.4 > 头 80.4，+10s 头 78.7 > 尾 76.6 —— 6.5 s 内头尾速度反转 +4 km/h** → 中后部断面 131-151 拉爆（1823/1549/1457）。峰值步 ruleA=4、ED 两台机车被 protect 钳 365→150 kN（事后保护，非主因）。**根因 = 头/中机车 ED（-365 kN×2，即时无传播）先减速 vs 尾车靠 AB 制动波 6.5 s 后才减速**：ED 同步性与制动波延迟的固有矛盾（EOT 只修缓解波，施加波头中即时 ED 的时差修不了）。量级核算：ED 减速率 ≈0.167 m/s² × 6.5 s ≈ 4 km/h ≈ 实测反转量。
+- **X 组设计 = ED-AB 波到达协同**（新维度，正交于已扫七维度：升级档/门、ruleA 干预、缓解门、boost、eot、veto 双路）：service 升级触发后头/中机车 ED 在**尾车收波前窗（≈列长/波速/2 ≈ 6.5 s）阶梯降权**（`ed_upgrade_ramp_scale`，如 0.4），波到齐后恢复满值 → 头中不提前减速、反转缩小，全列到齐后 ED+AB 全开保均速。双旋钮 `ed_upgrade_ramp_s`（默认 0=关）/ `ed_upgrade_ramp_scale`（默认 1.0）零回归。归档 `rulecal_20261016/X_edramp`。
+
+**登记**：ADR-037 待达标后随 P3 登记（I/J/K/L/M/N/O/P/Q/R/S/T/U/V/W 轮次表与 H 假设推翻过程按本节实况写入）。
+

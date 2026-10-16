@@ -95,6 +95,14 @@ class SafetyLayer:
         # 车钩力超限时的干预策略（8/18 修正，避免 E3 改动破坏第1层）：
         # - 'release'（默认，原行为）：制动完全钳制为 0（释放），保持速度，第1层单列用
         # - 'min_brake'（E3 修复）：制动降到 MIN 档保留制动，避免长大下坡"释放→再制动"死锁，第2层多列用
+        # - 'direction'（U 组 2026-10-16）：按拉/压方向分流——拉钩（signed>=0）→ release
+        #   直接泄力；压钩（signed<0）→ min_brake 保留制动（依据 R 组实测：>1500kN 超线
+        #   85% 落在拉钩方向且压钩格=0，min_brake 对拉钩反而续拉）。缺 signed 视图时回退
+        #   'release'（旧默认，零回归路径）。
+        if coupler_override not in ('release', 'min_brake', 'direction'):
+            raise ValueError(
+                f"未知 coupler_override: {coupler_override!r}，"
+                "可选: 'release' / 'min_brake' / 'direction'")
         self.coupler_override = coupler_override
         # Fu2019 区分正常运行/紧急制动的车钩力上限。
         # 默认紧急制动上限 = 2.25 * 正常运行上限（Fu2019: 1000/2250 kN）
@@ -252,8 +260,15 @@ class SafetyLayer:
         # - 'release'（默认）：制动完全钳制为 0（释放），用于第1层单列循环制动
         #   （E3 改动曾让第1层掉速到0：车钩力超限→仍保持MIN制动→持续减速→掉速，
         #   8/18 恢复第1层为 release，保持速度保持能力）
+        # - 'direction'（U 组）：拉钩→release 泄力、压钩→min_brake 保留（见 __init__ 注释）
         # ⚠️ 本规则只对"智能体自由输出的动作"生效；**不能覆盖规则 C/D 的 ATP 制动**——
         #    故 ATP 制动改到最后施加（见上）。这是有意的权限收敛，非等价重排。
+        signed = None
+        if self.coupler_override == 'direction':
+            # 缺 signed 视图（旧调用方未透传）→ 回退 release（默认旧行为）
+            signed = obs_state.get('coupler_forces_signed', None)
+            if signed is not None:
+                signed = np.asarray(signed, dtype=float)
         for i in range(self.num_vehicles):
             if coupler_forces[i] >= coupler_limit:
                 mode = 'emergency' if is_emergency else 'normal'
@@ -261,12 +276,18 @@ class SafetyLayer:
                 if actions[i] > 0.0:
                     # 牵引加剧冲动 → 完全钳制为 0
                     actions[i] = 0.0
-                elif actions[i] < 0.0 and self.coupler_override == 'min_brake':
-                    # 制动：降低到 MIN 档（保留必要制动，长大下坡不能完全释放）
-                    actions[i] = max(actions[i], MIN_BRAKE)
                 elif actions[i] < 0.0:
-                    # 'release'：制动完全钳制为 0（释放，保持速度，第1层用）
-                    actions[i] = 0.0
+                    # 制动分支：按 coupler_override 决定保留 MIN 还是完全释放
+                    keep_min = self.coupler_override == 'min_brake'
+                    if self.coupler_override == 'direction':
+                        # 压钩（signed<0）保留 MIN 制动；拉钩（signed>=0 / 缺视图）释放泄力
+                        keep_min = signed is not None and i < signed.size and signed[i] < 0.0
+                    if keep_min:
+                        # 保留必要制动：降低到 MIN 档（长大下坡不能完全释放）
+                        actions[i] = max(actions[i], MIN_BRAKE)
+                    else:
+                        # 'release'：制动完全钳制为 0（释放，保持速度，第1层用）
+                        actions[i] = 0.0
 
         # 规则 B：间距防护（后车逼近前车时禁止继续加速）
         for i in range(1, self.num_vehicles):

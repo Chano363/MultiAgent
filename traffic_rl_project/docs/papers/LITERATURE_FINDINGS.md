@@ -166,7 +166,7 @@ supersedes: 无（新建；`docs/RESEARCH_POSITIONING.md` §1.7 的「机制对�
 | ETCS 制动曲线（EBI/SBI 单调表 + searchsorted）来源 = ERA 2020 | [`REFERENCE_INDEX.md:67`](../REFERENCE_INDEX.md) |
 | 最短充风 222 s 的出处与 `ab_min_refill_s` 落地 | [`REFERENCE_INDEX.md:29`](../REFERENCE_INDEX.md)、`:144`；Zhang2024 `:250-255` / `:287-295`（式 (9) `t_{b,j+1} − t_{r,j} ≥ T_a`） |
 | `ab_min_hold_s` 文献检索**负结果**（全文/规章/实测均无可用出处 ⇒ 默认 0.0） | [`DIAGNOSTICS_2026-10.md`](../logs/diagnostics/DIAGNOSTICS_2026-10.md)「检索-2026-10-01」 |
-| MPC 对比只留逐线重标定（Regime A）+ 公平标定 | ADR-016、ADR-022（`NMPCController` 唯一基线） |
+| MPC 对比 = 同仿真器/环境/坡度数据/调参力度（ADR-037 废止逐线重标定 Regime A 协议） | ADR-037、ADR-022（`NMPCController` 唯一基线） |
 | 训练/评估/总训练量三条时域不可混 | ADR-017 |
 | 文献 → 技术点 → 本地文件的速查表 | [`REFERENCE_INDEX.md`](../REFERENCE_INDEX.md) |
 | 文献全清单（题名 / DOI / 用途） | [`docs/papers/README.md`](README.md) |

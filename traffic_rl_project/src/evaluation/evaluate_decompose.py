@@ -192,7 +192,7 @@ def _mount_mpc(env, args):
         inner_rule_cyclic=inner_cyclic,
         ipopt_max_iter=300,
     )
-    # grade_at 前瞻由 compute_actions_from_env 从 env.grade_profile 自动重建（Regime A）
+    # grade_at 前瞻由 compute_actions_from_env 从 env.grade_profile 自动重建（坡度为 MPC 固有输入，ADR-037）
     env._mpc_controller.reset()
 
 
@@ -513,7 +513,7 @@ def main():
                    help='输出文件名后缀（区分 seed/interval/场景，防覆盖），如 "_s0_iv5"')
     args = p.parse_args()
 
-    # 【2026-10-01 修复｜静默缺行】`--mode all` 语义 = 主对比全行（D-Rule / D-RL / MPC，ADR-016 Regime A）。
+    # 【2026-10-01 修复｜静默缺行】`--mode all` 语义 = 主对比全行（D-Rule / D-RL / MPC，对比口径见 ADR-037）。
     # 旧写法在 MPC 块内用 `if getattr(args,'enable_mpc',False) or args.mode=='mpc'` 兜，
     # 而 `--enable_mpc` 是 store_true（默认 False）⇒ **`--mode all` 静默只出 2 行、缺 MPC**，
     # 且第 320 行 `len(results) >= 3` 的三行 Δ 摘要也随之静默跳过 —— 与 `REPRODUCIBILITY.md` §十

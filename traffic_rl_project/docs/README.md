@@ -113,7 +113,7 @@
 | **研究定位 / 创新点**：重载列车群组 × 车钩力 × 长大下坡分层 MARL                           | `RESEARCH_POSITIONING.md`；论文 `ITSC_PAPER.md` Intro                                                    |
 | **架构分层**：规则层（循环制动+电空分工+安全层）作内层，MARL 作外层调制                           | `RESEARCH_POSITIONING.md` §1.3；代码 `src/controllers/multi_loco_controller.py`                                      |
 | **智能体分解重构（ADR-009）**：每机车=智能体 / 每列车=智能体 vs 多列                        | `logs/decisions/DECISIONS.md` ADR-009/009.1                                                             |
-| **MPC 对比规范 Regime A**（ADR-016）：不按坡换 MPC 模型；MPC 逐线公平重喂 `grade_at`+在线标定 b0；**B 已废止** | 仓库根 `AGENTS.md`「规范性问题」；论文 Protocol（待展开）                                                               |
+| **MPC 对比口径**（ADR-037，废止 ADR-016 Regime A 协议）：不按坡换 MPC 模型；同一仿真器/环境/坡度数据/调参力度，坡度为 MPC 固有输入，**不设逐线重喂/重标定协议** | 仓库根 `AGENTS.md`「规范性问题」；`logs/decisions/DECISIONS.md` ADR-037                                                               |
 | **MPC 基线唯一 = NMPC**（ADR-022，2026-10-01）：旧 `FairMPCController`/简化 MPC **已删除**；术语"多体"=**集中质量(lumped)多体** | 代码 `src/controllers/nmpc_controller.py`；`DECISIONS.md` ADR-022；`RESEARCH_POSITIONING.md` §1.6 |
 | **车钩/列车异构性**（E4-H，**已 SUPERSEDED，不承担立论**）：实例异构 ≠ 离散，逐参数抽样 + held-out                  | `RESEARCH_POSITIONING.md` §1.5（车钩异构节）；`--hetero` 代码为可选鲁棒性                                                          |
 | **「MARL 不行」根因与改造方向**（2026-10-01）：奖励口径 / AB 通路 / 安全层权限 / 信用分配                          | `logs/diagnostics/DIAGNOSTICS_2026-10.md`；`logs/decisions/DECISIONS.md` ADR-021                          |

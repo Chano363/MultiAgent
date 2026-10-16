@@ -76,7 +76,7 @@ graph TD
 | 取车钩力指标 | train.py | `coupler_interface_forces()` | 断面力 SSOT（ADR-018） |
 | 改 AB 档位/制动力 | braking.py | `air_brake_force_real()`, `notch_from_throttle()` | 牵规法 β_c |
 | 改循环制动衰减 | braking.py | `cyclic_braking_degrade()` | 段间衰减乘子 |
-| 改坡度剖面 | grade_profile.py | `GradeProfile.grade_at()` | MPC 亦逐线重喂同一接口 |
+| 改坡度剖面 | grade_profile.py | `GradeProfile.grade_at()` | MPC 亦用同一接口读坡度（坡度为其固有输入） |
 | 改物理参数 | physics_config.py | `PhysicsConfig` | frozen；只此一处 |
 | 简化刚性模型验证 | rigid_multi_particle.py | `RigidTrain.step()` | 非主链 |
 

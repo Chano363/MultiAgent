@@ -32,6 +32,7 @@ def notch_depth(notch: AirBrakeNotch) -> float:
     """空气制动离散档位对应的制动深度（0~1，用于车钩力安全钳制的等价投影）。"""
     return {
         AirBrakeNotch.RELEASE: 0.0,
+        AirBrakeNotch.CYCLIC: 0.17,   # 50 kPa 循环档（β_c=0.17，朔黄运营表3）
         AirBrakeNotch.MIN: 0.2,
         AirBrakeNotch.SERVICE: 0.75,
         AirBrakeNotch.EMERGENCY: 1.0,
@@ -169,6 +170,16 @@ class TrainFormationEnv:
         self.grade_profile_name = config.get('grade_profile', None)  # 'long_downhill'/'gradual_to_steep'/'v_shape'
         self.enable_safety = config.get('enable_safety', True)
         self.coupler_force_limit_n = config.get('coupler_force_limit_n', COUPLER_FORCE_LIMIT_N)
+        # 【ADR-036 门限落地】紧急顶显式传入（limit 改 1.5e6 时 2.25×limit=3375 kN 错误，
+        # 必须显式 2.25e6=2250 kN 安全硬顶）；None = 旧推导（2.25×limit，零回归）。
+        self.coupler_force_limit_emergency_n = config.get('coupler_force_limit_emergency_n', None)
+        # 【ADR-036 配套，I 组 2026-10-16】车钩超限干预策略透传（safety 规则 A）：
+        # - 'release'（默认，零回归）：制动钳零（旧行为）
+        # - 'min_brake'：超限保留 MIN 制动（安全层 L264-266 既有档，此前无配置入口）
+        #   单列规则层标定用（H 组实证 release 零断是主峰值团簇的钳制源之一）。
+        self.coupler_override = config.get('coupler_override', 'release')
+        # 【表3 运营口径】CYCLIC(50 kPa) 循环档开关（默认关=旧映射，零回归）
+        self.cyclic_notch_50 = bool(config.get('cyclic_notch_50', False))
         # E8：可控尾车 EOT（缓解时尾部同步排风，双向缓解波，提升缓解同步性）。
         # 论文依据：Zhang2025 大秦线 20kT EOT 使最大拉钩力 780→489kN（-37%）。
         # 用于缓解波下把"缓解后车钩力"峰值降到 1000kN 以内。
@@ -216,13 +227,23 @@ class TrainFormationEnv:
         self.etcs_curve = config.get('etcs_curve', None)
         # 当前前方 ETCS 目标点（由 fleet 每步 set_etcs_targets 更新；单列场景可置空）
         self.etcs_targets = []
+        # 【V 组 2026-10-16】安全层 AB 新增源 veto 三参数透传（None = 用安全层默认，
+        # 零回归）：reaction 触发比 / 预测式外推余量 / 峰值建立滞后
+        _veto = {}
+        for _k in ('coupler_veto_ratio', 'coupler_veto_margin', 'coupler_veto_lag_s'):
+            _v = config.get(_k, None)
+            if _v is not None:
+                _veto[_k] = float(_v)
         self.safety = SafetyLayer(
             num_vehicles=self.num_vehicles,
             max_speed_mps=self.line_speed_limit_mps,
             coupler_force_limit_n=self.coupler_force_limit_n,
+            coupler_force_limit_emergency_n=self.coupler_force_limit_emergency_n,
+            coupler_override=self.coupler_override,
             min_gap_m=self.target_gap * 0.1,
             # 【2026-09-30】车列总长（米）→ 安全层按"位置+波速"预测 AB 峰值到达时域
             train_length_m=float(sum(v.length_m for v in consist.vehicles)),
+            **_veto,
         )
 
         # 【2026-09-03 智能体分解重构（ADR-009）】decompose='loco_ed_ab' 模式：
@@ -333,6 +354,8 @@ class TrainFormationEnv:
             # （相邻钩断面力最大幅值，长度 n）；原用每车净力会在拉压交界处
             # 矢量和抵消/叠加 → 安全层门控误判（漏报+误报并存）。
             'coupler_forces': self.dynamics.coupler_interface_forces_per_vehicle(),
+            # 【U 组 2026-10-16】带符号断面力（正=拉钩，负=压钩）→ 安全层方向感知分流
+            'coupler_forces_signed': self.dynamics.coupler_interface_forces_per_vehicle_signed(),
             'gaps': gaps,
             'emergency': is_emergency,
             'dt': self.dt,
@@ -485,7 +508,7 @@ class TrainFormationEnv:
                 ed_frac = float(np.clip(ed_frac, 0.0, 1.0))
                 ed_throttle[loco_idx] = ed_frac
             if ab_frac < 0:
-                notch = notch_from_throttle(ab_frac)
+                notch = notch_from_throttle(ab_frac, allow_cyclic=self.cyclic_notch_50)
                 if notch != AirBrakeNotch.RELEASE:
                     ab_sources.append((loco_idx, notch))
                     any_ab = True
@@ -510,7 +533,8 @@ class TrainFormationEnv:
                 continue
             depth = max(float(act[k, 0]), 0.0)
             if act[k, 1] < 0:
-                depth = max(depth, notch_depth(notch_from_throttle(float(act[k, 1]))))
+                depth = max(depth, notch_depth(
+                    notch_from_throttle(float(act[k, 1]), allow_cyclic=self.cyclic_notch_50)))
             proj_throttle[loco_idx] = -depth
         actions_modified = False
         atp_ed_vehicles = set()

@@ -28,7 +28,7 @@ GB/T 7714-2015：Ran Lu, Miao Zhang, Shuai Su. Cooperative nonlinear model predi
 
 ## 对本项目的价值
 
-- **MPC 基线来源**：本项目 `NMPCController` 的框架（多机车 NMPC + 多体/MT-2 车钩 + 车钩力约束 + 电/空协同 + AB 波传播延迟 + 逐线重喂坡度）与该文逐条对应。
+- **MPC 基线来源**：本项目 `NMPCController` 的框架（多机车 NMPC + 多体/MT-2 车钩 + 车钩力约束 + 电/空协同 + AB 波传播延迟 + 经 `grade_at` 读坡度）与该文逐条对应。
 - **可引用点**：「忽略车钩力」「忽略空气制动波传播延时（假设 ECP）」是领域通病——支撑本项目**显式建模车钩力 + AB 波速**的动机段。
 
 ## 与本项目实现的差异（对外必须讲清，否则「复现」不成立）

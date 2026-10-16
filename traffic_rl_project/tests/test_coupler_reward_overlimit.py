@@ -53,9 +53,10 @@ def _over_term(env, peak_n):
 
 
 def test_reward_schema_constants_exist():
-    # 【ADR-026】奖励口径变更为 v3（ATP 对齐间距）；【ADR-028】→ v4（穿透危险项有界化）。
+    # 【ADR-026】奖励口径变更为 v3（ATP 对齐间距）；【ADR-028】→ v4（穿透危险项有界化）；
+    # 【ADR-036 2026-10-14】→ v5（限值成为 env 可配档，超限项分母随运行档位变）。
     # 超限项常量本身沿用 ADR-021。
-    assert REWARD_SCHEMA == 'v4-atp-aligned-gap'
+    assert REWARD_SCHEMA == 'v5-coupler-tier-limit'
     assert COUPLER_OVER_W == 6.0
     assert COUPLER_OVER_CAP == 2.0
 
