@@ -21,7 +21,9 @@ class SimCase(Enum):
 # 否则会静默误报——实例：主实验已切 `20kt_1plus108_1plus108`（3列×头/中部双机车=6 机车智能体，ADR-035；此前为 `10kt_1plus1`），
 # 但 physics 块仍报固版默认 `10kt_1plus0`，污染 simulator_model / simulator_model_version。
 # 溯源见 docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md「诊断-2026-09-30-metadata 编组不一致溯源」。
-RUN_DERIVED_KEYS = ("consist_preset",)
+# 【ADR-036 2026-10-14】coupler_force_limit_n 入列：限值成为运行可配档
+# （正常 1.0e6 / 制动工况验收 1.5e6），metadata physics 块须反映本次运行档位。
+RUN_DERIVED_KEYS = ("consist_preset", "coupler_force_limit_n")
 
 
 # 调试物理开关的"正式工况合法值"（黑名单外的都必须是这些值才放行）

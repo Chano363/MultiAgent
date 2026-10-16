@@ -235,7 +235,7 @@ body{ font-family:var(--font); font-weight:400; -webkit-font-smoothing:antialias
       <div class="dt-row" style="grid-template-columns:52px 140px 1fr 1fr;">
         <span class="k">4</span><span class="k">MPC 对比</span>
         <span>简化 MPC</span>
-        <span class="k">公平基线（Regime A：逐线重喂真实坡度 + 在线标定 b0）</span>
+        <span class="k">对比口径（同一仿真器/环境/坡度数据/调参力度，坡度为固有输入，ADR-037）</span>
       </div>
       <div class="dt-row" style="grid-template-columns:52px 140px 1fr 1fr;">
         <span class="k">5</span><span class="k">安全保证</span>
@@ -326,7 +326,7 @@ v_wave = 200 m/s（常用）/ 250 m/s（紧急）</code>
         <span class="k">No-C</span><span>奖励 / 观测中移除车钩力</span><span>创新点消融</span>
       </div>
       <div class="dt-row" style="grid-template-columns:170px 1fr 1fr;">
-        <span class="k">MPC(fair)</span><span>Regime A 公平 MPC</span><span>对比基线</span>
+        <span class="k">MPC</span><span>对比基线（同环境/坡度数据/调参力度）</span><span>对比基线</span>
       </div>
     </div>
   </section>
@@ -425,25 +425,25 @@ r_pot  = −2 · (min_gap − actual_gap)² ,  actual_gap &lt; 0.4 · 动态安�
   <section class="slide s-mpc">
     <div class="page-head">
       <span class="kicker">06 / 对比基线</span>
-      <h1>MPC 改为公平基线</h1>
-      <p class="lead">立论口径：零重辨识成本的 D-RL ≈ 逐线重标定后的 MPC。</p>
+      <h1>MPC 改为唯一基线</h1>
+      <p class="lead">立论口径：编队上下文协同增益，证据来自消融对比。</p>
     </div>
     <div class="cols" style="grid-template-columns:1.15fr 1fr;">
       <ul class="bullets">
         <li>否决原「不重辨识 MPC」失配论证（属领域常识，不构成论证）。</li>
-        <li>采用<span class="k">公平标定协议（Regime A）</span>：MPC 逐线重喂该线真实坡度图纸 grade_at，并在线上标定阻力系数 b0；不按坡道切换 MPC 模型。</li>
+        <li>对比口径：MPC 与 D-RL 共用同一<span class="k">仿真器、环境与坡度数据</span>（坡度为 MPC 固有输入）+ 同档调参力度；不按坡道切换模型（ADR-037）。</li>
         <li>深度 RL 跨线严格零微调，声明「未在目标线上做任何微调」。</li>
-        <li><span class="k">立论口径</span>：零重辨识成本的 D-RL ≈ 逐线重标定后的 MPC —— 不与 MPC 比较控制精度，只比较部署代价。</li>
+        <li><span class="k">立论口径</span>：编队上下文协同增益 —— 不与 MPC 比控制精度，也不作成本叙事（ADR-032/037）。</li>
       </ul>
       <div class="dtable">
         <div class="dt-row dt-head" style="grid-template-columns:96px 1fr 1fr;">
-          <span>维度</span><span>MPC（公平基线）</span><span>D-RL（本文方法）</span>
+          <span>维度</span><span>MPC（对比基线）</span><span>D-RL（本文方法）</span>
         </div>
         <div class="dt-row" style="grid-template-columns:96px 1fr 1fr;">
-          <span class="k">坡度信息</span><span>逐线重喂真实 grade_at</span><span class="k">同一策略，跨线零微调</span>
+          <span class="k">坡度信息</span><span>与 D-RL 同一坡度数据（固有输入）</span><span class="k">同一策略，跨线零微调</span>
         </div>
         <div class="dt-row" style="grid-template-columns:96px 1fr 1fr;">
-          <span class="k">阻力参数</span><span>在线标定 b0</span><span class="k">无</span>
+          <span class="k">阻力参数</span><span>同档调参力度</span><span class="k">—</span>
         </div>
       </div>
     </div>
@@ -593,7 +593,7 @@ r_pot  = −2 · (min_gap − actual_gap)² ,  actual_gap &lt; 0.4 · 动态安�
         <span class="k">未与 Song 2026 对比</span><span>待补，列入对比基线清单。</span>
       </div>
       <div class="dt-row" style="grid-template-columns:250px 1fr;">
-        <span class="k">简化 MPC 是否上报</span><span>已废止简化 MPC，改为公平基线（Regime A）。</span>
+        <span class="k">简化 MPC 是否上报</span><span>已废止简化 MPC，改为唯一基线 NMPCController（对比口径见 ADR-037）。</span>
       </div>
       <div class="dt-row" style="grid-template-columns:250px 1fr;">
         <span class="k">仅 3 个种子</span><span>已扩至 5 个种子。</span>

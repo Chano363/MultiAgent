@@ -34,6 +34,7 @@ class AirBrakeNotch(Enum):
     """离散空气制动档位。"""
 
     RELEASE = "release"          # 缓解（无制动）
+    CYCLIC = "cyclic"            # 循环制动档（减压 50 kPa，朔黄运营表3 口径，rank 介于 RELEASE/MIN）
     MIN = "min"                  # 最小常用制动
     SERVICE = "service"          # 常用制动（全）
     EMERGENCY = "emergency"      # 紧急制动（EB）
@@ -42,6 +43,7 @@ class AirBrakeNotch(Enum):
 # 各离散档位对应的制动输出系数（相对最大制动力）
 AIR_BRAKE_RATIO = {
     AirBrakeNotch.RELEASE: 0.0,
+    AirBrakeNotch.CYCLIC: 0.17,   # 50 kPa 减压（β_c=0.17，牵规表3-1）
     AirBrakeNotch.MIN: 0.2,
     AirBrakeNotch.SERVICE: 0.75,
     AirBrakeNotch.EMERGENCY: 1.0,
@@ -215,6 +217,7 @@ BETA_C_SATURATION = 0.75                  # 常用全制动饱和 β_c
 
 # 各离散档位对应的减压量（kPa）。EMERGENCY 走独立全制动（β_c=1.0）。
 BRAKE_NOTCH_REDUCTION_KPA = {
+    AirBrakeNotch.CYCLIC: 50.0,   # 循环制动档（朔黄运营表3：长大下坡循环减压一律 50 kPa）
     AirBrakeNotch.MIN: 70.0,      # 最小常用（减压 ~50-70 kPa）
     AirBrakeNotch.SERVICE: 140.0, # 常用全制动（最大有效减压量）
 }
@@ -304,11 +307,14 @@ def air_brake_force_by_reduction(
                                 reduction_kpa=reduction_kpa)
 
 
-def notch_from_throttle(throttle: float) -> AirBrakeNotch:
+def notch_from_throttle(throttle: float, allow_cyclic: bool = False) -> AirBrakeNotch:
     """将连续负动作（-1~0）映射为离散空气制动档位。
 
     Args:
         throttle: 连续动作（-1~0，-1 对应紧急制动）
+        allow_cyclic: 是否启用 50 kPa 循环档（朔黄运营表3 口径）。
+            True 时 x ∈ (1e-6, 0.1) → CYCLIC（规则基线哨兵值 -0.05 落此带）；
+            False（默认）映射与历史逐位一致（零回归）。
 
     Returns:
         对应的离散空气制动档位
@@ -316,6 +322,8 @@ def notch_from_throttle(throttle: float) -> AirBrakeNotch:
     x = float(np.clip(-throttle, 0.0, 1.0))
     if x < 1e-6:
         return AirBrakeNotch.RELEASE
+    if allow_cyclic and x < 0.1:
+        return AirBrakeNotch.CYCLIC
     if x < 0.3:
         return AirBrakeNotch.MIN
     if x < 0.8:

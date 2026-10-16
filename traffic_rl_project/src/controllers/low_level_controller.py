@@ -202,6 +202,9 @@ class TrainLowLevelController:
             # 【2026-09-30 口径统一】改用**断面力**每车视图（原每车净力会漏报/误报）
             'coupler_forces': np.array(
                 dyn.coupler_interface_forces_per_vehicle(), dtype=float),
+            # 【U 组 2026-10-16】带符号断面力（正=拉钩，负=压钩）→ 安全层方向感知分流
+            'coupler_forces_signed': np.array(
+                dyn.coupler_interface_forces_per_vehicle_signed(), dtype=float),
             'gaps': gaps,
             'emergency': False,
             'dt': float(train_env.dt),

@@ -160,6 +160,7 @@ class TrainDynamics:
         # "充气时间长，呈发散式"；周占松2026升压曲线：常用明显慢于紧急）。
         # 常用全制动升压慢 → 头尾制动力差积累更缓 → 前堵后涌峰值更低。
         self.brake_rise_time_by_notch = {
+            AirBrakeNotch.CYCLIC: 20.0,   # 50 kPa 轻减压，升压时间与 MIN 同档（李蔚2023 常用发散式）
             AirBrakeNotch.MIN: 20.0,
             AirBrakeNotch.SERVICE: 18.0,
             AirBrakeNotch.EMERGENCY: 10.0,
@@ -375,6 +376,20 @@ class TrainDynamics:
         f = np.abs(self._coupler_interface_forces_vec())  # 长度 n-1
         padded = np.concatenate(([0.0], f, [0.0]))        # 长度 n+1
         return np.maximum(padded[:-1], padded[1:])        # 长度 n
+
+    def coupler_interface_forces_per_vehicle_signed(self) -> np.ndarray:
+        """每节车相邻钩断面力的**带符号**视图（长度 n）。
+
+        U 组（2026-10-16）方向感知用：取幅值较大的相邻钩断面力并保留符号
+        （正=拉钩/前车受向前力，负=压钩），供安全层规则 A 区分拉/压方向分流干预。
+        """
+        n = self.num_vehicles
+        if n < 2:
+            return np.zeros(n)
+        f = self._coupler_interface_forces_vec()          # 长度 n-1，正=拉
+        padded = np.concatenate(([0.0], f, [0.0]))        # 长度 n+1
+        a, b = padded[:-1], padded[1:]
+        return np.where(np.abs(a) >= np.abs(b), a, b)     # 长度 n
 
     def _resistance_forces(self) -> np.ndarray:
         """Davis 阻力（恒与速度方向相反，含坡度项在 grade 中单独计算）。
@@ -864,8 +879,11 @@ class TrainDynamics:
 
     @staticmethod
     def _air_notch_rank(notch):
-        return {None: -1, AirBrakeNotch.RELEASE: 0, AirBrakeNotch.MIN: 1,
-                AirBrakeNotch.SERVICE: 2, AirBrakeNotch.EMERGENCY: 3}[notch]
+        # CYCLIC（50 kPa 循环档，朔黄运营表3）rank 介于 RELEASE 与 MIN：
+        # 弱波不覆盖强波的升档逻辑自动纳入新档（train.py:810/819/894/913 均按 rank 比较）。
+        return {None: -1, AirBrakeNotch.RELEASE: 0, AirBrakeNotch.CYCLIC: 1,
+                AirBrakeNotch.MIN: 2, AirBrakeNotch.SERVICE: 3,
+                AirBrakeNotch.EMERGENCY: 4}[notch]
 
     def _apply_air_brake_command(
         self,

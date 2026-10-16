@@ -38,7 +38,10 @@ from src.train_dynamics.etcs_braking import (
 # 【ADR-021 决策2 2026-10-01】奖励 schema 版本 + 车钩力"受控超限项"常量（文献 Tang2020 / Wang2025）。
 # reward 峰值口径改为**断面力**（coupler_interface_forces）后，旧权重需重训；此常量供 metadata 标注。
 # v4 = v3 + 间距危险项穿透有界化（ADR-028 2026-10-04）：穿透时 over 不再退化为"米²"（量级炸裂）。
-REWARD_SCHEMA = 'v4-atp-aligned-gap'
+# 【2026-10-14 ADR-036 门限档位化】车钩限值成为 env 可配（1.0e6/1.5e6 档），
+# reward 超限项分母随运行配置变 ⇒ 按 ADR-026 同款纪律升 schema：v4 与 v5 结果
+# 仅在 coupler_force_limit_n 相同（1.0e6）时可直接比较；不同限值档必须按档位分别归档。
+REWARD_SCHEMA = 'v5-coupler-tier-limit'
 # 超限项权重（与速度带带内最高收益 +6.0/列 同量级；刻意远小于已回滚的 -80·ov² 硬惩罚）。
 COUPLER_OVER_W = 6.0
 # 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -12。
@@ -133,6 +136,14 @@ class TrainFleetEnv:
         # 无法与控速同时满足。默认 5s：20m/s 时 = 100m（与历史一致），速度自适应。
         self.headway_s = config.get('headway_s', 5.0)
         self.coupler_force_limit_n = config.get('coupler_force_limit_n', COUPLER_FORCE_LIMIT_N)
+        # 【I 组 2026-10-16】安全层车钩超限干预策略（规则 A）透传内层单列 env；
+        # 默认 'release' = 旧行为（编队主线零回归），'min_brake' 供单列标定试验。
+        self.coupler_override = config.get('coupler_override', 'release')
+        # 【V 组 2026-10-16】安全层 AB 新增源 veto 三参数透传内层单列 env
+        # （None = 安全层默认，零回归）
+        self.veto_cfg = {k: config[k] for k in (
+            'coupler_veto_ratio', 'coupler_veto_margin', 'coupler_veto_lag_s')
+            if config.get(k, None) is not None}
         self.max_steps = config.get('max_steps', 500)
         self.dt = config.get('dt', 0.1)
         # 最大加速度（方案 B）：RL 输出 ∈ [-1,1]，映射到目标加速度 ∈ [-max_accel, max_accel]
@@ -178,6 +189,28 @@ class TrainFleetEnv:
         # ⚠️ 键须位于 env_cfg 下，否则 config.get 静默回退默认值（YAML .get 路径须严格匹配）。
         self.ab_min_refill_s = config.get('ab_min_refill_s', 222.0)
         self.ab_min_hold_s = config.get('ab_min_hold_s', 0.0)
+        # 【2026-10-14 朔黄运营口径标定（表3）+ ADR-036 门限落地，全默认关/None=旧行为】
+        self.cyclic_notch_50 = bool(config.get('cyclic_notch_50', False))
+        self.cyclic_brake_trigger_kmh = config.get('cyclic_brake_trigger_kmh', None)
+        self.cyclic_release_kmh = config.get('cyclic_release_kmh', None)
+        # 【K 组 2026-10-16】CYCLIC 兜底预升级速度门（None=关=旧行为）：循环制动中
+        # 最大车速 ≥ 该门时把 CYCLIC(50 kPa) 预升级 SERVICE，先于 ATP 规则 C 事后猛刹。
+        self.cyclic_ab_upgrade_kmh = config.get('cyclic_ab_upgrade_kmh', None)
+        self.cyclic_ab_upgrade_notch = config.get('cyclic_ab_upgrade_notch', 'service')
+        self.ed_release_coordination = bool(config.get('ed_release_coordination', False))
+        self.ed_release_hold_s = float(config.get('ed_release_hold_s', 50.0))
+        self.ed_release_boost_kn = float(config.get('ed_release_boost_kn', 900.0))
+        # 【X 组 2026-10-16】ED-AB 波到达协同窗（默认 0.0/1.0 = 关，零回归）：
+        # 升级边沿后窗内 ED × scale，尾波到齐前头中不猛减速（消 R 峰值的速度反转）
+        self.ed_upgrade_ramp_s = float(config.get('ed_upgrade_ramp_s', 0.0))
+        self.ed_upgrade_ramp_scale = float(config.get('ed_upgrade_ramp_scale', 1.0))
+        # 【R 组 2026-10-16】EOT 可控尾车透传（单列 env 早已支持 eot=True 双向缓解波，
+        # fleet 一直未透传 → 缓解波头→尾单向约 25-30 s，波尾车仍在全制动而头车已释放
+        # = Q 峰值段速度反转压钩 -2406 kN 的根因；默认 False 零回归）。
+        self.eot = bool(config.get('eot', False))
+        # 紧急顶显式传入（limit=1.5e6 时 2.25×limit=3375 kN 错误，须显式 2.25e6）；
+        # None = 旧推导（2.25×limit，编队主线零回归）。
+        self.coupler_force_limit_emergency_n = config.get('coupler_force_limit_emergency_n', None)
         # 【E4-H 车钩异构】hetero=True 时逐车钩/逐列独立物理参数（sample_coupler_params），
         # hetero_seed 固定保证可复现；held-out 评估用另一组 seed（训练未见）。
         self.hetero = config.get('hetero', False)
@@ -224,6 +257,17 @@ class TrainFleetEnv:
                 'grade_profile': self.grade_profile,
                 'target_speed': self.target_speed,
                 'coupler_force_limit_n': self.coupler_force_limit_n,
+                # 【2026-10-14 ADR-036 门限落地】紧急顶显式传入（防 limit=1.5e6 时
+                # 2.25×limit=3375kN 错误推导）；None=旧行为，编队主线零回归。
+                'coupler_force_limit_emergency_n': self.coupler_force_limit_emergency_n,
+                # 【I 组】车钩超限干预策略透传（默认 'release' 零回归）
+                'coupler_override': self.coupler_override,
+                # 【V 组】安全层 AB 新增源 veto 三参数透传（空 = 安全层默认，零回归）
+                **self.veto_cfg,
+                # 【表3 运营口径】CYCLIC 50kPa 档开关透传内层 env（映射 notch 用）
+                'cyclic_notch_50': self.cyclic_notch_50,
+                # 【R 组】EOT 双向缓解波透传内层 env（默认 False 零回归）
+                'eot': self.eot,
                 'line_speed_limit_mps': self.v_max,
                 'dt': self.dt,
                 'max_steps': self.max_steps,
@@ -294,6 +338,18 @@ class TrainFleetEnv:
                     ab_min_hold_s=self.ab_min_hold_s,
                     ed_grade_feedforward=bool(config.get('ed_grade_feedforward', False)),
                     ed_prelimit=bool(config.get('ed_prelimit', False)),
+                    # 【2026-10-14 朔黄表3 运营口径标定，全默认关=旧行为】
+                    cyclic_notch_50=self.cyclic_notch_50,
+                    cyclic_brake_trigger_kmh=self.cyclic_brake_trigger_kmh,
+                    cyclic_release_kmh=self.cyclic_release_kmh,
+                    cyclic_ab_upgrade_kmh=self.cyclic_ab_upgrade_kmh,
+                    cyclic_ab_upgrade_notch=self.cyclic_ab_upgrade_notch,
+                    ed_release_coordination=self.ed_release_coordination,
+                    ed_release_hold_s=self.ed_release_hold_s,
+                    ed_release_boost_kn=self.ed_release_boost_kn,
+                    # 【X 组】ED-AB 波到达协同窗透传（默认 0/1 = 关）
+                    ed_upgrade_ramp_s=self.ed_upgrade_ramp_s,
+                    ed_upgrade_ramp_scale=self.ed_upgrade_ramp_scale,
                 )
                 for tr in self.trains
             ]

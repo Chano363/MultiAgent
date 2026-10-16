@@ -26,9 +26,20 @@ def test_env_cfg_derives_consist_into_world_cfg():
     cfg = official_world_config(PhysicsConfig(), env_cfg={'consist_preset': RUN_CONSIST})
     assert cfg['physics']['consist_preset'] == RUN_CONSIST
     # 其余物理项仍锚定固版基线，不随实验漂移
+    # （coupler_force_limit_n 已入 RUN_DERIVED_KEYS = ADR-036 限值档位化，见下方派生测试）
     default = PhysicsConfig()
-    for key in ('grade_profile', 'coupler_force_limit_n', 'enable_cyclic_degrade'):
+    for key in ('grade_profile', 'enable_cyclic_degrade'):
         assert cfg['physics'][key] == default.to_dict()[key]
+
+
+def test_env_cfg_derives_coupler_limit_tier():
+    """【ADR-036】限值成为运行可配档：env_cfg 显式给出时 physics 反映本次档位。"""
+    cfg = official_world_config(
+        PhysicsConfig(), env_cfg={'coupler_force_limit_n': 1.5e6})
+    assert cfg['physics']['coupler_force_limit_n'] == 1.5e6
+    # 未给出 → 锚定固版默认 1.0e6（编队主线零回归）
+    cfg2 = official_world_config(PhysicsConfig(), env_cfg={'consist_preset': RUN_CONSIST})
+    assert cfg2['physics']['coupler_force_limit_n'] == PhysicsConfig().coupler_force_limit_n
 
 
 def test_derived_consist_is_known_preset():

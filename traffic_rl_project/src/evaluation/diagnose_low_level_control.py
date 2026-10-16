@@ -23,6 +23,11 @@ def main():
     official_entry_guard(__file__)
     ap = argparse.ArgumentParser()
     ap.add_argument('--output', type=Path, required=True)
+    ap.add_argument('--config', type=Path,
+                    default=Path('configs/experiments/formation_ed_ab_3train_1plus1.yaml'),
+                    help='Experiment YAML whose env_cfg seeds the diagnostic environment')
+    ap.add_argument('--override', action='append', default=[], metavar='KEY=VALUE',
+                    help='Override one env_cfg key (repeatable); true/false/int/float inferred')
     ap.add_argument('--steps', type=int, default=900)
     ap.add_argument('--trains', type=int, default=1)
     ap.add_argument('--consist-preset', choices=sorted(CONSIST_PRESETS),
@@ -73,7 +78,26 @@ def main():
             if key in protocol or key in defaults:
                 if getattr(args, key) != protocol.get(key, defaults.get(key)):
                     raise ValueError(f'Cannot relabel saved trajectory: {key} differs from archived protocol')
-    config = yaml.safe_load(Path('configs/experiments/formation_ed_ab_3train_1plus1.yaml').read_text(encoding='utf-8'))['env_cfg']
+    config = yaml.safe_load(args.config.read_text(encoding='utf-8'))['env_cfg']
+    # 【2026-10-14 运营口径标定】env_cfg 键级覆盖（bool/int/float/str 类型推断），
+    # 覆盖结果随 metadata.env_cfg 归档留痕。
+    for item in args.override:
+        if '=' not in item:
+            ap.error(f'--override expects KEY=VALUE, got: {item}')
+        key, raw = item.split('=', 1)
+        if raw.strip().lower() in ('true', 'false'):
+            value = raw.strip().lower() == 'true'
+        elif raw.strip().lower() in ('none', 'null'):
+            value = None      # 恢复"未配置"语义（如速度门=None=旧行为）
+        else:
+            try:
+                value = int(raw)
+            except ValueError:
+                try:
+                    value = float(raw)
+                except ValueError:
+                    value = raw
+        config[key] = value
     config.update(num_trains=args.trains, max_steps=args.steps,
                   start_randomization={'enabled': False})
     if args.consist_preset:
@@ -303,6 +327,7 @@ def main():
     assert all(p['simcase'] == 'official' and p['enable_cyclic_degrade'] for p in runtime_physics)
     meta = build_metadata(str(Path.cwd()), 'official', world, 0, __file__,
                           extra={'diagnostic_protocol': vars(args) | {'output': str(args.output),
+                                                                    'config': str(args.config),
                                                                     'fleet_env_source': str(args.fleet_env_source) if args.fleet_env_source else None,
                                                                     'controller_source': str(args.controller_source) if args.controller_source else None},
                                  'grade_override_permille': None if args.profile else args.grade,

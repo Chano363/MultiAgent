@@ -16,7 +16,7 @@
      状态变量，约束 ≤1000kN 进优化器（"MPC 需精确动力学模型"痛点的体现）。
   2. **求解器 = casadi + IPOPT**（非线性规划，替代 SLSQP 短视界）。
   3. **终端代价**（末端速度带 + 间距误差，缓解"终端约束器不好设计"）。
-  4. **Regime A 公平标定**：grade_at 前瞻（每线重喂剖面图纸）+ b0 在线差分标定。
+  4. **坡度输入**：grade_at 前瞻自环境剖面自动重建（坡度为 MPC 固有输入，ADR-037）。
 
 【控制结构】与 D-RL 同构（用户决策）：规则循环制动内层 + 安全层不动，NMPC 只替换
 "RL 调制"部分——决策变量 = 每机车 ED 调制 [ed_mod]∈[-1,1]（>0 制动、<0 牵引），
@@ -349,7 +349,7 @@ class NMPCController:
         if self._opti is None:
             self._read_consist(env)
             self._build_opti()
-        # grade_at 前瞻：环境剖面自动重建（Regime A 公平标定）
+        # grade_at 前瞻：环境剖面自动重建（坡度为 MPC 固有输入，ADR-037）
         if self.grade_at is None and getattr(env, 'grade_profile', None):
             from src.train_dynamics.grade_profile import PROFILES
             prof_name = env.grade_profile
@@ -429,7 +429,7 @@ class NMPCController:
         return U
 
     def _grade_at_pos(self, pos_m: float) -> float:
-        """坡度查询（Regime A：注入剖面图纸；无则 0）。"""
+        """坡度查询（坡度为固有输入；无则 0）。"""
         if self.grade_at is None:
             return 0.0
         try:

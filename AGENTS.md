@@ -33,7 +33,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 
 # 调试/冒烟（勿改 YAML 主值；必须同时重定向三个输出目录，否则会覆写历史产物 → LRN-20261001-009）
 python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 2 \
-  --checkpoint_dir outputs/_smoke/ckpt --results_dir outputs/_smoke/results --override dirs.figures_dir=outputs/_smoke/figures
+  --checkpoint_dir outputs/smoke/_run/ckpt --results_dir outputs/smoke/_run/results --override dirs.figures_dir=outputs/smoke/_run/figures
 ```
 
 无 linter/typechecker/formatter 配置。遵循 PEP 8。
@@ -59,16 +59,16 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-13** 最新为 **ADR-034**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
+> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-14** 最新为 **ADR-036**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/做消融/加对比。
 > **文档规范出处**：文档治理/角色/三态/判断树 = `docs/README.md` + `docs/rules/README.md`（唯一规范）。
 
-- **主轴**：多列编队 + 队内车钩力 ≤1000 kN + 安全列距 = 不可逾越底线；AB+ED 分工、1+1 = 锦上添花（不当主线）。
-- **MPC 对比只留 Regime A**（ADR-016，B 已废止）：MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定协议，**非成本/劣势叙事**），D-RL 跨线严格零微调。立论 = **"编队上下文协同增益"**（ADR-032；旧"免重辨识成本"已废止）——claim 证据只落消融列（独立 vs formation），基线行均不承载 claim。**主表结构（ADR-034，2026-10-13）**：D-Rule / 单列 RL 范式行 / **Formation-MPC**（following Song2026 架构、显式关车钩约束防稻草人；**只主张编队指标胜出，绝不主张车钩指标**）/ D-RL + 消融列；**NMPC 已退出主表**（related work 文本，"方法与场景不匹配，忠实复现不成立"）；**三项不加**：安全层关断消融 / 外部 MARL 算法行 / 单智能体参照行（后两项 revision 预案，why-MARL 用结构性论证）。防守句式 "all comparisons hold the algorithm fixed..."。
+- **主轴**：多列编队 + 队内车钩力按工况档位（正常运行 ≤1000 kN 目标 / 制动工况验收 ≤1500 kN / 安全硬顶 2250 kN，**ADR-036**，锚=靳新元2018+张二田/王鼎实车；Song2026 不进指标论证链）+ 安全列距 = 不可逾越底线；AB+ED 分工、1+1 = 锦上添花（不当主线）。
+- **MPC 对比口径**（ADR-037，废止 ADR-016 的 Regime A 协议）：同一仿真器、同一环境与坡度数据、同档调参力度；坡度是 MPC 模型的**固有输入**（坡度图纸天然先于运营存在），**不设"逐线重喂 `grade_at`/在线标定 b0"协议，也不作"免重辨识成本"叙事**；D-RL 跨线严格零微调。立论 = **"编队上下文协同增益"**（ADR-032；旧"免重辨识成本"已废止）——claim 证据只落消融列（独立 vs formation），基线行均不承载 claim。**主表结构（ADR-034，2026-10-13）**：D-Rule / 单列 RL 范式行 / **Formation-MPC**（following Song2026 架构、显式关车钩约束防稻草人；**只主张编队指标胜出，绝不主张车钩指标**）/ D-RL + 消融列；**NMPC 已退出主表**（related work 文本，"方法与场景不匹配，忠实复现不成立"）；**三项不加**：安全层关断消融 / 外部 MARL 算法行 / 单智能体参照行（后两项 revision 预案，why-MARL 用结构性论证）。防守句式 "all comparisons hold the algorithm fixed..."。
 - **车钩异构（E4-H）【SUPERSEDED，不承担立论】**：主 claim = 编队上下文协同增益（ADR-032）；`--hetero` 仅作可选鲁棒性（默认齐次零回归），不进正文主表。
 - **不可主张清单 + 措辞纪律（ADR-034，Wang2026 撞车）**：**机车级 ED/AB 分工、车钩进状态/奖励、AB 最小充风均不可写为创新点**（Wang2026 已做同款）；可主张 delta 仅两条 = 多列群组 MARL + 硬保证通道。规则层措辞只许 **"literature-anchored rule baseline"**（禁 "industry standard"）；前人缺点只写"局限于单列场景、无人在多列车组层面处理车钩力"一条；"软通道 vs 硬承诺"只用于解释自家架构，不作前人批评；贡献句式 = 机制 + 与具体基线对照 + 量化收益，**禁"首次/首创"**（写"据系统检索未见"）。H1–H3 预注册见 RESEARCH_POSITIONING §1.6。
 - **训练/评估时域**（ADR-017，铁律）：三条独立维度不可混——① 单条 rollout 时域（on-policy 窗口）② 评估时域（覆盖剖面）③ 总训练量（episodes 预算）。**训练 = 短窗口；评估 = 独立完整剖面单独跑（非"多段拼接"）**；跨线方向 = 长复杂剖面训 → 未见过剖面验。**具体数值见 ADR-017，勿在本文件复制以免随 SSOT 漂移。**
-- **车钩力定位**（ADR-014，**已由 ADR-021 决策 2 修订并落地执行**）：硬安全层（≤1000 kN）+ 观测上下文 + 安全层；**不作均值最小化对象**。现允许**受控的"超限"非线性项**进目标（`-6.0·min(peak_norm−1, 2.0)`，上界 −12；仅在 `peak_norm>1` 生效；仍不作均值最小化、安全叙事不归功于 MARL）——落地与量级核对见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」四、。指标口径 SSOT = `coupler_interface_forces()`（断面力，ADR-018）。
+- **车钩力定位**（ADR-014，**已由 ADR-021 决策 2 修订并落地执行**；**2026-10-14 ADR-036 档位化**：1000=正常运行目标 / 1500=制动工况验收 / 2250=安全硬顶，安全层 enforce 与 reward limit 代码门限调整 = 待执行项）：硬安全层 + 观测上下文 + 安全层；**不作均值最小化对象**。现允许**受控的"超限"非线性项**进目标（`-6.0·min(peak_norm−1, 2.0)`，上界 −12；仅在 `peak_norm>1` 生效；仍不作均值最小化、安全叙事不归功于 MARL）——落地与量级核对见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」四、。指标口径 SSOT = `coupler_interface_forces()`（断面力，ADR-018）。
 
 ## 列车仿真设计（指针）
 

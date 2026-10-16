@@ -1,0 +1,83 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 单列 2 万吨「1+1」列内车钩力 · 规则层运营口径标定（2026-10-14，ADR-036 落地 + ADR-037）
+#   目的：把列内规则循环制动控制器标定到朔黄线表3 运营口径（50 kPa 循环减压、
+#         速度门触发/缓解、ED 缓解协同时序），产出可信单列 D-Rule 基线 + MARL BC 示范。
+#   规则层评估走 src/evaluation/diagnose_low_level_control.py --config 本文件
+#   （只读 env_cfg，且强制 start_randomization=False，与下方训练段互不干扰）。
+#   MARL 训练走统一框架：python run_training.py --experiment configs/experiments/single_20kt_coupler_rulecal.yaml --seed 0
+#     （BC 热启动 → curriculum 短集 → long_eval 完整剖面；迭代一律 CLI --episodes 覆盖，勿改主值）
+#   三对比（变体 A/B 用 --override 关对应开关）：
+#     A 140 kPa 旧基线: --override cyclic_notch_50=false --override cyclic_brake_trigger_kmh=none
+#                       --override cyclic_release_kmh=none --override ed_release_coordination=false
+#     B 50 kPa+速度门:  --override ed_release_coordination=false
+#     C +ED 缓解协同:   本文件默认（全开）
+#   验收（ADR-036 制动工况档）：断面力峰值 ≤1350 kN（1500 留 10%）/ 均速 ≥60 km/h / viol≈0
+# ═══════════════════════════════════════════════════════════════════════════
+name: single_20kt_coupler_rulecal
+algorithm: mappo                 # 本文件当前仅承载 env_cfg（规则层评估）；RL/BC 训练复用同口径时再启用
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 1                  # 单列（编队归队友主线，本文件不动 formation YAML）
+  consist_preset: 20kt_1plus108_1plus108  # 1机车+108货车+1机车+108货车（头/中部双机车=2 智能体，ADR-035）
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 朔黄宁武西→北大牛 49.6km 真实纵断面（评估全程）
+  v_max: 22.222                  # 80 km/h（观测/reward 速度带语义不动，表3 速度门只改控制器循环状态机）
+  v_min: 11.111                  # 40 km/h
+  target_gap: 100.0              # 单列不使用（num_trains=1），保留键防静默回退
+  max_steps: 36000               # 49.6km 全程评估口径
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: false
+  decompose: loco_ed_ab          # 机车级 ED/AB 分工（与编队主线同一执行路径）
+  ab_min_refill_s: 222.0         # 张二田 S6 最短充风（同主线）
+  ab_min_hold_s: 0.0
+  # ── ADR-036 门限落地（制动工况验收档）───────────────────────────────
+  coupler_force_limit_n: 1500000.0        # 1500 kN 制动工况验收档（YAML 禁科学计数法）
+  coupler_force_limit_emergency_n: 2250000.0  # 安全硬顶 2250 kN 显式传入（防 2.25×limit=3375kN 错误推导）
+  # ── 朔黄表3 运营口径（reference/simulation/data_line/朔黄铁路_完整线路信息表_表3表4补充版.xlsx）──
+  cyclic_notch_50: true          # 循环减压 50 kPa（CYCLIC 档）替代 SERVICE 140 kPa
+  cyclic_brake_trigger_kmh: 65.0 # 制动触发速度门（表3 实测 58–65，取上限=最早触发）
+  cyclic_release_kmh: 55.0       # 缓解速度门（表3 实测 50–60，取中值）
+  ed_release_coordination: true  # 缓解转换时刻抬 ED≈900 kN 并持 50 s（近似"缓解前抬再生力"）
+  ed_release_hold_s: 50.0        # 表3 缓解后保持时长
+  start_randomization:
+    enabled: true                # 训练态随机化（ADR/诊断 2026-10-06 路线覆盖）；
+                                 # 规则层评估入口强制覆盖为 false，评估仍恒定起点可复现
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 1
+decision_interval: 10
+# ── MARL 训练段（配方对齐主线 ADR-017/021；迭代一律 CLI --episodes 覆盖，勿改主值）──
+episodes: 1400                 # 总训练量达标值（对齐主线；快速迭代用 --episodes N）
+curriculum: 500:0,1000:10,1200:20   # 短窗口训练时域（ADR-017 §1，已验证安全域）
+n_env: 4                       # 并行短轨迹 ≥4（advantage 信噪比）
+parallel_traj_len: 0           # 0 = 沿用 curriculum horizon
+warm_start: true               # BC 热启动：先克隆规则基线（本文件口径的 D-Rule）再 RL 微调
+bc_episodes: 3
+bc_epochs: 30
+long_eval_interval: 50         # 每 50 ep 完整 49.6km 剖面确定性评估选优
+long_eval_steps: 36000
+init_speed_kmh: 80.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 10
+
+dirs:
+  checkpoint_dir: outputs/checkpoints/single_rulecal
+  results_dir: outputs/results/single_rulecal
+  figures_dir: outputs/figures/single_rulecal

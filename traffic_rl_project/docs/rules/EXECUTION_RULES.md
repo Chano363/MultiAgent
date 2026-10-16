@@ -65,14 +65,14 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 
 ## claim 实验执行规范（2026-09-09 立；2026-10-12 ADR-032 覆盖——claim 改为"编队上下文协同增益"，本节协议仍有效，主指标以 `RESEARCH_POSITIONING.md` §1.6 为准）
 
-> **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）】**：本节原协议（下方第 2 条：MPC 跨线**不重喂 `grade_at`** + 必须声明 `no-re-identification`）随 Regime B 一并废止。**当前协议（ADR-016，2026-09-16）**：MPC 对比只留 Regime A——MPC **逐线重喂该线 `grade_at` 图纸 + 在线标定 b0**（每线公平标定）；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不再提供"MPC 不重辨识即失配"论证（领域常识，不占篇幅）；Protocol 逐实验标 A（无 B，不再 A/B 双标）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-016。下方旧协议文字原样保留，仅作历史。
+> **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）→ 【2026-10-16，ADR-037 废止 Regime A 协议】**：本节旧协议（下方第 2 条）随 Regime B（ADR-016）与 Regime A（ADR-037）先后废止。**当前协议（ADR-037，2026-10-16）**：对比不设"逐线重喂 `grade_at`/在线标定 b0"协议——坡度是 MPC 固有输入（图纸天然先于运营存在），所有方法共用同一仿真器、环境与坡度数据、同档调参力度；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不作"免重辨识成本"叙事（ADR-032）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-037。下方旧协议文字原样保留，仅作历史。
 
 > **本节为当前实验体系运行时口径（覆盖式修订，不追加历史）**。SSOT 见 `RESEARCH_POSITIONING.md` §1.6 + `DECISIONS.md` ADR-032（旧 ADR-014/016"免重辨识"立论口径已废止，协议部分仍有效）。旧口径（如主剖面默认 23.8、跨线方向 23→35km）已过时，以本节为准。
 
 1. **主训练剖面颗粒**：主训练走 `grade_profile: shuozhou_ningwuxi_beidaniu_49km`（真实朔黄，2026-10-12 换统一线路表重建，原 `shuozhou_real_53km` 已删除）；跨线域外目标 = `long_downhill_20km` / `long_downhill_35km`；`shuozhou_23800` 仅作已知基线锚，**不作跨线泛化证明**。
-2. **跨线免调参协议**：RL 跨线零微调直接评估；MPC 跨线**不重喂 `grade_at`**，并**必须声明 `no-re-identification`**（否则当 strawman）。**【2026-09-16 ADR-016 修订，本句作废，仅作历史】当前协议**：MPC 跨线**逐线重喂该线 `grade_at` 图纸 + 在线标定 b0**（Regime A 公平标定）；D-RL 跨线**严格零微调**，声明 "no fine-tuning on target line"；不再演"MPC 不重辨识失配"（Regime B 废止）。
+2. **跨线免调参协议**：RL 跨线零微调直接评估；MPC 跨线不设重喂/重标定。**【2026-09-16 ADR-016 修订 Regime B → 2026-10-16 ADR-037 废止 Regime A】当前协议**：坡度为 MPC 固有输入，对比共用同一仿真器/环境/坡度数据、同档调参力度，**不标 re-identification、不作成本叙事**；D-RL 跨线**严格零微调**，声明 "no fine-tuning on target line"。
 3. **指标口径**：主指标 = **跨线免调参级联失败率** / **MPC 求解失败/终端无解次数** / **ATP 触发次数**（替代"追尾"——安全层已杜绝物理追尾，ATP 触发=策略踩线兜底依赖度） / **列距误差（编队底线，与车钩力并列，2026-10-02 升入主表）**。列距误差口径 = 平均绝对列距误差 / 峰值绝对列距误差 / 全程最小实际列距 / 追尾（物理穿透）步数；由 `evaluate_decompose.py` 结果 JSON 汇报，**多列编组才产出该组键**（单列无列间距）。补遗口径：车钩力峰/超限、速度带落地率、求解耗时（MPC 每步记录 `solve_times`）。
-4. **protocol 标注**：每实验表逐行标 MPC 是否 re-identification / `inner_rule_cyclic`、seed、`simulator_model` 版本（`coupler=MT-2 | braking=ED+AB-relief-wave`）。
+4. **protocol 标注**：每实验表逐行标 `inner_rule_cyclic`、seed、`simulator_model` 版本（`coupler=MT-2 | braking=ED+AB-relief-wave`）（原"标 re-identification"要求已随 ADR-037 废止）。
 5. **全部走 `metadata` 守卫**（`training_metadata_guard`/`save_metadata`）+ 结果 JSON 按时间戳归档到 `outputs/`，**不覆盖旧文件**（复用既有 `src/metadata.py`；评估入口 = `evaluate_decompose.py`，MPC 行 `--mpc_type nmpc`。原 `evaluate_m1_m3_long.py` 的 M-MPC 模式入口**已按 ADR-022 删除**）。
 
 ## AGENTS.md 引用一致性校验（2026-09-16 强制，防"妄猜规范"）

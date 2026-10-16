@@ -125,7 +125,7 @@ python -m pytest tests/test_logging_metrics.py tests/test_metric_accounting.py t
 
 # 冒烟训练（三目录重定向，勿改 YAML 主值）
 python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 2 \
-  --checkpoint_dir outputs/_smoke/ckpt --results_dir outputs/_smoke/results --override dirs.figures_dir=outputs/_smoke/figures
+  --checkpoint_dir outputs/smoke/_run/ckpt --results_dir outputs/smoke/_run/results --override dirs.figures_dir=outputs/smoke/_run/figures
 ```
 
 ## §8 相关文档

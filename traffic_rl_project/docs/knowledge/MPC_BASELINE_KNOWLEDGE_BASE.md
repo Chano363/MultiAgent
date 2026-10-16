@@ -18,9 +18,9 @@
 
 ## §1 业务背景与核心概念
 
-论文对比实验的唯一 MPC 基线代码 = **NMPCController**（ADR-022；旧 `FairMPCController`/简化 MPC 已删除，历史 MPC 数值作废）。对比规范（ADR-016，用户口径：只留"逐线公平标定"一种比法）：不按坡道换 MPC 模型；MPC 逐线重喂该线 `grade_at` 图纸 + 在线标定 b0（公平标定），D-RL 跨线严格零微调。立论 = **编队上下文协同增益**（ADR-032；旧"免重辨识成本"已废止）。**⚠️ 主表角色已由 ADR-034（2026-10-13）修订：NMPC 退出主表**（related work 文本，"方法与场景不匹配，忠实复现不成立"）；**主表 MPC 行 = Formation-MPC**（following Song2026 虚拟编组 MPC 架构、显式关掉车钩约束；同仿真器 + 逐线喂图纸 + 同档调参力度；**只主张编队指标胜出，绝不主张车钩指标胜出**）。
+论文对比实验的唯一 MPC 基线代码 = **NMPCController**（ADR-022；旧 `FairMPCController`/简化 MPC 已删除，历史 MPC 数值作废）。对比口径（ADR-037，废止 ADR-016 Regime A 协议）：不按坡道换 MPC 模型；同一仿真器、同一环境与坡度数据、同档调参力度——坡度是 MPC 预测模型的**固有输入**（图纸天然先于运营存在），**不设"逐线重喂 `grade_at`/在线标定 b0"协议，也不作"免重辨识成本"叙事**；D-RL 跨线严格零微调。立论 = **编队上下文协同增益**（ADR-032）。**⚠️ 主表角色已由 ADR-034（2026-10-13）修订：NMPC 退出主表**（related work 文本，"方法与场景不匹配，忠实复现不成立"）；**主表 MPC 行 = Formation-MPC**（following Song2026 虚拟编组 MPC 架构、显式关掉车钩约束；同仿真器 + 同档调参力度；**只主张编队指标胜出，绝不主张车钩指标胜出**）。
 
-技术构成：casadi + IPOPT；列内**集中质量（lumped）多体**（ADR-022 术语）；MT-2 车钩；Regime A 逐线 `grade_at` 重喂与在线标定 b0。
+技术构成：casadi + IPOPT；列内**集中质量（lumped）多体**（ADR-022 术语）；MT-2 车钩；坡度经 `grade_at` 接口读入（固有输入，非重喂）。
 
 ## §1.5 架构总览
 
@@ -28,7 +28,7 @@
 graph TD
     V["evaluate_decompose.py（--mpc_type nmpc）"] --> N["NMPCController.compute_actions_from_env()"]
     N --> P["casadi 问题构建（速度带/列距/控制量/jerk/终端代价；列距+车钩力硬约束）"]
-    N --> G["重喂 grade_at + 在线标定 b0"]
+    N --> G["读 grade_at 坡度输入（固有输入）"]
     N --> S["IPOPT 求解 → 每列目标加速度 → 桥接为 (ed_mod, ab_mod)"]
 ```
 
@@ -36,7 +36,7 @@ graph TD
 
 `compute_actions_from_env()`（nmpc_controller.py）：
 1. 首次调用按编组构建 casadi 优化问题；
-2. 从 env 快照状态、重建 `grade_at` 坡度图纸、设初值；
+2. 从 env 快照状态、读入 `grade_at` 坡度（固有输入）、设初值；
 3. IPOPT 求解，记录 `solve_times` / `solve_statuses`；
 4. 输出每列目标加速度，经桥接逻辑反解为规则基线的加性调制 `(ed_mod, ab_mod)`，保证与 D-RL 动作权限一致（与 `inner_rule_cyclic` 公平对比）。
 
@@ -67,8 +67,8 @@ graph TD
 | 决策变量 | 每机车 ED 调制 | 与 D-RL 权限对齐 |
 | 目标函数 | 速度带 + 列距 + 控制量 + jerk + 终端代价 | |
 | 硬约束 | 列距 + 车钩力 | 车钩力≤1000 kN 同底线 |
-| 标定 | 在线标定 b0 | 逐线公平标定（ADR-016） |
-| 坡度 | 逐线重喂 `grade_at` | 共用 GradeProfile 接口 |
+| 标定 | 无逐线标定协议（ADR-037 废止） | 同档调参力度 |
+| 坡度 | `grade_at` 固有输入 | 共用 GradeProfile 接口 |
 
 ## §5 调用与运维索引
 
@@ -83,7 +83,7 @@ graph TD
 - **AI pitfall**【状态残留】`--n_seed` 多回合复用同一 env 时，每回合开始必须 `_mpc.reset()`（历史 bug，有回归测试）。
 - **AI pitfall**【solve_statuses】读取求解状态用 `getattr` 兜底（缺失不崩溃）；`NMPCController` 负责记录并清空 `solve_statuses`。
 - 【唯一基线】只认 `NMPCController` + `--mpc_type nmpc`；任何"简化 MPC/旧 Fair"数值已作废（ADR-022）。
-- 【公平标定】MPC 逐线重喂该线 `grade_at` + 在线标定 b0；D-RL 跨线零微调——改标定逻辑 = 改对比公允性，须走 ADR。
+- 【对比口径】同一仿真器/环境/坡度数据/调参力度；坡度为固有输入，**不设逐线重喂与标定协议**（ADR-037）；D-RL 跨线零微调——改对比口径须走 ADR。
 - 【权限对齐】MPC 输出经桥接为 `(ed_mod, ab_mod)` 调制，不得直接给原始加速度当动作。
 - 【术语】"多体" = 集中质量（lumped）多体（ADR-022）。
 

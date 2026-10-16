@@ -191,6 +191,60 @@ def test_safety_coupler_force_limit_blocks_both_signs_symmetrically():
     assert corrected_braking[0] == 0.0   # 制动钳制为 0（release）
 
 
+def test_safety_coupler_override_direction_tension_releases():
+    """U 组：coupler_override='direction'，**拉钩**（signed>0）超限时制动释放泄力。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N,
+                     coupler_override='direction')
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.6e6, 1.6e6]),
+        'coupler_forces_signed': np.array([1.6e6, 1.6e6]),   # 正=拉钩
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    corrected = sl.protect(np.array([-1.0, -0.8]), obs_state)
+    assert corrected[0] == 0.0  # 拉钩 → release 泄力
+    assert corrected[1] == 0.0
+    assert any(e['rule'] == 'coupler_force_limit' for e in sl.last_events)
+
+
+def test_safety_coupler_override_direction_compression_keeps_min():
+    """U 组：coupler_override='direction'，**压钩**（signed<0）超限时保留 MIN 制动。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N,
+                     coupler_override='direction')
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.6e6, 1.6e6]),
+        'coupler_forces_signed': np.array([-1.6e6, -1.6e6]),  # 负=压钩
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    corrected = sl.protect(np.array([-1.0, -0.8]), obs_state)
+    assert corrected[0] == -0.3  # 压钩 → min_brake 保留
+    assert corrected[1] == -0.3
+
+
+def test_safety_coupler_override_direction_missing_signed_falls_back_release():
+    """U 组：'direction' 缺 signed 视图时回退 release（默认旧行为，零回归）。"""
+    sl = SafetyLayer(num_vehicles=2, coupler_force_limit_n=DEFAULT_COUPLER_FORCE_LIMIT_N,
+                     coupler_override='direction')
+    obs_state = {
+        'vel': np.array([20.0, 20.0]),
+        'coupler_forces': np.array([1.2e6, 1.2e6]),
+        # 无 coupler_forces_signed
+        'gaps': np.array([0.0, 1.0]),
+        'emergency': False,
+    }
+    corrected = sl.protect(np.array([-1.0, -0.8]), obs_state)
+    assert corrected[0] == 0.0  # 缺视图 → release（旧默认）
+
+
+def test_safety_coupler_override_invalid_value_raises():
+    """未知 coupler_override 值抛 ValueError（配置防呆）。"""
+    with pytest.raises(ValueError, match='coupler_override'):
+        SafetyLayer(num_vehicles=2, coupler_override='bogus')
+
+
 # ---------------------------------------------------------------------------
 # 安全层：ATP 制动优先级（2026-10-04 负间距自毁闭环回归）
 def test_safety_atp_brake_not_released_by_coupler_rule():

@@ -222,18 +222,18 @@ python src/evaluation/evaluate_decompose.py --mode all --checkpoint <best.pt 或
   - ⇒ **跑主表前先 `ls` 确认**；`best` 不存在时不要以为训练失败，改用 `last_ep1400`。
   - ⚠️ **待裁决（影响主表口径，需用户确认）**：项目既有口径为"主结果用**完整训练后的 `last`**（1400 ep），不用训练 reward 选出的 `best`"（用户既定偏好）；但 ADR-017 §2 又要求 `long_eval` 用完整剖面**选优**。二者在"`best` 现由评估指标而非训练 reward 选出"之后**不再互斥** ⇒ 须明确：主表 D-RL 行取 `last_ep1400`（端态、无条件可复现），还是取 `best`（评估选优）。**裁决前不要只跑一行就下结论。**
 
-**跨线评估（Regime A 协议，ADR-016；2026-10-12 起 M2 储备）**：
+**跨线评估（ADR-037 对比口径；2026-10-12 起 M2 储备）**：
 
 ```
 # D-RL / D-Rule 行（跨线零微调）
 python src/evaluation/evaluate_decompose.py --mode decompose_m1 --grade <20km或35km剖面> --checkpoint <last_ep1400.pt 路径>
-# MPC 行（Regime A：逐线重喂该线 grade_at + 在线标定 b0）
+# MPC 行（坡度为固有输入，同一环境/坡度数据；无逐线重喂/标定协议）
 python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --grade <20km或35km剖面> --n_seed 1
 ```
 
 > 注：`--mode` 的合法取值是 `all / decompose_m1 / decompose_m0 / mpc / single`（无 `decompose`；旧文档写 `--mode decompose` 属笔误，2026-10-01 更正）。
 
-- 跨线协议（2026-09-16 ADR-016，2026-10-12 起作 M2 储备）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 逐线**重喂该线** **`grade_at`** **图纸 + 在线标定 b0**（Regime A 公平标定），不再提供 no-reidentification 的 Regime B。核心 claim（2026-10-12 ADR-032）= **编队上下文协同增益**（旧"免重辨识成本"已废止）。
+- 跨线协议（ADR-037，2026-10-16；2026-10-12 起作 M2 储备）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 用该线坡度数据（固有输入），**不设逐线重喂 `grade_at`/标定 b0 协议**（ADR-037 废止 Regime A；ADR-016 已废止 Regime B），不作成本叙事。核心 claim（2026-10-12 ADR-032）= **编队上下文协同增益**。
 
 **消融（杠杆隔离）**：`--mask_lever ed/ab`（ED-only / AB-only），留痕见 `docs/logs/diagnostics/`。
 
