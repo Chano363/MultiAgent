@@ -1,0 +1,10 @@
+{
+  "actions": [
+    0.0,
+    0.0,
+    1.0,
+    0.0
+  ],
+  "selection": "minimum predicted peak in predeclared 19-point probe set",
+  "scope": "timed diagnostic, not deployable closed-loop policy"
+}

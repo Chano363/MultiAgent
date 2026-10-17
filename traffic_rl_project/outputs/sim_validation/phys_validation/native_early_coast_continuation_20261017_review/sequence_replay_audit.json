@@ -1,0 +1,5 @@
+{
+  "first15s_force_exact": true,
+  "first15s_requests_exact": true,
+  "scope": "5 to20s reproduction, not full120s pressure equivalence"
+}

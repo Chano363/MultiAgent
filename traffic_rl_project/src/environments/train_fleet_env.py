@@ -21,6 +21,8 @@
     - 输出该列实际车钩力反馈给层级一作状态/奖励
 """
 
+from copy import deepcopy
+
 import numpy as np
 from gym import spaces
 
@@ -178,6 +180,11 @@ class TrainFleetEnv:
         # RL 输出逐机车 [ed_mod, ab_mod] 调制（真物理杠杆，区别于阈值协同 ±0.5km/h）。
         # 默认 None 完全走旧路径（列=智能体），向后兼容。
         self.decompose = config.get('decompose', None)
+        self.formation_relative_speed_obs = config.get('formation_relative_speed_obs', False)
+        if not isinstance(self.formation_relative_speed_obs, bool):
+            raise ValueError('formation_relative_speed_obs must be a boolean')
+        if self.formation_relative_speed_obs and self.decompose != 'loco_ed_ab':
+            raise ValueError('formation_relative_speed_obs requires decompose=loco_ed_ab')
         if self.decompose:
             self.hierarchical = False  # decompose 模式自带规则基线，不与阈值协同混用
         # 【杠杆隔离消融】mask_lever∈{'none','ed','ab'}：decompose 模式下禁用对应 RL 调制
@@ -226,6 +233,25 @@ class TrainFleetEnv:
         # 【bug修复 2026-08-20】eval_mode：评估时第1层策略用确定性采样（消除
         # M1/M3 结果随机性）；训练时 False 保持探索。评估脚本应设 eval_mode=True。
         self.eval_mode = config.get('eval_mode', False)
+        initial = config.get('formation_start_randomization', {})
+        if not isinstance(initial, dict) or not isinstance(initial.get('enabled', False), bool):
+            raise ValueError('formation_start_randomization must be a mapping with boolean enabled')
+        self._formation_start = dict(initial)
+        self._formation_start_enabled = initial.get('enabled', False)
+        self._formation_require_clear_sbi = initial.get('require_clear_sbi', False)
+        self._formation_max_attempts = initial.get('max_attempts', 64)
+        if not isinstance(self._formation_require_clear_sbi, bool):
+            raise ValueError('require_clear_sbi must be a boolean')
+        if (isinstance(self._formation_max_attempts, bool)
+                or not isinstance(self._formation_max_attempts, int)
+                or self._formation_max_attempts < 1):
+            raise ValueError('formation max_attempts must be a positive integer')
+        if self._formation_start_enabled and self.decompose != 'loco_ed_ab':
+            raise ValueError('formation_start_randomization requires decompose=loco_ed_ab')
+        self._formation_speed_bounds = self._initial_bounds(initial, 'speed_offset_kmh', [0, 0])
+        self._formation_gap_bounds = self._initial_bounds(initial, 'gap_offset_m', [0, 0])
+        initial_seed = initial.get('seed')
+        self._formation_start_rng = np.random.default_rng(0 if initial_seed is None else initial_seed)
         # 注：方案A（start_offset_m/spacing_m 人为坡段错开）已于 2026-08-20 移除。
         # 它偏离正确场景（各列同坡段起步、随间距保持自然产生动态相位差），
         # 且导致前列/后列缓解持续不同步 → 车钩力持续超限 + M1 训练不收敛。
@@ -235,7 +261,14 @@ class TrainFleetEnv:
         # 覆盖全路（L1：固定起点仅覆盖 −1.5‰ 单坡段，评估 83.9% 的步落在训练未见坡度区间）。
         # 默认关（零回归）；仅训练态生效（eval_mode=True 恒定用基准起点，保证评估可复现）。
         self._start_rand = None
+        self._cold_start_max_speed_mps = None
         _sr = config.get('start_randomization', None)
+        if isinstance(_sr, dict) and _sr.get('cold_start_max_speed_kmh') is not None:
+            cap = _sr['cold_start_max_speed_kmh']
+            if (isinstance(cap, bool) or not isinstance(cap, (float, int))
+                    or not np.isfinite(cap) or not 0 < cap <= self.v_max * 3.6):
+                raise ValueError('cold_start_max_speed_kmh must be finite, positive and <= v_max')
+            self._cold_start_max_speed_mps = float(cap) / 3.6
         if isinstance(_sr, dict) and _sr.get('enabled', False):
             self._start_rand = {
                 'min_m': float(_sr.get('min_m', 0.0)),
@@ -351,6 +384,8 @@ class TrainFleetEnv:
                     ed_release_coordination=self.ed_release_coordination,
                     ed_release_hold_s=self.ed_release_hold_s,
                     ed_release_boost_kn=self.ed_release_boost_kn,
+                    ed_native_force_conversion=bool(config.get(
+                        'ed_native_force_conversion', False)),
                     # 【X 组】ED-AB 波到达协同窗透传（默认 0/1 = 关）
                     ed_upgrade_ramp_s=self.ed_upgrade_ramp_s,
                     ed_upgrade_ramp_scale=self.ed_upgrade_ramp_scale,
@@ -379,7 +414,16 @@ class TrainFleetEnv:
             # [11]【ADR-030】AB 充风就绪度 = 距上次 AB 释放的充风时长 / ab_min_refill_s ∈[0,1]
             #    ——把 222 s 长充风滞后"编码进观测"（文献 Wang2026 的累计缓解时间 t_r 口径），
             #    使策略不必靠"拉长 rollout 窗口"即可感知该长时约束。
-            self.obs_dim = 12
+            self.obs_dim = 14 if self.formation_relative_speed_obs else 12
+            self.observation_schema = {
+                'name': ('loco_ed_ab_relative_speed_v1' if self.formation_relative_speed_obs
+                         else 'loco_ed_ab_base12'),
+                'dimension': self.obs_dim,
+                'appended_fields': (['head_relative_speed_mps', 'tail_closing_speed_mps']
+                                    if self.formation_relative_speed_obs else []),
+                'relative_speed_sign': 'positive means follower is faster',
+                'leader_appended_values': [0.0, 0.0] if self.formation_relative_speed_obs else [],
+            }
             self.act_dim = 2
             self.observation_space = spaces.Box(
                 low=-np.inf, high=np.inf,
@@ -408,6 +452,48 @@ class TrainFleetEnv:
         # E21 追尾趋势：上一步各列间距误差（检测间距缩小→追尾风险，引导RL提前协同）
         self._prev_gap_err = None
 
+    @staticmethod
+    def _initial_bounds(config, name, default):
+        values = np.asarray(config.get(name, default), dtype=float)
+        if values.shape != (2,) or not np.all(np.isfinite(values)) or values[0] > values[1]:
+            raise ValueError(f'formation_start_randomization.{name} needs finite [min, max]')
+        return values
+
+    def _sample_formation_start(self, speed_mps, seed):
+        speeds = np.full(self.num_trains, float(speed_mps))
+        gaps = np.full(max(0, self.num_trains - 1), self._dynamic_gap())
+        sampled = self._formation_start_enabled and not self.eval_mode
+        if sampled:
+            low, high = self._formation_speed_bounds / 3.6 + speed_mps
+            if low < 0 or high > self.v_max:
+                raise ValueError('formation speed offset range exceeds [0, v_max]; no clipping')
+            if self._dynamic_gap() + self._formation_gap_bounds[0] <= 0:
+                raise ValueError('formation gap offset range permits overlapping trains')
+            if seed is not None:
+                self._formation_start_rng = np.random.default_rng(seed)
+            speeds += self._formation_start_rng.uniform(*self._formation_speed_bounds,
+                                                       size=self.num_trains) / 3.6
+            gaps += self._formation_start_rng.uniform(*self._formation_gap_bounds,
+                                                     size=max(0, self.num_trains - 1))
+        return speeds, gaps, sampled
+
+    def _initial_formation_info(self, sampled):
+        context = self.get_formation_context()
+        supervision = []
+        for i in range(1, self.num_trains):
+            tr = self.trains[i]
+            previous = self.trains[i - 1].dynamics
+            ebi, sbi = tr.safety._etcs_check(
+                float(tr.dynamics.pos[0]), float(tr.dynamics.vel[0]), self.etcs_curve,
+                [EbdTarget(position_m=float(previous.pos[-1]),
+                           speed_mps=float(previous.vel[0]), kind='gap')])
+            speed = float(tr.dynamics.vel[0])
+            supervision.append({'train_index': i,
+                                'above_sbi': sbi is not None and speed > sbi + 1e-6,
+                                'above_ebi': ebi is not None and speed > ebi + 1e-6})
+        return {'formation_initialization': {'sampled': sampled, 'context': context,
+                                             'supervision': supervision}}
+
     def _sample_start_offset(self) -> float:
         """训练起点随机化：均匀采样编队整体前移量（米）。
 
@@ -428,6 +514,38 @@ class TrainFleetEnv:
         return float(self._start_rand['rng'].uniform(lo, hi))
 
     def reset(self, seed=None, options=None):
+        """Optionally reject supervised initial states, with a bounded audit trail."""
+        if seed is not None and self._start_rand is not None:
+            # Explicit reset seeds must replay the route offset too, not only
+            # the formation-speed RNG. Rejection retries advance this RNG.
+            self._start_rand['rng'] = np.random.default_rng(seed)
+        filter_initial = (self._formation_start_enabled and not self.eval_mode
+                          and self._formation_require_clear_sbi)
+        attempts = self._formation_max_attempts if filter_initial else 1
+        rejected_sbi = rejected_ebi = 0
+        for attempt in range(attempts):
+            obs, info = self._reset_once(seed=seed if attempt == 0 else None, options=options)
+            initial = info.get('formation_initialization')
+            if filter_initial:
+                statuses = initial['supervision']
+                above_sbi = any(s['above_sbi'] for s in statuses)
+                above_ebi = any(s['above_ebi'] for s in statuses)
+                rejected_sbi += int(above_sbi)
+                rejected_ebi += int(above_ebi)
+                accepted = not above_sbi and not above_ebi
+            else:
+                accepted = True
+            if accepted:
+                if initial is not None:
+                    initial.update(attempts=attempt + 1,
+                                   rejected_sbi_candidates=rejected_sbi,
+                                   rejected_ebi_candidates=rejected_ebi,
+                                   require_clear_sbi=bool(filter_initial))
+                return obs, info
+        raise ValueError(f'No clear-SBI formation initial state after {attempts} attempts; '
+                         'revise the configured distribution, not safety thresholds')
+
+    def _reset_once(self, seed=None, options=None):
         self.steps = 0
         self._peak_coupler_n = 0.0
         self._coupler_limit_violations = 0
@@ -453,12 +571,23 @@ class TrainFleetEnv:
         cumulative_offset = 0.0
         # 初始速度：对齐 Zhang2024 长大下坡循环制动初始速度 65 km/h（18.06 m/s）
         init_speed = (options or {}).get('speed', 65.0 / 3.6)
+        initial_speeds, initial_gaps, sampled_formation = self._sample_formation_start(init_speed, seed)
+        requested_speeds = initial_speeds.copy()
+        cold_start_policy = (self._start_rand is not None and not self.eval_mode
+                             and self._cold_start_max_speed_mps is not None)
+        if cold_start_policy:
+            # Explicit training-distribution change, not an actuator clamp or
+            # safety guarantee. A common shift preserves relative train speeds.
+            shift = max(0.0, float(initial_speeds.max()) - self._cold_start_max_speed_mps)
+            initial_speeds -= shift
+            if np.any(initial_speeds < 0):
+                raise ValueError('cold-start speed shift would create a negative train speed')
         # 训练起点随机化：整列编队沿剖面随机前移（route_offset=0 时零回归）
         route_offset = 0.0
         if self._start_rand is not None and not self.eval_mode:
             route_offset = self._sample_start_offset()
         for i, (tr, ctrl) in enumerate(zip(self.trains, self.controllers)):
-            tr.reset(options={'speed': init_speed})
+            tr.reset(options={'speed': initial_speeds[i]})
             ctrl.reset()
             if self.multi_loco_controllers is not None:
                 self.multi_loco_controllers[i].reset()
@@ -474,7 +603,7 @@ class TrainFleetEnv:
                 # 各列同坡段起步，随编队推进自然产生动态相位差（真实编队总长~4km，
                 # 前列后列进入同一坡段的时机天然不同）——协同由场景驱动，非人为错开。
                 train_len = abs(base_pos[0] - base_pos[-1])
-                init_gap = self._dynamic_gap()
+                init_gap = initial_gaps[i - 1]
                 offset = train_len + init_gap
                 cumulative_offset += offset
                 tr.dynamics.set_initial(
@@ -483,7 +612,19 @@ class TrainFleetEnv:
                 )
             self._train_heads[i] = float(tr.dynamics.pos[0])
         if self.decompose:
-            return self._get_obs_decomposed(), {}
+            initial_info = (self._initial_formation_info(sampled_formation)
+                            if self._formation_start_enabled else {})
+            if cold_start_policy:
+                initial_info['cold_start_initialization'] = {
+                    'mode': 'cold_zero_air',
+                    'max_speed_kmh': self._cold_start_max_speed_mps * 3.6,
+                    'requested_speeds_kmh': (requested_speeds * 3.6).tolist(),
+                    'actual_speeds_kmh': (initial_speeds * 3.6).tolist(),
+                    'common_speed_shift_kmh': shift * 3.6,
+                    'route_offset_m': route_offset,
+                    'feasibility_guaranteed': False,
+                }
+            return self._get_obs_decomposed(), initial_info
         return self._get_obs(), {}
 
     def _dynamic_gap(self) -> float:
@@ -703,6 +844,7 @@ class TrainFleetEnv:
         [11]AB 充风就绪度(ADR-030)：距上次 AB 释放的充风时长 / ab_min_refill_s ∈[0,1]
         """
         obs = np.zeros((self.num_agents, self.obs_dim), dtype=np.float32)
+        context = self.get_formation_context() if self.formation_relative_speed_obs else None
         a = 0
         for ti, (tr, ctrl) in enumerate(zip(self.trains, self.multi_loco_controllers)):
             dyn = tr.dynamics
@@ -712,13 +854,10 @@ class TrainFleetEnv:
                 prev_tail = self.trains[ti - 1].dynamics.pos[-1]
                 gap_err = (prev_tail - self._train_heads[ti]) - self._dynamic_gap()
             # 规则基线（ED 优先 + 错峰 + AB 兜底）——观测告诉 RL"规则本步想做什么"
-            # Preview the rule's features without committing its hysteresis
-            # state. Only the actual control step may change braking mode.
-            braking_before_preview = ctrl._cyclic_braking
-            try:
-                base = ctrl.get_action_cyclic_braking(tr, v_max=self.v_max, v_min=self.v_min)
-            finally:
-                ctrl._cyclic_braking = braking_before_preview
+            # Observations must not advance any controller clock, latch or
+            # future mutable state. Preview on an isolated controller copy.
+            base = deepcopy(ctrl).get_action_cyclic_braking(
+                tr, v_max=self.v_max, v_min=self.v_min)
             coupler = np.abs(dyn._coupler_forces())
             ab_state = dyn.air_brake_state()
             ab_active_frac = float(np.mean([x != AirBrakeNotch.RELEASE for x in ab_state]))
@@ -740,8 +879,49 @@ class TrainFleetEnv:
                 # 让策略无需靠拉长 rollout 窗口即可感知该长时约束。初值 -1e9 → 首次恒为 1.0（允许）。
                 _refill_s = max((ctrl._ab_step - ctrl._ab_last_release_step[k]) * ctrl.dt, 0.0)
                 obs[a, 11] = float(min(_refill_s / max(self.ab_min_refill_s, 1.0), 1.0))
+                if context is not None and ti > 0:
+                    obs[a, 12] = context[ti]['head_relative_speed_mps']
+                    obs[a, 13] = context[ti]['tail_closing_speed_mps']
                 a += 1
         return obs
+
+    def get_formation_context(self) -> list:
+        """Return a read-only, same-time diagnostic snapshot in SI units.
+
+        Positive relative/closing speed means the follower is faster. Head
+        relative speed matches coordination; tail closing speed describes
+        the actual tail-to-head gap. This does not extend policy observations.
+        """
+        context = []
+        target_gap = self._dynamic_gap()
+        for ti, tr in enumerate(self.trains):
+            dyn = tr.dynamics
+            item = {
+                'train_index': ti,
+                'preceding_train_index': ti - 1 if ti else None,
+                'head_position_m': float(dyn.pos[0]),
+                'tail_position_m': float(dyn.pos[-1]),
+                'head_speed_mps': float(dyn.vel[0]),
+                'tail_speed_mps': float(dyn.vel[-1]),
+                'target_gap_m': float(target_gap),
+                'gap_m': None, 'gap_error_m': None,
+                'preceding_head_speed_mps': None,
+                'preceding_tail_speed_mps': None,
+                'head_relative_speed_mps': None,
+                'tail_closing_speed_mps': None,
+            }
+            if ti:
+                preceding = self.trains[ti - 1].dynamics
+                gap = float(preceding.pos[-1] - dyn.pos[0])
+                item.update(
+                    gap_m=gap, gap_error_m=gap - target_gap,
+                    preceding_head_speed_mps=float(preceding.vel[0]),
+                    preceding_tail_speed_mps=float(preceding.vel[-1]),
+                    head_relative_speed_mps=float(dyn.vel[0] - preceding.vel[0]),
+                    tail_closing_speed_mps=float(dyn.vel[0] - preceding.vel[-1]),
+                )
+            context.append(item)
+        return context
 
     def _gap_metrics(self):
         """本步列间间距指标：(间距误差均值 m, 最小实际列间距 m)。
@@ -893,6 +1073,7 @@ class TrainFleetEnv:
             'decomposed_actions': self._executed_actions.copy(),
             # 【ADR-021 决策3 / D】安全层对 AB 的权限计数（跨列车本步聚合；新增键，既有键不删）
             'ab_safety_vetoed': ab_safety_vetoed_count,
+            'formation_context': self.get_formation_context(),
         }
         return obs, reward, terminated, truncated, info
 

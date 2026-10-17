@@ -1,0 +1,40 @@
+{
+  "note": "Read-only force budget from recorded positions/velocities; not a replay checkpoint",
+  "records": [
+    {
+      "time_s": 222.2,
+      "head_kmh": 49.96386870469068,
+      "legacy_ed_ratio": 0.5870932282632747,
+      "native_ed_ratio": 0.5349329100150716,
+      "ED_insufficient_net": false
+    },
+    {
+      "time_s": 400,
+      "head_kmh": 71.43023918348176,
+      "legacy_ed_ratio": 0.44020436602910534,
+      "native_ed_ratio": 0.3741737111247395,
+      "ED_insufficient_net": true
+    },
+    {
+      "time_s": 450,
+      "head_kmh": 77.45101954311315,
+      "legacy_ed_ratio": 0.40598436715953984,
+      "native_ed_ratio": 0.34508671208560887,
+      "ED_insufficient_net": true
+    },
+    {
+      "time_s": 460,
+      "head_kmh": 78.67663717760412,
+      "legacy_ed_ratio": 0.39965997890950383,
+      "native_ed_ratio": 0.33971098207307826,
+      "ED_insufficient_net": true
+    },
+    {
+      "time_s": 469.7,
+      "head_kmh": 79.96067266552542,
+      "legacy_ed_ratio": 0.3932421039853108,
+      "native_ed_ratio": 0.3342557883875142,
+      "ED_insufficient_net": true
+    }
+  ]
+}

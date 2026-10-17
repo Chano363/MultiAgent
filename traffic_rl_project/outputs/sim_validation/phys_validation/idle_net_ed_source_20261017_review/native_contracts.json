@@ -1,0 +1,23 @@
+{
+  "controller_sha256": "05521f653bdae61ba364aae02ae9159433f395588c3572e2140b721e08a54288",
+  "parent_sha256": "4398e400f0bc0594b4dcde29291a58739dd96d7743e1abe6880f487f2b9fb4f0",
+  "checks": [
+    {
+      "case": "idle",
+      "passed": true
+    },
+    {
+      "case": "speed_ceiling",
+      "passed": true
+    },
+    {
+      "case": "rl_authority",
+      "passed": true
+    },
+    {
+      "case": "native_air",
+      "passed": true
+    }
+  ],
+  "scope": "native software contracts; not complete control validation"
+}

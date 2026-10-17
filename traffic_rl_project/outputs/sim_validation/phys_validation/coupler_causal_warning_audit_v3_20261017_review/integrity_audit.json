@@ -1,0 +1,46 @@
+{
+  "audit_source_hash_matches": true,
+  "cases": [
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_ed_flat_v3_20261017_review",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 7.993605777301127e-15
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_ed_reentry_v3_20261017_review",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 7.993605777301127e-15
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_flat_before100_v3_20261017_review",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 6.217248937900877e-15
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_flat_after100_v3_20261017_review",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 5.773159728050814e-15
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_reentry_before100_v3_20261017_review",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 1.7763568394002505e-15
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_reentry_after100_v3_20261017_review",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 7.993605777301127e-15
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\net_demand_release_ff_route_gate_20261017_1606",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 3.979039320256561e-13
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\air_admission_forecast_steep_control_20261017_1743",
+      "raw_sha256_matches": true,
+      "max_time_step_deviation_s": 2.842170943040401e-14
+    }
+  ],
+  "tests": "four warning-audit boundary tests passed; no new simulation"
+}

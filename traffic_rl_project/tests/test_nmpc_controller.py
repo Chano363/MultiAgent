@@ -46,6 +46,28 @@ def _make_nmpc(env):
     )
 
 
+def test_first_solver_failure_falls_back_without_reading_unsolved_values(monkeypatch):
+    import casadi as ca
+
+    env = _make_fleet(num_trains=2)
+    ctrl = _make_nmpc(env)
+    try:
+        env.reset(options={'speed': 65.0 / 3.6})
+
+        def fail_solve(_opti):
+            raise RuntimeError('deliberate first-solve failure')
+
+        monkeypatch.setattr(ca.Opti, 'solve', fail_solve)
+        action = ctrl.compute_actions_from_env(env)
+        assert action.shape == (2,)
+        assert np.all(np.isfinite(action))
+        assert ctrl.solve_statuses[-1].startswith('fail:')
+        assert 'deliberate first-solve failure' in ctrl.solve_statuses[-1]
+        np.testing.assert_array_equal(ctrl._prev_sol, 0.0)
+    finally:
+        env.close()
+
+
 def _nmpc_act(env):
     """评估侧同流程：**直接调用生产桥接** `evaluate_decompose.mpc_act`（2026-10-01 改）。
 

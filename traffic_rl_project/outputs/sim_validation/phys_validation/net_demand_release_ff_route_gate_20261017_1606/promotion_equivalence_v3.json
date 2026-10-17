@@ -1,0 +1,17 @@
+{
+  "scope": "Current production controller equivalence to executed frozen candidate; explicit feedforward True and unchanged default force constant",
+  "hash_format": "UTF-8 decoded source with LF line endings",
+  "production_controller_sha256": "b1c2e0a0cafc258fe93507739fd7f8435c265dc00f85b919765fe0c5739ecdb8",
+  "executed_frozen_controller_sha256": "cf75add05412e667e36972853f2a966e57a126c7f79a60947070e41f2a1f470d",
+  "frozen_declared_hash_verified": true,
+  "executable_ast_equal_after_declared_normalizations": true,
+  "normalizations": [
+    "constructor default ed_grade_feedforward True to False; runtime is explicitly True",
+    "same-valued default force constant import from safety_layer"
+  ],
+  "default_force_constant_n": 1000000.0,
+  "validated_config": "configs/experiments/single_20kt_coupler_rulecal.yaml",
+  "config_sha256": "09c8844c737356e8ab74cc907de5d4563e0cbe58a3f01dea1f6b138d94b19924",
+  "native_smoke": "outputs/smoke/controller_recipe_native_20261017_1650",
+  "supersedes": "promotion_equivalence_v2.json (raw frozen file hash)"
+}

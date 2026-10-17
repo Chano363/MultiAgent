@@ -1,0 +1,195 @@
+{
+  "all_38_branch_replays_exact": true,
+  "branches": [
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_0_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_0_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_0_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_0_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_2_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_2_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_2_4",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_2_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_2_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_4_4",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_6_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_6_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_6_3",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_6_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_6_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_8_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_8_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_8_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "flat_before100",
+      "branch": "step350_sequence_8_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_0_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_0_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_0_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_0_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_2_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_2_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_2_4",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_2_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_2_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_4_4",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_6_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_6_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_6_3",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_6_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_6_8",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_8_0",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_8_2",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_8_6",
+      "recording_rows_and_requests_exact": true
+    },
+    {
+      "archive": "reentry_before100",
+      "branch": "step80_sequence_8_8",
+      "recording_rows_and_requests_exact": true
+    }
+  ]
+}

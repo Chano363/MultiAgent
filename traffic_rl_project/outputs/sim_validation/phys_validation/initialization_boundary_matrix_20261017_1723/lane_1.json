@@ -1,0 +1,218 @@
+[
+  {
+    "case": {
+      "name": "steep_mixed",
+      "initial_state_sampling_seed": 0,
+      "start_m": 17694.7,
+      "speed_kmh": 70.0,
+      "reset_info": {
+        "cold_start_initialization": {
+          "mode": "cold_zero_air",
+          "max_speed_kmh": 70.0,
+          "requested_speeds_kmh": [
+            80.0
+          ],
+          "actual_speeds_kmh": [
+            70.0
+          ],
+          "common_speed_shift_kmh": 10.000000000000004,
+          "route_offset_m": 17694.7,
+          "feasibility_guaranteed": false
+        }
+      },
+      "steps": 1200,
+      "target_kn": 1350
+    },
+    "command": [
+      "F:\\\u5217\u8f66\u5927\u521bxmc\\.venv\\Scripts\\python.exe",
+      "src/evaluation/diagnose_low_level_control.py",
+      "--config",
+      "configs/experiments/single_20kt_coupler_rulecal.yaml",
+      "--output",
+      "outputs\\sim_validation\\phys_validation\\initialization_boundary_matrix_20261017_1723\\steep_mixed",
+      "--steps",
+      "1200",
+      "--trains",
+      "1",
+      "--speed",
+      "70.0",
+      "--start-m",
+      "17694.7",
+      "--profile",
+      "shuozhou_ningwuxi_beidaniu_49km",
+      "--stop-on-coupler-kn",
+      "1350"
+    ],
+    "summary": {
+      "steps": 1200,
+      "speed_min_kmh": 63.30272072974241,
+      "speed_max_kmh": 71.26800083217005,
+      "peak_kn": 1257.9820889733837,
+      "jerk_rms": 0.011194412718000462,
+      "jerk_peak": 0.08608602150559364,
+      "command_switches": 1,
+      "violations": 0,
+      "safety_events": 0,
+      "diagnostic_stop_reason": null,
+      "diagnostic_first_crossing_s": null,
+      "physical_ed_change_rms_per_s": 0.3328905730045978,
+      "physical_ed_max_step_increase": 0.25423412007485613,
+      "physical_ed_max_step_decrease": 0.22826493950768212,
+      "requested_notch_switches": 1,
+      "stored_head_notch_switches": 0,
+      "elapsed_s": 120.0,
+      "mean_speed_kmh": 67.92006731574286,
+      "distance_leader_m": 2260.6981991297034,
+      "leader_end_m": 19955.398199129704,
+      "last_tail_end_m": 17357.817508360997,
+      "max_vehicle_speed_kmh": 72.61564347077366,
+      "overspeed_train_steps": 0,
+      "subenv_safety_events": 0,
+      "full_route_completed": false
+    }
+  },
+  {
+    "case": {
+      "name": "steep_late",
+      "initial_state_sampling_seed": 0,
+      "start_m": 33505.93,
+      "speed_kmh": 70.0,
+      "reset_info": {
+        "cold_start_initialization": {
+          "mode": "cold_zero_air",
+          "max_speed_kmh": 70.0,
+          "requested_speeds_kmh": [
+            80.0
+          ],
+          "actual_speeds_kmh": [
+            70.0
+          ],
+          "common_speed_shift_kmh": 10.000000000000004,
+          "route_offset_m": 33505.93,
+          "feasibility_guaranteed": false
+        }
+      },
+      "steps": 1200,
+      "target_kn": 1350
+    },
+    "command": [
+      "F:\\\u5217\u8f66\u5927\u521bxmc\\.venv\\Scripts\\python.exe",
+      "src/evaluation/diagnose_low_level_control.py",
+      "--config",
+      "configs/experiments/single_20kt_coupler_rulecal.yaml",
+      "--output",
+      "outputs\\sim_validation\\phys_validation\\initialization_boundary_matrix_20261017_1723\\steep_late",
+      "--steps",
+      "1200",
+      "--trains",
+      "1",
+      "--speed",
+      "70.0",
+      "--start-m",
+      "33505.93",
+      "--profile",
+      "shuozhou_ningwuxi_beidaniu_49km",
+      "--stop-on-coupler-kn",
+      "1350"
+    ],
+    "summary": {
+      "steps": 1200,
+      "speed_min_kmh": 62.28265239973439,
+      "speed_max_kmh": 71.07527165588326,
+      "peak_kn": 1280.960840880873,
+      "jerk_rms": 0.006522569474908908,
+      "jerk_peak": 0.057355586061547115,
+      "command_switches": 1,
+      "violations": 0,
+      "safety_events": 0,
+      "diagnostic_stop_reason": null,
+      "diagnostic_first_crossing_s": null,
+      "physical_ed_change_rms_per_s": 0.09251980965108486,
+      "physical_ed_max_step_increase": 0.18349279037174893,
+      "physical_ed_max_step_decrease": 0.08807450798703165,
+      "requested_notch_switches": 1,
+      "stored_head_notch_switches": 0,
+      "elapsed_s": 120.0,
+      "mean_speed_kmh": 67.20471589855316,
+      "distance_leader_m": 2237.303325719622,
+      "leader_end_m": 35743.23332571962,
+      "last_tail_end_m": 33144.595599273554,
+      "max_vehicle_speed_kmh": 72.63416399986498,
+      "overspeed_train_steps": 0,
+      "subenv_safety_events": 0,
+      "full_route_completed": false
+    }
+  },
+  {
+    "case": {
+      "name": "seed_1",
+      "initial_state_sampling_seed": 1,
+      "start_m": 21986.50578803382,
+      "speed_kmh": 70.0,
+      "reset_info": {
+        "cold_start_initialization": {
+          "mode": "cold_zero_air",
+          "max_speed_kmh": 70.0,
+          "requested_speeds_kmh": [
+            80.0
+          ],
+          "actual_speeds_kmh": [
+            70.0
+          ],
+          "common_speed_shift_kmh": 10.000000000000004,
+          "route_offset_m": 21986.50578803382,
+          "feasibility_guaranteed": false
+        }
+      },
+      "steps": 1200,
+      "target_kn": 1350
+    },
+    "command": [
+      "F:\\\u5217\u8f66\u5927\u521bxmc\\.venv\\Scripts\\python.exe",
+      "src/evaluation/diagnose_low_level_control.py",
+      "--config",
+      "configs/experiments/single_20kt_coupler_rulecal.yaml",
+      "--output",
+      "outputs\\sim_validation\\phys_validation\\initialization_boundary_matrix_20261017_1723\\seed_1",
+      "--steps",
+      "1200",
+      "--trains",
+      "1",
+      "--speed",
+      "70.0",
+      "--start-m",
+      "21986.50578803382",
+      "--profile",
+      "shuozhou_ningwuxi_beidaniu_49km",
+      "--stop-on-coupler-kn",
+      "1350"
+    ],
+    "summary": {
+      "steps": 1200,
+      "speed_min_kmh": 59.72011878783677,
+      "speed_max_kmh": 71.36372266282866,
+      "peak_kn": 1334.962480763723,
+      "jerk_rms": 0.012327326129437604,
+      "jerk_peak": 0.07980998651717641,
+      "command_switches": 1,
+      "violations": 0,
+      "safety_events": 0,
+      "diagnostic_stop_reason": null,
+      "diagnostic_first_crossing_s": null,
+      "physical_ed_change_rms_per_s": 0.37738041209808776,
+      "physical_ed_max_step_increase": 0.3484357337828391,
+      "physical_ed_max_step_decrease": 0.2813991476279867,
+      "requested_notch_switches": 1,
+      "stored_head_notch_switches": 0,
+      "elapsed_s": 120.0,
+      "mean_speed_kmh": 66.77047849689464,
+      "distance_leader_m": 2223.055729490159,
+      "leader_end_m": 24209.56151752398,
+      "last_tail_end_m": 21610.796524882557,
+      "max_vehicle_speed_kmh": 72.8514096548099,
+      "overspeed_train_steps": 0,
+      "subenv_safety_events": 0,
+      "full_route_completed": false
+    }
+  }
+]

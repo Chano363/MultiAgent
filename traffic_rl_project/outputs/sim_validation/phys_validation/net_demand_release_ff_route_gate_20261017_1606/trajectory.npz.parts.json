@@ -1,0 +1,28 @@
+{
+  "format": "binary-parts-v1",
+  "original_file": "trajectory.npz",
+  "size_bytes": 167003299,
+  "sha256": "9a75a184d918a51eee39c5b210d305d10a68f02ad16d487bb6415f509ad190ae",
+  "parts": [
+    {
+      "file": "trajectory.npz.part000",
+      "size_bytes": 50331648,
+      "sha256": "e3bccc83d8b0147a142da51fb90be0adda05d094f669835fd251ba58c8617ccc"
+    },
+    {
+      "file": "trajectory.npz.part001",
+      "size_bytes": 50331648,
+      "sha256": "989b6ec5c0bb902065c498713d1c324e12815327c27d22ba81438e434bbea515"
+    },
+    {
+      "file": "trajectory.npz.part002",
+      "size_bytes": 50331648,
+      "sha256": "a542bbb6fd6d6d5d47a75712f13749b314ff0579b2026096969f4147db18becb"
+    },
+    {
+      "file": "trajectory.npz.part003",
+      "size_bytes": 16008355,
+      "sha256": "23652af33c1c785d8bf5f90547a86091f3764eb495f5ea1ab3f2ff6318d33cde"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "live_dynamics_unchanged": true,
+  "real_recorder_not_called_by_prediction": true,
+  "native_reference_exact": true,
+  "reset_clears_plan_and_events": true,
+  "test_horizon_s": 0.2,
+  "native_air_state_present": true
+}

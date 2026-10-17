@@ -1,0 +1,43 @@
+{
+  "sha256": "6d5f5e40607970cafe9b23da9c41d9e61644425091f4d941fa8e5690ee214cce",
+  "checks": [
+    {
+      "start_m": 20000,
+      "speed_kmh": 70,
+      "AB": [
+        -0.05,
+        -0.05
+      ],
+      "physical_state_read_only": true
+    },
+    {
+      "start_m": 25013.5,
+      "speed_kmh": 70,
+      "AB": [
+        -0.05,
+        -0.05
+      ],
+      "physical_state_read_only": true
+    },
+    {
+      "start_m": 26633.5,
+      "speed_kmh": 70,
+      "AB": [
+        0.0,
+        -0.05
+      ],
+      "physical_state_read_only": true
+    },
+    {
+      "start_m": 26633.5,
+      "speed_kmh": 77,
+      "AB": [
+        -0.05,
+        -0.05
+      ],
+      "physical_state_read_only": true
+    }
+  ],
+  "status": "experimental, not production",
+  "scope": "defer a NEW head source only when the head section does not require it; no independent per-section pressure release claimed"
+}

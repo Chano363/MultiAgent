@@ -1,0 +1,7 @@
+{
+  "rows": true,
+  "vehicle_positions_m": true,
+  "vehicle_speeds_mps": true,
+  "coupler_interface_force_n": true,
+  "brake_pressure_coefficient": true
+}

@@ -1,0 +1,26 @@
+{
+  "controller_sha256": "5d1e7ef668e08b21c335b3f03d7a58b3478505fe14356a53abfb51614bf1d241",
+  "scope": "predeclared adjacent-start holdouts; all at 70kmh, 120 seconds, stop on1500",
+  "cases": [
+    {
+      "name": "flat_before100",
+      "start_m": 24913.5,
+      "speed_kmh": 70
+    },
+    {
+      "name": "flat_after100",
+      "start_m": 25113.5,
+      "speed_kmh": 70
+    },
+    {
+      "name": "reentry_before100",
+      "start_m": 26533.5,
+      "speed_kmh": 70
+    },
+    {
+      "name": "reentry_after100",
+      "start_m": 26733.5,
+      "speed_kmh": 70
+    }
+  ]
+}

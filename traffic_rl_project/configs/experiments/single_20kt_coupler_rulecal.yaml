@@ -6,7 +6,8 @@
 #   （只读 env_cfg，且强制 start_randomization=False，与下方训练段互不干扰）。
 #   MARL 训练走统一框架：python run_training.py --experiment configs/experiments/single_20kt_coupler_rulecal.yaml --seed 0
 #     （BC 热启动 → curriculum 短集 → long_eval 完整剖面；迭代一律 CLI --episodes 覆盖，勿改主值）
-#   三对比（变体 A/B 用 --override 关对应开关）：
+#   以下为历史三对比的开关说明；当前已加入2026-10-17升级筛选和ED前馈，
+#   复现旧实验须使用其冻结源码/元数据，不能只关这几个开关便称旧基线：
 #     A 140 kPa 旧基线: --override cyclic_notch_50=false --override cyclic_brake_trigger_kmh=none
 #                       --override cyclic_release_kmh=none --override ed_release_coordination=false
 #     B 50 kPa+速度门:  --override ed_release_coordination=false
@@ -29,7 +30,7 @@ algo_params:
 
 env_type: fleet
 env_cfg:
-  num_trains: 1                  # 单列（编队归队友主线，本文件不动 formation YAML）
+  num_trains: 1                  # 单列验收配置；三列需另做联合验收
   consist_preset: 20kt_1plus108_1plus108  # 1机车+108货车+1机车+108货车（头/中部双机车=2 智能体，ADR-035）
   grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 朔黄宁武西→北大牛 49.6km 真实纵断面（评估全程）
   v_max: 22.222                  # 80 km/h（观测/reward 速度带语义不动，表3 速度门只改控制器循环状态机）
@@ -47,13 +48,23 @@ env_cfg:
   coupler_force_limit_emergency_n: 2250000.0  # 安全硬顶 2250 kN 显式传入（防 2.25×limit=3375kN 错误推导）
   # ── 朔黄表3 运营口径（reference/simulation/data_line/朔黄铁路_完整线路信息表_表3表4补充版.xlsx）──
   cyclic_notch_50: true          # 循环减压 50 kPa（CYCLIC 档）替代 SERVICE 140 kPa
-  cyclic_brake_trigger_kmh: 65.0 # 制动触发速度门（表3 实测 58–65，取上限=最早触发）
-  cyclic_release_kmh: 55.0       # 缓解速度门（表3 实测 50–60，取中值）
-  ed_release_coordination: true  # 缓解转换时刻抬 ED≈900 kN 并持 50 s（近似"缓解前抬再生力"）
+  cyclic_brake_trigger_kmh: 65.0 # 触发门取65，较原80门提前
+  cyclic_release_kmh: 50.0       # 2026-10-17完整49.6km验收固定口径
+  ed_release_coordination: true
   ed_release_hold_s: 50.0        # 表3 缓解后保持时长
+  ed_release_boost_kn: 900.0     # 工程固定目标：全列合计；实车参数适用范围仍需独立标定
+  cyclic_ab_upgrade_kmh: 76.0   # 同时通过整列净需求筛选才升级SERVICE
+  ed_upgrade_ramp_s: 6.0        # 真实仿真秒，观测预演不消耗此时钟
+  ed_upgrade_ramp_scale: 0.7
+  ed_grade_feedforward: true    # 原50s保持结束后按净需求提供ED，不直接撤零
+  coupler_override: min_brake
+  eot: true
   start_randomization:
     enabled: true                # 训练态随机化（ADR/诊断 2026-10-06 路线覆盖）；
                                  # 规则层评估入口强制覆盖为 false，评估仍恒定起点可复现
+    cold_start_max_speed_kmh: 70.0 # 显式训练初态上限；10/20/40km短测支持，非全路线安全保证
+                                  # reset info记录请求/实际速度；不填造压力，不改固定起点评估80km/h
+                                  # 2026-10-17扩大复验：25.0135/26.6335km仍有车钩超限，随机初态未验收
 
 obs: env
 action: continuous

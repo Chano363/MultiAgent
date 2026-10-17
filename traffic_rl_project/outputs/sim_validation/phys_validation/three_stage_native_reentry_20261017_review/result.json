@@ -1,0 +1,776 @@
+{
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "698f4e0aec53",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "9aa4925f193e",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "diagnose_actuator_sensitivity.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "20kt_1plus108_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1500000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "env_cfg": {
+      "num_trains": 1,
+      "consist_preset": "20kt_1plus108_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 10000,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1500000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      },
+      "eval_mode": true
+    },
+    "source_sha256": {
+      "src/environments/train_fleet_env.py": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+      "src/environments/train_env.py": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+      "src/train_dynamics/train.py": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+      "src/train_dynamics/braking.py": "3c03d6a6bb652845a4075ba27dd6e7dc19958af425d9b5644bb1bf401f63676f",
+      "src/safety_layer.py": "aee89a0fe2b61e1dd9d0f2bbaf3c29bfaff98f2ead2947d2c102e1c5d32aa9f8",
+      "src/train_dynamics/grade_profile.py": "49eecb953c506559e1412cd12511759bcadc4212c48a8474451c3aedc55281e3",
+      "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\src\\evaluation\\diagnose_actuator_sensitivity.py": "5f1a6be8d6d3296394dbd97c947d0d04a3900a0eb464c9fe9f9ecf1ff960c94d"
+    },
+    "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+    "sequence_plan_sha256": "18e71661176017e31586b670c52c1e5f6e737c6c96bbaf0eb6b5b13fadddd88e",
+    "protocol": {
+      "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+      "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+      "output": "outputs\\sim_validation\\phys_validation\\three_stage_native_reentry_20261017_review",
+      "start_m": 26533.5,
+      "speed_kmh": 70,
+      "times_s": [
+        8.0
+      ],
+      "horizon_s": 12.0,
+      "sequence_grid": false,
+      "sequence_grid_mode": "full",
+      "ed_ramp_per_s": 0.5,
+      "record_vehicle_state": true,
+      "sequence_file": "outputs\\sim_validation\\phys_validation\\three_stage_native_plan_20261017_review\\plan.json"
+    },
+    "scope": "open-loop actuator sensitivity, not a policy evaluation",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  },
+  "checkpoints": [
+    {
+      "time_s": 8.0,
+      "initial_peak_kn": 1059.3345327597474,
+      "variants": {
+        "head_000": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1512.8715357711826,
+          "end_peak_kn": 1323.0456905213136,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.8059390099541,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_001": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1512.8715357711826,
+          "end_peak_kn": 1339.534619527562,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.61737162245059,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_002": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1525.2492182972333,
+          "end_peak_kn": 1340.9795892852678,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.4613546158307,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_010": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1560.6981748180638,
+          "end_peak_kn": 1338.850781895015,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.70276069947266,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_011": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1528.6659471748026,
+          "end_peak_kn": 1323.9436648715987,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.51422981409387,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_012": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1524.7990569561832,
+          "end_peak_kn": 1319.6540336758667,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.32274109521907,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_020": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1566.2873262646012,
+          "end_peak_kn": 1373.3364953220337,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.59809847378705,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_021": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1603.864411490544,
+          "end_peak_kn": 1337.9777490415463,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.44392388253745,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_022": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1549.1181774435338,
+          "end_peak_kn": 1372.2180242047875,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.25278969857023,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_100": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1576.4366461797717,
+          "end_peak_kn": 1437.380567271104,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.73694392739353,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_101": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1569.1038225115885,
+          "end_peak_kn": 1353.8158894449762,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.54858863001392,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_102": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1582.2880812677301,
+          "end_peak_kn": 1377.8719030134373,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.39228016334464,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_110": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1575.4058425510302,
+          "end_peak_kn": 1399.9200166387336,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.63341491126185,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_111": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1699.511189114158,
+          "end_peak_kn": 1344.4986649960415,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.44479530876835,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_112": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1700.8495697701937,
+          "end_peak_kn": 1439.4595325573819,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.25325180489224,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_120": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1720.2793996076534,
+          "end_peak_kn": 1415.9089006033346,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.49386672743671,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_121": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1667.904701271803,
+          "end_peak_kn": 1373.8613216261244,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.33927831757275,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_122": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1715.515968759715,
+          "end_peak_kn": 1413.4432078190202,
+          "max_vehicle_kmh": 72.06471089439015,
+          "end_mean_kmh": 69.14761803618975,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_200": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1657.759810085337,
+          "end_peak_kn": 1498.4102888500968,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.5972200316437,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_201": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1722.6233181512948,
+          "end_peak_kn": 1483.2893539542667,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.40858577949417,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_202": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1705.4013775196474,
+          "end_peak_kn": 1495.9199701288312,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.25178299332359,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_210": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1716.0706784595898,
+          "end_peak_kn": 1449.062247648228,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.52818154360435,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_211": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1718.3358423082377,
+          "end_peak_kn": 1444.475383640007,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.33937136005392,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_212": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1730.254133543377,
+          "end_peak_kn": 1480.2295149106083,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.1474391030421,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_220": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1905.6906807617665,
+          "end_peak_kn": 1463.7270970024963,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.3883941805486,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_221": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1792.603237948092,
+          "end_peak_kn": 1530.895575141928,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.233072574578,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        },
+        "head_222": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1691.819473460606,
+          "end_peak_kn": 1495.3425216435896,
+          "max_vehicle_kmh": 72.06478067146053,
+          "end_mean_kmh": 69.04127763759516,
+          "block_durations_s": [
+            3.0,
+            3.0,
+            6.0
+          ]
+        }
+      }
+    }
+  ]
+}

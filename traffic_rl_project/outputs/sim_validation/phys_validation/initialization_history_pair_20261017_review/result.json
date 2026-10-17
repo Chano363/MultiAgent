@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "698f4e0aec53",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "9aa4925f193e",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "compare_initial_state_history.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "20kt_1plus108_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1500000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "env_cfg": {
+      "num_trains": 1,
+      "consist_preset": "20kt_1plus108_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 1801,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1500000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      },
+      "formation_start_randomization": {
+        "enabled": false
+      },
+      "eval_mode": true
+    },
+    "source_sha256": {
+      "src/environments/train_fleet_env.py": "050ef7654ccf528d1383911c33d90221e6abacd1b1708602ae054bce3e88415f",
+      "src/environments/train_env.py": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+      "src/controllers/multi_loco_controller.py": "b1c2e0a0cafc258fe93507739fd7f8435c265dc00f85b919765fe0c5739ecdb8",
+      "src/train_dynamics/train.py": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+      "src/train_dynamics/braking.py": "3c03d6a6bb652845a4075ba27dd6e7dc19958af425d9b5644bb1bf401f63676f",
+      "src/train_dynamics/coupler.py": "34fa00d24080755e7f9b9a0c59cb085b716fbe96106511d029e9f6cf2e0187c2",
+      "src/train_dynamics/etcs_braking.py": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+      "src\\evaluation\\compare_initial_state_history.py": "f9e229d44e4b2ddeb7c66ddb774707992e53caaa4943ebb8763faa6cadf9da6d"
+    },
+    "protocol": {
+      "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+      "output": "outputs\\sim_validation\\phys_validation\\initialization_history_pair_20261017_review",
+      "start_m": 20000.0,
+      "speed_kmh": 65.0,
+      "warmup_steps": 600,
+      "compare_steps": 1200,
+      "target_kn": 1350.0
+    },
+    "scope": "single-train diagnostic; no RL training",
+    "history_ablation": "all hidden history reset; position and velocity matched",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  },
+  "summary": {
+    "warmup": {
+      "steps": 600,
+      "elapsed_s": 60.0,
+      "peak_kn_including_initial": 1327.6921757049433,
+      "max_vehicle_speed_kmh_including_initial": 68.17360603776864,
+      "mean_train_speed_kmh": 65.09036241071531,
+      "min_train_mean_speed_kmh": 62.66813155522259,
+      "overspeed_train_steps": 0,
+      "safety_events": 0,
+      "coupler_section_time_violations": 0,
+      "stop_reason": null
+    },
+    "warmup_accepted": true,
+    "warm_continuation": {
+      "steps": 1200,
+      "elapsed_s": 120.0,
+      "peak_kn_including_initial": 1314.7774256538523,
+      "max_vehicle_speed_kmh_including_initial": 63.20892225151738,
+      "mean_train_speed_kmh": 56.197655638069016,
+      "min_train_mean_speed_kmh": 49.9501032650901,
+      "overspeed_train_steps": 0,
+      "safety_events": 0,
+      "coupler_section_time_violations": 0,
+      "stop_reason": null
+    },
+    "cold_kinematics_only": {
+      "steps": 1200,
+      "elapsed_s": 120.0,
+      "peak_kn_including_initial": 1235.7931462749489,
+      "max_vehicle_speed_kmh_including_initial": 68.61177106348599,
+      "mean_train_speed_kmh": 65.24293963831087,
+      "min_train_mean_speed_kmh": 60.85890884129929,
+      "overspeed_train_steps": 0,
+      "safety_events": 0,
+      "coupler_section_time_violations": 0,
+      "stop_reason": null
+    }
+  }
+}

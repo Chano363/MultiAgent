@@ -1,0 +1,13 @@
+{
+  "scope": "Static initial state, no air built, both locomotives at maximum ED; not a route performance result",
+  "physics_version": "b14005bbe8f3",
+  "consist": "20kt_1plus108_1plus108",
+  "start_m": 20000,
+  "initial_kmh": 79.9992,
+  "configured_limit_kmh": 79.9992,
+  "gravity_kn": 2351.9796402399998,
+  "resistance_kn": 859.3222946176278,
+  "maximum_ed_kn": 734.4073440734406,
+  "initial_air_kn": -0.0,
+  "net_accel_before_air_mps2": 0.0345035493970209
+}

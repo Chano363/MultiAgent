@@ -1,0 +1,11 @@
+{
+  "prefix_samples": 125,
+  "checks": {
+    "rows": true,
+    "commands": true,
+    "coupler_interface_force_n": true,
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "brake_pressure_coefficient": true
+  }
+}

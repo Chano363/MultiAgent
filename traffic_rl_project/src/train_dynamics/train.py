@@ -386,15 +386,16 @@ class TrainDynamics:
         return np.maximum(padded[:-1], padded[1:])        # 长度 n
 
     def coupler_interface_forces_per_vehicle_signed(self) -> np.ndarray:
-        """每节车相邻钩断面力的**带符号**视图（长度 n）。
+        """每节车相邻钩断面力视图：拉钩为正、压钩为负（长度 n）。
 
-        U 组（2026-10-16）方向感知用：取幅值较大的相邻钩断面力并保留符号
-        （正=拉钩/前车受向前力，负=压钩），供安全层规则 A 区分拉/压方向分流干预。
+        原始断面力是前车受力：拉伸时向后（负），压缩时向前（正）。
+        安全层方向接口采用拉正压负，故先反号，再选幅值较大的相邻车钩。
+        原始断面力和用于动力学积分的力保持原有坐标方向约定。
         """
         n = self.num_vehicles
         if n < 2:
             return np.zeros(n)
-        f = self._coupler_interface_forces_vec()          # 长度 n-1，正=拉
+        f = -self._coupler_interface_forces_vec()         # 长度 n-1，拉正压负
         padded = np.concatenate(([0.0], f, [0.0]))        # 长度 n+1
         a, b = padded[:-1], padded[1:]
         return np.where(np.abs(a) >= np.abs(b), a, b)     # 长度 n

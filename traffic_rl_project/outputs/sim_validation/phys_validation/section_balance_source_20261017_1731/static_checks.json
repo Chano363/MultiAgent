@@ -1,0 +1,63 @@
+{
+  "source_sha256": "0db029ae9de3fd00bbc2269731d3eca0d0ebc2c527eaa75c220abfbe17910364",
+  "checks": [
+    {
+      "start_m": 0,
+      "old_depth": [
+        1.0,
+        0.7
+      ],
+      "new_depth": [
+        1.0,
+        0.7
+      ],
+      "force_error_n": 0.0,
+      "AB_unchanged": true,
+      "dynamics_read_only": true
+    },
+    {
+      "start_m": 20000,
+      "old_depth": [
+        1.0,
+        0.7
+      ],
+      "new_depth": [
+        0.7000000476837158,
+        1.0
+      ],
+      "force_error_n": 0.020010811975225806,
+      "AB_unchanged": true,
+      "dynamics_read_only": true
+    },
+    {
+      "start_m": 25013.5,
+      "old_depth": [
+        1.0,
+        0.7
+      ],
+      "new_depth": [
+        0.8464340567588806,
+        0.8535659909248352
+      ],
+      "force_error_n": 0.020010811975225806,
+      "AB_unchanged": true,
+      "dynamics_read_only": true
+    },
+    {
+      "start_m": 26633.5,
+      "old_depth": [
+        1.0,
+        0.7
+      ],
+      "new_depth": [
+        0.7000000476837158,
+        1.0
+      ],
+      "force_error_n": 0.020010811975225806,
+      "AB_unchanged": true,
+      "dynamics_read_only": true
+    }
+  ],
+  "status": "experimental, not promoted",
+  "basis": "per-vehicle force balance, Ma2023 equation 8; this allocation is self-developed, not a reproduced QP controller"
+}

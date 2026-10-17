@@ -1,0 +1,10 @@
+{
+  "forecast_force_max_difference_n": 0.0,
+  "forecast_requests_exact": true,
+  "forecast_window_s": [
+    8,
+    14
+  ],
+  "continuation_acceptance_crossing_s": 14.7,
+  "scope": "exact native rollout reproduction, not closed-loop safety proof"
+}

@@ -1,0 +1,1393 @@
+{
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "698f4e0aec53",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "9aa4925f193e",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "diagnose_actuator_sensitivity.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "20kt_1plus108_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1500000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "env_cfg": {
+      "num_trains": 1,
+      "consist_preset": "20kt_1plus108_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 10000,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1500000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      },
+      "eval_mode": true
+    },
+    "source_sha256": {
+      "src/environments/train_fleet_env.py": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+      "src/environments/train_env.py": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+      "src/train_dynamics/train.py": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+      "src/train_dynamics/braking.py": "3c03d6a6bb652845a4075ba27dd6e7dc19958af425d9b5644bb1bf401f63676f",
+      "src/safety_layer.py": "aee89a0fe2b61e1dd9d0f2bbaf3c29bfaff98f2ead2947d2c102e1c5d32aa9f8",
+      "src/train_dynamics/grade_profile.py": "49eecb953c506559e1412cd12511759bcadc4212c48a8474451c3aedc55281e3",
+      "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\src\\evaluation\\diagnose_actuator_sensitivity.py": "8ea30f15129e7044e89c37b91be3d7625509152e3a910f30276b668e35f4b612"
+    },
+    "controller_sha256": "4398e400f0bc0594b4dcde29291a58739dd96d7743e1abe6880f487f2b9fb4f0",
+    "protocol": {
+      "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+      "controller_source": "outputs\\sim_validation\\phys_validation\\air_admission_forecast_fast_source_20261017_1745\\controller_source.py",
+      "output": "outputs\\sim_validation\\phys_validation\\ed_sequence_flat_20261017_review",
+      "start_m": 25013.5,
+      "speed_kmh": 70,
+      "times_s": [
+        35.0
+      ],
+      "horizon_s": 6.0,
+      "sequence_grid": true,
+      "ed_ramp_per_s": 0.5
+    },
+    "scope": "open-loop actuator sensitivity, not a policy evaluation",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  },
+  "checkpoints": [
+    {
+      "time_s": 35.0,
+      "initial_peak_kn": 1065.2511808152244,
+      "variants": {
+        "sequence_0_0": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1333.35665815685,
+          "end_peak_kn": 1299.3651180482823,
+          "max_vehicle_kmh": 73.52513506071548,
+          "end_mean_kmh": 73.03277466591669
+        },
+        "sequence_0_1": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1325.0028481049303,
+          "end_peak_kn": 1254.8316807098734,
+          "max_vehicle_kmh": 73.52299633930883,
+          "end_mean_kmh": 72.9490484767092
+        },
+        "sequence_0_2": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1329.5794246220107,
+          "end_peak_kn": 1316.0727391134324,
+          "max_vehicle_kmh": 73.5229963393064,
+          "end_mean_kmh": 72.89800948538307
+        },
+        "sequence_0_3": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1328.5188725438231,
+          "end_peak_kn": 1278.026602431266,
+          "max_vehicle_kmh": 73.52513498364166,
+          "end_mean_kmh": 72.94887528446056
+        },
+        "sequence_0_4": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1312.0216971206112,
+          "end_peak_kn": 1242.890696390638,
+          "max_vehicle_kmh": 73.52299633937231,
+          "end_mean_kmh": 72.86511502034618
+        },
+        "sequence_0_5": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1346.2563777330772,
+          "end_peak_kn": 1346.2563777330772,
+          "max_vehicle_kmh": 73.5229963393728,
+          "end_mean_kmh": 72.81454147568444
+        },
+        "sequence_0_6": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1330.5144656436983,
+          "end_peak_kn": 1265.2198353306087,
+          "max_vehicle_kmh": 73.52513498297719,
+          "end_mean_kmh": 72.89846328201178
+        },
+        "sequence_0_7": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1312.0216971206112,
+          "end_peak_kn": 1246.8920567618902,
+          "max_vehicle_kmh": 73.52299633937231,
+          "end_mean_kmh": 72.81498422965494
+        },
+        "sequence_0_8": {
+          "ED_depths": [
+            [
+              0.0,
+              0.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1330.7667620877187,
+          "end_peak_kn": 1316.8166898795355,
+          "max_vehicle_kmh": 73.5229963393728,
+          "end_mean_kmh": 72.76409875409526
+        },
+        "sequence_1_0": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1264.0170898109639,
+          "end_peak_kn": 1261.5582241485483,
+          "max_vehicle_kmh": 73.42068423552765,
+          "end_mean_kmh": 72.9462120215894
+        },
+        "sequence_1_1": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1262.7697808290982,
+          "end_peak_kn": 1216.4210245274,
+          "max_vehicle_kmh": 73.4204542087524,
+          "end_mean_kmh": 72.86278790607064
+        },
+        "sequence_1_2": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1252.2624106756098,
+          "end_peak_kn": 1199.0958475522532,
+          "max_vehicle_kmh": 73.42046000008607,
+          "end_mean_kmh": 72.77846943208998
+        },
+        "sequence_1_3": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1275.4442621214207,
+          "end_peak_kn": 1227.5399051039353,
+          "max_vehicle_kmh": 73.42068423693937,
+          "end_mean_kmh": 72.86306157551321
+        },
+        "sequence_1_4": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1253.6210243684511,
+          "end_peak_kn": 1187.794472430639,
+          "max_vehicle_kmh": 73.4204590065201,
+          "end_mean_kmh": 72.77918533905859
+        },
+        "sequence_1_5": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1252.9343378174608,
+          "end_peak_kn": 1209.1428969879644,
+          "max_vehicle_kmh": 73.42046008381904,
+          "end_mean_kmh": 72.69503945723909
+        },
+        "sequence_1_6": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1279.9869179560217,
+          "end_peak_kn": 1248.7884078650366,
+          "max_vehicle_kmh": 73.42068424653685,
+          "end_mean_kmh": 72.81263501669807
+        },
+        "sequence_1_7": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1260.1693366809004,
+          "end_peak_kn": 1162.6395736102281,
+          "max_vehicle_kmh": 73.42045900155688,
+          "end_mean_kmh": 72.72874132780701
+        },
+        "sequence_1_8": {
+          "ED_depths": [
+            [
+              0.0,
+              0.5
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1253.7692016022938,
+          "end_peak_kn": 1223.5118101014154,
+          "max_vehicle_kmh": 73.42046008382324,
+          "end_mean_kmh": 72.64445585887655
+        },
+        "sequence_2_0": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1227.1548140156804,
+          "end_peak_kn": 1198.5039676989459,
+          "max_vehicle_kmh": 73.38473083518937,
+          "end_mean_kmh": 72.80564557822193
+        },
+        "sequence_2_1": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1241.8689005010494,
+          "end_peak_kn": 1241.8689005010494,
+          "max_vehicle_kmh": 73.38473083518927,
+          "end_mean_kmh": 72.7551054895197
+        },
+        "sequence_2_2": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1249.8743563654243,
+          "end_peak_kn": 1249.8743563654243,
+          "max_vehicle_kmh": 73.38473096866839,
+          "end_mean_kmh": 72.67050814653705
+        },
+        "sequence_2_3": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1224.7096834611157,
+          "end_peak_kn": 1206.755678651794,
+          "max_vehicle_kmh": 73.38473083570273,
+          "end_mean_kmh": 72.72250998087117
+        },
+        "sequence_2_4": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1193.8730694102608,
+          "end_peak_kn": 1186.421884590759,
+          "max_vehicle_kmh": 73.384730835727,
+          "end_mean_kmh": 72.67157041285554
+        },
+        "sequence_2_5": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1252.0957934801877,
+          "end_peak_kn": 1252.0957934801877,
+          "max_vehicle_kmh": 73.38473097774151,
+          "end_mean_kmh": 72.58705291673633
+        },
+        "sequence_2_6": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1227.2282011484847,
+          "end_peak_kn": 1226.5290148092893,
+          "max_vehicle_kmh": 73.38473083570273,
+          "end_mean_kmh": 72.6717510155145
+        },
+        "sequence_2_7": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1198.2123922545884,
+          "end_peak_kn": 1195.6129315233798,
+          "max_vehicle_kmh": 73.384730835727,
+          "end_mean_kmh": 72.62116075429084
+        },
+        "sequence_2_8": {
+          "ED_depths": [
+            [
+              0.0,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1257.0953881134399,
+          "end_peak_kn": 1251.315146920911,
+          "max_vehicle_kmh": 73.38473097774151,
+          "end_mean_kmh": 72.53686446564016
+        },
+        "sequence_3_0": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1332.952417965191,
+          "end_peak_kn": 1286.3524636635268,
+          "max_vehicle_kmh": 73.5273664111611,
+          "end_mean_kmh": 72.9658939157532
+        },
+        "sequence_3_1": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1337.1488929213442,
+          "end_peak_kn": 1215.3436438900112,
+          "max_vehicle_kmh": 73.52644759727579,
+          "end_mean_kmh": 72.88273540715772
+        },
+        "sequence_3_2": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1339.0567732318566,
+          "end_peak_kn": 1339.0567732318566,
+          "max_vehicle_kmh": 73.52644759729525,
+          "end_mean_kmh": 72.83156264560382
+        },
+        "sequence_3_3": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1329.102332781141,
+          "end_peak_kn": 1316.541382484824,
+          "max_vehicle_kmh": 73.52744054329715,
+          "end_mean_kmh": 72.88265278264205
+        },
+        "sequence_3_4": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1328.511689284981,
+          "end_peak_kn": 1235.9646753514924,
+          "max_vehicle_kmh": 73.52666011019599,
+          "end_mean_kmh": 72.79880897360042
+        },
+        "sequence_3_5": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1328.511689284981,
+          "end_peak_kn": 1327.2192576993457,
+          "max_vehicle_kmh": 73.52666011019626,
+          "end_mean_kmh": 72.7480447747858
+        },
+        "sequence_3_6": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1324.2969209802507,
+          "end_peak_kn": 1184.4801846315518,
+          "max_vehicle_kmh": 73.52734293676511,
+          "end_mean_kmh": 72.7977105461061
+        },
+        "sequence_3_7": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1350.7957365416214,
+          "end_peak_kn": 1266.7599760321818,
+          "max_vehicle_kmh": 73.52617860478816,
+          "end_mean_kmh": 72.7140002164474
+        },
+        "sequence_3_8": {
+          "ED_depths": [
+            [
+              0.5,
+              0.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1350.7957365416214,
+          "end_peak_kn": 1286.3810580614524,
+          "max_vehicle_kmh": 73.52617860481793,
+          "end_mean_kmh": 72.66325876027119
+        },
+        "sequence_4_0": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1299.578681695823,
+          "end_peak_kn": 1291.9635172926291,
+          "max_vehicle_kmh": 73.42441200165584,
+          "end_mean_kmh": 72.87983765175481
+        },
+        "sequence_4_1": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1272.847117140349,
+          "end_peak_kn": 1267.0030109400877,
+          "max_vehicle_kmh": 73.42434861333739,
+          "end_mean_kmh": 72.7960259382946
+        },
+        "sequence_4_2": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1211.4434496111985,
+          "end_peak_kn": 1211.4434496111985,
+          "max_vehicle_kmh": 73.42451823088524,
+          "end_mean_kmh": 72.71187694879585
+        },
+        "sequence_4_3": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1308.6348504565037,
+          "end_peak_kn": 1302.0998777903687,
+          "max_vehicle_kmh": 73.42441199926586,
+          "end_mean_kmh": 72.79610183810276
+        },
+        "sequence_4_4": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1302.732050503804,
+          "end_peak_kn": 1223.2674385871824,
+          "max_vehicle_kmh": 73.424352613692,
+          "end_mean_kmh": 72.71272593133428
+        },
+        "sequence_4_5": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1273.507522024104,
+          "end_peak_kn": 1222.3534399795428,
+          "max_vehicle_kmh": 73.42440187706833,
+          "end_mean_kmh": 72.6285624739186
+        },
+        "sequence_4_6": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1329.8210012147435,
+          "end_peak_kn": 1329.8210012147435,
+          "max_vehicle_kmh": 73.42440177119715,
+          "end_mean_kmh": 72.71189366576407
+        },
+        "sequence_4_7": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1271.8197401387706,
+          "end_peak_kn": 1262.3322084595673,
+          "max_vehicle_kmh": 73.42435386549177,
+          "end_mean_kmh": 72.62748204424905
+        },
+        "sequence_4_8": {
+          "ED_depths": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1260.5033994712048,
+          "end_peak_kn": 1236.432859838988,
+          "max_vehicle_kmh": 73.42424702550173,
+          "end_mean_kmh": 72.54343445029176
+        },
+        "sequence_5_0": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1243.6559104039916,
+          "end_peak_kn": 1243.6559104039916,
+          "max_vehicle_kmh": 73.38473102548569,
+          "end_mean_kmh": 72.73906431518915
+        },
+        "sequence_5_1": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1267.8779331136543,
+          "end_peak_kn": 1256.0461988502736,
+          "max_vehicle_kmh": 73.38473104840192,
+          "end_mean_kmh": 72.68843376673912
+        },
+        "sequence_5_2": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1334.026222505201,
+          "end_peak_kn": 1330.1528208163272,
+          "max_vehicle_kmh": 73.38473096151802,
+          "end_mean_kmh": 72.60419089067348
+        },
+        "sequence_5_3": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1247.1276051772888,
+          "end_peak_kn": 1209.7283284763516,
+          "max_vehicle_kmh": 73.38473104183537,
+          "end_mean_kmh": 72.65557986468524
+        },
+        "sequence_5_4": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1257.9207181408212,
+          "end_peak_kn": 1257.9207181408212,
+          "max_vehicle_kmh": 73.38473103302523,
+          "end_mean_kmh": 72.6049392023383
+        },
+        "sequence_5_5": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1419.021854392489,
+          "end_peak_kn": 1419.021854392489,
+          "max_vehicle_kmh": 73.38473096011633,
+          "end_mean_kmh": 72.52046199391094
+        },
+        "sequence_5_6": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1241.0138049478771,
+          "end_peak_kn": 1198.0102107822515,
+          "max_vehicle_kmh": 73.38473102378775,
+          "end_mean_kmh": 72.57135634276355
+        },
+        "sequence_5_7": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1270.227505724327,
+          "end_peak_kn": 1270.227505724327,
+          "max_vehicle_kmh": 73.38473102380013,
+          "end_mean_kmh": 72.52047196135085
+        },
+        "sequence_5_8": {
+          "ED_depths": [
+            [
+              0.5,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1332.7291188267636,
+          "end_peak_kn": 1309.194100694648,
+          "max_vehicle_kmh": 73.38473096290494,
+          "end_mean_kmh": 72.43591479105572
+        },
+        "sequence_6_0": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1558.3707168680885,
+          "end_peak_kn": 1552.1526515796963,
+          "max_vehicle_kmh": 73.52753302553347,
+          "end_mean_kmh": 72.831418849477
+        },
+        "sequence_6_1": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1455.1214072347918,
+          "end_peak_kn": 1431.6517982932603,
+          "max_vehicle_kmh": 73.52734680263077,
+          "end_mean_kmh": 72.74786221325344
+        },
+        "sequence_6_2": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1461.9324008703275,
+          "end_peak_kn": 1358.922170130167,
+          "max_vehicle_kmh": 73.52734680259829,
+          "end_mean_kmh": 72.69704915296397
+        },
+        "sequence_6_3": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1544.8409646259317,
+          "end_peak_kn": 1544.8409646259317,
+          "max_vehicle_kmh": 73.52753302565574,
+          "end_mean_kmh": 72.78112550870469
+        },
+        "sequence_6_4": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1437.7881804949116,
+          "end_peak_kn": 1412.2930058426045,
+          "max_vehicle_kmh": 73.52734680263077,
+          "end_mean_kmh": 72.69772329039297
+        },
+        "sequence_6_5": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1436.7748630692047,
+          "end_peak_kn": 1417.567334758709,
+          "max_vehicle_kmh": 73.52734680259829,
+          "end_mean_kmh": 72.64688233562993
+        },
+        "sequence_6_6": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1533.5800499755337,
+          "end_peak_kn": 1525.9740880122897,
+          "max_vehicle_kmh": 73.52860958277704,
+          "end_mean_kmh": 72.696969519087
+        },
+        "sequence_6_7": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1462.9889614741953,
+          "end_peak_kn": 1454.9698131163113,
+          "max_vehicle_kmh": 73.52747692917583,
+          "end_mean_kmh": 72.61318594228862
+        },
+        "sequence_6_8": {
+          "ED_depths": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1452.9060883982042,
+          "end_peak_kn": 1394.2480381938187,
+          "max_vehicle_kmh": 73.52747692918338,
+          "end_mean_kmh": 72.56247358450635
+        },
+        "sequence_7_0": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1311.4323308701514,
+          "end_peak_kn": 1279.2100392201767,
+          "max_vehicle_kmh": 73.42759042582605,
+          "end_mean_kmh": 72.74557132275805
+        },
+        "sequence_7_1": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1457.7522687031817,
+          "end_peak_kn": 1457.7522687031817,
+          "max_vehicle_kmh": 73.42820396114661,
+          "end_mean_kmh": 72.66130788947854
+        },
+        "sequence_7_2": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1408.8344335410732,
+          "end_peak_kn": 1342.7488382709546,
+          "max_vehicle_kmh": 73.42728135609237,
+          "end_mean_kmh": 72.5772531673694
+        },
+        "sequence_7_3": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1287.9471183862279,
+          "end_peak_kn": 1266.1720420272422,
+          "max_vehicle_kmh": 73.42759042969827,
+          "end_mean_kmh": 72.69574613450335
+        },
+        "sequence_7_4": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1449.0090714258508,
+          "end_peak_kn": 1404.1186675941583,
+          "max_vehicle_kmh": 73.42820396102063,
+          "end_mean_kmh": 72.61139996465981
+        },
+        "sequence_7_5": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1390.6739509544077,
+          "end_peak_kn": 1269.0806070635867,
+          "max_vehicle_kmh": 73.42728135609241,
+          "end_mean_kmh": 72.52738890717306
+        },
+        "sequence_7_6": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1461.5138256605599,
+          "end_peak_kn": 1349.6838943923665,
+          "max_vehicle_kmh": 73.42802919575817,
+          "end_mean_kmh": 72.61095670736898
+        },
+        "sequence_7_7": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1324.1699891961955,
+          "end_peak_kn": 1192.8801087297095,
+          "max_vehicle_kmh": 73.42850446342183,
+          "end_mean_kmh": 72.5266466974059
+        },
+        "sequence_7_8": {
+          "ED_depths": [
+            [
+              1.0,
+              0.5
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1333.6640633170719,
+          "end_peak_kn": 1261.1808412272164,
+          "max_vehicle_kmh": 73.42728349925638,
+          "end_mean_kmh": 72.44305491097025
+        },
+        "sequence_8_0": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1251.4042204606258,
+          "end_peak_kn": 1237.0836439545094,
+          "max_vehicle_kmh": 73.38473060529228,
+          "end_mean_kmh": 72.60449069487383
+        },
+        "sequence_8_1": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1286.9440722448148,
+          "end_peak_kn": 1286.9440722448148,
+          "max_vehicle_kmh": 73.38473060528989,
+          "end_mean_kmh": 72.55400567918214
+        },
+        "sequence_8_2": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1333.2149794282059,
+          "end_peak_kn": 1333.2149794282059,
+          "max_vehicle_kmh": 73.3847305804075,
+          "end_mean_kmh": 72.46941010243769
+        },
+        "sequence_8_3": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.5,
+              0.0
+            ]
+          ],
+          "peak_kn": 1246.8281042608826,
+          "end_peak_kn": 1243.7295720243612,
+          "max_vehicle_kmh": 73.38473060529228,
+          "end_mean_kmh": 72.55447570483717
+        },
+        "sequence_8_4": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "peak_kn": 1361.4157164385663,
+          "end_peak_kn": 1361.4157164385663,
+          "max_vehicle_kmh": 73.38473060529199,
+          "end_mean_kmh": 72.50376040949902
+        },
+        "sequence_8_5": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.5,
+              1.0
+            ]
+          ],
+          "peak_kn": 1382.8158894291762,
+          "end_peak_kn": 1382.8158894291762,
+          "max_vehicle_kmh": 73.3847305804075,
+          "end_mean_kmh": 72.41924768458543
+        },
+        "sequence_8_6": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              1.0,
+              0.0
+            ]
+          ],
+          "peak_kn": 1241.5460876035024,
+          "end_peak_kn": 1224.5533720401324,
+          "max_vehicle_kmh": 73.38473061693436,
+          "end_mean_kmh": 72.46987949199664
+        },
+        "sequence_8_7": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              1.0,
+              0.5
+            ]
+          ],
+          "peak_kn": 1346.5293989568993,
+          "end_peak_kn": 1336.6808727348705,
+          "max_vehicle_kmh": 73.38473061693436,
+          "end_mean_kmh": 72.4189380206963
+        },
+        "sequence_8_8": {
+          "ED_depths": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "peak_kn": 1325.7768401530893,
+          "end_peak_kn": 1303.5272659481172,
+          "max_vehicle_kmh": 73.38473057143248,
+          "end_mean_kmh": 72.33449991177842
+        }
+      }
+    }
+  ]
+}
