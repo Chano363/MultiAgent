@@ -772,3 +772,17 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
   4. **历史不追改**：logs/progress/、logs/diagnostics/、ppt_talk/report_*/OUTLINE.md 等历史/演示产物按 append-only 保留原文字；仅当前立论与执行口径文档覆盖式修订。
 - **后果**：EXECUTION_RULES.md 第 4 条"protocol 标注 re-identification"的标注要求随协议废止不再执行；MPC 基线代码 NMPCController 的 grade_at 读入行为不变（本就是固有输入），仅文档口径变更，**无代码改动**。
 - **相关**：ADR-016（被本 ADR 废止）、ADR-010（Regime A/B 原出处）、ADR-032（成本叙事废止，前提证伪）、ADR-034（Formation-MPC 公允三条件中的"逐线喂图纸"表述由本 ADR 修正）。
+
+
+## ADR-038 主对比表移除"单列 RL 范式行" - 2026-10-17
+
+- **状态**：决策 + 文档层已落地（RESEARCH_POSITIONING.md §1.6 / AGENTS.md / docs/tasks.md / docs/杂项 两份对位文档覆盖式修订或加注；历史日志 logs/ 原样保留仅作历史）。
+- **背景（2026-10-17 用户裁定）**：ADR-034 主表含"单列 RL 范式行"（预期 = 按 Zhang2024 论文设计在本仿真器上实现的单列 RL）。用户裁定移除，理由：本项目并未复刻该文献实现；若以自研网络逐列单独训练充当该行，本质 = 本方法拆掉协同成分，与 D-RL(独立) 消融列高度重复（一个遮编队观测、一个连训练都分开），**行标签与实现对不上，比少一行更糟**；与 NMPC 退表同理，自建变体无说服力。
+- **决策**：
+  1. **主表结构改为**：D-Rule / Formation-MPC / D-RL（formation）+ **D-RL（独立）消融列（claim 唯一承载，不变）**——由四行降为三行 + 消融列。
+  2. **文献单列 RL（Zhang2024 / Liu2021 / Wang2026 等）降为 related work 文本**：只作范式描述与边界对照（措辞纪律沿 ADR-030/034："据系统检索未见"、不可主张清单不变），不占主表行、不作为可比基线实现。
+  3. **RL 范式的现场代表 = 本文 D-RL 自身**；why-MARL 仍用结构性论证（ADR-034 三项不加不变）。
+  4. **历史不追改**：logs/progress、logs/diagnostics、杂项讨论记录等历史/流水产物按 append-only 保留原文字；仅当前立论与口径文档覆盖式修订。
+- **后果**：H1–H3 预注册、防守句式 "all comparisons hold the algorithm fixed..."、Formation-MPC 写作红线（只主张编队指标）均**不变**；对比实现工作量减少（无需实现单列 RL 行）；**无代码改动**。
+- **SSOT 联动**：`RESEARCH_POSITIONING.md` §1.6（主表结构 / 主 claim 基线列举 / 主对比结构三处）；`AGENTS.md` 主表条目；`docs/tasks.md` 第 9 条；`docs/杂项/项目介绍和问题简述.md`（主对比行）；`docs/杂项/文献整理_论文方向讨论_20261016.md`（追加注记）。
+- **相关**：ADR-034（原主表结构，被本 ADR 部分修订）、ADR-032（主 claim 不变）、ADR-030（文献边界措辞不变）、ADR-034 NMPC 退表裁定（同一逻辑：自建变体无说服力）。
