@@ -197,7 +197,11 @@ class TrainFormationEnv:
             self.num_vehicles = consist.num_vehicles
         else:
             consist = default_consist(self.num_vehicles, self.num_locomotives)
-        self.dynamics = TrainDynamics(consist, dt=self.dt, couplers=config.get('couplers'))
+        self.dynamics = TrainDynamics(
+            consist, dt=self.dt, couplers=config.get('couplers'),
+            # 【AD 组 2026-10-17】中置机车制动波源延时（0.0 = 同步多源旧行为零回归）
+            mid_source_delay_s=float(config.get('mid_source_delay_s', 0.0)),
+        )
         # 优先使用坡度剖面（长大下坡场景），否则用恒定坡度
         if self.grade_profile_name:
             from src.train_dynamics.grade_profile import PROFILES

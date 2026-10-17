@@ -162,21 +162,21 @@ class MultiLocoController:
         if cyclic_ab_upgrade_notch not in ('service', 'min'):
             raise ValueError("cyclic_ab_upgrade_notch must be 'service' or 'min'")
         self.cyclic_ab_upgrade_notch = cyclic_ab_upgrade_notch
-        # 【X 组 2026-10-16 ED-AB 波到达协同（默认 0.0/1.0 = 关，零回归）】
+        # 【X 组→Z 组 2026-10-16 ED-AB 波到达协同（默认 0.0/1.0 = 关，零回归）】
         # R 峰值微观实证（R_eot t=21661-21811）：头/中先 service，尾车 AB 波延迟 7.5 s
         # 才到达 → 尾 free-run 冲 81.7，ruleA 又把头机 ED 钳 366→150 而尾机全开
-        # （-274+service）→ 中尾速度反转，断面 133 拉爆 1823 kN。本旋钮：升级**边沿**
-        # 触发后窗内（ed_upgrade_ramp_s）头/中机车 ED × scale 降权（不提前猛减速），
-        # 窗到期（尾波已到）恢复满值 → 全列 ED+AB 同步减速，缩小波延迟期速度反转。
+        # （-274+service）→ 中尾速度反转，断面 133 拉爆 1823 kN。本旋钮（Z 组语义）：
+        # **每次 release→braking 施加沿**启动窗（ed_upgrade_ramp_s）内头/中机车 ED × scale
+        # 降权（尾波到齐前不提前猛减速），窗到期恢复满值 → 每个施加波都被覆盖（X 组原挂
+        # 升级门边沿只盖首个波，Y2 判读定案机理缺陷已修）。
         if ed_upgrade_ramp_s < 0:
             raise ValueError('ed_upgrade_ramp_s must be nonnegative')
         if not (0.0 <= ed_upgrade_ramp_scale <= 1.0):
             raise ValueError('ed_upgrade_ramp_scale must be in [0,1]')
         self.ed_upgrade_ramp_s = float(ed_upgrade_ramp_s)
         self.ed_upgrade_ramp_scale = float(ed_upgrade_ramp_scale)
-        # ramp 状态（仅 get_action_cyclic_braking 内维护）
+        # ramp 状态（仅 get_action_cyclic_braking 内维护；Z 组起由施加沿启动）
         self._ed_ramp_steps_left = 0
-        self._ed_ramp_armed = True   # 升级条件下降沿后允许再触发
         self.ed_release_coordination = bool(ed_release_coordination)
         self.ed_release_hold_s = float(ed_release_hold_s)
         # 缓解窗口再生力目标（kN）：默认 900 = 表3「缓解前抬再生力」；
@@ -394,6 +394,20 @@ class MultiLocoController:
             self._cyclic_braking = True
         elif vel <= release_mps and max_vel <= release_ceiling:
             self._cyclic_braking = False
+        # 【Z 组 2026-10-16】ramp 窗改**施加沿重武装**（Y1/Y2 判读定案）：X/Y2 的窗原挂
+        # 在升级门边沿，门（76）不退出不重武装 → 高速段持续 78-80 时只有首个施加波被盖住，
+        # 后续六个峰值施加波全在窗外跑满 ED。现改为 release→braking 的 False→True 施加沿
+        # 即启动窗（每次制动施加都覆盖 ≈尾车收波延迟的 ED 降权），波头峰压全被覆盖。
+        # 默认 ed_upgrade_ramp_s=0 = 关，零回归。
+        if (self.ed_upgrade_ramp_s > 0.0
+                and not was_braking and self._cyclic_braking):
+            self._ed_ramp_steps_left = max(
+                int(round(self.ed_upgrade_ramp_s / self.dt)), 1)
+        # 窗是**时基**计数器（每步递减，与 braking 态无关 —— 缓解态不冻结，否则窗
+        # 残留步数会让下次施加沿被"旧余量"污染）；active 先取后减 = 恰好 N 步生效。
+        _ramp_active = self._ed_ramp_steps_left > 0
+        if _ramp_active:
+            self._ed_ramp_steps_left -= 1
         # 【表3】制动→缓解转换时刻进入"抬 ED 保持"窗口（ed_release_coordination 开启才生效）
         if self.ed_release_coordination and was_braking and not self._cyclic_braking:
             self._ed_hold_steps = int(round(self.ed_release_hold_s / self.dt))
@@ -422,22 +436,10 @@ class MultiLocoController:
                           and ab_nominal in (0.0, self.CYCLIC_AB_SENTINEL)
                           and max_vel >= self.cyclic_ab_upgrade_kmh / 3.6)
             if _upgrading:
-                # 【X 组】升级**边沿**启动 ED ramp 窗（尾车收波前窗 ≈ 列长/波速 ≈ 7.5 s）：
-                # 窗内 ED × scale，避免头中在尾波到达前猛减速制造速度反转。
-                if self._ed_ramp_armed and self.ed_upgrade_ramp_s > 0.0:
-                    self._ed_ramp_steps_left = max(
-                        int(round(self.ed_upgrade_ramp_s / self.dt)), 1)
-                self._ed_ramp_armed = False
-            else:
-                self._ed_ramp_armed = True   # 升级条件退出后允许下次边沿再触发
-            if _upgrading:
                 # 【M 组】升级档强度：'service'=K/L（brake_notch -0.75，140 kPa）；
                 # 'min'=-0.15 → notch_from_throttle → MIN(70 kPa, β 0.20) 中间档。
                 ab_nominal = (float(brake_notch)
                               if self.cyclic_ab_upgrade_notch == 'service' else -0.15)
-            _ramp_active = self._ed_ramp_steps_left > 0
-            if _ramp_active:
-                self._ed_ramp_steps_left -= 1
             scale = self._coupler_throttle_scale(train_env) if _scale_ed else 1.0
             # 【表3】循环期 ED 恒持 300–400 kN（取 300 kN 下限；仅协调开启时生效）
             ed_floor = (self._ed_frac_for_total_kn(train_env, self.CYCLIC_ED_FLOOR_KN)

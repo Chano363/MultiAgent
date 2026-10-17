@@ -438,21 +438,21 @@ def test_cyclic_ab_upgrade_notch_min_intermediate():
 
 
 def test_ed_upgrade_ramp_downscales_ed_within_window():
-    # 【X 组】升级边沿 → ramp 窗内 ED × scale（尾波到齐前头中不猛减速）；
-    # 窗到期恢复满值（全列同步减速）。
+    # 【Z 组】release→braking **施加沿**启动 ramp 窗 → 窗内 ED × scale（尾波到齐前
+    # 头中不猛减速）；窗到期恢复满值。参数沿用 Y2 验证剂量 6.0/0.7。
     env, ctrl = _setup(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
                        cyclic_ab_upgrade_kmh=76.0,
-                       ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.4)
+                       ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.7)
     try:
         ctrl._ed_ab_price = lambda e: 0.5   # ED 不满 → 走 AB 兜底升级分支
         env.dynamics.vel[:] = 76.1 / 3.6
-        ctrl.get_action_cyclic_braking(env)      # 边沿：进升级 + 启动窗
+        ctrl.get_action_cyclic_braking(env)      # 施加沿：进 braking + 启动窗
         assert ctrl._cyclic_braking
         assert ctrl._ed_ramp_steps_left > 0
         act = ctrl.get_action_cyclic_braking(env)
-        # 窗内 ED = 满值(错峰后) × 0.4（相对对照同速满值比例）
+        # 窗内 ED = 满值(错峰后) × 0.7
         full = 1.0 - ctrl._ed_stagger(0)
-        assert act[0, 0] == pytest.approx(full * 0.4, rel=1e-6)
+        assert act[0, 0] == pytest.approx(full * 0.7, rel=1e-6)
         # 窗到期（0.5s = 5 步后）恢复满值
         for _ in range(6):
             act = ctrl.get_action_cyclic_braking(env)
@@ -465,7 +465,7 @@ def test_ed_upgrade_ramp_downscales_ed_within_window():
 
 
 def test_ed_upgrade_ramp_default_off_zero_regression():
-    # 【X 组】默认 0.0/1.0 = 关：升级全程 ED 逐位等于满值（旧行为）。
+    # 【Z 组】默认 0.0/1.0 = 关：升级全程 ED 逐位等于满值（旧行为）。
     env, ctrl = _setup(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
                        cyclic_ab_upgrade_kmh=76.0)
     try:
@@ -480,22 +480,29 @@ def test_ed_upgrade_ramp_default_off_zero_regression():
         env.close()
 
 
-def test_ed_upgrade_ramp_rearms_on_gate_exit():
-    # 【X 组】升级条件退出（降沿）后窗重新武装：下次升级边沿再次启动窗。
+def test_ed_upgrade_ramp_rearms_each_apply_edge():
+    # 【Z 组】每次 release→braking 施加沿都重启动窗（高速段门不退出也覆盖每个
+    # 施加波 —— Y2 判读定案的机理缺陷修复点）。
     env, ctrl = _setup(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
+                       cyclic_release_kmh=45.0,
                        cyclic_ab_upgrade_kmh=76.0,
-                       ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.4)
+                       ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.7)
     try:
         ctrl._ed_ab_price = lambda e: 0.5
         env.dynamics.vel[:] = 76.1 / 3.6
-        ctrl.get_action_cyclic_braking(env)          # 第一次边沿
-        env.dynamics.vel[:] = 75.0 / 3.6             # 退出升级门（仍处循环制动）
-        ctrl.get_action_cyclic_braking(env)
-        assert ctrl._cyclic_braking                   # 75 > 缓解门，仍在循环
-        assert ctrl._ed_ramp_armed                    # 升级条件退出 → 重新武装
-        env.dynamics.vel[:] = 76.1 / 3.6
-        ctrl.get_action_cyclic_braking(env)          # 第二次边沿 → 窗重启
+        ctrl.get_action_cyclic_braking(env)          # 第 1 次施加沿 → 窗启动
         assert ctrl._ed_ramp_steps_left > 0
+        # 缓解（v<=45 退出 braking）→ 窗耗尽
+        env.dynamics.vel[:] = 44.0 / 3.6
+        for _ in range(8):
+            ctrl.get_action_cyclic_braking(env)
+        assert not ctrl._cyclic_braking
+        assert ctrl._ed_ramp_steps_left == 0
+        # 第 2 次施加沿（门仍 76 未退出过没关系 —— 沿来自 braking 重触发）
+        env.dynamics.vel[:] = 76.1 / 3.6
+        ctrl.get_action_cyclic_braking(env)
+        assert ctrl._cyclic_braking
+        assert ctrl._ed_ramp_steps_left > 0          # 窗重启
     finally:
         env.close()
 
@@ -584,6 +591,26 @@ def test_eot_wired_through_fleet():
     try:
         assert fleet2.eot is True
         assert fleet2.trains[0].eot is True   # 缓解时尾部同为缓解波源（双向波）
+    finally:
+        fleet2.close()
+
+
+def test_mid_source_delay_wired_through_fleet():
+    # 【AD 组】fleet env_cfg → 单列 TrainFormationEnv → TrainDynamics
+    # mid_source_delay_s 透传；缺省 0.0 = 同步多源零回归
+    base = {'num_trains': 1, 'consist_preset': '10kt_1plus1',
+            'decompose': 'loco_ed_ab'}
+    fleet = TrainFleetEnv(dict(base))
+    try:
+        assert fleet.mid_source_delay_s == 0.0
+        assert fleet.trains[0].dynamics.mid_source_delay_s == 0.0
+    finally:
+        fleet.close()
+
+    fleet2 = TrainFleetEnv({**base, 'mid_source_delay_s': 3.5})
+    try:
+        assert fleet2.mid_source_delay_s == 3.5
+        assert fleet2.trains[0].dynamics.mid_source_delay_s == 3.5
     finally:
         fleet2.close()
 

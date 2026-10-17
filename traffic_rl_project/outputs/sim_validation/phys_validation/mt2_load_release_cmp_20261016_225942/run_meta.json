@@ -1,0 +1,79 @@
+{
+  "timestamp": "20261016_225942",
+  "model_version": "rong2025_table_velocity_method_2026-10-11",
+  "section": "MT-2 缓冲器准静态加载-缓释阻抗曲线：当前模型（容嘉欣图4(b) 查表+速度法） vs 文献读点 vs 旧模型冻结快照",
+  "protocol": {
+    "type": "quasi-static load-hold-release, compression positive",
+    "compression_m": "contact point (|e|=gap, x=0) to stroke 83 mm and back",
+    "speed_mps": 0.01,
+    "hold_samples": 3,
+    "hold_speed_mps": 0.0,
+    "dx_m": 0.0001,
+    "vehicle_setup": "x_front=0, v_front=0 fixed; x_back=e-free_length, v_back=+0.01 loading / 0 hold / -0.01 release"
+  },
+  "params": {
+    "stiffness": 18900000.0,
+    "preload_n": 200000.0,
+    "friction_n": 500000.0,
+    "friction_static_n": 750000.0,
+    "friction_v_er": 0.2,
+    "friction_v_eps": 0.002,
+    "unload_stiffness_ratio": 1.0,
+    "coupler_gap_m": 0.01,
+    "stroke_m": 0.083,
+    "rigid_stiffness_nm": 50000000.0,
+    "max_impulse_n": 2270000.0,
+    "free_length_m": 12.0,
+    "damping": 50000.0
+  },
+  "models": {
+    "current": "src/train_dynamics/coupler.py::coupler_force (2026-10-11 Rong2025 fl/fu table + velocity method): f = contact*(f0 - tanh(s_e*dv/eps)*half), eps=0.002, stiffness gain = stiffness/1.89e7; separation = F - f0 term",
+    "literature": "Rong2025 Fig.4(b) digitalized MT-2 readpoints (400 dpi render, 500 kN/20 mm grid calibration, column-wise trace, +-30 kN reading error), f = f0 + sign(dv)*(fl-fu)/2 literal",
+    "previous": "frozen snapshot of pre-2026-10-11 coupler_force: F0 + k*load_factor*x +- Stribeck(|dv|), dir tanh(dv/0.05); friction isolated by fric_amp->0 re-evaluation"
+  },
+  "metrics": {
+    "protocol_speed_mps": 0.01,
+    "loading_end_branch_separation_kn": {
+      "current": 772.4298473685873,
+      "literature": 772.5,
+      "previous": 145.5642938628327,
+      "note": "F - midline f0 at the last loading point (|v|=0.01 m/s)"
+    },
+    "loading_end_total_kn": {
+      "current": 2269.9298223352093,
+      "literature": 2270.0,
+      "previous": 1914.2642642958638
+    },
+    "max_abs_dev_from_literature_kn": {
+      "loading_branch": 20.927952511035038,
+      "release_branch": 7.86209478265138,
+      "note": "max |current - Rong2025 readpoints| over each branch; residual comes from contact ramp / gap / dv->0 midpoint"
+    },
+    "last_5mm_of_loading_delta_kn": {
+      "current": 327.3871664241962,
+      "current_direction": "rise",
+      "literature": 327.4,
+      "literature_direction": "rise",
+      "previous": 94.50005476318346,
+      "previous_direction": "rise",
+      "note": "F(83mm) - F(78mm) on the loading branch, |v| = 0.01 m/s"
+    },
+    "stop_at_83mm_v0_delta_kn": {
+      "current": -772.4298473685886,
+      "current_direction": "fall",
+      "literature": -772.5,
+      "literature_direction": "fall",
+      "previous": -145.5642938628327,
+      "previous_direction": "fall",
+      "note": "F(v=0 hold) - F(last loading point); velocity method returns to the midline f0 when motion stops"
+    },
+    "hysteresis_area_kn_mm": {
+      "current": 61894.22399058784,
+      "literature": 62090.500000000015,
+      "previous": 23193.307276834137,
+      "current_over_literature": 0.9968388721396643
+    }
+  },
+  "figure": "outputs/sim_validation/figures/mt2_coupler/mt2_load_release_comparison.png",
+  "note": "装载缓释曲线按用户确认切换到容嘉欣2025 口径（学姐推荐文献）；旧模型以冻结快照形式保留在本归档供 before/after 对照。"
+}

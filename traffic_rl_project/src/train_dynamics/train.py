@@ -59,6 +59,10 @@ class TrainDynamics:
         simcase: str = 'official',            # 【治理】official 禁止调试物理；debug 才允许关闭 B3/L1
         release_exhaust_tau_s: float = 6.0,   # 【2026-09-06 R0-E】缓解排气时间常数（秒，
                                               # 按刘博阳 L1 拉钩力锚 742/1058/1337 kN 标定，文献无解析值）
+        mid_source_delay_s: float = 0.0,      # 【AD 组 2026-10-17】中置机车制动波源延时（秒）：
+                                              # >0 时多源制动中**非队首源**延时该秒数后才发波
+                                              # （头源仍立即）→ 错开双源波在中机车后方 110-151
+                                              # 断面对撞（Y2 峰值断面实证区）。0.0=同步多源（旧行为）。
     ):
         self.consist = consist
         self.coupler = coupler or CouplerParams()
@@ -91,6 +95,9 @@ class TrainDynamics:
         self.release_exhaust_tau_s = release_exhaust_tau_s
         self._brake_segment = 0   # 当前空气制动段序号（从 1 计，0=未制动过）
         self._brake_was_active = False  # 上一步是否处于制动状态（段切换检测）
+        # 【AD 组】延时中源待发队列 [(剩余秒, 车辆索引, 档位)]（mid_source_delay_s>0 才会入队）
+        self.mid_source_delay_s = float(mid_source_delay_s)
+        self._ab_delay_queue = []
         # 【2026-09-03 L1 列尾压强梯度】刘博阳 L6 平衡压梯度。
         # None=无梯度（默认，向后兼容）；给定列尾压强 → 后部制动力按比例弱化。
         self.tail_pressure_kpa = tail_pressure_kpa
@@ -215,6 +222,7 @@ class TrainDynamics:
         self._air_brake_exhaust_t = np.zeros(n)
         self._brake_segment = 0
         self._brake_was_active = False
+        self._ab_delay_queue = []   # 【AD】episode 间不残留待发中源
 
     def set_initial(self, pos: np.ndarray = None, vel: np.ndarray = None):
         """设置初始位置/速度（米, 米/秒）。"""
@@ -628,11 +636,24 @@ class TrainDynamics:
                 cmd = ab_sources[0][1]
                 if cmd != AirBrakeNotch.RELEASE:
                     for idx, notch in ab_sources:
-                        self._apply_air_brake_command(
-                            notch, idx, bidirectional=True)
+                        if (self.mid_source_delay_s > 0.0 and idx != 0):
+                            # 【AD 组】非队首源延时发波：入待发队列（仅首子步处理），
+                            # 头源(idx=0)仍立即 → 错开双源波在中机车后方对撞。
+                            # 已在队列 / 已激活未缓解 → 不重复入队（否则发波后
+                            # 每个控制步都会重新入队，队列永不为空）。
+                            already = any(qi == idx for _r, qi, _n in self._ab_delay_queue)
+                            fired = (self._air_brake_active[idx]
+                                     and not self._air_brake_releasing[idx])
+                            if not already and not fired:
+                                self._ab_delay_queue.append(
+                                    [float(self.mid_source_delay_s), idx, notch])
+                        else:
+                            self._apply_air_brake_command(
+                                notch, idx, bidirectional=True)
                 else:
                     if np.any(self._air_brake_active):
                         self._reset_air_brake_command(0, eot=eot)
+                    self._ab_delay_queue = []   # 【AD】缓解清空待发中源
             elif ab_command is None:
                 # 【2026-09-02 bug修复】ab_command=None 表示"不使用空气制动"，
                 # 不得触发任何制动/缓解逻辑。此前 None != RELEASE 为真 → 头车被
@@ -651,6 +672,18 @@ class TrainDynamics:
                 if (np.any(self._air_brake_active)
                         and not self._air_brake_releasing[brake_origin]):
                     self._reset_air_brake_command(brake_origin, eot=eot)
+
+        # 【AD 组】延时中源倒计时：**每个物理子步**减 h（每控制步累计 dt = 真实时钟；
+        # 若只在首子步减 h 会慢 n_sub=10 倍）。归零即发波；缓解（abort）时清空。
+        if self._ab_delay_queue:
+            still = []
+            for rem, qi, qn in self._ab_delay_queue:
+                rem -= h
+                if rem <= 0.0:
+                    self._apply_air_brake_command(qn, qi, bidirectional=True)
+                else:
+                    still.append([rem, qi, qn])
+            self._ab_delay_queue = still
 
         # 推进空气制动波速传播
         self._advance_air_brake_propagation(h)

@@ -133,3 +133,74 @@ def test_multi_source_faster_full_activation():
     print(f"单源全列激活耗时={steps_single*0.1:.2f}s, 双源全列激活耗时={steps_multi*0.1:.2f}s")
     assert steps_multi <= steps_single, \
         f"多源制动应更快达到全列制动: 单源{steps_single}步 vs 双源{steps_multi}步"
+
+
+# ---------------------------------------------------------------------------
+# 【AD 组 2026-10-17】中置机车制动波源延时（错开双源波在中机车后方 110-151 断面对撞，
+# Y2 峰值断面实证区 = 中源后方；头源仍立即发波）。
+
+
+def _make_train_delay(n_vehicles, delay_s):
+    consist = TrainConsist(
+        [LocomotiveParams()] + [VehicleParams() for _ in range(n_vehicles - 1)]
+    )
+    return TrainDynamics(consist, dt=0.1, mid_source_delay_s=delay_s)
+
+
+def _step_multi(td, n, cmd=AirBrakeNotch.EMERGENCY, mid=5):
+    td.step_vehicles_ed_ab(
+        throttle=np.zeros(n), ed_throttle=np.zeros(n),
+        ab_command=cmd,
+        ab_sources=[(0, cmd), (mid, cmd)],
+    )
+
+
+def test_mid_source_delayed_head_immediate():
+    """延时开启：队首源首步立即激活、中源首步未激活并入待发队列。"""
+    n = 10
+    td = _make_train_delay(n, 3.0)
+    td.set_initial_speed(20.0)
+    _step_multi(td, n)
+    state = td.air_brake_state()
+    assert state[0] == AirBrakeNotch.EMERGENCY   # 头源立即
+    assert state[5] == AirBrakeNotch.RELEASE      # 中源延时中
+    assert len(td._ab_delay_queue) == 1
+
+
+def test_mid_source_fires_after_delay():
+    """延时到点（真实时钟 = 控制步×0.1s）后中源发波激活、队列清空。"""
+    n = 10
+    td = _make_train_delay(n, 0.3)
+    td.set_initial_speed(20.0)
+    for _ in range(5):   # 5 步 × 0.1s = 0.5s > 0.3s
+        _step_multi(td, n)
+    state = td.air_brake_state()
+    assert state[5] == AirBrakeNotch.EMERGENCY   # 延时到期已发
+    assert td._ab_delay_queue == []
+
+
+def test_mid_source_delay_default_zero_sync():
+    """默认 0.0 = 旧行为零回归：双源首步同时激活、无待发队列。"""
+    n = 10
+    td = _make_train_delay(n, 0.0)
+    td.set_initial_speed(20.0)
+    _step_multi(td, n)
+    state = td.air_brake_state()
+    assert state[0] == AirBrakeNotch.EMERGENCY
+    assert state[5] == AirBrakeNotch.EMERGENCY   # 同步发波（旧行为）
+    assert td._ab_delay_queue == []
+
+
+def test_mid_source_queue_cleared_on_release():
+    """缓解（RELEASE 指令）清空待发中源队列，制动段结束不残留。"""
+    n = 10
+    td = _make_train_delay(n, 3.0)
+    td.set_initial_speed(20.0)
+    _step_multi(td, n)
+    assert len(td._ab_delay_queue) == 1
+    td.step_vehicles_ed_ab(   # 缓解指令
+        throttle=np.zeros(n), ed_throttle=np.zeros(n),
+        ab_command=AirBrakeNotch.RELEASE,
+        ab_sources=[(0, AirBrakeNotch.RELEASE), (5, AirBrakeNotch.RELEASE)],
+    )
+    assert td._ab_delay_queue == []
