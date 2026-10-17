@@ -29,6 +29,8 @@ def main():
     ap.add_argument('--override', action='append', default=[], metavar='KEY=VALUE',
                     help='Override one env_cfg key (repeatable); true/false/int/float inferred')
     ap.add_argument('--steps', type=int, default=900)
+    ap.add_argument('--stop-on-coupler-kn', type=float,
+                    help='Diagnostic early stop after exceeding this force; does not alter safety limits')
     ap.add_argument('--trains', type=int, default=1)
     ap.add_argument('--consist-preset', choices=sorted(CONSIST_PRESETS),
                     help='Explicit diagnostic consist; otherwise use main configuration')
@@ -56,6 +58,9 @@ def main():
     ap.add_argument('--reuse', action='store_true', help='Summarize saved trajectories without rerunning physics')
     ap.add_argument('--metadata-file', default='result.json', help='Alternative result filename, preserving original metadata')
     args = ap.parse_args()
+    if args.stop_on_coupler_kn is not None and (
+            not np.isfinite(args.stop_on_coupler_kn) or args.stop_on_coupler_kn <= 0):
+        ap.error('stop-on-coupler-kn must be finite and positive')
     if args.steps < 3 or args.trains < 1:
         ap.error('steps must be >=3 and trains must be >=1')
     if not np.isfinite(args.gap_offset_m) or args.gap_offset_m < 0:
@@ -69,11 +74,11 @@ def main():
     if args.reuse and (args.output / 'result.json').exists():
         archived = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))['metadata']
         protocol = archived.get('diagnostic_protocol', {})
-        defaults = {'ed_prelimit': False, 'ed_physics_availability': False, 'consist_preset': None, 'profile': None, 'start_m': 0.0, 'finish_m': None,
+        defaults = {'stop_on_coupler_kn': None, 'ed_prelimit': False, 'ed_physics_availability': False, 'consist_preset': None, 'profile': None, 'start_m': 0.0, 'finish_m': None,
                     'ed_recovery_rate': None, 'ed_baseline_projection': None, 'gap_offset_m': 0.0,
                     'train_speeds_kmh': None, 'anticipate_etcs': False, 'ed_recovery_scope': 'all',
                     'ed_grade_feedforward': False}
-        for key in ('ed_prelimit', 'ed_physics_availability', 'consist_preset', 'profile', 'start_m', 'finish_m', 'speed', 'trains', 'grade', 'steps',
+        for key in ('stop_on_coupler_kn', 'ed_prelimit', 'ed_physics_availability', 'consist_preset', 'profile', 'start_m', 'finish_m', 'speed', 'trains', 'grade', 'steps',
                     'ed_recovery_rate', 'ed_recovery_scope', 'ed_grade_feedforward', 'ed_baseline_projection', 'gap_offset_m', 'train_speeds_kmh', 'anticipate_etcs'):
             if key in protocol or key in defaults:
                 if getattr(args, key) != protocol.get(key, defaults.get(key)):
@@ -105,6 +110,10 @@ def main():
     if args.profile:
         config['grade_profile'] = args.profile
     fleet_source = Path('src/environments/train_fleet_env.py').read_text(encoding='utf-8')
+    entry_source = Path(__file__).read_text(encoding='utf-8')
+    if args.reuse:
+        frozen_entry = args.output / 'diagnostic_source.py'
+        entry_source = frozen_entry.read_text(encoding='utf-8') if frozen_entry.exists() else None
     train_source = Path('src/environments/train_env.py').read_text(encoding='utf-8')
     dynamics_source = Path('src/train_dynamics/train.py').read_text(encoding='utf-8')
     etcs_source = Path('src/train_dynamics/etcs_braking.py').read_text(encoding='utf-8')
@@ -128,9 +137,19 @@ def main():
         exec(compile(source, '<frozen_controller>', 'exec'), namespace)
         cls = namespace['MultiLocoController']
         import inspect
-        env.multi_loco_controllers = [cls(**{name: getattr(c, name) for name in inspect.signature(cls).parameters
-                                            if name not in ('ed_prelimit', 'ed_physics_availability', 'ed_recovery_rate_per_s', 'ed_recovery_scope', 'ed_grade_feedforward', 'ed_baseline_projection', 'anticipate_etcs')})
-                                      for c in env.multi_loco_controllers]
+        # Explicit fleet config wins for the two wired ED flags. Other trial
+        # options retain frozen-source defaults, rather than inheriting today's
+        # controller defaults and silently erasing an archived experiment.
+        parameters = inspect.signature(cls).parameters
+        trial_options = {
+            'ed_prelimit', 'ed_physics_availability', 'ed_recovery_rate_per_s',
+            'ed_recovery_scope', 'ed_grade_feedforward',
+            'ed_baseline_projection', 'anticipate_etcs'}
+        configured_flags = {'ed_grade_feedforward', 'ed_prelimit'} & config.keys()
+        env.multi_loco_controllers = [
+            cls(**{name: getattr(controller, name) for name in parameters
+                   if name not in trial_options or name in configured_flags})
+            for controller in env.multi_loco_controllers]
     if args.ed_recovery_rate is not None:
         if args.controller_ref or args.controller_source or not np.isfinite(args.ed_recovery_rate) or args.ed_recovery_rate < 0:
             raise ValueError('Recovery override requires current controller and a finite nonnegative value')
@@ -207,6 +226,7 @@ def main():
 
             tr.dynamics.step_vehicles_ed_ab = record_inputs
     rows, commands, physical_ab = [], [], []
+    diagnostic_stop_s = None
     for k in range(0 if args.reuse else args.steps):
         _, _, term, trunc, info = env.step(np.zeros((env.num_agents, 2)))
         speeds = [float(np.mean(tr.dynamics.vel)) for tr in env.trains]
@@ -254,6 +274,13 @@ def main():
             print(f'step={k+1} head={detail["heads"][-1][0]:.1f}m peak={peak/1000:.1f}kN', flush=True)
         if not np.all(np.isfinite(rows[-1][:-1])):
             raise RuntimeError('Nonfinite physical trajectory; diagnostic aborted')
+        if (args.stop_on_coupler_kn is not None and diagnostic_stop_s is None
+                and peak > args.stop_on_coupler_kn * 1000.0):
+            diagnostic_stop_s = float(rows[-1][0])
+        # Three samples are needed for acceleration/jerk accounting. Record the
+        # first crossing even when it happens before those samples are available.
+        if diagnostic_stop_s is not None and len(rows) >= 3:
+            break
         if term or trunc or (args.finish_m is not None and min(detail['tails'][-1]) >= args.finish_m):
             break
     if args.reuse:
@@ -268,6 +295,7 @@ def main():
             source = (args.output / 'controller_source.py').read_text(encoding='utf-8')
     else:
         rows, commands = np.asarray(rows), np.asarray(commands)
+        (args.output / 'diagnostic_source.py').write_bytes(entry_source.encode('utf-8'))
         (args.output / 'train_dynamics_source.py').write_bytes(dynamics_source.encode('utf-8'))
         (args.output / 'etcs_braking_source.py').write_bytes(etcs_source.encode('utf-8'))
         np.savez_compressed(args.output / 'trajectory.npz', rows=rows, commands=commands,
@@ -289,6 +317,12 @@ def main():
                    command_switches=int(np.sum(np.abs(np.diff(commands[:,:,1], axis=0)) > 1e-6)),
                    violations=int(rows[-1, 2+args.trains]),
                    safety_events=int(rows[-1, 3+args.trains]))
+    if args.reuse:
+        if args.stop_on_coupler_kn is not None:
+            crossings = np.flatnonzero(rows[:, 1 + args.trains] > args.stop_on_coupler_kn * 1000.0)
+            diagnostic_stop_s = float(rows[crossings[0], 0]) if crossings.size else None
+    summary['diagnostic_stop_reason'] = ('coupler_threshold' if diagnostic_stop_s is not None else None)
+    summary['diagnostic_first_crossing_s'] = diagnostic_stop_s
     # Diagnose executed actuator discontinuities, rather than attributing
     # speed oscillations to pre-safety controller requests alone.
     if 'physical_loco_ed' in detail:
@@ -332,6 +366,8 @@ def main():
                                                                     'controller_source': str(args.controller_source) if args.controller_source else None},
                                  'grade_override_permille': None if args.profile else args.grade,
                                  'controller_sha256': hashlib.sha256(source.encode()).hexdigest(),
+                                 'diagnostic_entry_sha256': (hashlib.sha256(entry_source.encode('utf-8')).hexdigest()
+                                                             if entry_source is not None else None),
                                  'controller_sha256_format': 'UTF-8 source text with LF line endings',
                                  'fleet_env_sha256': hashlib.sha256(fleet_source.encode('utf-8')).hexdigest(),
                                  'train_env_sha256': hashlib.sha256(train_source.encode('utf-8')).hexdigest(),
@@ -353,7 +389,10 @@ def main():
                                                          'ab_min_refill_s': c.ab_min_refill_s,
                                                          'ab_min_hold_s': c.ab_min_hold_s,
                                                          'ed_exit_decay_rate_per_s': getattr(c, 'ed_exit_decay_rate_per_s', None),
-                                                         'sbi_exit_margin_mps': getattr(c, 'sbi_exit_margin_mps', None)} for c in env.multi_loco_controllers],
+                                                         'sbi_exit_margin_mps': getattr(c, 'sbi_exit_margin_mps', None),
+                                                         **({'predictive_ed_guard_events': c._ed_guard_events}
+                                                            if hasattr(c, '_ed_guard_events') else {})}
+                                                        for c in env.multi_loco_controllers],
                                  'runtime_physics': runtime_physics,
                                  'actuator_diagnostic': {
                                      'physical_ed_unit': 'fraction, post-safety input; not force',

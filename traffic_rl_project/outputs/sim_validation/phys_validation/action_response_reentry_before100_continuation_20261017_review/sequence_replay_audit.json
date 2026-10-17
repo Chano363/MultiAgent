@@ -1,0 +1,5 @@
+{
+  "force_max_difference_n": 0.0,
+  "requests_exact": true,
+  "scope": "native six-second execution consistency, not post-horizon safety"
+}

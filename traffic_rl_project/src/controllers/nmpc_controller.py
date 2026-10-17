@@ -29,10 +29,39 @@ control blocking（B 块 × 每块常值），预测时 ED 力仅施加于机车
 【对比指标】solve_times 记录每步求解耗时（同档对冲主指标之一：MPC 求解成本 vs
 MARL 推理恒定）；车钩力/ATP 触发/列距由评估脚本统一落 metadata JSON。
 """
+import os
 import time
+from functools import lru_cache
+from pathlib import Path
 
 import casadi as ca
 import numpy as np
+
+
+@lru_cache(maxsize=1)
+def _prepare_ipopt_plugin():
+    """Load the installed Windows plugin through Python's Unicode-aware loader.
+
+    Keep the DLL search-directory and library handles alive in the cache.
+    CasADi's native search can fail when the Python environment path is Chinese.
+    """
+    handles = ()
+    if os.name == 'nt':
+        import ctypes
+        directory = Path(ca.__file__).resolve().parent
+        plugin_path = directory / 'libcasadi_nlpsol_ipopt.dll'
+        if plugin_path.exists():
+            dll_directory = os.add_dll_directory(str(directory))
+            try:
+                library = ctypes.WinDLL(str(plugin_path))
+                ca.load_nlpsol('ipopt')
+            except Exception:
+                dll_directory.close()
+                raise
+            handles = (dll_directory, library)
+    if not handles:
+        ca.load_nlpsol('ipopt')
+    return handles
 
 
 class NMPCController:
@@ -322,6 +351,7 @@ class NMPCController:
             opti.subject_to(F_c_k <= self.coupler_force_limit_n)
             opti.subject_to(F_c_k >= -self.coupler_force_limit_n)
 
+        _prepare_ipopt_plugin()
         opti.solver(
             'ipopt',
             {'print_time': False, 'expand': True},
@@ -395,8 +425,9 @@ class NMPCController:
             X_star = sol.value(self._x)
             status = 'optimal'
         except RuntimeError as e:
-            # 求解失败：回退第 0 块全 0（惰行），如实记录 status 供评估侧统计
-            X_star = np.zeros_like(self._opti.value(self._x))
+            # Zero modulation retains the rule baseline, not a successful solve.
+            # Opti.value is unavailable after a failed first solve.
+            X_star = np.zeros((self.horizon_blocks, self._n_loco_total))
             status = f'fail:{str(e)[:200]}'
         self._last_status = status
         self.solve_times.append(time.perf_counter() - t0)

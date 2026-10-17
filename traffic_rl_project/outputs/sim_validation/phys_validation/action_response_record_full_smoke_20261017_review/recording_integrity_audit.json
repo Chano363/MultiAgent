@@ -1,0 +1,6 @@
+{
+  "native_five_branch_rows_and_commands_exact": true,
+  "vehicle_and_interface_shapes_valid": true,
+  "recorded_interface_peak_matches_summary": true,
+  "scope": "short native instrumentation smoke, not a control validation"
+}

@@ -1,0 +1,28 @@
+{
+  "status": "experimental, not production",
+  "sha256": "8c7d562fee293d9282455f73c8886d9c8fae12bdf92bf328e112a9984667006d",
+  "forecast_horizon_s": 2.0,
+  "decision_interval_s": 1.0,
+  "target_fraction": 0.9,
+  "scope": "single-train zero-RL tests; native actuator holds, not a hard safety certificate",
+  "AB": "unchanged by native ED projection; inherited air-admission speed-preview trial remains active",
+  "candidate_ED": [
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "safety": "native safety remains authoritative; speed threshold retains existing AB suppression margin"
+}

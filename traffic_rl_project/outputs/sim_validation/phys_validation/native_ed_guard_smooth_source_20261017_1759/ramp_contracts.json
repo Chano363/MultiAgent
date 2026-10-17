@@ -1,0 +1,5 @@
+{
+  "max_change_per_0_1s": 0.05,
+  "up_and_down_passed": true,
+  "not_a_physical_motor_parameter": true
+}

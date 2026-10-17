@@ -1,0 +1,196 @@
+{
+  "summary": {
+    "steps": 1799,
+    "speed_min_kmh": 55.13062454029269,
+    "speed_max_kmh": 79.98549815099318,
+    "peak_kn": 1017.9508457076778,
+    "jerk_rms": 0.035464463000264734,
+    "jerk_peak": 0.15647018038649207,
+    "command_switches": 1,
+    "violations": 1,
+    "safety_events": 109,
+    "diagnostic_stop_reason": "coupler_threshold",
+    "diagnostic_first_crossing_s": 179.9,
+    "physical_ed_change_rms_per_s": 1.1609612566535752,
+    "physical_ed_max_step_increase": 0.41384023427963257,
+    "physical_ed_max_step_decrease": 0.41466373205184937,
+    "requested_notch_switches": 1,
+    "stored_head_notch_switches": 2,
+    "elapsed_s": 179.9,
+    "mean_speed_kmh": 65.84273065626888,
+    "distance_leader_m": 3289.3111498846356,
+    "leader_end_m": 3289.3111498846356,
+    "last_tail_end_m": 1995.6749476762784,
+    "max_vehicle_speed_kmh": 79.99163665694716,
+    "overspeed_train_steps": 0,
+    "subenv_safety_events": 109,
+    "full_route_completed": false
+  },
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "0ed183c86a3b",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "8d138810d378",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "diagnose_low_level_control.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.222,
+        "v_min_mps": 11.111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 16.6665,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "diagnostic_protocol": {
+      "output": "outputs\\sim_validation\\phys_validation\\single_10kt108_native_gate_20261017_review",
+      "config": "configs\\experiments\\single_10kt108_coupler_rulecal.yaml",
+      "override": [],
+      "steps": 6000,
+      "stop_on_coupler_kn": 1000.0,
+      "trains": 1,
+      "consist_preset": null,
+      "grade": -12.0,
+      "speed": 80.0,
+      "train_speeds_kmh": null,
+      "fleet_env_source": null,
+      "profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "start_m": 0.0,
+      "gap_offset_m": 0.0,
+      "finish_m": null,
+      "ed_recovery_rate": null,
+      "ed_recovery_scope": "all",
+      "ed_grade_feedforward": false,
+      "ed_physics_availability": true,
+      "ed_prelimit": false,
+      "ed_baseline_projection": null,
+      "anticipate_etcs": false,
+      "controller_ref": null,
+      "controller_source": null,
+      "reuse": false,
+      "metadata_file": "result.json"
+    },
+    "grade_override_permille": null,
+    "controller_sha256": "53b82af63825381fac1c6fede9e20b223e806b6ffbfd09bda172a18b7e4c9570",
+    "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+    "controller_sha256_format": "UTF-8 source text with LF line endings",
+    "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+    "train_env_sha256": "01403e923031dc43d09934a7aa5fee79f0061e8c066d62c278badbc6f7bf1eea",
+    "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+    "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+    "etcs_runtime": {
+      "speed_profile": [
+        [
+          11.11111111111111,
+          0.426
+        ],
+        [
+          16.666666666666668,
+          0.401
+        ],
+        [
+          22.22222222222222,
+          0.382
+        ]
+      ],
+      "emergency_build_up_s": 5.268,
+      "service_build_up_s": 5.268
+    },
+    "controller_ref": "working-tree",
+    "controller_runtime": [
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": true,
+        "ed_prelimit": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "ed_exit_decay_rate_per_s": null,
+        "sbi_exit_margin_mps": null
+      }
+    ],
+    "runtime_physics": [
+      {
+        "simcase": "official",
+        "enable_cyclic_degrade": true,
+        "tail_pressure_kpa": null
+      }
+    ],
+    "actuator_diagnostic": {
+      "physical_ed_unit": "fraction, post-safety input; not force",
+      "force_sample": "post-step state model evaluation in N; not step-integrated force",
+      "coupler_sign": "positive = forward force on preceding vehicle",
+      "loco_indices": [
+        [
+          0
+        ]
+      ],
+      "safety_rule_order": [
+        "coupler_force_limit",
+        "min_gap",
+        "overspeed",
+        "etcs_ebi",
+        "etcs_permitted"
+      ],
+      "controller_requests": "commands, before environment safety"
+    },
+    "numerical_runtime": {
+      "numpy_version": "2.3.5",
+      "thread_environment": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": null
+      }
+    },
+    "env_cfg": {
+      "num_trains": 1,
+      "consist_preset": "10kt_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 6000,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1000000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      }
+    },
+    "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 +++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      | 120 +++++++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  96 +++++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n traffic_rl_project/docs/RESEARCH_POSITIONING.md    |   4 +\n .../docs/logs/decisions/DECISIONS.md               |  19 ++-\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 133 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       | 114 +++++++++++-------\n .../src/controllers/nmpc_controller.py             |  35 +++++-\n traffic_rl_project/src/environments/train_env.py   |  10 ++\n .../src/environments/train_fleet_env.py            |  44 +++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++-\n .../src/evaluation/evaluate_decompose.py           |  13 +-\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 ++++++++++---\n traffic_rl_project/tests/test_metric_accounting.py |  13 +-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 ++++\n 20 files changed, 800 insertions(+), 105 deletions(-)\n",
+    "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  }
+}

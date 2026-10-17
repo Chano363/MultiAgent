@@ -1,0 +1,52 @@
+{
+  "normalized_source_hash_all_cases_equal": true,
+  "plan_raw_source_hash_equal": true,
+  "reentry_v2_v3_rows_exact": true,
+  "reentry_v2_v3_commands_exact": true,
+  "flat_before_intervention_first350_steps_exact_parent": true,
+  "scope": "finite-case consistency; no robustness guarantee",
+  "per_case_request_checks": [
+    {
+      "name": "original_flat",
+      "native_safety_limits_unchanged": true,
+      "no_air_request": true,
+      "max_requested_ed_step_after_first_intervention": 0.050000000000000044,
+      "event_steps_in_recorded_range": true
+    },
+    {
+      "name": "original_reentry",
+      "native_safety_limits_unchanged": true,
+      "no_air_request": true,
+      "max_requested_ed_step_after_first_intervention": 0.050000000000000044,
+      "event_steps_in_recorded_range": true
+    },
+    {
+      "name": "flat_before100",
+      "native_safety_limits_unchanged": true,
+      "no_air_request": true,
+      "max_requested_ed_step_after_first_intervention": 0.050000000000000044,
+      "event_steps_in_recorded_range": true
+    },
+    {
+      "name": "flat_after100",
+      "native_safety_limits_unchanged": true,
+      "no_air_request": true,
+      "max_requested_ed_step_after_first_intervention": 0.050000000000000044,
+      "event_steps_in_recorded_range": true
+    },
+    {
+      "name": "reentry_before100",
+      "native_safety_limits_unchanged": true,
+      "no_air_request": true,
+      "max_requested_ed_step_after_first_intervention": 0.050000000000000044,
+      "event_steps_in_recorded_range": true
+    },
+    {
+      "name": "reentry_after100",
+      "native_safety_limits_unchanged": true,
+      "no_air_request": true,
+      "max_requested_ed_step_after_first_intervention": 0.0,
+      "event_steps_in_recorded_range": true
+    }
+  ]
+}

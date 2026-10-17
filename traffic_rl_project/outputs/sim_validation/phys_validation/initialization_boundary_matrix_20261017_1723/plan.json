@@ -1,0 +1,209 @@
+[
+  {
+    "name": "before_first_steep",
+    "initial_state_sampling_seed": 0,
+    "start_m": 1544.5,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 1544.5,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "steep_mixed",
+    "initial_state_sampling_seed": 0,
+    "start_m": 17694.7,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 17694.7,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "sharp_flattening",
+    "initial_state_sampling_seed": 0,
+    "start_m": 25013.5,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 25013.5,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "before_reentry",
+    "initial_state_sampling_seed": 0,
+    "start_m": 26633.5,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 26633.5,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "steep_late",
+    "initial_state_sampling_seed": 0,
+    "start_m": 33505.93,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 33505.93,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "steep_exit",
+    "initial_state_sampling_seed": 0,
+    "start_m": 40305.93,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 40305.93,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "seed_0",
+    "initial_state_sampling_seed": 0,
+    "start_m": 27362.19250847515,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 27362.19250847515,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "seed_1",
+    "initial_state_sampling_seed": 1,
+    "start_m": 21986.50578803382,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 21986.50578803382,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  },
+  {
+    "name": "seed_2",
+    "initial_state_sampling_seed": 2,
+    "start_m": 11238.166631316215,
+    "speed_kmh": 70.0,
+    "reset_info": {
+      "cold_start_initialization": {
+        "mode": "cold_zero_air",
+        "max_speed_kmh": 70.0,
+        "requested_speeds_kmh": [
+          80.0
+        ],
+        "actual_speeds_kmh": [
+          70.0
+        ],
+        "common_speed_shift_kmh": 10.000000000000004,
+        "route_offset_m": 11238.166631316215,
+        "feasibility_guaranteed": false
+      }
+    },
+    "steps": 1200,
+    "target_kn": 1350
+  }
+]

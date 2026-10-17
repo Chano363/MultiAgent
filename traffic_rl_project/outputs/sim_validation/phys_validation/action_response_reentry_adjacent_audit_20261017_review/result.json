@@ -1,0 +1,936 @@
+{
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "698f4e0aec53",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "9aa4925f193e",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "audit_brake_action_response.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "20kt_1plus108_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1500000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "scope": "local action interpolation audit; not a control evaluation",
+    "source_sha256": "f5c7c4839d876dee5ac58451fbb5eadb30c860a6526d1bc97e27477956fb53e2",
+    "validation_scope": "held-out action amplitudes, not unseen initial states",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  },
+  "archives": [
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\action_response_reentry_before100_probes_20261017_review",
+      "checkpoints": [
+        {
+          "checkpoint_s": 8.0,
+          "source_metadata": {
+            "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+            "physics_version": "698f4e0aec53",
+            "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+            "simulator_model_version": "9aa4925f193e",
+            "simcase": "official",
+            "seed": 0,
+            "entry": "diagnose_actuator_sensitivity.py",
+            "physics": {
+              "enable_cyclic_degrade": true,
+              "tail_pressure_kpa": null,
+              "brake_reduction_override_kpa": null,
+              "physics": {
+                "v_max_mps": 22.22222222222222,
+                "v_min_mps": 11.11111111111111,
+                "dt": 0.1,
+                "max_accel": 1.0,
+                "target_speed_mps": 20.0,
+                "target_gap_m": 100.0,
+                "consist_preset": "20kt_1plus108_1plus108",
+                "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+                "coupler_force_limit_n": 1500000.0,
+                "enable_cyclic_degrade": true
+              }
+            },
+            "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+            "env_cfg": {
+              "num_trains": 1,
+              "consist_preset": "20kt_1plus108_1plus108",
+              "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+              "v_max": 22.222,
+              "v_min": 11.111,
+              "target_gap": 100.0,
+              "max_steps": 10000,
+              "max_accel": 1.0,
+              "use_coupler_constraint": true,
+              "hierarchical": false,
+              "decompose": "loco_ed_ab",
+              "ab_min_refill_s": 222.0,
+              "ab_min_hold_s": 0.0,
+              "coupler_force_limit_n": 1500000.0,
+              "coupler_force_limit_emergency_n": 2250000.0,
+              "cyclic_notch_50": true,
+              "cyclic_brake_trigger_kmh": 65.0,
+              "cyclic_release_kmh": 50.0,
+              "ed_release_coordination": true,
+              "ed_release_hold_s": 50.0,
+              "ed_release_boost_kn": 900.0,
+              "cyclic_ab_upgrade_kmh": 76.0,
+              "ed_upgrade_ramp_s": 6.0,
+              "ed_upgrade_ramp_scale": 0.7,
+              "ed_grade_feedforward": true,
+              "coupler_override": "min_brake",
+              "eot": true,
+              "start_randomization": {
+                "enabled": false
+              },
+              "eval_mode": true
+            },
+            "source_sha256": {
+              "src/environments/train_fleet_env.py": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+              "src/environments/train_env.py": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+              "src/train_dynamics/train.py": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+              "src/train_dynamics/braking.py": "3c03d6a6bb652845a4075ba27dd6e7dc19958af425d9b5644bb1bf401f63676f",
+              "src/safety_layer.py": "aee89a0fe2b61e1dd9d0f2bbaf3c29bfaff98f2ead2947d2c102e1c5d32aa9f8",
+              "src/train_dynamics/grade_profile.py": "49eecb953c506559e1412cd12511759bcadc4212c48a8474451c3aedc55281e3",
+              "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\src\\evaluation\\diagnose_actuator_sensitivity.py": "8d362ad9ac046ebf5ae8ca45a7062e5a531ba4386b4d66d2644430c36c0d9dfe"
+            },
+            "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+            "protocol": {
+              "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+              "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+              "output": "outputs\\sim_validation\\phys_validation\\action_response_reentry_before100_probes_20261017_review",
+              "start_m": 26533.5,
+              "speed_kmh": 70,
+              "times_s": [
+                8.0
+              ],
+              "horizon_s": 6.0,
+              "sequence_grid": true,
+              "sequence_grid_mode": "corner_probes",
+              "ed_ramp_per_s": 0.5
+            },
+            "scope": "open-loop actuator sensitivity, not a policy evaluation",
+            "critic": "centralized_scalar",
+            "reward_schema": "v5-coupler-tier-limit",
+            "ed_mod_coef": 0.5
+          },
+          "branch_sha256": {
+            "step80_sequence_0_0.npz": "d6d1a108fc4fc2ffab40803602a77d6abebe5a5715ab8ae98b367e647df44647",
+            "step80_sequence_0_2.npz": "d6a559429df168abd59c5d5f8f208ef04f2a306c4cd6cd0be2f9e7226049063e",
+            "step80_sequence_0_6.npz": "465d3407c4fde19744986b0fbcbc151ff78ce03768929f2cd01845b4270adb97",
+            "step80_sequence_0_8.npz": "9bf4eb238809093d462bb74b0c245c26110c5ab70be0a05ae2eba3e3b86fa12b",
+            "step80_sequence_2_0.npz": "79d950d8fbf5a37a01081588b3ae48bd9d2bb4db4cd4a5e967a88aecd1346c89",
+            "step80_sequence_2_2.npz": "1bf4b50d3ae9a5693b489d3041e60a20e04b274075cac02f22feea9474b05f49",
+            "step80_sequence_2_4.npz": "2278f9e682197154a7c500cd047b1c45497bdac8ef2ab111f62d3182073f00ba",
+            "step80_sequence_2_6.npz": "773f1d18bed8876a5734fd219acf3302bef54874b39498febc826179931afce4",
+            "step80_sequence_2_8.npz": "4bbba41d8220653d48ac57e50c773ea0bde178e61aeb888eabc04477d7f98973",
+            "step80_sequence_4_4.npz": "cb37fc1d83b4a479c17303a29e2b6127944573184f1613f55144dc513fc0fa0a",
+            "step80_sequence_6_0.npz": "bb8b5567405a5265593360bc3a9591565951a2bb1af79260b1c055121471d7e9",
+            "step80_sequence_6_2.npz": "1693488b0902e5b85aa35d0afd05d6326448200e8ba64e2bf629b15da55a7717",
+            "step80_sequence_6_3.npz": "8f1cb44007dc2d220cb45fb7432f66db63a2a4b5f31eab8143745b0bd7fe8aa1",
+            "step80_sequence_6_6.npz": "2014a364d90b68967dc91a22857feb7f2f14a9659da8946eca1cf8c920132e62",
+            "step80_sequence_6_8.npz": "f66ae2316ff9cdb7d06ba32315bab26206a73fa4c06838d6c0a984129a3a0b9e",
+            "step80_sequence_8_0.npz": "749d79c9e79b39cce74ec0138ae659fef3006192c1b69a5275f83673d0bbb1b5",
+            "step80_sequence_8_2.npz": "fe67ef86ea0f70a02ee37d38fc7b21bdd07455a95b481bccfeb23e1cbf45b5c7",
+            "step80_sequence_8_6.npz": "30a2cd6db2551e8f844eda4d211e989b5f091707ab394112e48d4c615d399d6c",
+            "step80_sequence_8_8.npz": "be861e4834b222baea17957fdf0271d37805dcc23bd7f73c7b3d4c1d79caeafc"
+          },
+          "models": {
+            "sequence_multilinear": {
+              "summary": {
+                "validation_points": 3,
+                "peak_mae_kn": 84.96386568687224,
+                "peak_abs_error_p95_kn": 163.72432646198763,
+                "maximum_underprediction_kn": 175.88377128293814,
+                "maximum_overprediction_kn": 54.289323073433025,
+                "limits": {
+                  "1350": {
+                    "predicted_safe": 0,
+                    "actual_unsafe": 3,
+                    "false_safe": 0,
+                    "false_rejection": 0
+                  },
+                  "1500": {
+                    "predicted_safe": 0,
+                    "actual_unsafe": 2,
+                    "false_safe": 0,
+                    "false_rejection": 1
+                  }
+                }
+              },
+              "predicted_best": {
+                "actions": [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "validation": false,
+                "actual_peak_kn": 1482.3648618701325,
+                "predicted_peak_kn": 1482.3648618701325,
+                "maximum_trace_abs_error_kn": 0.0
+              },
+              "actual_best_peak_kn": 1482.3648618701325,
+              "selection_regret_kn": 0.0,
+              "selection_scope": "observed probe set only",
+              "points": [
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1508.8267023166131,
+                  "predicted_peak_kn": 1508.8267023166131,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1696.7757437860187,
+                  "predicted_peak_kn": 1696.7757437860187,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1482.3648618701325,
+                  "predicted_peak_kn": 1482.3648618701325,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1739.106655646627,
+                  "predicted_peak_kn": 1739.106655646627,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1735.0675215342724,
+                  "predicted_peak_kn": 1735.0675215342724,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1955.8513939426916,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.5,
+                    0.5
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1937.2185915846,
+                  "predicted_peak_kn": 1761.334820301662,
+                  "maximum_trace_abs_error_kn": 175.88377128293814
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1660.2578370327972,
+                  "predicted_peak_kn": 1660.2578370327972,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1846.1323470092586,
+                  "predicted_peak_kn": 1846.1323470092586,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    0.5
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1719.9253767623698,
+                  "predicted_peak_kn": 1695.2068740581242,
+                  "maximum_trace_abs_error_kn": 140.7441284780234
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1510.6877407292768,
+                  "predicted_peak_kn": 1510.6877407292768,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1694.8520765558808,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.5,
+                    0.0
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1488.1168758764725,
+                  "predicted_peak_kn": 1542.4061989499055,
+                  "maximum_trace_abs_error_kn": 111.64476006148493
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1574.124657170534,
+                  "predicted_peak_kn": 1574.124657170534,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1633.5230422300563,
+                  "predicted_peak_kn": 1633.5230422300563,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1812.8931096869765,
+                  "predicted_peak_kn": 1812.8931096869765,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1926.200406219705,
+                  "predicted_peak_kn": 1926.200406219705,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1749.8686054713216,
+                  "predicted_peak_kn": 1749.8686054713216,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 2024.8928816779335,
+                  "predicted_peak_kn": 2024.8928816779335,
+                  "maximum_trace_abs_error_kn": 0.0
+                }
+              ]
+            },
+            "second_stage_bilinear": {
+              "summary": {
+                "validation_points": 2,
+                "peak_mae_kn": 115.08654717818558,
+                "peak_abs_error_p95_kn": 169.8040488724629,
+                "maximum_underprediction_kn": 175.88377128293814,
+                "maximum_overprediction_kn": 54.289323073433025,
+                "limits": {
+                  "1350": {
+                    "predicted_safe": 0,
+                    "actual_unsafe": 2,
+                    "false_safe": 0,
+                    "false_rejection": 0
+                  },
+                  "1500": {
+                    "predicted_safe": 0,
+                    "actual_unsafe": 1,
+                    "false_safe": 0,
+                    "false_rejection": 1
+                  }
+                }
+              },
+              "predicted_best": {
+                "actions": [
+                  0.0,
+                  0.0,
+                  1.0,
+                  0.0
+                ],
+                "validation": false,
+                "actual_peak_kn": 1482.3648618701325,
+                "predicted_peak_kn": 1482.3648618701325,
+                "maximum_trace_abs_error_kn": 0.0
+              },
+              "actual_best_peak_kn": 1482.3648618701325,
+              "selection_regret_kn": 0.0,
+              "selection_scope": "observed probe set only",
+              "points": [
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1508.8267023166131,
+                  "predicted_peak_kn": 1508.8267023166131,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1696.7757437860187,
+                  "predicted_peak_kn": 1696.7757437860187,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1482.3648618701325,
+                  "predicted_peak_kn": 1482.3648618701325,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1739.106655646627,
+                  "predicted_peak_kn": 1739.106655646627,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1735.0675215342724,
+                  "predicted_peak_kn": 1735.0675215342724,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1955.8513939426916,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.5,
+                    0.5
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1937.2185915846,
+                  "predicted_peak_kn": 1761.334820301662,
+                  "maximum_trace_abs_error_kn": 175.88377128293814
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1660.2578370327972,
+                  "predicted_peak_kn": 1660.2578370327972,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1846.1323470092586,
+                  "predicted_peak_kn": 1846.1323470092586,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1510.6877407292768,
+                  "predicted_peak_kn": 1510.6877407292768,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1694.8520765558808,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.5,
+                    0.0
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1488.1168758764725,
+                  "predicted_peak_kn": 1542.4061989499055,
+                  "maximum_trace_abs_error_kn": 111.64476006148493
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1574.124657170534,
+                  "predicted_peak_kn": 1574.124657170534,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1633.5230422300563,
+                  "predicted_peak_kn": 1633.5230422300563,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1812.8931096869765,
+                  "predicted_peak_kn": 1812.8931096869765,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1926.200406219705,
+                  "predicted_peak_kn": 1926.200406219705,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1749.8686054713216,
+                  "predicted_peak_kn": 1749.8686054713216,
+                  "maximum_trace_abs_error_kn": 0.0
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 2024.8928816779335,
+                  "predicted_peak_kn": 2024.8928816779335,
+                  "maximum_trace_abs_error_kn": 0.0
+                }
+              ]
+            },
+            "second_stage_corner_envelope": {
+              "summary": {
+                "validation_points": 2,
+                "peak_mae_kn": 112.68400151874994,
+                "peak_abs_error_p95_kn": 197.33008076334247,
+                "maximum_underprediction_kn": 0.0,
+                "maximum_overprediction_kn": 206.7352006794083,
+                "limits": {
+                  "1350": {
+                    "predicted_safe": 0,
+                    "actual_unsafe": 2,
+                    "false_safe": 0,
+                    "false_rejection": 0
+                  },
+                  "1500": {
+                    "predicted_safe": 0,
+                    "actual_unsafe": 1,
+                    "false_safe": 0,
+                    "false_rejection": 1
+                  }
+                }
+              },
+              "predicted_best": {
+                "actions": [
+                  1.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "validation": false,
+                "actual_peak_kn": 1510.6877407292768,
+                "predicted_peak_kn": 1694.8520765558808,
+                "maximum_trace_abs_error_kn": 195.98643294441263
+              },
+              "actual_best_peak_kn": 1482.3648618701325,
+              "selection_regret_kn": 28.32287885914434,
+              "selection_scope": "observed probe set only",
+              "points": [
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1508.8267023166131,
+                  "predicted_peak_kn": 1739.106655646627,
+                  "maximum_trace_abs_error_kn": 292.6886652408966
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1696.7757437860187,
+                  "predicted_peak_kn": 1739.106655646627,
+                  "maximum_trace_abs_error_kn": 158.92184384660163
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1482.3648618701325,
+                  "predicted_peak_kn": 1739.106655646627,
+                  "maximum_trace_abs_error_kn": 288.9977771173735
+                },
+                {
+                  "actions": [
+                    0.0,
+                    0.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1739.106655646627,
+                  "predicted_peak_kn": 1739.106655646627,
+                  "maximum_trace_abs_error_kn": 88.28011445688571
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1735.0675215342724,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 342.4087166245781
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1955.8513939426916,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 226.8183462436898
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    0.5,
+                    0.5
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1937.2185915846,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 246.45446490593304
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1660.2578370327972,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 392.63308780340617
+                },
+                {
+                  "actions": [
+                    0.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1846.1323470092586,
+                  "predicted_peak_kn": 1955.8513939426916,
+                  "maximum_trace_abs_error_kn": 158.03364925243386
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1510.6877407292768,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 195.98643294441263
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1694.8520765558808,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 117.6773669940726
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    0.5,
+                    0.0
+                  ],
+                  "validation": true,
+                  "actual_peak_kn": 1488.1168758764725,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 264.0906376674602
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1574.124657170534,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 166.50627413117718
+                },
+                {
+                  "actions": [
+                    1.0,
+                    0.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1633.5230422300563,
+                  "predicted_peak_kn": 1694.8520765558808,
+                  "maximum_trace_abs_error_kn": 119.05784743512277
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1812.8931096869765,
+                  "predicted_peak_kn": 2024.8928816779335,
+                  "maximum_trace_abs_error_kn": 357.3864926182782
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    0.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1926.200406219705,
+                  "predicted_peak_kn": 2024.8928816779335,
+                  "maximum_trace_abs_error_kn": 215.8842603451808
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    0.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 1749.8686054713216,
+                  "predicted_peak_kn": 2024.8928816779335,
+                  "maximum_trace_abs_error_kn": 410.97741231227724
+                },
+                {
+                  "actions": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                  ],
+                  "validation": false,
+                  "actual_peak_kn": 2024.8928816779335,
+                  "predicted_peak_kn": 2024.8928816779335,
+                  "maximum_trace_abs_error_kn": 129.20700053330847
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

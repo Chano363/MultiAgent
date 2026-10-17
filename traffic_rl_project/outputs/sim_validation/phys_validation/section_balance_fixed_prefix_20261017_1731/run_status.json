@@ -1,0 +1,8 @@
+{
+  "status": "cancelled",
+  "reason": "Frozen section-balance trial failed both targeted boundary cases; unrelated 500-second prefix stopped instead of spending more simulation time",
+  "has_completed_result": false,
+  "numeric_claim_allowed": false,
+  "source": "outputs/sim_validation/phys_validation/section_balance_source_20261017_1731/controller_source.py",
+  "counterexamples": ["section_balance_flat_20261017_1731", "section_balance_reentry_20261017_1731"]
+}

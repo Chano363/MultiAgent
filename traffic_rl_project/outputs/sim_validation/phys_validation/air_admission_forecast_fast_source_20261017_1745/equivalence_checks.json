@@ -1,0 +1,6 @@
+{
+  "grade_lookup_points": 2050,
+  "grade_array_equal": true,
+  "scope": "lookup optimization only; forecast/controller otherwise unchanged",
+  "source_sha256": "4398e400f0bc0594b4dcde29291a58739dd96d7743e1abe6880f487f2b9fb4f0"
+}

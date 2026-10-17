@@ -1,0 +1,207 @@
+{
+  "case": "reentry_before100",
+  "start_m": 26533.5,
+  "checkpoint_s": 8,
+  "horizon_s": 12,
+  "scope": "nine early terminal two-locomotive allocations; hypothesis from prior6s boundary failure, not a full search",
+  "sequences": [
+    {
+      "name": "late_pair_00",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_01",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0.0,
+          0.5
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_02",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0.0,
+          1.0
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_10",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0.5,
+          0.0
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_11",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0.5,
+          0.5
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_12",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          0.5,
+          1.0
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_20",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_21",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1.0,
+          0.5
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    },
+    {
+      "name": "late_pair_22",
+      "ED_depths": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "durations_s": [
+        2,
+        2,
+        8
+      ]
+    }
+  ]
+}

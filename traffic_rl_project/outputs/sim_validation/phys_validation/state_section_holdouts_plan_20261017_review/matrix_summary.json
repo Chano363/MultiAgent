@@ -1,0 +1,290 @@
+{
+  "plan": {
+    "controller_sha256": "5d1e7ef668e08b21c335b3f03d7a58b3478505fe14356a53abfb51614bf1d241",
+    "scope": "predeclared adjacent-start holdouts; all at 70kmh, 120 seconds, stop on1500",
+    "cases": [
+      {
+        "name": "flat_before100",
+        "start_m": 24913.5,
+        "speed_kmh": 70
+      },
+      {
+        "name": "flat_after100",
+        "start_m": 25113.5,
+        "speed_kmh": 70
+      },
+      {
+        "name": "reentry_before100",
+        "start_m": 26533.5,
+        "speed_kmh": 70
+      },
+      {
+        "name": "reentry_after100",
+        "start_m": 26733.5,
+        "speed_kmh": 70
+      }
+    ]
+  },
+  "normalized_controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+  "cases": [
+    {
+      "name": "original_flat",
+      "start_m": 25013.5,
+      "archive": "outputs\\sim_validation\\phys_validation\\state_section_ed_flat_v3_20261017_review",
+      "summary": {
+        "steps": 1200,
+        "speed_min_kmh": 70.01144651167277,
+        "speed_max_kmh": 73.34900791411339,
+        "peak_kn": 1343.2005147958334,
+        "jerk_rms": 0.00994851615624039,
+        "jerk_peak": 0.08993606413696398,
+        "command_switches": 0,
+        "violations": 0,
+        "safety_events": 0,
+        "diagnostic_stop_reason": null,
+        "diagnostic_first_crossing_s": null,
+        "physical_ed_change_rms_per_s": 0.28738385008438067,
+        "physical_ed_max_step_increase": 0.37283044292342704,
+        "physical_ed_max_step_decrease": 0.34377555810269533,
+        "requested_notch_switches": 0,
+        "stored_head_notch_switches": 0,
+        "elapsed_s": 120.0,
+        "mean_speed_kmh": 72.31156437303356,
+        "distance_leader_m": 2409.3208969177576,
+        "leader_end_m": 27422.820896917758,
+        "last_tail_end_m": 24821.26021723479,
+        "max_vehicle_speed_kmh": 74.03531377240132,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 0,
+        "full_route_completed": false
+      },
+      "events": [
+        {
+          "step": 351,
+          "phase": "front",
+          "grade_contrast": 0.004378899082568813,
+          "front_compression_kn": 1065.2511808152244,
+          "rear_compression_kn": 695.4848212473984,
+          "near_speed_limit": false
+        },
+        {
+          "step": 1090,
+          "phase": null,
+          "grade_contrast": -0.0004871559633027522,
+          "front_compression_kn": 299.55702561821647,
+          "rear_compression_kn": 736.6308612589328,
+          "near_speed_limit": false
+        }
+      ]
+    },
+    {
+      "name": "original_reentry",
+      "start_m": 26633.5,
+      "archive": "outputs\\sim_validation\\phys_validation\\state_section_ed_reentry_v3_20261017_review",
+      "summary": {
+        "steps": 1200,
+        "speed_min_kmh": 65.66154875126755,
+        "speed_max_kmh": 69.99676785069195,
+        "peak_kn": 1490.042882939678,
+        "jerk_rms": 0.006111644186247385,
+        "jerk_peak": 0.03436156487062192,
+        "command_switches": 0,
+        "violations": 0,
+        "safety_events": 0,
+        "diagnostic_stop_reason": null,
+        "diagnostic_first_crossing_s": null,
+        "physical_ed_change_rms_per_s": 0.08078175768032875,
+        "physical_ed_max_step_increase": 0.050000000000000044,
+        "physical_ed_max_step_decrease": 0.050000000000000044,
+        "requested_notch_switches": 0,
+        "stored_head_notch_switches": 0,
+        "elapsed_s": 120.0,
+        "mean_speed_kmh": 67.24579923251162,
+        "distance_leader_m": 2241.4631495899775,
+        "leader_end_m": 28874.963149589978,
+        "last_tail_end_m": 26269.497886817087,
+        "max_vehicle_speed_kmh": 72.13866532991024,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 0,
+        "full_route_completed": false
+      },
+      "events": [
+        {
+          "step": 61,
+          "phase": "rear",
+          "grade_contrast": 0.005036697247706421,
+          "front_compression_kn": 827.0377880990342,
+          "rear_compression_kn": 907.3675290646853,
+          "near_speed_limit": false
+        },
+        {
+          "step": 241,
+          "phase": null,
+          "grade_contrast": 0.0009440366972477045,
+          "front_compression_kn": 394.5731035341397,
+          "rear_compression_kn": 697.1036486179504,
+          "near_speed_limit": false
+        }
+      ]
+    },
+    {
+      "name": "flat_before100",
+      "start_m": 24913.5,
+      "archive": "outputs\\sim_validation\\phys_validation\\state_section_flat_before100_v3_20261017_review",
+      "summary": {
+        "steps": 434,
+        "speed_min_kmh": 70.01160484999411,
+        "speed_max_kmh": 73.02356130246477,
+        "peak_kn": 1516.2380301034432,
+        "jerk_rms": 0.014062302873919812,
+        "jerk_peak": 0.08096057385600375,
+        "command_switches": 0,
+        "violations": 1,
+        "safety_events": 0,
+        "diagnostic_stop_reason": "coupler_threshold",
+        "diagnostic_first_crossing_s": 43.400000000000006,
+        "physical_ed_change_rms_per_s": 0.4450909061238624,
+        "physical_ed_max_step_increase": 0.3172584764063162,
+        "physical_ed_max_step_decrease": 0.26477288461297366,
+        "requested_notch_switches": 0,
+        "stored_head_notch_switches": 0,
+        "elapsed_s": 43.400000000000006,
+        "mean_speed_kmh": 71.73618544963301,
+        "distance_leader_m": 860.8952849931593,
+        "leader_end_m": 25774.39528499316,
+        "last_tail_end_m": 23177.477877729703,
+        "max_vehicle_speed_kmh": 73.63165990928317,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 0,
+        "full_route_completed": false
+      },
+      "events": [
+        {
+          "step": 385,
+          "phase": "rear",
+          "grade_contrast": 0.004124770642201839,
+          "front_compression_kn": 934.0483447889522,
+          "rear_compression_kn": 956.5567078436819,
+          "near_speed_limit": false
+        }
+      ]
+    },
+    {
+      "name": "flat_after100",
+      "start_m": 25113.5,
+      "archive": "outputs\\sim_validation\\phys_validation\\state_section_flat_after100_v3_20261017_review",
+      "summary": {
+        "steps": 407,
+        "speed_min_kmh": 70.01054461744583,
+        "speed_max_kmh": 72.37199705772692,
+        "peak_kn": 1512.9669891300514,
+        "jerk_rms": 0.012915508857728328,
+        "jerk_peak": 0.08599814116543314,
+        "command_switches": 0,
+        "violations": 1,
+        "safety_events": 0,
+        "diagnostic_stop_reason": "coupler_threshold",
+        "diagnostic_first_crossing_s": 40.7,
+        "physical_ed_change_rms_per_s": 0.3955629163207911,
+        "physical_ed_max_step_increase": 0.3160069457468644,
+        "physical_ed_max_step_decrease": 0.15867726794268966,
+        "requested_notch_switches": 0,
+        "stored_head_notch_switches": 0,
+        "elapsed_s": 40.7,
+        "mean_speed_kmh": 71.40284226156504,
+        "distance_leader_m": 804.1088844400001,
+        "leader_end_m": 25917.60888444,
+        "last_tail_end_m": 23319.865950963962,
+        "max_vehicle_speed_kmh": 73.33664432154934,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 0,
+        "full_route_completed": false
+      },
+      "events": [
+        {
+          "step": 349,
+          "phase": "front",
+          "grade_contrast": 0.005237614678899088,
+          "front_compression_kn": 1061.3339850456962,
+          "rear_compression_kn": 725.0946368455932,
+          "near_speed_limit": false
+        }
+      ]
+    },
+    {
+      "name": "reentry_before100",
+      "start_m": 26533.5,
+      "archive": "outputs\\sim_validation\\phys_validation\\state_section_reentry_before100_v3_20261017_review",
+      "summary": {
+        "steps": 139,
+        "speed_min_kmh": 69.4343377146863,
+        "speed_max_kmh": 69.99773959504671,
+        "peak_kn": 1524.825024866549,
+        "jerk_rms": 0.0075413578083446476,
+        "jerk_peak": 0.02959489833607165,
+        "command_switches": 0,
+        "violations": 1,
+        "safety_events": 0,
+        "diagnostic_stop_reason": "coupler_threshold",
+        "diagnostic_first_crossing_s": 13.9,
+        "physical_ed_change_rms_per_s": 0.14744195615489714,
+        "physical_ed_max_step_increase": 0.0,
+        "physical_ed_max_step_decrease": 0.050000000000000044,
+        "requested_notch_switches": 0,
+        "stored_head_notch_switches": 0,
+        "elapsed_s": 13.9,
+        "mean_speed_kmh": 69.59925904728105,
+        "distance_leader_m": 263.939751946029,
+        "leader_end_m": 26797.43975194603,
+        "last_tail_end_m": 24202.57371556687,
+        "max_vehicle_speed_kmh": 72.06478067146053,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 0,
+        "full_route_completed": false
+      },
+      "events": [
+        {
+          "step": 58,
+          "phase": "rear",
+          "grade_contrast": 0.006046788990825686,
+          "front_compression_kn": 893.7784864089189,
+          "rear_compression_kn": 906.6405429682952,
+          "near_speed_limit": false
+        }
+      ]
+    },
+    {
+      "name": "reentry_after100",
+      "start_m": 26733.5,
+      "archive": "outputs\\sim_validation\\phys_validation\\state_section_reentry_after100_v3_20261017_review",
+      "summary": {
+        "steps": 1200,
+        "speed_min_kmh": 65.32397594686425,
+        "speed_max_kmh": 69.99631260915153,
+        "peak_kn": 1499.8925542403913,
+        "jerk_rms": 0.008024729983655388,
+        "jerk_peak": 0.06339230500067572,
+        "command_switches": 0,
+        "violations": 0,
+        "safety_events": 0,
+        "diagnostic_stop_reason": null,
+        "diagnostic_first_crossing_s": null,
+        "physical_ed_change_rms_per_s": 0.1718655310336999,
+        "physical_ed_max_step_increase": 0.22733535589386444,
+        "physical_ed_max_step_decrease": 0.1973112919354182,
+        "requested_notch_switches": 0,
+        "stored_head_notch_switches": 0,
+        "elapsed_s": 120.0,
+        "mean_speed_kmh": 66.84126686213727,
+        "distance_leader_m": 2227.5948259425422,
+        "leader_end_m": 28961.094825942542,
+        "last_tail_end_m": 26356.278338590637,
+        "max_vehicle_speed_kmh": 72.06719144986906,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 0,
+        "full_route_completed": false
+      },
+      "events": []
+    }
+  ]
+}

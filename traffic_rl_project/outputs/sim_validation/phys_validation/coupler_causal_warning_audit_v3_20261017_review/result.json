@@ -1,0 +1,4009 @@
+{
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "698f4e0aec53",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "9aa4925f193e",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "audit_coupler_warning.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "20kt_1plus108_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1500000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "scope": "archived-warning audit; not a control or safety guarantee",
+    "audit_source_sha256": "96e209b80b0c779ea2f447b4891f6245998b7484870487a272aa585bed782a86",
+    "world_config_scope": "reference archive only; each case retains its original metadata",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  },
+  "cases": [
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_ed_flat_v3_20261017_review",
+      "train": 0,
+      "trajectory_sha256": "a2689ab809bedeb0d87e3f8542e759692a9299cccec6ddf623f15c2f4788391f",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\state_section_ed_flat_v3_20261017_review",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 1200,
+          "stop_on_coupler_kn": 1350.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 25013.5,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+        "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null,
+            "predictive_ed_guard_events": [
+              {
+                "step": 351,
+                "phase": "front",
+                "grade_contrast": 0.004378899082568813,
+                "front_compression_kn": 1065.2511808152244,
+                "rear_compression_kn": 695.4848212473984,
+                "near_speed_limit": false
+              },
+              {
+                "step": 1090,
+                "phase": null,
+                "grade_contrast": -0.0004871559633027522,
+                "front_compression_kn": 299.55702561821647,
+                "rear_compression_kn": 736.6308612589328,
+                "near_speed_limit": false
+              }
+            ]
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 1200,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 ++++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  75 +++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  61 ++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 102 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       |  71 +++++++-------\n .../src/controllers/nmpc_controller.py             |  35 ++++++-\n .../src/environments/train_fleet_env.py            |  44 +++++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++++--\n .../src/evaluation/evaluate_decompose.py           |  13 +--\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 +++++++++++++----\n traffic_rl_project/tests/test_metric_accounting.py |  13 ++-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 +++++\n 17 files changed, 624 insertions(+), 94 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 1185,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1183,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 118.30000000000064,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1183,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 118.30000000000064,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 607,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 60.70000000000032,
+              "warning_episodes": 64,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1175,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 972,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 97.20000000000051,
+              "warning_episodes": 65,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1165,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1094,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 109.40000000000059,
+              "warning_episodes": 35,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1185,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1156,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 115.60000000000062,
+              "warning_episodes": 18,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1156,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 115.60000000000062,
+              "warning_episodes": 18,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 410,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 41.00000000000022,
+              "warning_episodes": 62,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1175,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 839,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 83.90000000000045,
+              "warning_episodes": 75,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1165,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1037,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 103.70000000000056,
+              "warning_episodes": 52,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_ed_reentry_v3_20261017_review",
+      "train": 0,
+      "trajectory_sha256": "e643719520c5b94bb7305ee1cbbf53ffcff8c1170eb05a3de4eb8a4c60e29860",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\state_section_ed_reentry_v3_20261017_review",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 1200,
+          "stop_on_coupler_kn": 1500.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 26633.5,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+        "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null,
+            "predictive_ed_guard_events": [
+              {
+                "step": 61,
+                "phase": "rear",
+                "grade_contrast": 0.005036697247706421,
+                "front_compression_kn": 827.0377880990342,
+                "rear_compression_kn": 907.3675290646853,
+                "near_speed_limit": false
+              },
+              {
+                "step": 241,
+                "phase": null,
+                "grade_contrast": 0.0009440366972477045,
+                "front_compression_kn": 394.5731035341397,
+                "rear_compression_kn": 697.1036486179504,
+                "near_speed_limit": false
+              }
+            ]
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 1200,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 ++++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  75 +++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  61 ++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 102 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       |  71 +++++++-------\n .../src/controllers/nmpc_controller.py             |  35 ++++++-\n .../src/environments/train_fleet_env.py            |  44 +++++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++++--\n .../src/evaluation/evaluate_decompose.py           |  13 +--\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 +++++++++++++----\n traffic_rl_project/tests/test_metric_accounting.py |  13 ++-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 +++++\n 17 files changed, 624 insertions(+), 94 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 1130,
+          "positive_samples": 18,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 11.700000000000063,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 18,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 18,
+              "false_positive": 1101,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.0160857908847185,
+              "false_warning_seconds": 110.10000000000059,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 18,
+              "false_positive": 1101,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.0160857908847185,
+              "false_warning_seconds": 110.10000000000059,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 18,
+              "false_positive": 243,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.06896551724137931,
+              "false_warning_seconds": 24.30000000000013,
+              "warning_episodes": 56,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1120,
+          "positive_samples": 28,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 11.700000000000063,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 28,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 28,
+              "false_positive": 1092,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.025,
+              "false_warning_seconds": 109.20000000000059,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 28,
+              "false_positive": 1092,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.025,
+              "false_warning_seconds": 109.20000000000059,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 28,
+              "false_positive": 699,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03851444291609354,
+              "false_warning_seconds": 69.90000000000038,
+              "warning_episodes": 133,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1110,
+          "positive_samples": 38,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 11.700000000000063,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 38,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 38,
+              "false_positive": 1072,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03423423423423423,
+              "false_warning_seconds": 107.20000000000057,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 38,
+              "false_positive": 1072,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03423423423423423,
+              "false_warning_seconds": 107.20000000000057,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 38,
+              "false_positive": 957,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03819095477386935,
+              "false_warning_seconds": 95.70000000000051,
+              "warning_episodes": 79,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1185,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1158,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 115.80000000000062,
+              "warning_episodes": 21,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1158,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 115.80000000000062,
+              "warning_episodes": 21,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 185,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 18.5000000000001,
+              "warning_episodes": 23,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1175,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 579,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 57.90000000000031,
+              "warning_episodes": 101,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1165,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 930,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 93.0000000000005,
+              "warning_episodes": 120,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_flat_before100_v3_20261017_review",
+      "train": 0,
+      "trajectory_sha256": "8d42fb758f2463858c37699540d046ffa28eac39c17531a31f9c18a05209e7b1",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\state_section_flat_before100_v3_20261017_review",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 1200,
+          "stop_on_coupler_kn": 1500.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 24913.5,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+        "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null,
+            "predictive_ed_guard_events": [
+              {
+                "step": 385,
+                "phase": "rear",
+                "grade_contrast": 0.004124770642201839,
+                "front_compression_kn": 934.0483447889522,
+                "rear_compression_kn": 956.5567078436819,
+                "near_speed_limit": false
+              }
+            ]
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 1200,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 ++++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  75 +++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  61 ++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 102 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       |  71 +++++++-------\n .../src/controllers/nmpc_controller.py             |  35 ++++++-\n .../src/environments/train_fleet_env.py            |  44 +++++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++++--\n .../src/evaluation/evaluate_decompose.py           |  13 +--\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 +++++++++++++----\n traffic_rl_project/tests/test_metric_accounting.py |  13 ++-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 +++++\n 17 files changed, 624 insertions(+), 94 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 414,
+          "positive_samples": 12,
+          "known_positive_censored_samples": 1,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 41.800000000000225,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 12,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 12,
+              "false_positive": 401,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.029055690072639227,
+              "false_warning_seconds": 40.100000000000215,
+              "warning_episodes": 4,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 12,
+              "false_positive": 401,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.029055690072639227,
+              "false_warning_seconds": 40.100000000000215,
+              "warning_episodes": 4,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 12,
+              "false_positive": 197,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.05741626794258373,
+              "false_warning_seconds": 19.700000000000106,
+              "warning_episodes": 24,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 414,
+          "positive_samples": 22,
+          "known_positive_censored_samples": 5,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 41.800000000000225,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 22,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 22,
+              "false_positive": 392,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.05314009661835749,
+              "false_warning_seconds": 39.20000000000021,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 22,
+              "false_positive": 392,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.05314009661835749,
+              "false_warning_seconds": 39.20000000000021,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 22,
+              "false_positive": 340,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.06077348066298342,
+              "false_warning_seconds": 34.000000000000185,
+              "warning_episodes": 29,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 414,
+          "positive_samples": 32,
+          "known_positive_censored_samples": 15,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 41.800000000000225,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 32,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 32,
+              "false_positive": 382,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07729468599033816,
+              "false_warning_seconds": 38.2000000000002,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 32,
+              "false_positive": 382,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07729468599033816,
+              "false_warning_seconds": 38.2000000000002,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 32,
+              "false_positive": 375,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07862407862407862,
+              "false_warning_seconds": 37.5000000000002,
+              "warning_episodes": 8,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 428,
+          "positive_samples": 10,
+          "known_positive_censored_samples": 9,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 43.40000000000023,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 10,
+              "false_positive": 415,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.023529411764705882,
+              "false_warning_seconds": 41.50000000000022,
+              "warning_episodes": 4,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 10,
+              "false_positive": 415,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.023529411764705882,
+              "false_warning_seconds": 41.50000000000022,
+              "warning_episodes": 4,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 10,
+              "false_positive": 154,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.06097560975609756,
+              "false_warning_seconds": 15.400000000000082,
+              "warning_episodes": 20,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 428,
+          "positive_samples": 20,
+          "known_positive_censored_samples": 19,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 43.40000000000023,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 20,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 20,
+              "false_positive": 408,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.04672897196261682,
+              "false_warning_seconds": 40.80000000000022,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 20,
+              "false_positive": 408,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.04672897196261682,
+              "false_warning_seconds": 40.80000000000022,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 20,
+              "false_positive": 298,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.06289308176100629,
+              "false_warning_seconds": 29.80000000000016,
+              "warning_episodes": 27,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 428,
+          "positive_samples": 30,
+          "known_positive_censored_samples": 29,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 43.40000000000023,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 30,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 30,
+              "false_positive": 398,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07009345794392523,
+              "false_warning_seconds": 39.80000000000021,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 30,
+              "false_positive": 398,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07009345794392523,
+              "false_warning_seconds": 39.80000000000021,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 30,
+              "false_positive": 377,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07371007371007371,
+              "false_warning_seconds": 37.7000000000002,
+              "warning_episodes": 14,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_flat_after100_v3_20261017_review",
+      "train": 0,
+      "trajectory_sha256": "8875b77c5f398e84f2deb96a4382b0bc664e7b60ad53388797c2ae2180e7439e",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\state_section_flat_after100_v3_20261017_review",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 1200,
+          "stop_on_coupler_kn": 1500.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 25113.5,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+        "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null,
+            "predictive_ed_guard_events": [
+              {
+                "step": 349,
+                "phase": "front",
+                "grade_contrast": 0.005237614678899088,
+                "front_compression_kn": 1061.3339850456962,
+                "rear_compression_kn": 725.0946368455932,
+                "near_speed_limit": false
+              }
+            ]
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 1200,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 ++++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  75 +++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  61 ++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 102 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       |  71 +++++++-------\n .../src/controllers/nmpc_controller.py             |  35 ++++++-\n .../src/environments/train_fleet_env.py            |  44 +++++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++++--\n .../src/evaluation/evaluate_decompose.py           |  13 +--\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 +++++++++++++----\n traffic_rl_project/tests/test_metric_accounting.py |  13 ++-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 +++++\n 17 files changed, 624 insertions(+), 94 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 390,
+          "positive_samples": 11,
+          "known_positive_censored_samples": 1,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 1.0000000000000009,
+          "lag_s": 0.5000000000000004,
+          "observed_first_crossing_s": 39.500000000000036,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 11,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 11,
+              "false_positive": 379,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.028205128205128206,
+              "false_warning_seconds": 37.900000000000034,
+              "warning_episodes": 2,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000009
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 11,
+              "false_positive": 379,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.028205128205128206,
+              "false_warning_seconds": 37.900000000000034,
+              "warning_episodes": 2,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000009
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 11,
+              "false_positive": 251,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.04198473282442748,
+              "false_warning_seconds": 25.100000000000023,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000009
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 390,
+          "positive_samples": 21,
+          "known_positive_censored_samples": 8,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 2.0000000000000018,
+          "lag_s": 0.5000000000000004,
+          "observed_first_crossing_s": 39.500000000000036,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 21,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 21,
+              "false_positive": 369,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.05384615384615385,
+              "false_warning_seconds": 36.900000000000034,
+              "warning_episodes": 2,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000018
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 21,
+              "false_positive": 369,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.05384615384615385,
+              "false_warning_seconds": 36.900000000000034,
+              "warning_episodes": 2,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000018
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 21,
+              "false_positive": 332,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.059490084985835696,
+              "false_warning_seconds": 33.20000000000003,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000018
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 390,
+          "positive_samples": 31,
+          "known_positive_censored_samples": 18,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 3.0000000000000027,
+          "lag_s": 0.5000000000000004,
+          "observed_first_crossing_s": 39.500000000000036,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 31,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 31,
+              "false_positive": 359,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07948717948717948,
+              "false_warning_seconds": 35.900000000000034,
+              "warning_episodes": 2,
+              "first_observed_crossing_warning_lead_s": 3.0000000000000027
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 31,
+              "false_positive": 359,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07948717948717948,
+              "false_warning_seconds": 35.900000000000034,
+              "warning_episodes": 2,
+              "first_observed_crossing_warning_lead_s": 3.0000000000000027
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 31,
+              "false_positive": 356,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.08010335917312661,
+              "false_warning_seconds": 35.60000000000003,
+              "warning_episodes": 4,
+              "first_observed_crossing_warning_lead_s": 3.0000000000000027
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 401,
+          "positive_samples": 10,
+          "known_positive_censored_samples": 9,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 1.0000000000000009,
+          "lag_s": 0.5000000000000004,
+          "observed_first_crossing_s": 40.70000000000004,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 10,
+              "false_positive": 391,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.02493765586034913,
+              "false_warning_seconds": 39.10000000000004,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000009
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 10,
+              "false_positive": 391,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.02493765586034913,
+              "false_warning_seconds": 39.10000000000004,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000009
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 9,
+              "false_positive": 183,
+              "false_negative": 1,
+              "recall": 0.9,
+              "precision": 0.046875,
+              "false_warning_seconds": 18.300000000000015,
+              "warning_episodes": 30,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000009
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 401,
+          "positive_samples": 20,
+          "known_positive_censored_samples": 19,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 2.0000000000000018,
+          "lag_s": 0.5000000000000004,
+          "observed_first_crossing_s": 40.70000000000004,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 20,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 20,
+              "false_positive": 381,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.04987531172069826,
+              "false_warning_seconds": 38.10000000000004,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000018
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 20,
+              "false_positive": 381,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.04987531172069826,
+              "false_warning_seconds": 38.10000000000004,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000018
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 20,
+              "false_positive": 309,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.060790273556231005,
+              "false_warning_seconds": 30.900000000000027,
+              "warning_episodes": 26,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000018
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 401,
+          "positive_samples": 30,
+          "known_positive_censored_samples": 29,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 3.0000000000000027,
+          "lag_s": 0.5000000000000004,
+          "observed_first_crossing_s": 40.70000000000004,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 30,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 30,
+              "false_positive": 371,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07481296758104738,
+              "false_warning_seconds": 37.10000000000003,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 3.0000000000000027
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 30,
+              "false_positive": 371,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07481296758104738,
+              "false_warning_seconds": 37.10000000000003,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 3.0000000000000027
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 30,
+              "false_positive": 356,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07772020725388601,
+              "false_warning_seconds": 35.60000000000003,
+              "warning_episodes": 9,
+              "first_observed_crossing_warning_lead_s": 3.0000000000000027
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_reentry_before100_v3_20261017_review",
+      "train": 0,
+      "trajectory_sha256": "e90879cd29f012dccc1e42e253f8d613290e9012876aa913348490a356396b9e",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\state_section_reentry_before100_v3_20261017_review",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 1200,
+          "stop_on_coupler_kn": 1500.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 26533.5,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+        "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null,
+            "predictive_ed_guard_events": [
+              {
+                "step": 58,
+                "phase": "rear",
+                "grade_contrast": 0.006046788990825686,
+                "front_compression_kn": 893.7784864089189,
+                "rear_compression_kn": 906.6405429682952,
+                "near_speed_limit": false
+              }
+            ]
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 1200,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 ++++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  75 +++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  61 ++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 102 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       |  71 +++++++-------\n .../src/controllers/nmpc_controller.py             |  35 ++++++-\n .../src/environments/train_fleet_env.py            |  44 +++++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++++--\n .../src/evaluation/evaluate_decompose.py           |  13 +--\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 +++++++++++++----\n traffic_rl_project/tests/test_metric_accounting.py |  13 ++-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 +++++\n 17 files changed, 624 insertions(+), 94 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 110,
+          "positive_samples": 16,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 0.9999999999999964,
+          "lag_s": 0.4999999999999982,
+          "observed_first_crossing_s": 10.999999999999961,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 16,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 16,
+              "false_positive": 94,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.14545454545454545,
+              "false_warning_seconds": 9.399999999999967,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 0.9999999999999964
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 16,
+              "false_positive": 94,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.14545454545454545,
+              "false_warning_seconds": 9.399999999999967,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 0.9999999999999964
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 16,
+              "false_positive": 52,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.23529411764705882,
+              "false_warning_seconds": 5.1999999999999815,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": 0.9999999999999964
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 110,
+          "positive_samples": 26,
+          "known_positive_censored_samples": 1,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 1.999999999999993,
+          "lag_s": 0.4999999999999982,
+          "observed_first_crossing_s": 10.999999999999961,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 26,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 26,
+              "false_positive": 84,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.23636363636363636,
+              "false_warning_seconds": 8.39999999999997,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 1.999999999999993
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 26,
+              "false_positive": 84,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.23636363636363636,
+              "false_warning_seconds": 8.39999999999997,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 1.999999999999993
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 26,
+              "false_positive": 84,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.23636363636363636,
+              "false_warning_seconds": 8.39999999999997,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 1.999999999999993
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 110,
+          "positive_samples": 36,
+          "known_positive_censored_samples": 6,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 2.9999999999999893,
+          "lag_s": 0.4999999999999982,
+          "observed_first_crossing_s": 10.999999999999961,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 36,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 36,
+              "false_positive": 74,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.32727272727272727,
+              "false_warning_seconds": 7.399999999999974,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 2.9999999999999893
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 36,
+              "false_positive": 74,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.32727272727272727,
+              "false_warning_seconds": 7.399999999999974,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 2.9999999999999893
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 36,
+              "false_positive": 74,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.32727272727272727,
+              "false_warning_seconds": 7.399999999999974,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": 2.9999999999999893
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 133,
+          "positive_samples": 10,
+          "known_positive_censored_samples": 9,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 0.9999999999999964,
+          "lag_s": 0.4999999999999982,
+          "observed_first_crossing_s": 13.89999999999995,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 10,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 10,
+              "false_positive": 123,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07518796992481203,
+              "false_warning_seconds": 12.299999999999956,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 0.9999999999999964
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 10,
+              "false_positive": 123,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.07518796992481203,
+              "false_warning_seconds": 12.299999999999956,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 0.9999999999999964
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 10,
+              "false_positive": 50,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.16666666666666666,
+              "false_warning_seconds": 4.999999999999982,
+              "warning_episodes": 6,
+              "first_observed_crossing_warning_lead_s": 0.9999999999999964
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 133,
+          "positive_samples": 20,
+          "known_positive_censored_samples": 19,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 1.999999999999993,
+          "lag_s": 0.4999999999999982,
+          "observed_first_crossing_s": 13.89999999999995,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 20,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 20,
+              "false_positive": 113,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.15037593984962405,
+              "false_warning_seconds": 11.29999999999996,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 1.999999999999993
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 20,
+              "false_positive": 113,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.15037593984962405,
+              "false_warning_seconds": 11.29999999999996,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 1.999999999999993
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 20,
+              "false_positive": 111,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.15267175572519084,
+              "false_warning_seconds": 11.09999999999996,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": 1.999999999999993
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 133,
+          "positive_samples": 30,
+          "known_positive_censored_samples": 29,
+          "unknown_censored_samples_excluded": 0,
+          "horizon_s": 2.9999999999999893,
+          "lag_s": 0.4999999999999982,
+          "observed_first_crossing_s": 13.89999999999995,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 30,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 30,
+              "false_positive": 103,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.22556390977443608,
+              "false_warning_seconds": 10.299999999999963,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.9999999999999893
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 30,
+              "false_positive": 103,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.22556390977443608,
+              "false_warning_seconds": 10.299999999999963,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.9999999999999893
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 30,
+              "false_positive": 103,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.22556390977443608,
+              "false_warning_seconds": 10.299999999999963,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": 2.9999999999999893
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\state_section_reentry_after100_v3_20261017_review",
+      "train": 0,
+      "trajectory_sha256": "4fd918cb86b7bab15caf3f85f3c7b6c08b7b668ffbebafa7ffb6199d6daeab20",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\state_section_reentry_after100_v3_20261017_review",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 1200,
+          "stop_on_coupler_kn": 1500.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 26733.5,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\state_section_ed_source_v3_20261017_review\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+        "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null,
+            "predictive_ed_guard_events": []
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 1200,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   |  21 ++++-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  75 +++++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  61 ++++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |   9 ++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 102 +++++++++++++++++++++\n .../Lu2025_CooperativeNMPC_MultiLoco.md            |  20 +++-\n .../src/controllers/multi_loco_controller.py       |  71 +++++++-------\n .../src/controllers/nmpc_controller.py             |  35 ++++++-\n .../src/environments/train_fleet_env.py            |  44 +++++++--\n .../src/evaluation/diagnose_low_level_control.py   |  51 +++++++++--\n .../src/evaluation/evaluate_decompose.py           |  13 +--\n .../src/evaluation/plot_low_level_control.py       |  44 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |   9 +-\n .../tests/test_controller_diagnostic_archive.py    |  45 +++++++++\n .../tests/test_cyclic_operating_calibration.py     |  83 +++++++++++++----\n traffic_rl_project/tests/test_metric_accounting.py |  13 ++-\n traffic_rl_project/tests/test_nmpc_controller.py   |  22 +++++\n 17 files changed, 624 insertions(+), 94 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 1127,
+          "positive_samples": 17,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 13.400000000000071,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 17,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 17,
+              "false_positive": 1102,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.01519213583556747,
+              "false_warning_seconds": 110.20000000000059,
+              "warning_episodes": 14,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 17,
+              "false_positive": 1102,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.01519213583556747,
+              "false_warning_seconds": 110.20000000000059,
+              "warning_episodes": 14,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 17,
+              "false_positive": 228,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.06938775510204082,
+              "false_warning_seconds": 22.80000000000012,
+              "warning_episodes": 69,
+              "first_observed_crossing_warning_lead_s": 1.0000000000000053
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1117,
+          "positive_samples": 27,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 13.400000000000071,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 27,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 27,
+              "false_positive": 1090,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.024171888988361683,
+              "false_warning_seconds": 109.00000000000058,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 27,
+              "false_positive": 1090,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.024171888988361683,
+              "false_warning_seconds": 109.00000000000058,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 27,
+              "false_positive": 741,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03515625,
+              "false_warning_seconds": 74.10000000000039,
+              "warning_episodes": 120,
+              "first_observed_crossing_warning_lead_s": 2.0000000000000107
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1107,
+          "positive_samples": 37,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": 13.400000000000071,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 37,
+              "recall": 0.0,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 37,
+              "false_positive": 1070,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03342366757000903,
+              "false_warning_seconds": 107.00000000000057,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 37,
+              "false_positive": 1070,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03342366757000903,
+              "false_warning_seconds": 107.00000000000057,
+              "warning_episodes": 7,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 37,
+              "false_positive": 986,
+              "false_negative": 0,
+              "recall": 1.0,
+              "precision": 0.03616813294232649,
+              "false_warning_seconds": 98.60000000000052,
+              "warning_episodes": 64,
+              "first_observed_crossing_warning_lead_s": 3.000000000000016
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1185,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 1.0000000000000053,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1164,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.40000000000062,
+              "warning_episodes": 21,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1164,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.40000000000062,
+              "warning_episodes": 21,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 185,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 18.5000000000001,
+              "warning_episodes": 28,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1175,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 2.0000000000000107,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1175,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 117.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 635,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 63.50000000000034,
+              "warning_episodes": 116,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1165,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 3.000000000000016,
+          "lag_s": 0.5000000000000027,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1165,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 116.50000000000063,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 940,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 94.0000000000005,
+              "warning_episodes": 94,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\net_demand_release_ff_route_gate_20261017_1606",
+      "train": 0,
+      "trajectory_sha256": "9a75a184d918a51eee39c5b210d305d10a68f02ad16d487bb6415f509ad190ae",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\net_demand_release_ff_route_gate_20261017_1606",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [
+            "ed_release_boost_kn=900",
+            "cyclic_release_kmh=50",
+            "coupler_override=min_brake",
+            "cyclic_ab_upgrade_kmh=76.0",
+            "eot=true",
+            "ed_upgrade_ramp_s=6.0",
+            "ed_upgrade_ramp_scale=0.7",
+            "ed_grade_feedforward=true"
+          ],
+          "steps": 30000,
+          "stop_on_coupler_kn": 1350.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 80.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 0.0,
+          "gap_offset_m": 0.0,
+          "finish_m": 46966.0,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\net_demand_release_ff_source_20261017_1605\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "cf75add05412e667e36972853f2a966e57a126c7f79a60947070e41f2a1f470d",
+        "diagnostic_entry_sha256": "018451c712fb0d7bc2fe69a9cfe186c426bb7b59264db8c7130e5e040ca3363b",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "050ef7654ccf528d1383911c33d90221e6abacd1b1708602ae054bce3e88415f",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 30000,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "start_randomization": {
+            "enabled": false
+          },
+          "ed_release_boost_kn": 900,
+          "coupler_override": "min_brake",
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "eot": true,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true
+        },
+        "tracked_diff": " traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  9 +++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        | 27 +++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |  9 +++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 53 ++++++++++++++\n .../src/controllers/multi_loco_controller.py       | 40 +++++------\n .../src/controllers/nmpc_controller.py             | 35 ++++++++-\n .../src/environments/train_fleet_env.py            | 13 ++--\n .../src/evaluation/diagnose_low_level_control.py   | 40 +++++++++--\n .../src/evaluation/evaluate_decompose.py           | 13 ++--\n .../src/evaluation/plot_low_level_control.py       | 35 ++++++++-\n traffic_rl_project/src/train_dynamics/train.py     |  9 +--\n .../tests/test_cyclic_operating_calibration.py     | 83 +++++++++++++++++-----\n traffic_rl_project/tests/test_metric_accounting.py | 13 +++-\n traffic_rl_project/tests/test_nmpc_controller.py   | 22 ++++++\n 14 files changed, 332 insertions(+), 69 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 29532,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 0.9999999999996589,
+          "lag_s": 0.49999999999982947,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 29384,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2938.399999998998,
+              "warning_episodes": 41,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 29384,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2938.399999998998,
+              "warning_episodes": 41,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 9930,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 992.9999999996613,
+              "warning_episodes": 2767,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 29522,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 1.9999999999993179,
+          "lag_s": 0.49999999999982947,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 29494,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2949.399999998994,
+              "warning_episodes": 20,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 29493,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2949.2999999989943,
+              "warning_episodes": 21,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 24864,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2486.399999999152,
+              "warning_episodes": 2012,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 29512,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 2.999999999998977,
+          "lag_s": 0.49999999999982947,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 29510,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2950.9999999989936,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 29510,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2950.9999999989936,
+              "warning_episodes": 3,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 28480,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2847.9999999990287,
+              "warning_episodes": 598,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 29532,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 0.9999999999996589,
+          "lag_s": 0.49999999999982947,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 29295,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2929.499999999001,
+              "warning_episodes": 100,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 29295,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2929.499999999001,
+              "warning_episodes": 100,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 4035,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 403.4999999998624,
+              "warning_episodes": 1402,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 29522,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 1.9999999999993179,
+          "lag_s": 0.49999999999982947,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 29476,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2947.5999999989945,
+              "warning_episodes": 27,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 29476,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2947.5999999989945,
+              "warning_episodes": 27,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 19683,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 1968.2999999993287,
+              "warning_episodes": 3216,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 29512,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 2.999999999998977,
+          "lag_s": 0.49999999999982947,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 29508,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2950.7999999989934,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 29508,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2950.7999999989934,
+              "warning_episodes": 5,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 26951,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 2695.099999999081,
+              "warning_episodes": 1337,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\air_admission_forecast_steep_control_20261017_1743",
+      "train": 0,
+      "trajectory_sha256": "e3e6fd5fef1a604ab0ad63edb8d19119c4e6dcaaddd89483a9438ed70d889f2d",
+      "source_metadata": {
+        "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+        "physics_version": "b14005bbe8f3",
+        "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+        "simulator_model_version": "9aa4925f193e",
+        "simcase": "official",
+        "seed": 0,
+        "entry": "diagnose_low_level_control.py",
+        "physics": {
+          "enable_cyclic_degrade": true,
+          "tail_pressure_kpa": null,
+          "brake_reduction_override_kpa": null,
+          "physics": {
+            "v_max_mps": 22.222,
+            "v_min_mps": 11.111,
+            "dt": 0.1,
+            "max_accel": 1.0,
+            "target_speed_mps": 16.6665,
+            "target_gap_m": 100.0,
+            "consist_preset": "20kt_1plus108_1plus108",
+            "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+            "coupler_force_limit_n": 1500000.0,
+            "enable_cyclic_degrade": true
+          }
+        },
+        "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+        "diagnostic_protocol": {
+          "output": "outputs\\sim_validation\\phys_validation\\air_admission_forecast_steep_control_20261017_1743",
+          "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+          "override": [],
+          "steps": 2000,
+          "stop_on_coupler_kn": 1350.0,
+          "trains": 1,
+          "consist_preset": null,
+          "grade": -12.0,
+          "speed": 70.0,
+          "train_speeds_kmh": null,
+          "fleet_env_source": null,
+          "profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "start_m": 20000.0,
+          "gap_offset_m": 0.0,
+          "finish_m": null,
+          "ed_recovery_rate": null,
+          "ed_recovery_scope": "all",
+          "ed_grade_feedforward": false,
+          "ed_physics_availability": false,
+          "ed_prelimit": false,
+          "ed_baseline_projection": null,
+          "anticipate_etcs": false,
+          "controller_ref": null,
+          "controller_source": "outputs\\sim_validation\\phys_validation\\air_admission_forecast_source_20261017_1741\\controller_source.py",
+          "reuse": false,
+          "metadata_file": "result.json"
+        },
+        "grade_override_permille": null,
+        "controller_sha256": "699a87548347e98aab32516a3d0f804705eb16d6a2c4520a698fffacd972f248",
+        "diagnostic_entry_sha256": "a461313812262f666df0dd7922511b417d3ebcca3095cb4f0185e87a768e1600",
+        "controller_sha256_format": "UTF-8 source text with LF line endings",
+        "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+        "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+        "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+        "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+        "etcs_runtime": {
+          "speed_profile": [
+            [
+              11.11111111111111,
+              0.426
+            ],
+            [
+              16.666666666666668,
+              0.401
+            ],
+            [
+              22.22222222222222,
+              0.382
+            ]
+          ],
+          "emergency_build_up_s": 10.536,
+          "service_build_up_s": 10.536
+        },
+        "controller_ref": "source-file",
+        "controller_runtime": [
+          {
+            "ed_recovery_rate_per_s": 0.0,
+            "ed_physics_availability": false,
+            "ed_prelimit": false,
+            "ed_grade_feedforward": true,
+            "ed_recovery_scope": "all",
+            "anticipate_etcs": false,
+            "ed_baseline_projection": "legacy",
+            "ab_min_refill_s": 222.0,
+            "ab_min_hold_s": 0.0,
+            "ed_exit_decay_rate_per_s": null,
+            "sbi_exit_margin_mps": null
+          }
+        ],
+        "runtime_physics": [
+          {
+            "simcase": "official",
+            "enable_cyclic_degrade": true,
+            "tail_pressure_kpa": null
+          }
+        ],
+        "actuator_diagnostic": {
+          "physical_ed_unit": "fraction, post-safety input; not force",
+          "force_sample": "post-step state model evaluation in N; not step-integrated force",
+          "coupler_sign": "positive = forward force on preceding vehicle",
+          "loco_indices": [
+            [
+              0,
+              109
+            ]
+          ],
+          "safety_rule_order": [
+            "coupler_force_limit",
+            "min_gap",
+            "overspeed",
+            "etcs_ebi",
+            "etcs_permitted"
+          ],
+          "controller_requests": "commands, before environment safety"
+        },
+        "numerical_runtime": {
+          "numpy_version": "2.3.5",
+          "thread_environment": {
+            "OPENBLAS_NUM_THREADS": "1",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1"
+          }
+        },
+        "env_cfg": {
+          "num_trains": 1,
+          "consist_preset": "20kt_1plus108_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "v_max": 22.222,
+          "v_min": 11.111,
+          "target_gap": 100.0,
+          "max_steps": 2000,
+          "max_accel": 1.0,
+          "use_coupler_constraint": true,
+          "hierarchical": false,
+          "decompose": "loco_ed_ab",
+          "ab_min_refill_s": 222.0,
+          "ab_min_hold_s": 0.0,
+          "coupler_force_limit_n": 1500000.0,
+          "coupler_force_limit_emergency_n": 2250000.0,
+          "cyclic_notch_50": true,
+          "cyclic_brake_trigger_kmh": 65.0,
+          "cyclic_release_kmh": 50.0,
+          "ed_release_coordination": true,
+          "ed_release_hold_s": 50.0,
+          "ed_release_boost_kn": 900.0,
+          "cyclic_ab_upgrade_kmh": 76.0,
+          "ed_upgrade_ramp_s": 6.0,
+          "ed_upgrade_ramp_scale": 0.7,
+          "ed_grade_feedforward": true,
+          "coupler_override": "min_brake",
+          "eot": true,
+          "start_randomization": {
+            "enabled": false
+          }
+        },
+        "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   | 21 ++++--\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      | 51 +++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        | 43 +++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |  9 +++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 82 +++++++++++++++++++++\n .../src/controllers/multi_loco_controller.py       | 71 ++++++++++--------\n .../src/controllers/nmpc_controller.py             | 35 ++++++++-\n .../src/environments/train_fleet_env.py            | 44 ++++++++++--\n .../src/evaluation/diagnose_low_level_control.py   | 46 ++++++++++--\n .../src/evaluation/evaluate_decompose.py           | 13 ++--\n .../src/evaluation/plot_low_level_control.py       | 44 ++++++++++--\n traffic_rl_project/src/train_dynamics/train.py     |  9 +--\n .../tests/test_controller_diagnostic_archive.py    | 20 ++++++\n .../tests/test_cyclic_operating_calibration.py     | 83 +++++++++++++++++-----\n traffic_rl_project/tests/test_metric_accounting.py | 13 +++-\n traffic_rl_project/tests/test_nmpc_controller.py   | 22 ++++++\n 16 files changed, 518 insertions(+), 88 deletions(-)\n",
+        "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+        "critic": "centralized_scalar",
+        "reward_schema": "v5-coupler-tier-limit",
+        "ed_mod_coef": 0.5
+      },
+      "audits": [
+        {
+          "limit_kn": 1350,
+          "samples": 1985,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 0.9999999999999432,
+          "lag_s": 0.4999999999999716,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1970,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 196.9999999999888,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1970,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 196.9999999999888,
+              "warning_episodes": 16,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 628,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 62.79999999999643,
+              "warning_episodes": 106,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1975,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 1.9999999999998863,
+          "lag_s": 0.4999999999999716,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1975,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 197.49999999998877,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1975,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 197.49999999998877,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1374,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 137.3999999999922,
+              "warning_episodes": 149,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1350,
+          "samples": 1965,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 2.9999999999998295,
+          "lag_s": 0.4999999999999716,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1965,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 196.49999999998883,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1965,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 196.49999999998883,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1754,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 175.39999999999003,
+              "warning_episodes": 99,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1985,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 9,
+          "horizon_s": 0.9999999999999432,
+          "lag_s": 0.4999999999999716,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1947,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 194.69999999998893,
+              "warning_episodes": 36,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1947,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 194.69999999998893,
+              "warning_episodes": 36,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 283,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 28.29999999999839,
+              "warning_episodes": 103,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1975,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 19,
+          "horizon_s": 1.9999999999998863,
+          "lag_s": 0.4999999999999716,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1975,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 197.49999999998877,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1975,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 197.49999999998877,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1072,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 107.1999999999939,
+              "warning_episodes": 148,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        },
+        {
+          "limit_kn": 1500,
+          "samples": 1965,
+          "positive_samples": 0,
+          "known_positive_censored_samples": 0,
+          "unknown_censored_samples_excluded": 29,
+          "horizon_s": 2.9999999999998295,
+          "lag_s": 0.4999999999999716,
+          "observed_first_crossing_s": null,
+          "methods": {
+            "current_force": {
+              "true_positive": 0,
+              "false_positive": 0,
+              "false_negative": 0,
+              "recall": null,
+              "precision": null,
+              "false_warning_seconds": 0.0,
+              "warning_episodes": 0,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate": {
+              "true_positive": 0,
+              "false_positive": 1965,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 196.49999999998883,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1965,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 196.49999999998883,
+              "warning_episodes": 1,
+              "first_observed_crossing_warning_lead_s": null
+            },
+            "filtered_force_rate_relative_speed": {
+              "true_positive": 0,
+              "false_positive": 1574,
+              "false_negative": 0,
+              "recall": null,
+              "precision": 0.0,
+              "false_warning_seconds": 157.39999999999105,
+              "warning_episodes": 136,
+              "first_observed_crossing_warning_lead_s": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

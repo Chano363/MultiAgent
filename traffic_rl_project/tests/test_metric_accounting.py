@@ -15,6 +15,7 @@
 """
 
 import logging
+import pickle
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -474,14 +475,22 @@ def test_mpc_bridge_ab_trigger_reachable():
 
 
 def test_rule_baseline_edab_preserves_latch():
-    """复算基线不得污染控制器两态闩锁（否则评估侧"预演"会改变 env 的实际制动分支）。"""
+    """MPC预演不得污染闩锁、保持窗、渐变窗或其他控制状态。"""
     env = _fleet_env()
     env.reset(options={'speed': 80.0 / 3.6})
     ctrl = env.multi_loco_controllers[0]
+    ctrl.ed_release_coordination = True
+    ctrl.cyclic_ab_upgrade_kmh = 76.0
+    ctrl.ed_upgrade_ramp_s = 0.6
     for latch in (False, True):
         ctrl._cyclic_braking = latch
+        ctrl._ed_hold_steps = 9
+        ctrl._ed_ramp_steps_left = 3
+        ctrl._ed_ramp_armed = True
+        before = pickle.dumps(ctrl.__dict__)
         ev._rule_baseline_edab(ctrl, env.trains[0], env)
         assert ctrl._cyclic_braking is latch, "复算基线污染了控制器两态闩锁"
+        assert pickle.dumps(ctrl.__dict__) == before
     env.close()
 
 

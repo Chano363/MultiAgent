@@ -1,0 +1,11 @@
+{
+  "status": "experimental, not production",
+  "sha256": "f611974cd5b5797b6548289205fb074963625e0db2ef3bc8b11bd50a82a3703e",
+  "forecast_horizon_s": 4.0,
+  "decision_interval_s": 2.0,
+  "ed_slew_fraction_per_s": 0.5,
+  "target_fraction": 0.9,
+  "scope": "numeric controller trial, not a vehicle parameter or safety certificate",
+  "objective": "first reduce predicted target exceedance, then minimize action change",
+  "safety": "speed proximity bypasses added slew; native safety retains authority"
+}

@@ -1,0 +1,21 @@
+{
+  "target_kn": 1350,
+  "scope": "finite tested constant/ramped actuator holds only; not proof that all control sequences are infeasible",
+  "events": [
+    {
+      "step": 83,
+      "tested_candidate_set_contains_target_feasible_hold": true,
+      "selected_prediction_kn": 1289.119533318153
+    },
+    {
+      "step": 103,
+      "tested_candidate_set_contains_target_feasible_hold": false,
+      "selected_prediction_kn": 1455.0404437804089
+    },
+    {
+      "step": 123,
+      "tested_candidate_set_contains_target_feasible_hold": false,
+      "selected_prediction_kn": 1516.941805252688
+    }
+  ]
+}

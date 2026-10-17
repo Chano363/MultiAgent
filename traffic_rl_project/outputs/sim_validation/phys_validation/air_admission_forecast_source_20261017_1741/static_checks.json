@@ -1,0 +1,38 @@
+{
+  "sha256": "699a87548347e98aab32516a3d0f804705eb16d6a2c4520a698fffacd972f248",
+  "checks": [
+    {
+      "start_m": 0,
+      "speed_kmh": 80,
+      "air_admitted_by_preview": true,
+      "state_unchanged": true
+    },
+    {
+      "start_m": 20000,
+      "speed_kmh": 70,
+      "air_admitted_by_preview": false,
+      "state_unchanged": true
+    },
+    {
+      "start_m": 25013.5,
+      "speed_kmh": 70,
+      "air_admitted_by_preview": false,
+      "state_unchanged": true
+    },
+    {
+      "start_m": 26633.5,
+      "speed_kmh": 70,
+      "air_admitted_by_preview": false,
+      "state_unchanged": true
+    },
+    {
+      "start_m": 26633.5,
+      "speed_kmh": 78,
+      "air_admitted_by_preview": false,
+      "state_unchanged": true
+    }
+  ],
+  "active_source_protection": true,
+  "status": "frozen trial, not production",
+  "scope": "ED-only rigid-body speed forecast, no coupler-force prediction guarantee"
+}

@@ -1,0 +1,19 @@
+{
+  "controller_normalized_sha256": "82b753e1fc917abd7e2276337934879b38495b4e86a0795873dc387d487d14a2",
+  "horizon_s": 6,
+  "ed_request_ramp_per_s": 0.5,
+  "sequence_grid_mode": "corner_probes",
+  "scope": "new local fits at two fixed counterexamples; not zero-shot prediction or controller evaluation",
+  "cases": [
+    {
+      "name": "flat_before100",
+      "start_m": 24913.5,
+      "time_s": 35
+    },
+    {
+      "name": "reentry_before100",
+      "start_m": 26533.5,
+      "time_s": 8
+    }
+  ]
+}

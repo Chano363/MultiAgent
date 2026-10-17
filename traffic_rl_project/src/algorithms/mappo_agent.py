@@ -671,6 +671,9 @@ class MAPPOAgent(BaseRLAgent):
     def _checkpoint_payload(self) -> dict:
         import random as _random
         return {
+            'model_signature': {'num_agents': self.num_drones,
+                                'obs_dim': self.obs_per_drone,
+                                'act_dim': self.act_per_drone},
             'policy_state_dict': self.policy.state_dict(),
             'value_state_dict': self.value.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
@@ -690,6 +693,18 @@ class MAPPOAgent(BaseRLAgent):
 
     def _restore_checkpoint(self, checkpoint: dict) -> None:
         import random as _random
+        signature = checkpoint.get('model_signature', {})
+        expected = {'num_agents': self.num_drones, 'obs_dim': self.obs_per_drone,
+                    'act_dim': self.act_per_drone}
+        for key, value in expected.items():
+            if key in signature and signature[key] != value:
+                raise ValueError(f'Checkpoint {key}={signature[key]} does not match '
+                                 f'environment {key}={value}; use the matching observation '
+                                 'configuration or train a new model; no automatic padding')
+        first_weight = checkpoint['policy_state_dict'].get('backbone.0.weight')
+        if first_weight is not None and first_weight.shape[1] != self.obs_per_drone:
+            raise ValueError(f'Checkpoint obs_dim={first_weight.shape[1]} does not match '
+                             f'environment obs_dim={self.obs_per_drone}; no automatic padding')
         self.policy.load_state_dict(checkpoint['policy_state_dict'])
         self.value.load_state_dict(checkpoint['value_state_dict'])
         # weights_only 续训时不含优化器状态（见 BaseRLAgent._WEIGHTS_ONLY_STRIP）

@@ -9,6 +9,31 @@ import numpy as np
 from src.evaluation.diagnose_low_level_control import main
 
 
+def test_experimental_prediction_events_record_actual_steps_and_survive_reuse(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    source = Path('src/controllers/multi_loco_controller.py').read_text(encoding='utf-8')
+    source = source.replace('    def reset(self):\n',
+                            '    def reset(self):\n        self._ed_guard_events = []\n', 1)
+    source = source.replace('        self._ab_step += 1\n',
+                            '        self._ab_step += 1\n'
+                            '        self._ed_guard_events.append({"step": int(self._ab_step)})\n', 1)
+    frozen = tmp_path / 'controller.py'
+    frozen.write_text(source, encoding='utf-8')
+    output = tmp_path / 'trace'
+    args = ['diagnostic', '--output', str(output), '--steps', '3', '--speed', '70',
+            '--controller-source', str(frozen)]
+    monkeypatch.setattr(sys, 'argv', args)
+    main()
+    record = json.loads((output / 'result.json').read_text(encoding='utf-8'))
+    events = record['metadata']['controller_runtime'][0]['predictive_ed_guard_events']
+    assert events == [{'step': 1}, {'step': 2}, {'step': 3}]
+    monkeypatch.setattr(sys, 'argv', args + ['--reuse'])
+    main()
+    replay = json.loads((output / 'result.json').read_text(encoding='utf-8'))
+    assert replay['metadata']['controller_runtime'][0]['predictive_ed_guard_events'] == events
+
+
 def test_prelimit_runtime_and_reuse_guard(tmp_path, monkeypatch):
     output = tmp_path / 'prelimit'
     argv = ['diagnostic', '--output', str(output), '--steps', '3',
@@ -172,6 +197,26 @@ def test_archived_source_replay_keeps_its_experimental_defaults(tmp_path, monkey
     assert metadata['diagnostic_protocol']['controller_source'] == str(snapshot)
     assert metadata['controller_runtime'][0]['ed_recovery_rate_per_s'] == 2.0
     assert metadata['controller_sha256'] == hashlib.sha256(snapshot.read_bytes()).hexdigest()
+
+
+def test_frozen_trial_keeps_its_default_and_explicit_fleet_feedforward(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    source = Path('src/controllers/multi_loco_controller.py').read_text(encoding='utf-8')
+    source = source.replace('ed_recovery_rate_per_s: float = 0.0',
+                            'ed_recovery_rate_per_s: float = 2.0', 1)
+    snapshot = tmp_path / 'trial.py'
+    snapshot.write_text(source, encoding='utf-8')
+    output = tmp_path / 'configured_trial'
+    monkeypatch.setattr(sys, 'argv', [
+        'diagnostic', '--output', str(output), '--steps', '3', '--speed', '65',
+        '--config', 'configs/experiments/single_20kt_coupler_rulecal.yaml',
+        '--controller-source', str(snapshot)])
+    main()
+    metadata = json.loads((output / 'result.json').read_text(encoding='utf-8'))['metadata']
+    assert metadata['env_cfg']['ed_grade_feedforward'] is True
+    assert metadata['controller_runtime'][0]['ed_grade_feedforward'] is True
+    assert metadata['controller_runtime'][0]['ed_recovery_rate_per_s'] == 2.0
 
 
 def test_feedforward_trial_metadata_matches_executed_braking(tmp_path, monkeypatch):
