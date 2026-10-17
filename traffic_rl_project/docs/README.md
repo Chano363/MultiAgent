@@ -93,7 +93,7 @@
 | 文档                                                          | 说明                                     |
 | ----------------------------------------------------------- | -------------------------------------- |
 | `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
-> 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`）已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。
+> 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`）已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。**现存唯一交接文档：`HANDOFF_2026-10-17.md`**（规则层标定 R→AE 轮快照，进度仍以 `PROJECT_PIPELINE.md` 为准）。
 
 ### 归档区（已有，保持）
 
