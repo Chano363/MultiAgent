@@ -1,0 +1,27 @@
+{
+  "timestamp": "20261016_231226",
+  "section": "MT-2 装载缓释跨文献对照：当前模型（容嘉欣表）vs 容嘉欣读点 vs 于宗泽2025 式(1) 解析支",
+  "source_archive": "outputs/sim_validation/phys_validation/mt2_load_release_cmp_20261016_225942",
+  "yuzongze2025": {
+    "formula": "FM = F0 + kx + (sgn v)*mu*FN, Eq.(1) 中国铁道科学 46(2):192-202",
+    "F0_kn": 200.0,
+    "mu_d_FN_kn": 500.0,
+    "k_n_per_mm": 18.9,
+    "anchor_note": "fl(83mm)=2268.7 kN ≈ 2270 额定锚；μs=750/v_er=0.2 为标定值（式(2) 尖峰仅 |v|=0 瞬时），准静态支用 μd"
+  },
+  "not_overlaid": "马卫华2011 图1 / 杨辉2020 图4 / 于宗泽2025 图7 均为冲击速度动态曲线（仅图像），未数字化",
+  "metrics": {
+    "loading_end_kn": {
+      "current": 2269.9298223352093,
+      "rong2025": 2270.0,
+      "yuzongze_analytic": 2268.7
+    },
+    "hysteresis_area_kn_mm": {
+      "current": 61894.22399058782,
+      "rong2025": 62090.5,
+      "yuzongze_analytic": 80619.029
+    },
+    "low_stroke_0_20mm_max_dev_kn": 709.2850971270844
+  },
+  "figure": "outputs/sim_validation/figures/mt2_coupler/mt2_load_release_cross_literature.png"
+}

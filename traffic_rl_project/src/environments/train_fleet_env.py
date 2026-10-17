@@ -208,6 +208,8 @@ class TrainFleetEnv:
         # fleet 一直未透传 → 缓解波头→尾单向约 25-30 s，波尾车仍在全制动而头车已释放
         # = Q 峰值段速度反转压钩 -2406 kN 的根因；默认 False 零回归）。
         self.eot = bool(config.get('eot', False))
+        # 【AD 组 2026-10-17】中置机车制动波源延时透传（0.0=同步多源零回归）
+        self.mid_source_delay_s = float(config.get('mid_source_delay_s', 0.0))
         # 紧急顶显式传入（limit=1.5e6 时 2.25×limit=3375 kN 错误，须显式 2.25e6）；
         # None = 旧推导（2.25×limit，编队主线零回归）。
         self.coupler_force_limit_emergency_n = config.get('coupler_force_limit_emergency_n', None)
@@ -268,6 +270,8 @@ class TrainFleetEnv:
                 'cyclic_notch_50': self.cyclic_notch_50,
                 # 【R 组】EOT 双向缓解波透传内层 env（默认 False 零回归）
                 'eot': self.eot,
+                # 【AD 组】中置机车波源延时透传内层 env（0.0 零回归）
+                'mid_source_delay_s': self.mid_source_delay_s,
                 'line_speed_limit_mps': self.v_max,
                 'dt': self.dt,
                 'max_steps': self.max_steps,
