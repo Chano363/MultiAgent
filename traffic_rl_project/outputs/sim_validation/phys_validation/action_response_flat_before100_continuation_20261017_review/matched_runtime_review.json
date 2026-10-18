@@ -1,0 +1,35 @@
+{
+  "changed_runtime_fields": {
+    "predictive_ed_guard_events": {
+      "baseline": [
+        {
+          "step": 385,
+          "phase": "rear",
+          "grade_contrast": 0.004124770642201839,
+          "front_compression_kn": 934.0483447889522,
+          "rear_compression_kn": 956.5567078436819,
+          "near_speed_limit": false
+        }
+      ],
+      "candidate": [
+        {
+          "step": 419,
+          "phase": "rear",
+          "grade_contrast": 0.004700917431192666,
+          "front_compression_kn": 927.8735163868832,
+          "rear_compression_kn": 994.2386305584466,
+          "near_speed_limit": false
+        },
+        {
+          "step": 1060,
+          "phase": null,
+          "grade_contrast": 0.0009440366972477045,
+          "front_compression_kn": 174.85037699558723,
+          "rear_compression_kn": 682.1666496150906,
+          "near_speed_limit": false
+        }
+      ]
+    }
+  },
+  "review": "Only realised event traces differ; constructor/control parameters equal. Config and protocol equal; only controller source differs. Baseline early stop prevents matched full120s peak or mean-speed percent claims."
+}

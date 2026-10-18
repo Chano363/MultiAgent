@@ -1,0 +1,7 @@
+{
+  "scope": "Executable AST equivalence to completed frozen route candidate, with feedforward explicitly enabled by config",
+  "ast_equal_after_normalizing_constructor_default": true,
+  "production_sha256": "4f0cb8152a64e28e7c2afdf5c7a20830f0be49b31829b5d3697e76d041463cd2",
+  "prototype_sha256": "cf75add05412e667e36972853f2a966e57a126c7f79a60947070e41f2a1f470d",
+  "runtime_ed_grade_feedforward_required": true
+}

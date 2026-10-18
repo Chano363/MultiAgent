@@ -1,0 +1,12 @@
+{
+  "forecast_force_max_difference_n": 0.0,
+  "forecast_requests_exact": true,
+  "baseline_first350_rows_exact": true,
+  "forecast_window_s": [
+    35,
+    41
+  ],
+  "continuation_target_crossing_s": 45.3,
+  "scope": "exact native rollout reproduction, not closed-loop safety proof",
+  "requested_ed_max_change_in_trial_window": 0.050000000000000044
+}

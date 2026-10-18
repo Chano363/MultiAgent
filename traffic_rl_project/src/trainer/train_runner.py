@@ -56,6 +56,13 @@ class TrainRunner:
         _sr = cfg.env_cfg.get('start_randomization')
         if isinstance(_sr, dict) and _sr.get('enabled', False) and _sr.get('seed', None) is None:
             _sr['seed'] = int(cfg.seed)
+        _formation_start = cfg.env_cfg.get('formation_start_randomization')
+        if isinstance(_formation_start, dict) and _formation_start.get('enabled', False) and _formation_start.get('seed') is None:
+            _formation_start['seed'] = int(cfg.seed)
+        if (isinstance(_formation_start, dict) and _formation_start.get('enabled', False)
+                and getattr(cfg, 'n_env_parallel', False) and cfg.n_env > 1):
+            raise ValueError('formation_start_randomization currently requires serial rollouts; '
+                             'parallel workers need independent sampler streams and reset logging')
 
         # cyclic 限速按配置显式设置（cyclic_obs/cyclic_reward 用）
         if cfg.obs == 'cyclic' or cfg.reward == 'cyclic':
@@ -89,6 +96,8 @@ class TrainRunner:
         # 【续训】base metadata 为静态部分；训练进度（done_ep/best_reward/long_eval_best）
         # 由 _ckpt_meta_now() 在每次落盘时动态追加。
         meta_extra = {"hyperparameters": cfg_to_dict(cfg)}
+        if hasattr(env, 'observation_schema'):
+            meta_extra['observation_schema'] = dict(env.observation_schema)
         self._resume_info = None
         if resume_plan is not None:
             self._resume_info = {'source': resume_plan.source_pt,
@@ -135,7 +144,7 @@ class TrainRunner:
                 warm_start_decompose_bc(
                     inter.agent, env,
                     episodes=cfg.bc_episodes, bc_epochs=cfg.bc_epochs,
-                    init_speed=cfg.env_cfg.get('init_speed_kmh', 80.0) / 3.6,
+                    init_speed=cfg.env_cfg.get('init_speed_kmh', cfg.init_speed_kmh) / 3.6,
                 )
 
             # 【续训】--episodes = 总目标集数 → 实跑 = 总目标 - 已训。
@@ -231,7 +240,14 @@ class TrainRunner:
                                 if cfg.random_init_speed else cfg.init_speed_kmh) / 3.6
                     obs = env.reset(options={'speed': init})
                     if isinstance(obs, tuple):
-                        obs = obs[0]
+                        obs, reset_info = obs
+                        if 'formation_initialization' in reset_info:
+                            record = {'episode': global_ep, 'trajectory_index': ei,
+                                      'seed': cfg.seed,
+                                      'initialization': reset_info['formation_initialization']}
+                            with (Path(cfg.results_dir) / 'formation_initial_states.jsonl').open(
+                                    'a', encoding='utf-8') as stream:
+                                stream.write(json.dumps(record, ensure_ascii=False) + '\n')
                     obs = cyclic_obs(env) if cfg.obs == 'cyclic' else obs
 
                     ep_reward, ep_peak, ep_viol, step, done = 0.0, 0.0, 0, 0, False

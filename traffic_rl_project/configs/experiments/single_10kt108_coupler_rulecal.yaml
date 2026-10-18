@@ -1,0 +1,72 @@
+# 万吨1+108单列诊断候选；1000kN验收，参数继承尚待本编组验证。
+# 222s、50s、900kN均源自旧双机车工况；不视为万吨单机车实测参数。
+# 900kN为饱和请求上限，实际制动力由原生机车模型限制。
+name: single_10kt108_coupler_rulecal
+algorithm: mappo
+algo_params:
+  learning_rate: 2.0e-05
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+env_type: fleet
+env_cfg:
+  ed_native_force_conversion: true
+  num_trains: 1
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 22.222
+  v_min: 11.111
+  target_gap: 100.0
+  max_steps: 36000
+  max_accel: 1.0
+  use_coupler_constraint: true
+  hierarchical: false
+  decompose: loco_ed_ab
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+  coupler_force_limit_n: 1000000.0
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  cyclic_brake_trigger_kmh: 65.0
+  cyclic_release_kmh: 50.0
+  ed_release_coordination: true
+  ed_release_hold_s: 50.0
+  ed_release_boost_kn: 900.0
+  cyclic_ab_upgrade_kmh: 76.0
+  ed_upgrade_ramp_s: 6.0
+  ed_upgrade_ramp_scale: 0.7
+  ed_grade_feedforward: true
+  coupler_override: min_brake
+  eot: true
+  start_randomization:
+    enabled: true
+    cold_start_max_speed_kmh: 70.0
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+num_trains: 1
+decision_interval: 10
+episodes: 1400
+curriculum: 500:0,1000:10,1200:20
+n_env: 4
+parallel_traj_len: 0
+warm_start: true
+bc_episodes: 3
+bc_epochs: 30
+long_eval_interval: 50
+long_eval_steps: 36000
+init_speed_kmh: 80.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 10
+dirs:
+  checkpoint_dir: outputs/checkpoints/single_10kt108_rulecal
+  results_dir: outputs/results/single_10kt108_rulecal
+  figures_dir: outputs/figures/single_10kt108_rulecal

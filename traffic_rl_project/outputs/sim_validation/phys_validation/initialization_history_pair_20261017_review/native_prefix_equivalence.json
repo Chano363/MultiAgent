@@ -1,0 +1,6 @@
+{
+  "positions_m": true,
+  "velocities_mps": true,
+  "pressure_coefficient": true,
+  "coupler_force_n": true
+}

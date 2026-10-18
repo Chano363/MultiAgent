@@ -71,6 +71,15 @@ def consist_10kt_1plus0():
     return TrainConsist([loco] + [car for _ in range(100)])
 
 
+def consist_10kt_1plus108():
+    """用户确认的万吨级单元：1机车+108货车，10988t。
+
+    保留原两万吨模型的车辆参数；不宣称与文献车型参数完全一致。
+    """
+    unit = consist_10kt_1plus0()
+    return TrainConsist(unit.vehicles + [unit.vehicles[-1] for _ in range(8)])
+
+
 def consist_20kt_1plus108_1plus108():
     """二万吨级组合列车：1 机车 + 108 货车 + 1 机车 + 108 货车（约 21976 t）。
 
@@ -135,6 +144,7 @@ def consist_10kt_1plus1():
 CONSIST_PRESETS = {
     'default': default_consist,
     '10kt_1plus0': consist_10kt_1plus0,
+    '10kt_1plus108': consist_10kt_1plus108,
     '10kt_1plus1': consist_10kt_1plus1,
     '20kt_1plus108_1plus108': consist_20kt_1plus108_1plus108,
     '20kt_1plus1_validation': consist_20kt_1plus1_validation,

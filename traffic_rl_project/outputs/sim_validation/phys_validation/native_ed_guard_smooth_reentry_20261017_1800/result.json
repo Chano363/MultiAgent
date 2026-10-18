@@ -1,0 +1,325 @@
+{
+  "summary": {
+    "steps": 124,
+    "speed_min_kmh": 69.20603598804286,
+    "speed_max_kmh": 69.99676785069195,
+    "peak_kn": 1371.5040930531934,
+    "jerk_rms": 0.009252614344381054,
+    "jerk_peak": 0.038206571730725614,
+    "command_switches": 0,
+    "violations": 0,
+    "safety_events": 0,
+    "diagnostic_stop_reason": "coupler_threshold",
+    "diagnostic_first_crossing_s": 12.4,
+    "physical_ed_change_rms_per_s": 0.18588395715729555,
+    "physical_ed_max_step_increase": 0.0,
+    "physical_ed_max_step_decrease": 0.050000000000000044,
+    "requested_notch_switches": 0,
+    "stored_head_notch_switches": 0,
+    "elapsed_s": 12.4,
+    "mean_speed_kmh": 69.5196857132359,
+    "distance_leader_m": 235.35642329203984,
+    "leader_end_m": 26868.85642329204,
+    "last_tail_end_m": 24272.993614802617,
+    "max_vehicle_speed_kmh": 72.15649203271997,
+    "overspeed_train_steps": 0,
+    "subenv_safety_events": 0,
+    "full_route_completed": false
+  },
+  "metadata": {
+    "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+    "physics_version": "b14005bbe8f3",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=20kt_1plus108_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "9aa4925f193e",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "diagnose_low_level_control.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.222,
+        "v_min_mps": 11.111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 16.6665,
+        "target_gap_m": 100.0,
+        "consist_preset": "20kt_1plus108_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1500000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "diagnostic_protocol": {
+      "output": "outputs\\sim_validation\\phys_validation\\native_ed_guard_smooth_reentry_20261017_1800",
+      "config": "configs\\experiments\\single_20kt_coupler_rulecal.yaml",
+      "override": [],
+      "steps": 1200,
+      "stop_on_coupler_kn": 1350.0,
+      "trains": 1,
+      "consist_preset": null,
+      "grade": -12.0,
+      "speed": 70.0,
+      "train_speeds_kmh": null,
+      "fleet_env_source": null,
+      "profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "start_m": 26633.5,
+      "gap_offset_m": 0.0,
+      "finish_m": null,
+      "ed_recovery_rate": null,
+      "ed_recovery_scope": "all",
+      "ed_grade_feedforward": false,
+      "ed_physics_availability": false,
+      "ed_prelimit": false,
+      "ed_baseline_projection": null,
+      "anticipate_etcs": false,
+      "controller_ref": null,
+      "controller_source": "outputs\\sim_validation\\phys_validation\\native_ed_guard_smooth_source_20261017_1759\\controller_source.py",
+      "reuse": false,
+      "metadata_file": "result.json"
+    },
+    "grade_override_permille": null,
+    "controller_sha256": "f611974cd5b5797b6548289205fb074963625e0db2ef3bc8b11bd50a82a3703e",
+    "diagnostic_entry_sha256": "6b76ac4c3d3bd7e94109564985353cf5283a8e5c4752e176ffa4c1c1d348aef5",
+    "controller_sha256_format": "UTF-8 source text with LF line endings",
+    "fleet_env_sha256": "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b",
+    "train_env_sha256": "272ebd0e13e09d8dcfbcd16131b7aa9082ca973bf4c527d73ac228e83821b4a7",
+    "train_dynamics_sha256": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+    "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+    "etcs_runtime": {
+      "speed_profile": [
+        [
+          11.11111111111111,
+          0.426
+        ],
+        [
+          16.666666666666668,
+          0.401
+        ],
+        [
+          22.22222222222222,
+          0.382
+        ]
+      ],
+      "emergency_build_up_s": 10.536,
+      "service_build_up_s": 10.536
+    },
+    "controller_ref": "source-file",
+    "controller_runtime": [
+      {
+        "ed_recovery_rate_per_s": 0.0,
+        "ed_physics_availability": false,
+        "ed_prelimit": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "all",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "ed_exit_decay_rate_per_s": null,
+        "sbi_exit_margin_mps": null,
+        "predictive_ed_guard_events": [
+          {
+            "step": 83,
+            "current_peak_kn": 1117.3316081494609,
+            "baseline_hold_peak_kn": 1361.3421615281504,
+            "selected_hold_peak_kn": 1289.119533318153,
+            "selected_ED": [
+              1.0,
+              0.0
+            ],
+            "candidates": [
+              {
+                "name": "coast",
+                "peak_kn": 1309.1922815488103,
+                "max_speed_kmh": 72.15649203271997,
+                "speed_admissible": true
+              },
+              {
+                "name": "both",
+                "peak_kn": 1533.1883248602107,
+                "max_speed_kmh": 72.15951454408986,
+                "speed_admissible": true
+              },
+              {
+                "name": "head",
+                "peak_kn": 1289.119533318153,
+                "max_speed_kmh": 72.15649203271997,
+                "speed_admissible": true
+              },
+              {
+                "name": "middle",
+                "peak_kn": 1644.2043664062048,
+                "max_speed_kmh": 72.15951454408986,
+                "speed_admissible": true
+              },
+              {
+                "name": "soft_head",
+                "peak_kn": 1327.9815680853392,
+                "max_speed_kmh": 72.15649203271997,
+                "speed_admissible": true
+              }
+            ]
+          },
+          {
+            "step": 103,
+            "current_peak_kn": 1188.7907893410193,
+            "baseline_hold_peak_kn": 1705.6985187002851,
+            "selected_hold_peak_kn": 1455.0404437804089,
+            "selected_ED": [
+              0.0,
+              0.0
+            ],
+            "candidates": [
+              {
+                "name": "coast",
+                "peak_kn": 1455.0404437804089,
+                "max_speed_kmh": 70.62182193905134,
+                "speed_admissible": true
+              },
+              {
+                "name": "both",
+                "peak_kn": 1739.419304668497,
+                "max_speed_kmh": 70.60124079905718,
+                "speed_admissible": true
+              },
+              {
+                "name": "head",
+                "peak_kn": 1526.509412615111,
+                "max_speed_kmh": 70.62182193905134,
+                "speed_admissible": true
+              },
+              {
+                "name": "middle",
+                "peak_kn": 1952.1037502970707,
+                "max_speed_kmh": 70.60124079905718,
+                "speed_admissible": true
+              },
+              {
+                "name": "soft_head",
+                "peak_kn": 1461.9355557847146,
+                "max_speed_kmh": 70.62182193905134,
+                "speed_admissible": true
+              }
+            ]
+          },
+          {
+            "step": 123,
+            "current_peak_kn": 1288.616566932767,
+            "baseline_hold_peak_kn": 1630.3911663473564,
+            "selected_hold_peak_kn": 1516.941805252688,
+            "selected_ED": [
+              0.0,
+              0.0
+            ],
+            "candidates": [
+              {
+                "name": "coast",
+                "peak_kn": 1516.941805252688,
+                "max_speed_kmh": 70.27502241918721,
+                "speed_admissible": true
+              },
+              {
+                "name": "both",
+                "peak_kn": 1984.553824341665,
+                "max_speed_kmh": 70.27502241918721,
+                "speed_admissible": true
+              },
+              {
+                "name": "head",
+                "peak_kn": 1548.751697393001,
+                "max_speed_kmh": 70.27502241918721,
+                "speed_admissible": true
+              },
+              {
+                "name": "middle",
+                "peak_kn": 1893.243418523253,
+                "max_speed_kmh": 70.27502241918721,
+                "speed_admissible": true
+              },
+              {
+                "name": "soft_head",
+                "peak_kn": 1557.989664102005,
+                "max_speed_kmh": 70.27502241918721,
+                "speed_admissible": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "runtime_physics": [
+      {
+        "simcase": "official",
+        "enable_cyclic_degrade": true,
+        "tail_pressure_kpa": null
+      }
+    ],
+    "actuator_diagnostic": {
+      "physical_ed_unit": "fraction, post-safety input; not force",
+      "force_sample": "post-step state model evaluation in N; not step-integrated force",
+      "coupler_sign": "positive = forward force on preceding vehicle",
+      "loco_indices": [
+        [
+          0,
+          109
+        ]
+      ],
+      "safety_rule_order": [
+        "coupler_force_limit",
+        "min_gap",
+        "overspeed",
+        "etcs_ebi",
+        "etcs_permitted"
+      ],
+      "controller_requests": "commands, before environment safety"
+    },
+    "numerical_runtime": {
+      "numpy_version": "2.3.5",
+      "thread_environment": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      }
+    },
+    "env_cfg": {
+      "num_trains": 1,
+      "consist_preset": "20kt_1plus108_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 1200,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1500000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      }
+    },
+    "tracked_diff": " .../experiments/single_20kt_coupler_rulecal.yaml   | 21 ++++--\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      | 51 +++++++++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        | 43 +++++++++++\n traffic_rl_project/docs/REFERENCE_INDEX.md         |  9 +++\n .../docs/logs/diagnostics/DIAGNOSTICS_2026-10.md   | 82 +++++++++++++++++++++\n .../src/controllers/multi_loco_controller.py       | 71 ++++++++++--------\n .../src/controllers/nmpc_controller.py             | 35 ++++++++-\n .../src/environments/train_fleet_env.py            | 44 ++++++++++--\n .../src/evaluation/diagnose_low_level_control.py   | 51 +++++++++++--\n .../src/evaluation/evaluate_decompose.py           | 13 ++--\n .../src/evaluation/plot_low_level_control.py       | 44 ++++++++++--\n traffic_rl_project/src/train_dynamics/train.py     |  9 +--\n .../tests/test_controller_diagnostic_archive.py    | 45 ++++++++++++\n .../tests/test_cyclic_operating_calibration.py     | 83 +++++++++++++++++-----\n traffic_rl_project/tests/test_metric_accounting.py | 13 +++-\n traffic_rl_project/tests/test_nmpc_controller.py   | 22 ++++++\n 16 files changed, 547 insertions(+), 89 deletions(-)\n",
+    "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  }
+}

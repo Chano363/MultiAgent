@@ -1,0 +1,29 @@
+{
+  "audit_source_hash_matches": true,
+  "archives": [
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\ed_sequence_flat_20261017_review",
+      "all_branch_hashes_match": true,
+      "branch_count": 81,
+      "native_reconstruction_max_error_n": null
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\ed_sequence_reentry_20261017_review",
+      "all_branch_hashes_match": true,
+      "branch_count": 81,
+      "native_reconstruction_max_error_n": null
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\action_response_flat_before100_vehicle_probes_20261017_review",
+      "all_branch_hashes_match": true,
+      "branch_count": 19,
+      "native_reconstruction_max_error_n": 0.0
+    },
+    {
+      "archive": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\action_response_reentry_before100_vehicle_probes_20261017_review",
+      "all_branch_hashes_match": true,
+      "branch_count": 19,
+      "native_reconstruction_max_error_n": 0.0
+    }
+  ]
+}

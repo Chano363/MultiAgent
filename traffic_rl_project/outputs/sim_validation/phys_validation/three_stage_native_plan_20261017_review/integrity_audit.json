@@ -1,0 +1,29 @@
+[
+  {
+    "archive": "three_stage_native_reentry_20261017_review",
+    "completed": 27,
+    "plan_hash_and_initial_state_exact": true,
+    "all_requests_match_schedule": true,
+    "all_force_rows_match_interfaces": true,
+    "best_peak_kn": 1512.8715357711826,
+    "within1500": 0
+  },
+  {
+    "archive": "three_stage_early_terminal_reentry_20261017_review",
+    "completed": 9,
+    "plan_hash_and_initial_state_exact": true,
+    "all_requests_match_schedule": true,
+    "all_force_rows_match_interfaces": true,
+    "best_peak_kn": 1524.5384168633163,
+    "within1500": 0
+  },
+  {
+    "archive": "native_early_five_reentry_20261017_review",
+    "completed": 5,
+    "plan_hash_and_initial_state_exact": true,
+    "all_requests_match_schedule": true,
+    "all_force_rows_match_interfaces": true,
+    "best_peak_kn": 1355.112400148099,
+    "within1500": 1
+  }
+]

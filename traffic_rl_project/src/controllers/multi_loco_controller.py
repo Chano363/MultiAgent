@@ -25,7 +25,7 @@
 
 import numpy as np
 
-from src.environments.train_env import COUPLER_FORCE_LIMIT_N
+from src.safety_layer import DEFAULT_COUPLER_FORCE_LIMIT_N as COUPLER_FORCE_LIMIT_N
 from src.train_dynamics.braking import AirBrakeNotch, notch_from_throttle
 from src.train_dynamics.etcs_braking import G_RAIL
 from src.train_dynamics.resistance import G as DYNAMICS_GRAVITY
@@ -61,10 +61,12 @@ class MultiLocoController:
         ed_release_coordination: bool = False,
         ed_release_hold_s: float = 50.0,
         ed_release_boost_kn: float = 900.0,
+        ed_native_force_conversion: bool = False,
         ed_upgrade_ramp_s: float = 0.0,
         ed_upgrade_ramp_scale: float = 1.0,
     ):
         self.num_vehicles = num_vehicles
+        self.ed_native_force_conversion = bool(ed_native_force_conversion)
         self.loco_indices = list(loco_indices)
         self.num_locomotives = len(self.loco_indices)
         self.dt = dt
@@ -162,21 +164,21 @@ class MultiLocoController:
         if cyclic_ab_upgrade_notch not in ('service', 'min'):
             raise ValueError("cyclic_ab_upgrade_notch must be 'service' or 'min'")
         self.cyclic_ab_upgrade_notch = cyclic_ab_upgrade_notch
-        # 【X 组→Z 组 2026-10-16 ED-AB 波到达协同（默认 0.0/1.0 = 关，零回归）】
+        # 【X 组 2026-10-16 ED-AB 波到达协同（默认 0.0/1.0 = 关，零回归）】
         # R 峰值微观实证（R_eot t=21661-21811）：头/中先 service，尾车 AB 波延迟 7.5 s
         # 才到达 → 尾 free-run 冲 81.7，ruleA 又把头机 ED 钳 366→150 而尾机全开
-        # （-274+service）→ 中尾速度反转，断面 133 拉爆 1823 kN。本旋钮（Z 组语义）：
-        # **每次 release→braking 施加沿**启动窗（ed_upgrade_ramp_s）内头/中机车 ED × scale
-        # 降权（尾波到齐前不提前猛减速），窗到期恢复满值 → 每个施加波都被覆盖（X 组原挂
-        # 升级门边沿只盖首个波，Y2 判读定案机理缺陷已修）。
+        # （-274+service）→ 中尾速度反转，断面 133 拉爆 1823 kN。本旋钮：升级**边沿**
+        # 触发后窗内（ed_upgrade_ramp_s）头/中机车 ED × scale 降权（不提前猛减速），
+        # 窗到期（尾波已到）恢复满值 → 全列 ED+AB 同步减速，缩小波延迟期速度反转。
         if ed_upgrade_ramp_s < 0:
             raise ValueError('ed_upgrade_ramp_s must be nonnegative')
         if not (0.0 <= ed_upgrade_ramp_scale <= 1.0):
             raise ValueError('ed_upgrade_ramp_scale must be in [0,1]')
         self.ed_upgrade_ramp_s = float(ed_upgrade_ramp_s)
         self.ed_upgrade_ramp_scale = float(ed_upgrade_ramp_scale)
-        # ramp 状态（仅 get_action_cyclic_braking 内维护；Z 组起由施加沿启动）
+        # ramp 状态（仅 get_action_cyclic_braking 内维护）
         self._ed_ramp_steps_left = 0
+        self._ed_ramp_armed = True   # 升级条件下降沿后允许再触发
         self.ed_release_coordination = bool(ed_release_coordination)
         self.ed_release_hold_s = float(ed_release_hold_s)
         # 缓解窗口再生力目标（kN）：默认 900 = 表3「缓解前抬再生力」；
@@ -281,6 +283,21 @@ class MultiLocoController:
         if f_req <= 1e-6:
             return 1.5  # 无下坡需求 → ED 富余
         return float(np.clip(f_ed / f_req, 0.0, 1.5))
+
+    def _ed_cannot_hold_speed(self, train_env) -> bool:
+        """Experimental static screen; safety and air-wave supervision stay active."""
+        dyn = train_env.dynamics
+        profile = getattr(dyn, '_grade_profile', None)
+        grades = (profile.grades_for_positions(dyn.pos) if profile is not None
+                  else np.asarray(dyn.grade, dtype=float))
+        grade_force = float(np.sum(-dyn.masses_kg * DYNAMICS_GRAVITY * grades))
+        resistance = float(np.sum(dyn._resistance_forces()))
+        nominal = np.zeros(self.num_vehicles)
+        nominal[self.loco_indices] = [
+            1.0 - self._ed_stagger(i) for i in range(self.num_locomotives)]
+        electric_capacity = max(0.0, -float(np.sum(
+            dyn._electric_braking_forces(nominal))))
+        return grade_force - resistance > electric_capacity + 1e-6
 
     def _ab_gate(self, i: int, want_on: bool) -> bool:
         """【ADR-021 决策1】AB 充风/保持门控：返回「是否允许这次 AB 状态变更」。
@@ -394,20 +411,6 @@ class MultiLocoController:
             self._cyclic_braking = True
         elif vel <= release_mps and max_vel <= release_ceiling:
             self._cyclic_braking = False
-        # 【Z 组 2026-10-16】ramp 窗改**施加沿重武装**（Y1/Y2 判读定案）：X/Y2 的窗原挂
-        # 在升级门边沿，门（76）不退出不重武装 → 高速段持续 78-80 时只有首个施加波被盖住，
-        # 后续六个峰值施加波全在窗外跑满 ED。现改为 release→braking 的 False→True 施加沿
-        # 即启动窗（每次制动施加都覆盖 ≈尾车收波延迟的 ED 降权），波头峰压全被覆盖。
-        # 默认 ed_upgrade_ramp_s=0 = 关，零回归。
-        if (self.ed_upgrade_ramp_s > 0.0
-                and not was_braking and self._cyclic_braking):
-            self._ed_ramp_steps_left = max(
-                int(round(self.ed_upgrade_ramp_s / self.dt)), 1)
-        # 窗是**时基**计数器（每步递减，与 braking 态无关 —— 缓解态不冻结，否则窗
-        # 残留步数会让下次施加沿被"旧余量"污染）；active 先取后减 = 恰好 N 步生效。
-        _ramp_active = self._ed_ramp_steps_left > 0
-        if _ramp_active:
-            self._ed_ramp_steps_left -= 1
         # 【表3】制动→缓解转换时刻进入"抬 ED 保持"窗口（ed_release_coordination 开启才生效）
         if self.ed_release_coordination and was_braking and not self._cyclic_braking:
             self._ed_hold_steps = int(round(self.ed_release_hold_s / self.dt))
@@ -422,24 +425,30 @@ class MultiLocoController:
             # 【表3】cyclic_notch_50 开启时兜底档 = CYCLIC（50 kPa）替代 SERVICE（140 kPa）
             ab_nominal = 0.0 if ed_avail >= 0.99 else (
                 self.CYCLIC_AB_SENTINEL if self.cyclic_notch_50 else float(brake_notch))
-            # 【K 组 2026-10-16 AB 预升级】循环制动中若最陡段 CYCLIC 档制动力不足、
-            # 车速向 80 km/h 限速爬行（J 负结果根因：爬到 80 → ATP 规则 C 事后把全列
-            # 改 SERVICE 单源猛刹 → 头波撞中后部成 2530 kN 主团簇），则在触线**之前**
-            # 把规则层自己的 CYCLIC 兜底预升级为 SERVICE：错峰双源（头/中机车各自
-            # 发波）+ 渐进升压，取代 ATP 事后整列单源猛刹。默认 None = 旧行为零回归。
-            # 【L 组 2026-10-16】K 负结果补洞：升级原条件只认 CYCLIC 哨兵，但最陡段
-            # `ed_avail≥0.99` 时 ab_nominal=0.0（纯 ED、无 AB）——K 评估三次被规则 C
-            # 抢先（t=884/1180/1476，均 cb=on、head phys=release、ab_nominal=0）正是
-            # 这个空窗。故 0.0（ED-only 空窗）同样纳入升级条件：v ≥ 门即由规则层
-            # 发 SERVICE 源，先于 ATP 事后猛刹。
+            # 高速预升级仍覆盖 CYCLIC 和 ED-only 两种状态；先按整列各车
+            # 坡度、Davis 阻力及真实 ED 能力筛选，避免把一辆车进入陡坡
+            # 当成整列都需要强空气制动。原 AB 兜底、源准入和 ATP 不变。
             _upgrading = (self.cyclic_ab_upgrade_kmh is not None
+                          and self._ed_cannot_hold_speed(train_env)
                           and ab_nominal in (0.0, self.CYCLIC_AB_SENTINEL)
                           and max_vel >= self.cyclic_ab_upgrade_kmh / 3.6)
+            if _upgrading:
+                # 【X 组】升级**边沿**启动 ED ramp 窗（尾车收波前窗 ≈ 列长/波速 ≈ 7.5 s）：
+                # 窗内 ED × scale，避免头中在尾波到达前猛减速制造速度反转。
+                if self._ed_ramp_armed and self.ed_upgrade_ramp_s > 0.0:
+                    self._ed_ramp_steps_left = max(
+                        int(round(self.ed_upgrade_ramp_s / self.dt)), 1)
+                self._ed_ramp_armed = False
+            else:
+                self._ed_ramp_armed = True   # 升级条件退出后允许下次边沿再触发
             if _upgrading:
                 # 【M 组】升级档强度：'service'=K/L（brake_notch -0.75，140 kPa）；
                 # 'min'=-0.15 → notch_from_throttle → MIN(70 kPa, β 0.20) 中间档。
                 ab_nominal = (float(brake_notch)
                               if self.cyclic_ab_upgrade_notch == 'service' else -0.15)
+            _ramp_active = self._ed_ramp_steps_left > 0
+            if _ramp_active:
+                self._ed_ramp_steps_left -= 1
             scale = self._coupler_throttle_scale(train_env) if _scale_ed else 1.0
             # 【表3】循环期 ED 恒持 300–400 kN（取 300 kN 下限；仅协调开启时生效）
             ed_floor = (self._ed_frac_for_total_kn(train_env, self.CYCLIC_ED_FLOOR_KN)
@@ -518,18 +527,42 @@ class MultiLocoController:
         return 0.3 * frac  # 队尾 ED 为队首的 0.7 倍左右
 
     def _ed_frac_for_total_kn(self, train_env, target_kn: float) -> float:
-        """全列 ED 制动力目标（kN）→ 每机车节流分数 ∈[0,1]（表3 运营口径换算用）。
+        """Invert native ED physics for a total-force request; saturate if infeasible.
 
-        换算口径与 `_ed_ab_price` 一致：每机车能力 = min(η·P/v, μ·m·g·0.85)，
-        HXD1 P=9600 kW、η=0.85、m=188 t、μ=0.35（粘着）——锚 = 朔黄表3
-        「循环中 ED 恒持 300–400 kN / 缓解前抬再生力 ≈900 kN」。
-        55 km/h 时每机车 cap≈534 kN（功率约束），2 机车满 ED≈1068 kN ⇒
-        900 kN 对应 frac≈0.84、300 kN 对应 frac≈0.28。
+        Opt-in single-locomotive candidate uses native speeds and adhesion.
+        Default and multi-locomotive paths preserve the legacy conversion.
+        A saturated request is not achieved force.
         """
-        v = max(float(train_env.dynamics.vel[0]), 1.0)
-        cap = min(0.85 * 9600.0 * 1000.0 / v, 0.35 * 188.0 * 1000.0 * G_RAIL * 0.85)
-        return float(np.clip(target_kn * 1000.0 / max(self.num_locomotives * cap, 1e-6),
-                             0.0, 1.0))
+        # Preserve the validated legacy multi-locomotive path. This repair is
+        # scoped to the newly adopted single-locomotive research consist.
+        if self.num_locomotives > 1 or not self.ed_native_force_conversion:
+            v = max(float(train_env.dynamics.vel[0]), 1.0)
+            cap = min(0.85 * 9600.0 * 1000.0 / v,
+                      0.35 * 188.0 * 1000.0 * G_RAIL * 0.85)
+            return float(np.clip(target_kn * 1000.0 /
+                                 max(self.num_locomotives * cap, 1e-6), 0.0, 1.0))
+        dyn = train_env.dynamics
+        target_n = max(0.0, float(target_kn) * 1000.0)
+        if target_n == 0.0 or not self.num_locomotives:
+            return 0.0
+        command = np.zeros(self.num_vehicles)
+
+        def capacity(level):
+            command[self.loco_indices] = level
+            return max(0.0, -float(np.sum(dyn._electric_braking_forces(command))))
+
+        # Native power and adhesion saturation are not linear in throttle.
+        # Query the real actuator instead of hard-coded vehicle/adhesion values.
+        if capacity(1.0) <= target_n:
+            return 1.0
+        lo, hi = 0.0, 1.0
+        for _ in range(24):
+            mid = (lo + hi) / 2.0
+            if capacity(mid) >= target_n:
+                hi = mid
+            else:
+                lo = mid
+        return hi
 
     # ------------------------------------------------------------------ #
     # 主接口 3：decompose RL 调制（ADR-009.1 空电分工，逐机车 RL 智能体）
@@ -785,6 +818,8 @@ class MultiLocoController:
 
     def reset(self):
         self._cyclic_braking = False
+        self._ed_ramp_steps_left = 0
+        self._ed_ramp_armed = True
         self._previous_ed = None
         self._ed_recovery_pending[:] = False
         self._ed_hold_steps = 0

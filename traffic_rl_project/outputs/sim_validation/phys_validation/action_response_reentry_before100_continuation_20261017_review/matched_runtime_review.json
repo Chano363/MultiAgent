@@ -1,0 +1,4 @@
+{
+  "changed_runtime_fields": {},
+  "review": "Only realised event traces differ; constructor/control parameters equal. Config and protocol equal; only controller source differs. Baseline early stop prevents matched full120s peak or mean-speed percent claims."
+}

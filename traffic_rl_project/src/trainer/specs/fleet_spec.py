@@ -67,8 +67,9 @@ def warm_start_decompose_bc(
     obs_t = torch.as_tensor(obs_arr, dtype=torch.float32, device=agent.device)
     act_t = torch.as_tensor(act_arr, dtype=torch.float32, device=agent.device)
 
-    # 训练的优化器：复用 agent.optimizer（policy 已挂载）；备份原优化器以保证 RL 阶段可用
-    opt = agent.optimizer
+    # BC has its own learning rate and policy-only optimizer. Leave the RL
+    # optimizer's learning rate and moment estimates untouched.
+    opt = torch.optim.Adam(agent.policy.parameters(), lr=lr)
     for epoch in range(bc_epochs):
         mean, log_std = agent.policy(obs_t)                # [N*6, 2]
         dist = D.Normal(mean, log_std.exp())

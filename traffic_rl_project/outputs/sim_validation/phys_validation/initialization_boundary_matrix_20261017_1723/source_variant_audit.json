@@ -1,0 +1,8 @@
+{
+  "fleet_source_versions": [
+    "0454dc7d9e2544a77fe8d8a65db5bd29e947966007dc4951432fe10d5b77dcc3",
+    "bb5ec79a298f4bc0d6c964e31bca7844f82ff5c0b63eeec2f61650aea69fe84b"
+  ],
+  "only_difference_is_explicit_reset_seed_patch": true,
+  "all_diagnostic_randomization_disabled": true
+}

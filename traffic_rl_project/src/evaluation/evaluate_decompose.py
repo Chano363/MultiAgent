@@ -25,6 +25,7 @@ import sys
 import json
 import argparse
 import inspect
+from copy import deepcopy
 
 
 import numpy as np
@@ -116,11 +117,40 @@ def resolve_decision_interval(args) -> int:
     return TRAIN_DEFAULT_DECISION_INTERVAL
 
 
-def run_consist(mode):
+def resolve_policy_environment(args):
+    """Resolve input schema/consist before constructing the evaluation env."""
+    requested = getattr(args, 'formation_relative_speed_obs', None)
+    if args.mode in ('all', 'decompose_m1') and os.path.isfile(args.checkpoint):
+        checkpoint = torch.load(args.checkpoint, map_location='cpu', weights_only=False)
+        metadata = checkpoint.get('metadata', {})
+        schema = metadata.get('observation_schema', {})
+        config = metadata.get('hyperparameters', {}).get('env_cfg', {})
+        recorded = config.get('formation_relative_speed_obs')
+        if schema.get('name') in ('loco_ed_ab_relative_speed_v1', 'loco_ed_ab_base12'):
+            recorded = schema['name'] == 'loco_ed_ab_relative_speed_v1'
+        if recorded is not None:
+            if requested is not None and requested != recorded:
+                raise ValueError('Requested observation schema differs from checkpoint metadata')
+            requested = recorded
+        elif requested is None and checkpoint.get('model_signature', {}).get('obs_dim') == 14:
+            raise ValueError('14-dimensional checkpoint lacks observation schema; '
+                             'specify --formation-relative-speed-obs explicitly')
+        recorded_consist = config.get('consist_preset')
+        if recorded_consist:
+            chosen = getattr(args, 'consist_preset', None)
+            if chosen is not None and chosen != recorded_consist:
+                raise ValueError('Requested consist differs from checkpoint metadata')
+            args.consist_preset = recorded_consist
+    args.formation_relative_speed_obs = bool(requested)
+
+
+def run_consist(mode, args=None):
     """本次评估实际使用的编组预设（`make_env` 与 metadata 共用同一表达式）。
 
     mode='decompose' → 3列×1+1（本脚本主对比，头/中部双机车 2 万吨，对齐朔黄线实际运营编组 ADR-035）；mode='single' → 旧架构 1+0。
     """
+    if mode == 'decompose' and args is not None and getattr(args, 'consist_preset', None):
+        return args.consist_preset
     return '20kt_1plus108_1plus108' if mode == 'decompose' else '10kt_1plus0'
 
 
@@ -130,7 +160,7 @@ def make_env(mode, args):
     # 主训练场景：3列×头/中部双机车=6 机车智能体（20kt_1plus108_1plus108，ADR-035），全程 36000 步
     cfg = {
         'num_trains': 1 if mode == 'single' else num_trains,
-        'consist_preset': run_consist(mode),
+        'consist_preset': run_consist(mode, args),
         'grade_profile': args.grade,
         'max_steps': args.max_steps,
         'eval_mode': True,
@@ -148,6 +178,7 @@ def make_env(mode, args):
         cfg['target_speed'] = float(args.target_speed)
     if mode == 'decompose':
         cfg['decompose'] = 'loco_ed_ab'
+        cfg['formation_relative_speed_obs'] = bool(getattr(args, 'formation_relative_speed_obs', False))
         if args.mask_lever and args.mask_lever != 'none':
             cfg['mask_lever'] = args.mask_lever   # 杠杆隔离消融：须与训练一致
         if args.hetero:
@@ -378,10 +409,10 @@ _MPC_BRIDGE_ANNOUNCED = False
 
 
 def _rule_baseline_edab(ctrl, tr, env):
-    """复算规则循环制动基线 (num_loco,2)，**不污染控制器的两态闩锁**。
+    """复算规则基线 (num_loco,2)，不改变控制器的闩锁或任何计时状态。
 
     直接用权威实现 `get_action_cyclic_braking`（避免在评估侧复制一份规则逻辑而产生
-    漂移），但该方法会写 `ctrl._cyclic_braking`，故调用前后保存/还原。
+    漂移），在独立控制器副本上预演，避免消耗保持/渐变计时。
 
     ⚠️ 已知近似：本函数以**未协调**带边（v_max_adj=v_min_adj=0）复算，而 env 内部对
     follower 会叠加 `coordination_adj` 的抬带/压带（|adj| ≤ LEAN_MAX_ADJ=3 m/s）；
@@ -394,12 +425,8 @@ def _rule_baseline_edab(ctrl, tr, env):
     """
     if not hasattr(ctrl, 'get_action_cyclic_braking'):
         return None
-    saved = ctrl._cyclic_braking
-    try:
-        base = ctrl.get_action_cyclic_braking(
-            tr, v_max=env.v_max, v_min=env.v_min, v_max_adj=0.0, v_min_adj=0.0)
-    finally:
-        ctrl._cyclic_braking = saved
+    base = deepcopy(ctrl).get_action_cyclic_braking(
+        tr, v_max=env.v_max, v_min=env.v_min, v_max_adj=0.0, v_min_adj=0.0)
     return np.asarray(base, dtype=float)
 
 
@@ -475,6 +502,10 @@ def main():
     p.add_argument('--mode', choices=['all', 'decompose_m1', 'decompose_m0', 'mpc', 'single'],
                    default='all')
     p.add_argument('--checkpoint', default=DEFAULT_CKPT)
+    p.add_argument('--formation-relative-speed-obs', action=argparse.BooleanOptionalAction,
+                   default=None, help='Use 14D relative-speed observations; defaults to checkpoint schema')
+    p.add_argument('--consist-preset', default=None,
+                   help='Explicit consist; RL evaluation defaults to checkpoint env_cfg')
     p.add_argument('--grade', default='shuozhou_ningwuxi_beidaniu_49km')
     p.add_argument('--max_steps', type=int, default=36000,
                    help='评估时域（36000=完整 49.6km；15000=23.8km）')
@@ -512,6 +543,7 @@ def main():
     p.add_argument('--out_suffix', type=str, default='',
                    help='输出文件名后缀（区分 seed/interval/场景，防覆盖），如 "_s0_iv5"')
     args = p.parse_args()
+    resolve_policy_environment(args)
 
     # 【2026-10-01 修复｜静默缺行】`--mode all` 语义 = 主对比全行（D-Rule / D-RL / MPC，对比口径见 ADR-037）。
     # 旧写法在 MPC 块内用 `if getattr(args,'enable_mpc',False) or args.mode=='mpc'` 兜，
@@ -532,7 +564,7 @@ def main():
     official_entry_guard(__file__)
     _PROJECT_ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
     # 运行派生（2026-09-30）：metadata 的 physics 块随本次评估的编组固化
-    _consist = run_consist('single' if args.mode == 'single' else 'decompose')
+    _consist = run_consist('single' if args.mode == 'single' else 'decompose', args)
     _meta = build_metadata(project_root=_PROJECT_ROOT, case='official',
                            world_cfg=official_world_config(
                                PhysicsConfig(), env_cfg={'consist_preset': _consist}),
@@ -550,6 +582,7 @@ def main():
 
     if args.mode in ('all', 'decompose_m1'):
         env0 = make_env('decompose', args)
+        _meta['observation_schema'] = dict(env0.observation_schema)
         # 【ADR-021 方向 B】按 ckpt 内嵌 metadata 判定价值头形态，否则 per-agent 权重
         # 装不进标量头（load_state_dict 形状不匹配）→ 评估直接失败。
         _critic = probe_critic_mode(args.checkpoint)

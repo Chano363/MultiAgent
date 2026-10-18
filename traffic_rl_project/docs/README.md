@@ -135,3 +135,5 @@
 
 - [归档说明与重画命令](../outputs/sim_validation/phys_validation/controller_repair_20261014/README.md)：37个完成运行、原始轨迹/结果元数据/源码快照、冻结候选和原报告；非正式已验收控制器。
 - [文件清单与SHA256](../outputs/sim_validation/phys_validation/controller_repair_20261014/publication_manifest.json)；图片位于 ../outputs/sim_validation/figures/controller_repair_20261014/。历史D盘路径保留出处，读取时使用仓库相对路径。
+
+- **当前双人职责与接口核对（2026-10-14）**：见 [PROJECT_PIPELINE末尾当前清单](PROJECT_PIPELINE.md#p0-当前双人职责接口与联合验收核对---2026-10-14)。历史两层RL/NMPC/53km任务不作为现行安排；共享owner与编组版本同步尚未完成。

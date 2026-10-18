@@ -3,6 +3,8 @@
 覆盖：CYCLIC(50 kPa) 档映射与常量、升档 rank 序、独立触发/缓解速度门、
 ED 缓解协同时序（抬 900 kN 持 50 s）、kN→frac 换算锚、默认关=旧行为零回归。
 """
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -438,15 +440,14 @@ def test_cyclic_ab_upgrade_notch_min_intermediate():
 
 
 def test_ed_upgrade_ramp_downscales_ed_within_window():
-    # 【Z 组】release→braking **施加沿**启动 ramp 窗 → 窗内 ED × scale（尾波到齐前
-    # 头中不猛减速）；窗到期恢复满值。参数沿用 Y2 验证剂量 6.0/0.7。
+    # The upgrade threshold edge starts the Y2 window; expiry restores ED.
     env, ctrl = _setup(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
                        cyclic_ab_upgrade_kmh=76.0,
                        ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.7)
     try:
         ctrl._ed_ab_price = lambda e: 0.5   # ED 不满 → 走 AB 兜底升级分支
         env.dynamics.vel[:] = 76.1 / 3.6
-        ctrl.get_action_cyclic_braking(env)      # 施加沿：进 braking + 启动窗
+        ctrl.get_action_cyclic_braking(env)      # Upgrade edge starts the window.
         assert ctrl._cyclic_braking
         assert ctrl._ed_ramp_steps_left > 0
         act = ctrl.get_action_cyclic_braking(env)
@@ -465,7 +466,7 @@ def test_ed_upgrade_ramp_downscales_ed_within_window():
 
 
 def test_ed_upgrade_ramp_default_off_zero_regression():
-    # 【Z 组】默认 0.0/1.0 = 关：升级全程 ED 逐位等于满值（旧行为）。
+    # Disabled ramp retains the original full ED action during upgrades.
     env, ctrl = _setup(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
                        cyclic_ab_upgrade_kmh=76.0)
     try:
@@ -480,29 +481,31 @@ def test_ed_upgrade_ramp_default_off_zero_regression():
         env.close()
 
 
-def test_ed_upgrade_ramp_rearms_each_apply_edge():
-    # 【Z 组】每次 release→braking 施加沿都重启动窗（高速段门不退出也覆盖每个
-    # 施加波 —— Y2 判读定案的机理缺陷修复点）。
+def test_ed_upgrade_ramp_starts_at_upgrade_not_cyclic_apply():
     env, ctrl = _setup(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
-                       cyclic_release_kmh=45.0,
                        cyclic_ab_upgrade_kmh=76.0,
                        ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.7)
     try:
         ctrl._ed_ab_price = lambda e: 0.5
-        env.dynamics.vel[:] = 76.1 / 3.6
-        ctrl.get_action_cyclic_braking(env)          # 第 1 次施加沿 → 窗启动
-        assert ctrl._ed_ramp_steps_left > 0
-        # 缓解（v<=45 退出 braking）→ 窗耗尽
-        env.dynamics.vel[:] = 44.0 / 3.6
-        for _ in range(8):
-            ctrl.get_action_cyclic_braking(env)
-        assert not ctrl._cyclic_braking
-        assert ctrl._ed_ramp_steps_left == 0
-        # 第 2 次施加沿（门仍 76 未退出过没关系 —— 沿来自 braking 重触发）
-        env.dynamics.vel[:] = 76.1 / 3.6
-        ctrl.get_action_cyclic_braking(env)
+        full = 1.0 - ctrl._ed_stagger(0)
+        env.dynamics.vel[:] = 66.0 / 3.6
+        action = ctrl.get_action_cyclic_braking(env)
         assert ctrl._cyclic_braking
-        assert ctrl._ed_ramp_steps_left > 0          # 窗重启
+        assert ctrl._ed_ramp_steps_left == 0
+        assert action[0, 0] == pytest.approx(full)
+        env.dynamics.vel[:] = 76.1 / 3.6
+        action = ctrl.get_action_cyclic_braking(env)
+        assert action[0, 0] == pytest.approx(full * 0.7)
+        for _ in range(6):
+            action = ctrl.get_action_cyclic_braking(env)
+        assert ctrl._ed_ramp_steps_left == 0
+        assert action[0, 0] == pytest.approx(full)
+        # A persistent upgrade must not restart the window each step.
+        env.dynamics.vel[:] = 75.0 / 3.6
+        ctrl.get_action_cyclic_braking(env)
+        env.dynamics.vel[:] = 76.1 / 3.6
+        action = ctrl.get_action_cyclic_braking(env)
+        assert action[0, 0] == pytest.approx(full * 0.7)
     finally:
         env.close()
 
@@ -639,3 +642,45 @@ def test_veto_margin_wired_through_fleet():
         assert sl._coupler_veto_lag_s == 60.0
     finally:
         fleet2.close()
+
+
+def test_ed_upgrade_ramp_reset_matches_fresh_episode():
+    kwargs = dict(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
+                  cyclic_ab_upgrade_kmh=76.0,
+                  ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.7)
+    env, ctrl = _setup(**kwargs)
+    fresh = MultiLocoController(env.num_vehicles, env.loco_indices, **kwargs)
+    try:
+        env.dynamics.vel[:] = 77.0 / 3.6
+        ctrl.get_action_cyclic_braking(env)
+        assert not ctrl._ed_ramp_armed
+        assert ctrl._ed_ramp_steps_left > 0
+        ctrl.reset()
+        assert ctrl._ed_ramp_steps_left == 0
+        assert ctrl._ed_ramp_armed
+        np.testing.assert_array_equal(ctrl.get_action_cyclic_braking(env),
+                                      fresh.get_action_cyclic_braking(env))
+    finally:
+        env.close()
+
+
+def test_ed_upgrade_actions_match_archived_y2_first_episode():
+    # Cross-check the actual archived implementation over upgrade/release cycles.
+    source = (Path(__file__).resolve().parents[1] / 'outputs/sim_validation/'
+              'phys_validation/rulecal_20261016/Y2_ramp07/controller_source.py')
+    namespace = {'__name__': 'archived_y2_controller'}
+    exec(compile(source.read_text(encoding='utf-8'), str(source), 'exec'), namespace)
+    kwargs = dict(cyclic_notch_50=True, cyclic_brake_trigger_kmh=65.0,
+                  cyclic_release_kmh=50.0, cyclic_ab_upgrade_kmh=76.0,
+                  ed_release_coordination=True,
+                  ed_upgrade_ramp_s=0.5, ed_upgrade_ramp_scale=0.7)
+    env, ctrl = _setup(**kwargs)
+    archived = namespace['MultiLocoController'](
+        env.num_vehicles, env.loco_indices, **kwargs)
+    try:
+        for speed in [60, 66, 75, 77, 78, 79, 78, 77, 78, 75, 77, 48, 48, 66, 77]:
+            env.dynamics.vel[:] = speed / 3.6
+            np.testing.assert_array_equal(ctrl.get_action_cyclic_braking(env),
+                                          archived.get_action_cyclic_braking(env))
+    finally:
+        env.close()

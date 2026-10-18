@@ -1,0 +1,7 @@
+{
+  "scope": "Validated prototype equivalence with explicit feedforward config and same-valued acyclic constant import",
+  "executable_ast_equal_after_declared_normalizations": true,
+  "default_coupler_limit_constant_n": 1000000.0,
+  "production_sha256": "b1c2e0a0cafc258fe93507739fd7f8435c265dc00f85b919765fe0c5739ecdb8",
+  "frozen_sha256": "28a3134d649b623470bcfb684b502ba380b4029b9d1e8e1ad940e42c6091050d"
+}

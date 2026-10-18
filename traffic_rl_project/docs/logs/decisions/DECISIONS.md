@@ -773,7 +773,6 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **后果**：EXECUTION_RULES.md 第 4 条"protocol 标注 re-identification"的标注要求随协议废止不再执行；MPC 基线代码 NMPCController 的 grade_at 读入行为不变（本就是固有输入），仅文档口径变更，**无代码改动**。
 - **相关**：ADR-016（被本 ADR 废止）、ADR-010（Regime A/B 原出处）、ADR-032（成本叙事废止，前提证伪）、ADR-034（Formation-MPC 公允三条件中的"逐线喂图纸"表述由本 ADR 修正）。
 
-
 ## ADR-038 主对比表移除"单列 RL 范式行" - 2026-10-17
 
 - **状态**：决策 + 文档层已落地（RESEARCH_POSITIONING.md §1.6 / AGENTS.md / docs/tasks.md / docs/杂项 两份对位文档覆盖式修订或加注；历史日志 logs/ 原样保留仅作历史）。
@@ -786,3 +785,20 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **后果**：H1–H3 预注册、防守句式 "all comparisons hold the algorithm fixed..."、Formation-MPC 写作红线（只主张编队指标）均**不变**；对比实现工作量减少（无需实现单列 RL 行）；**无代码改动**。
 - **SSOT 联动**：`RESEARCH_POSITIONING.md` §1.6（主表结构 / 主 claim 基线列举 / 主对比结构三处）；`AGENTS.md` 主表条目；`docs/tasks.md` 第 9 条；`docs/杂项/项目介绍和问题简述.md`（主对比行）；`docs/杂项/文献整理_论文方向讨论_20261016.md`（追加注记）。
 - **相关**：ADR-034（原主表结构，被本 ADR 部分修订）、ADR-032（主 claim 不变）、ADR-030（文献边界措辞不变）、ADR-034 NMPC 退表裁定（同一逻辑：自建变体无说服力）。
+
+## ADR-039 主研究编组改为三列万吨级1+0单元 - 2026-10-17
+
+- 用户确认：每列1机车+108货车，三列共3个机车智能体；覆盖ADR-035的当前研究对象，保留历史两万吨试验。
+- 预设 `10kt_1plus108`：沿用当前188t机车、100t货车参数，每列10988t，109辆；不是精确10000t，也不声称车型参数已与文献逐项对齐。
+- 当前主配置：`configs/experiments/formation_ed_ab_3train_1plus108.yaml`。旧1+0的100节预设和两万吨配置保留，不改变其语义。
+- 49.6km线路、单套formation-aware机车级ED/AB架构保留；新结果与旧两万吨资产隔离。旧6智能体权重不可直接作为新3智能体模型恢复。
+- 继承的初速、充风时间、课程参数、安全门限均非新编组已验证结论；不按吨位自动缩放门限。先做单列、三列原生接口与底层规则验证，再训练。本文决策不证明该编组符合实际运营许可。
+
+
+## ADR-040 万吨三列方案车钩力统一验收指标恢复1000kN - 2026-10-17
+
+- 用户明确要求“指标换回1000kN”；覆盖ADR-036在当前ADR-039研究方案中的1500kN制动验收口径。
+- 当前主配置 `formation_ed_ab_3train_1plus108.yaml` 显式设置 `env_cfg.coupler_force_limit_n: 1000000.0`，避免依赖默认值。该值传至列内环境、机车控制器、奖励归一化和超限统计；断面力绝对值峰值按1000kN验收，超过即未达标。
+- 不再将1350/1500kN作为当前方案的通过标准。不额外引入900kN强制验收线；预留裕量若作诊断须另行注明。
+- 本次改变验收指标，不将紧急保护触发阈值自动改为1000kN；紧急保护与验收是不同语义。安全层存在不代表1000kN已得到数学或实验保证。
+- 旧两万吨配置、原始结果与历史档位原样保留，仅作历史，不能据其峰值声称当前方案通过。当前万吨三列效果须重新验证。
