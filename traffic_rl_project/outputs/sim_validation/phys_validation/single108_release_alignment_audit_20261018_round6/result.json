@@ -1,0 +1,12 @@
+{
+  "source": "outputs\\sim_validation\\phys_validation\\single108_service_phase_cap_trial_20261018_round4\\trajectory.npz",
+  "sha256": "0cb123a143412bcdf3d4eedb34bcdbd69bbe0ab6d5f7164bbee064279f2a36fd",
+  "release_time_s": 445.20000000000005,
+  "effective_pressure_first_all_zero_s": 471.90000000000003,
+  "effective_pressure_clear_after_release_s": 26.69999999999999,
+  "hold_finished_s": 495.1,
+  "low_ED_hold_after_pressure_clear_s": 23.19999999999999,
+  "ED_input_at_pressure_clear": 0.06375503540039062,
+  "minimum_mean_kmh_first30s": 47.75022497945849,
+  "meaning": "model effective cylinder coefficient, NOT auxiliary reservoir refill completion; engineering evidence only"
+}

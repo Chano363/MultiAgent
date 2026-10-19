@@ -1,0 +1,20 @@
+{
+  "AB_request_transitions": [
+    {
+      "time_s": 98.8,
+      "request": -0.05
+    },
+    {
+      "time_s": 249.1,
+      "request": 0.0
+    }
+  ],
+  "AB_release_requests": 1,
+  "first_crossing": {
+    "time_s": 260.1,
+    "interface_index": 23,
+    "signed_force_kN": 1007.0814780278828
+  },
+  "decision": "rejected_above_1000kN",
+  "scope": "single_train_partial_route_zero_RL_only"
+}

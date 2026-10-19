@@ -1,0 +1,11 @@
+{
+  "parent_sha256": "815a6b929c8fda1a07f93d45a9a757f350c082a94651b87c1fbb04360b93eabc",
+  "embedded_helper_sha256": "b93caabea4d467a84a2064ca424e33719e5ccfe1a0f929597cf14a00ef27781c",
+  "scope": "single-loco zeroRL; second and subsequent release candidates only",
+  "prediction": "deepcopy complete native train and controller; observer closure removed only in clone; recursive guard disabled",
+  "horizon": "222s + native max cylinder-rise time + native train length / SERVICE wave speed",
+  "retry_speed_spacing": "existing control margin0.5m/s; engineering screening, not paper parameter",
+  "floor": "existing v_min, no lowering; infeasible at floor explicitly logged",
+  "safety": "all source gates, ATP, force/velocity limits unchanged",
+  "literature": "Lin2017 DOI10.3969/j.issn.0258-2724.2017.05.004 PDF3-4; Huang2021 PDF34-35/42-43; no numeric parameter migration"
+}

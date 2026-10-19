@@ -1,0 +1,349 @@
+{
+  "summary": {
+    "steps": 7655,
+    "speed_min_kmh": 40.421717657582626,
+    "speed_max_kmh": 79.16865186334118,
+    "peak_kn": 975.9929329024266,
+    "jerk_rms": 0.01666524722881597,
+    "jerk_peak": 0.3005095224059673,
+    "command_switches": 7,
+    "violations": 0,
+    "safety_events": 0,
+    "diagnostic_stop_reason": null,
+    "diagnostic_first_crossing_s": null,
+    "physical_ed_change_rms_per_s": 0.4467026709808358,
+    "physical_ed_max_step_increase": 0.6224510845816316,
+    "physical_ed_max_step_decrease": 0.75,
+    "requested_notch_switches": 7,
+    "stored_head_notch_switches": 5,
+    "elapsed_s": 765.5000000000001,
+    "mean_speed_kmh": 61.47367097384102,
+    "distance_leader_m": 13071.14944644791,
+    "leader_end_m": 13071.14944644791,
+    "last_tail_end_m": 11776.8351465286,
+    "max_vehicle_speed_kmh": 79.8638883328246,
+    "overspeed_train_steps": 0,
+    "subenv_safety_events": 0,
+    "full_route_completed": false
+  },
+  "metadata": {
+    "git_commit": "f20aa6fecc0ee5b6cc548fba6f64cdcbd01a9e2f",
+    "physics_version": "926a0233a7e5",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "8d138810d378",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "diagnose_low_level_control.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 16.66661111111111,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "diagnostic_protocol": {
+      "output": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry",
+      "config": "configs\\experiments\\single_10kt108_coupler_rulecal.yaml",
+      "override": [],
+      "steps": 7655,
+      "stop_on_coupler_kn": 1000.0,
+      "stop_file": null,
+      "stop_on_infeasible_release": false,
+      "save_native_release_state": true,
+      "trains": 1,
+      "consist_preset": null,
+      "grade": -12.0,
+      "speed": 70.0,
+      "train_speeds_kmh": null,
+      "fleet_env_source": null,
+      "profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "start_m": 0.0,
+      "gap_offset_m": 0.0,
+      "finish_m": null,
+      "ed_recovery_rate": null,
+      "ed_recovery_scope": "all",
+      "ed_grade_feedforward": false,
+      "ed_physics_availability": false,
+      "ed_prelimit": false,
+      "ed_baseline_projection": null,
+      "anticipate_etcs": false,
+      "controller_ref": null,
+      "controller_source": "outputs\\sim_validation\\phys_validation\\single108_release_state_source_20261019_round6\\controller_source.py",
+      "reuse": false,
+      "metadata_file": "result.json"
+    },
+    "grade_override_permille": null,
+    "controller_sha256": "d19ebee06882a77532d7d6f94a4bf7747a4a2354bd6e5bc96ba0446ba1e9bae3",
+    "diagnostic_entry_sha256": "6a59c4e2e7cb30b16961867f1791787c2ef1494a3f3f548de32607d399dbd1ba",
+    "controller_sha256_format": "UTF-8 source text with LF line endings",
+    "fleet_env_sha256": "f018e91017f5458571cb0f13e7ce56ae0bfa64a2057c05a73ddba224ce4b7063",
+    "train_env_sha256": "01403e923031dc43d09934a7aa5fee79f0061e8c066d62c278badbc6f7bf1eea",
+    "train_dynamics_sha256": "5fa3e40e1b3648bf381c149800854f6e0fdb29701a49570dd837254b1ade8424",
+    "etcs_braking_sha256": "7b33efc33a399104f9c1d3906d1a5cb06a606df20ceb08cb4e43798204ce7da9",
+    "etcs_runtime": {
+      "speed_profile": [
+        [
+          11.11111111111111,
+          0.426
+        ],
+        [
+          16.666666666666668,
+          0.401
+        ],
+        [
+          22.22222222222222,
+          0.382
+        ]
+      ],
+      "emergency_build_up_s": 5.268,
+      "service_build_up_s": 5.268
+    },
+    "controller_ref": "source-file",
+    "controller_runtime": [
+      {
+        "ed_recovery_rate_per_s": 0.5,
+        "ed_physics_availability": false,
+        "ed_prelimit": false,
+        "ed_grade_feedforward": true,
+        "ed_recovery_scope": "coupler",
+        "anticipate_etcs": false,
+        "ed_baseline_projection": "legacy",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "ed_exit_decay_rate_per_s": null,
+        "sbi_exit_margin_mps": null,
+        "predictive_ed_guard_events": [
+          {
+            "step": 3568,
+            "preparing": true,
+            "elapsed_since_release_s": 202.0
+          },
+          {
+            "step": 3759,
+            "preparing": false,
+            "elapsed_since_release_s": 221.10000000000002
+          },
+          {
+            "event": "release_feasibility",
+            "step": 4452,
+            "initial_speed_kmh": 49.98934227888316,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step4452.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 209.60000000000002,
+            "peak_kn": 952.4916821823375,
+            "max_vehicle_kmh": 80.05014297136934,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "c28cfda4855f731fcf3dc5d0abee1adc9db1f953b05bf271f223cb1a8a1c0041"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 4485,
+            "initial_speed_kmh": 48.150236615390874,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step4485.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 224.3,
+            "peak_kn": 975.8213770153557,
+            "max_vehicle_kmh": 80.0003156112838,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "e4221615f33f58c6d1f53cbdb2e6af2ad20a0db1c41aca749febfc96dbc33432"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 4517,
+            "initial_speed_kmh": 46.32188817044607,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step4517.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 223.9,
+            "peak_kn": 904.735353035388,
+            "max_vehicle_kmh": 80.04475951621778,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "7cfa75ff8683d8a8762cb3a06637e9ae626d21bdbaca3253d25260cf23dfda33"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 4549,
+            "initial_speed_kmh": 44.487166826518994,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step4549.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 223.4,
+            "peak_kn": 963.2911960982962,
+            "max_vehicle_kmh": 80.0033908210512,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "77daab602668b07d3fd9602cfba4584c8cff83c4ada73be40680d2f9e879db35"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 4581,
+            "initial_speed_kmh": 42.66117161990394,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step4581.npz",
+            "feasible": true,
+            "reason": "horizon_completed",
+            "simulated_s": 248.5,
+            "peak_kn": 936.8304126049754,
+            "max_vehicle_kmh": 79.8638883328246,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "e6a4aa6b6238e90edf7e02b23d6e06cab684819073034a04d33a400403c90ba1"
+          },
+          {
+            "step": 6601,
+            "preparing": true,
+            "elapsed_since_release_s": 202.0
+          },
+          {
+            "step": 6789,
+            "preparing": false,
+            "elapsed_since_release_s": 220.8
+          },
+          {
+            "event": "release_feasibility",
+            "step": 7520,
+            "initial_speed_kmh": 49.97395156876432,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step7520.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 212.20000000000002,
+            "peak_kn": 938.0027046829051,
+            "max_vehicle_kmh": 80.00136019882923,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "2bbaf263df1228667a4ab3b2e299d41c9da105edfb284744fb6613cba726f2db"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 7554,
+            "initial_speed_kmh": 48.15422084734981,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step7554.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 222.4,
+            "peak_kn": 965.2462930796144,
+            "max_vehicle_kmh": 80.11761321383419,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "025c27d1d17ccfa7d051993c2c380dd13750d8b2992767be5c2329fb84a2ecef"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 7588,
+            "initial_speed_kmh": 46.338474826948385,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step7588.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 223.9,
+            "peak_kn": 973.3081598759089,
+            "max_vehicle_kmh": 80.14168981200928,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "87ad51363b989bac754817ccdfc8ffdc483907f91836bb8bfe2f8de089879fa9"
+          },
+          {
+            "event": "release_feasibility",
+            "step": 7622,
+            "initial_speed_kmh": 44.531010685517856,
+            "at_floor": false,
+            "trace_path": "outputs\\sim_validation\\phys_validation\\single108_release_state_trial_20261019_round6_retry\\release_predictions\\step7622.npz",
+            "feasible": false,
+            "reason": "speed_ceiling",
+            "simulated_s": 222.0,
+            "peak_kn": 936.9757545916079,
+            "max_vehicle_kmh": 80.00463427293721,
+            "prediction_origin": "archived_v3_decision_prefix",
+            "cache_sha256": "322720050b232afc3556e174a35a28c5e34ce927606c37e0967eaf28681c01ae"
+          }
+        ]
+      }
+    ],
+    "runtime_physics": [
+      {
+        "simcase": "official",
+        "enable_cyclic_degrade": true,
+        "tail_pressure_kpa": null
+      }
+    ],
+    "actuator_diagnostic": {
+      "physical_ed_unit": "fraction, post-safety input; not force",
+      "force_sample": "post-step state model evaluation in N; not step-integrated force",
+      "coupler_sign": "positive = forward force on preceding vehicle",
+      "loco_indices": [
+        [
+          0
+        ]
+      ],
+      "safety_rule_order": [
+        "coupler_force_limit",
+        "min_gap",
+        "overspeed",
+        "etcs_ebi",
+        "etcs_permitted"
+      ],
+      "controller_requests": "commands, before environment safety",
+      "release_force_target": "last stored model-force target in kN, before controller/safety projection; NaN means unavailable"
+    },
+    "numerical_runtime": {
+      "numpy_version": "2.3.5",
+      "thread_environment": {
+        "OPENBLAS_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      }
+    },
+    "env_cfg": {
+      "ed_native_force_conversion": true,
+      "num_trains": 1,
+      "consist_preset": "10kt_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.22222222222222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 7655,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1000000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      }
+    },
+    "tracked_diff": " .../formation_ed_ab_3train_1plus108.yaml           |   4 +-\n .../single_10kt108_coupler_rulecal.yaml            |   2 +-\n traffic_rl_project/docs/HANDOFF_2026-10-17.md      |  74 ++++++\n traffic_rl_project/docs/PROJECT_PIPELINE.md        |  84 +++++++\n traffic_rl_project/docs/README.md                  |   9 +\n traffic_rl_project/docs/REFERENCE_INDEX.md         |  22 +-\n traffic_rl_project/docs/VALIDATION_BASELINE.md     |   2 +-\n traffic_rl_project/docs/papers/README.md           |  26 +-\n traffic_rl_project/docs/refs.bib                   |  70 ++++++\n .../evaluation/diagnose_actuator_sensitivity.py    | 268 ++++++++++++++++++++-\n .../src/evaluation/diagnose_low_level_control.py   |  95 +++++++-\n traffic_rl_project/src/train_dynamics/train.py     |  12 +-\n .../tests/test_controller_diagnostic_archive.py    | 118 +++++++++\n .../tests/test_native_sequence_plan.py             | 119 +++++++++\n 14 files changed, 875 insertions(+), 30 deletions(-)\n",
+    "purpose": "controller diagnostic; zero RL modulation, not a paper main-table evaluation",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  }
+}

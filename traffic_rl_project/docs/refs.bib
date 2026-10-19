@@ -474,3 +474,114 @@
   note    = {地铁精确停车 FSMPC：有限控制集枚举+制动级位↔减速度静态映射+PSO 逐级位辨识时滞
              +HMM 预测电空转换。全文 docs/papers/04_safety_mpc/Li2025_FSMPC_BrakeNotch.txt}
 }
+
+
+@article{lin2017_hxd2_periodic,
+  author = {林轩 and 王青元 and 刘强强 and 冯晓云},
+  title = {HXD2牵引货运列车长大下坡区间周期性制动研究},
+  journal = {西南交通大学学报},
+  year = {2017}, volume = {52}, number = {5}, pages = {859--868},
+  doi = {10.3969/j.issn.0258-2724.2017.05.004},
+  url = {https://xnjdxb.swjtu.edu.cn/cn/article/doi/10.3969/j.issn.0258-2724.2017.05.004},
+  note = {2026-10-18新增中文PDF10页已取得，重点核对PDF3式9及PDF4最大缓解速度命题；130s为本文取值，100辆不等于108辆，不为1000kN约束背书。}
+}
+
+@article{xiao2023_brake_diversity,
+  author = {肖致明 and 王大龙 and 王青元 and others},
+  title = {考虑制动性能差异的重载列车模式化操纵方法},
+  journal = {机车电传动}, year = {2023}, number = {1}, pages = {24--32},
+  doi = {10.13890/j.issn.1000-128X.2023.01.004},
+  url = {https://edl.csrzic.com/zh/article/doi/10.13890/j.issn.1000-128X.2023.01.004/},
+  note = {2026-10-18仅核实出版社题录与摘要；50kPa等效效率、北大牛—原平南案例。编组与公式待全文，不直接移植到本项目49.6km。}
+}
+
+
+@article{dong2017_shenshuo_cyclic,
+ author = {董克毓 and 魏伟}, title = {万吨重载列车在神朔段长大下坡道循环制动优化},
+ journal = {大连交通大学学报}, year = {2017}, volume = {38}, number = {1}, pages = {17--20},
+ doi = {10.13291/j.cnki.djdxac.2017.01.004},
+ note = {原PDF4页。三台机车+116辆，副风缸580kPa判据68至76秒；不迁移到单机108辆。}
+}
+
+@mastersthesis{huang2021_downhill_curve,
+ author = {黄宇澄}, title = {重载列车在长大下坡区段的运行曲线优化方法研究},
+ school = {北京交通大学}, year = {2021},
+ note = {原PDF119页，重点核对PDF34至35及42至43，最低缓解速度、最小缓解时间及转换点可行性；未移植参数。}
+}
+
+@mastersthesis{li2025_air_transmission,
+ author = {李彬卓}, title = {重载列车空气制动传递特性分析与智能预测},
+ school = {中南大学}, year = {2025},
+ note = {原PDF100页。第4章基础模型双机+50辆C70E，初充气不等于108辆循环再充气；仅范围筛读，未复现。}
+}
+
+@misc{xiao_cyclic_longitudinal_thesis,
+ author = {肖博懿}, title = {重载列车循环制动分析及纵向作用力优化控制研究},
+ howpublished = {中南大学硕士学位论文（年份待核）},
+ note = {原PDF95页，筛读模型范围和PDF70操纵说明，主要两万吨组合列车；不移植主从机车参数。}
+}
+
+
+@article{zhou2022_draftgear_comparison,
+ author = {Yichang Zhou and Zhiyong Shi and Markus Hecht},
+ title = {Comparison of friction draft gear models for simulation in longitudinal train dynamics},
+ journal = {Vehicle System Dynamics}, year = {2022}, volume = {60}, number = {7}, pages = {2436--2450},
+ doi = {10.1080/00423114.2021.1901943},
+ note = {在线2021。2026-10-18通过佛罗伦萨大学仓储网页阅读16页含封面预印本，直接下载受站点验证拦截，无本地PDF。研究模型/积分法与本项目不等同，不迁移步长或摩擦参数。}
+}
+
+@article{guo2023_variable_step_ltd,
+ author = {郭炎冰 and 杨诗卫 and 杨璨 and 倪文波},
+ title = {一种用于重载列车纵向动力学仿真的变步长积分算法},
+ journal = {铁道车辆}, year = {2023}, volume = {61}, number = {3}, pages = {147--152},
+ doi = {10.3969/j.issn.1002-7602.2023.03.026},
+ note = {2026-10-19已取得用户D盘全文，PDF1核DOI、PDF4至5核108辆C70E、94.1吨每车、平道80km/h全制动停车及积分精度比较；不同车型、缓冲器模型与工况，不能直接迁移步长或参数。此前全文待取状态已过时。}
+}
+
+@article{wu2018_ltd_benchmark_results,
+ author = {Qing Wu and Maksym Spiryagin and Colin Cole and others},
+ title = {International benchmarking of longitudinal train dynamics simulators: results},
+ journal = {Vehicle System Dynamics}, year = {2018}, volume = {56}, number = {3}, pages = {343--365},
+ doi = {10.1080/00423114.2017.1377840},
+ note = {本轮仅定向检索线索及被引题录，非本项目通过基准算例的声明，正式全文待取。}
+}
+@article{ma2023_braking_matching,
+  author = {马志强 and 王竣渝 and 魏咪 and 王青元},
+  title = {重载列车平稳运行的空电联合制动匹配控制},
+  journal = {机车电传动},
+  year = {2023},
+  number = {4},
+  pages = {71--76},
+  doi = {10.13890/j.issn.1000-128X.2023.02.103},
+  note = {用户本地全文核实；PDF3式4含电制动力变化约束，PDF4式7可行条件，PDF4第3.3节规定缓解后恒持电制动力50秒，PDF5结论为二万吨背景；30秒或25\%力目标均非原文参数，不迁移为单机108辆运营标准。}
+}
+
+@article{yu2023_daqin_release_location,
+ author = {于岩 and 魏伟},
+ title = {2万吨列车大秦线长大下坡道缓解车钩力优化},
+ journal = {轨道交通装备与技术}, year = {2023}, number = {4}, pages = {1--6},
+ doi = {10.13711/j.cnki.cn32-1836/u.2023.04.001},
+ note = {用户D盘原文PDF1及PDF3图4核实；双机加可控列尾二万吨，方法为坡度静态车钩力筛选加动态验证，缓解后一段时间电制动力不变；时刻、距离和吨位数据不迁入当前单机108辆。}
+}
+@article{sun2009_long_downhill_safety,
+ author = {孙中央 and 王长明},
+ title = {长大下坡道区段开行重载列车的安全问题},
+ journal = {铁道机车车辆}, year = {2009}, volume = {29}, number = {1}, pages = {4--7},
+ note = {用户D盘全文PDF1至2核实；式1充风可行性与制动缸排风期间继续充风的时间定义，例为双机5000吨约60辆，参数和30km/h缓解速度不得迁入当前单机108辆。DOI未核，不编造。}
+}
+
+@article{chang2026_ltd_progress,
+ author={常崇义 and 何闻 and 郭刚 and 赵光伟},
+ title={长大重载列车纵向动力学仿真研究及工程应用进展},
+ journal={交通运输工程学报}, year={2026},
+ doi={10.19818/j.cnki.1671-1637.2026.197},
+ note={用户本地22页网络首发全文；PDF9至10式9至18平衡迭代核对，未迁移积分参数与步长。}
+}
+
+@article{xiong2025_realtime_ltd,
+ author={熊芯 and 何闻 and 常崇义 and 张天婴},
+ title={车载数据驱动下重载列车纵向力实时预测方法},
+ journal={振动工程学报}, year={2025}, volume={38}, number={11},
+ doi={10.16385/j.cnki.issn.1004-4523.202506045},
+ note={用户本地全文PDF3至6及8至10复核；PDF6式11及图12平衡迭代。二万吨案例不迁阻力系数；稳定工况概率误差不用于本项目缓解峰值误差界。}
+}

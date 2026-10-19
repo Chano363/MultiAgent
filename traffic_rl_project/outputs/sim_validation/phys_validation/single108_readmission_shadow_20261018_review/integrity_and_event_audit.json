@@ -1,0 +1,38 @@
+{
+  "matched_state_max_abs_errors": {
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "coupler_interface_force_n": 0.0,
+    "brake_pressure_coefficient": 0.0,
+    "air_release_fraction": 0.0,
+    "ab_active": 0.0
+  },
+  "branches": {
+    "ED055__noair": {
+      "first_overspeed_relative_s": 10.100000000000001,
+      "first_force_crossing_relative_s": 19.8,
+      "pre_overspeed_peak_kn": 883.8997658576878,
+      "native_force_rows_max_error_N": 0.0,
+      "physical_AB_interpretation": "Only request is recorded; ATP may upgrade after overspeed, so later peaks are not attributable to 50kPa alone.",
+      "at_first_overspeed": {
+        "active_vehicles": 0,
+        "pressure_coefficient_min": 0.0,
+        "pressure_coefficient_mean": 0.0,
+        "max_vehicle_kmh": 80.00717974044393
+      }
+    },
+    "ED055__cyclic50": {
+      "first_overspeed_relative_s": 12.3,
+      "first_force_crossing_relative_s": 15.700000000000001,
+      "pre_overspeed_peak_kn": 898.7449671737594,
+      "native_force_rows_max_error_N": 0.0,
+      "physical_AB_interpretation": "Only request is recorded; ATP may upgrade after overspeed, so later peaks are not attributable to 50kPa alone.",
+      "at_first_overspeed": {
+        "active_vehicles": 109,
+        "pressure_coefficient_min": 0.2890000000000002,
+        "pressure_coefficient_mean": 0.4510183486238514,
+        "max_vehicle_kmh": 80.00025775166453
+      }
+    }
+  }
+}

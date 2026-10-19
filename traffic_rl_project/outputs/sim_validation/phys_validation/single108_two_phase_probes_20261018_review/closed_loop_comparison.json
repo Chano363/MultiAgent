@@ -1,0 +1,260 @@
+{
+  "runs": [
+    {
+      "run": "single_10kt108_native_ed_20261017_review",
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single_10kt108_native_ed_20261017_review",
+      "summary": {
+        "steps": 6000,
+        "speed_min_kmh": 46.80724550969067,
+        "speed_max_kmh": 80.39844855745226,
+        "peak_kn": 1047.6941509009916,
+        "jerk_rms": 0.057909112924196635,
+        "jerk_peak": 0.35172242876555515,
+        "command_switches": 5,
+        "violations": 44,
+        "safety_events": 11045,
+        "diagnostic_stop_reason": null,
+        "diagnostic_first_crossing_s": null,
+        "physical_ed_change_rms_per_s": 1.6312997926082649,
+        "physical_ed_max_step_increase": 0.8228144311336355,
+        "physical_ed_max_step_decrease": 0.8194404602741968,
+        "requested_notch_switches": 5,
+        "stored_head_notch_switches": 5,
+        "elapsed_s": 600.0,
+        "mean_speed_kmh": 62.642938971665224,
+        "distance_leader_m": 10439.577664405304,
+        "leader_end_m": 10439.577664405304,
+        "last_tail_end_m": 9145.825190903095,
+        "max_vehicle_speed_kmh": 80.68459663083942,
+        "overspeed_train_steps": 115,
+        "subenv_safety_events": 11045,
+        "full_route_completed": false
+      },
+      "cycle_audit": {
+        "AB_request_transitions": [
+          {
+            "time_s": 98.8,
+            "request": -0.05
+          },
+          {
+            "time_s": 222.20000000000002,
+            "request": 0.0
+          },
+          {
+            "time_s": 469.80000000000007,
+            "request": -0.75
+          },
+          {
+            "time_s": 491.6,
+            "request": -0.05
+          },
+          {
+            "time_s": 535.2,
+            "request": 0.0
+          }
+        ],
+        "AB_release_requests": 2,
+        "end_air_active_count": 0,
+        "late_mean_speed_kmh": 64.7644083701885,
+        "late_speed_range_kmh": [
+          46.80724550969067,
+          80.39844855745226
+        ]
+      },
+      "source_sha256": "53b82af63825381fac1c6fede9e20b223e806b6ffbfd09bda172a18b7e4c9570",
+      "env_cfg": {
+        "num_trains": 1,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "v_max": 22.222,
+        "v_min": 11.111,
+        "target_gap": 100.0,
+        "max_steps": 6000,
+        "max_accel": 1.0,
+        "use_coupler_constraint": true,
+        "hierarchical": false,
+        "decompose": "loco_ed_ab",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "coupler_force_limit_n": 1000000,
+        "coupler_force_limit_emergency_n": 2250000.0,
+        "cyclic_notch_50": true,
+        "cyclic_brake_trigger_kmh": 65.0,
+        "cyclic_release_kmh": 50.0,
+        "ed_release_coordination": true,
+        "ed_release_hold_s": 50.0,
+        "ed_release_boost_kn": 900.0,
+        "cyclic_ab_upgrade_kmh": 76.0,
+        "ed_upgrade_ramp_s": 6.0,
+        "ed_upgrade_ramp_scale": 0.7,
+        "ed_grade_feedforward": true,
+        "coupler_override": "min_brake",
+        "eot": true,
+        "start_randomization": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "run": "single108_air_net_bounded_trial_20261018_review",
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single108_air_net_bounded_trial_20261018_review",
+      "summary": {
+        "steps": 6000,
+        "speed_min_kmh": 50.27542967301034,
+        "speed_max_kmh": 79.98549815099318,
+        "peak_kn": 954.7552925841751,
+        "jerk_rms": 0.015296523492605749,
+        "jerk_peak": 0.1284345428789635,
+        "command_switches": 1,
+        "violations": 0,
+        "safety_events": 109,
+        "diagnostic_stop_reason": null,
+        "diagnostic_first_crossing_s": null,
+        "physical_ed_change_rms_per_s": 0.49854506245517427,
+        "physical_ed_max_step_increase": 0.3795725703239441,
+        "physical_ed_max_step_decrease": 0.3795725703239441,
+        "requested_notch_switches": 1,
+        "stored_head_notch_switches": 2,
+        "elapsed_s": 600.0,
+        "mean_speed_kmh": 55.479293304691794,
+        "distance_leader_m": 9245.824964784428,
+        "leader_end_m": 9245.824964784428,
+        "last_tail_end_m": 7951.854689472893,
+        "max_vehicle_speed_kmh": 79.99163665694716,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 109,
+        "full_route_completed": false
+      },
+      "cycle_audit": {
+        "AB_request_transitions": [
+          {
+            "time_s": 98.8,
+            "request": -0.05
+          }
+        ],
+        "AB_release_requests": 0,
+        "end_air_active_count": 109,
+        "late_mean_speed_kmh": 50.27619829859119,
+        "late_speed_range_kmh": [
+          50.27542967301034,
+          50.276863736187224
+        ]
+      },
+      "source_sha256": "8c0ac45db4157e95d300d2ff18321bb627baa8e61d923fc2bab5ac66820861fc",
+      "env_cfg": {
+        "ed_native_force_conversion": true,
+        "num_trains": 1,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "v_max": 22.222,
+        "v_min": 11.111,
+        "target_gap": 100.0,
+        "max_steps": 6000,
+        "max_accel": 1.0,
+        "use_coupler_constraint": true,
+        "hierarchical": false,
+        "decompose": "loco_ed_ab",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "coupler_force_limit_n": 1000000.0,
+        "coupler_force_limit_emergency_n": 2250000.0,
+        "cyclic_notch_50": true,
+        "cyclic_brake_trigger_kmh": 65.0,
+        "cyclic_release_kmh": 50.0,
+        "ed_release_coordination": true,
+        "ed_release_hold_s": 50.0,
+        "ed_release_boost_kn": 900.0,
+        "cyclic_ab_upgrade_kmh": 76.0,
+        "ed_upgrade_ramp_s": 6.0,
+        "ed_upgrade_ramp_scale": 0.7,
+        "ed_grade_feedforward": true,
+        "coupler_override": "min_brake",
+        "eot": true,
+        "start_randomization": {
+          "enabled": false
+        }
+      }
+    },
+    {
+      "run": "single108_air_net_bound04_trial_20261018_review",
+      "archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single108_air_net_bound04_trial_20261018_review",
+      "summary": {
+        "steps": 6000,
+        "speed_min_kmh": 53.134815617931885,
+        "speed_max_kmh": 79.98549815099318,
+        "peak_kn": 954.7552925841751,
+        "jerk_rms": 0.015351238286237467,
+        "jerk_peak": 0.1284345428789635,
+        "command_switches": 1,
+        "violations": 0,
+        "safety_events": 109,
+        "diagnostic_stop_reason": null,
+        "diagnostic_first_crossing_s": null,
+        "physical_ed_change_rms_per_s": 0.49864282961204315,
+        "physical_ed_max_step_increase": 0.3795725703239441,
+        "physical_ed_max_step_decrease": 0.3795725703239441,
+        "requested_notch_switches": 1,
+        "stored_head_notch_switches": 2,
+        "elapsed_s": 600.0,
+        "mean_speed_kmh": 57.34987027380194,
+        "distance_leader_m": 9557.535837623916,
+        "leader_end_m": 9557.535837623916,
+        "last_tail_end_m": 8263.573279950633,
+        "max_vehicle_speed_kmh": 79.99163665694716,
+        "overspeed_train_steps": 0,
+        "subenv_safety_events": 109,
+        "full_route_completed": false
+      },
+      "cycle_audit": {
+        "AB_request_transitions": [
+          {
+            "time_s": 98.8,
+            "request": -0.05
+          }
+        ],
+        "AB_release_requests": 0,
+        "end_air_active_count": 109,
+        "late_mean_speed_kmh": 53.13547381074064,
+        "late_speed_range_kmh": [
+          53.134815617931885,
+          53.13587456130831
+        ]
+      },
+      "source_sha256": "7ba923b58cb8dcaa734719e3b6676b147302ea2ae634900e16a1def4d28aa8c9",
+      "env_cfg": {
+        "ed_native_force_conversion": true,
+        "num_trains": 1,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "v_max": 22.222,
+        "v_min": 11.111,
+        "target_gap": 100.0,
+        "max_steps": 6000,
+        "max_accel": 1.0,
+        "use_coupler_constraint": true,
+        "hierarchical": false,
+        "decompose": "loco_ed_ab",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "coupler_force_limit_n": 1000000.0,
+        "coupler_force_limit_emergency_n": 2250000.0,
+        "cyclic_notch_50": true,
+        "cyclic_brake_trigger_kmh": 65.0,
+        "cyclic_release_kmh": 50.0,
+        "ed_release_coordination": true,
+        "ed_release_hold_s": 50.0,
+        "ed_release_boost_kn": 900.0,
+        "cyclic_ab_upgrade_kmh": 76.0,
+        "ed_upgrade_ramp_s": 6.0,
+        "ed_upgrade_ramp_scale": 0.7,
+        "ed_grade_feedforward": true,
+        "coupler_override": "min_brake",
+        "eot": true,
+        "start_randomization": {
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "scope": "All matched 600-second partial-route diagnostics, no full-route or three-train acceptance; zero RL modulation."
+}

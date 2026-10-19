@@ -1,0 +1,9 @@
+{
+  "scope": "aligned peak envelope, not every signed interface trace",
+  "max_aligned_peak_difference_kn": 15.79133951307187,
+  "rms_aligned_peak_difference_kn": 0.6683326153015476,
+  "max_velocity_difference_mps": 0.0007767242697056531,
+  "max_position_difference_m": 7.921326505311299e-05,
+  "aligned_peak_index_16": 1522,
+  "aligned_peak_index_32": 1522
+}

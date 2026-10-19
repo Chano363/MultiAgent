@@ -1,0 +1,7 @@
+{
+  "status": "intentionally stopped during third-release forecasting",
+  "reason": "single-train fleet updates leader speed band every step; helper incorrectly froze origin v_max_adj",
+  "invalid_scope": "old predictions and release decisions are not accepted as matching live fleet policy",
+  "valid_scope": "completed raw exploratory prediction traces only; no full live trajectory archived",
+  "correction": "recompute singleton leader cap with original fleet offset every prediction step; real-fleet short regression added"
+}

@@ -1,0 +1,103 @@
+{
+  "pre_release_exact": {
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "brake_pressure_coefficient": true,
+    "air_release_fraction": true,
+    "commands": true,
+    "physical_loco_ed": true
+  },
+  "ab_request_transitions": [
+    {
+      "time_s": 0.1,
+      "request": 0.0
+    },
+    {
+      "time_s": 130.0,
+      "request": -0.05
+    },
+    {
+      "time_s": 154.8,
+      "request": 0.0
+    },
+    {
+      "time_s": 402.1,
+      "request": -0.75
+    }
+  ],
+  "first_overspeed_s": 402.00000000000006,
+  "windows": {
+    "common_reference_release": {
+      "from_s": 154.8,
+      "to_s": 173.7,
+      "steps": 190,
+      "peak_kn": 818.216078526357,
+      "minimum_peak_kn": 128.51424707613748,
+      "max_vehicle_kmh": 51.37771948846356,
+      "ed_max_step_up": 0.0050000000000000044,
+      "ab_negative_requests": 0,
+      "cyclic_braking_steps": 0
+    },
+    "hold": {
+      "from_s": 154.8,
+      "to_s": 204.7,
+      "steps": 500,
+      "peak_kn": 818.216078526357,
+      "minimum_peak_kn": 128.51424707613748,
+      "max_vehicle_kmh": 56.12968879066761,
+      "ed_max_step_up": 0.0050000000000000044,
+      "ab_negative_requests": 0,
+      "cyclic_braking_steps": 0
+    },
+    "hold_exit": {
+      "from_s": 204.8,
+      "to_s": 230,
+      "steps": 253,
+      "peak_kn": 959.9117528693773,
+      "minimum_peak_kn": 353.04202413220514,
+      "max_vehicle_kmh": 59.15836276756344,
+      "ed_max_step_up": 0.0050000000000000044,
+      "ab_negative_requests": 0,
+      "cyclic_braking_steps": 0
+    },
+    "refill_ready_before_overspeed": {
+      "from_s": 376.8,
+      "to_s": 401.90000000000003,
+      "steps": 252,
+      "peak_kn": 903.1118130478202,
+      "minimum_peak_kn": 727.8643557914676,
+      "max_vehicle_kmh": 79.96553032102432,
+      "ed_max_step_up": 0.050000000000000044,
+      "ab_negative_requests": 0,
+      "cyclic_braking_steps": 252
+    }
+  },
+  "physical_command_transitions": [
+    {
+      "time_s": 0.1,
+      "command": "RELEASE"
+    },
+    {
+      "time_s": 130.1,
+      "command": "HOLD"
+    },
+    {
+      "time_s": 154.8,
+      "command": "RELEASE"
+    },
+    {
+      "time_s": 402.1,
+      "command": "SERVICE"
+    },
+    {
+      "time_s": 402.30000000000007,
+      "command": "HOLD"
+    },
+    {
+      "time_s": 402.50000000000006,
+      "command": "SERVICE"
+    }
+  ],
+  "scope": "zero RL, one train, cold70; full native physics and ATP retained; not full-route acceptance"
+}

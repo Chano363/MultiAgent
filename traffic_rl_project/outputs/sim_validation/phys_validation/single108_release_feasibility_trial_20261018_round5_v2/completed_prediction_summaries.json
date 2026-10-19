@@ -1,0 +1,30 @@
+{
+  "step4452.npz": {
+    "elapsed_s": 210.20000000000002,
+    "peak_kn": 952.4916821823375,
+    "max_vehicle_kmh": 80.01126391178123,
+    "minimum_mean_kmh": 47.75022497945849,
+    "same_as_pre_budget_fix": true
+  },
+  "step4485.npz": {
+    "elapsed_s": 226.20000000000002,
+    "peak_kn": 975.8213770153557,
+    "max_vehicle_kmh": 80.01135170611181,
+    "minimum_mean_kmh": 45.89750339972417,
+    "same_as_pre_budget_fix": true
+  },
+  "step4517.npz": {
+    "elapsed_s": 222.20000000000002,
+    "peak_kn": 936.7480067334791,
+    "max_vehicle_kmh": 80.0027358101899,
+    "minimum_mean_kmh": 44.087377246292796,
+    "same_as_pre_budget_fix": true
+  },
+  "step4549.npz": {
+    "elapsed_s": 248.5,
+    "peak_kn": 961.0295430229723,
+    "max_vehicle_kmh": 79.68894717494553,
+    "minimum_mean_kmh": 42.26256994591131,
+    "same_as_pre_budget_fix": true
+  }
+}

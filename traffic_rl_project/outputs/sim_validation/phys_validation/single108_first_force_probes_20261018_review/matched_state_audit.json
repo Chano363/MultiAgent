@@ -1,0 +1,65 @@
+{
+  "start_state_max_absolute_deviations": {
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "coupler_interface_force_n": 0.0
+  },
+  "reference_closed_loop_170_to_190_peak_kn": 1017.9508457076778,
+  "variants": {
+    "baseline_hold": {
+      "ED_depths": [
+        0.5790506006586161
+      ],
+      "peak_kn": 939.4361343880521,
+      "end_peak_kn": 841.8727580684532,
+      "max_vehicle_kmh": 56.12528840924868,
+      "end_mean_kmh": 54.26273521632806
+    },
+    "coast": {
+      "ED_depths": [
+        0.0
+      ],
+      "peak_kn": 894.939973121263,
+      "end_peak_kn": 339.0082961969302,
+      "max_vehicle_kmh": 56.97855894320045,
+      "end_mean_kmh": 56.25888809460479
+    },
+    "both_full": {
+      "ED_depths": [
+        1.0
+      ],
+      "peak_kn": 1213.6156874803355,
+      "end_peak_kn": 1121.5709921945563,
+      "max_vehicle_kmh": 56.12528840924868,
+      "end_mean_kmh": 52.88896824915623
+    },
+    "quarter": {
+      "ED_depths": [
+        0.25
+      ],
+      "peak_kn": 901.272659275765,
+      "end_peak_kn": 460.3032381405168,
+      "max_vehicle_kmh": 56.32756009165723,
+      "end_mean_kmh": 55.40446086485054
+    },
+    "half": {
+      "ED_depths": [
+        0.5
+      ],
+      "peak_kn": 921.9460775733913,
+      "end_peak_kn": 730.1118695613711,
+      "max_vehicle_kmh": 56.12528840924868,
+      "end_mean_kmh": 54.53911080238703
+    },
+    "three_quarters": {
+      "ED_depths": [
+        0.75
+      ],
+      "peak_kn": 1103.9718132717815,
+      "end_peak_kn": 1077.9678190906554,
+      "max_vehicle_kmh": 56.12528840924868,
+      "end_mean_kmh": 53.65918222736738
+    }
+  },
+  "scope": "Matched-state 20-second open-loop holds; not a closed-loop full-route acceptance."
+}

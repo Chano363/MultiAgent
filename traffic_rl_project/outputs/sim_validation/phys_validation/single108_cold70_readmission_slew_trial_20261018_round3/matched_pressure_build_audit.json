@@ -1,0 +1,61 @@
+{
+  "comparison_prefix_through_s": 375.8,
+  "prefix_exact": {
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "brake_pressure_coefficient": true,
+    "air_release_fraction": true,
+    "commands": true,
+    "physical_loco_ed": true
+  },
+  "request_transitions": [
+    {
+      "time_s": 0.1,
+      "request": 0.0,
+      "predecision_peak_kn": 0.0,
+      "predecision_veto": false,
+      "ready": true,
+      "physical_source_count": 0,
+      "stored_head_notch": "release"
+    },
+    {
+      "time_s": 130.0,
+      "request": -0.05,
+      "predecision_peak_kn": 491.1528875311728,
+      "predecision_veto": false,
+      "ready": true,
+      "physical_source_count": 1,
+      "stored_head_notch": "cyclic"
+    },
+    {
+      "time_s": 154.8,
+      "request": 0.0,
+      "predecision_peak_kn": 772.5151480668949,
+      "predecision_veto": true,
+      "ready": true,
+      "physical_source_count": 0,
+      "stored_head_notch": "cyclic"
+    },
+    {
+      "time_s": 376.80000000000007,
+      "request": -0.75,
+      "predecision_peak_kn": 243.1272205179341,
+      "predecision_veto": false,
+      "ready": true,
+      "physical_source_count": 1,
+      "stored_head_notch": "service"
+    }
+  ],
+  "failure": {
+    "time_s": 385.00000000000006,
+    "interface_zero_based": 59,
+    "signed_force_kn": 1001.1801981293656,
+    "front_minus_rear_speed_mps": -0.013742548891229944,
+    "physical_ed": 0.7100000000000004,
+    "active_air_vehicles": 109,
+    "minimum_pressure_coefficient": 0.09888888888888894,
+    "mean_pressure_coefficient": 0.2789092762487239
+  },
+  "scope": "Native diagnostic, early stop at first crossing; no claim of global improvement from different stop times"
+}

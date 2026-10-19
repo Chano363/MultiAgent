@@ -1,0 +1,7 @@
+{
+  "scope": "aligned envelope, positions and velocities only; not per-interface force trace",
+  "max_aligned_peak_difference_kn": 20.331924786085146,
+  "rms_aligned_peak_difference_kn": 0.9910219749421919,
+  "max_velocity_difference_mps": 0.001645115785489537,
+  "max_position_difference_m": 0.00016250038970611058
+}

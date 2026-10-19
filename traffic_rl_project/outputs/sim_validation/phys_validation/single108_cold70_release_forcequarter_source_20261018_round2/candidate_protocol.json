@@ -1,0 +1,10 @@
+{
+  "parent_sha256": "2f4c2469cce4277a274bdba624724027ba8a85ee541405f958ff74ba2c200082",
+  "scope": "zero RL, one locomotive, release window only",
+  "target": "25 percent of previous executed ED physical force at release",
+  "amplitude_basis": "local matched-state 154.8s sweep; exploratory tuning, not literature data",
+  "hold_s": 50,
+  "acceptance_kn": 1000,
+  "refill_s": 222,
+  "safety": "unchanged final projection and native ATP"
+}

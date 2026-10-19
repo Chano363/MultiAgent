@@ -1,0 +1,20 @@
+{
+  "first50s_rows_max_abs_error": 0.0,
+  "first50s_requests_max_abs_error": 0.0,
+  "first_force_crossing_relative_s": 194.10000000000002,
+  "force_peak_relative_s": 209.20000000000002,
+  "signed_peak_kn": 1037.8559346205393,
+  "peak_interface_index": 15,
+  "violation_steps": 3,
+  "first_last_crossing_s": [
+    194.10000000000002,
+    209.20000000000002
+  ],
+  "physical_AB_commands": [
+    "RELEASE"
+  ],
+  "physical_AB_sources": [
+    "CYCLIC",
+    "NONE"
+  ]
+}

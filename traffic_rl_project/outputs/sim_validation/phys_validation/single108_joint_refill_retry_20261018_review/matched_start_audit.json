@@ -1,0 +1,12 @@
+{
+  "sample_time_s": 249.1,
+  "six_field_max_abs_errors": {
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "coupler_interface_force_n": 0.0,
+    "brake_pressure_coefficient": 0.0,
+    "air_release_fraction": 0.0,
+    "ab_active": 0.0
+  },
+  "method": "Full native history replay; arrays used only to verify, not construct state."
+}

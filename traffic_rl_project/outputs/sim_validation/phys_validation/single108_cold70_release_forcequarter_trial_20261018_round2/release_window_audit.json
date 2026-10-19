@@ -1,0 +1,36 @@
+{
+  "pre_release_exact": {
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "brake_pressure_coefficient": true,
+    "air_release_fraction": true,
+    "commands": true,
+    "physical_loco_ed": true
+  },
+  "release_50s": {
+    "interval": "[154.8,204.8), excludes first hold-exit command at204.8",
+    "peak_kn": 818.216078526357,
+    "max_vehicle_kmh": 56.13592684320791,
+    "ed_max_step_up": 0.0440354894911858,
+    "ed_max_step_down": -0.03820145783301376
+  },
+  "common_to_reference_failure": {
+    "peak_kn": 818.216078526357,
+    "max_vehicle_kmh": 51.35992503818603,
+    "ed_max_step_up": 0.0440354894911858,
+    "ed_max_step_down": -0.03820145783301376
+  },
+  "hold_exit": {
+    "peak_kn": 1001.7969030975926,
+    "max_vehicle_kmh": 56.79462380692927,
+    "ed_max_step_up": 0.050000000000000044,
+    "ed_max_step_down": -0.32185698975155363
+  },
+  "largest_rise": {
+    "time_s": 204.8,
+    "before": 0.2808665633201599,
+    "after": 1.0
+  },
+  "scope": "Closed-loop zero RL first-crossing diagnostic, not full-route acceptance"
+}

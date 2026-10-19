@@ -1,0 +1,40 @@
+{
+  "first_force_crossing_relative_s": 53.2,
+  "peak_relative_s": 59.400000000000006,
+  "peak_interface_index": 6,
+  "signed_peak_kn": 1178.6869308124183,
+  "overspeed_steps": 0,
+  "first_new_physical_AB_relative_s": 222.10000000000002,
+  "physical_ab_commands": [
+    "RELEASE"
+  ],
+  "physical_source_notches": [
+    "CYCLIC",
+    "NONE"
+  ],
+  "crossing_steps": 155,
+  "crossing_range_s": [
+    53.2,
+    129.70000000000002
+  ],
+  "0_50": {
+    "peak_kn": 944.1114577372309,
+    "max_vehicle_kmh": 56.31289623922418,
+    "violation_steps": 0
+  },
+  "50_60": {
+    "peak_kn": 1178.6869308124183,
+    "max_vehicle_kmh": 57.81957704522488,
+    "violation_steps": 45
+  },
+  "60_222": {
+    "peak_kn": 1134.131785468014,
+    "max_vehicle_kmh": 74.18247722509282,
+    "violation_steps": 110
+  },
+  "222_260": {
+    "peak_kn": 864.9904226576293,
+    "max_vehicle_kmh": 76.16500371557561,
+    "violation_steps": 0
+  }
+}

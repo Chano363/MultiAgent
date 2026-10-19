@@ -1,0 +1,85 @@
+{
+  "AB_transitions": [
+    {
+      "time_s": 0.1,
+      "request": 0.0,
+      "pre_peak_kn": 0.0,
+      "veto": false,
+      "ready": true,
+      "refill_elapsed_s": 100000000.10000001
+    },
+    {
+      "time_s": 130.0,
+      "request": -0.05,
+      "pre_peak_kn": 491.1528875311728,
+      "veto": false,
+      "ready": true,
+      "refill_elapsed_s": 100000130.0
+    },
+    {
+      "time_s": 154.8,
+      "request": 0.0,
+      "pre_peak_kn": 772.5151480668949,
+      "veto": true,
+      "ready": true,
+      "refill_elapsed_s": 100000154.80000001
+    },
+    {
+      "time_s": 376.80000000000007,
+      "request": -0.75,
+      "pre_peak_kn": 260.8508308186302,
+      "veto": false,
+      "ready": true,
+      "refill_elapsed_s": 222.0
+    },
+    {
+      "time_s": 397.6,
+      "request": -0.05,
+      "pre_peak_kn": 301.5240574456513,
+      "veto": false,
+      "ready": true,
+      "refill_elapsed_s": 242.8
+    },
+    {
+      "time_s": 445.20000000000005,
+      "request": 0.0,
+      "pre_peak_kn": 262.9553349143604,
+      "veto": false,
+      "ready": true,
+      "refill_elapsed_s": 290.40000000000003
+    }
+  ],
+  "first_overspeed_s": 654.7,
+  "windows": {
+    "first_service_build": {
+      "peak_kn": 790.084043619641,
+      "max_vehicle_kmh": 79.78202808854698,
+      "overspeed_steps": 0
+    },
+    "first600": {
+      "peak_kn": 975.9929329024266,
+      "max_vehicle_kmh": 79.78202808854698,
+      "overspeed_steps": 0
+    },
+    "matched_previous_failure_window": {
+      "peak_kn": 790.084043619641,
+      "max_vehicle_kmh": 79.78202808854698,
+      "overspeed_steps": 0
+    }
+  },
+  "at_first_overspeed": {
+    "refill_elapsed_s": 209.5,
+    "refill_ready": false,
+    "pre_peak_kn": 789.1879120816734,
+    "AB_request": 0.0
+  },
+  "prefix_through375p8_exact": {
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "brake_pressure_coefficient": true,
+    "air_release_fraction": true,
+    "commands": true,
+    "physical_loco_ed": true
+  }
+}

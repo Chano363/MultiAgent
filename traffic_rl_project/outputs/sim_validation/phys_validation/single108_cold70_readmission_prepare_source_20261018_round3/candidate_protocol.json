@@ -1,0 +1,9 @@
+{
+  "parent_sha256": "ed62e75c0959617e1ed1a07882c7dbc6f7dc8a9559a706af03f502c9d9041c7f",
+  "preparation_lead_s": 20,
+  "ed_request_cap": 0.25,
+  "scope": "one-loco zero RL after release; stops when AB admitted or within existing speed margin",
+  "basis": "engineering screening candidate, not literature parameters",
+  "operating_floor_change": "temporarily allow ED below legacy cyclic 300kN while AB off",
+  "safety": "AB clocks, 600kN source admission, predictive veto, ATP and 1000kN unchanged"
+}

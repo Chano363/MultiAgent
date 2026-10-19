@@ -1,0 +1,17 @@
+{
+  "comparison": "corrected dynamic singleton speed band vs original release baseline",
+  "samples": 2096,
+  "columns": [
+    "peak_N",
+    "max_mps",
+    "mean_mps",
+    "AB_request"
+  ],
+  "max_abs_error": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "all_exact": true
+}

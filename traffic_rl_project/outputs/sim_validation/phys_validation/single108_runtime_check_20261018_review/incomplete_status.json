@@ -1,0 +1,5 @@
+{
+  "status": "completed_runtime_check",
+  "usable_for_control_conclusions": false,
+  "note": "100-step check completed before termination; no joint-control comparison"
+}

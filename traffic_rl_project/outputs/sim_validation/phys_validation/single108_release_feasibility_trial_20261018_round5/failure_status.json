@@ -1,0 +1,6 @@
+{
+  "status": "aborted before first native step",
+  "reason": "new wrapper accessed unset initial release target; corrected via getattr in separate frozen source",
+  "source_sha256": "ea537272f7e9d7098d8605cbcfcabe02b31841c95bf75ecb9c5e51712bbdf9bb",
+  "no_performance_result": true
+}

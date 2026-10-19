@@ -1,0 +1,205 @@
+{
+  "metadata": {
+    "git_commit": "f20aa6fecc0ee5b6cc548fba6f64cdcbd01a9e2f",
+    "physics_version": "a4fa89fc50ba",
+    "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=official|cyclic_degrade=True|consist=10kt_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+    "simulator_model_version": "8d138810d378",
+    "simcase": "official",
+    "seed": 0,
+    "entry": "diagnose_actuator_sensitivity.py",
+    "physics": {
+      "enable_cyclic_degrade": true,
+      "tail_pressure_kpa": null,
+      "brake_reduction_override_kpa": null,
+      "physics": {
+        "v_max_mps": 22.22222222222222,
+        "v_min_mps": 11.11111111111111,
+        "dt": 0.1,
+        "max_accel": 1.0,
+        "target_speed_mps": 20.0,
+        "target_gap_m": 100.0,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "coupler_force_limit_n": 1000000.0,
+        "enable_cyclic_degrade": true
+      }
+    },
+    "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+    "env_cfg": {
+      "ed_native_force_conversion": true,
+      "num_trains": 1,
+      "consist_preset": "10kt_1plus108",
+      "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+      "v_max": 22.222,
+      "v_min": 11.111,
+      "target_gap": 100.0,
+      "max_steps": 10000,
+      "max_accel": 1.0,
+      "use_coupler_constraint": true,
+      "hierarchical": false,
+      "decompose": "loco_ed_ab",
+      "ab_min_refill_s": 222.0,
+      "ab_min_hold_s": 0.0,
+      "coupler_force_limit_n": 1000000.0,
+      "coupler_force_limit_emergency_n": 2250000.0,
+      "cyclic_notch_50": true,
+      "cyclic_brake_trigger_kmh": 65.0,
+      "cyclic_release_kmh": 50.0,
+      "ed_release_coordination": true,
+      "ed_release_hold_s": 50.0,
+      "ed_release_boost_kn": 900.0,
+      "cyclic_ab_upgrade_kmh": 76.0,
+      "ed_upgrade_ramp_s": 6.0,
+      "ed_upgrade_ramp_scale": 0.7,
+      "ed_grade_feedforward": true,
+      "coupler_override": "min_brake",
+      "eot": true,
+      "start_randomization": {
+        "enabled": false
+      },
+      "eval_mode": true
+    },
+    "source_sha256": {
+      "src/environments/train_fleet_env.py": "f018e91017f5458571cb0f13e7ce56ae0bfa64a2057c05a73ddba224ce4b7063",
+      "src/environments/train_env.py": "01403e923031dc43d09934a7aa5fee79f0061e8c066d62c278badbc6f7bf1eea",
+      "src/train_dynamics/train.py": "627d4c45fa3a7b037f2a01f5fdac9919f560e8e2b8ec79c334c9d123d95da0c8",
+      "src/train_dynamics/braking.py": "3c03d6a6bb652845a4075ba27dd6e7dc19958af425d9b5644bb1bf401f63676f",
+      "src/safety_layer.py": "aee89a0fe2b61e1dd9d0f2bbaf3c29bfaff98f2ead2947d2c102e1c5d32aa9f8",
+      "src/train_dynamics/grade_profile.py": "49eecb953c506559e1412cd12511759bcadc4212c48a8474451c3aedc55281e3",
+      "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\src\\evaluation\\diagnose_actuator_sensitivity.py": "5aaebe8f8338d5171e24337c7c6285279d02a900f8393baba7dfe38919001123"
+    },
+    "controller_sha256": "53b82af63825381fac1c6fede9e20b223e806b6ffbfd09bda172a18b7e4c9570",
+    "sequence_plan_sha256": "93efecc94f7e6ed29f2496689bc9a228023e32adf88c24c0ded11c87d3928ab4",
+    "protocol": {
+      "config": "configs\\experiments\\single_10kt108_coupler_rulecal.yaml",
+      "controller_source": "outputs\\sim_validation\\phys_validation\\single_10kt108_native_ed_20261017_review\\controller_source.py",
+      "output": "outputs\\sim_validation\\phys_validation\\single108_two_phase_probes_20261018_review",
+      "start_m": 0.0,
+      "speed_kmh": 80.0,
+      "times_s": [
+        125.0,
+        170.0
+      ],
+      "horizon_s": 20.0,
+      "sequence_grid": false,
+      "sequence_grid_mode": "full",
+      "ed_ramp_per_s": 0.5,
+      "record_vehicle_state": true,
+      "sequence_file": "outputs\\sim_validation\\phys_validation\\single108_two_phase_plan_20261018_review\\sequence_plan.json"
+    },
+    "scope": "open-loop actuator sensitivity, not a policy evaluation",
+    "critic": "centralized_scalar",
+    "reward_schema": "v5-coupler-tier-limit",
+    "ed_mod_coef": 0.5
+  },
+  "checkpoints": [
+    {
+      "time_s": 125.0,
+      "initial_peak_kn": 761.1593944193838,
+      "variants": {
+        "coast": {
+          "ED_depths": [
+            [
+              0.0
+            ]
+          ],
+          "peak_kn": 1223.0871854591373,
+          "end_peak_kn": 78.92282594238274,
+          "max_vehicle_kmh": 61.724542458117845,
+          "end_mean_kmh": 60.4403281721524,
+          "max_positive_interface_kn": 846.0887157376035,
+          "max_negative_interface_kn": 1223.0871854591373,
+          "block_durations_s": [
+            20.0
+          ]
+        },
+        "half": {
+          "ED_depths": [
+            [
+              0.5
+            ]
+          ],
+          "peak_kn": 846.0887157376035,
+          "end_peak_kn": 711.4359355719901,
+          "max_vehicle_kmh": 61.02667240171332,
+          "end_mean_kmh": 58.960222951975915,
+          "max_positive_interface_kn": 846.0887157376035,
+          "max_negative_interface_kn": 661.2062380476,
+          "block_durations_s": [
+            20.0
+          ]
+        },
+        "full": {
+          "ED_depths": [
+            [
+              1.0
+            ]
+          ],
+          "peak_kn": 1127.719627673125,
+          "end_peak_kn": 1107.3422603582342,
+          "max_vehicle_kmh": 60.97877000033818,
+          "end_mean_kmh": 57.36504715517074,
+          "max_positive_interface_kn": 1127.719627673125,
+          "max_negative_interface_kn": 224.25517035206946,
+          "block_durations_s": [
+            20.0
+          ]
+        }
+      }
+    },
+    {
+      "time_s": 170.0,
+      "initial_peak_kn": 808.0474353901616,
+      "variants": {
+        "coast": {
+          "ED_depths": [
+            [
+              0.0
+            ]
+          ],
+          "peak_kn": 913.0457956309383,
+          "end_peak_kn": 287.01349133090775,
+          "max_vehicle_kmh": 56.8950665855438,
+          "end_mean_kmh": 56.20761387944039,
+          "max_positive_interface_kn": 913.0457956309383,
+          "max_negative_interface_kn": 90.28648581099897,
+          "block_durations_s": [
+            20.0
+          ]
+        },
+        "half": {
+          "ED_depths": [
+            [
+              0.5
+            ]
+          ],
+          "peak_kn": 944.1667371158187,
+          "end_peak_kn": 707.13308639248,
+          "max_vehicle_kmh": 56.12528840924868,
+          "end_mean_kmh": 54.53863135987647,
+          "max_positive_interface_kn": 944.1667371158187,
+          "max_negative_interface_kn": 0.0,
+          "block_durations_s": [
+            20.0
+          ]
+        },
+        "full": {
+          "ED_depths": [
+            [
+              1.0
+            ]
+          ],
+          "peak_kn": 1236.5937391572186,
+          "end_peak_kn": 1129.7121837154364,
+          "max_vehicle_kmh": 56.12528840924868,
+          "end_mean_kmh": 52.89172815478413,
+          "max_positive_interface_kn": 1236.5937391572186,
+          "max_negative_interface_kn": 0.0,
+          "block_durations_s": [
+            20.0
+          ]
+        }
+      }
+    }
+  ]
+}
