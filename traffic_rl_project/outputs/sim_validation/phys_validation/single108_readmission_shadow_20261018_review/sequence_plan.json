@@ -1,0 +1,15 @@
+{
+  "sequences": [
+    {
+      "name": "ED055",
+      "ED_depths": [
+        [
+          0.55
+        ]
+      ],
+      "durations_s": [
+        100.0
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "scope": "Read-only static force evaluation using captured CURRENT grade, positions, speed, pressure, active flags and release fractions; NOT a continuation checkpoint. CYCLIC notches and initial_segment+1 inferred from only one new CYCLIC application and no ATP commands.",
+  "initial_brake_segment": 2,
+  "current_brake_segment": 3,
+  "relative_time_s": 260,
+  "max_vehicle_kmh": 78.64042858275222,
+  "air_active_count": 109,
+  "pressure_min": 1.0,
+  "enable_cyclic_degrade": true,
+  "tail_pressure_kpa": null,
+  "grade_kn": 1099.1001921600002,
+  "resistance_kn": 420.3741498788824,
+  "air_kn": 484.597548172321,
+  "actual_ED_kn": 205.49951642214592,
+  "native_full_ED_capacity_kn": 373.63548440390167,
+  "ED_required_for_balance_kn": 194.12849410879699,
+  "static_actual_acceleration_mps2": -0.0010348582374725991,
+  "static_full_ED_acceleration_mps2": -0.01633663908765059,
+  "measured_mass_weighted_accel_last1s_mps2": -0.0010384189299718453,
+  "correction": "Supersedes first draft static_force_budget: that draft retained checkpoint grade and assumed segment2. Neither was used to run simulations or accept a controller."
+}

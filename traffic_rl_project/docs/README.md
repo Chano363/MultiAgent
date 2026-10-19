@@ -137,3 +137,18 @@
 - [文件清单与SHA256](../outputs/sim_validation/phys_validation/controller_repair_20261014/publication_manifest.json)；图片位于 ../outputs/sim_validation/figures/controller_repair_20261014/。历史D盘路径保留出处，读取时使用仓库相对路径。
 
 - **当前双人职责与接口核对（2026-10-14）**：见 [PROJECT_PIPELINE末尾当前清单](PROJECT_PIPELINE.md#p0-当前双人职责接口与联合验收核对---2026-10-14)。历史两层RL/NMPC/53km任务不作为现行安排；共享owner与编组版本同步尚未完成。
+
+- 2026-10-18 缓解幅值与保持退出诊断（未达标）：[D盘完整报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节缓解幅值与保持退出复核_20261018.md)；状态与后续见 PROJECT_PIPELINE.md 同日条目。
+
+- 2026-10-18 再制动准入与压力建立诊断（未达标）：[D盘完整报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节再制动准入与压力建立复核_20261018.md)；状态与后续见 PROJECT_PIPELINE.md 同日条目。
+
+- 2026-10-18 阶段ED延长与充风速度余量（整体未达标）：[D盘报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节阶段ED与充风速度余量复核_20261018.md)、[TraeWork MIS定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_MIS再制动专项检索指令_20261018.md)。
+
+- 2026-10-18 新增全文与缓解可行性：[D盘核对报告](D:/Codex/Documents/Train/controller_takeover_20261017/新增全文复核与缓解可行性修复依据_20261018.md)，含林轩/黄宇澄关键公式、董文编组判据及旧汇总解释更正。
+- 2026-10-18 原生缓解预测（下一周期候选受限，未验收）：[D盘复核报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节原生缓解预测与可行性瓶颈复核_20261018.md)、[TraeWork定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_缓解预测与数值收敛定向检索_20261018.md)。52项回归通过；完整实跑中止，12段完成预测单独留存，不作全线证据。
+
+- 2026-10-19 缓解速度细筛与ED保持对照：[D盘报告](D:/Codex/Documents/Train/controller_takeover_20261017/缓解细化与空电保持时间对照_20261019.md)、[最新MIS原文核对指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_108节缓解恒持力与充风可行域_20261019.md)。两候选1050秒通过及局部重复/相邻时机检查；延长至车头18.36km速度下界失败，42个连续原生决策点未通过，无全线三列验收。
+
+- 2026-10-19 恒力目标与数值收敛瓶颈（当前）：[D盘最终报告](D:/Codex/Documents/Train/controller_takeover_20261017/新增文献与50秒恒力目标修复_20261019.md)、[数值积分定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_非线性积分收敛专项检索_20261019.md)。局部改善未转化为全线通过；关键窗口1475/1599步未满足迭代准则，细步力峰仍未收敛，先核查数值可靠性。62项回归通过；未训练、未晋升默认。
+
+2026-10-19后续：已读新增相关原文并做联合容差/步长诊断，1e-9容差最细两级片段峰633.055883/633.040330kN，迭代均达准则；包络逐时差仍15.79kN，非完整闭环或全线验收。65项回归通过，生产物理未改，未训练/未推送。报告：[D盘详细复核](D:/Codex/Documents/Train/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md)。下一步验证失败步回退/力残差与完整闭环，禁止把633kN当整线效果。

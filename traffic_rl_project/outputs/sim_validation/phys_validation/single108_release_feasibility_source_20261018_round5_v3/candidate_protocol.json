@@ -1,0 +1,14 @@
+{
+  "parent_sha256": "815a6b929c8fda1a07f93d45a9a757f350c082a94651b87c1fbb04360b93eabc",
+  "embedded_helper_sha256": "2e5c80e6baab27f92ee1ce8882caf9a0b08d27552932758a782c181512fc1be6",
+  "scope": "single-loco zeroRL; second and subsequent release candidates only",
+  "prediction": "deepcopy complete native train and controller; observer closure removed only in clone; recursive guard disabled",
+  "horizon": "222s + native max cylinder-rise time + native train length / SERVICE wave speed",
+  "retry_speed_spacing": "existing control margin0.5m/s; engineering screening, not paper parameter",
+  "floor": "existing v_min, no lowering; infeasible at floor explicitly logged",
+  "safety": "all source gates, ATP, force/velocity limits unchanged",
+  "literature": "Lin2017 DOI10.3969/j.issn.0258-2724.2017.05.004 PDF3-4; Huang2021 PDF34-35/42-43; no numeric parameter migration",
+  "prediction_time_limit": "extend copied max_steps only, never live episode or physics",
+  "validation": "full49.6km tail clearance or first1000kN crossing, max36000steps",
+  "fleet_contract": "single-train leader cap recomputed every prediction step using real TrainFleetEnv.LEAD_TAIL_OFFSET_MPS; not a multi-train predictor"
+}

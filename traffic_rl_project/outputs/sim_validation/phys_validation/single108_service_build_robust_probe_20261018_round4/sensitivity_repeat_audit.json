@@ -1,0 +1,13 @@
+{
+  "request_difference": 1.1102230246251565e-16,
+  "exact_repeat_next_request": {
+    "rows": true,
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "physical_loco_ed": true
+  },
+  "maximum_force_difference_kn": 917.7194948877651,
+  "first_force_difference_over_1kn_s": 0.5,
+  "interpretation": "Same input repeats exactly; nearby representable requests diverge in nonlinear transient. Do not pick the near-threshold passing point as robustness evidence; no solver-accuracy conclusion without convergence study."
+}

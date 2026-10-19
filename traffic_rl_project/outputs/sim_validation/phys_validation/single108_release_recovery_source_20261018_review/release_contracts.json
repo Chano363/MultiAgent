@@ -1,0 +1,22 @@
+{
+  "release_recovery": {
+    "passed": true,
+    "ED": 0.6000000000000001,
+    "AB": 0.0
+  },
+  "protected_reduction": {
+    "passed": true,
+    "ED": 0.1,
+    "AB": 0.0
+  },
+  "speed_guard": {
+    "passed": true,
+    "ED": 1.0,
+    "AB": 0.0
+  },
+  "RL_authority": {
+    "passed": true,
+    "ED": 1.0,
+    "AB": 0.0
+  }
+}

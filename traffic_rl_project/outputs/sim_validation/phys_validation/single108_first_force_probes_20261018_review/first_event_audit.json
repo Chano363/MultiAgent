@@ -1,0 +1,14 @@
+{
+  "source_archive": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single_10kt108_native_ed_20261017_review",
+  "first_crossing_s": 179.9,
+  "peak_force_kn": 1017.9508457076778,
+  "peak_interface_zero_based": 23,
+  "first_release_s": 222.20000000000002,
+  "AB_request": -0.05,
+  "ED_fraction": 0.5633659362792969,
+  "active_air_vehicles": 109,
+  "effective_pressure_coefficient_min": 1.0,
+  "effective_pressure_coefficient_max": 1.0,
+  "nearby_relative_speed_mps": -0.011141832738861268,
+  "interpretation": "Compression occurs before first release, under fully established AB. Different grades along consist motivate ED sensitivity; not yet proven cause."
+}

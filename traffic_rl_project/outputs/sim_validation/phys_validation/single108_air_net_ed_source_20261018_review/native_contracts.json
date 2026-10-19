@@ -1,0 +1,66 @@
+[
+  {
+    "case": "stable",
+    "passed": true,
+    "original_action": [
+      [
+        1.0,
+        -0.05
+      ]
+    ],
+    "candidate_action": [
+      [
+        1.0,
+        -0.05
+      ]
+    ]
+  },
+  {
+    "case": "RL_authority",
+    "passed": true,
+    "original_action": [
+      [
+        1.0,
+        0.0
+      ]
+    ],
+    "candidate_action": [
+      [
+        1.0,
+        0.0
+      ]
+    ]
+  },
+  {
+    "case": "speed_ceiling",
+    "passed": true,
+    "original_action": [
+      [
+        0.8169934749603271,
+        -0.75
+      ]
+    ],
+    "candidate_action": [
+      [
+        0.8169934749603271,
+        -0.75
+      ]
+    ]
+  },
+  {
+    "case": "no_air",
+    "passed": true,
+    "original_action": [
+      [
+        1.0,
+        -0.05
+      ]
+    ],
+    "candidate_action": [
+      [
+        1.0,
+        -0.05
+      ]
+    ]
+  }
+]

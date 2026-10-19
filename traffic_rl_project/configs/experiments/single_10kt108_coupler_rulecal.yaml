@@ -20,7 +20,7 @@ env_cfg:
   num_trains: 1
   consist_preset: 10kt_1plus108
   grade_profile: shuozhou_ningwuxi_beidaniu_49km
-  v_max: 22.222
+  v_max: 22.22222222222222  # 准确80/3.6；达到上限仍按安全规则制动
   v_min: 11.111
   target_gap: 100.0
   max_steps: 36000

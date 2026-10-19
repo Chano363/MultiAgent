@@ -1,0 +1,18 @@
+{
+  "forecast_samples": 2485,
+  "prediction_actual_all_exact": true,
+  "max_abs_error": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "first50s": {
+    "target_min_kn": 171.91784385040043,
+    "target_max_kn": 171.91784385040043,
+    "poststep_actual_ed_force_min_kn": 171.8240012347438,
+    "poststep_actual_ed_force_max_kn": 172.13315637700987,
+    "max_model_sample_target_error_kn": 0.21531252660943778
+  },
+  "scope": "model-force samples after step, not force integrated over the step; target remains subject to native protection"
+}

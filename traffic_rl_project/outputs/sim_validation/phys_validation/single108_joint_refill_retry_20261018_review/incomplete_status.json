@@ -1,0 +1,12 @@
+{
+  "status": "partial_matrix_process_ended",
+  "completed_variants": [
+    "ED055",
+    "ED070"
+  ],
+  "incomplete_variants": [
+    "ED100"
+  ],
+  "use_only_completed_archived_branches": true,
+  "reason": "Execution session no longer available and no running process; third branch has no complete artifact"
+}

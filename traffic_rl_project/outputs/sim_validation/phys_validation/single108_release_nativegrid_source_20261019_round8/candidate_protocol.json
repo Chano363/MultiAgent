@@ -1,0 +1,6 @@
+{
+  "parent_sha256": "217901e6ecbbb99aac0c686c6c35fee4a49568379a7538e18a6a9cf163732fa9",
+  "change": "After failed10785 candidate, request0.02km/h spacing: actual0.1s control updates give around0.049km/h at current deceleration; cover every native decision instant in narrow interval",
+  "prefix": "Replay only completed round7 forecast decisions through10785; all native physics recomputed from trusted765.5s state",
+  "acceptance": "unchanged1000kN/80kmh/existingmean40kmh/222s; no blanket feasibility claim"
+}

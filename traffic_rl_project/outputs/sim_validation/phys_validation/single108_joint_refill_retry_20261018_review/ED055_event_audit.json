@@ -1,0 +1,10 @@
+{
+  "first_overspeed_relative_s": 194.0,
+  "first_force_crossing_relative_s": 203.70000000000002,
+  "first_new_physical_AB_relative_s": 194.10000000000002,
+  "first_physical_command": "SERVICE",
+  "first_physical_source_notch": "NONE",
+  "ordinary_AB_before_222s": false,
+  "safety_AB_before_refill": true,
+  "scope": "planned shadow only; ATP preserved"
+}

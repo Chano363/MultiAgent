@@ -1,0 +1,441 @@
+{
+  "actual_steps": 3171,
+  "round7_round8_trajectory_exact": {
+    "rows": true,
+    "commands": true,
+    "physical_loco_ed": true,
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "effective_pressure_coefficient": true
+  },
+  "native_grid_candidates": 42,
+  "consecutive_steps": true,
+  "reasons": {
+    "speed_ceiling": 7,
+    "speed_floor": 35
+  },
+  "scope": "Only this fixed controller and its original braking prefix; not proof across all control policies",
+  "candidates": [
+    {
+      "step": 10785,
+      "head_kmh": 42.01062764843503,
+      "reason": "speed_ceiling",
+      "simulated_s": 220.60000000000002,
+      "peak_kn": 942.2363574082581,
+      "max_vehicle_kmh": 80.00858678649647,
+      "min_mean_kmh": 40.33996402631278,
+      "sha256": "fd41bd6d283ffeb1ea9d135a5cf2e39251197ab981647f55425aba7005f7da70"
+    },
+    {
+      "step": 10786,
+      "head_kmh": 41.961404625242025,
+      "reason": "speed_ceiling",
+      "simulated_s": 222.8,
+      "peak_kn": 945.8368672950347,
+      "max_vehicle_kmh": 80.00397036702127,
+      "min_mean_kmh": 40.29069537061722,
+      "sha256": "1f4c8f6ce695f7c8b857faa8c8f17931b9eb8751eb3364e11dd633b9741473c1"
+    },
+    {
+      "step": 10787,
+      "head_kmh": 41.91220573293693,
+      "reason": "speed_ceiling",
+      "simulated_s": 217.70000000000002,
+      "peak_kn": 955.8753736653811,
+      "max_vehicle_kmh": 80.00322657584728,
+      "min_mean_kmh": 40.24142245057227,
+      "sha256": "23263aa8479b6e881db1f5eb25e7d0630f51a1642862afe5fa7eadc3473b98e8"
+    },
+    {
+      "step": 10788,
+      "head_kmh": 41.863034623168645,
+      "reason": "speed_ceiling",
+      "simulated_s": 216.70000000000002,
+      "peak_kn": 914.8088150278396,
+      "max_vehicle_kmh": 80.0189874477357,
+      "min_mean_kmh": 40.19211129721269,
+      "sha256": "6954ed3817dc66a9cafb5baeb7f6df69a80057d9a73e27b4ecbf6b2506fd9a00"
+    },
+    {
+      "step": 10789,
+      "head_kmh": 41.81389694096958,
+      "reason": "speed_ceiling",
+      "simulated_s": 219.20000000000002,
+      "peak_kn": 925.3022758707767,
+      "max_vehicle_kmh": 80.004877331256,
+      "min_mean_kmh": 40.14280559924234,
+      "sha256": "096bf01ec4c14b5e1102582ea0d035eb70d69f8ff5868e6f4a3f9a3c792ea2fa"
+    },
+    {
+      "step": 10790,
+      "head_kmh": 41.76479577823327,
+      "reason": "speed_ceiling",
+      "simulated_s": 216.60000000000002,
+      "peak_kn": 945.5785422379884,
+      "max_vehicle_kmh": 80.00430354889883,
+      "min_mean_kmh": 40.09347748502777,
+      "sha256": "b3ba36b89533d1772ccc57897bc6ac7d5a275098ff535588d5833d16de868d2c"
+    },
+    {
+      "step": 10791,
+      "head_kmh": 41.71573031323219,
+      "reason": "speed_ceiling",
+      "simulated_s": 219.0,
+      "peak_kn": 934.387275776153,
+      "max_vehicle_kmh": 80.01008223901317,
+      "min_mean_kmh": 40.04415936377856,
+      "sha256": "f107fa0e3d67eca6aaee733df60f845bfa2049cc5c0a2084250a2193ca275376"
+    },
+    {
+      "step": 10792,
+      "head_kmh": 41.666697152441415,
+      "reason": "speed_floor",
+      "simulated_s": 6.5,
+      "peak_kn": 358.48863365866623,
+      "max_vehicle_kmh": 41.779153294861985,
+      "min_mean_kmh": 39.99851510824833,
+      "sha256": "b96ed5fc6ba1418e4844f1e68dc36114b23fe147f5f25b6b4575a8079199027b"
+    },
+    {
+      "step": 10793,
+      "head_kmh": 41.6176918202683,
+      "reason": "speed_floor",
+      "simulated_s": 5.6000000000000005,
+      "peak_kn": 348.6410319194315,
+      "max_vehicle_kmh": 41.73041397608445,
+      "min_mean_kmh": 39.99272372430414,
+      "sha256": "0b657a98765e487dffc86cbcc03eb15961d6ccb6dba985d75faf8ca57f635b5c"
+    },
+    {
+      "step": 10794,
+      "head_kmh": 41.56870939916571,
+      "reason": "speed_floor",
+      "simulated_s": 5.1000000000000005,
+      "peak_kn": 337.9170701779174,
+      "max_vehicle_kmh": 41.681758423992186,
+      "min_mean_kmh": 39.99078428012165,
+      "sha256": "52f3281bc05f354847b573a4ac585a01a66bc771aa3687fce8d690d029bdc2d7"
+    },
+    {
+      "step": 10795,
+      "head_kmh": 41.519745461133354,
+      "reason": "speed_floor",
+      "simulated_s": 4.7,
+      "peak_kn": 330.4083506117053,
+      "max_vehicle_kmh": 41.633050253176826,
+      "min_mean_kmh": 39.992532463564864,
+      "sha256": "efa52d4ff33b63320438b2c43ac03c1ab37fb8fe4ba8397fdda70bc1d123f09f"
+    },
+    {
+      "step": 10796,
+      "head_kmh": 41.47079796903373,
+      "reason": "speed_floor",
+      "simulated_s": 4.4,
+      "peak_kn": 351.95533775902703,
+      "max_vehicle_kmh": 41.58429200652998,
+      "min_mean_kmh": 39.989749893923985,
+      "sha256": "ad7c3c1bcde694edb1523c25752ca15355a4a7400fcb2eba2dadfccc201e6a86"
+    },
+    {
+      "step": 10797,
+      "head_kmh": 41.42186862304994,
+      "reason": "speed_floor",
+      "simulated_s": 4.1000000000000005,
+      "peak_kn": 352.92159486766604,
+      "max_vehicle_kmh": 41.535596291227975,
+      "min_mean_kmh": 39.994416370391725,
+      "sha256": "4cb6a4e550a60a8512006cbc5ae34f7d3da7b8a0fae31720c68b5afc0d49478a"
+    },
+    {
+      "step": 10798,
+      "head_kmh": 41.37296191629337,
+      "reason": "speed_floor",
+      "simulated_s": 3.9000000000000004,
+      "peak_kn": 359.65660557598954,
+      "max_vehicle_kmh": 41.486958332327205,
+      "min_mean_kmh": 39.98539581654338,
+      "sha256": "52b1ad8894f2c3121dc47e54c61c8cf4d4f62443c17377b363a140224cf42dc1"
+    },
+    {
+      "step": 10799,
+      "head_kmh": 41.3240822768232,
+      "reason": "speed_floor",
+      "simulated_s": 3.7,
+      "peak_kn": 359.82775327336714,
+      "max_vehicle_kmh": 41.438406965350126,
+      "min_mean_kmh": 39.97998460342286,
+      "sha256": "313a179752ffa05c57cf7185422263a87ca2843184b6e79dfc7db6d1d44d793a"
+    },
+    {
+      "step": 10800,
+      "head_kmh": 41.275230978161034,
+      "reason": "speed_floor",
+      "simulated_s": 3.5,
+      "peak_kn": 354.98777661467574,
+      "max_vehicle_kmh": 41.3897859258528,
+      "min_mean_kmh": 39.97828755056437,
+      "sha256": "5ee2dc89fe2bfa46342cc3bfbb88c860438a2a9a0fe5a9b2a7b8805cd7e9df60"
+    },
+    {
+      "step": 10801,
+      "head_kmh": 41.22640415791559,
+      "reason": "speed_floor",
+      "simulated_s": 3.3000000000000003,
+      "peak_kn": 350.0175841112913,
+      "max_vehicle_kmh": 41.3414339583916,
+      "min_mean_kmh": 39.980410629279724,
+      "sha256": "535a47620a7a4b2589ef18857783962e988ef35eb7b88be5c4e67a800dfcbffe"
+    },
+    {
+      "step": 10802,
+      "head_kmh": 41.17759275558445,
+      "reason": "speed_floor",
+      "simulated_s": 3.1,
+      "peak_kn": 359.86594187908156,
+      "max_vehicle_kmh": 41.292155104939255,
+      "min_mean_kmh": 39.986461801314185,
+      "sha256": "3fc01be6a308ad9350d63ffadb895a1132036b2fe77319875f78ac0ede28bb98"
+    },
+    {
+      "step": 10803,
+      "head_kmh": 41.128784522047965,
+      "reason": "speed_floor",
+      "simulated_s": 2.9000000000000004,
+      "peak_kn": 367.69171556467916,
+      "max_vehicle_kmh": 41.24398764453097,
+      "min_mean_kmh": 39.996367180211486,
+      "sha256": "f765e58ca4df9be2bc3a717aef48a6df86027edbc36371dc9dddb470c5d9d0e0"
+    },
+    {
+      "step": 10804,
+      "head_kmh": 41.07996721386062,
+      "reason": "speed_floor",
+      "simulated_s": 2.8000000000000003,
+      "peak_kn": 339.5013749909893,
+      "max_vehicle_kmh": 41.195205057234986,
+      "min_mean_kmh": 39.97798144601096,
+      "sha256": "9a42eeef88a8214e54e139669371bc7f489a4dc04acd9a6931464eb05db07f2a"
+    },
+    {
+      "step": 10805,
+      "head_kmh": 41.03113165040527,
+      "reason": "speed_floor",
+      "simulated_s": 2.6,
+      "peak_kn": 356.5835210734661,
+      "max_vehicle_kmh": 41.14650523217507,
+      "min_mean_kmh": 39.99327521769719,
+      "sha256": "de6008cb4fa673010f0997ce110912881d92a16b31b86823674cc925f37a2af0"
+    },
+    {
+      "step": 10806,
+      "head_kmh": 40.982273653199655,
+      "reason": "speed_floor",
+      "simulated_s": 2.5,
+      "peak_kn": 328.21659043124555,
+      "max_vehicle_kmh": 41.097773494439465,
+      "min_mean_kmh": 39.97749444349266,
+      "sha256": "2f881152d08cb32432191989de89244966d8af2774c2e112cc1dcbbac8585682"
+    },
+    {
+      "step": 10807,
+      "head_kmh": 40.933394372943376,
+      "reason": "speed_floor",
+      "simulated_s": 2.3000000000000003,
+      "peak_kn": 368.7410945828891,
+      "max_vehicle_kmh": 41.048828504108954,
+      "min_mean_kmh": 39.997744956468935,
+      "sha256": "bbcb7edeff6fca15a3d3ae00c03732572221d0a6fc3a807ac38262fd35b0566f"
+    },
+    {
+      "step": 10808,
+      "head_kmh": 40.88449911702423,
+      "reason": "speed_floor",
+      "simulated_s": 2.2,
+      "peak_kn": 371.9117796794909,
+      "max_vehicle_kmh": 41.00033328583947,
+      "min_mean_kmh": 39.98431497630237,
+      "sha256": "0aa5039b0ef4dba86aa568911a9bbf6438d6cbbb33b4cd3511bb7e333e728cee"
+    },
+    {
+      "step": 10809,
+      "head_kmh": 40.83559549017028,
+      "reason": "speed_floor",
+      "simulated_s": 2.1,
+      "peak_kn": 398.07028552896423,
+      "max_vehicle_kmh": 40.951650267632644,
+      "min_mean_kmh": 39.971604324641476,
+      "sha256": "1b58dc6c52525e376819eaf6ca3cb9184501efaffb94853162cff107b970b67d"
+    },
+    {
+      "step": 10810,
+      "head_kmh": 40.786691877899656,
+      "reason": "speed_floor",
+      "simulated_s": 1.9000000000000001,
+      "peak_kn": 341.42179427236016,
+      "max_vehicle_kmh": 40.903790416241726,
+      "min_mean_kmh": 39.99769943149041,
+      "sha256": "b3a7a5ab7b8c353d526f10849d6d62946e415b883c7f1046ae6d680a66e57cbe"
+    },
+    {
+      "step": 10811,
+      "head_kmh": 40.73779674030947,
+      "reason": "speed_floor",
+      "simulated_s": 1.8,
+      "peak_kn": 325.87157920689117,
+      "max_vehicle_kmh": 40.854728647829276,
+      "min_mean_kmh": 39.98702831293102,
+      "sha256": "72878e9734d46ff4382dab7926e54018b7a7b08163e4806cc9f5c096e04125b3"
+    },
+    {
+      "step": 10812,
+      "head_kmh": 40.6889181305512,
+      "reason": "speed_floor",
+      "simulated_s": 1.7000000000000002,
+      "peak_kn": 363.52364413750746,
+      "max_vehicle_kmh": 40.806220247976114,
+      "min_mean_kmh": 39.976968607397886,
+      "sha256": "e135d905dbd02d705bc21400892f1a04e7dad689a5ca464ccc1d51fccca7af12"
+    },
+    {
+      "step": 10813,
+      "head_kmh": 40.64006235553028,
+      "reason": "speed_floor",
+      "simulated_s": 1.6,
+      "peak_kn": 371.67378495706134,
+      "max_vehicle_kmh": 40.75728729288758,
+      "min_mean_kmh": 39.9675003166034,
+      "sha256": "771822eea1aae2fb23ef9db3c3332c4dc683d12fdd1a0729e25f27fc1ac4f4c3"
+    },
+    {
+      "step": 10814,
+      "head_kmh": 40.59123156410799,
+      "reason": "speed_floor",
+      "simulated_s": 1.5,
+      "peak_kn": 367.1579343151362,
+      "max_vehicle_kmh": 40.70933461784057,
+      "min_mean_kmh": 39.958573208326854,
+      "sha256": "6dfc0d1cd7b4c0e7f05c3a7b51f74611ccfe5beb3832bb49dc63f209e7f8d74c"
+    },
+    {
+      "step": 10815,
+      "head_kmh": 40.5424216964445,
+      "reason": "speed_floor",
+      "simulated_s": 1.3,
+      "peak_kn": 372.0948420604696,
+      "max_vehicle_kmh": 40.6601566358518,
+      "min_mean_kmh": 39.99175638420583,
+      "sha256": "cd05ec1e8e6e29dbdbbb15353c3c1fc8de0b27bd94ca74991a77738b60f1f945"
+    },
+    {
+      "step": 10816,
+      "head_kmh": 40.493622505424504,
+      "reason": "speed_floor",
+      "simulated_s": 1.2000000000000002,
+      "peak_kn": 372.12733177658,
+      "max_vehicle_kmh": 40.61217613284226,
+      "min_mean_kmh": 39.984338654107304,
+      "sha256": "356988168f4f50deeba6e425582f5e20630e0bab9afb1ca21126927b00243e4f"
+    },
+    {
+      "step": 10817,
+      "head_kmh": 40.44481974732648,
+      "reason": "speed_floor",
+      "simulated_s": 1.1,
+      "peak_kn": 402.76667346260126,
+      "max_vehicle_kmh": 40.56315580228342,
+      "min_mean_kmh": 39.97736610946873,
+      "sha256": "704ac47b8a216c5723eac9c1450ffb6c26fabc15027f0a775f3e9c7530b97207"
+    },
+    {
+      "step": 10818,
+      "head_kmh": 40.39599806697314,
+      "reason": "speed_floor",
+      "simulated_s": 1.0,
+      "peak_kn": 378.1891404787095,
+      "max_vehicle_kmh": 40.514356245990875,
+      "min_mean_kmh": 39.970789764018086,
+      "sha256": "e05ff0d4dd0cdf8288f5654dc828edeb0c2506744eba79c6561620d9d69f22f5"
+    },
+    {
+      "step": 10819,
+      "head_kmh": 40.34714338103126,
+      "reason": "speed_floor",
+      "simulated_s": 0.9,
+      "peak_kn": 371.40896102279055,
+      "max_vehicle_kmh": 40.465602643256375,
+      "min_mean_kmh": 39.96458476355096,
+      "sha256": "eacce7bf43e7a8a01176eaa09b680cec143bbd43474f612bbb72198f05451288"
+    },
+    {
+      "step": 10820,
+      "head_kmh": 40.298244712729726,
+      "reason": "speed_floor",
+      "simulated_s": 0.8,
+      "peak_kn": 374.9240749279421,
+      "max_vehicle_kmh": 40.41659827053076,
+      "min_mean_kmh": 39.95870515729792,
+      "sha256": "c8a39b1d2f506857edac5b976f8c781764316999707890a1f498a240fb39830d"
+    },
+    {
+      "step": 10821,
+      "head_kmh": 40.24929580554494,
+      "reason": "speed_floor",
+      "simulated_s": 0.6000000000000001,
+      "peak_kn": 370.35860612174923,
+      "max_vehicle_kmh": 40.36816529861445,
+      "min_mean_kmh": 39.99732869401577,
+      "sha256": "0773f969be70e844a3515a12ad212eb59693160c434cbc7f7f5c326666d6e741"
+    },
+    {
+      "step": 10822,
+      "head_kmh": 40.200296118976375,
+      "reason": "speed_floor",
+      "simulated_s": 0.5,
+      "peak_kn": 361.24290360227445,
+      "max_vehicle_kmh": 40.31960195627737,
+      "min_mean_kmh": 39.99224481413047,
+      "sha256": "9bc744f033fa3506106b45e6b65572f04e0b9e935cdab3772f23d114e0710f87"
+    },
+    {
+      "step": 10823,
+      "head_kmh": 40.1512503910445,
+      "reason": "speed_floor",
+      "simulated_s": 0.4,
+      "peak_kn": 379.314918393027,
+      "max_vehicle_kmh": 40.27079995597638,
+      "min_mean_kmh": 39.987427073313626,
+      "sha256": "1bc7e0c63a380d9bcc227d46d59279ba5c55363992a190cef99f20ba2c424a29"
+    },
+    {
+      "step": 10824,
+      "head_kmh": 40.10216660165512,
+      "reason": "speed_floor",
+      "simulated_s": 0.30000000000000004,
+      "peak_kn": 286.31363507954586,
+      "max_vehicle_kmh": 40.22168735938792,
+      "min_mean_kmh": 39.982957749139146,
+      "sha256": "37710b796573ae32153cd003e98a9bbc461a5a5f10f24c3128ce074c93991c29"
+    },
+    {
+      "step": 10825,
+      "head_kmh": 40.05305325367524,
+      "reason": "speed_floor",
+      "simulated_s": 0.2,
+      "peak_kn": 320.75041185529983,
+      "max_vehicle_kmh": 40.15733665100782,
+      "min_mean_kmh": 39.97879000765454,
+      "sha256": "fc4d1664b6e75064c84ac0cd3cf3c2c82977b7de634a83c9dbe21c403d66df66"
+    },
+    {
+      "step": 10826,
+      "head_kmh": 40.00391715852689,
+      "reason": "speed_floor",
+      "simulated_s": 0.1,
+      "peak_kn": 390.6789798430399,
+      "max_vehicle_kmh": 40.06488097475862,
+      "min_mean_kmh": 39.97492948165975,
+      "sha256": "97a66a020f9145202fa45a84def80ba04823d5af2e878918d31b812f9f1b32a2"
+    }
+  ]
+}

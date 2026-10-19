@@ -1,0 +1,13 @@
+{
+  "prediction_origin_s": 445.1,
+  "first_executed_step_s": 445.2,
+  "predicted_steps": 2102,
+  "max_abs_errors_force_N_maxspeed_mps_meanspeed_mps_AB": [
+    170399.8407715978,
+    0.049821002011068316,
+    0.030712773782479275,
+    0.0
+  ],
+  "all_exact": false,
+  "scope": "Rejected original-release probe vs previously archived actual native rollout, not future prediction accuracy under changed parameters"
+}

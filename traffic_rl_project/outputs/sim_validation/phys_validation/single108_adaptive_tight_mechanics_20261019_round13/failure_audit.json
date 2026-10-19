@@ -1,0 +1,13 @@
+{
+  "status": "failed_before_completing_first_input_interval",
+  "exception": "MechanicalConvergenceError",
+  "time_s": 985.0099999992492,
+  "trial_step_s": 1.953125e-05,
+  "force_residual_n": 148.03798014839413,
+  "max_step_s": 0.000625,
+  "force_tolerance_n": 10,
+  "tolerance_m": 1e-09,
+  "max_iter": 100,
+  "scope": "Observed terminal exception from executed frozen candidate; no completed trajectory and no passing result. Input interval mechanics rolled back.",
+  "provenance": "same trusted capture as sibling single108_adaptive_mechanics_20261019_round13; diagnostic_source.py and candidate_source.py frozen before run"
+}

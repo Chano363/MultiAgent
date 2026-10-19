@@ -1,0 +1,6 @@
+{
+  "preparation_start_s": 967.6,
+  "earliest_all_remaining_recorded_peaks_below600_s": 968.9999999992638,
+  "sampled_before_admission_max_last10s_kn": 227.83214852533305,
+  "scope": "Observed peak only, not a substitute for the native rolling/predictive new-source veto"
+}

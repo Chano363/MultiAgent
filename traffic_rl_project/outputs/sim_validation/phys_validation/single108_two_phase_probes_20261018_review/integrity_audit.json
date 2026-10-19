@@ -1,0 +1,39 @@
+{
+  "checkpoints": [
+    {
+      "time_s": 125.0,
+      "checked_state_errors": {
+        "vehicle_positions_m": 0.0,
+        "vehicle_speeds_mps": 0.0,
+        "coupler_interface_force_n": 0.0,
+        "brake_pressure_coefficient": 0.0,
+        "air_release_fraction": 0.0,
+        "ab_active": 0.0
+      },
+      "original_closed_loop_20s_peak_kn": 959.065761719421,
+      "finite_actions_screened": [
+        "coast",
+        "half",
+        "full"
+      ]
+    },
+    {
+      "time_s": 170.0,
+      "checked_state_errors": {
+        "vehicle_positions_m": 0.0,
+        "vehicle_speeds_mps": 0.0,
+        "coupler_interface_force_n": 0.0,
+        "brake_pressure_coefficient": 0.0,
+        "air_release_fraction": 0.0,
+        "ab_active": 0.0
+      },
+      "original_closed_loop_20s_peak_kn": 1017.9508457076778,
+      "finite_actions_screened": [
+        "coast",
+        "half",
+        "full"
+      ]
+    }
+  ],
+  "scope": "Native action-response samples, not proof for untested commands/states; raw force positive=compression, negative=tension."
+}

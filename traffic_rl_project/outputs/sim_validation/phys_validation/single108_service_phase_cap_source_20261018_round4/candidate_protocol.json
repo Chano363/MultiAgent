@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "6e8dc9383df3fd027769cd552f5955644f38520800508385fdc35732d477f1e3",
+  "change": "After first release, cap normal ED request to0.25 while controller AB on; preserves first air application and previous preparation",
+  "basis": "same-state native SERVICE30s probe, not paper parameter",
+  "safety": "No source veto/refill/ATP bypass; temporary relaxation of legacy 300kN operating floor only",
+  "scope": "one locomotive zeroRL diagnostic"
+}

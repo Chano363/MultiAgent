@@ -1,0 +1,9 @@
+{
+  "prefix_before_release_rows_exact_match": true,
+  "prefix_before_release_requests_exact_match": true,
+  "first_crossing_signed_kn": 1016.9079126774636,
+  "first_crossing_interface_index": 18,
+  "first_crossing_s": 179.8,
+  "decision": "not_accepted_above_1000kN",
+  "scope": "zero-RL single-locomotive frozen prototype; final controller protection and environment ATP retained"
+}

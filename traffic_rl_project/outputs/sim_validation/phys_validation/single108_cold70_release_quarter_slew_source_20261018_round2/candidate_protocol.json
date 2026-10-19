@@ -1,0 +1,10 @@
+{
+  "parent_sha256": "72bf2f645c80fabacf4c896d7ab6b6c122104d123fb1c012a697f907c2e5d276",
+  "scope": "zero RL, single locomotive; after first release while cyclic air is off",
+  "release_force_fraction": 0.25,
+  "ed_increase_rate_per_s": 0.05,
+  "basis": "Engineering candidate addressing observed 0.7191 step increase at hold exit; not a paper parameter",
+  "fast_reduction_and_ATP": "retained",
+  "acceptance_kn": 1000,
+  "refill_s": 222
+}

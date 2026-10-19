@@ -1,0 +1,51 @@
+{
+  "initial_speed_mps": 22.22222222222222,
+  "configured_v_max_mps": 22.222,
+  "initial_excess_kmh": 0.0007999999999924512,
+  "first_physics_command": "SERVICE",
+  "first_controller_AB_request": 0.0,
+  "first_safety_counts": [
+    [
+      0,
+      0,
+      109,
+      0,
+      0
+    ]
+  ],
+  "first_command_samples": [
+    {
+      "t": 0.1,
+      "physics_command": "SERVICE",
+      "controller_AB": 0.0,
+      "sources": 0
+    },
+    {
+      "t": 0.2,
+      "physics_command": "RELEASE",
+      "controller_AB": 0.0,
+      "sources": 0
+    },
+    {
+      "t": 0.30000000000000004,
+      "physics_command": "RELEASE",
+      "controller_AB": 0.0,
+      "sources": 0
+    },
+    {
+      "t": 0.4,
+      "physics_command": "RELEASE",
+      "controller_AB": 0.0,
+      "sources": 0
+    }
+  ],
+  "physical_episode_starts_s": [
+    0.1,
+    98.8,
+    484.40000000000003
+  ],
+  "scope": "Audit of archived actual actuator inputs, not a changed simulation",
+  "episode_method": "HOLD retains previous command state; source requests take precedence over RELEASE command.",
+  "at_limit_supervision_rule": "vel >= max_speed_mps - 1e-6; exact80 also intentionally triggers at-limit braking",
+  "conclusion": "Precision correction fixes 79.9992-to80 unit mismatch, but does not remove intended at-limit supervision. Do not attribute the complete startup episode to rounding alone."
+}
