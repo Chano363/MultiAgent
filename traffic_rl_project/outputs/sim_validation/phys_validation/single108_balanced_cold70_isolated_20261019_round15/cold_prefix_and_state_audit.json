@@ -1,0 +1,10 @@
+{
+  "rows": true,
+  "commands": true,
+  "vehicle_speeds_mps": true,
+  "coupler_interface_force_n": true,
+  "native_state_sha256_valid": true,
+  "numerical_solver_tagged": true,
+  "first_prefix_samples": 923,
+  "full_samples": 7452
+}

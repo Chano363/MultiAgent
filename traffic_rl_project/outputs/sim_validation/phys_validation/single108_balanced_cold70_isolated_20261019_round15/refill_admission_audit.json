@@ -1,0 +1,17 @@
+{
+  "controlled_source_admission_times_s": [
+    94.4,
+    352.50000000000006
+  ],
+  "predecision_refill_elapsed_at_admission_s": [
+    100000094.4,
+    244.9
+  ],
+  "all_admissions_after_222_s": true,
+  "min_vehicle_kmh": 47.41126143430527,
+  "refill_scope": "controller source transitions, not proof of actual auxiliary reservoir pressure or all possible emergency sources",
+  "initial_ready_sentinel_not_real_elapsed_time": true,
+  "repeat_source_refill_intervals_s": [
+    244.9
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "first_20s_exact": true,
+  "min_mean_kmh": 40.288053056408565,
+  "final_mean_kmh": 70.21146983631617,
+  "shape": [
+    2485,
+    6
+  ]
+}

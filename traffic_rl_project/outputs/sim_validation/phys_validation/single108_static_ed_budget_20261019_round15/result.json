@@ -1,0 +1,1606 @@
+{
+  "scope": "static no-air force budget at uniform vehicle speed; no reconstructed dynamic state or feasibility claim",
+  "max_ed_request": 1.0,
+  "rows": [
+    {
+      "head_m": 0,
+      "kmh": 40,
+      "gravity_kn": 161.63238119999997,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.07164049890963671
+    },
+    {
+      "head_m": 0,
+      "kmh": 50,
+      "gravity_kn": 161.63238119999997,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.06217471236875317
+    },
+    {
+      "head_m": 0,
+      "kmh": 65,
+      "gravity_kn": 161.63238119999997,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": -0.056932728588554526
+    },
+    {
+      "head_m": 0,
+      "kmh": 80,
+      "gravity_kn": 161.63238119999997,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": -0.0578116343483037
+    },
+    {
+      "head_m": 1000,
+      "kmh": 40,
+      "gravity_kn": 295.080594,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.05949559421360467
+    },
+    {
+      "head_m": 1000,
+      "kmh": 50,
+      "gravity_kn": 295.080594,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.050029807672721124
+    },
+    {
+      "head_m": 1000,
+      "kmh": 65,
+      "gravity_kn": 295.080594,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": -0.044787823892522484
+    },
+    {
+      "head_m": 1000,
+      "kmh": 80,
+      "gravity_kn": 295.080594,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": -0.045666729652271656
+    },
+    {
+      "head_m": 2000,
+      "kmh": 40,
+      "gravity_kn": 508.6879552,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.040055535859036054
+    },
+    {
+      "head_m": 2000,
+      "kmh": 50,
+      "gravity_kn": 508.6879552,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.03058974931815251
+    },
+    {
+      "head_m": 2000,
+      "kmh": 65,
+      "gravity_kn": 508.6879552,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": -0.025347765537953874
+    },
+    {
+      "head_m": 2000,
+      "kmh": 80,
+      "gravity_kn": 508.6879552,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": -0.026226671297703043
+    },
+    {
+      "head_m": 3000,
+      "kmh": 40,
+      "gravity_kn": 923.4443729599998,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.0023092291826618395
+    },
+    {
+      "head_m": 3000,
+      "kmh": 50,
+      "gravity_kn": 923.4443729599998,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.007156557358221704
+    },
+    {
+      "head_m": 3000,
+      "kmh": 65,
+      "gravity_kn": 923.4443729599998,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.012398541138420342
+    },
+    {
+      "head_m": 3000,
+      "kmh": 80,
+      "gravity_kn": 923.4443729599998,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.011519635378671171
+    },
+    {
+      "head_m": 4000,
+      "kmh": 40,
+      "gravity_kn": 820.5927521599997,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.011669587828457267
+    },
+    {
+      "head_m": 4000,
+      "kmh": 50,
+      "gravity_kn": 820.5927521599997,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.002203801287573723
+    },
+    {
+      "head_m": 4000,
+      "kmh": 65,
+      "gravity_kn": 820.5927521599997,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.003038182492624915
+    },
+    {
+      "head_m": 4000,
+      "kmh": 80,
+      "gravity_kn": 820.5927521599997,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.002159276732875745
+    },
+    {
+      "head_m": 5000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 5000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 5000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 5000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 6000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 6000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 6000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 6000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 7000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 7000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 7000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 7000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 8000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 8000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 8000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 8000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 9000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 9000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 9000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 9000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 10000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 10000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 10000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 10000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 11000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 11000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 11000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 11000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 12000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 12000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 12000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 12000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 13000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 13000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 13000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 13000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 14000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 14000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 14000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 14000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 15000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 15000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 15000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 15000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 16000,
+      "kmh": 40,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.013676921090363324
+    },
+    {
+      "head_m": 16000,
+      "kmh": 50,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.023142707631246866
+    },
+    {
+      "head_m": 16000,
+      "kmh": 65,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028384691411445506
+    },
+    {
+      "head_m": 16000,
+      "kmh": 80,
+      "gravity_kn": 1099.1001921600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.027505785651696334
+    },
+    {
+      "head_m": 17000,
+      "kmh": 40,
+      "gravity_kn": 1143.6064656000005,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.01772736461420753
+    },
+    {
+      "head_m": 17000,
+      "kmh": 50,
+      "gravity_kn": 1143.6064656000005,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.027193151155091074
+    },
+    {
+      "head_m": 17000,
+      "kmh": 65,
+      "gravity_kn": 1143.6064656000005,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03243513493528971
+    },
+    {
+      "head_m": 17000,
+      "kmh": 80,
+      "gravity_kn": 1143.6064656000005,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03155622917554054
+    },
+    {
+      "head_m": 18000,
+      "kmh": 40,
+      "gravity_kn": 1242.3589276,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.02671466548788787
+    },
+    {
+      "head_m": 18000,
+      "kmh": 50,
+      "gravity_kn": 1242.3589276,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03618045202877142
+    },
+    {
+      "head_m": 18000,
+      "kmh": 65,
+      "gravity_kn": 1242.3589276,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.04142243580897005
+    },
+    {
+      "head_m": 18000,
+      "kmh": 80,
+      "gravity_kn": 1242.3589276,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.040543530049220886
+    },
+    {
+      "head_m": 19000,
+      "kmh": 40,
+      "gravity_kn": 1229.7947116799996,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.025571216641874006
+    },
+    {
+      "head_m": 19000,
+      "kmh": 50,
+      "gravity_kn": 1229.7947116799996,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03503700318275755
+    },
+    {
+      "head_m": 19000,
+      "kmh": 65,
+      "gravity_kn": 1229.7947116799996,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.04027898696295619
+    },
+    {
+      "head_m": 19000,
+      "kmh": 80,
+      "gravity_kn": 1229.7947116799996,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03940008120320702
+    },
+    {
+      "head_m": 20000,
+      "kmh": 40,
+      "gravity_kn": 1090.7920406399992,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.01292080973979896
+    },
+    {
+      "head_m": 20000,
+      "kmh": 50,
+      "gravity_kn": 1090.7920406399992,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.022386596280682503
+    },
+    {
+      "head_m": 20000,
+      "kmh": 65,
+      "gravity_kn": 1090.7920406399992,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.02762858006088114
+    },
+    {
+      "head_m": 20000,
+      "kmh": 80,
+      "gravity_kn": 1090.7920406399992,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02674967430113197
+    },
+    {
+      "head_m": 21000,
+      "kmh": 40,
+      "gravity_kn": 1173.01057504,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.020403384767101556
+    },
+    {
+      "head_m": 21000,
+      "kmh": 50,
+      "gravity_kn": 1173.01057504,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.0298691713079851
+    },
+    {
+      "head_m": 21000,
+      "kmh": 65,
+      "gravity_kn": 1173.01057504,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.035111155088183736
+    },
+    {
+      "head_m": 21000,
+      "kmh": 80,
+      "gravity_kn": 1173.01057504,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03423224932843457
+    },
+    {
+      "head_m": 22000,
+      "kmh": 40,
+      "gravity_kn": 1158.65371264,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.019096790081990528
+    },
+    {
+      "head_m": 22000,
+      "kmh": 50,
+      "gravity_kn": 1158.65371264,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.02856257662287407
+    },
+    {
+      "head_m": 22000,
+      "kmh": 65,
+      "gravity_kn": 1158.65371264,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03380456040307271
+    },
+    {
+      "head_m": 22000,
+      "kmh": 80,
+      "gravity_kn": 1158.65371264,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03292565464332354
+    },
+    {
+      "head_m": 23000,
+      "kmh": 40,
+      "gravity_kn": 1058.88920952,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.0100173849928023
+    },
+    {
+      "head_m": 23000,
+      "kmh": 50,
+      "gravity_kn": 1058.88920952,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.019483171533685843
+    },
+    {
+      "head_m": 23000,
+      "kmh": 65,
+      "gravity_kn": 1058.88920952,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.024725155313884483
+    },
+    {
+      "head_m": 23000,
+      "kmh": 80,
+      "gravity_kn": 1058.88920952,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02384624955413531
+    },
+    {
+      "head_m": 24000,
+      "kmh": 40,
+      "gravity_kn": 1012.89625552,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.005831641090363294
+    },
+    {
+      "head_m": 24000,
+      "kmh": 50,
+      "gravity_kn": 1012.89625552,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.015297427631246838
+    },
+    {
+      "head_m": 24000,
+      "kmh": 65,
+      "gravity_kn": 1012.89625552,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.020539411411445475
+    },
+    {
+      "head_m": 24000,
+      "kmh": 80,
+      "gravity_kn": 1012.89625552,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.019660505651696306
+    },
+    {
+      "head_m": 25000,
+      "kmh": 40,
+      "gravity_kn": 1024.03655312,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.00684550144711611
+    },
+    {
+      "head_m": 25000,
+      "kmh": 50,
+      "gravity_kn": 1024.03655312,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.01631128798799965
+    },
+    {
+      "head_m": 25000,
+      "kmh": 65,
+      "gravity_kn": 1024.03655312,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.021553271768198292
+    },
+    {
+      "head_m": 25000,
+      "kmh": 80,
+      "gravity_kn": 1024.03655312,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02067436600844912
+    },
+    {
+      "head_m": 26000,
+      "kmh": 40,
+      "gravity_kn": 350.31136520000007,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.054469131599844206
+    },
+    {
+      "head_m": 26000,
+      "kmh": 50,
+      "gravity_kn": 350.31136520000007,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.045003345058960656
+    },
+    {
+      "head_m": 26000,
+      "kmh": 65,
+      "gravity_kn": 350.31136520000007,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": -0.039761361278762015
+    },
+    {
+      "head_m": 26000,
+      "kmh": 80,
+      "gravity_kn": 350.31136520000007,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": -0.04064026703851119
+    },
+    {
+      "head_m": 27000,
+      "kmh": 40,
+      "gravity_kn": 339.3475863999999,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.05546692726784567
+    },
+    {
+      "head_m": 27000,
+      "kmh": 50,
+      "gravity_kn": 339.3475863999999,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.046001140726962125
+    },
+    {
+      "head_m": 27000,
+      "kmh": 65,
+      "gravity_kn": 339.3475863999999,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": -0.040759156946763485
+    },
+    {
+      "head_m": 27000,
+      "kmh": 80,
+      "gravity_kn": 339.3475863999999,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": -0.04163806270651266
+    },
+    {
+      "head_m": 28000,
+      "kmh": 40,
+      "gravity_kn": 1084.8610089600002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.012381036197753196
+    },
+    {
+      "head_m": 28000,
+      "kmh": 50,
+      "gravity_kn": 1084.8610089600002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.02184682273863674
+    },
+    {
+      "head_m": 28000,
+      "kmh": 65,
+      "gravity_kn": 1084.8610089600002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.027088806518835377
+    },
+    {
+      "head_m": 28000,
+      "kmh": 80,
+      "gravity_kn": 1084.8610089600002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02620990075908621
+    },
+    {
+      "head_m": 29000,
+      "kmh": 40,
+      "gravity_kn": 1188.3677106399994,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.02180101268847025
+    },
+    {
+      "head_m": 29000,
+      "kmh": 50,
+      "gravity_kn": 1188.3677106399994,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.0312667992293538
+    },
+    {
+      "head_m": 29000,
+      "kmh": 65,
+      "gravity_kn": 1188.3677106399994,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03650878300955243
+    },
+    {
+      "head_m": 29000,
+      "kmh": 80,
+      "gravity_kn": 1188.3677106399994,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.035629877249803266
+    },
+    {
+      "head_m": 30000,
+      "kmh": 40,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.0195608810903633
+    },
+    {
+      "head_m": 30000,
+      "kmh": 50,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.029026667631246846
+    },
+    {
+      "head_m": 30000,
+      "kmh": 65,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03426865141144548
+    },
+    {
+      "head_m": 30000,
+      "kmh": 80,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03338974565169631
+    },
+    {
+      "head_m": 31000,
+      "kmh": 40,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.0195608810903633
+    },
+    {
+      "head_m": 31000,
+      "kmh": 50,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.029026667631246846
+    },
+    {
+      "head_m": 31000,
+      "kmh": 65,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03426865141144548
+    },
+    {
+      "head_m": 31000,
+      "kmh": 80,
+      "gravity_kn": 1163.75314464,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03338974565169631
+    },
+    {
+      "head_m": 32000,
+      "kmh": 40,
+      "gravity_kn": 1142.7827112,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.017652396066701118
+    },
+    {
+      "head_m": 32000,
+      "kmh": 50,
+      "gravity_kn": 1142.7827112,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.02711818260758466
+    },
+    {
+      "head_m": 32000,
+      "kmh": 65,
+      "gravity_kn": 1142.7827112,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.0323601663877833
+    },
+    {
+      "head_m": 32000,
+      "kmh": 80,
+      "gravity_kn": 1142.7827112,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03148126062803413
+    },
+    {
+      "head_m": 33000,
+      "kmh": 40,
+      "gravity_kn": 1087.3479627200002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.012607369812605757
+    },
+    {
+      "head_m": 33000,
+      "kmh": 50,
+      "gravity_kn": 1087.3479627200002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.0220731563534893
+    },
+    {
+      "head_m": 33000,
+      "kmh": 65,
+      "gravity_kn": 1087.3479627200002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.027315140133687937
+    },
+    {
+      "head_m": 33000,
+      "kmh": 80,
+      "gravity_kn": 1087.3479627200002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02643623437393877
+    },
+    {
+      "head_m": 34000,
+      "kmh": 40,
+      "gravity_kn": 1220.7844075999994,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.024751203529387623
+    },
+    {
+      "head_m": 34000,
+      "kmh": 50,
+      "gravity_kn": 1220.7844075999994,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03421699007027117
+    },
+    {
+      "head_m": 34000,
+      "kmh": 65,
+      "gravity_kn": 1220.7844075999994,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03945897385046981
+    },
+    {
+      "head_m": 34000,
+      "kmh": 80,
+      "gravity_kn": 1220.7844075999994,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.038580068090720634
+    },
+    {
+      "head_m": 35000,
+      "kmh": 40,
+      "gravity_kn": 1225.66024912,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.02519494593200871
+    },
+    {
+      "head_m": 35000,
+      "kmh": 50,
+      "gravity_kn": 1225.66024912,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03466073247289225
+    },
+    {
+      "head_m": 35000,
+      "kmh": 65,
+      "gravity_kn": 1225.66024912,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03990271625309089
+    },
+    {
+      "head_m": 35000,
+      "kmh": 80,
+      "gravity_kn": 1225.66024912,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03902381049334172
+    },
+    {
+      "head_m": 36000,
+      "kmh": 40,
+      "gravity_kn": 1210.7777529600003,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.02384051417372698
+    },
+    {
+      "head_m": 36000,
+      "kmh": 50,
+      "gravity_kn": 1210.7777529600003,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03330630071461052
+    },
+    {
+      "head_m": 36000,
+      "kmh": 65,
+      "gravity_kn": 1210.7777529600003,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03854828449480916
+    },
+    {
+      "head_m": 36000,
+      "kmh": 80,
+      "gravity_kn": 1210.7777529600003,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03766937873505999
+    },
+    {
+      "head_m": 37000,
+      "kmh": 40,
+      "gravity_kn": 1211.8604015999995,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.023939044264735292
+    },
+    {
+      "head_m": 37000,
+      "kmh": 50,
+      "gravity_kn": 1211.8604015999995,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03340483080561884
+    },
+    {
+      "head_m": 37000,
+      "kmh": 65,
+      "gravity_kn": 1211.8604015999995,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03864681458581747
+    },
+    {
+      "head_m": 37000,
+      "kmh": 80,
+      "gravity_kn": 1211.8604015999995,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03776790882606831
+    },
+    {
+      "head_m": 38000,
+      "kmh": 40,
+      "gravity_kn": 1254.9309888000003,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.027858828320068443
+    },
+    {
+      "head_m": 38000,
+      "kmh": 50,
+      "gravity_kn": 1254.9309888000003,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03732461486095198
+    },
+    {
+      "head_m": 38000,
+      "kmh": 65,
+      "gravity_kn": 1254.9309888000003,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.04256659864115062
+    },
+    {
+      "head_m": 38000,
+      "kmh": 80,
+      "gravity_kn": 1254.9309888000003,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.04168769288140145
+    },
+    {
+      "head_m": 39000,
+      "kmh": 40,
+      "gravity_kn": 1148.0978883999999,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.018136121694658874
+    },
+    {
+      "head_m": 39000,
+      "kmh": 50,
+      "gravity_kn": 1148.0978883999999,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.027601908235542417
+    },
+    {
+      "head_m": 39000,
+      "kmh": 65,
+      "gravity_kn": 1148.0978883999999,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.032843892015741054
+    },
+    {
+      "head_m": 39000,
+      "kmh": 80,
+      "gravity_kn": 1148.0978883999999,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03196498625599188
+    },
+    {
+      "head_m": 40000,
+      "kmh": 40,
+      "gravity_kn": 1152.8835091999995,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.018571653256362522
+    },
+    {
+      "head_m": 40000,
+      "kmh": 50,
+      "gravity_kn": 1152.8835091999995,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.028037439797246065
+    },
+    {
+      "head_m": 40000,
+      "kmh": 65,
+      "gravity_kn": 1152.8835091999995,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.033279423577444706
+    },
+    {
+      "head_m": 40000,
+      "kmh": 80,
+      "gravity_kn": 1152.8835091999995,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03240051781769553
+    },
+    {
+      "head_m": 41000,
+      "kmh": 40,
+      "gravity_kn": 1263.1489195999995,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.028606728829715274
+    },
+    {
+      "head_m": 41000,
+      "kmh": 50,
+      "gravity_kn": 1263.1489195999995,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03807251537059881
+    },
+    {
+      "head_m": 41000,
+      "kmh": 65,
+      "gravity_kn": 1263.1489195999995,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.04331449915079744
+    },
+    {
+      "head_m": 41000,
+      "kmh": 80,
+      "gravity_kn": 1263.1489195999995,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.04243559339104828
+    },
+    {
+      "head_m": 42000,
+      "kmh": 40,
+      "gravity_kn": 1218.6465687999998,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.024556642298954465
+    },
+    {
+      "head_m": 42000,
+      "kmh": 50,
+      "gravity_kn": 1218.6465687999998,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.034022428839838005
+    },
+    {
+      "head_m": 42000,
+      "kmh": 65,
+      "gravity_kn": 1218.6465687999998,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.039264412620036646
+    },
+    {
+      "head_m": 42000,
+      "kmh": 80,
+      "gravity_kn": 1218.6465687999998,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03838550686028747
+    },
+    {
+      "head_m": 43000,
+      "kmh": 40,
+      "gravity_kn": 1103.046368,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.014036056132227148
+    },
+    {
+      "head_m": 43000,
+      "kmh": 50,
+      "gravity_kn": 1103.046368,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.02350184267311069
+    },
+    {
+      "head_m": 43000,
+      "kmh": 65,
+      "gravity_kn": 1103.046368,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.028743826453309328
+    },
+    {
+      "head_m": 43000,
+      "kmh": 80,
+      "gravity_kn": 1103.046368,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02786492069356016
+    },
+    {
+      "head_m": 44000,
+      "kmh": 40,
+      "gravity_kn": 1108.8714884000008,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.014566190861022272
+    },
+    {
+      "head_m": 44000,
+      "kmh": 50,
+      "gravity_kn": 1108.8714884000008,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.024031977401905814
+    },
+    {
+      "head_m": 44000,
+      "kmh": 65,
+      "gravity_kn": 1108.8714884000008,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.029273961182104454
+    },
+    {
+      "head_m": 44000,
+      "kmh": 80,
+      "gravity_kn": 1108.8714884000008,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.02839505542235528
+    },
+    {
+      "head_m": 45000,
+      "kmh": 40,
+      "gravity_kn": 1197.9350295999993,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.022671718818794248
+    },
+    {
+      "head_m": 45000,
+      "kmh": 50,
+      "gravity_kn": 1197.9350295999993,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03213750535967779
+    },
+    {
+      "head_m": 45000,
+      "kmh": 65,
+      "gravity_kn": 1197.9350295999993,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.03737948913987643
+    },
+    {
+      "head_m": 45000,
+      "kmh": 80,
+      "gravity_kn": 1197.9350295999993,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03650058338012726
+    },
+    {
+      "head_m": 46000,
+      "kmh": 40,
+      "gravity_kn": 1194.0790744800001,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.02232079461784784
+    },
+    {
+      "head_m": 46000,
+      "kmh": 50,
+      "gravity_kn": 1194.0790744800001,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03178658115873138
+    },
+    {
+      "head_m": 46000,
+      "kmh": 65,
+      "gravity_kn": 1194.0790744800001,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.037028564938930024
+    },
+    {
+      "head_m": 46000,
+      "kmh": 80,
+      "gravity_kn": 1194.0790744800001,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03614965917918085
+    },
+    {
+      "head_m": 47000,
+      "kmh": 40,
+      "gravity_kn": 1186.8339584,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.021661428392875135
+    },
+    {
+      "head_m": 47000,
+      "kmh": 50,
+      "gravity_kn": 1186.8339584,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.03112721493375868
+    },
+    {
+      "head_m": 47000,
+      "kmh": 65,
+      "gravity_kn": 1186.8339584,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.036369198713957315
+    },
+    {
+      "head_m": 47000,
+      "kmh": 80,
+      "gravity_kn": 1186.8339584,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03549029295420815
+    },
+    {
+      "head_m": 48000,
+      "kmh": 40,
+      "gravity_kn": 1146.0031986399995,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": 0.017945487388142632
+    },
+    {
+      "head_m": 48000,
+      "kmh": 50,
+      "gravity_kn": 1146.0031986399995,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": 0.027411273929026175
+    },
+    {
+      "head_m": 48000,
+      "kmh": 65,
+      "gravity_kn": 1146.0031986399995,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": 0.032653257709224816
+    },
+    {
+      "head_m": 48000,
+      "kmh": 80,
+      "gravity_kn": 1146.0031986399995,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": 0.03177435194947564
+    },
+    {
+      "head_m": 49000,
+      "kmh": 40,
+      "gravity_kn": 559.9764732000002,
+      "resistance_kn": 214.41818321908812,
+      "max_ed_kn": 734.4,
+      "net_acceleration_mps2": -0.03538785129405605
+    },
+    {
+      "head_m": 49000,
+      "kmh": 50,
+      "gravity_kn": 559.9764732000002,
+      "resistance_kn": 257.2881207078598,
+      "max_ed_kn": 587.52,
+      "net_acceleration_mps2": -0.02592206475317251
+    },
+    {
+      "head_m": 49000,
+      "kmh": 65,
+      "gravity_kn": 559.9764732000002,
+      "resistance_kn": 335.27074139257553,
+      "max_ed_kn": 451.9384615384616,
+      "net_acceleration_mps2": -0.020680080972973868
+    },
+    {
+      "head_m": 49000,
+      "kmh": 80,
+      "gravity_kn": 559.9764732000002,
+      "resistance_kn": 429.666619419161,
+      "max_ed_kn": 367.2,
+      "net_acceleration_mps2": -0.02155898673272304
+    }
+  ]
+}
