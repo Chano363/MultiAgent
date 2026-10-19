@@ -25,6 +25,7 @@ def main():
     parser.add_argument('--tolerance', type=float)
     parser.add_argument('--max-iter', type=int)
     parser.add_argument('--adaptive', action='store_true')
+    parser.add_argument('--solver', choices=['native', 'balanced', 'newton'], default='native')
     parser.add_argument('--max-step', type=float, default=0.00125)
     parser.add_argument('--force-tolerance-n', type=float, default=100.0)
     args = parser.parse_args()
@@ -51,7 +52,8 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     for path, name in ((Path(__file__), 'diagnostic_source.py'),
                        (Path('src/evaluation/newmark_observer.py'), 'observer_source.py'),
-                       (Path('src/evaluation/adaptive_newmark_candidate.py'), 'candidate_source.py')):
+                       (Path('src/evaluation/adaptive_newmark_candidate.py'), 'candidate_source.py'),
+                       (Path('src/evaluation/newton_mechanics_candidate.py'), 'newton_source.py')):
         (args.output / name).write_bytes(path.read_bytes())
     result = {'metadata': {
         'origin_result_sha256': hashlib.sha256((directory / 'result.json').read_bytes()).hexdigest(),
@@ -70,7 +72,7 @@ def main():
             stat = advance_mechanics(dyn, force, float(dt), max_step=args.max_step,
                                      tol=args.tolerance or 1e-9,
                                      max_iter=args.max_iter or 100,
-                                     force_tol_n=args.force_tolerance_n)
+                                     force_tol_n=args.force_tolerance_n, solver=args.solver)
             for key in totals:
                 totals[key] += stat[key]
             records.append([stat['min_accepted_step_s'], stat['max_force_residual_n']])
@@ -82,6 +84,7 @@ def main():
                             forces_n=forces, positions=positions, velocities=velocities,
                             interval_peak_n=peaks, step_stats=records)
         result['cases'].append({**totals, 'peak_kn': float(np.max(peaks) / 1000),
+                                'solver': args.solver,
                                 'max_step_s': args.max_step,
                                 'min_accepted_step_s': float(np.min(np.asarray(records)[:, 0])),
                                 'max_force_residual_n': float(np.max(np.asarray(records)[:, 1])),

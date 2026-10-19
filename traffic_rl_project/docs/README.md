@@ -152,3 +152,9 @@
 - 2026-10-19 恒力目标与数值收敛瓶颈（当前）：[D盘最终报告](D:/Codex/Documents/Train/controller_takeover_20261017/新增文献与50秒恒力目标修复_20261019.md)、[数值积分定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_非线性积分收敛专项检索_20261019.md)。局部改善未转化为全线通过；关键窗口1475/1599步未满足迭代准则，细步力峰仍未收敛，先核查数值可靠性。62项回归通过；未训练、未晋升默认。
 
 2026-10-19后续：已读新增相关原文并做联合容差/步长诊断，1e-9容差最细两级片段峰633.055883/633.040330kN，迭代均达准则；包络逐时差仍15.79kN，非完整闭环或全线验收。65项回归通过，生产物理未改，未训练/未推送。报告：[D盘详细复核](D:/Codex/Documents/Train/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md)。下一步验证失败步回退/力残差与完整闭环，禁止把633kN当整线效果。
+
+2026-10-19最新平衡迭代候选：独立加速度Picard同时检查局部位移与末状态力平衡，β/γ及物理力律未改；气动子步事务回滚与解析解等71项回归通过。固定输入细化峰633.065/633.043kN，全断面时程最大差15.823kN，仍非严密误差界。同765.5秒完整原生状态，248.5秒零RL局部气动机械反馈窗口通过：内部峰572.462kN、最高70.248/最低均速40.288km/h，397600接受细步，力残差均≤10N。原求解235.5秒峰1004.883kN失败，旧2355×6记录精确复现；新方案前20秒与独立短试验精确一致。该窗口继承旧积分历史，预测跳过递归guard但保留原准入与ATP，未作全线/冷起点/三列验收，生产默认未改，未训练，新增工作未推送。数据single108_balanced_{mechanics,tight_mechanics,coupled,coupled_fullwindow}_20261019_round14；D盘报告：D:/Codex/Documents/Train/controller_takeover_20261017/平衡迭代与气动闭环候选复核_20261019.md。下一步冷起点及气动/机械联合细化验证，不能将572kN标为全线规则修复效果。
+
+- 2026-10-19最新冷起点：745.2秒、车头12.725km、内部峰719.817kN、单车47.411—76.139km/h，完整状态已存，尚非49.6km全线通过。74项相关回归通过；力时程精度/效率仍需核查。[D盘详细报告](D:/Codex/Documents/Train/controller_takeover_20261017/冷起点验证与力时程收敛瓶颈_20261019.md)、[TraeWork MIS检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_MIS力时程精度与计算效率专项_20261019.md)。
+
+- 2026-10-19本轮发布资料：[中文循环制动图](../outputs/sim_validation/figures/cyclic_braking_108_20261019/cyclic_cold745_zh.png)、[D盘49份工作文档及配套资料ZIP](../outputs/sim_validation/phys_validation/controller_reports_publication_20261019_round16/controller_reports_publication_20261019_round16.zip)。ZIP含逐文件SHA256。图仅覆盖745.2秒冷起点前缀，不是全线验收；可用src/evaluation/plot_cyclic_archive.py复画，无需重跑仿真。

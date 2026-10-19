@@ -1,0 +1,8 @@
+{
+  "baseline_exact": true,
+  "shape": [
+    2355,
+    6
+  ],
+  "reference": "single108_force_matching_prep10_probe_20261019_round10/hold50_force1p0.npz"
+}

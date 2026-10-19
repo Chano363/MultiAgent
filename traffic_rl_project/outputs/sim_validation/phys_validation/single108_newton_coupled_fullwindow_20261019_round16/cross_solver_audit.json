@@ -1,0 +1,7 @@
+{
+  "max_control_peak_difference_kn": 81.44595759885006,
+  "max_maxvehicle_speed_difference_kmh": 0.053915625805676375,
+  "max_mean_speed_difference_kmh": 0.0006323075238569231,
+  "min_mean_kmh": 40.28796059231848,
+  "all_AB_requests_exact": true
+}

@@ -1,0 +1,30 @@
+{
+  "status": "completed",
+  "error": null,
+  "numerical": {
+    "live": {
+      "mechanical_intervals": 9230,
+      "accepted_microsteps": 147680,
+      "rejected_trials": 0,
+      "internal_peak_kn": 719.8165626023136,
+      "max_force_residual_n": 9.999955613304579
+    },
+    "forecast": {
+      "mechanical_intervals": 0,
+      "accepted_microsteps": 0,
+      "rejected_trials": 0,
+      "internal_peak_kn": 0.0,
+      "max_force_residual_n": 0
+    }
+  },
+  "experimental_numerical_solver": true,
+  "production_default_changed": false,
+  "solver_sha256": "2ccbae84e6826f3d6ea43cd7c94f352cdf20f119a6068db787b27de0c48b0097",
+  "settings": {
+    "max_step_s": 0.000625,
+    "force_tolerance_n": 10,
+    "displacement_tolerance_m": 1e-09,
+    "max_iter": 100
+  },
+  "numpy_version": "2.3.5"
+}
