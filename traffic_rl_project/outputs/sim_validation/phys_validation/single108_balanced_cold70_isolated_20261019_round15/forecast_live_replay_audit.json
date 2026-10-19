@@ -1,0 +1,17 @@
+{
+  "compared_steps": 926,
+  "elapsed_s": 92.60000000000001,
+  "columns": [
+    "peak_N",
+    "max_vehicle_mps",
+    "mean_mps",
+    "AB_request"
+  ],
+  "all_exact": true,
+  "max_abs_difference_by_column": [
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "max_difference_time_s": 233.8,
+  "fine_peak_kn": 211.00382211512013,
+  "coarse_peak_kn": 129.55786451627006,
+  "windows": [
+    {
+      "start_s": 0,
+      "end_s": 20,
+      "max_peak_envelope_error_kn": 0.014794289009907516,
+      "rms_peak_envelope_error_kn": 0.004030497165288146
+    },
+    {
+      "start_s": 20,
+      "end_s": 50,
+      "max_peak_envelope_error_kn": 0.008107737240323331,
+      "rms_peak_envelope_error_kn": 0.0016024968847124141
+    },
+    {
+      "start_s": 50,
+      "end_s": 200,
+      "max_peak_envelope_error_kn": 0.012051184521405958,
+      "rms_peak_envelope_error_kn": 0.0059829129445980785
+    },
+    {
+      "start_s": 200,
+      "end_s": 248.5,
+      "max_peak_envelope_error_kn": 81.44595759885006,
+      "rms_peak_envelope_error_kn": 6.0415822495465905
+    }
+  ]
+}

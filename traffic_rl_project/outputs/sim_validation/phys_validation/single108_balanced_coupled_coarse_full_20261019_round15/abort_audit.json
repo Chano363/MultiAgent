@@ -1,0 +1,10 @@
+{
+  "stopped_pids": [
+    8588,
+    13428
+  ],
+  "reason": "Coarse Picard coupled trial inefficient; stopped only own verified worker after native baseline completed. No completed balanced trajectory or acceptance claim.",
+  "status": "aborted_performance_diagnostic",
+  "native_baseline_preserved": true,
+  "time_utc": "2026-10-19T06:32:54.9049050Z"
+}

@@ -1,0 +1,7 @@
+{
+  "max_signed_interface_difference_kn": 15.822681761917192,
+  "rms_signed_interface_difference_kn": 0.12002665933855958,
+  "max_velocity_difference_mps": 0.0008277827273062144,
+  "peak_kn_difference": 0.022754640581069907,
+  "scope": "all signed interfaces at aligned original input boundaries; numerical mechanical shadow only"
+}
