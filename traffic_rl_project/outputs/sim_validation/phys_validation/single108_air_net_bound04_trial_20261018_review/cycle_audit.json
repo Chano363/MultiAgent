@@ -1,0 +1,15 @@
+{
+  "AB_request_transitions": [
+    {
+      "time_s": 98.8,
+      "request": -0.05
+    }
+  ],
+  "AB_release_requests": 0,
+  "end_air_active_count": 109,
+  "late_mean_speed_kmh": 53.13547381074064,
+  "late_speed_range_kmh": [
+    53.134815617931885,
+    53.13587456130831
+  ]
+}

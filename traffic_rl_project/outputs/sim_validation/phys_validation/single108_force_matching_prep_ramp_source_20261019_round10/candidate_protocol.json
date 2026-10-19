@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "9d1bb8458d7226f468b3f44c02f6a1b2ed274356eb603e535e5dc08049650ebd",
+  "change": "lead10 preserved, replace abrupt ED cap by linear MODEL FORCE cap from actual ED force to0.25 equivalent over existing ed_upgrade_ramp_s6s",
+  "basis": "Ma2023 control-force variation constraints and native prep settling audit; no paper claims10/6 numeric values",
+  "gates": "all original admission rolling veto/600/1000/222/ATP retained",
+  "scope": "matched765.5s full native counterfactual"
+}

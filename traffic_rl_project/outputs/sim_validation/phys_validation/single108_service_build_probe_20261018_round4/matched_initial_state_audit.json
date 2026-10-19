@@ -1,0 +1,14 @@
+{
+  "time_s": 376.8,
+  "native_rebuild_against": "single108_cold70_readmission_prepare_trial_20261018_round3",
+  "maximum_absolute_errors": {
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "coupler_interface_force_n": 0.0,
+    "brake_pressure_coefficient": 0.0,
+    "air_release_fraction": 0.0,
+    "ab_active": 0.0
+  },
+  "all_exact": true,
+  "preserved": "complete native pneumatic/integration/safety history; not replayed NPZ state"
+}

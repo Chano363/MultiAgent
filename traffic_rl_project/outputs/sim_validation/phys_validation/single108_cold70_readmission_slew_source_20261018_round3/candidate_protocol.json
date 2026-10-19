@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "6e8dc9383df3fd027769cd552f5955644f38520800508385fdc35732d477f1e3",
+  "change": "Retain ordinary ED increase limit 0.05/s during readmission preparation and ensuing air-brake pressure establishment, including cyclic state",
+  "scope": "zero RL, one-loco diagnostic; native ATP override unchanged",
+  "other_parameters": "identical to preparation candidate",
+  "basis": "engineering candidate after measured concurrent ED rise and SERVICE pressure build; not literature data"
+}

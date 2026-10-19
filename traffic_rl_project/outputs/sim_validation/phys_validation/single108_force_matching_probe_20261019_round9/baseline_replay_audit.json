@@ -1,0 +1,5 @@
+{
+  "baseline_all_exact": true,
+  "samples": 2272,
+  "scope": "factor0.25 reproduces original constant50s target trial exactly"
+}

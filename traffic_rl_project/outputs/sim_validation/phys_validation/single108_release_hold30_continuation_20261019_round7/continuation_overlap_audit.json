@@ -1,0 +1,11 @@
+{
+  "overlap_steps": 2845,
+  "overlap_exact": {
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "commands": true,
+    "physical_loco_ed": true,
+    "effective_pressure_coefficient": true
+  }
+}

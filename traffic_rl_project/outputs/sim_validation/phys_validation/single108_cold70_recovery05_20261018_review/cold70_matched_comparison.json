@@ -1,0 +1,35 @@
+{
+  "baseline": {
+    "common_first84s_peak_kn": 1014.5481341806917,
+    "common_first84s_jerk_rms": 0.049341691099967895,
+    "common_first84s_ED_change_rms_per_s": 1.5628923023611567,
+    "common_first84s_mean_kmh": 63.033360575746705,
+    "AB_transitions": [],
+    "first_crossing_signed_kn": 1014.5481341806917,
+    "first_crossing_interface_index": 30,
+    "first_crossing_s": 84.0,
+    "terminal_air_active": 0,
+    "terminal_air_releasing": 0
+  },
+  "recovery05": {
+    "common_first84s_peak_kn": 972.3699391591803,
+    "common_first84s_jerk_rms": 0.02554002261675237,
+    "common_first84s_ED_change_rms_per_s": 0.7121458663701921,
+    "common_first84s_mean_kmh": 62.77098009097388,
+    "AB_transitions": [
+      {
+        "t": 130.0,
+        "request": -0.05
+      },
+      {
+        "t": 154.8,
+        "request": 0.0
+      }
+    ],
+    "first_crossing_signed_kn": 1014.3476094335732,
+    "first_crossing_interface_index": 20,
+    "first_crossing_s": 173.70000000000002,
+    "terminal_air_active": 109,
+    "terminal_air_releasing": 109
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "87ca1eae1bb45647c3d25a7f3ee5a31fffc38d34833418f4924c8c5a890e9291",
+  "change": "ed_release_hold_s30 instead50 from step7656 onwards; no change recovery rate or force target factor",
+  "basis": "Archived baseline effective air pressure zero by30s after445.2 release; engineering trial, not paper calibration",
+  "comparison": "matched native state vs fine-grid hold50; replay identical prefix decisions through7622, re-evaluate7656 freshly",
+  "acceptance": "1000kN,80km/h,existing40km/h and222s retained; stop at infeasible floor; zeroRL single train"
+}

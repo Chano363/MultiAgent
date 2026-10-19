@@ -1,0 +1,11 @@
+{
+  "method": "Previous native post-step interface force equals next pre-decision interface force; no replay of safety history or pneumatic state claimed",
+  "upcoming_decisions_from_s": 376.80000000000007,
+  "upcoming_decisions_to_s": 401.90000000000003,
+  "steps": 252,
+  "predecision_peak_min_kn": 727.8643557914676,
+  "predecision_peak_max_kn": 903.1118130478202,
+  "all_controller_ratio_blocked": true,
+  "predictive_veto": "Not reconstructed; already-current-force gate independently blocks every step",
+  "negative_AB_requests": 0
+}

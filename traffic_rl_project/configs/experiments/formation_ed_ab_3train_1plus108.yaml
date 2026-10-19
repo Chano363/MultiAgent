@@ -27,7 +27,7 @@ env_cfg:
   num_trains: 3
   consist_preset: 10kt_1plus108  # 每列1机车+108货车，10988t；3列=3智能体
   grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 【主训练】朔黄线宁武西→北大牛真实纵断面 49.6km（50 实测坡段，统一线路表）；23.8km 仅作历史复现
-  v_max: 22.222                # 80 km/h
+  v_max: 22.22222222222222     # 准确80 km/h；达到上限仍按安全规则制动
   v_min: 11.111                # 40 km/h（编队目标速度带）
   target_gap: 100.0            # 安全列距目标
   max_steps: 36000             # 【env 截断上限 / 评估口径】=3600s，49.6km 全程（avg≥~13.8m/s 跑满 49.6km）。

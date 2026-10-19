@@ -1,0 +1,6 @@
+{
+  "status": "intentionally stopped after live rollout progressed beyond750s",
+  "reason": "copied environment inherited900s administrative episode end, falsely rejected later forecasts as environment_ended",
+  "valid_scope": "completed individual prediction archives only; no completed full live trajectory or performance acceptance",
+  "next": "helper extends only copied administrative max_steps; native physics unchanged"
+}

@@ -1,0 +1,37 @@
+{
+  "sequences": [
+    {
+      "name": "coast",
+      "ED_depths": [
+        [
+          0
+        ]
+      ],
+      "durations_s": [
+        20.0
+      ]
+    },
+    {
+      "name": "half",
+      "ED_depths": [
+        [
+          0.5
+        ]
+      ],
+      "durations_s": [
+        20.0
+      ]
+    },
+    {
+      "name": "full",
+      "ED_depths": [
+        [
+          1
+        ]
+      ],
+      "durations_s": [
+        20.0
+      ]
+    }
+  ]
+}

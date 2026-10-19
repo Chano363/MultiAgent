@@ -1,0 +1,31 @@
+{
+  "checksum_verified": true,
+  "source_hashes_verified": true,
+  "own_checkpoint_roundtrip_errors": {
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "integration_acceleration_mps2": 0.0,
+    "coupler_interface_force_n": 0.0,
+    "brake_pressure_coefficient": 0.0,
+    "air_release_fraction": 0.0,
+    "ab_active": 0.0
+  },
+  "native_time_s": 249.09999999991842,
+  "safety_history_samples": 2048,
+  "clock": {
+    "_ab_step": 2491,
+    "_ab_on": [
+      false
+    ],
+    "_ab_last_release_step": [
+      2491
+    ],
+    "_ab_last_apply_step": [
+      988
+    ],
+    "ab_min_refill_s": 222.0,
+    "dt": 0.1,
+    "num_locomotives": 1
+  },
+  "scope": "native shadow checkpoint only, not complete fleet/controller restart"
+}

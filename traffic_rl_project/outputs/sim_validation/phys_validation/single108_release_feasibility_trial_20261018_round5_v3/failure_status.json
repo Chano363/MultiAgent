@@ -1,0 +1,18 @@
+{
+  "status": "stopped_at_candidate_feasibility_bottleneck",
+  "actual_rollout_complete": false,
+  "actual_trajectory_archived": false,
+  "reason": "Second guarded release: sampled higher speeds hit speed ceiling; lower sampled speeds hit existing mean-speed floor. Candidate rejected; not proof of globally empty feasible interval.",
+  "evidence": "completed_prediction_summaries.json and raw release_predictions/*.npz",
+  "prediction_replay": "original_release_prediction_replay_audit.json: 2096 samples, four channels exactly equal",
+  "regression": "52 passed",
+  "scope": "single train 1+108 zero RL; not full-route or formation acceptance",
+  "preserved_constraints": [
+    "1000kN",
+    "80km/h ceiling",
+    "existing v_min",
+    "222s refill",
+    "source admission and ATP"
+  ],
+  "not_promoted": true
+}

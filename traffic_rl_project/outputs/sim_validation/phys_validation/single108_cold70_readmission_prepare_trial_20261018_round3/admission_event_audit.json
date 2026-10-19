@@ -1,0 +1,105 @@
+{
+  "request_transitions": [
+    {
+      "time_s": 0.1,
+      "AB": 0.0,
+      "pre_peak_kn": 0.0,
+      "veto": false,
+      "ready": true,
+      "speed_kmh": 70.0
+    },
+    {
+      "time_s": 130.0,
+      "AB": -0.05,
+      "pre_peak_kn": 491.1528875311728,
+      "veto": false,
+      "ready": true,
+      "speed_kmh": 53.31573090005349
+    },
+    {
+      "time_s": 154.8,
+      "AB": 0.0,
+      "pre_peak_kn": 772.5151480668949,
+      "veto": true,
+      "ready": true,
+      "speed_kmh": 50.27234599756167
+    },
+    {
+      "time_s": 376.80000000000007,
+      "AB": -0.75,
+      "pre_peak_kn": 260.8508308186302,
+      "veto": false,
+      "ready": true,
+      "speed_kmh": 78.41508123619006
+    },
+    {
+      "time_s": 394.80000000000007,
+      "AB": -0.05,
+      "pre_peak_kn": 814.2393046143854,
+      "veto": true,
+      "ready": true,
+      "speed_kmh": 75.96306247752987
+    }
+  ],
+  "physical_transitions": [
+    {
+      "time_s": 0.1,
+      "command": "RELEASE",
+      "sources": 0
+    },
+    {
+      "time_s": 130.1,
+      "command": "HOLD",
+      "sources": 0
+    },
+    {
+      "time_s": 154.8,
+      "command": "RELEASE",
+      "sources": 0
+    },
+    {
+      "time_s": 378.30000000000007,
+      "command": "HOLD",
+      "sources": 0
+    },
+    {
+      "time_s": 378.50000000000006,
+      "command": "RELEASE",
+      "sources": 1
+    },
+    {
+      "time_s": 378.6,
+      "command": "HOLD",
+      "sources": 0
+    },
+    {
+      "time_s": 390.1,
+      "command": "RELEASE",
+      "sources": 1
+    },
+    {
+      "time_s": 390.20000000000005,
+      "command": "HOLD",
+      "sources": 0
+    }
+  ],
+  "events": [
+    {
+      "step": 3568,
+      "preparing": true,
+      "elapsed_since_release_s": 202.0
+    },
+    {
+      "step": 3759,
+      "preparing": false,
+      "elapsed_since_release_s": 221.10000000000002
+    }
+  ],
+  "failure": {
+    "time_s": 396.50000000000006,
+    "interface_zero_based": 61,
+    "signed_kn": 1000.9340766133154,
+    "relative_v_mps": -0.006504734339703333,
+    "ED": 0.7635300159454346
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "0583da901d0b0a3f972a4feeb899ab263b2d2392ca7b9fb930d04da3cca1e366",
+  "change": "0.3km/h retry spacing from failed step7656 onwards; original thresholds retained",
+  "prefix": "Replay completed v3 guard decisions only, real physics never restored from arrays. Verify prefix against v3 accepted forecast after run.",
+  "scope": "single1+108 zeroRL, native physics unchanged",
+  "acceptance": "not passed until real native trajectory confirms; stop at existing floor or1000kN; no full-route claim"
+}

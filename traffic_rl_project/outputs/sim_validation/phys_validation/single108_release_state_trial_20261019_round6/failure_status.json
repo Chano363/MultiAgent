@@ -1,0 +1,1 @@
+{"status": "startup_failed", "cause": "Frozen source generation used default GBK read; corrected explicit UTF8 before retry", "actual_steps": 0}

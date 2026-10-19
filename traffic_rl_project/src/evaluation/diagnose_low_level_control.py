@@ -5,6 +5,8 @@ import sys
 import subprocess
 import hashlib
 import os
+import copy
+import pickle
 from pathlib import Path
 
 import numpy as np
@@ -19,6 +21,24 @@ from src.train_dynamics.braking import notch_from_throttle
 from src.physics_governance import official_entry_guard, official_world_config
 
 
+def capture_admission_state(train_env, controller):
+    """Observe the upcoming decision without advancing its clocks or veto history."""
+    peak = float(np.abs(train_env.dynamics.coupler_interface_forces()).max())
+    elapsed = [(controller._ab_step + 1 - step) * controller.dt
+               for step in controller._ab_last_release_step]
+    return {
+        'predecision_coupler_peak_kn': peak / 1000.0,
+        'predecision_max_vehicle_kmh': float(train_env.dynamics.vel.max() * 3.6),
+        'predecision_new_source_veto': bool(train_env.safety.ab_new_source_veto(
+            train_env._state_snapshot())),
+        'predecision_controller_ratio_allowed': bool(
+            peak < controller.AB_ADD_SOURCE_MAX_RATIO * controller.coupler_force_limit_n),
+        'predecision_refill_elapsed_s': np.asarray(elapsed),
+        'predecision_refill_ready': np.asarray(elapsed) >= controller.ab_min_refill_s,
+        'predecision_ab_on': np.asarray(controller._ab_on, dtype=bool).copy(),
+    }
+
+
 def main():
     official_entry_guard(__file__)
     ap = argparse.ArgumentParser()
@@ -31,6 +51,12 @@ def main():
     ap.add_argument('--steps', type=int, default=900)
     ap.add_argument('--stop-on-coupler-kn', type=float,
                     help='Diagnostic early stop after exceeding this force; does not alter safety limits')
+    ap.add_argument('--stop-file', type=Path,
+                    help='Archive completed steps when this file exists at a step boundary')
+    ap.add_argument('--stop-on-infeasible-release', action='store_true',
+                    help='Archive and stop after a release forecast fails at the existing speed floor')
+    ap.add_argument('--save-native-release-state', action='store_true',
+                    help='Save trusted local full single-train state for matched release sensitivity')
     ap.add_argument('--trains', type=int, default=1)
     ap.add_argument('--consist-preset', choices=sorted(CONSIST_PRESETS),
                     help='Explicit diagnostic consist; otherwise use main configuration')
@@ -63,6 +89,8 @@ def main():
         ap.error('stop-on-coupler-kn must be finite and positive')
     if args.steps < 3 or args.trains < 1:
         ap.error('steps must be >=3 and trains must be >=1')
+    if args.save_native_release_state and (args.trains != 1 or args.reuse):
+        ap.error('Native release state export requires a fresh single-train run')
     if not np.isfinite(args.gap_offset_m) or args.gap_offset_m < 0:
         ap.error('gap-offset-m must be finite and nonnegative')
     if args.train_speeds_kmh is not None and (
@@ -77,9 +105,9 @@ def main():
         defaults = {'stop_on_coupler_kn': None, 'ed_prelimit': False, 'ed_physics_availability': False, 'consist_preset': None, 'profile': None, 'start_m': 0.0, 'finish_m': None,
                     'ed_recovery_rate': None, 'ed_baseline_projection': None, 'gap_offset_m': 0.0,
                     'train_speeds_kmh': None, 'anticipate_etcs': False, 'ed_recovery_scope': 'all',
-                    'ed_grade_feedforward': False}
+                    'ed_grade_feedforward': False, 'stop_on_infeasible_release': False}
         for key in ('stop_on_coupler_kn', 'ed_prelimit', 'ed_physics_availability', 'consist_preset', 'profile', 'start_m', 'finish_m', 'speed', 'trains', 'grade', 'steps',
-                    'ed_recovery_rate', 'ed_recovery_scope', 'ed_grade_feedforward', 'ed_baseline_projection', 'gap_offset_m', 'train_speeds_kmh', 'anticipate_etcs'):
+                    'ed_recovery_rate', 'ed_recovery_scope', 'ed_grade_feedforward', 'ed_baseline_projection', 'gap_offset_m', 'train_speeds_kmh', 'anticipate_etcs', 'stop_on_infeasible_release'):
             if key in protocol or key in defaults:
                 if getattr(args, key) != protocol.get(key, defaults.get(key)):
                     raise ValueError(f'Cannot relabel saved trajectory: {key} differs from archived protocol')
@@ -204,7 +232,10 @@ def main():
               'vehicle_air_force_n': [], 'vehicle_positions_m': [],
               'vehicle_speeds_mps': [], 'brake_pressure_coefficient': [],
               'air_release_fraction': [], 'effective_pressure_coefficient': [],
-              'air_releasing': []}
+              'air_releasing': [], 'controller_release_force_target_kn': [],
+              'controller_ed_hold_steps': []}
+    admission_keys = tuple(capture_admission_state(env.trains[0], env.multi_loco_controllers[0]))
+    detail.update({key: [] for key in admission_keys})
     # Observe the actual post-safety actuator inputs without modifying them.
     # Fleet executed_actions are controller requests, not these physical inputs.
     actuator_inputs = [{} for _ in env.trains]
@@ -227,7 +258,17 @@ def main():
             tr.dynamics.step_vehicles_ed_ab = record_inputs
     rows, commands, physical_ab = [], [], []
     diagnostic_stop_s = None
+    requested_stop_reason = None
     for k in range(0 if args.reuse else args.steps):
+        # Check only between completed steps. Never serialize a half-advanced
+        # controller/physics state, or label an administrative stop as success.
+        if args.stop_file is not None and args.stop_file.exists() and len(rows) >= 3:
+            requested_stop_reason = 'requested_stop_file'
+            break
+        admission = [capture_admission_state(tr, ctrl) for tr, ctrl in
+                     zip(env.trains, env.multi_loco_controllers)]
+        for key in admission_keys:
+            detail[key].append([state[key] for state in admission])
         _, _, term, trunc, info = env.step(np.zeros((env.num_agents, 2)))
         speeds = [float(np.mean(tr.dynamics.vel)) for tr in env.trains]
         peak = max(float(np.max(np.abs(tr.dynamics.coupler_interface_forces()))) for tr in env.trains)
@@ -264,6 +305,11 @@ def main():
         detail['ab_command_to_physics'].append([actuator_inputs[i]['ab_command'] for i in range(env.num_trains)])
         detail['ab_source_count_to_physics'].append([actuator_inputs[i]['ab_sources'] for i in range(env.num_trains)])
         detail['cyclic_braking'].append([c._cyclic_braking for c in env.multi_loco_controllers])
+        detail['controller_release_force_target_kn'].append([
+            float(value) if (value := getattr(c, '_release_force_hold_kn', None)) is not None
+            else np.nan for c in env.multi_loco_controllers])
+        detail['controller_ed_hold_steps'].append([
+            c._ed_hold_steps for c in env.multi_loco_controllers])
         detail['air_brake_segment'].append([tr.dynamics._brake_segment for tr in env.trains])
         detail['safety_rule_counts'].append([
             [sum(ev.get('rule') == rule for ev in tr.safety.last_events)
@@ -281,6 +327,14 @@ def main():
         # first crossing even when it happens before those samples are available.
         if diagnostic_stop_s is not None and len(rows) >= 3:
             break
+        if args.stop_on_infeasible_release and len(rows) >= 3:
+            failed = any(event.get('event') == 'release_feasibility'
+                         and event.get('at_floor') and not event.get('feasible', True)
+                         for ctrl in env.multi_loco_controllers
+                         for event in getattr(ctrl, '_ed_guard_events', []))
+            if failed:
+                requested_stop_reason = 'release_infeasible_at_floor'
+                break
         if term or trunc or (args.finish_m is not None and min(detail['tails'][-1]) >= args.finish_m):
             break
     if args.reuse:
@@ -307,6 +361,30 @@ def main():
         (args.output / 'train_env_source.py').write_bytes(train_source.encode('utf-8'))
         np.savetxt(args.output / 'trajectory.csv', rows, delimiter=',',
                    header='time_s,' + ','.join(f'speed_{i}_mps' for i in range(args.trains)) + ',force_N,violations,safety_events,gap_min_m', comments='')
+        if args.save_native_release_state:
+            from src.evaluation.release_feasibility import clone_native_prediction_env
+            from src.evaluation.diagnose_actuator_sensitivity import native_source_hashes
+            branch = clone_native_prediction_env(env.trains[0])
+            try:
+                # Controller functions stay in the frozen source, never in a
+                # dynamic-class pickle. No state is inferred from NPZ arrays.
+                payload = pickle.dumps({'train_env': branch,
+                    'controller_state': copy.deepcopy(env.multi_loco_controllers[0].__dict__),
+                    'controls': {'v_max': env.v_max, 'v_min': env.v_min,
+                                 'v_max_adj': 0.0, 'v_min_adj': 0.0}},
+                    protocol=pickle.HIGHEST_PROTOCOL)
+            finally:
+                branch.close()
+            (args.output / 'native_release_state.pkl').write_bytes(payload)
+            (args.output / 'native_release_state.json').write_text(json.dumps({
+                'format': 'trusted-local-native-release-state-v1',
+                'sha256': hashlib.sha256(payload).hexdigest(),
+                'controller_sha256': hashlib.sha256(source.encode()).hexdigest(),
+                'native_source_sha256': native_source_hashes(),
+                'elapsed_s': float(rows[-1, 0]), 'env_cfg': config,
+                'scope': 'single-train sensitivity only, not a complete fleet restart',
+                'numpy_version': np.__version__, 'python_version': list(sys.version_info[:2]),
+            }, indent=2), encoding='utf-8')
     velocity = rows[:, 1:1 + args.trains]
     accel = np.diff(velocity, axis=0) / env.dt
     jerk = np.diff(accel, axis=0) / env.dt
@@ -321,7 +399,8 @@ def main():
         if args.stop_on_coupler_kn is not None:
             crossings = np.flatnonzero(rows[:, 1 + args.trains] > args.stop_on_coupler_kn * 1000.0)
             diagnostic_stop_s = float(rows[crossings[0], 0]) if crossings.size else None
-    summary['diagnostic_stop_reason'] = ('coupler_threshold' if diagnostic_stop_s is not None else None)
+    summary['diagnostic_stop_reason'] = ('coupler_threshold' if diagnostic_stop_s is not None
+                                         else requested_stop_reason)
     summary['diagnostic_first_crossing_s'] = diagnostic_stop_s
     # Diagnose executed actuator discontinuities, rather than attributing
     # speed oscillations to pre-safety controller requests alone.
@@ -362,6 +441,7 @@ def main():
     meta = build_metadata(str(Path.cwd()), 'official', world, 0, __file__,
                           extra={'diagnostic_protocol': vars(args) | {'output': str(args.output),
                                                                     'config': str(args.config),
+                                                                    'stop_file': str(args.stop_file) if args.stop_file else None,
                                                                     'fleet_env_source': str(args.fleet_env_source) if args.fleet_env_source else None,
                                                                     'controller_source': str(args.controller_source) if args.controller_source else None},
                                  'grade_override_permille': None if args.profile else args.grade,
@@ -401,6 +481,8 @@ def main():
                                      'loco_indices': [list(tr.loco_indices) for tr in env.trains],
                                      'safety_rule_order': list(safety_rules),
                                      'controller_requests': 'commands, before environment safety',
+                                     'release_force_target': 'last stored model-force target in kN, '
+                                     'before controller/safety projection; NaN means unavailable',
                                  },
                                  'numerical_runtime': {'numpy_version': np.__version__,
                                      'thread_environment': {name: os.environ.get(name) for name in
@@ -409,7 +491,10 @@ def main():
                                  'tracked_diff': subprocess.check_output(['git', 'diff', '--stat'], encoding='utf-8'),
                                  'purpose': 'controller diagnostic; zero RL modulation, not a paper main-table evaluation'})
     if args.reuse and (args.output / 'result.json').exists():
-        previous = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))['metadata']
+        previous_record = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))
+        previous = previous_record['metadata']
+        if diagnostic_stop_s is None:
+            summary['diagnostic_stop_reason'] = previous_record['summary'].get('diagnostic_stop_reason')
         # Recomputing statistics must not relabel the archived controller as
         # today's working tree (especially for intermediate diagnostic trials).
         for key in ('etcs_runtime', 'etcs_braking_sha256', 'train_dynamics_sha256', 'controller_sha256', 'controller_ref', 'controller_runtime', 'fleet_env_sha256', 'train_env_sha256',

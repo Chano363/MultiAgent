@@ -1,0 +1,74 @@
+{
+  "common_prefix_steps": 7655,
+  "prefix_exact": {
+    "vehicle_positions_m": true,
+    "vehicle_speeds_mps": true,
+    "coupler_interface_force_n": true,
+    "commands": true,
+    "physical_loco_ed": true,
+    "effective_pressure_coefficient": true,
+    "air_release_fraction": true
+  },
+  "replay_audits": [
+    {
+      "run": "single108_release_fine_trial_20261018_round6",
+      "step": 7662,
+      "samples": 2485,
+      "max_abs_error": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "all_exact": true
+    },
+    {
+      "run": "single108_release_hold30_trial_20261018_round6",
+      "step": 7656,
+      "samples": 2485,
+      "max_abs_error": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "all_exact": true
+    },
+    {
+      "run": "single108_release_fine_trial_20261018_round6",
+      "step": 4581,
+      "samples": 2485,
+      "max_abs_error": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "all_exact": true
+    },
+    {
+      "run": "single108_release_hold30_trial_20261018_round6",
+      "step": 4581,
+      "samples": 2485,
+      "max_abs_error": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "all_exact": true
+    }
+  ],
+  "common_765_5_to1050": {
+    "hold50_fine": {
+      "peak_kn": 935.6727726496413,
+      "max_vehicle_kmh": 79.9286027890699,
+      "min_mean_kmh": 40.310443052505214
+    },
+    "hold30": {
+      "peak_kn": 955.5279469645703,
+      "max_vehicle_kmh": 79.05065461705638,
+      "min_mean_kmh": 40.637161436618335
+    }
+  }
+}

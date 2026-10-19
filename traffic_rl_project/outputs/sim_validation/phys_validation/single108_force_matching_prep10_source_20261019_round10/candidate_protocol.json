@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "9eb5058499f4c520668b1af7c5d9ad7fa6bebc2f568e85d130311904c7af0fef",
+  "change": "Hold50/pre-release-force match retained; lowED preparation lead20s to10s, while refill222s unchanged",
+  "basis": "Parent actual765.6release prep967.6, recorded peaks settled below600 by969.0 and last10s max227.832kN; observation does not replace native rolling veto",
+  "safety": "native source admission/predictive veto/ATP intact;10s engineering test not literature value",
+  "scope": "same native765.5s state counterfactual first"
+}

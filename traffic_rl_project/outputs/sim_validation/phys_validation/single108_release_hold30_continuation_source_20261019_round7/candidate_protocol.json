@@ -1,0 +1,7 @@
+{
+  "parent_sha256": "2c604be9e74a99b48e3defb18f409c44a58bde2b1e59788f5720db6db67ca0cf",
+  "scope": "single1+108 full native continuation from actual765.5s state",
+  "change": "coarse1.8km/h retry above43km/h; fine0.3 below43; keep hold30 from7656",
+  "acceptance": "1000kN,80km/h,existingmean40km/h,222s retained; tailclear49600 or first failure",
+  "required_audit": "First2845 native continuation samples must equal completed hold30 real run7656..10500"
+}

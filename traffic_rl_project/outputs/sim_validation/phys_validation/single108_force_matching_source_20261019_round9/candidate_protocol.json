@@ -1,0 +1,12 @@
+{
+  "parent_sha256": "32a895b578667aedd16ff81e0d35ad374686d8de71f707c5cc808fac29b1c135",
+  "basis": "Ma2023 PDF4 section3.3 constant electric FORCE for50s; Yu2023 PDF3 constant ED after release. Neither specifies our factor.",
+  "change": "Preserve bootstrap quarter rule only when no earlier force target exists; subsequent release hold target is a selected fraction of prerelease post-protection physical ED force. Keep50s; constant target remains subject to native safety.",
+  "factors": [
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "scope": "engineering factors tested from identical full native765.5s state, not cold-start or full-route acceptance"
+}

@@ -1,0 +1,27 @@
+{
+  "observed_steps": 1599,
+  "fallback_fraction": 0.9224515322076298,
+  "by_period": [
+    {
+      "from_s": 985,
+      "until_s": 987.6,
+      "substeps": 260,
+      "fallback_substeps": 208,
+      "max_residual_m": 1.7516824300400913e-05
+    },
+    {
+      "from_s": 987.6,
+      "until_s": 992.6,
+      "substeps": 500,
+      "fallback_substeps": 428,
+      "max_residual_m": 1.8880051356973127e-05
+    },
+    {
+      "from_s": 992.6,
+      "until_s": 1001.1,
+      "substeps": 839,
+      "fallback_substeps": 839,
+      "max_residual_m": 9.57802876655478e-05
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "checkpoint_time_s": 154.8,
+  "comparison": "Full native rebuild against frozen closed-loop force-hold trajectory at same time",
+  "max_absolute_error": {
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "coupler_interface_force_n": 0.0,
+    "brake_pressure_coefficient": 0.0,
+    "air_release_fraction": 0.0,
+    "ab_active": 0.0
+  },
+  "all_exact": true,
+  "scope": "Matched shadow initial state, not controller acceptance"
+}

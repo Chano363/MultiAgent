@@ -1,0 +1,5 @@
+{
+  "status": "interrupted_for_runtime_diagnosis",
+  "usable_for_control_conclusions": false,
+  "reason": "Unexpectedly slow native simulation; no completed comparison"
+}

@@ -1,0 +1,15 @@
+{
+  "first1547_rows_max_abs_difference": 0.0,
+  "first1547_requests_max_abs_difference": 0.0,
+  "held_target_kn": [
+    588.157373524422
+  ],
+  "achieved_ED_force_during_hold_kn_range": [
+    1.8013537741296086,
+    589.5618561143418
+  ],
+  "first_crossing_interface_index": 12,
+  "first_crossing_signed_kn": 1005.0449987404888,
+  "first_crossing_s": 176.0,
+  "first1547_rows_exact_match": true
+}

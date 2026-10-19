@@ -1,0 +1,4 @@
+{
+  "parent_sha256": "87ca1eae1bb45647c3d25a7f3ee5a31fffc38d34833418f4924c8c5a890e9291",
+  "purpose": "Rebuild identical real native prefix to step7655 and export full train/controller state for paired sensitivity; not NPZ reconstruction"
+}

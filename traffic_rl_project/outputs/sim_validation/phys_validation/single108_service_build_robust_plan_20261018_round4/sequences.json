@@ -1,0 +1,60 @@
+{
+  "sequences": [
+    {
+      "name": "quarter_low",
+      "ED_depths": [
+        [
+          0.24
+        ]
+      ],
+      "durations_s": [
+        30
+      ],
+      "ED_ramp_per_s": [
+        10
+      ]
+    },
+    {
+      "name": "quarter_high",
+      "ED_depths": [
+        [
+          0.26
+        ]
+      ],
+      "durations_s": [
+        30
+      ],
+      "ED_ramp_per_s": [
+        10
+      ]
+    },
+    {
+      "name": "three_quarter_exact",
+      "ED_depths": [
+        [
+          0.75
+        ]
+      ],
+      "durations_s": [
+        30
+      ],
+      "ED_ramp_per_s": [
+        10
+      ]
+    },
+    {
+      "name": "three_quarter_next",
+      "ED_depths": [
+        [
+          0.7500000000000001
+        ]
+      ],
+      "durations_s": [
+        30
+      ],
+      "ED_ramp_per_s": [
+        10
+      ]
+    }
+  ]
+}
