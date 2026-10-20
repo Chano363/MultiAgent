@@ -7,7 +7,10 @@ import numpy as np
 from scipy.linalg import solve_banded
 
 
-def newton_trial(dyn, force, h, tol, max_iter, force_tol_n):
+def newton_trial(dyn, force, h, tol, max_iter, force_tol_n,
+                 jacobian='finite_difference'):
+    if jacobian not in ('finite_difference', 'analytic'):
+        raise ValueError('Unknown diagnostic Jacobian')
     x, v, a0 = dyn.pos.copy(), dyn.vel.copy(), dyn._acc0.copy()
     mass = dyn.masses_kg
     a = a0.copy()
@@ -34,19 +37,23 @@ def newton_trial(dyn, force, h, tol, max_iter, force_tol_n):
             return True, norm, iteration
         # Resolve absolute position rounding while remaining within the smooth
         # velocity-switch region. This is a numerical FD scale, not a force-law parameter.
-        eps = np.maximum(1e-4, 64 * np.spacing(np.maximum(np.abs(x), 1.0)) / (0.25*h*h))
-        band = np.zeros((3, len(a)))
-        for colour in range(3):
-            cols = np.arange(colour, len(a), 3)
-            if not len(cols):
-                continue
-            plus, minus = a.copy(), a.copy()
-            plus[cols] += eps[cols]
-            minus[cols] -= eps[cols]
-            difference = residual(plus) - residual(minus)
-            for offset in (-1, 0, 1):
-                valid = cols[(cols + offset >= 0) & (cols + offset < len(a))]
-                band[1 + offset, valid] = difference[valid + offset] / (2 * eps[valid])
+        if jacobian == 'analytic':
+            from src.evaluation.native_force_tangent import acceleration_jacobian
+            band = acceleration_jacobian(dyn, *state(a), h)
+        else:
+            eps = np.maximum(1e-4, 64 * np.spacing(np.maximum(np.abs(x), 1.0)) / (0.25*h*h))
+            band = np.zeros((3, len(a)))
+            for colour in range(3):
+                cols = np.arange(colour, len(a), 3)
+                if not len(cols):
+                    continue
+                plus, minus = a.copy(), a.copy()
+                plus[cols] += eps[cols]
+                minus[cols] -= eps[cols]
+                difference = residual(plus) - residual(minus)
+                for offset in (-1, 0, 1):
+                    valid = cols[(cols + offset >= 0) & (cols + offset < len(a))]
+                    band[1 + offset, valid] = difference[valid + offset] / (2 * eps[valid])
         try:
             delta = solve_banded((1, 1), band, -r)
         except (ValueError, np.linalg.LinAlgError):

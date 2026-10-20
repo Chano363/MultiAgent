@@ -1,0 +1,24 @@
+[
+  {
+    "spacing_m": 12.04,
+    "physical_state": "tension",
+    "raw_force_on_front_n": [
+      -654060.8266004778
+    ],
+    "safety_tension_positive_view_n": [
+      654060.8266004778,
+      654060.8266004778
+    ]
+  },
+  {
+    "spacing_m": 11.96,
+    "physical_state": "compression",
+    "raw_force_on_front_n": [
+      654060.8266004778
+    ],
+    "safety_tension_positive_view_n": [
+      -654060.8266004778,
+      -654060.8266004778
+    ]
+  }
+]

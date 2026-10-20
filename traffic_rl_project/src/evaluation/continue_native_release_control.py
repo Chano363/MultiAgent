@@ -6,6 +6,7 @@ import json
 import logging
 import pickle
 import sys
+from contextlib import ExitStack
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,8 @@ def main():
     parser.add_argument('--finish-m', type=float, default=49600)
     parser.add_argument('--steps', type=int, default=28345)
     parser.add_argument('--save-native-release-state', action='store_true')
+    parser.add_argument('--resume-experimental', action='store_true',
+                        help='Require and retain the checkpoint numerical solver and source hashes')
     args = parser.parse_args()
     if args.steps < 1 or not np.isfinite(args.finish_m):
         parser.error('Positive step budget and finite finish position required')
@@ -34,6 +37,11 @@ def main():
     if not directory.is_relative_to((Path.cwd() / 'outputs/sim_validation/phys_validation').resolve()):
         parser.error('Use only our trusted local native state export')
     manifest = json.loads((directory / 'native_release_state.json').read_text(encoding='utf-8'))
+    if bool(manifest.get('experimental_numerical_solver')) != args.resume_experimental:
+        parser.error('Experimental checkpoints require --resume-experimental; native ones must not use it')
+    if args.resume_experimental:
+        from src.evaluation.checkpoint_numerics import verify_checkpoint_numerics
+        verify_checkpoint_numerics(manifest)
     payload = (directory / 'native_release_state.pkl').read_bytes()
     original = (directory / 'controller_source.py').read_text(encoding='utf-8')
     if (manifest.get('format') != 'trusted-local-native-release-state-v1'
@@ -50,6 +58,8 @@ def main():
     exec(compile(source, '<native_continuation_controller>', 'exec'), namespace)
     controller = namespace['MultiLocoController'].__new__(namespace['MultiLocoController'])
     controller.__dict__.update(copy.deepcopy(saved['controller_state']))
+    if getattr(controller, '_release_probe_active', False):
+        raise ValueError('Cannot treat a copied forecast branch as online continuation')
     train, controls = saved['train_env'], saved['controls']
     if (controller.num_locomotives != 1
             or not np.isclose(train.dynamics.time, manifest['elapsed_s'])):
@@ -64,7 +74,8 @@ def main():
             'controller_sha256': hashlib.sha256(source.encode()).hexdigest(),
             'controller_change': 'explicit alternative frozen candidate from same native history',
             'protocol': {'steps': args.steps, 'finish_m': args.finish_m,
-                         'state_dir': str(directory), 'zero_RL': True},
+                         'state_dir': str(directory), 'zero_RL': True,
+                         'resume_experimental': args.resume_experimental},
             'scope': 'native single-train continuation, not three-train acceptance',
             'singleton_leader_offset_mps': TrainFleetEnv.LEAD_TAIL_OFFSET_MPS})
     data = {key: [] for key in ('rows', 'commands', 'physical_loco_ed',
@@ -72,6 +83,20 @@ def main():
         'effective_pressure_coefficient', 'loco_ed_force_n',
         'controller_hold_target_kn', 'controller_ed_hold_steps')}
     reason = 'step_budget'
+    error = None
+    samples = []
+    numerical_context = ExitStack()
+    if args.resume_experimental:
+        from src.evaluation.checkpoint_numerics import checkpoint_numerical_context
+        numerical_context = checkpoint_numerical_context(manifest, train, samples)
+        for name in ('adaptive_newmark_candidate', 'newton_mechanics_candidate',
+                     'native_force_tangent', 'fractional_air_timing',
+                     'refine_pneumatic_interval', 'checkpoint_numerics'):
+            (args.output/(name+'_source.py')).write_bytes(
+                Path('src/evaluation', name+'.py').read_bytes())
+        metadata['experimental_numerical_solver'] = manifest['experimental_numerical_solver']
+        metadata['scope'] = 'explicit experimental single-train continuation of complete online history'
+    (args.output/'metadata.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
     try:
         for step in range(args.steps):
             if (args.output / 'STOP').exists():
@@ -83,6 +108,7 @@ def main():
             step_controls['v_min_adj'] = 0.0
             action, _ = controller.get_action_decomposed(
                 train, np.zeros((1, 2)), **step_controls)
+            mechanical_start = len(samples)
             _, _, terminated, truncated, info = train.step(action)
             controller.record_executed_ed(info['actual_loco_ed'])
             dyn = train.dynamics
@@ -106,7 +132,9 @@ def main():
             if not np.all(np.isfinite(data['rows'][-1])):
                 reason = 'nonfinite'
                 break
-            if peak > controller.coupler_force_limit_n:
+            step_micropeak = max((s['peak_interface_n'] for s in samples[mechanical_start:]
+                                  if s.get('live')), default=peak)
+            if max(peak, step_micropeak) > controller.coupler_force_limit_n:
                 reason = 'coupler_limit'
                 break
             if dyn.vel.max() >= controls['v_max'] - 1e-6:
@@ -128,8 +156,22 @@ def main():
     except KeyboardInterrupt:
         # Keep only completed recorded steps; this is not a restart checkpoint.
         reason = 'keyboard_interrupt_incomplete'
+    except Exception as exc:
+        reason, error = 'exception_incomplete', repr(exc)
+        raise
     finally:
-        if args.save_native_release_state and reason not in ('keyboard_interrupt_incomplete', 'nonfinite'):
+        numerical_context.close()
+        numerical = {}
+        for label in ('live', 'forecast'):
+            chosen = [s for s in samples if bool(s.get('live')) == (label == 'live')]
+            numerical[label] = {'mechanical_intervals': len(chosen),
+                'internal_peak_kn': max((s['peak_interface_n'] for s in chosen), default=0)/1000,
+                'accepted_microsteps': sum(s['accepted'] for s in chosen),
+                'rejected_trials': sum(s['rejected'] for s in chosen)}
+        if args.resume_experimental:
+            metadata['continuation_numerical'] = numerical
+        if args.save_native_release_state and reason not in (
+                'keyboard_interrupt_incomplete', 'nonfinite', 'exception_incomplete'):
             from src.evaluation.release_feasibility import clone_native_prediction_env
             branch = clone_native_prediction_env(train)
             try:
@@ -146,6 +188,8 @@ def main():
                 'native_source_sha256': native_source_hashes(),
                 'elapsed_s': float(train.dynamics.time), 'env_cfg': manifest['env_cfg'],
                 'origin_native_manifest': manifest,
+                **({'experimental_numerical_solver': manifest['experimental_numerical_solver']}
+                   if args.resume_experimental else {}),
                 'scope': 'single-train sensitivity only, not a complete fleet restart',
                 'numpy_version': np.__version__, 'python_version': list(sys.version_info[:2]),
             }, indent=2), encoding='utf-8')
@@ -153,6 +197,8 @@ def main():
                             **{key: np.asarray(value) for key, value in data.items()})
         rows = np.asarray(data['rows'])
         summary = {'stop_reason': reason, 'steps': len(rows),
+            'error': error,
+            'internal_microstep_peak_kn': numerical['live']['internal_peak_kn'] if samples else None,
             'full_route_completed': reason == 'route_completed',
             'peak_kn': float(rows[:, 1].max()/1000) if len(rows) else None,
             'max_vehicle_kmh': float(rows[:, 2].max()*3.6) if len(rows) else None,

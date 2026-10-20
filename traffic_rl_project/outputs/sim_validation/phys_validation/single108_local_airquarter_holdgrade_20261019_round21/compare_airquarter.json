@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 12.00273757805275,
+  "rms_signed_interface_error_kn": 0.06189765544157182,
+  "max_envelope_error_kn": 5.4299872852246915,
+  "critical_signed_force": {
+    "elapsed_s": 30.200000000000003,
+    "interface_one_based": 81,
+    "reference_force_kn": 109.55692879295727,
+    "candidate_force_kn": 97.5541912149045,
+    "reference_e_m": 0.016803357555545517,
+    "candidate_e_m": 0.01680327657595626,
+    "reference_dv_mps": 0.00018070527804781022,
+    "candidate_dv_mps": 0.0006189980875035417
+  },
+  "critical_envelope": {
+    "elapsed_s": 30.200000000000003,
+    "reference_interface_one_based": 81,
+    "candidate_interface_one_based": 1
+  },
+  "max_deflection_error_m": 3.8690088331350125e-05,
+  "max_relative_velocity_error_mps": 0.0009377106977837002,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 4.280042396658246e-05,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_holdgrade_20261019_round21\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\result.json": "65d6a2c93366fdd2e53122c006d1fec8fc90b99f52f1afc3b3d725e46ba669c8",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\interface_trace.npz": "6757320399fc66716d4937867773d7ceaad130c4aebf94f92a5b579c87ec6a46",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\balanced.npz": "a3e786e58d0596ba7da074cd6cd284d13fb1a26eba6a1dece07d2552ff2193b3",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_holdgrade_20261019_round21\\result.json": "fe6333534d997dd35e2ca72dc116f8bd3de07b40a4b6fdd7036d2051686db1ee",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_holdgrade_20261019_round21\\interface_trace.npz": "9be2d3d1a11f5a7862ba8ac023518122d17389c397d8876ccf2cbb13bb5f8e81",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_holdgrade_20261019_round21\\balanced.npz": "6803f6215ff847af6cafdf6d5a38dd6ec46d7a70ff88ff381869e1d180f034d6"
+  }
+}

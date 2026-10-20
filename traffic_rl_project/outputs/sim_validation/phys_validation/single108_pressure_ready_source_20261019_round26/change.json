@@ -1,0 +1,7 @@
+{
+  "parent": "outputs\\sim_validation\\phys_validation\\single108_force_matching_prep10_source_20261019_round10\\controller_source.py",
+  "parent_sha256": "9d1bb8458d7226f468b3f44c02f6a1b2ed274356eb603e535e5dc08049650ebd",
+  "candidate_sha256": "e4da1f03d36123012fb1abdbf94fab5f5aeae112763ee49d01b9422030f96c01",
+  "change": "Release .25 ED cap only after all cylinders reach current notch steady coefficient, then .05/s command recovery; AB request and native safety unchanged",
+  "scope": "isolated diagnostic controller; no production promotion"
+}

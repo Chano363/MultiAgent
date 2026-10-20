@@ -1,0 +1,85 @@
+{
+  "scope": "Completed cold prefixes; compare equal time and common head coverage separately",
+  "common_head_end_m": 17172.929466097918,
+  "runs": {
+    "baseline": {
+      "duration_s": 1000.0000000000001,
+      "head_end_m": 17172.929466097918,
+      "tail_end_m": 15878.4404020584,
+      "mean_speed_range_kmh": [
+        45.848040729705865,
+        76.19164083570057
+      ],
+      "max_vehicle_speed_kmh": 77.23832968581078,
+      "internal_microstep_peak_kn": 719.8228420527464,
+      "brake_segments": 3,
+      "140kpa_onsets_s": [
+        606.3000000000001,
+        885.3000000000001
+      ],
+      "140kpa_onsets_within_common_head_coverage_s": [
+        606.3000000000001,
+        885.3000000000001
+      ],
+      "refill_elapsed_at_segment_starts_s": [
+        100000094.4,
+        250.9,
+        222.0
+      ],
+      "safety_events_by_column": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "full_route_completed": false,
+      "stop_reason": null,
+      "source_sha256": {
+        "run/result.json": "2b0ec0d3a784ed71f1c661da7cf91cd8427097c808a405230744b48bfea95cc4",
+        "run/trajectory.npz": "305382ee67d0bfbb346b934c8bed62b68df70aeca39950e651ecc7f9f89975fd",
+        "solver_result.json": "a2410dd53194412a61b155b795ad8ea0eace096deb4b6b3d27bbd0b53409e29c"
+      }
+    },
+    "candidate": {
+      "duration_s": 1000.0000000000001,
+      "head_end_m": 17172.929466097918,
+      "tail_end_m": 15878.4404020584,
+      "mean_speed_range_kmh": [
+        45.848040729705865,
+        76.19164083570057
+      ],
+      "max_vehicle_speed_kmh": 77.23832968581078,
+      "internal_microstep_peak_kn": 719.8228420527464,
+      "brake_segments": 3,
+      "140kpa_onsets_s": [
+        606.3000000000001,
+        885.3000000000001
+      ],
+      "140kpa_onsets_within_common_head_coverage_s": [
+        606.3000000000001,
+        885.3000000000001
+      ],
+      "refill_elapsed_at_segment_starts_s": [
+        100000094.4,
+        250.9,
+        222.0
+      ],
+      "safety_events_by_column": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "full_route_completed": false,
+      "stop_reason": null,
+      "source_sha256": {
+        "run/result.json": "2b0ec0d3a784ed71f1c661da7cf91cd8427097c808a405230744b48bfea95cc4",
+        "run/trajectory.npz": "305382ee67d0bfbb346b934c8bed62b68df70aeca39950e651ecc7f9f89975fd",
+        "solver_result.json": "a2410dd53194412a61b155b795ad8ea0eace096deb4b6b3d27bbd0b53409e29c"
+      }
+    }
+  },
+  "note": "Less route covered can reduce event counts. Common-coverage counts do not establish full-route performance or physical parameter calibration."
+}

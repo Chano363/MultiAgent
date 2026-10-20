@@ -1,0 +1,6 @@
+{
+  "purpose": "same baseline replay only to pre-event checkpoint; not new full route test",
+  "baseline_controller_sha256": "dcfa56651647dca85d81331862c7c85cdbb71efb5376d6ce9c0c8e2b817adb28",
+  "helper_sha256": "133c335f4d4663b5856095131068e82b03a570009c0eba570d63a785e0700af3",
+  "policy_change": "none; prediction archive path only"
+}

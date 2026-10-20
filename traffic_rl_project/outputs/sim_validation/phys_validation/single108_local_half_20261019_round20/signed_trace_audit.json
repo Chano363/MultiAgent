@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 6.385279344472117,
+  "rms_signed_interface_error_kn": 0.04369514220550823,
+  "max_envelope_error_kn": 6.385279344472117,
+  "critical_signed_force": {
+    "elapsed_s": 28.200000000000003,
+    "interface_one_based": 73,
+    "reference_force_kn": 112.05549346194198,
+    "candidate_force_kn": 105.67021411746987,
+    "reference_e_m": 0.016051068056185613,
+    "candidate_e_m": 0.0160512263464625,
+    "reference_dv_mps": -0.0008220842416797325,
+    "candidate_dv_mps": -0.0005052250444599338
+  },
+  "critical_envelope": {
+    "elapsed_s": 28.200000000000003,
+    "reference_interface_one_based": 73,
+    "candidate_interface_one_based": 73
+  },
+  "max_deflection_error_m": 2.1826963347848505e-05,
+  "max_relative_velocity_error_mps": 0.0005303836657617467,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 1.8101484752719443e-05,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_local_half_20261019_round20\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\result.json": "34b33c84355d2894bbc19da42c68a04ffa979d888175e7ae66e1409cb98bd959",
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\interface_trace.npz": "56c824d02be97cf445d43e866ecd9bac3464b848306eb0c714618a7e504bd93b",
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\balanced.npz": "bb3fa45e910f87111c259fe7ec939de0d52cdda67099c905bd75e908a40a7e33",
+    "outputs\\sim_validation\\phys_validation\\single108_local_half_20261019_round20\\result.json": "5b2aac6d4320f684fa7d4a11c9536b36a45c922e073bed279611ab6bacc7fc92",
+    "outputs\\sim_validation\\phys_validation\\single108_local_half_20261019_round20\\interface_trace.npz": "f3a9687da580fe8e8dd651e02826beccf4675fbcea70cbce5a62ce5440fcb973",
+    "outputs\\sim_validation\\phys_validation\\single108_local_half_20261019_round20\\balanced.npz": "59ed31d43acfdfc4ba6c895790c0ae26a1bda87a15d3af0f8e612fefe0667034"
+  }
+}

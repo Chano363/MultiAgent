@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 0.1681590404335002,
+  "rms_signed_interface_error_kn": 0.0010388941816594029,
+  "max_envelope_error_kn": 0.0786321977567277,
+  "critical_signed_force": {
+    "elapsed_s": 30.200000000000003,
+    "interface_one_based": 81,
+    "reference_force_kn": 93.26364445341325,
+    "candidate_force_kn": 93.09548541297974,
+    "reference_e_m": 0.016803428896309924,
+    "candidate_e_m": 0.016803509946839768,
+    "reference_dv_mps": 0.0007868945566293917,
+    "candidate_dv_mps": 0.0007937154595545337
+  },
+  "critical_envelope": {
+    "elapsed_s": 33.9,
+    "reference_interface_one_based": 102,
+    "candidate_interface_one_based": 102
+  },
+  "max_deflection_error_m": 6.413338269339874e-07,
+  "max_relative_velocity_error_mps": 2.068683457778775e-05,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 9.116995158819918e-09,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_ramped_mechhalf_20261019_round25\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\result.json": "4ae41abcde79ee4117f557d01dad3cfcdab986420a095ef7aab6a5376f86c0bd",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\interface_trace.npz": "09b256f33ff8666adde5acef411c6dd50584ab3c9294d96899a9f2ee01a181ff",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\balanced.npz": "1551f76902592ed4125890073677631e1d2bd72c6ea1f1188ad95cbad670161f",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_mechhalf_20261019_round25\\result.json": "e94484b50f2b6177e21c7688c7cacf33331b5f8946ccb8ba8699e0b72660b002",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_mechhalf_20261019_round25\\interface_trace.npz": "aefa0a5ca1e9a5969989e6a872cd7525a6bc5c66f211831fd77728998aa7958b",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_mechhalf_20261019_round25\\balanced.npz": "d87dbd9ed0cb20898a728164aa5bbeb8248ffca3e0b715d11fc802c83e4157a1"
+  }
+}

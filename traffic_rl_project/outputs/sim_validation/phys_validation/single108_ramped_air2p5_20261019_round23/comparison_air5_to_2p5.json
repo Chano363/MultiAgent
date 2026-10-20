@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 1.2750622032728862,
+  "rms_signed_interface_error_kn": 0.007885079234782235,
+  "max_envelope_error_kn": 0.6527947874955425,
+  "critical_signed_force": {
+    "elapsed_s": 30.200000000000003,
+    "interface_one_based": 81,
+    "reference_force_kn": 91.98858225014035,
+    "candidate_force_kn": 93.26364445341325,
+    "reference_e_m": 0.01680341838618915,
+    "candidate_e_m": 0.016803428896309924,
+    "reference_dv_mps": 0.0008384891140096329,
+    "candidate_dv_mps": 0.0007868945566293917
+  },
+  "critical_envelope": {
+    "elapsed_s": 32.1,
+    "reference_interface_one_based": 90,
+    "candidate_interface_one_based": 90
+  },
+  "max_deflection_error_m": 5.85251473239623e-06,
+  "max_relative_velocity_error_mps": 0.00014034417573327573,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 7.658298596879832e-06,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_ramped_air5_20261019_round23\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air5_20261019_round23\\result.json": "bdd6741b59d653f9d7349732e0bf68104209fff5f102b01c104db6e21cd8c215",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air5_20261019_round23\\interface_trace.npz": "4c75999b61f5a1c54347af94354d60d7c260c5e126268c29d04de8c631fb2725",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air5_20261019_round23\\balanced.npz": "b2f91608546806ac0d7430502ad44389a75cb45fbcf7cf86cf9969fdf9515643",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\result.json": "4ae41abcde79ee4117f557d01dad3cfcdab986420a095ef7aab6a5376f86c0bd",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\interface_trace.npz": "09b256f33ff8666adde5acef411c6dd50584ab3c9294d96899a9f2ee01a181ff",
+    "outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23\\balanced.npz": "1551f76902592ed4125890073677631e1d2bd72c6ea1f1188ad95cbad670161f"
+  }
+}

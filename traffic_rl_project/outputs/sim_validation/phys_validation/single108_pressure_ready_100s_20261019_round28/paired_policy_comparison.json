@@ -1,0 +1,12 @@
+{
+  "same_initial_state": true,
+  "AB_requests_identical": true,
+  "baseline_end_mean_kmh": 73.93663619612431,
+  "candidate_end_mean_kmh": 69.50739524117115,
+  "baseline_max_vehicle_kmh": 73.94671268831793,
+  "candidate_max_vehicle_kmh": 70.57044088827729,
+  "candidate_internal_peak_kn": 455.21232114205833,
+  "baseline_internal_peak_kn": 455.21232114205833,
+  "candidate_last10s_accel_mps2": -0.005005503366058051,
+  "scope": "Copied 100 s forecast; corrected pre-call ED anchor; not online/full-route acceptance"
+}

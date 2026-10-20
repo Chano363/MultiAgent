@@ -1,0 +1,5 @@
+{
+  "trajectory_bitexact_prior_run": true,
+  "prior_run": "outputs\\sim_validation\\phys_validation\\single108_balanced_coupled_fullwindow_20261019_round14",
+  "observer_source_sha256": "94c7845dcc308c92219a0492ad436c7441aeb66e6486a155d11e77075866c988"
+}

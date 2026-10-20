@@ -1,0 +1,54 @@
+{
+  "scope": "Archived continuation only; sampled windows exclude unsampled mechanical peaks",
+  "summary": {
+    "stop_reason": "route_completed",
+    "steps": 20564,
+    "error": null,
+    "internal_microstep_peak_kn": 595.5934009851571,
+    "full_route_completed": true,
+    "peak_kn": 595.5611876043753,
+    "max_vehicle_kmh": 78.51492673052006,
+    "min_mean_kmh": 43.056309675225826,
+    "last_time_s": 3056.4000000609753
+  },
+  "deep_request_onsets": [
+    {
+      "time_s": 2442.899999935989,
+      "head_m": 40541.406295027446,
+      "request": -0.75,
+      "max_vehicle_kmh": 76.60209567314831,
+      "mean_kmh": 76.31456025001633,
+      "pressure_head_tail": [
+        0.005555555555555556,
+        0.0
+      ]
+    }
+  ],
+  "windows": {
+    "upgrade": {
+      "start_s": 2400.0999999272694,
+      "end_s": 2549.999999957808,
+      "min_vehicle_kmh": 46.87217374212579,
+      "max_vehicle_kmh": 78.51492673052006,
+      "min_mean_kmh": 46.972662082610306,
+      "min_sampled_mean_acceleration_mps2": -0.17357814212321662,
+      "sampled_peak_kn": 579.4872218397521
+    },
+    "terminal": {
+      "start_s": 2900.0000000291125,
+      "end_s": 3056.4000000609753,
+      "min_vehicle_kmh": 42.97271710257246,
+      "max_vehicle_kmh": 68.25556274056906,
+      "min_mean_kmh": 43.05630967522583,
+      "min_sampled_mean_acceleration_mps2": -0.10667231744494637,
+      "sampled_peak_kn": 574.3194818001473
+    }
+  },
+  "sha256": {
+    "result.json": "857b28b80362442c6d7184f7a725ec43dff6ed8b584a1d0b876db62abd4d6402",
+    "trajectory.npz": "bf2bbe092fcceda3a3680a6425275f5fcf26f756fff3e87a7488f743bb588f29",
+    "controller_source.py": "dcfa56651647dca85d81331862c7c85cdbb71efb5376d6ce9c0c8e2b817adb28",
+    "native_release_state.json": "99a7dbcf10a94b0b521f2f7f45a96fa1331d0911cd15bd82c1306027e9807d04",
+    "native_release_state.pkl": "1ec7610e21aa675099fc2602f3e1a5eeaff96924a81280f6a457a4f883e77e15"
+  }
+}

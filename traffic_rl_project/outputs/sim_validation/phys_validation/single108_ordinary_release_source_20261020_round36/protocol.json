@@ -1,0 +1,31 @@
+{
+  "scope": "2180 to 2580 seconds local candidate, not a full-route acceptance",
+  "helper_sha256": {
+    "ordinary_release_guard": "cbcf92c17d7c8492e36fa3389a65dc234d1d25dc99966b5a4dbdd2f2ce8087fb",
+    "release_low_speed_controller": "133c335f4d4663b5856095131068e82b03a570009c0eba570d63a785e0700af3"
+  },
+  "baseline_replay_errors": {
+    "rows": 0.0,
+    "commands": 0.0,
+    "vehicle_positions_m": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "effective_pressure_coefficient": 0.0
+  },
+  "command": [
+    "F:\\\u5217\u8f66\u5927\u521bxmc\\.venv\\Scripts\\python.exe",
+    "-u",
+    "src/evaluation/continue_native_release_control.py",
+    "--state-dir",
+    "outputs\\sim_validation\\phys_validation\\single108_pre_release_state_20261020_round35_retry1",
+    "--controller-source",
+    "outputs\\sim_validation\\phys_validation\\single108_ordinary_release_source_20261020_round36\\controller_source.py",
+    "--resume-experimental",
+    "--steps",
+    "4000",
+    "--finish-m",
+    "49600",
+    "--save-native-release-state",
+    "--output",
+    "outputs\\sim_validation\\phys_validation\\single108_ordinary_release_local_20261020_round36"
+  ]
+}

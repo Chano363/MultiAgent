@@ -1,0 +1,8 @@
+{
+  "parent": "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_cold70_cycle_20261019_round29\\run\\controller_source.py",
+  "parent_sha256": "bc82d55c5160f389c7f4f17d29678fd910b412017aad046520dc6ad5f83b0bee",
+  "candidate_sha256": "c2b12593dff0adbf0862a2f2c6db8484463da4c2a3021eaf392075887e1cdfca",
+  "change": "forecast archive path only, identical control policy",
+  "input_state": "single108_pressure_ready_cold70_cycle_20261019_round29/run",
+  "scope": "continue full physical/controller history at1000s; not reset"
+}

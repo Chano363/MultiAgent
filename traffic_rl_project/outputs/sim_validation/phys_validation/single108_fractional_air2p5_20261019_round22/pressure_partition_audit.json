@@ -1,0 +1,10 @@
+{
+  "max_pressure_coefficient_difference_all_three": 2.2326585025211898e-13,
+  "max_effective_pressure_coefficient_difference_all_three": 2.2326585025211898e-13,
+  "scope": "control-boundary pressure timing consistency in common-state 48.5 s window, not physical pressure calibration",
+  "paths": [
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air10_20261019_round22",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air5_20261019_round22",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air2p5_20261019_round22"
+  ]
+}

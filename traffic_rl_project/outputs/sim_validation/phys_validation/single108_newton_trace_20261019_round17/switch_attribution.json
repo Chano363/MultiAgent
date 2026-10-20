@@ -1,0 +1,9 @@
+{
+  "reference": 211.00382211512013,
+  "candidate": 71.10823055684372,
+  "only_position_swapped": 210.62639118663282,
+  "only_relative_velocity_swapped": 71.20478686353572,
+  "elapsed_s": 233.8,
+  "interface_one_based": 101,
+  "scope": "algebraic attribution, not an independent trajectory"
+}

@@ -1,0 +1,84 @@
+{
+  "scope": "Archived single-train prefix; request events are not physical refill proof",
+  "trajectory_sha256": "55c10f3b805ee07dc0059b155b1ffa039d548b8f37aa83ab8dfcc6826dd36631",
+  "duration_s": 112.3,
+  "head_m": 1850.1504901578708,
+  "tail_m": 555.724338766263,
+  "mean_speed_range_kmh": [
+    49.537025616382806,
+    69.98591273227105
+  ],
+  "max_vehicle_speed_kmh": 69.99332219467009,
+  "control_sample_peak_kn": 719.023977637968,
+  "internal_microstep_peak_kn": 719.8228420527464,
+  "request_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.3,
+      "value": 0.0
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 107.5,
+      "duration_s": 13.199999999999996,
+      "value": -0.05
+    },
+    {
+      "start_s": 107.6,
+      "end_s": 112.3,
+      "duration_s": 4.800000000000004,
+      "value": 0.0
+    }
+  ],
+  "admitted_source_intervals": [
+    {
+      "time_s": 94.4,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 52.64755529604727,
+      "predecision_refill_elapsed_s": 100000094.4
+    }
+  ],
+  "physical_command_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 112.3,
+      "duration_s": 112.3,
+      "value": "RELEASE"
+    }
+  ],
+  "physical_head_notch_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.3,
+      "value": "release"
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 112.3,
+      "duration_s": 17.999999999999993,
+      "value": "cyclic"
+    }
+  ],
+  "safety_event_counts_by_recorded_column": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "safety_column_names": [
+    "coupler_force_limit",
+    "min_gap",
+    "overspeed",
+    "etcs_ebi",
+    "etcs_permitted"
+  ],
+  "diagnostic_stop_reason": "requested_stop_file",
+  "solver_status": "completed",
+  "note": "Source count takes priority over fallback command. Exact source-notch tuples were not archived. A 140 kPa request is not automatically ATP: inspect safety and physical notch events."
+}
