@@ -63,7 +63,7 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 4. **长训启动时必须登记**：启动器路径、输出目录、日志路径、`metadata.json` 的 `git_commit`、恢复命令（`--resume latest`）与预期机时（见 `REPRODUCIBILITY.md` §十「重训里程碑」模板）。
 5. **判活不看日志**：日志为 `>` 重定向 ⇒ 块缓冲，分钟级无新行属正常；一律用 `pgrep -af run_training.py` + `ps -o etime,pcpu -p <pid>`（教训 `LEARNINGS.md` LRN-20261001-014）。
 
-## claim 实验执行规范（2026-09-09 立；2026-10-12 ADR-032 覆盖——claim 改为"编队上下文协同增益"，本节协议仍有效，主指标以 `RESEARCH_POSITIONING.md` §1.6 为准）
+## claim 实验执行规范（2026-09-09 立；2026-10-19 ADR-042 覆盖——claim 改为"相对传统基线的编队指标收益"（无独立消融列），本节协议仍有效，主指标以 `RESEARCH_POSITIONING.md` §1.6 为准）
 
 > **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）→ 【2026-10-16，ADR-037 废止 Regime A 协议】**：本节旧协议（下方第 2 条）随 Regime B（ADR-016）与 Regime A（ADR-037）先后废止。**当前协议（ADR-037，2026-10-16）**：对比不设"逐线重喂 `grade_at`/在线标定 b0"协议——坡度是 MPC 固有输入（图纸天然先于运营存在），所有方法共用同一仿真器、环境与坡度数据、同档调参力度；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不作"免重辨识成本"叙事（ADR-032）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-037。下方旧协议文字原样保留，仅作历史。
 

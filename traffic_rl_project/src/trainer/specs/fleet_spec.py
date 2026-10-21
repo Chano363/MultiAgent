@@ -14,6 +14,7 @@ horizon >=1500 步时 on-policy 随机探索踩进"暴力 AB 吸态"且 value �
 """
 
 import logging
+import time
 
 import numpy as np
 
@@ -43,6 +44,11 @@ def warm_start_decompose_bc(
     if episodes <= 0:
         return
     env.max_steps = max(env.max_steps, max_steps)
+    # 【2026-10-21 治本｜静默训练】BC 采集阶段此前全程无日志（单核前台），
+    # 每次都要几分钟到十几分钟，与"卡死"无法区分。此处开跑即打印，并逐集回报进度。
+    t_bc = time.time()
+    logger.info(f"[BC] 规则基线演示采集开始：{episodes} 集 × ≤{max_steps} 步/集"
+                f"（采集期间无进度条属正常，下面逐集打印）")
     bc_obs, bc_acts = [], []
     for ep in range(episodes):
         obs, _ = env.reset(options={'speed': init_speed})   # (num_agents, obs_per_drone)
@@ -56,6 +62,8 @@ def warm_start_decompose_bc(
             done = bool(term or trunc)
             obs = next_obs
             step += 1
+        logger.info(f"[BC] 采集 {ep + 1}/{episodes} 集完成：本集 {step} 步，"
+                    f"累计 {len(bc_obs)} 步，已耗时 {time.time() - t_bc:.0f}s")
 
     num_agents = int(env.num_agents)
     obs_arr = np.asarray(bc_obs, dtype=np.float32).reshape(-1, agent.obs_per_drone)  # [N*6, 11]

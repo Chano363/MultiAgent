@@ -1,0 +1,303 @@
+# 立论级 Claim 台账（SSOT for 事实性断言）
+#
+# 作用：让"某个事实到底怎么表述"只有**一处权威**，其它文档只许引用/复述，不许另立说法。
+# 治理铁律（详见 scripts/check_claim_ledger.py 与待追认的 ADR）：
+#   1. claim 变更 = 改本台账 + 全仓 Grep 旧措辞（禁止"只在原位加补注"）
+#   2. 否定命题（polarity: negative，如"空白/未见/无人"）必须有检索台账支撑，
+#      且 grade 不得高于证据允许的等级；grade A = 本地全文一手
+#   3. 每条 claim 的 evidence 必须"存活"：文件存在 + 行号在范围内 + 锚词仍在该区间
+#   4. 旧措辞进 forbidden 列表，脚本一旦在非历史文档中命中即报错
+#
+# 历史日志（docs/logs/**）append-only，命中只记 WARN，不要求回改。
+
+meta:
+  version: 2
+  updated: "2026-10-20"
+  owner: 立论线
+  checker: scripts/check_claim_ledger.py
+  negative_requires: "A 全文级 + 检索台账"   # 否定命题的证据门槛
+
+  # 临时工具文档（与 PPT 大纲同质）：允许事实重复、不保证严谨。
+  # 规则：① 允许与台账/SSOT 措辞不一致（校验器只记 WARN）② 不得作为证据源
+  #      ③ 查阅资料/立论引用时禁止检索这些目录 ④ 未经 owner 允许禁止修改
+  ephemeral_globs:
+    - "ppt_talk/"
+    - "docs/杂项/"
+
+  # 写入保护：这些目录未经 owner 明确允许不得改动（校验器用 git 脏文件检测）
+  protected_globs:
+    - "ppt_talk/"
+    - "docs/杂项/"
+
+
+claims:
+
+  - id: C-LIT-01
+    statement: >-
+      Song2026 Tube-MPC 显式建模车钩力：多质点动力学含车钩力、多目标代价含"车钩力抑制"、
+      约束含车钩力 ±1500 kN，并在长大下坡工况仿真，峰值 330.4 kN（=安全约束限值的 22%）。
+      方法为 Tube-MPC（非 RL）。
+    polarity: positive
+    grade: A
+    status: active
+    ssot: docs/RESEARCH_POSITIONING.md
+    must_contain:
+      - "Song2026 Tube-MPC"
+      - "±1500 kN"
+    evidence:
+      - file: docs/papers/03_formation/Song2026_TubeMPC_fulltext.txt
+        lines: [23, 26]
+        anchor: "车钩力"
+      - file: docs/papers/03_formation/Song2026_TubeMPC_fulltext.txt
+        lines: [28, 32]
+        anchor: "下坡"
+      - file: docs/papers/03_formation/Song2026_TubeMPC_fulltext.txt
+        lines: [1400, 1406]
+        anchor: "1500kN"
+    notes: >-
+      2026-10-20 核验。此前全仓多处写作"无车钩力建模"，根因 = 该结论来自旧摘要页而非全文，
+      全文入库后未回验（R1/R2）。
+
+  - id: C-LIT-02
+    statement: >-
+      Song2026 MAPPO：车钩力不进奖励、不进观测（奖励 = 协同跟踪 + 相对间距势场 + 能耗；
+      观测 = [v, a, Δv, Δs, ev, φ(线路特征)]），但作为安全评价指标出现在 3.2.3 节与 Fig.7
+      （峰值约 300 kN）。即"不进 RL 决策目标"成立，"不进指标/全文无 coupler"不成立。
+    polarity: positive
+    grade: A
+    status: active
+    ssot: docs/RESEARCH_POSITIONING.md
+    must_contain:
+      - "Song2026 MAPPO"
+    evidence:
+      - file: docs/papers/03_formation/Song2026_MAPPO_fulltext.txt
+        lines: [233, 243]
+        anchor: "observation"
+      - file: docs/papers/03_formation/Song2026_MAPPO_fulltext.txt
+        lines: [356, 364]
+        anchor: "three sub-reward"
+      - file: docs/papers/03_formation/Song2026_MAPPO_fulltext.txt
+        lines: [1376, 1379]
+        anchor: "coupler force"
+    notes: >-
+      2026-10-20 核验。旧表述"车钩力不进奖励/指标（摘要与页面无车钩/coupler）"中
+      "页面全文无 coupler"来自摘要页，已证伪（R1）。
+
+  - id: C-LIT-03
+    statement: >-
+      Wang2026（IET ITS）为单列重载长大下坡分层 RL，车钩力限值 1100 kN，车钩力进状态与奖励（Rf）。
+    polarity: positive
+    grade: A
+    status: active
+    evidence:
+      - file: docs/papers/02_rl/Wang2026_hierRL_fulltext.txt
+        lines: [20, 23]
+        anchor: "1100"
+      - file: docs/papers/02_rl/Wang2026_hierRL_fulltext.txt
+        lines: [713, 725]
+        anchor: "coupler force reward"
+      - file: docs/papers/02_rl/Wang2026_hierRL_fulltext.txt
+        lines: [29, 32]
+        anchor: "steep downgrades"
+
+  - id: C-LIT-04
+    statement: >-
+      Wang/Zhan/Zhang（IEEE CCDC 2025）多列虚拟耦合重载 DMPC：5 列、每列 2 万 t（2×HXD2 + 214 C80B、
+      长 2.7 km），大秦线仿真，用 fence 法把邻车并为刚体降阶；模型为 n 质点 + n−1 车钩弹簧-阻尼
+      （取阻尼 d=0）；车钩力**同时**进代价项（最小化 in-train force）与**硬约束** |f_in| ≤ f_max = 2000 kN；
+      前车与跟驰车分别设计目标函数。方法为 DMPC（非 RL）。
+    polarity: positive
+    grade: A            # 本地全文（2026-10-20 入库）
+    status: active
+    external_doi: "10.1109/CCDC65474.2025.11091006"
+    evidence:
+      - file: docs/papers/03_formation/Wang2025_CCDC_DMPC_VC_HeavyHaul_fulltext.txt
+        lines: [381, 391]
+        anchor: "in-train force"
+      - file: docs/papers/03_formation/Wang2025_CCDC_DMPC_VC_HeavyHaul_fulltext.txt
+        lines: [404, 407]
+        anchor: "hard"
+      - file: docs/papers/03_formation/Wang2025_CCDC_DMPC_VC_HeavyHaul_fulltext.txt
+        lines: [544, 547]
+        anchor: "2000kN"
+      - file: docs/papers/03_formation/Wang2025_CCDC_DMPC_VC_HeavyHaul_fulltext.txt
+        lines: [473, 481]
+        anchor: "20,000-ton"
+    notes: >-
+      2026-10-20 外部检索发现；同日全文入库（`docs/papers/03_formation/Wang2025_CCDC_DMPC_VC_HeavyHaul.pdf`）。
+      **旧表述"车钩力进代价项，非硬约束"系摘要级误判**：全文 (10e)/(12e) 即 ±f_max 硬约束，
+      原文自述"both are the hard constraints"。它同时证伪"多列群组 × 机械车钩力硬约束 = 空白"。
+
+  - id: C-LIT-05
+    statement: >-
+      Ma/Zhou/Song/Wu/Dong（IEEE ITSC 2025）面向重载列车群组虚拟编组（3 列、每列车长 1567 m、
+      v_max 80 km/h、朔黄神池南—龙宫真实数据），提出 MIQP 参考速度 + GO-MADDPG（MARL，含 HER
+      目标导向、协同避撞与动作掩码）；**车辆为单质点模型**（a = (μt·Ft − μd·Fd − μc·Fc − R)/M），
+      状态 = [s, v, a, t, v_lim, ΣE_t, ΣE_c, s_g, a_ck]、奖励 = −(w1Z1+w2Z2+w3Z3) + 越限罚 Θ；
+      **全文无车钩力/列内力建模**（coupler 仅作背景词）。即"多列车组 + MARL"，缺车钩力。
+    polarity: positive
+    grade: A            # 本地全文（2026-10-20 入库）
+    status: active
+    external_doi: "10.1109/ITSC60802.2025.11423646"
+    evidence:
+      - file: docs/papers/03_formation/Ma2025_MADDPG_HeavyHaulGroup_fulltext.txt
+        lines: [339, 345]
+        anchor: "R(s"
+      - file: docs/papers/03_formation/Ma2025_MADDPG_HeavyHaulGroup_fulltext.txt
+        lines: [365, 372]
+        anchor: "(cid:52)t"
+      - file: docs/papers/03_formation/Ma2025_MADDPG_HeavyHaulGroup_fulltext.txt
+        lines: [494, 499]
+        anchor: "∀n=1,2,3"
+      - file: docs/papers/03_formation/Ma2025_MADDPG_HeavyHaulGroup_fulltext.txt
+        lines: [530, 534]
+        anchor: "Θ"
+    notes: >-
+      2026-10-20 外部检索发现；同日全文入库（`docs/papers/03_formation/Ma2025_MADDPG_HeavyHaulGroup.pdf`）。
+      原 notes 的"闭源、车钩力是否入模待核"**已解除**：全文为单质点纵向动力学，车钩力未进状态、
+      未进奖励、未进约束，结果指标也只有目标值/运行时分/能耗/空气制动时长/速度与距离偏差。
+      故该篇坐实「多列车组 × MARL，缺车钩力」一格（英文全文级证据，与 C-LIT-13 同类）。
+
+  - id: C-LIT-06
+    statement: >-
+      Fang/Cai/Qiu/Peng/Zhang（IEEE ISPA 2025）以 APF + DRL 做重载列车车厢级协同跟踪，
+      以最小化车厢间车钩力为目标；对象为单列（车厢级多智能体），非多列车组。
+    polarity: positive
+    grade: B            # 摘要级
+    status: active
+    external_doi: "10.1109/ISPA67752.2025.00156"
+
+  - id: C-LIT-07
+    statement: >-
+      Wang2025（IEEE ICIRT 2025）为单列重载，车钩力已进 reward 多目标加权：
+      最大拉力 −9.64%、最大压力 −28.77%。（本地无全文，摘要级）
+    polarity: positive
+    grade: B
+    status: active
+    external_doi: "10.1109/ICIRT66379.2025.11216684"
+
+  - id: C-LIT-08
+    statement: >-
+      Zhang2024（长大下坡循环制动 DQN）原文明确未计车间相互作用力：
+      "interaction forces between the cars are not taken into account"；
+      Liu2021 本地无一手，按同组引用。
+    polarity: positive
+    grade: A
+    status: active
+    evidence:
+      - file: docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt
+        lines: [150, 156]
+        anchor: "interaction forces between the cars"
+
+  - id: C-LIT-09
+    statement: >-
+      清华大学学位论文《基于深度强化学习的货运列车自动驾驶控制方法研究》：针对重载货运巡航中
+      多机车同步控制车钩力过大，提出 IDS + 独立深度 Q 学习（IDQN）的**多智能体异步控车**算法，
+      使主控机车把车钩力信息传播给从控机车。对象为**单列车内多机车**，非多列车组。
+    polarity: positive
+    grade: B            # 检索摘要级，未获全文
+    status: active
+    external_doi: "https://newetds.lib.tsinghua.edu.cn/qh/paper/summary?dbCode=ETDQH&sysId=266610"
+    notes: >-
+      2026-10-20 中文通道（网页代理）发现。它是"多智能体 RL + 车钩力"的最强邻居，
+      但智能体粒度 = 单列车内部机车/车辆 ≠ 多列车组，故不占 C-GAP-01 的格子。
+
+  - id: C-LIT-10
+    statement: >-
+      王建华, 王春毅, 曾周, 王聪, 王青元, 杨航. 基于强化学习的重载组合列车长大下坡操纵优化研究[J].
+      机车电传动, 2023(6): 139-146：2 万 t 重载组合列车、长大下坡循环制动、RL 寻优，
+      目标为减小纵向冲动与最大车钩力（单列）。
+    polarity: positive
+    grade: B            # 摘要级
+    status: active
+    external_doi: "10.13890/j.issn.1000-128X.2023.06.017"
+    notes: >-
+      2026-10-20 中文通道发现，本地库与 refs.bib 均未登记。再次证伪"长大下坡+重载+车钩力"三元组空白。
+
+  - id: C-LIT-11
+    statement: >-
+      万方学位论文《基于深度强化学习的多列车运行协同优化控制方法》：多列车 + DRL 协同优化，
+      主题为节能/运行协同，摘要未见车钩力（待核全文）。
+    polarity: positive
+    grade: B
+    status: active
+    external_doi: "https://d.wanfangdata.com.cn/thesis/D04328548"
+
+  - id: C-DIFF-01
+    statement: >-
+      问题的内在难点（非本项目实施难点）：列尾压强（充风程度）是循环制动**拉钩力**的主导变量——
+      三列试闸判据**全部通过**的列车（列尾 585 / 589 / 593 kPa），第一把闸缓解时最大拉钩力分别为
+      **742 / 1058 / 1337 kN（+80%）**，而最大压钩力几乎不变（1161≈1150≈1166 kN）；
+      峰均发生在 −10.2‰ 长大坡道缓解时刻。即"操规可用观测量"与"真实安全量"之间存在结构性缺口。
+    polarity: positive
+    grade: A            # 数据表 SSOT = 信息卡（原始 PDF 与全文同目录）
+    status: active
+    evidence:
+      - file: docs/papers/01_coupler_physics/刘博阳2022_列尾压强与车钩力.md
+        lines: [67, 81]
+        anchor: "1337"
+    notes: >-
+      刘博阳, 魏伟, 豆飞. 重载列车制动力判断标准及纵向冲动研究[J]. 大连交通大学学报, 2022, 43(6): 38-44.
+      DOI 10.13291/j.cnki.djdxac.2022.06.007。数据为 TABLDSS 高精度仿真（LTD benchmarking 获奖系统），
+      非实测；引用时定位为"定量规律来源"。用途：立论五问的(a)内在难点与(c)前人不足。
+
+  - id: C-DIFF-02
+    statement: >-
+      问题的内在难点（时标失配）：空气制动的充风/缓解时标为**百秒量级**——制动后充风至少 160 s，
+      2.1 万吨列车尾部管压回升至 590 kPa 需约 210 s；常用制动波速 225–255 m/s 且前向快于后向，
+      导致"指令→车钩力响应"存在随编组长度变化的长滞后。
+    polarity: positive
+    grade: B            # 文献转述（转述记录在诊断日志；原始出处见 REFERENCE_INDEX）
+    status: active
+    evidence:
+      - file: docs/logs/diagnostics/DIAGNOSTICS_2026-10.md
+        lines: [1448, 1451]
+        anchor: "210 s"
+    notes: >-
+      用途：立论五问的(a)内在难点。数值为文献转述（北工大多质点模型制动策略 / 景生启分步循环制动 /
+      两万吨组合列车制动特性 2007），非本项目实测；本项目实测充风 222 s 另见 ADR-017 与诊断日志。
+
+  - id: C-LIT-12
+    statement: >-
+      高济康（华东交通大学，2025 硕士论文）《基于动态规划和深度强化学习的重载列车群组运行优化》：
+      基于虚拟编组建立**重载列车群组运行模型**与群组动态安全间隔模型，引入翟方法求解组内多质点
+      纵向动力学，提出 **EWM-DQN 的群组多目标优化算法**；朔黄真实数据仿真显示可减小群组列车
+      **最大车钩力**、降能耗、提升平稳性并压缩追踪距离。**单智能体 DQN + 动态规划，非 MARL**。
+    polarity: positive
+    grade: B            # 万方题录 + 摘要级；全文需机构访问
+    status: active
+    external_doi: "https://d.wanfangdata.com.cn/thesis/Ch1UaGVzaXNOZXdTb2xyOVMyMDI2MDkxNjA5NDMzMhIJRDA0NDMwMzI0GghqazNtN2d3aA%3D%3D"
+    notes: >-
+      2026-10-20 万方通道发现，**本轮最重要的邻居**：它是"多列车组 + RL + 车钩力为优化目标之一"的
+      首个中文占位，把「车钩力进 RL 目标」这一维度从"空白"降为"已有（非 MARL）"。
+      待核：车钩力是进 DQN 奖励项、还是仅在评价中体现（摘要只说"能够更有效减小…最大车钩力"）。
+
+  - id: C-LIT-13
+    statement: >-
+      谌墨（北京交通大学，2024 硕士论文，导师蒋海林）《基于多智能体强化学习的虚拟编组列车协同控制方法》：
+      CTDE 架构 + **MADDPG（MARL）** 做虚拟编组列车组（VCTS）协同控制，建模动态编组、紧密追踪、
+      动态解编与安全制动间隔。详情页关键词计数 **车钩力 = 0**，即不涉及机械车钩力。
+    polarity: positive
+    grade: B            # 万方详情页摘要级
+    status: active
+    external_doi: "https://d.wanfangdata.com.cn/thesis/Ch1UaGVzaXNOZXdTb2xyOVMyMDI2MDkxNjA5NDMzMhIIWTQzNTM5NDgaCHlkMWIxem5u"
+    notes: >-
+      2026-10-20 万方通道发现：占"多列车组 + MARL"格（与 Song2026 MAPPO、Ma2025 ITSC 同格），
+      但**不占**"车钩力"格 → 与 C-LIT-12 恰好互不重叠，二者共同界定剩余空格。
+
+  - id: C-GAP-01
+    statement: >-
+      据系统检索未见（截至 2026-10-20；通道 = Semantic Scholar + arXiv + 万方）：
+      同时满足"**多列车组**（智能体粒度 = 列车）× **车钩力进入 RL 决策目标** × **MARL**"三要素的工作。
+      最近邻三类各缺一角：C-LIT-12 高济康2025（多列群组 + DQN + 车钩力为优化目标之一，**缺 MARL**）、
+      C-LIT-13 谌墨2024 与 C-LIT-05 Ma2025（多列车组 + MARL，**缺车钩力**；后者已全文核实为单质点模型）、
+      C-LIT-01 Song2026 Tube-MPC 与 C-LIT-04 CCDC2025 DMPC（多列 + 车钩力进代价/硬约束，**非 RL**）。
+    polarity: negative
+    grade: B            # 英文 S2/arXiv + 万方题录级；CNKI 被滑块拦截；高济康全文未见
+    status: verified_three_channels
+    search_ledger: docs/logs/verification/NEGATIVE_SEARCH_2026-10-20.md
+    notes: >-
+      **禁止扩写**为"长大下坡 + 重载 + 车钩力 = 空白"（已被 C-LIT-01/03/04/10 占位），
+      **也禁止**写作"无人在多列车组层面处理车钩力/车钩力进 RL 目标"——C-LIT-12 已破这半格。
+      唯一可主张的交集必须三要素同时列出，且写"据系统检索未见"。
+      边界口径：智能体粒度 = 列车；单列车内部的机车级/车厢级多智能体（C-LIT-06/09）不算占位。

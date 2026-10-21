@@ -1,8 +1,10 @@
-# 可复现性说明（ITSC 2026 投稿附）
+# 可复现性说明（原论文稿附；论文稿已删除，本文档保留作历史复现参考）
 
-> 本文档汇总论文 `ITSC_PAPER.md/.tex` 所有实验的确切运行命令、随机种子、checkpoint 与数据文件，保证审稿与读者可复现。
+> 本文档汇总原论文稿（已删除）所有实验的确切运行命令、随机种子、checkpoint 与数据文件，保证审稿与读者可复现。
 
 > **【superseded 声明（2026-09-22，ADR-013）】**：本文档正文（二\~九节）对应的实验体系为**已下线的编队层阈值 RL 方案**（`train_fleet.py --hierarchical`，M1/M3、M-DQN、50-seed，R0 旧物理）——该"编队层（列车级）RL + 列内层（机车级）RL 两层叠加"框架已于 **ADR-013（2026-09-08）废止**，相关历史数值不作当前主结果引用。历史命令/数值/seed 全部原样保留，仅供回溯与复现旧方案。**现行方案（formation-aware 机车级 ED/AB 分工，唯一 RL 落位）的复现命令见文末「十、现行方案复现」一节**。权威出处：`docs/logs/decisions/DECISIONS.md` ADR-013。
+
+> **【删除关联声明（2026-10-19）】**：原论文稿 `ITSC_PAPER.md/.tex/.pdf` 已删除（目标会议更换，不再是 ITSC）；本文档保留作历史实验复现参考，论文重写后重建复现文档。权威出处：`docs/logs/decisions/DECISIONS.md`。
 
 ***
 
@@ -109,10 +111,10 @@ python src/evaluation/evaluate_m1_m3_long.py mpc --n_seed 1
 ```
 cd traffic_rl_project/docs
 conda activate traffic_rl   # 环境含 tectonic 0.17.0
-tectonic ITSC_PAPER.tex     # → ITSC_PAPER.pdf（6页，0 Overfull）
+tectonic ITSC_PAPER.tex     # → ITSC_PAPER.pdf（6页，0 Overfull；源稿已删除，命令仅存档）
 ```
 
-> 唯一权威 = `docs/ITSC_PAPER.md / .tex / .pdf`（旧中文对照版及产物已删，见 git 历史）。
+> 原"唯一权威"论文稿 `docs/ITSC_PAPER.md / .tex / .pdf` 已于 2026-10-19 全部删除（目标会议更换），见 git 历史。
 
 ## 八、关键参数（论文 Table I）
 
@@ -233,7 +235,7 @@ python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --grade <
 
 > 注：`--mode` 的合法取值是 `all / decompose_m1 / decompose_m0 / mpc / single`（无 `decompose`；旧文档写 `--mode decompose` 属笔误，2026-10-01 更正）。
 
-- 跨线协议（ADR-037，2026-10-16；2026-10-12 起作 M2 储备）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 用该线坡度数据（固有输入），**不设逐线重喂 `grade_at`/标定 b0 协议**（ADR-037 废止 Regime A；ADR-016 已废止 Regime B），不作成本叙事。核心 claim（2026-10-12 ADR-032）= **编队上下文协同增益**。
+- 跨线协议（ADR-037，2026-10-16；2026-10-19 ADR-042 起升格为正式实验组别）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 用该线坡度数据（固有输入），**不设逐线重喂 `grade_at`/标定 b0 协议**（ADR-037 废止 Regime A；ADR-016 已废止 Regime B），不作成本叙事。核心 claim（2026-10-19 ADR-042）= **相对传统基线的编队指标收益**（主对比物理关闭车钩力，无独立消融列）。
 
 **消融（杠杆隔离）**：`--mask_lever ed/ab`（ED-only / AB-only），留痕见 `docs/logs/diagnostics/`。
 

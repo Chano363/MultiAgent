@@ -802,3 +802,105 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - 不再将1350/1500kN作为当前方案的通过标准。不额外引入900kN强制验收线；预留裕量若作诊断须另行注明。
 - 本次改变验收指标，不将紧急保护触发阈值自动改为1000kN；紧急保护与验收是不同语义。安全层存在不代表1000kN已得到数学或实验保证。
 - 旧两万吨配置、原始结果与历史档位原样保留，仅作历史，不能据其峰值声称当前方案通过。当前万吨三列效果须重新验证。
+
+## ADR-041 实验矩阵单列维度全线移除（单列车钩附录废止 + 单列 RL 训练线终止） - 2026-10-18
+
+- **状态**：决策 + 文档层已落地（RESEARCH_POSITIONING.md §1.6 / AGENTS.md / docs/tasks.md / HANDOFF_2026-10-17.md P3 加注 / `.trae/documents/single-train-coupler-rl-plan.md` 头部标终止；历史日志 logs/ 与 ADR 原文 append-only 不改）。
+- **背景（2026-10-18 用户裁定，承接 2026-10-17 学长指导）**：学长指导第 6 条明确"三列必须基于群体跑（要基于定义），**没有必要做单列 RL**"；第 8 条指出应关注**群组运行的协同优势**而非车钩力单列表现。ADR-038 已移主表"单列 RL 范式行"，但实验矩阵仍残留两处单列项：① ADR-034 决策 8 的"单列车钩附录（防御展品）"；② 单列车钩力 RL 训练任务线（`.trae/documents/single-train-coupler-rl-plan.md`，其定位"充当主表单列 RL 范式行 + 与队友编队策略拼接"已被 ADR-038 与学长指导双重否定）。用户裁定：单列的东西全部移出实验矩阵。
+- **决策**：
+  1. **单列车钩附录（ADR-034 决策 8 防御展品）废止**：论文不再设"单列车钩维度"分册；对"单列车钩不如软通道方法"类攻击的防线改为 related work 文本（承诺等级说明，沿 ADR-034 决策 5 口径：软/硬通道只解释自家架构）+ 不可主张清单，不占实验与篇幅。
+  2. **单列车钩力 RL 训练线终止**：`single_20kt_coupler_rulecal.yaml` 不再作 RL 训练入口（`run_training.py` 单列开训不再执行）；该线两个既有目的（充当单列 RL 范式行 / 单列策略与编队策略拼接）均不成立——编队上下文由 formation 主线一体承载（ADR-013），单列 RL 无落位。
+  3. **明确保留（非实验矩阵项）**：**单列场景作为规则层标定试验台**（`rule-layer-operating-calibration-plan.md` P0–P3、A–AG 轮继续有效）——被标定的列内规则循环制动为编队线共用资产，标定属工程前置非论文实验；`single_20kt_coupler_rulecal.yaml` 保留为该标定专用配置（三列 1+108 方案的对应配置见 ADR-039 的 `single_10kt108_coupler_rulecal.yaml`，以队友落地为准）。
+  4. **不变**：文献单列 RL = related work 文本（ADR-038）；D-RL（独立）消融列 = 多列独立决策，非单列，不变；H1–H3、防守句式、Formation-MPC 红线不变。
+- **后果**：对比实现工作量进一步减少（无单列 RL 训练、无单列附录）；HANDOFF_2026-10-17 P3 待办中"single_20kt 开训实测"一项作废，P2 规则层标定达标后的下一 RL 训练 = formation 主线（三列 1+108，ADR-039）；**无物理与代码改动**（配置文件保留，仅用途降级）。
+- **SSOT 联动**：`RESEARCH_POSITIONING.md` §1.6（分维度对比结构句覆盖修订）；`AGENTS.md`（最新 ADR 指针 + 主表条目补注）；`docs/tasks.md` 第 9 条；`docs/HANDOFF_2026-10-17.md` §6 加注；`.trae/documents/single-train-coupler-rl-plan.md` 头部标终止。
+- **相关**：ADR-038（主表移除单列 RL 行，本 ADR 为其收尾）、ADR-039/ADR-040（三列 1+0 编组与 1000 kN 验收，本 ADR 落地时已合入 develop）、ADR-034（决策 5/8，被本 ADR 部分修订）、ADR-013（唯一 RL 落位=formation-aware，本 ADR 的立论依据）。
+
+## ADR-042 废除独立消融列，核心命题改为相对传统基线的编队指标收益 - 2026-10-19
+
+- **状态**：决策 + 文档层已落地（`RESEARCH_POSITIONING.md` §1.6/§1.5 覆盖修订、`AGENTS.md`、`docs/PROJECT_PIPELINE.md`、`docs/杂项/项目介绍和问题简述.md`、TRAIN_ENV_SAFETY / MPC_BASELINE 知识库、`docs/rules/EXECUTION_RULES.md`、`docs/REPRODUCIBILITY.md`、`ppt_talk/midterm_20261018/OUTLINE.md`；历史日志与旧版 PPT 归档不改）。
+- **背景（2026-10-19 用户拍板）**：原核心 claim"编队上下文协同增益"（ADR-032）以 D-RL（独立）消融列为唯一证据承载。用户裁定废除独立消融，理由：① **真实运营场景不存在"三列群组各自独立运行"的工况**——虚拟编组的业务前提就是协同运行，独立组不是真实可对照的运行模式；② 独立消融把研究命题强行从"多列协同控制优于传统方法"扭到"编队信息增益分解"，偏离工程命题、说明不了核心问题。同期实验矩阵最终版确定：主对比场景**物理关闭车钩力**、只比编队指标；基线明确为 Tube MPC（Song2026 管式预测控制架构，即 ADR-034 之 Formation-MPC 的具体形态，车钩约束显式关闭）；跨线泛化升格为正式组别。
+- **决策**：
+  1. **废除 D-RL（独立）消融列**：退出实验矩阵，不再作为 claim 证据；观测屏蔽的代码能力保留（工程开关），不进论文主实验；被审稿人要求时的回应预案 = "真实运营无此运行模式，对比聚焦传统基线横向比较"（结构性论证，revision 预案，不作主表行）。
+  2. **核心 claim 覆盖修订**：由"编队上下文协同增益（消融承载，ADR-032）"改为**"相对传统基线的编队指标收益"**——formation-aware 机车级 MARL 相比规则基线（D-Rule）与 Tube MPC，显著改善列距保持与列间速度差收敛；车钩力 ≤1000 kN 由安全防护架构保证，**不作对比胜出主张**。
+  3. **主对比场景物理关闭车钩力**：三方法在关闭车钩力物理的同一剖面上只比编队指标（列距、列间速度差）；车钩力验收由本方法安全架构（规则循环制动 + 安全防护逻辑）与前期方案 49.6 km 全程评估（峰值 956 kN，须带"前期方案"标注，ADR-039 隔离令）承载，不进主对比评估。
+  4. **跨线泛化升格正式组别**：训 49.6 km → 测 35 km（域外真实剖面），本文方法严格零微调（原 M2 储备并入矩阵）。
+  5. **H1–H3 预注册覆盖**：H1 = 主对比列距保持优于两基线；H2 = 列间速度差收敛优于两基线；H3 = 跨线泛化性能保持（劣化有界）。原 ADR-034 的 H1（formation vs 独立）/H2（车钩超限对比）随消融废除一并废止。
+  6. **证伪与止损更新**：废止"独立组 1 seed 冒烟"条款；新止损 = 主对比不优于规则基线时，先迭代规则层参数与奖励设计再重评。
+  7. **"三项不加"沿革**（ADR-034）：安全层关断消融、外部 MARL 算法行、单智能体参照行仍不加，登记 revision 预案。
+- **后果**：对比实验工作量下降（少一组同规模训练/评估）；claim 证据结构简化为"与两类传统基线对比 + 跨线保持"；"编队上下文"保留为方法设计概念（观测与 formation-aware 命名不变），不再作增益分解主张。
+- **SSOT 联动**：`RESEARCH_POSITIONING.md` §1.6（覆盖修订）/§1.5（主对比结构、主指标）/§1.4 研究问题句；`AGENTS.md`（MPC 对比口径行 + 车钩异构行）；`docs/PROJECT_PIPELINE.md`；`docs/杂项/项目介绍和问题简述.md`（实验矩阵表 + 核心观点）；`docs/knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md`、`docs/knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md`；`docs/rules/EXECUTION_RULES.md`；`docs/REPRODUCIBILITY.md`。
+- **相关**：ADR-032（旧 claim，被本 ADR 覆盖）、ADR-034（主表结构/H1–H3，被本 ADR 覆盖修订）、ADR-037（MPC 公允三条件，继续有效）、ADR-039/ADR-040（编组与 1000 kN 验收，继续有效）、ADR-041（单列维度移除，本 ADR 延续其矩阵收敛方向）。
+
+## ADR-043 编队奖励重构 v6：13 项收敛为 6 个文献槽位，删车钩均值项 - 2026-10-20
+
+- **状态**：决策 + 文档层落地（本 ADR / `knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` §4/§6 / `REFERENCE_INDEX.md` / `logs/diagnostics/DIAGNOSTICS_2026-10.md`）；代码改动（`src/environments/train_fleet_env.py` + 2 测试文件）随本 ADR 同批落地。
+- **背景（2026-10-20 用户拍板）**：编队线奖励经历次训练事故补丁累积至 13 项，远超同类编队 RL 文献（本地 8 篇 + 网络补 5 篇精读，普遍 3–5 项目标项，约束下沉动作空间/安全层）。用户要求按文献槽位收敛。**Wang2026 一手 PDF 复核结论**：其车钩项 `Rf = −exp(−f_c,max/F_c,max)` 原文确为如此（此前"疑 OCR 漏 `(1−)`"的判断被一手证据推翻），该式 `f` 越小罚越重、单调方向与"车钩力约束"目的相反，**不可照抄**。
+- **决策**：
+  1. **速度槽**：领航列带内由"中心峰 `+6·(1−0.9δ)`"改**平顶 `+5`**（对齐 Zhang2024 式22 `Rd=+5`）；带外比例罚与超速硬罚**保留不合并**——复核算得"并入"会把超速罚由约 −8.6 削至约 −3.6 /(m/s)，与 v1"贴上限超速"教训冲突。
+  2. **跟随列槽**：相对速度镜像 + 绝对线速兜底保留（Guo2025 leader/follower 异构奖励有先例）。
+  3. **间距槽**：效率项 + 危险项保留（ADR-026 两段式；形状与 Song2026 倒数势场、Hua2024 ReLU 近距罚同型）。
+  4. **车钩槽**：**删均值项** `−0.2·mean(obs[:,5])`（无文献锚，且口径为每车净力 ≠ 断面力 SSOT）——**部分推翻 ADR-021"不动 mean 权重"**；峰值比项改 **`−w_f·(1−exp(−p̂))`**（取 Wang2026 式17 同型有界饱和形、修正其单调方向），与 ADR-021 超限项 `−6·min(p̂−1,2)` 并联。
+  5. **删 a² 项**（原误标"舒适"）：文献一致用 `jerk²`，且 Song2026 明写 jerk 与车钩力变化率直接相关——jerk 是车钩力的代理，本项目已直接量测断面力车钩力，**不加 jerk**（代理冗余）。
+  6. **删追尾趋势罚与追尾硬罚**：危险项 `−60·õ²` 已不封顶；文献对碰撞的普遍处理 = 大罚 + 终止。
+  7. **电空分工槽保留**：AB 需求罚锚由 Zhang2024 式22 补强为 Wang2026 式16 `Rb` 充风约束（与本项目 obs[11] 充风就绪度 ADR-030 同源）；ED 微成本保留。
+- **后果**：`REWARD_SCHEMA` v5 → **v6**；v5 与 v6 结果**不可比，须重训**；奖励由 13 项收敛为 **6 槽位**（领航速度 / 跟随速度 / 间距效率 / 间距危险 / 车钩 / 电空分工）；新参数（平顶 `+5`、峰值比权重 `w_f`）随重训标定。历史 v5 归档与日志 append-only 不改。
+- **SSOT 联动**：`knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` §4（奖励构成表 / 车钩项行）+ §6（奖励叙事）；`REFERENCE_INDEX.md`（新增"公式借鉴"行）；`logs/diagnostics/DIAGNOSTICS_2026-10.md`（改造记录）。
+- **相关**：ADR-021（mean 权重被本 ADR 部分推翻；超限项及其上界 −12 保留）、ADR-026（间距两段式保留）、ADR-028（危险项穿透有界化保留）、ADR-014 / ADR-018（车钩力定位与断面力口径不变）、ADR-030（AB 充风就绪度观测）。
+
+## ADR-044 立论级事实单一副本 + 渲染覆盖 + 临时工具文档豁免 - 2026-10-20
+
+- **状态**：决策 + **已落地**（台账 `docs/CLAIM_LEDGER.yaml`、守卫 `scripts/check_claim_ledger.py` / `scripts/render_claims.py`、负结果台账 `docs/logs/verification/NEGATIVE_SEARCH_2026-10-20.md`、SSOT `RESEARCH_POSITIONING.md` §1.2/§1.6 覆盖修订、`AGENTS.md` 指针、`docs/README.md` 登记）
+- **背景（2026-10-20 核验会话）**：用户指出"文献表述错误伴随项目几乎整个生命周期"，定性为**项目级失误、影响全部立论**。核验确认 Song2026 Tube-MPC **显式建模车钩力**（多质点动力学含车钩力、多目标代价含车钩力抑制、约束 ±1500 kN、长大下坡工况、峰值 330.4 kN = 限值 22%，本地全文 `docs/papers/03_formation/Song2026_TubeMPC_fulltext.txt:23-26 / 28-32 / 1400-1406`），据此全仓 16 处"无车钩力建模"类表述作废（**属文献事实纠错，不涉立论变更**）。
+- **根因（6 条，均有留痕证据）**：
+  1. **R1 否定命题用最弱证据**：ADR-033 据 `Song2026_MAPPO_HeavyHaulGroup.html`**摘要页**断言"页面全文无车钩/coupler"；
+  2. **R2 全文入库未回验**：`REFERENCE_INDEX.md:51` 记全文 2026-10-13 入库，该判断未按全文复核；
+  3. **R3 知识未传导（最严重）**：`DIAGNOSTICS_2026-10.md:1227`（10-07）已记"Song2026 TubeMPC 建模车钩力=是（±1500 kN）"，6 天后 ADR-034 仍写"无人在多列车组层面处理车钩力"，§1.2 至今写"几乎空白"；
+  4. **R4 关键词偏置**：检索以 coupler 为中心，摘要用 `in-train force` 的 CCDC2025 DMPC、通篇不提车钩的 Ma2025 ITSC（GO-MADDPG，多列 MARL）被漏；
+  5. **R5 检到却填错格**：`DIAGNOSTICS_2026-10.md:1429` 把 CCDC2025 DMPC 列入"车钩力进 MPC 代价项"，`:1434` 又写"多列 × 机械车钩力硬约束=空白（CCDC2025 无机械车钩）"——同节自我否证；
+  6. **R6 无负结果台账**：每次复核从零开始，"没找到"不可审计、无法发现上次排除错了。
+  - **结构性诊断**：事实被**抄写**在散文里 → 多副本 → **一个约束只要有两个入口就等于没有约束**；叠加规章通胀稀释权威，导致"该遵循的被绕过、装饰性规则天天拦人"。
+- **决策**：
+  1. **单一副本**：立论级事实的权威措辞只存在于 `docs/CLAIM_LEDGER.yaml`（字段：`statement` / `polarity` / `grade` / `evidence`（file+lines+anchor）/ `external_doi` / `search_ledger` / `ssot`）。**其它非临时文档禁止复述事实，只许引用 claim id**（如"见 §1.2 C-LIT-01"）。
+  2. **渲染覆盖（消灭"抄写"动作）**：SSOT 用受控区块 `<!-- claim:ID begin/end -->` 承载事实，`scripts/render_claims.py` 从台账生成；手改区块 → `[DRIFT]`，`--write` 直接覆盖。**追认原则：被覆盖的区块不可能被绕过**（与 `outputs/` 不许覆写历史同类约束）。
+  3. **证据分级与否定命题门槛**：A = 本地全文一手 / B = 摘要级或闭源 / C = 推断。**否定命题（空白 / 未见 / 无人）必须 grade=A 且挂 `search_ledger` 文件**，否则校验器 ERROR；措辞上限 = **"据系统检索未见（截至 <日期>，通道 <c>）"**，禁用"空白/首创/首次"。
+  4. **负结果台账**：`docs/logs/verification/NEGATIVE_SEARCH_YYYY-MM-DD.md`——检索式 / 通道 / 年份 / 命中数 / 逐条排除理由 / **未覆盖通道声明**。缺此文件不得写否定结论。
+  5. **临时工具文档豁免（用户 2026-10-20 裁定）**：`ppt_talk/**` 与 `docs/杂项/**` 与 PPT 大纲同质 = **临时工具文档**——① 允许事实重复、不保证严谨（校验器只记 WARN）；② **不得作证据源**（`evidence`/`ssot` 指向即 ERROR）；③ **查阅资料与立论引用时禁止检索这些目录**；④ **未经 owner 允许禁止修改**（`--check-protected` 用 git 脏文件检测，`--strict` 升 ERROR）。
+  6. **合入门禁三件套**：`pytest tests/ -q` + `check_agents_links.py` + (`check_claim_ledger.py` && `render_claims.py`)，任一非 0 不许合入。
+  7. **写入面约束**：agent 只允许写 `outputs/` 与 `docs/logs/`；台账与 SSOT 的改动须 owner 签（脚本防不住"有写权限的 agent"，只能靠权限面）。
+- **同批修复（本次）**：清除 `AGENTS.md`(3) / `RESEARCH_POSITIONING.md`(6) / `PROJECT_PIPELINE.md`(1) / `MPC_BASELINE_KNOWLEDGE_BASE.md`(1) 共 **11 处**禁用措辞（另 4 处位于 `docs/杂项/`、2 处位于 `ppt_talk/`，按决策 5 保留）；§1.2 表 3 行改为"已有占位 + 见 C-LIT-xx"，边界段改为 9 个渲染区块；新增台账条目 C-LIT-07（Wang2025 ICIRT）、C-LIT-08（Zhang2024 原句 / Liu2021 无一手）。
+- **校验结果**：`check_agents_links` → OK（44 个 ADR）；`check_claim_ledger` → **ERROR 0 / WARN 16**（历史日志 10 + 杂项 4 + PPT 2，均属豁免；另 1 条否定命题等级提示）；`render_claims` → 9 区块与台账一致。
+- **遗留**：C-LIT-04/05/06 仍为 B 级（摘要级 / 闭源）；`C-GAP-01` 状态 `pending_cn_channel`——**CNKI/万方未跑**，故论文措辞只能是"英文通道据系统检索未见"；Ma2025 ITSC 闭源待核（其 MIQP"safety constraints"是否含车钩力未知）。
+- **SSOT 联动**：`RESEARCH_POSITIONING.md` §1.2（表 + 渲染区块 + 措辞纪律）/ §1.6（Tube MPC 口径改指针）；`AGENTS.md`（最新 ADR 指针、§规范性问题两处）；`docs/README.md`（登记台账 + 负结果台账）；`PROJECT_PIPELINE.md`；`knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md`。
+- **相关**：ADR-030 / ADR-033（真空白边界，本 ADR 只补机制不改边界）；ADR-034（不可主张清单，继续有效）；ADR-042（实验矩阵，继续有效）；ADR-043（奖励 v6，无冲突）。
+
+## ADR-045 中文库核验落地：万方通道打通 + 真空白收窄为三要素交集 - 2026-10-20
+
+- **状态**：决策 + 已落地（`CLAIM_LEDGER.yaml` 新增 C-LIT-09~13、C-GAP-01 改写；`RESEARCH_POSITIONING.md` §1.2 渲染区块 14 条；`logs/verification/NEGATIVE_SEARCH_2026-10-20.md` 增中文通道两节）
+- **背景（2026-10-20 工具链 + 核验）**：用户要求自行解决浏览器自动化。实测：`npx` 引导脚本损坏（`npm/node_modules/npx/index.js` 缺失），改用 **Python Playwright**（`pip install playwright` + 镜像下载 Chromium 1248）成功。通道可行性实测：**CNKI 被滑块验证拦截**（`knn.cnki.net` → `/verify/home?captchaType=blockPuzzle`，页面无检索框）、**百度学术同样被安全验证拦截**、**万方智搜可正常返回结构化结果**；维普可访问但检索式语义漂移。
+- **核验命中（关键）**：
+  1. **C-LIT-12 高济康（华东交通大学 2025 硕士）**《基于动态规划和深度强化学习的重载列车群组运行优化》：基于虚拟编组建立**群组运行模型 + 群组动态安全间隔**，翟方法求解组内多质点动力学，**EWM-DQN 群组多目标优化**，朔黄真实数据仿真**减小群组列车最大车钩力**并降能耗/提平稳/压缩追踪距离。**单智能体 DQN + 动态规划，非 MARL**。
+  2. **C-LIT-13 谌墨（北京交通大学 2024 硕士）**《基于多智能体强化学习的虚拟编组列车协同控制方法》：CTDE + MADDPG，VCTS 协同控制；详情页关键词计数 **车钩力 = 0**，不涉机械车钩力。
+  3. C-LIT-09 清华学位论文（IDS+IDQN 多机车、车钩力信息传播，单列车内）、C-LIT-10 王建华2023、C-LIT-11 万方多列车 DRL（节能/无车钩）。
+- **决策**：
+  1. **"车钩力进 RL 目标"这半格空白作废**——C-LIT-12 已占位（多列车组 + RL + 车钩力为优化目标之一）。全仓不得再写"无人在多列车组层面处理车钩力 / 车钩力进 RL 目标是空白"。
+  2. **`C-GAP-01` 收窄为三要素交集**：「多列车组（智能体粒度 = 列车）× 车钩力进 RL 决策目标 × MARL」；最近邻三篇各缺一角（12 缺 MARL / 13 缺车钩力 / Song2026 Tube-MPC 非 RL）。状态升级为 `verified_three_channels`（S2 + arXiv + 万方），词条等级仍 **B**。
+  3. **论文措辞定稿方向**（三条线各自走到边界，不是"没人做车钩力"）："multi-train RL with coupler force in the objective (Gao 2025, single-agent DQN) / multi-train MARL without coupler force (Chen 2024; Song 2026b; Ma 2025) / multi-train MPC with a hard coupler constraint (Song 2026a) —— 据系统检索未见三者同时满足者"。
+  4. **通道纪律**：CNKI 结构性不可得（滑块），中文侧以万方题录为准并标注"题录级"；负结果台账必须写明未覆盖通道。
+- **待核（升格前必须做）**：C-LIT-12 全文——车钩力是否进 DQN 奖励项 `r_t`；若已进，则"车钩力进 RL 目标"连 MARL 侧的 delta 也受压，`C-GAP-01` 需再次收窄，且触发 ADR-034 不可主张清单复核。
+- **后果**：`RESEARCH_POSITIONING.md` §1.2 的立论差异由"加入车钩力"彻底改为"**把车钩力凭证从单列/单智能体挪到多列车组 × 多智能体**"（原表述本已被 ADR-030/033 收窄，本 ADR 提供了首个中文一手占位证据）。
+- **相关**：ADR-030 / ADR-033（真空白边界，本 ADR 首次发现触碰该边界的实证）；ADR-034（若 C-LIT-12 车钩力进奖励落地，需复核不可主张清单）；ADR-044（台账机制，本次变更即在其机制下发生）。
+
+## ADR-046 两篇邻居全文核验落地：C-LIT-04 硬约束纠错 + C-LIT-05 单质点确认 - 2026-10-20
+
+- **状态**：决策 + 已落地（`CLAIM_LEDGER.yaml` C-LIT-04/05 升 grade A 并改判、C-GAP-01 最近邻补全；`RESEARCH_POSITIONING.md` §1.2 区块经 `render_claims.py --write` 重渲染；`docs/papers/03_formation/` 新增 PDF + fulltext 各 2 份；`papers/README.md`、`REFERENCE_INDEX.md`、`refs.bib` 三处登记；`NEGATIVE_SEARCH_2026-10-20.md` 追加"全文核验补记"节；`DIAGNOSTICS_2026-10.md` 追加同题小节）。
+- **背景**：ADR-045 遗留"C-LIT-04/05 仍为 B 级、Ma2025 闭源待核"。用户自出版社下载两篇全文，并指出"若不人工看全文，投稿前会被错误表述带进去"。核验发现的**不是措辞瑕疵，而是方向相反的误判**：C-LIT-04 被写成"车钩力只进代价项、非硬约束"，而全文 (10e)/(12e) 恰是 ±2000 kN 硬约束（原文自述 "both are the hard constraints"）；C-LIT-05 被写成"闭源、车钩力是否入模未知"，而全文为单质点模型、通篇无车钩力。
+- **决策**：
+  1. **C-LIT-04 改判并升 A**：多列 DMPC = n 质点 + n−1 车钩弹簧-阻尼（工程取 d=0），车钩力**同时**进代价项与**硬约束**（±2000 kN）；5 列 × 2 万 t（2×HXD2 + 214 C80B、2.7 km）、大秦线、fence 法邻车并刚体降阶。全仓禁止再写"CCDC2025 DMPC 车钩力非硬约束 / 无机械车钩"。
+  2. **C-LIT-05 升 A**：Ma2025 = 3 列重载群组 + GO-MADDPG（MARL）+ MIQP，**车辆为单质点模型**，车钩力不进状态/奖励/约束/结果指标 → 坐实「多列车组 × MARL，缺车钩力」，属反例侧的**英文全文级**证据。
+  3. **C-GAP-01 三要素结论不变**，仅补全最近邻：缺 MARL 侧 = C-LIT-12；缺车钩力侧 = C-LIT-13（中文题录级）+ C-LIT-05（英文全文级）；非 RL 侧 = C-LIT-01 Song2026 Tube-MPC（±1500 kN）+ C-LIT-04 CCDC2025 DMPC（±2000 kN）。
+  4. **全文抽取规范（工具层）**：IEEE 双栏 PDF 必须按**词级坐标分栏**重抽（`extract_words` 后按 x0 切栏再按 top 归行）；默认 `extract_text` 会把两栏交错，产生"读起来像原文、实为跨栏拼接"的假内容。本轮两篇 fulltext 均按此生成并在台账登记行号锚点。
+  5. **MPC 基线备选（待决项，本轮不改实验矩阵）**：Wang2025 的 DMPC 形态可作为主表 MPC 行的第二参照（更贴近工程标准：多列 + 车钩硬约束 + 2 万 t 级）。是否替换由 owner 拍板；若替换，会连带改写"主对比物理关闭车钩力"的口径与防守句式，故不在本轮动手。
+- **后果**：立论侧"多列层面对付车钩力"已无任何空白可主张（MPC 侧两个独立先例）；剩余唯一空格 = **MARL × 车钩力进 RL 决策目标**，措辞仍锁"据系统检索未见"。同类风险新增一条机械护栏：**禁止仅凭摘要页/题录页断言"某文献有没有建模"**（已属 FORBIDDEN 规则族，由 `check_claim_ledger.py` 守卫）。
+- **连带收窄（"硬保证通道"的表述边界）**：C-LIT-05 全文显示 Ma2025 已有**动作掩码 + 安全保护曲线**双层安全（信号级动作过滤）。故"我们有硬保证、对手只有软奖励"对 Ma2025 **不成立**；ADR-034 的两条可主张 delta 中，"硬保证通道"必须限定为**保证对象 = 车钩力（≤1000 kN 物理量）**，而非泛指"有硬机制"。写作红线：对比 Ma2025 只谈"车钩力是否入目标/入硬保证"，不谈"谁更安全"。
+- **相关**：ADR-030 / ADR-033（claim 收窄史）、ADR-044（台账 + 渲染机制）、ADR-045（中文通道与三要素收窄，本 ADR 关闭其遗留项）；`C-LIT-01/02`（Song2026 两篇的正确表述，ADR-045 已改）。

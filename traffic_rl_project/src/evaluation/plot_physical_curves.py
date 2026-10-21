@@ -438,46 +438,47 @@ def fig_coupler_hysteresis(out):
     （预压 200 kN / Stribeck 750/500 解析式已废止，不再作为图内注释）。
     本图展示 MT-2 特征：查表迟滞环（接触缓升、无预压阶跃）、2270 kN 饱和上限、
     ±10 mm 游隙死区。
+    【2026-10-17 用户要求】图内文字改中文（标题/轴/图例/注释），版式对齐旧英文参考图；
+    注释内容仍按现行 fl/fu 查表模型描述，不恢复已废止的预压/Stribeck 标注。
     """
     from src.train_dynamics.params import CouplerParams
-    specs = [('MT-2 friction spring buffer (unified on all couplers)', CouplerParams())]
+    specs = [('MT-2 摩擦弹簧缓冲器（全列车钩统一采用）', CouplerParams())]
     fig, ax = plt.subplots(figsize=(8, 6.5))
     for title, p in specs:
         lp = _hysteresis_loop(p)
         ax.plot(lp['e_c'] * 1000, lp['load_c'] / 1e3, color='#1f77b4', lw=1.6,
-                label='Loading (compression)')
+                label='加载（压缩）')
         ax.plot(lp['e_c_un'] * 1000, lp['unload_c'] / 1e3, color='#2ca02c', lw=1.6,
-                label='Unloading (compression recovery)')
+                label='卸载（压缩恢复）')
         ax.plot(lp['e_t'] * 1000, lp['load_t'] / 1e3, color='#d62728', lw=1.6,
-                label='Loading (tension)')
+                label='加载（拉伸）')
         ax.plot(lp['e_t_un'] * 1000, lp['unload_t'] / 1e3, color='#ff7f0e', lw=1.6,
-                label='Unloading (tension recovery)')
+                label='卸载（拉伸恢复）')
         ax.axhline(0, color='k', lw=0.6); ax.axvline(0, color='k', lw=0.6)
         ax.axvline(p.stroke_m * 1000, color='gray', ls=':', lw=1.0)
         ax.axvline(-p.stroke_m * 1000, color='gray', ls=':', lw=1.0)
-        ax.axhline(p.max_impulse_n / 1e3, color='gray', ls='--', lw=1.0, alpha=0.7)
-        ax.annotate('Dead zone ±%d mm\n(no force within the gap)' % (p.coupler_gap_m * 1000),
-                    xy=(p.coupler_gap_m * 1000, 20), xytext=(-105, -2050), fontsize=8,
+        ax.axhline(p.max_impulse_n / 1e3, color='gray', ls='-.', lw=1.0, alpha=0.7)
+        ax.annotate('死区 ±%d mm\n（游隙范围内不传力）' % (p.coupler_gap_m * 1000),
+                    xy=(p.coupler_gap_m * 1000, 20), xytext=(-100, -2150), fontsize=8,
                     arrowprops=dict(arrowstyle='->'))
-        ax.set_xlabel('Buffer displacement (mm)')
-        ax.set_ylabel('Coupler force (kN)')
+        ax.set_xlabel('缓冲器位移 (mm)')
+        ax.set_ylabel('车钩力 (kN)')
         ax.set_title(title, fontsize=10)
         ax.legend(fontsize=8, loc='upper right')
         ax.grid(alpha=0.3)
-        ax.set_xlim(-105, 105); ax.set_ylim(-2600, 2850)
-        ax.text(30, p.max_impulse_n / 1e3 + 90,
-                'Saturation limit 2270 kN', fontsize=8, color='gray')
-        ax.annotate('Rong2025 fl/fu table, velocity method\n(soft rise at contact, no preload step)',
+        ax.set_xlim(-105, 100); ax.set_ylim(-2400, 2650)
+        ax.text(20, p.max_impulse_n / 1e3 + 90,
+                '饱和上限 2270 kN', fontsize=8, color='gray')
+        ax.annotate('接触段缓升、无预压阶跃\n（容嘉欣2025 fl/fu 查表 + 速度法选支）',
                     xy=(25, 538), xytext=(-100, 900), fontsize=8,
                     arrowprops=dict(arrowstyle='->'))
-        ax.text(-100, -1500, 'Branch separation grows with compression\n'
-                '(displacement axis includes ±10 mm dead zone)',
+        ax.text(-100, -1500, '加载/卸载分支分离随行程增大\n（横轴含 ±10 mm 游隙死区）',
                 fontsize=8, color='#2ca02c')
         peak_c = float(np.nanmax(np.abs(lp['load_c']))) / 1e3
         peak_t = float(np.nanmax(np.abs(lp['load_t']))) / 1e3
         logger.info('[self-check] %-7s loading peak: compression %.0f / tension %.0f kN '
                     '(limit %d kN)', 'MT-2', peak_c, peak_t, int(p.max_impulse_n / 1e3))
-    fig.suptitle('Loading and Unloading Hysteresis of the MT-2 Coupler Buffer', fontsize=12.5)
+    fig.suptitle('MT-2 车钩缓冲器加载-卸载迟滞环', fontsize=12.5)
     save_fig(fig, out)
     logger.info('[self-check] MT-2: dead zone ±10mm, Rong2025 fl/fu table + velocity method, '
                 'stroke 83mm, limit 2270kN; 全列统一 MT-2（QKX100 已移除）')

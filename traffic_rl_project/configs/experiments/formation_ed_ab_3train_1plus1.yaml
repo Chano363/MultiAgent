@@ -66,7 +66,7 @@ curriculum: 500:0,1000:10,1200:20   # 【2026-09-15 诊断固化 + ADR-017 §1�
                                # ⚠️ 评估时域 ≠ 训练时域（ADR-017 §2）：完整剖面（49km）**独立单独跑**；
                                # 旧注释里的"53km 全程由多段 1200 步评估拼接覆盖"**已 SUPERSEDED**，禁止再引用。
 n_env: 4                       # 【ADR-017 配套 + 诊断-2026-09-10】并行 rollout ≥4 条独立短轨迹：advantage 信噪比 ×n_env，
-                               # 且 value 不被单条长轨迹绑架。配合 curriculum horizon ≤1200 步使用（>1200 会放大缓冲区方差）。
+                              # 且 value 不被单条长轨迹绑架。配合 curriculum horizon ≤1200 步使用（>1200 会放大缓冲区方差）。
 parallel_traj_len: 0           # 0 = 沿用 curriculum horizon（≤1200 步）；勿设为 >1200（诊断-2026-09-10 反例）
 warm_start: true               # 【必须采用】先用规则基线做行为克隆（BC）热启动，再 RL 微调 → 保安全探索
 bc_episodes: 3                 # 与已验证配方一致（诊断-2026-09-15「nenv_BCws」）

@@ -25,7 +25,7 @@
 4. **辅助件约定**：同名 `.md` = **该文献数据 SSOT**；`*_fulltext.txt` = 字符检索件；`*.csv` = 提取数据（如 `Zhao2022_fig53_velocity_anchors.csv`）。
 5. **不可得文献**：只记入页末「暂无本地文件（待补 / 不可得）」，不为其建占位页。
 
-**当前状态**：本地文件 86 个（PDF / txt / md / html / csv），已按子目录归类如下（「文件」列均为所在子目录内文件名）。
+**当前状态**：本地文件 95 个（**仅 01–05 五个主题子目录**，PDF / txt / md / html / csv；不含 `arxiv_src/` 与 `来自学姐的部分文献/`），已按子目录归类如下（「文件」列均为所在子目录内文件名）。
 
 ---
 
@@ -84,6 +84,8 @@
 | `Hua2024_MARL_CACC_EnergyEfficiency.pdf`、`.txt` | Communication-Efficient MARL for Platoon Stability and Energy-efficiency Co-optimization in CACC of CAVs | Min Hua 等 / 2024（出处待补） | — | CACC MARL 节能（+5.8%） |
 | `Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf` | Safe Optimal Train Formation Control in Virtual Coupling Using Control Barrier Functions | Y. Li, Y. Tong, A. Giua / 2024 | 2024 IEEE CASE, DOI 10.1109/CASE59546.2024.10711420 | CBF/CLF + QP 安全控制 |
 | `1037_Corrected_FINAL_ITSC_2025.pdf` | Virtual Coupling Train Following Control Using High Order Control Barrier Functions | Yike Li, Yin Tong, Alessandro Giua / 2025 | ITSC 2025（IEEE；DOI 待核） | HOCBF 虚拟耦合跟随控制（RBD 安全） |
+| `Ma2025_MADDPG_HeavyHaulGroup.pdf`、`_fulltext.txt` | Virtual Coupling-Enabled Trajectory Optimization for Heavy-Haul Train Group: A Goal-Oriented MADDPG Approach | Xiaolan Ma, Min Zhou, Haifeng Song, Wei Wu, Hairong Dong / 2025 | 2025 IEEE 28th ITSC, pp.4504-4509, DOI 10.1109/ITSC60802.2025.11423646 | **多列车组 + MARL 同赛道对手（C-LIT-05，全文已核）**：3 列 × 1567 m、朔黄神池南—龙宫、v_max 80 km/h；**单质点模型，全文无车钩力**（状态/奖励/约束/指标均无）→ 坐实「多列车组 × MARL，缺车钩力」一格 |
+| `Wang2025_CCDC_DMPC_VC_HeavyHaul.pdf`、`_fulltext.txt` | Distributed Model Predictive Control for Virtually Coupled Heavy-Haul Trains | Chao Wang, Jingyuan Zhan, Liguo Zhang / 2025 | 2025 37th Chinese Control and Decision Conference (CCDC)（IEEE）, pp.4563-4568, DOI 10.1109/CCDC65474.2025.11091006 | **多列 + 车钩力 DMPC（C-LIT-04，全文已核）**：5 列 × 2 万 t（2×HXD2 + 214 C80B、2.7 km、大秦线）；n 质点 + n−1 车钩弹簧-阻尼（d=0）；**车钩力同时进代价项与硬约束 ±2000 kN**；**MPC 基线备选参照**（见 ADR-046 待决项） |
 
 ## 四、`04_safety_mpc/` — 安全层 / MPC
 

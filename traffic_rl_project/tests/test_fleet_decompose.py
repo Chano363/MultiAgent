@@ -221,14 +221,11 @@ def test_decompose_reward_ab_more_expensive_than_ed():
     ctrl = env.multi_loco_controllers[0]
     zero = np.zeros((2, 2))
     final0, _ = ctrl.get_action_decomposed(tr, zero, v_max=env.v_max, v_min=env.v_min)
-    # 用纯规则基线跑一步作参照
-    accels = np.zeros(1)
+    # 用纯规则基线跑一步作参照（v6 起 _calculate_reward_decomposed 无 obs/accels 传参）
     r_base = env._calculate_reward_decomposed(
-        env._get_obs_decomposed(), accels, ab_count=0,
-        ed_sum=float(np.sum(final0[:, 0])))
+        ab_count=0, ed_sum=float(np.sum(final0[:, 0])))
     r_ab = env._calculate_reward_decomposed(
-        env._get_obs_decomposed(), accels, ab_count=2,
-        ed_sum=float(np.sum(final0[:, 0])))
+        ab_count=2, ed_sum=float(np.sum(final0[:, 0])))
     assert r_base == r_ab  # AB 成本已归零（AB 是手段、车钩力是目标，诊断-2026-09-05）
 
 

@@ -43,8 +43,16 @@ from src.train_dynamics.etcs_braking import (
 # 【2026-10-14 ADR-036 门限档位化】车钩限值成为 env 可配（1.0e6/1.5e6 档），
 # reward 超限项分母随运行配置变 ⇒ 按 ADR-026 同款纪律升 schema：v4 与 v5 结果
 # 仅在 coupler_force_limit_n 相同（1.0e6）时可直接比较；不同限值档必须按档位分别归档。
-REWARD_SCHEMA = 'v5-coupler-tier-limit'
-# 超限项权重（与速度带带内最高收益 +6.0/列 同量级；刻意远小于已回滚的 -80·ov² 硬惩罚）。
+# v6 = v5 + 按文献槽位收敛（ADR-043 2026-10-20）：13 项 → 6 槽位；领航带内改平顶；
+# 车钩删均值项、改峰值比有界饱和形（Wang2026 式17 同型、修正其单调方向）；删 a²/追尾趋势/追尾硬罚。
+# v5 与 v6 结果不可比，须重训。
+REWARD_SCHEMA = 'v6-literature-slots'
+# 【ADR-043】领航列带内平顶正奖（对齐 Zhang2024 式22 Rd=+5；替代旧"中心峰 +6→0"）。
+SPEED_BAND_W = 5.0
+# 【ADR-043】车钩力峰值比塑形权重：-w_f·(1-exp(-p̂))，p̂ = 本步断面力峰值/限值。
+# 取 Wang2026 式17 的有界饱和形并修正其单调方向（原文 -exp(-f/F) 单调反常，见 ADR-043）。
+COUPLER_PEAK_W = 0.3
+# 超限项权重（与速度带带内最高收益 +5.0/列 同量级；刻意远小于已回滚的 -80·ov² 硬惩罚）。
 COUPLER_OVER_W = 6.0
 # 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -12。
 COUPLER_OVER_CAP = 2.0
@@ -947,7 +955,6 @@ class TrainFleetEnv:
                 f"decompose 动作形状应为 {(self.num_agents, 2)}, 实际 {actions.shape}"
             )
         self._safety_events = 0
-        accels = np.zeros(self.num_trains)
         ab_count = 0       # 本步激活的 AB 源总数（奖励塑形：AB 贵）
         ed_sum = 0.0       # 本步 ED 深度合计（ED 便宜，鼓励 ED 优先）
         # 【ADR-021 决策3 / D】安全层对 AB 的"禁新增源"本步计数（跨列车累加）。
@@ -1037,7 +1044,6 @@ class TrainFleetEnv:
             # 【ADR-021 决策3 / D】聚合本列的安全层 AB 权限计数（子环境 info 上抛）
             ab_safety_vetoed_count += int(bool(_pt_info.get('ab_safety_vetoed', False)))
             self._train_heads[ti] = float(tr.dynamics.pos[0])
-            accels[ti] = (float(tr.dynamics.vel[0]) - v_before) / max(self.dt, 1e-6)
             # 【ADR-021 决策2 2026-10-01】reward 峰值口径改**断面力**（coupler_interface_forces，
             # 长度 n-1）：原用每车净力 _coupler_forces() 少报约 7.8×，使"破线/不破线"在 reward
             # 里几乎不可区分。此为**有意**口径变更（ADR-018 指标 SSOT = 断面力）→ 会改变 reward
@@ -1053,8 +1059,8 @@ class TrainFleetEnv:
             self._safety_events += tr._safety_events
 
         obs = self._get_obs_decomposed()
-        reward = self._calculate_reward_decomposed(obs, accels, ab_count, ed_sum,
-                                                   step_coupler_peak_n=self._step_coupler_peak_n)
+        reward = self._calculate_reward_decomposed(
+            ab_count, ed_sum, step_coupler_peak_n=self._step_coupler_peak_n)
         self.steps += 1
         terminated = False
         truncated = self.steps >= self.max_steps
@@ -1077,23 +1083,24 @@ class TrainFleetEnv:
         }
         return obs, reward, terminated, truncated, info
 
-    def _calculate_reward_decomposed(self, obs: np.ndarray, accels: np.ndarray,
-                                     ab_count: int, ed_sum: float,
+    def _calculate_reward_decomposed(self, ab_count: int, ed_sum: float,
                                      step_coupler_peak_n: float = None) -> float:
-        """decompose 模式奖励：限速区间 + 车钩力 + 舒适 + 电空分工塑形。
+        """decompose 模式奖励（v6-literature-slots，ADR-043）：13 项收敛为 6 个文献槽位。
 
-        与旧模式共享的语义（speed_band/车钩力/舒适/列间间距）沿用原权重；
-        新增电空分工塑形（ADR-009.1 第2层"ED 优先 + AB 兜底"）：
-        - AB 使用成本 -0.2/源/步：AB 是车钩力（纵向冲动）主源且难恢复（充风时间长），
-          让 RL 学"ED 打满、AB 只在 ED 不足时兜底"——这是本架构给 RL 的真物理杠杆；
-        - ED 轻成本 -0.02/深度：防无谓满 ED（如低速滑行），但远低于 AB 成本。
+        - 领航列速度带：带内平顶 +5 / 带外比例罚 / 超线速硬罚（Zhang2024 式22 Rd=+5）
+        - 跟随列速度：相对前列镜像 + 绝对线速兜底（Guo2025 leader/follower 异构）
+        - 间距效率 / 间距危险：ATP 对齐两段式（ADR-026；Song2026 势场 / Hua2024 近距罚同型）
+        - 车钩力：峰值比有界饱和塑形 + 受控超限项（Wang2026 式17 同型 + ADR-021）
+        - 电空分工：AB 需求塑形 + ED 微成本（Zhang2024 式22 / Wang2026 式16 Rb 充风约束）
+
+        v6 删除项（ADR-043）：a²（原误标"舒适"；文献一致用 jerk²，且 Song2026 明写 jerk 是
+        车钩力变化率代理——本项目直接量测断面力车钩力，无须代理）；追尾趋势罚与追尾硬罚
+        （危险项 -60·õ² 已不封顶，文献对碰撞 = 大罚 + 终止）；车钩均值项 -0.2·mean(obs[:,5])
+        （口径为每车净力 ≠ 断面力 SSOT，且无文献锚）。
         """
         # 【相对列距锚定 2026-09-10】限速区间（循环制动核心）只由领航列承载绝对带责任，
-        # 跟随列改为相对锚定前列（列距由 gap_reward 承担、相对速度在此镜像），
+        # 跟随列改为相对锚定前列（列距由 gap 承担、相对速度在此镜像），
         # 避开 53km 多坡段"绝对同速物理不可达"（诊断-2026-09-10 发散短训 35ep 复现）。
-        # 文献基准：Zhang2021 逐 agent 连续 APF / Guo2025 大负值硬奖惩（超速不可容忍）；
-        # 旧"逐列独立绝对带 + 全局 std 同速"(V3.5.3b) 在 53km 仍是发散根因之一，此处废止为
-        # "领航列绝对带 + 跟随列相对锚定"。
         speed_band_reward = 0.0
         rel_anchor_reward = 0.0
         v_center = 0.5 * (self.v_min + self.v_max)
@@ -1104,46 +1111,44 @@ class TrainFleetEnv:
             if ti == 0:
                 # 领航列：锚绝对带（编队节奏负责人）
                 norm_dev = abs(v - v_center) / max(band_half, 1e-6)
-                if norm_dev <= 1.0:           # 带内：越近中心奖越大（+6 → 0）
-                    speed_band_reward += 6.0 * (1.0 - 0.9 * norm_dev)
+                if norm_dev <= 1.0:
+                    # 【ADR-043】带内平顶（对齐 Zhang2024 式22 Rd=+5）——带内无中心梯度
+                    speed_band_reward += SPEED_BAND_W
                 else:                          # 越带：越深越罚
                     speed_band_reward -= 0.2 * (norm_dev - 1.0) * 100.0
-                if v > self.v_max:             # 超线路限速 → 不可容忍硬罚
+                # 超线路限速 → 不可容忍硬罚；【ADR-043】**保留不并入带外罚**（并入会把总超速
+                # 斜率由约 -8.6 削至约 -3.6 /(m/s)，与 v1"贴上限超速"教训冲突）。
+                if v > self.v_max:
                     force_penalty -= 5.0 * (v - self.v_max)
             else:
                 # 跟随列：镜像前列可行轨迹（相对速度匹配）——不再被绝对带拖累
                 lead_v = float(self.trains[ti - 1].dynamics.vel[0])
                 rel_spd_norm = (v - lead_v) / self.REL_ANCHOR_SPD_SCALE
                 rel_anchor_reward += self.REL_ANCHOR_SPD_W * max(0.0, 1.0 - rel_spd_norm ** 2)
-                # 跟随列绝对线速兜底（轻权重，主要靠 ETCS+车钩钳制；不强行与带中心一致）
+                # 跟随列绝对线速兜底（轻权重，主要靠 ETCS + 车钩钳制；不强行与带中心一致）
                 if v > self.v_max * 1.05:
                     force_penalty -= 3.0 * (v - self.v_max)
-        # 编队级联稳定性：删除旧全局 rel_vel_penalty(std 全列速度)——逐列绝对同速在 53km
-        # 多坡段不可达，已由逐对相对速度镜像(rel_anchor_reward) + 相对列距(gap_reward)替代。
 
-        # 车钩力约束（创新点）。2026-09-10 回滚 SSOT：破线由底层硬安全层 enforce_coupler
-        # 杜绝（车钩力定位 = 硬安全层≤1000kN + 观测上下文，不作 reward 强化最小化对象）。
-        # 此处仅保留"用本步全列真实峰值"作观测塑形（旧用 obs[:,5] 机车局部值 → 低估；
-        # 全列真实峰值更贴合物理约束），但不再施加 -80·ov² 二次硬惩罚——量纲(|-80| >> 带内
-        # 收益 ~6)使 value 目标震荡、KL 频繁早停，是诊断-2026-09-10 训练不稳的直接诱因之一；
-        # 且破线本就该由安全层兜底，非 reward 职责（SSOT：硬安全层 + 观测上下文）。
-        coupler_means = obs[:, 5] if self.num_agents else np.zeros(1)
+        # 车钩力约束（创新点）。破线由底层硬安全层 enforce_coupler 杜绝
+        # （车钩力定位 = 硬安全层 + 观测上下文，不作 reward 强化最小化对象）。
+        # 【ADR-043】删旧均值项 -0.2·mean(obs[:,5])（口径为每车净力 ≠ 断面力 SSOT，且无文献锚）；
+        # 峰值比塑形取 Wang2026 式17 同型有界饱和形 -(1-exp(-p̂)) 并修正其单调方向
+        # （原文 -exp(-f/F) 单调反常 ⇒ 不可照抄，见 ADR-043）。
         if step_coupler_peak_n is not None and step_coupler_peak_n > 0:
             peak_n_norm = step_coupler_peak_n / max(self.coupler_force_limit_n, 1e-9)
         else:
-            peak_n_norm = float(np.max(coupler_means)) if len(coupler_means) else 0.0
-        coupler_term = -0.2 * float(np.mean(coupler_means)) - 0.2 * peak_n_norm
+            peak_n_norm = 0.0
+        coupler_peak_term = -COUPLER_PEAK_W * (1.0 - float(np.exp(-peak_n_norm)))
 
-        # 【ADR-021 决策2 2026-10-01】车钩力"受控超限项"（文献 Tang2020 / Wang2025）：
-        # 保留"不作均值最小化"原则（不动 mean(obs[:,5]) 权重），仅对**断线峰值超限**加深
-        # 有界梯度。上界 -12 与带外速度惩罚（norm_dev=2 → -20）同档但更小；**刻意避免**
-        # -80·ov² 量级（回滚原因：value 目标震荡 / KL 频繁早停，见上方 :757-760 注释）。
-        # peak_n_norm < 1（未破线）时该式恒为 0（over=0）。
+        # 【ADR-021 决策2 / ADR-043 修订】车钩力"受控超限项"（文献 Tang2020 / Wang2025）：
+        # 仅对**断线峰值超限**加深有界梯度；上界 -12 与带外速度惩罚同档但更小，**刻意避免**
+        # -80·ov² 量级（回滚原因：value 目标震荡 / KL 频繁早停）。
+        # peak_n_norm < 1（未破线）时该式恒为 0（over=0）。ADR-043 起均值项已删，只保留峰值口径。
         over = max(0.0, peak_n_norm - 1.0)
         coupler_over_term = -COUPLER_OVER_W * min(over, COUPLER_OVER_CAP)
 
-        # 舒适性（同旧模式）
-        comfort_penalty = -0.3 * float(np.mean(accels ** 2)) if len(accels) else 0.0
+        # 【ADR-043 删】原 a² 舒适项已删除：文献一致用 jerk²（Song2026/Hu2026/Guo2025），
+        # 且 Song2026 明写 jerk 是车钩力变化率代理——本项目直接量测断面力车钩力，无须代理。
 
         # 列间间距（多列 decompose 后叠阶段复用；单列时无项）
         # 【ADR-026 2026-10-04】改为"ATP 对齐两段式"：效率项（贴近 d_eff=1.1·d_safe 越好）
@@ -1152,9 +1157,6 @@ class TrainFleetEnv:
         # 也在危险区没有梯度（gap≤70m 后恒为 -200），实测最小列距掉到 19m。
         gap_eff_reward = 0.0
         gap_danger_penalty = 0.0
-        collision_penalty = 0.0
-        gap_trend_penalty = 0.0
-        current_gap_err = []
         if self.num_trains > 1:
             for i in range(1, self.num_trains):
                 lead_tail = float(self.trains[i - 1].dynamics.pos[-1])
@@ -1162,7 +1164,6 @@ class TrainFleetEnv:
                 d_safe = self._atp_safe_gap(i)
                 if d_safe is None:
                     d_safe = self._dynamic_gap()   # 回退（无 ETCS 曲线等）
-                current_gap_err.append(actual_gap - d_safe)
                 d_eff = GAP_EFF_MARGIN * d_safe
                 # 效率项：gap ≥ d_eff 时，越接近 d_eff（间距越小）奖励越高；再大则衰减到 0。
                 if actual_gap >= d_eff:
@@ -1176,26 +1177,17 @@ class TrainFleetEnv:
                 # 无量纲、量级有界）；非穿透路径（d_safe>1）行为不变。
                 if actual_gap < d_safe:
                     denom = d_safe if d_safe > 1.0 else GAP_DANGER_REF_M
-                    over = (d_safe - actual_gap) / denom
-                    gap_danger_penalty -= GAP_DANGER_W * over * over
-                if actual_gap < 5.0:
-                    # 追尾硬惩罚（保留旧降软值，仅作最后兜底；主要靠上面的危险项）
-                    collision_penalty -= 10.0
-            if self._prev_gap_err is not None and len(current_gap_err) == len(self._prev_gap_err):
-                for i, cur in enumerate(current_gap_err):
-                    # 间距在缩小且已贴近安全线（gap-d_safe < 20m）→ 追尾趋势 → 提前惩罚
-                    shrink = self._prev_gap_err[i] - cur
-                    if shrink > 0.5 and cur < 20.0:
-                        gap_trend_penalty -= 0.4 * shrink
-            self._prev_gap_err = current_gap_err
+                    over_gap = (d_safe - actual_gap) / denom
+                    gap_danger_penalty -= GAP_DANGER_W * over_gap * over_gap
+                # 【ADR-043 删】追尾硬罚（-10, gap<5m）与趋势罚（-0.4·shrink）已删除：
+                # 危险项 -60·õ² 已不封顶、量级远大于二者；文献对碰撞的普遍处理 = 大罚 + 终止。
 
         # 电空分工塑形（本架构核心）。诊断-2026-09-25：原 `ab_cost=0.0` 使 AB 在奖励上
         # 完全中性、且在触发舒适/车钩项时被隐式扣分 → seed0 退化成"纯 ED 蠕行"
         # （完整 53km 评估 ab_steps=0、pe41248kN 超限、band 6%、末速18km/h 失速）。
-        # 文献张2024_DQN_CyclicBraking_Bownhill 式22："越限 Rc<0 罚 / AB engaged=0 /
-        # 释放 Rd>0 奖"的需求驱动塑形。此处对齐但避免引入大系数致 value 震荡（KL 早停）：
-        # 用"领航列带外/超速"作为制动需求信号，needy 时 AB 未参与 → 加惩罚，
-        # 使"AB 是带内唯一守住速度带的手段"从 reward 里自然涌现。
+        # 文献：Zhang2024 式22（带外/超速 = 制动需求信号，AB 未参与则罚）；Wang2026 式16 Rb
+        # 充风约束（与本项目 obs[11] 充风就绪度 ADR-030 同源）。用"领航列带外/超速"作需求信号，
+        # needy 时 AB 未参与 → 加惩罚，使"AB 是带内唯一守住速度带的手段"从 reward 里自然涌现。
         ab_cost = 0.0
         # 需求信号 = 领航列是否带外（norm_dev>1）或超线速（v>v_max）。这些量在带内 retable 为 0
         needs_brake = 0.0
@@ -1214,10 +1206,7 @@ class TrainFleetEnv:
             + force_penalty
             + gap_eff_reward
             + gap_danger_penalty
-            + gap_trend_penalty
-            + collision_penalty
-            + comfort_penalty
-            + coupler_term
+            + coupler_peak_term
             + coupler_over_term
             + ab_cost
             + ed_cost

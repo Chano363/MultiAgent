@@ -186,9 +186,9 @@ def test_fleet_gap_danger_penalty_bounded_on_penetration():
     # 构造 53m 穿透（两对跟随列各越其前列车尾 53m）
     env._train_heads[1] = float(env.trains[0].dynamics.pos[-1]) + 53.0
     env._train_heads[2] = float(env.trains[1].dynamics.pos[-1]) + 53.0
-    obs = env._get_obs_decomposed()
+    # v6 起 _calculate_reward_decomposed 无 obs/accels 传参（ADR-043）
     reward = env._calculate_reward_decomposed(
-        obs, np.zeros(env.num_trains), 0, 0.0, step_coupler_peak_n=0.0)
+        0, 0.0, step_coupler_peak_n=0.0)
     assert np.isfinite(reward)
     # 修复前 ≈ -3.4e5（两对 × -1.7e5）；修复后两对合计约 -50，断言远高于爆炸量级。
     assert reward > -3000.0

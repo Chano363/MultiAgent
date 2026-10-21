@@ -144,6 +144,7 @@ class TrainRunner:
                 warm_start_decompose_bc(
                     inter.agent, env,
                     episodes=cfg.bc_episodes, bc_epochs=cfg.bc_epochs,
+                    max_steps=int(getattr(cfg, 'bc_max_steps', 1500)),
                     init_speed=cfg.env_cfg.get('init_speed_kmh', cfg.init_speed_kmh) / 3.6,
                 )
 
@@ -213,6 +214,12 @@ class TrainRunner:
                 from src.trainer.parallel_rollout import ParallelRollout
                 parallel = ParallelRollout(cfg, n_env)
                 logger.info(f"[并行 rollout] 进程级并行已启用：n_env={n_env} 个 worker 进程")
+            elif n_env > 1:
+                # 【2026-10-21 治本｜静默/慢】不满足并行条件时明确告警，避免"以为在并行、其实单核串行"。
+                logger.warning(
+                    f"[并行 rollout] 未启用（n_env={n_env}）：本回合单核串行跑 {n_env} 条轨迹。"
+                    f"排查：n_env_parallel=true？interaction=mappo_fleet？obs=env？reward!=cyclic？"
+                    f"非 hetero？formation_start_randomization 是否误开？")
 
             start = time.time()
             for ep in range(run_episodes):
@@ -364,15 +371,21 @@ class TrainRunner:
                 if long_eval > 0 and (ep + 1) % long_eval == 0:
                     self._long_eval(agents, cfg, namer, global_ep + 1, best_eval)
 
-                if (ep + 1) % cfg.log_interval == 0 or ep == run_episodes - 1:
+                # 【2026-10-21 治本｜静默训练】首集必打 + 每 log_interval 打 + 末集必打，
+                # 并附"每集均时 / 已耗时 / ETA" ⇒ 任何时候都能从日志判断"在跑 / 很慢 / 卡死"。
+                if ep == 0 or (ep + 1) % cfg.log_interval == 0 or ep == run_episodes - 1:
                     recent = np.mean(episode_rewards[-cfg.log_interval:]) if len(episode_rewards) >= cfg.log_interval else np.mean(episode_rewards)
+                    used = time.time() - start
+                    per_ep = used / (ep + 1)
+                    eta = per_ep * (run_episodes - ep - 1)
                     logger.info(
                         f"Ep {global_ep + 1}/{total_episodes} (本轮 {ep + 1}/{run_episodes}) | "
                         f"Reward {ep_reward:+.1f} "
                         f"(avg {recent:+.1f}) | best {best_reward:+.1f} | "
                         f"peakCoupler {np.mean(peak_coupler[-cfg.log_interval:]):.0f}kN | "
                         f"viol {np.mean(violations[-cfg.log_interval:]):.1f} | "
-                        f"loss {metrics.get('total_loss', 0):.3f}")
+                        f"loss {metrics.get('total_loss', 0):.3f} | "
+                        f"{per_ep / 60:.1f}min/ep | 已 {used / 60:.0f}min | ETA {eta / 60:.0f}min")
                     if self._tlog is not None:
                         # last.pt 中间权重快照（YOLO weights/last 语义，周期粒度）
                         self._tlog.save_last(global_ep + 1, namer.best_path(cfg.seed))

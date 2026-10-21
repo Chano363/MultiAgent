@@ -1,5 +1,5 @@
 """
-ADR-021 单测（改造 C）：车钩力"受控超限项"进 reward + 峰值改断面力口径。
+ADR-021/043 单测：车钩力"受控超限项"进 reward + 峰值改断面力口径。
 
 验证：
 - REWARD_SCHEMA / COUPLER_OVER_W / COUPLER_OVER_CAP 常量存在且取值正确；
@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from src.environments.train_fleet_env import (
-    TrainFleetEnv, REWARD_SCHEMA, COUPLER_OVER_W, COUPLER_OVER_CAP,
+    TrainFleetEnv, REWARD_SCHEMA, COUPLER_OVER_W, COUPLER_OVER_CAP, COUPLER_PEAK_W,
 )
 from src.environments.train_env import COUPLER_FORCE_LIMIT_N
 
@@ -37,26 +37,25 @@ def _reward_env():
 
 
 def _over_term(env, peak_n):
-    """从总 reward 中剥离出「超限项」：reward(p) - reward(~0) + 0.2*(pn - pn0)。
+    """从总 reward 中剥离出「超限项」：reward(p) - reward(0) - peak_term(p)。
 
-    依据：coupler_term = -0.2*mean(obs[:,5]) - 0.2*peak_norm，其余项与 peak 无关。
+    v6（ADR-043）奖励函数已无 obs/accels 参数，车钩项只有峰值比塑形
+    peak_term(p) = -COUPLER_PEAK_W*(1-exp(-p/limit)) 与超限项；其余项与 peak 无关。
+    故 over_term(p) = (r(p) - r(0)) - peak_term(p)（base 取 p=0，此时两项均为 0）。
     """
-    obs = np.zeros((env.num_agents, 11), dtype=float)
-    obs[:, 5] = 0.1
-    accels = np.zeros(1)
-    peak0 = 1.0  # ≈0（peak_norm = 1e-6）
-    base = env._calculate_reward_decomposed(
-        obs, accels, 0, 0.0, step_coupler_peak_n=peak0)
-    r = env._calculate_reward_decomposed(
-        obs, accels, 0, 0.0, step_coupler_peak_n=peak_n)
-    return (r - base) + 0.2 * (peak_n / env.coupler_force_limit_n - peak0 / env.coupler_force_limit_n)
+    limit = env.coupler_force_limit_n
+    base = env._calculate_reward_decomposed(0, 0.0, step_coupler_peak_n=0.0)
+    r = env._calculate_reward_decomposed(0, 0.0, step_coupler_peak_n=peak_n)
+    peak_term = -COUPLER_PEAK_W * (1.0 - float(np.exp(-peak_n / limit)))
+    return (r - base) - peak_term
 
 
 def test_reward_schema_constants_exist():
     # 【ADR-026】奖励口径变更为 v3（ATP 对齐间距）；【ADR-028】→ v4（穿透危险项有界化）；
-    # 【ADR-036 2026-10-14】→ v5（限值成为 env 可配档，超限项分母随运行档位变）。
+    # 【ADR-036 2026-10-14】→ v5（限值成为 env 可配档，超限项分母随运行档位变）；
+    # 【ADR-043 2026-10-20】→ v6（13 项收敛为 6 个文献槽位，删车钩均值项）。
     # 超限项常量本身沿用 ADR-021。
-    assert REWARD_SCHEMA == 'v5-coupler-tier-limit'
+    assert REWARD_SCHEMA == 'v6-literature-slots'
     assert COUPLER_OVER_W == 6.0
     assert COUPLER_OVER_CAP == 2.0
 

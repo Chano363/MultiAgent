@@ -54,6 +54,7 @@
 | Dueling DQN 驾驶策略（AB 建立/释放延迟进状态；最小充风约束） | Si2025 | `An-Optimization-Method-of-Heavy-Haul-Train-Driving-Strategy-Based-on-Dueling-DQN.pdf` |
 | MASAC + **Mamba 状态预测**（长序列依赖 + 策略不稳） | Hu2026 | `electronics-15-01823.pdf` |
 | VCTS + MARL（城轨 CBTC） | Jing2025 | `Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem in CBTC Systems.pdf` |
+| 重载列车群组 + MARL（GO-MADDPG + MIQP；**单质点模型、全文无车钩力** = 「多列车组 × MARL，缺车钩力」全文级占位；C-LIT-05） | Ma2025（IEEE ITSC 2025） | `Ma2025_MADDPG_HeavyHaulGroup.pdf`、`_fulltext.txt` |
 | 虚拟耦合 MARL（train=agent 分解） | Liu2025 | —（无本地，IEEE ITS Magazine 2025） |
 | 车队 MARL 共识控制（间距-8.3%/编队长-19.1%） | Guo2025 | `Guo2025_MARL_PlatoonConsensus.pdf` |
 | MADRL 群组一致性（leader-follower + 人工势场） | Zhang2021 | `Zhang2021_MADRL_TrainPlatoon.pdf` |
@@ -75,6 +76,7 @@
 | 改进 MPC 协同控制 | Wang2026（**≠** MARL 表的 `Wang2026_HRL`；本行 = bib `wang2026_cooperative_mpc`） | —（无本地，铁路运输与经济 2026） |
 | 单列多体 NMPC 循环制动（Shuozhou） | Yang2025 | —（无本地，IEEE ITSC 2025） |
 | **多机车协同 NMPC（长陡下坡）**：多质点模型 + 电/空制动协同 + 车钩力缓代价 + 车钩力/限速/执行器硬约束 + AB 波传播延迟 —— **本项目 MPC 基线来源** | Lu2025 | `Cooperative-Nonlinear-Model-Predictive-Control-for-Multiple-Locomotives-of-Heavy-Haul-Train.pdf` |
+| **多列虚拟耦合重载 DMPC**：5 列 × 2 万 t（2×HXD2 + 214 C80B、2.7 km、大秦线）；n 质点 + n−1 车钩弹簧-阻尼（d=0）；**in-train force 同时进代价项与硬约束 \|f_in\| ≤ 2000 kN**；fence 法把邻车并刚体降阶（C-LIT-04） | Wang/Zhan/Zhang（IEEE CCDC 2025） | `Wang2025_CCDC_DMPC_VC_HeavyHaul.pdf`、`_fulltext.txt` |
 | ECP 逐车连续可控假设 + MPC（ECP 假设绕开气动时滞；车钩力作罚项）——ECP-MPC 开山作（**摘要级**） | Zhang & Zhuan 2014（IEEE TCST 22(1):13-22, DOI 10.1109/TCST.2013.2238235） | `Zhang2014_TCST_ECP_MPC.md` |
 | 制动模型一阶惯性+纯滞后（**Td=1.0 s, τ=0.4 s**）进状态方程；「制动曲线生成−跟踪」两级；明言 ATO 通常不能直接控制各车厢制动力 | 刘晓宇2022（自动化学报 48(1):171-181） | `Liu2022_ATO_BrakeDelayModel.txt` |
 | MILP 速度剖面：空气制动**指令时滞 + 充风时间**显式建模（长大下坡）；刚体模型（无车钩力）；0-1+big-M 线性化 | Yu2023（J. Adv. Transp. 2023:6649871） | `Yu2023_MILP_RefillTime_Downhill.txt`（部分正文：至 §3.3） |
@@ -101,7 +103,7 @@
 | 物理子步 ≤0.01s（缓冲器冲击 50-100ms 分辨率） | 项目设计 | —（代码 `src/train_dynamics/train.py`） |
 | RK4 长时程交叉基准 | 项目对照 | —（代码 `src/train_dynamics/rigid_multi_particle.py`） |
 
-## 论文正文引用映射（ITSC_PAPER.tex bibitem → 完整文件名）
+## 论文正文引用映射（原 ITSC_PAPER.tex bibitem → 完整文件名；论文稿已于 2026-10-19 删除，映射保留备重写引用）
 
 | bibitem | 文件 | 用途 |
 | :--- | :--- | :--- |
@@ -141,6 +143,10 @@
 | AB 最小充风时间进动作空间（"air-refilling time" 约束，治"缓解—再制动"过快循环） | Zhang2024 | `Zhang2024_DQN_CyclicBraking_Downhill.txt:566-577` |
 | AB 需求驱动塑形（越限罚 / engaged=0 / 释放奖；本项目 `train_fleet_env.py:822-824` 借其思想） | Zhang2024 | `Zhang2024_DQN_CyclicBraking_Downhill.txt:632-655` |
 | 车钩力进 reward 目标（多目标加权） | Tang2020 / Wang2025（ICIRT） | `Tang2020_DoubleSwitchQ.pdf` / —（无本地，DOI `10.1109/ICIRT66379.2025.11216684`） |
+| reward 槽位骨架：带内平顶正奖 / 带外罚 / AB 参与 0 / 缓解正奖（本项目 v6 借其形） | Zhang2024 | `Zhang2024_DQN_CyclicBraking_Downhill.txt:632-657`（式22） |
+| 车钩力峰值比进 reward（有界饱和形；**本项目取形并修正其单调方向**——原文 `−exp(−f/F)` 方向反常） | Wang2026 | `Wang2026_hierRL_fulltext.txt:784-794`（式17） |
+| 充风时长约束进 reward（`Rb` 第二分支，本项目 obs[11] 充风就绪度同源） | Wang2026 | `Wang2026_hierRL_fulltext.txt:770-783`（式16） |
+| 编队奖励保持 3–5 项目标 + 约束下沉动作空间/安全层（奖励复杂度上界依据，ADR-043） | Song2026 / Hua2024 / Guo2025 | `Song2026_MAPPO_fulltext.txt` / `Hua2024_MARL_CACC_EnergyEfficiency.txt` / `Guo2025_MARL_PlatoonConsensus.txt` |
 | 车钩力进约束集（分层 / MPC；须有可学习的对偶信号，否则无梯度） | 魏咪2024 / 宋宗莹2026（Tube-MPC，车钩力峰 330.4 kN）/ Fu2019 | `考虑车钩力约束的重载列车运行优化分层框架与迭代求解方法_魏咪.pdf` / `Song2026_TubeMPC_VirtualCoupling.pdf`（DOI `10.11860/j.issn.1673-0291.20250156`）/ `Fu2019_CouplerConstraint_HeavyHaul.pdf` |
 | 预测式 safety filter（把约束系统变成"无约束安全系统"；补 AB 通道"减"权限） | Wabersich & Zeilinger 2021（Automatica） | —（无本地，arXiv:1812.05506） |
 | CBF/CLF + QP 安全控制 | Li, Tong, Giua 2024（IEEE CASE） | `Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf`（DOI `10.1109/CASE59546.2024.10711420`） |
@@ -156,6 +162,7 @@
 | AB 最小充风时间 | `src/controllers/multi_loco_controller.py`（`get_action_decomposed` 内 `_ab_gate`） | 依据 Zhang2024 运行约束 (1) 的**式 (9)** `t_{b,j+1} − t_{r,j} ≥ T_a`（`docs/papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:250-255` / `:287-295`）；`ab_min_refill_s=222.0`（`T_a` 取张二田 S6 最短充风） |
 | AB **最小保持时长**（`ab_min_hold_s`）—— **检索后判定"无出处、不激活"（负结果，2026-10-01 结案）** | `src/controllers/multi_loco_controller.py`（同一 `_ab_gate` 的保持半边，默认 `0.0`） | ① **Zhang2024 全文**仅三条运行约束（充风时间式 (9) / 速度限式 (10) / 电制力比例式 (11)），**无**"最短制动保持时长"（已逐条复核 `Zhang2024…txt:246-277`）；② **《铁路机车操作规则》**（铁运〔2012〕281 号，技术规章编号 TG/JW104-2012，国家铁路局公布文本）中最接近的两条均**不构成运行期最小保持时长**：(a)"在长大下坡道前方的列检作业场…自阀减压 100 kPa 并保压 3 min，列车不得发生自然缓解"—— 属**列检站保压试验**，非运行约束；(b)"重载货物列车速度在 30 km/h 以下，不应缓解列车制动"—— 是**速度门限**而非时长，且本项目 `v_min=40 km/h > 30 km/h` ⇒ **在该场景恒不触发（空约束）**；③ 赵紫宁 2022 表 5-3 的制动时长 212/946/1358/918 s 是**实测观测值**，不是下界。⇒ 结论：**不设默认值、接口保留但不激活**；若日后引入"低速段禁止缓解"（上条 (b)），须作为**独立机制**另行验证，勿塞进本参数（口径见 `DIAGNOSTICS_2026-10.md`「检索-2026-10-01…」）。来源仅给文号/编号（无 DOI，不编号） |
 | 车钩力受控超限项 | `src/environments/train_fleet_env.py`（`_calculate_reward_decomposed` + `REWARD_SCHEMA`） | 峰值口径改**断面力**；超限项有界（`COUPLER_OVER_W=6.0` / `COUPLER_OVER_CAP=2.0`），刻意避开已回滚的 `-80·ov²` 量级 |
+| 奖励槽位对齐文献（v6，13 项→6 槽位） | `src/environments/train_fleet_env.py`（`REWARD_SCHEMA='v6-literature-slots'`） | 速度带形取 Zhang2024 式22；车钩峰值比取 Wang2026 式17（修正单调方向）；AB 需求锚补强为 Wang2026 式16 `Rb`；删车钩均值项（改为峰值口径）。见 ADR-043 |
 | 安全层对 AB 的禁新增源 | `src/environments/train_env.py`（`_step_decomposed`，`protect()` 之后） | 复用 `SafetyLayer.ab_new_source_veto()`（反应式 `≥0.6·limit` / 预测式 `≥0.9·limit`）；**不撤销**已建立源（X4-b 反证）。⚠️ 首版另有"降一档"梯度臂，**恒被 0.6 硬否决抢先 ⇒ 可证不可达**，已删除（LRN-20261001-007） |
 | per-agent advantage + 视界对齐 | `src/algorithms/mappo_agent.py`（`critic` 枚举 / `compute_gae` / `update` / `effective_horizon_s`）；`src/evaluation/evaluate_decompose.py`（`probe_critic_mode`） | 枚举 `centralized_scalar`（默认，零回归）\| `per_agent`；视界 `1/(1−γλ)` 打印并进 metadata（**换算须 ×`decision_interval`×`dt`**）；评估侧按 ckpt 内嵌 `metadata.critic` 重建价值头 |
 

@@ -84,6 +84,8 @@ supersedes: 无（新建；`docs/RESEARCH_POSITIONING.md` §1.7 的「机制对�
 | Hu2026 | 安全距离进 reward 与约束，`collision avoidance` 作评价 | **软** | `Hu2026_PMMASAC_fulltext.txt:189`、`:369-372`、`:566`、`:1234` |
 | Guo2025 | 可变车头时距（VTH）共识 + 1/TTC、TET、TIT 指标证据 | **软**（指标证据） | `Guo2025_MARL_PlatoonConsensus.txt:262`、`:832-848`、`:1105-1153` |
 | Zhang2021 | APF 势场**写进奖励** | **软** | `Zhang2021_MADRL_TrainPlatoon.txt:152-158` |
+| Wang2025（CCDC，多列 DMPC） | 追踪间隔 `D_i ≥ D_min` **进 MPC 硬约束**；车钩力同样进硬约束 `\|f_in\| ≤ 2000 kN` | **硬**（优化层约束，无稳定性证明章节） | `Wang2025_CCDC_DMPC_VC_HeavyHaul_fulltext.txt:443-453`（12e/12f）、`:404-407`（"both are the hard constraints"） |
+| Ma2025（ITSC，多列 MARL） | 最小间隔按相对制动距离算 + **双层安全：安全保护曲线定动作范围 + 动作掩码**；越限另有罚项 Θ | **半硬**（动作级过滤，信号安全口径；**无车钩力**） | `Ma2025_MADDPG_HeavyHaulGroup_fulltext.txt:565-576`（dual-layer safety）、`:530-534`（奖励与罚项） |
 
 ### 3.2 分篇要点
 
@@ -102,6 +104,8 @@ supersedes: 无（新建；`docs/RESEARCH_POSITIONING.md` §1.7 的「机制对�
 ### 3.3 我们的定位（结论指针）
 
 层2 + 层3 **比 MARL 同行硬**，**比 CBF 类少一个数学证明** ⇒ 论文写法 = 工程硬保证（ATP 不可释放 + 零穿透断言）+ TTC/TET 可比指标，**CBF 列 future work**（`safety_layer.py` 已预留接口，不占正文）。立论结论以 [§1.7](../RESEARCH_POSITIONING.md) 为准。
+
+> **⚠️ 2026-10-20 限定（C-LIT-05 全文核验后）**："比 MARL 同行硬"**不能对 Ma2025 说**——Ma2025 已有动作掩码 + 安全保护曲线（信号级动作过滤）。可主张的差异只在**保证对象**：我方 `enforce_coupler` 硬约束的是**车钩力（物理量，≤1000 kN）**，Ma2025 的掩码只约束速度/间距（其单质点模型无车钩力）。因此"硬保证通道"这条 delta 必须写成"**车钩力**硬保证"，不得写成"只有我们有硬机制"。
 
 ***
 

@@ -1,0 +1,784 @@
+--- page 1 ---
+[LEFT]
+2025 IEEE 28th International Conference on Intelligent
+Transportation Systems (ITSC)
+November 18-21, 2025. Gold Coast, Australia
+Virtual Coupling-Enabled Trajectory
+Train Group: A Goal-Oriented
+Zhou∗,
+Xiaolan Ma, Min Haifeng
+Abstract—The virtual coupling-based train group operation
+presents promising prospects to enhance the capacity of freight
+64632411.5202.20806CSTI/9011.01
+railways. Adopting a leader-follower control mechanism enables
+coordinated multi-train operations. However, inhomogeneous
+environmental disturbances demand-optimized group-level oper-
+ational states and trajectories during emergencies, particularly
+on heavy-haul lines. This paper addresses this challenge by de-
+velopingamixed-integerquadraticprogramming(MIQP)model
+thatincorporatessafetyconstraints,traindynamics,speedlimits,
+and tracking interval requirements. A goal-oriented reinforce-
+ment learning method based on Multi-Agent Deep Deterministic
+PolicyGradient(GO-MADDPG)isproposedtoachievethetrain
+group’s safe, efficient, energy-saving, and stable trajectories.
+Agents output continuous acceleration and deceleration control
+:IOD
+actions, while a cooperative collision avoidance mechanism and
+| action masking ensure both safety and feasibility. Numerical ex-
+EEEI
+periments demonstrate that the proposed method can efficiently
+5202© derive efficiency-enhanced solutions within short computation
+times.
+Index Terms—Virtual coupling, Train group trajectory opti-
+00.13$/52/0-8142-5133-8-979
+mization, Multi-agent deep reinforcement learning
+I. INTRODUCTION
+To cope with the increasing freight transport demand,
+heavy-haul railways characterized by extended train lengths
+and increased axle loads have significantly enhanced trans-
+port capacity [1]. However, these advances have precipitated
+frequent incidents, including rail/coupler failures and squeeze
+|
+accidents, accompanied by operational challenges such as
+)CSTI(
+intermediate station inaccessibility, prolonged departure inter-
+smetsyS vals, and slow acceleration performance [2]. Existing heavy-
+haul railway dispatching systems rely on moving block sig-
+nalingcontrolbasedonabsolutebrakingdistancetracking.To
+noitatropsnarT
+further optimize line transport capacity, implementing train
+groups with reduced temporal headway has emerged as a
+more effective strategy for improving operational efficiency
+[3]. This approach leverages advanced control methodologies
+tnegilletnI
+to maintain safe, yet minimized, inter-train spacing, thereby
+maximizing infrastructure utilization while addressing the in-
+herent limitations of conventional heavy-haul operations [4].
+no
+Throughtrain-to-trainwirelesscommunicationanddynamic
+ecnerefnoC
+cooperative control mechanisms, virtual coupling technology
+allows multiple trains to operate as an integrated convoy. Em-
+ploying a leader-follower control strategy effectively reduces
+lanoitanretnI
+The research in the paper was jointly supported by the National Natural
+ScienceFoundationofChina(No.U24B20118,No.62327806,No.62473037,
+No.U236820043). X. Ma, M. Zhou, and H. Dong are with the School of
+Automation and Intelligence, Beijing Jiaotong University, Beijing 100044,
+ht82
+China. W. Wu is with China Railway Signal and Communication (Group)
+EEEI Co.,Ltd.,Beijing100077,China,andH.SongiswithSchoolofElectronic
+InformationEngineering,BeihangUniversity,Beijing100191,China.(e-mail:
+5202 zhmin@bjtu.edu.cn).CorrespondingAuthor:MinZhou.
+979-8-3315-2418-0/25/$31.00 ©2025 IEEE 4504
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+Optimization for Heavy-Haul
+MADDPG Approach
+Song, Wei Wu, Hairong Dong
+the relative braking distance (RBD) [5]. In a group, trains
+typically operate as a cohesive unit within a section, with
+each train acting as an independent agent. Based on global
+objectives and its own state, each train dynamically computes
+a reference speed profile, tracks the state of the leader train,
+and ensures a dynamically safe relative braking distance [6].
+However, the complex state transition mechanisms and real-
+time cooperative control requirements pose significant chal-
+lengesforoptimizingspeedprofilesinheavy-haultraingroups.
+Traditional fixed-block signaling systems, designed for static
+train separation, fail to meet the dual demands of flexibility
+and safety under virtual coupling. Furthermore, the stochastic
+disturbances inherent in real-world operations impose height-
+ened robustness requirements on speed profile optimization.
+The stochastic nature of disturbances may subject individual
+trainstovaryingspeedconstraints,potentiallyleadingtogroup
+disintegrationandcompromisedsystemstability.Therefore,an
+adaptive control framework capable of coordinating dynamic
+safetymarginswithsynchronizationrequirementsinuncertain
+environments becomes particularly essential.
+For virtual coupling, Quaglietta et al. [7] developed an
+innovative train-following model that systematically charac-
+terizes operational state transitions in virtually coupled trains.
+Addressing the demand for tracking interval compression in
+virtual coupling, Felez et al. [6] pioneered the application
+of model predictive control to leader-follower train coordi-
+nation, significantly reducing inter-train headway. Zhang et
+al. [8] introduced a fixed-time cooperative control method
+that optimizes multi-train departure strategies with predeter-
+mined coupling time constraints. To further enhance multi-
+traincoordinationefficiency,Caoetal.[9]developedahybrid
+control architecture integrating generalized model prediction
+with artificial potential field methods, achieving distributed
+cooperative control of virtually coupled trains. Focusing on
+heavy-haultrainscenarios,Zhangetal.[3]employeddynamic
+programming to optimize following trajectories, achieving
+minimal tracking distances while respecting the physical con-
+straintsoftraction/brakingsystems.Forstochasticdisturbance
+mitigation,Wangetal.[10]innovativelyincorporatedstochas-
+tic initial delays into optimization models, designing real-
+time cooperative trajectory planning algorithms that balance
+energy efficiency, punctuality, and safety objectives through
+dynamic route selection, thereby extending virtual coupling
+applicability to non-ideal scenarios.
+In recent years, reinforcement learning has shown signif-
+icant potential in optimizing train trajectory and timetable,
+with its core strength in autonomous exploration and trial-
+and-error,enablingdynamicdecisionoptimizationincomplex
+20,2026 at 15:11:50 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 2 ---
+[LEFT]
+scenarios. Early studies focused on Deep Q-Network (DQN)
+methods [11], [12] with discrete action spaces. However,
+since train operation control inherently involves continuous
+action spaces, scholars introduced the Deep Deterministic
+Policy Gradient (DDPG) algorithm [13]. As virtual coupling
+systems demand enhanced multi-train coordination, research
+has evolved toward collaborative optimization paradigms: Su
+et al. [14] integrated trajectory prediction with DQN to es-
+tablish a train platoon safety model. Liu et al. [15] applied
+multi-agent reinforcement learning (MARL) for distributed
+acceleration/braking coordination, enhancing group synchro-
+nization. Building on this, Liu et al. [16] proposed a Giraph
+Neural Networks with attention mechanisms to solve the joint
+timetable and platform rescheduling problem under virtual
+coupling. Dong et al. [17] further explored deep reinforce-
+ment learning for integrating train trajectory optimization and
+timetable rescheduling under disturbances.
+Although existing studies have made breakthroughs in
+model construction and algorithm design, most research pre-
+dominantlyfocusesonthecontrolstrategiesoffollowingtrains
+and still faces challenges such as unclear mechanisms of
+multi-train coupled dynamics, cooperative control difficulties
+in train formations, and complex interactions among multi-
+source disturbances. Particularly under heavy-haul conditions,
+inertial effects amplify the complexity of control. Moreover,
+traditional Multi-Agent Deep Deterministic Policy Gradient
+(MADDPG)lacksagoal-orientedmechanism,leadingtoslow
+convergence. This paper will address the resilience to tempo-
+rary speed restrictions (TSRs), explore hybrid methodologies
+integrating data-driven approaches with physical models, and
+implement reinforcement learning-based online optimization
+in complex environments. The contributions of this work are
+summarized as follows:
+1) A mixed-integer quadratic programming (MIQP) model
+that incorporates TSRs disturbances is developed to
+optimizedisturbance-adaptivereferencespeedcurvesfor
+each train in the group.
+2) A GO-MADDPG algorithm is proposed, which inte-
+gratesagoal-orientedguidancemechanismtoaccelerate
+convergenceandacooperativecollisionavoidancestrat-
+egy to ensure operational safety.
+3) A flexible decoupling strategy tailored for TSRs sce-
+narios is designed to balance operational efficiency and
+dynamic stability of the train group.
+Theremainderofthispaperisorganizedasfollows.Section
+II presents the problem description and model formulation.
+Section III proposes an MARL algorithm, providing compre-
+hensive details about the algorithmic enhancement strategies.
+Section IV conducts numerical experiments to validate the
+efficacy of the proposed approach. Finally, Section V gives
+the conclusions.
+II. PROBLEMDESCRIPTIONANDMODELFORMULATION
+A. Problem Description
+Group operation refers to the cyber-physical coupling of
+distributed heavy-haul trains through computer and network
+4505
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+communicationtechnologies,replacingmechanicalcouplersto
+form logically integrated train groups operating as unified en-
+tities. Throughout their lifecycle, train groups undergo phase-
+specific state transitions characterized by dynamic reconfigu-
+ration capability, enabling flexible coupling/decoupling opera-
+tions.Thisoperationalparadigmintroducesmultilayeredcom-
+plexity in line capacity utilization compared to conventional
+train control systems. Particularly under TSRs, the stochastic
+natureofspeedconstraintsmayimposeheterogeneousvelocity
+limitations across group formations. Such non-uniform distur-
+bances amplify the risk of dynamic state desynchronization
+betweenleadingandfollowingunits,ultimatelycompromising
+the group’s coherent motion stability.
+In this paper, the optimization of the speed trajectory for
+leader-follower trains is approached by modeling each train
+withinthegroupasanindependentagent.Thismethodsimul-
+taneously optimizes the operational trajectories of both leader
+andfollowertrains,ensuringoveralloperationalefficiencyand
+dynamic stability of the train group. The overall time horizon
+is uniformly discretized into T periods of equal time length.
+TheimpactofTSRsisconsidered,withspeedlimitsbeginning
+or ending at any time or location. As illustrated in Fig. 1,
+consider a train group composed of three trains (A, B, and C)
+operating in coordinated formation. To facilitate virtual cou-
+pling operation, the coupling relationships among these trains
+areestablishedatthestationpriortodeparture.Theformation
+initially maintains its virtual coupling state during operation,
+then gradually transitions to a group operation mode. When
+encounteringTSRs,thetraingroupdynamicallydecouplesinto
+subgroups - with some trains continuing to operate in group
+formation while others switch back to individual train unit
+operation.
+The following assumptions are made for establishing the
+trajectory optimization model of train groups:
+1) Trains start simultaneously from standstill with initial
+safety spacing (consistent with station marshalling pro-
+cedures, ensured by constraint (21)).
+2) Train length is explicitly considered (incorporated in
+safety spacing calculation).
+B. The objective Function
+Thedefinitionsofsymbolsandvariablesintheoptimization
+model are summarized in Table I.
+The objective function minimizes a weighted sum of train
+travel time (Z ), operation cost (Z ), and stability devia-
+1 2
+tion (Z ). Z includes energy consumption, calculated as
+3 2
+(cid:80)
+E = F (k)·(cid:52)l(tractionwork),andairbrakecost
+t sum ti
+k∈T
+(cid:80)
+E = µ (k)·(cid:52)t. To address the disparate magni-
+c sum ci
+k∈T
+tude scales of the three objectives, a normalization procedure
+is implemented to unify their dimensionalities within the
+optimization framework, thereby eliminating scale dominance
+effects in the multi-objective decision space. d (minimum
+des
+desired spacing) is calculated as f(v ,v ) based on RBD.
+i i−1
+Z is used to denote the objective function, which can be
+described as follows.
+min Z =w ·Z +w ·Z +w ·Z
+(1)
+1 1 2 2 3 3
+20,2026 at 15:11:50 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 3 ---
+[LEFT]
+Unit Train Unit Train Grouped Temporary
+Ungrouped Status Grouping Status Operating Status Limit
+B A
+C C B A C B A C B
+Figure1. Schematicdiagramofstatusofeachstageoftraingroupoperation.
+TableI
+PARAMETERSANDVARIABLES
+Notation Definition
+N Setoftrains.
+T
+Setofsectionrunningtime.
+Ts M a x i m u m s e c t i o n r u n n ing t im e .
+F ,F M a x i m u m tr a c t i o n f o r ce an d b r akeforce.
+tmax dmax
+v m ax M a x i m u m p e r m i tt e d sp e e d .
+(cid:52) t M in i m a l di sc r e ti s a t ion t i m e .
+(cid:52)l Distancetravelledindiscretisationtime(cid:52)t.
+d Minimumdesiredspacingforcoupledtrains.
+des
+M Trainweight.
+S LengthofSection.
+W0,Wp Basicresistanceandsloperesistance.
+gi Lineslope.
+L T r a in l en gt h .
+l
+Sm M i n im u m s a femargin.
+ax
+v
+lim Maximumtemporaryspeedlimit.
+v M i n i m u m r e l e a s e s p ee d .
+rmin
+ta
+M i n i m u m a p p l i c at io n t im eoftheairbrake.
+tr
+Minimumreleasetimeoftheairbrake.
+ts Starttimeoftemporaryspeedlimit.
+te Endtimeoftemporaryspeedlimit.
+Variable Definition
+s Distanceattimek.
+k
+v Speedattimek.
+k
+Tr Sectionrunningtime.
+Ft Tractionforce.
+F Brakeforce.
+d
+Fc Airbrakeforce.
+R Resistance.
+µ t,µ ,µc 0 - 1 v a r ia b le ,t h e f o r c e is a p p l ied a t t i m e t .
+d
+d D i ffe r e n c e in d i st a n c e b et w e e n co u p l e d tr a ins.
+k
+L Maximumbrakingdistanceofthetrainattimet.
+brake
+ζij Trainiislocatedwithinthespeedlimit.
+Tr
+(cid:88)
+Z = i
+(2)
+1
+T
+s
+i∈N
+(cid:88)(cid:88) F (k)·(cid:52)l µ (k)·(cid:52)t
+ti ci
+Z = + (3)
+2
+F ·S T /2
+tmax s
+i∈Nk∈T
+|v (k)−v (k)| d (k)
+(cid:88)(cid:88) i i−1 i
+Z = +|1− |
+(4)
+3
+v d
+max des
+i∈Nk∈T
+C. Constrains
+µ F ((k)−µ F (k)−µ F (k)−R(s ,v (k))
+t ti d di c ci k i
+a (k)=
+i
+M
+i
+(5)
+1
+s (k+1)=s (k)+ (v (k)+v (k+1))·(cid:52)t
+(6)
+i i i i
+2
+R(s ,v (k))=0.001·(W +W )·M g
+(7)
+k i 0 p i
+4506
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+Speed Unit Train
+Decoupled Status
+Operating Status
+B A
+A C B A C
+(k)2
+W =a+b·v (k)+c·v (8)
+0 i i
+W =g (9)
+p i
+v (k+1)=v (k)+a (k)·(cid:52)t (10)
+i i i
+0≤F (v (k))≤F ·µ (k) (11)
+ti i tmax ti
+0≤F (v (k))≤F ·µ (k) (12)
+di i dmax di
+µ (k)+µ (k)≤1,∀i∈N,k ∈T (13)
+ti di
+µ (k)≤µ (k),∀i∈N,k ∈T (14)
+ci di
+v (0)=0,v (S)=0,∀i∈N (15)
+i i
+v (k)≤v ,∀k ∈T (16)
+i max
+v (k+1)≥v ,if µ (k)−µ (k+1)=0 (17)
+i rmin ci ci
+(cid:80)ta
+µ (j)=t ,if µ (k+1)−µ (k)=1 (18)
+j=1 ci a ci ci
+(cid:80)tr
+µ (j)=0,if µ (k)−µ (k+1)=1 (19)
+ci ci ci
+j=1
+d (k)=max(L −L +L +S ,L +S )
+i brake,i brake,i−1 l max l max
+(20)
+s (k)−s (k)≥d (k),∀i,i−1∈N,k ∈T (21)
+i i−1 i
+L =v2/2a ,∀i∈N (22)
+brake,i i i
+(1−ζ )·v ≥v (j)−v ,∀j ∈[ts,te],i∈N (23)
+ij max i lim
+Constraints (5)-(10) govern train dynamics through tempo-
+rally discretized motion equations derived from Newtonian
+mechanics.Constraints(11)-(12)boundtheoperationalranges
+of traction and braking forces within physical actuator limits.
+Constraint (13) enforces mutual exclusivity between traction
+and braking force applications, while constraint (14) man-
+dates concurrent activation of electrodynamic braking during
+air brake engagement. Boundary conditions are specified in
+constraint(15),defininginitialandterminaloperationalstates.
+Constraint(16)imposeslinespeedrestrictionstoensuresafety.
+Safety-critical braking logic is embedded in constraints (17)-
+(19): constraint (17) prevents velocity from dropping below
+the minimum release threshold during air brake pressure
+decay, with constraints (18)-(19) regulating air brake applica-
+tion/release timing parameters. Group operation requirements
+are formalized in constraints (20)-(22), which enforce inter-
+train spacing requirements through safety thresholds based on
+relative velocity and braking performance. Finally, constraint
+(23) implements TSRs compliance by enforcing speed reduc-
+tion protocols for affected trains.
+20,2026 at 15:11:50 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 4 ---
+[LEFT]
+III. GOAL-ORIENTEDMADDPGALGORITHM
+The essence of group operation curve optimization is to
+determineoptimalstrategiesforeachtraininthegroup.Based
+on the division of inter-station running time, the group opera-
+tionprocessbetweenstationscanberegardedasamulti-stage
+decision-making problem. To solve the optimization model
+constructed in Section II while considering coordinated curve
+optimization for all trains, a MARL approach is proposed.
+Sincespeedcurveoptimizationisasparsegoal-orientedprob-
+lem, self-supervised learning is used to guide the reinforce-
+mentlearningtrainingprocess.Additionally,expertexperience
+is incorporated via a cooperative collision avoidance mecha-
+nismtoimproveoptimizationeffectiveness.Thecorresponding
+algorithmarchitectureisillustratedinFig.2.Themethodology
+is developed in three steps: First, the train group operation
+problem is formulated as a multi-stage decision-making pro-
+cess. Subsequently, relevant elements of group operation are
+mapped to the RL framework for systematic training. Finally,
+improvements to the MADDPG algorithm tailored for group
+operation scenarios are elaborated.
+Agent 1
+Actor 1
+Replay buffer
+gt+1←ggoal a1t
+Observation o1t
+HER a1t
+st,at,rt,st+1,g Action kcabdeeF
+Centralized
+Reward r1t etanetacnoC Critic
+Shared Joint
+Parameters State st
+Joint Agent N
+rt
+Reward Actor N
+Environment
+aNt
+Observation oNt
+Joint
+at Action aNt
+Action
+st,at,rt,st+1
+Reward rNt
+Decentralized Execution
+Centralized Training
+Figure2. TheframeworkofgoalorientedMADDPG.
+A. Formulation of Markov decision process
+The operation of train groups follows a continuous cycle
+of receiving operational information and executing control
+commands.Each trainstartswithstate variables(position,ve-
+locity,acceleration,andtemporalparameters).Uponreceiving
+commandsfromtheAutomaticTrainOperation(ATO)system
+and preceding trains, the group operates for a designated
+interval, then updates its state. This iteration continues with
+revised instructions. When disturbances occur, the group may
+eitherdecoupleoradaptivelymaintaincoordinatedmovement,
+ultimately converging to target states. Analyzing state infor-
+mationandcontrolcommandsthroughoutthisprocessenables
+deriving optimized speed profiles for the entire group, thus
+transforming the speed curve optimization into a multi-step
+decision-making framework.
+a) Environment: The operational environment is systemat-
+ically defined by integrating three critical components: train
+dynamics, ATP (Automatic Train Protection) speed protection
+profiles, and line infrastructure conditions.
+4507
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+b) State: To satisfy the optimization objectives outlined in
+Section 2, this section selects group trains 1, 2, and 3 as the
+statevariables,whicharenormalizedasshownintheequations
+below. The initial and target states are defined as follows.
+(cid:110) (cid:111)
+Sn sk,vk,ak,tk,vlim,Esum,Esum,sg ,ack
+= ,
+k n n n n nk tnk cnk nk n
+(24)
+∀n=1,2,3;k =1,2,...,T
+Sn
+where represents the state of agent n at step k.
+k
+Esum,Esum,sg ,ack
+denote the accumulated energy con-
+t c n n
+nkption nkthe k
+su m , a c cum ulated cost of the air brake, the target
+position, and the implementation of the air brake of agent n
+at step k.
+c) Action: The agent serves as the controller for individual
+trains within the group, regulating their actual output forces.
+The action is defined as a continuous value between −1 and
+1 (−1 ≤ a ≤ 1), representing the normalized ratio of the
+actual output force to the maximum force. When the value
+exceeds0,atractiveforceisgeneratedbythetrain;conversely,
+a braking force is applied when the value is less than 0. Air
+brakeactivationrequiressimultaneouselectrodynamicbraking
+(constraint (14)), with minimum application time to avoid
+system damage.
+d) Reward: Derived from the global state, the reward func-
+tion reflects expected training outcomes and guides learning.
+Aligned with the objective functions in Section 2, it uses
+negative values of Z ,Z ,Z to match the minimization goal.
+1 2 3
+A negative value Θ serves as a penalty when agents violate
+constraints (e.g., maximum speed, minimum speed during
+air brake release, minimum tracking interval, or temporary
+speed limits). Conversely, a reward is granted for successful
+destination arrival without constraint violations.
+(cid:26)
+Θ, if (16), (17), (21)or (23)areviolated
+R= (25)
+−(w Z +w Z +w Z ), else
+1 1 2 2 3 3
+B. Improved goal-oriented MADDPG
+In most group train speed profile optimization frameworks,
+rewards are primarily concentrated on terminal objectives,
+leading to sparse reward signals. With few intermediate re-
+wards, purely exploratory strategies struggle to identify op-
+timized trajectories that meet operational metrics. To en-
+hance the applicability of RL in multi-train speed profile
+optimization, this study integrates goal-oriented guidance and
+a cooperative collision avoidance mechanism to refine the
+learning algorithm.
+• Goal-oriented guidance
+During interaction with the environment, when an agent
+fails to achieve its original goal, it can replay experiences by
+hypothesizing alternative goalsconverting ”failed” experiences
+into valuable learning signals. This mechanism innovatively
+expandsrepresentationalspaceoftraditionalRL:systemstates
+now explicitly encode target task information alongside en-
+vironmental observations. The resulting state-goal-action triad
+(Eq.26)providesamulti-dimensionaldecisionbasis,enabling
+20,2026 at 15:11:50 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 5 ---
+[LEFT]
+dynamic policy optimization for diverse objectives. By max-
+imizing expected rewards, agents gradually map composite
+state spaces to optimal action policies, significantly boosting
+learning efficiency and strategic adaptability in complex envi-
+ronments.
+<s ,g,a >→Replay Buffer (26)
+t t
+• Collaborative collision avoidance mechanism
+During a speed curve search, agents often violate speed
+limits or maintain insufficient leader-follower spacing (below
+the minimum safety margin). Solely relying on negative re-
+wards fails to guarantee operational safety. To address this,
+a dual-layer safety strategy is proposed: (1) After each state
+update, dynamic calculation of maximum/minimum safety
+protection curves defines the range of executable actions. (2)
+Action masking bounds action selection, ensuring subsequent
+maneuvers are safe and feasible. This hierarchical constraint
+enables proactive risk mitigation while preserving algorithmic
+flexibility.
+C. Training process
+Thelearningprocedureoftheproposedgoal-orientedMAD-
+DPG framework incorporates temporally correlated noise into
+thepolicyupdatemechanismtoenhanceexplorationdiversity.
+The intensity of this noise is progressively attenuated during
+training, enabling agents to asymptotically converge toward
+optimal policies. Furthermore, to mitigate overfitting risks,
+a regularization term with weight decay is applied to the
+criticnetwork,therebystabilizingthelearningdynamicswhile
+preserving generalization capabilities.
+IV. NUMERICALEXPERIMENT
+Inthissection,weappliedthereal-worlddataofHXD1-type
+electriclocomotivesfromtheShenchinan-Longgongsectionof
+theShuo-HuangHeavy-HaulRailwaytovalidatetheproposed
+methodthroughsimulationexperiments.Theparametersofthe
+train,railwayline,andalgorithmarepresentedinTableII,with
+a safety protection distance set at 100 m. The simulation was
+implemented using Python 3.9 with PyTorch on a Windows
+11 workstation equipped with an Intel Core i5-13500H CPU
+and 32 GB RAM. The experiment comprised two compar-
+ative analyses: Firstly, the flexible decoupling strategy was
+comparedwithconventionalnon-decouplingapproachesunder
+speed-restricted scenarios to demonstrate efficiency improve-
+ments in train formation operations. Secondly, the enhanced
+algorithm was evaluated against baseline strategies to verify
+the effectiveness of proposed methodological improvements.
+A detailed exposition of the experimental process and results
+follows below.
+A. Comparison of flexible decoupling strategy
+In scenarios where nonuniform speed restrictions disrupt
+train group operations, traditional emergency responses pri-
+oritize safety by mandating uniform speed reductions for all
+trains. In contrast, the proposed flexible decoupling strategy
+enables targeted adjustment only for affected trains, thereby
+4508
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+TableII
+THEPARAMETERSINALGORITHM1
+Parameter Value Parameter Value
+108
+Trainlength 1567m Buffersize
+Agentinitial
+[3600,1800,0] Learningrate 1e−4,1e−3
+position
+Agentterminal [45465,43665,
+Discountrate 0.95
+position 41865]
+TimeStep(cid:52)t 1s τ 0.005
+Maximum
+(cid:52)sm
+1000 100
+trainingepisode
+vmax(km/h)
+Batchsize 128 80
+Layersoftwo
+3,3 Weightcoefficient 0.6,0.3,0.1
+neuralnetworks
+preserving overall transportation efficiency. To validate this
+approach, we compared optimized speed trajectories under
+varying speed-restriction scenarios using both the flexible
+decoupling and conventional methods. As shown in Fig. 3,
+Fig. 3(a) demonstrates that the flexible decoupling strategy
+only affects the tail train while achieving a shorter total
+travel time. Detailed objective function values in Table III
+reveal a trade-off between operational efficiency and energy
+consumption: the ”-” scenario (Index 1) in Table III refers
+to the baseline with no TSRs, where all trains maintain
+virtual coupling throughout the journey. Compared to the
+non-decoupling strategy, the decoupling approach improves
+operational efficiency by 2.03% but incurs a 1. 21% increase
+in energy consumption. This slight energy rise stems from
+affected trains adjusting traction to adapt to speed limits
+and resume efficient operation, ensuring overall efficiency.
+In particular, the collision avoidance mechanism maintains
+the dynamic stability of the coupled formation. These results
+confirmtheflexibledispatchstrategyenhancesspeedtrajectory
+optimization, balancing safety and efficiency.
+（a）With （b）Without
+the decoupling strategy the decoupling strategy
+Figure 3. The trajectories with and without the decoupling strategy under
+thetemporaryspeedrestriction.
+B. Comparison of different approaches
+To validate the performance of the proposed algorithm,
+thissectioncomparestheMADDPG,goal-orientedMADDPG
+methods. The goal-oriented MADDPG framework facilitates
+guidedexplorationofagentstowardpredefinedobjectives,thus
+accelerating convergence of the reward function during train-
+ing. In contrast, MADDPG implementations lacking explicit
+20,2026 at 15:11:50 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 6 ---
+[LEFT]
+TableIII
+THERESULTSOFDIFFERENTDISPATCHSTRATEGIES.
+Objective Totalrunning
+Index ScopeofTSR Strategy
+Value time(s)
+1 - - 1.9194 7297
+Decoupling 1.8964 7328
+<1800-2400,25000-35000>
+2
+Non-Decoupling 1.9499 7480
+Decoupling 1.9196 7756
+<1500-2200,30000-40000>
+3
+Non-Decoupling 2.0120 7777
+goal-oriented mechanisms often exhibit unstable or prolonged
+convergence behavior due to uncoordinated exploration in
+multi-agent environments. A comparison of the convergence
+curves of the reward function is illustrated in Fig 4.
+Figure4. Comparisonofrewardcurvesfordifferentmethods.
+V. CONCLUSIONS
+This study addresses the trajectory optimization problem
+for heavy-haul train group operation under emergent events.
+Byanalyzingthecollaborativeoperationoftraingroupsunder
+different decoupling strategies, practical guidance is provided
+for coordinating train groups across various stages between
+stations during emergencies. An MIQP model is constructed
+for the collaborative optimization of heavy-haul train groups.
+An improved MARL algorithm is designed to derive driving
+curvesforindividualtrains.Thealgorithmincorporatesaself-
+supervisedexperiencereplaymechanismtailoredtoreal-world
+heavy-hauloperationcharacteristics,aswellasacollaborative
+collisionavoidancemechanismtoensuresafedriving.Simula-
+tionexperimentsinvolvingthreeheavy-haultrainsdemonstrate
+the effectiveness and feasibility of the proposed method.
+Future research will focus on the integrated rescheduling of
+timetables and collaborative optimization of speed curves for
+train groups, aiming to eliminate the hierarchical architecture
+betweenthesetwoaspectsandenhancetheoveralloperational
+efficiency of heavy-haul railways.
+REFERENCES
+[1] G. Basile, E. Napoletano, A. Petrillo, and S. Santini, Roadmap and
+challengesforreinforcementlearningcontrolinrailwayvirtualcoupling,
+DiscoverArtificialIntelligence,vol.2,no.1,pp.27,2022.
+4509
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+Totaldynamic
+Totaloperationcost
+stabilitydeviation
+Energy Airbrake Speed Distance
+consumption(kWh) application(s) deviation(km/h) deviation(m)
+9989.34 3 0.33 646759.66
+10111.92 3 0.26 562720.15
+9813.22 3 0.28 662987.12
+9805.51 3 0.21 398733.56
+9627.30 3 0.28 689327.65
+[2] W.Zhang,CalculationMethodofTrainHeadwayTimeBasedonGroup
+OperationControl,RailwaySignalling&CommunicationEngineering,
+vol.22,no.2,pp.1-8,2025.
+[3] K. Zhang, J. Gao, Z. Xu, H. Yang, M. Jiang, and R. Liu, Headway
+compression oriented trajectory optimization for virtual coupling of
+heavy-haultrains,ControlEngineeringPractice,vol.143,pp.105784,
+2024.
+[4] Z.Song,H.Ding,X.Wang,W.Wang,S.Ni,andD.Chen,Reviewof
+HeavyHaulRailwayTransportationOrganizationBasedonGroupTrain
+Operation,RailwayTransportandEconomy,vol.46,no.10,pp.73-81,
+2024.
+[5] J.Lu,D.Lu,B.Cai,B.Chen,J.Pannek,andS.Huang,TrainTrajectory
+Optimization based on Quadratic Programming for Virtual Coupling
+2023 IEEE 26th International Conference on Intelligent
+Concepts,
+TransportationSystems(ITSC).IEEE,pp.5482-5489,2023.
+[6] J.Felez,Y.Kim,andF.Borrelli,Amodelpredictivecontrolapproach
+for virtual coupling in railways, IEEE Transactions on Intelligent
+TransportationSystems,vol.20,no.7,pp.2728-2739,2019.
+[7] E. Quaglietta, M. Wang, and R. M. Goverde, A multi-state train-
+following model for the analysis of virtual coupling railway, Journal
+ofRailTransportPlanning&Management,vol.15,pp.100195,2020.
+[8] Z. Zhang, H. Song, H. Wang, X. Wang, and H. Dong, Cooperative
+multi-scenariodeparturecontrolforvirtualcouplingtrains:Afixed-time
+approach, IEEE Transactions on Vehicular Technology, vol. 70, no. 9,
+pp.8545-8555,2021.
+[9] Y.Cao,J.Wen,andL.Ma,Trackingandcollisionavoidanceofvirtual
+coupling train control system, Future Generation Computer Systems,
+vol.120,pp.76-90,2021.
+[10] P.Wang,Y.Zhu,andW.Zhu,Robustcooperativetraintrajectoryopti-
+mization with stochastic delays under virtual coupling, IET Intelligent
+TransportSystems,vol.17,no.7,pp.1415-1433,2023.
+[11] Y.Lang,H.Liu,X.Luo,andB.Lin,DQN-basedspeedcurveoptimiza-
+tion for virtual coupling, In 2022 IEEE 25th International Conference
+onIntelligentTransportationSystems(ITSC),pp.1758-1763,2022.
+[12] W. Liu, S. Su, T. Tang, and X. Wang, A DQN-based intelligent
+control method for heavy haul trains on long steep downhill section,
+TransportationResearchPartC:EmergingTechnologies,vol.129,pp.
+103249,2021.
+[13] X.Liu,M.Zhou,L.Tan,andH.Dong,DDPG-BasedEnergy-Efficient
+Train Speed Trajectory Optimization Under Virtual Coupling, In 2023
+IEEE 26th International Conference on Intelligent Transportation Sys-
+tems(ITSC),pp.5718-5723,2023.
+[14] S.Su,W.Liu,Q.Zhu,R.Li,T.Tang,andJ.Lv,Acooperativecollision-
+avoidance control methodology for virtual coupling trains, Accident
+Analysis&Prevention,vol.173,pp.106703,2022.
+[15] H.Liu,Y.Lang,X.Luo,T.Tang,andM.Chai,Coordinatedoperation
+strategy design for virtually coupled train set: A multiagent rein-
+forcement learning approach, IEEE Intelligent Transportation Systems
+Magazine,vol.17,no.4,pp.6-24,2025.
+[16] X. Liu, M. Zhou, and H. Dong, Joint rescheduling for timetable and
+platformassignmentofHigh-SpeedRailwaysviagraphneuralnetwork-
+based Deep Reinforcement Learning, Transportation Research Part E:
+LogisticsandTransportationReview,vol.202,pp.104277,2025.
+[17] H.Dong,L.Ning,M.Zhou,H.Song,andW.Bai,DeepReinforcement
+LearningforIntegrationofTrainTrajectoryOptimizationandTimetable
+Rescheduling Under Disturbances, IEEE Transactions on Neural Net-
+worksandLearningSystems,2024.
+20,2026 at 15:11:50 UTC from IEEE Xplore. Restrictions apply.

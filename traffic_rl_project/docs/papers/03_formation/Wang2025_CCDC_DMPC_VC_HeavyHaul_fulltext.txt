@@ -1,0 +1,838 @@
+--- page 1 ---
+[LEFT]
+Distributed Model Predictive
+Coupled Heavy-Haul
+Chao Wang Jingyuan
+SchoolofInformationScienceandTechnology SchoolofInformationScienceandTechnology
+Beijing University of Technology Beijing University
+Beijing, China Beijing,
+wwchao01@163.com jyzhan@bjut.edu.cn
+Abstract—In
+this paper, a virtual coupling control strategy
+for heavy-haul trains (HHTs) based on a multi-mass-point
+model is proposed, aiming to further enhance train capacity
+and operational efficiency. Compared to traditional single-mass-
+point model, the proposed multi-mass-point model provides a
+moreaccuraterepresentationofHHTdynamics.Aoptimization
+problem is formulated to minimize speed tracking error and
+60019011.5202.47456CDCC/9011.01 energyconsumption,andindividualcontrollersaredesignedfor
+the lead HHT and each following HHT within the framework
+of distributed model predictive control (DMPC). The lead train
+tracksanoptimalreferencetrajectory,whileeachfollowingtrain
+tracks the speed of its preceding train and maintains a safe yet
+smallest possible tracking interval. Finally, the effectiveness of
+the method is verified by numerical simulation, demonstrating
+its excellent performance in speed tracking, minimizing in-train
+force and interval maintenance, even in the presence of random
+disturbances.
+Index Terms—heavy-haul
+train, virtual coupling, multi-mass-
+point model, model predictive control
+:IOD
+I. INTRODUCTION
+|
+Globally, heavy-haul transportation is critical for the trans-
+EEEI
+portationofbulkcargoes,suchascoalandironore,duetoits
+5202©
+largecapacity,highefficiency,lowcostandlowcarbonemis-
+sions.Recenttechnologicalinnovationsintheheavy-haultrain
+00.13$/52/5-6501-5133-8-979
+operation, particularly in automation and intelligence, have
+become central to ensuring safety, efficiency, and operational
+excellenceinheavy-haulrailways.InChina,rapidsocietaland
+economic growth has driven a continuous increase in cargo
+transport volumes, outpacing the capacity of existing heavy-
+haul railways. Enhancing capacity can be achieved through
+constructing new railways, increasing the capacity of single
+trains, or increasing the number of HHTs. Among these,
+increasing train frequency is one of the most cost-saving and
+| feasiblesolutions,giventhecurrentequipmentlevelofheavy-
+)CDCC(
+haul trains.
+In recent decades, communication-based train control
+ecnerefnoC
+(CBTC) systems have driven advancements in modern rail-
+ways. The railway signaling system has evolved from fixed
+noisiceD This work was supported by the National Natural Science Foundation of
+China(Nos.62273014,U2233211),R&DProgramofBeijingMunicipalEd-
+ucationCommission(Nos.KZ20231000523,KM202310005032),theBeijing
+Nova Program (No. 20220484133), the Beijing Municipal College Faculty
+dna
+Construction Plan for Outstanding Young Talents (No. BPHR202203011),
+lortnoC BeijingNaturalScienceFoundation(No.L243026).
+esenihC
+ht73
+5202
+979-8-3315-1056-5/25/$31.00©2025IEEE 4563
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+Control for Virtually
+Trains
+Zhan Liguo Zhang
+SchoolofInformationScienceandTechnology
+of Technology Beijing University of Technology
+China Beijing, China
+zhangliguo@bjut.edu.cn
+block signaling (FBS) to the moving block signaling (MBS)
+model, as shown in Fig. 1(a)(b). Unlike FBS, MBS uses on-
+boardsignaling,allowingmovementauthorityblockstomove
+with trains instead of being fixed on tracks. This reduces the
+distance between consecutive trains to the absolute braking
+distance (ABD) plus a safety margin, significantly improving
+trafficefficiency[1].However,thisconservativeapproachstill
+results in larger train tracking intervals between trains. In
+reality, depending on the braking rates of the two consecutive
+trains, the safety interval between two consecutive trains can
+be reduced. Moreover, a communication link between the
+trains can also help further minimizing this interval [2].
+Fig.1:Railwaysignalingmodels:(a)Fixedblock;(b)moving
+block; and (c) virtual coupling.
+Over the past several years, a new model of railway sig-
+naling communication that can further reduce the tracking
+intervalbetweentrainswasinvestigated,whichiscalledvirtual
+coupling (VC), as shown in Fig. 1(c). The concept was first
+introducedin1998[3],andrapidlygarneredsignificantinterest
+from both railway professionals and academic researchers.
+Sincethen,ithasbeenfrequentlyreferencedandinnovatively
+adaptedinnumerousliteratures.Duringrecentyears,thereare
+more and more methods to realize virtual coupling, among
+which, the model predictive control method has been suc-
+cessfully implemented on numerous occasions to enhance the
+cooperative control performance and tracking performance of
+the virtual coupling trains [2], [4], [5]. [6] and [7] proposed
+a distributed robust model predictive control strategy. Sliding
+modecontrolwasutilizedin[8]and[9]tosolvetheformation
+control problem for virtually coupled trains under uncertain-
+ties.Buildingonthesestudies,[10]exploreddynamiccoupling
+anddecouplingscenariosfortrains.However,currentresearch
+haveprimarilyfocusedonhigh-speedtrainsandmetros,witha
+20,2026 at 15:12:12 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 2 ---
+[LEFT]
+notableabsenceofstudiesinthedomainofheavy-haultrains.
+In recent years, more and more researchers have dedicated
+their efforts to the study of virtual coupling scenarios for
+heavy-haultrains.[11]proposedacooperativecruisecontroller
+forvirtualtrainformationsusingmulti-agenttheory[12].The
+above studies on virtual coupling heavy-haul trains are all
+based on a simple single-mass-point model, which is a key
+question worth pondering. Therefore, Considering that the
+in-train force is of great importance for heavy-haul trains,
+so the application of a multi-mass-point model is necessary
+and positive, but relevant research has yielded only a limited
+numberofresultssofar,like[13]and[14].However,[14]just
+employs a data-driven methodology to investigate the virtual
+coupling cooperative control.
+The research of virtual coupling has extremely positive
+impactonfurtherimprovingthecapacityofheavy-haultrains,
+and meanwhile, it is realistic and necessary to describe the
+dynamicsofheavy-haultrainoperationwithmulti-mass-point
+model. In this paper, we apply the multi-mass-point model
+that can reflect the dynamics within heavy-haul train and set
+up different controllers for the lead HHT and each following
+HHT based on distributed modeel predictive control (DMPC)
+r e s p e c t i v e l y , w h i c h c a n re a li z e t h e c oo p er a t i v e a nd e f fi c ien t
+o p e r a ti o n o f v it u a l ly c o u p l e d t r a i n s .
+T h e r e s t o f t h i s p a p e r i s s t r u c tu re d a s f o l l o ws . Se c t io n II
+s e ts u p t h e d e s i r e d t r a c k i n g i n t e r v a l, i n t r o d u c e s th e m u l t i -
+m a ss - p o i n t m o d e l d y n a m i c s m o d e l o f h e a v y - h a u l t r a i n a n d
+a ls o b r i e fl y d e s c r i b es h o w t h e o p t im a l r e f e r e n c e tr a j e c t or y i s
+obtained; In section III, based on the DMPC framework, an
+optimizationproblemisdesignedforcooperativetrackingand
+maintaining safe intervals between consecutive HHTs, which
+is then transformed into a nonlinear programming form to
+solve. Section IV presents simulation results to validate the
+effectiveness of the proposed method, even in the presence of
+randomdisturbances,andSectionVprovidesconclusionsand
+future perspectives.
+II. PROBLEMFORMULATION
+This section primarily describes the cooperative control
+problemforvirtuallycoupledtrainstobeaddressed.Consider
+virtually coupled train system consisting of m HHTs, which
+is illustrated in Fig. 2.
+Fig.2:AvirtuallycoupledtrainsystemconsistingofmHHTs
+A. Multi-Mass-Point Model Based HHT Dynamics
+Assume each HHT i is a long formation heavy-haul train
+hauled by multiple locomotives as shown in Fig. 3. In this
+configuration, Each vehicle, which could be a locomotive or
+a wagon, is treated as a mass point, and the coupler used
+for connecting adjacent vehicles is treated as a simplified
+4564 202537thChineseControlandDecisionConference(CCDC)
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+spring damper model [15]. Hence the heavy-haul train can
+n−1
+be regarded as n mass points connected by couplers.
+i n betweenthejthand(j+1)thvehicle
+Thein-trainforcefi
+, j
+in ith HHT is expressed as,
+(cid:2)
+i n =ki (si,j −si,j+1 )+di,j (vi,j −vi,j+1 ),
+fi
+, j ,j
+(1)
+i=1,2,...,m;j =1,2,...,n,
+(cid:2)
+where ki,j and di,j represent the coefficients related to the
+elastic and damping effect of the jth coupler, and si,j and
+vi,j represent the position and speed of the jth vehicle. From
+anengineeringperspective,thedampingeffectofthecouplers
+causes nonlinear characteristic of the train model, and it is
+=0.
+usually ignored, i.e, di,j
+When considering the railway, it is important to take into
+accounttheresistancecausedbygradients,curves,tunnels,and
+r a r o
+other factors, expressed as fi j, fi expresses the operating
+, , j
+resistance of each vehicle, which includes rolling resistance
+and aerodynamic drag.
+Basedontheanalysisprovidedabove,thedynamicsofHHT
+(i = 1,2,...,m)
+i can be described by the following multi-
+mass-point model:
+⎧
+⎪⎪⎪⎪⎪⎪⎪⎪⎨ s ˙ = v(cid:6) ,
+i , 1 i , 1 (cid:7)
+v˙ = − i n − r o − r a
+u f f fi /mi,1,
+i , 1 i, 1 i , 1 i , 1 , 1
+˙ = = 2 ,3 − 1
+s v(cid:6) , j , . .. ,n
+i , j i , j (cid:7)
+v˙ = + i n − i n − r o − r a
+u f fi fi fi /mi,j, (2)
+⎪⎪⎪⎪⎪⎪⎪⎪⎩ i , j i ,j i , j − 1 , j , j , j
+= 2 3 − 1
+j , , . .. ,n
+˙ =v(cid:6)
+s i , n i, n , (cid:7)
+v˙ = +fi i n −fi r o −fi r a
+i,n ui,n , n−1 , n , n /mi,n,
+where mi,j denotes the mass of the jth vehicle in kg, and
+ui,j is the output force of the jth vehicle in kN. For jth
+0
+locomotives, ui,j > indicates the locomotive is in state of
+<0
+traction, while ui,j indicates the locomotive is in braking
+<= 0,
+state. For jth wagons, ui,j which means that wagons
+can only provide braking force.
+r o
+According to [15], the operating resistance fi of the jth
+, j
+vehicle is expressed as
+r o 2
+fi =mi,j (Aj +Bjvi,j +Cjvi ), (3)
+, j ,j
+where Aj, Bjand Cj are coefficients related to the rolling
+resistance and the aerodynamic drag of the jth vehicle, and
+are determined by experiments.
+r a
+The additional resistance fi of the jth vehicle is deter-
+, j
+mined by the gradient and curvature of the train’s running
+railway line, which is expressed by the following equation:
+600
+r a =(gsinθi,j + )mi,j,
+fi (4)
+, j
+Ri,j
+where θi,j represents the slope angle and Ri,j represents the
+curve radius at the position of jth vehicle in ith HHT. At
+this point, we have established a model for the dynamics of
+heavy-haul train operation.
+Eq. (2) can be written in the following compact form as
+x˙ =ft (xi,ui ),
+(5)
+i
+20,2026 at 15:12:12 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 3 ---
+[LEFT]
+Fig. 3: An example of
+=[vi,1,...,vi,n,si,1,...,si,n ]T ∈R2n,the
+wherethestateisxi
+=[ui,1,...,ui,n ]T ∈Rn.
+control input is ui
+Toapplymodelpredictivecontrol,wediscretizethedynam-
+ics (5) into the following discrete-time equation:
+(k+1)=f(xi (k),ui (k)).
+xi (6)
+Δt
+where k denotes the time instant, the sampling time
+f(xi (k),ui (k))=xi (k)+Δt·ft (xi (k),ui (k)).
+interval, and
+B. Control Objective
+As shown in Fig. 2, the tracking interval between the ith
+i+1th
+and HHT is expressed as
+L l L w
+=si,n −si+1,1 − − ,i=1,2,...,m,
+Di (7)
+2 2
+where si,n is the position of the last rail vehicle of lead
+HHT (or preceding HHT) and si+1,1 is the position of the
+first vehicle of following HHT. The length of locomotive and
+wagon are expressed as Ll and Lw respectively.
+The control objectives can be formulated as follows:
+→Ddes
+Di (8a)
+→vi−1
+vi (8b)
+i n →0
+fi (8c)
+, j
+where the desired distance Ddes is used as the tracking
+objective for the follower to maintain a more conservative
+and safer distance, greater than the minimum distance Dmin,
+the minimum distance Dmin denotes the minimum interval
+between consecutive HHTs because of the presence of the
+position error. In addition, the virtual coupling HHTs are
+e x p e c te d to ac hi e v e t h e s a m e s p e ed a s p rec e d i ng H H T while
+i n
+sa t is f y in g the m i n i m i za ti o n o f t h e in- t ra in fo r c e fi .
+, j
+Note that here we need to assume that each HHT has
+access to the position and speed information of all its own
+vehicles, and that there is a bidirectional communication link
+between the preceding and following HHT. In conclusion,
+the preparatory work for the optimal control design has been
+completed.
+III. DMPCBASEDVIRTUALCOUPLINGCONTROLLER
+For the cooperative tracking control of virtual coupling
+HHTs, a distributed model predictive control approach is
+proposed for the real time control in this paper. Based on
+the receding horizon principle, at every time step, the MPC
+algorithm determines the optimal control inputs and state
+variables by solving an optimization problem over a finite
+prediction horizon.
+202537thChineseControlandDecisionConference(CCDC)
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+heavy-haul train i.
+To solve the optimization problem, the predictive horizon
+Np and control horizon Nc are considered at time k. The
+(k+l|k) k+l,
+notation xi represents the state vector at time
+predictedattimek,obtainedbystartingfromthecurrentxi (k|
+) = ( ) ≡ ( ) ∗ ( ) = [u ( | ) (k + |
+k x k xi k . A nd u k k k , . . . , ui N
+i i i c
+)]
+k de n o t e s the o p t i m al co n tr o l s equ e n c e o b t a i n e d b y rol lin g
+optimization.
+The framework of DMPC algorithm for solving the virtual
+coupling problem for HHTs is shown in Fig. 4. A group of
+mHHTsisconsidered,andMPCcontrollersaredesignedfor
+each of them, where the cost function of the lead HHT is
+different from that of the following HHTs.
+Fig. 4: DMPC framework for virtually coupled HHTs.
+A. Controller Design for the Lead HHT
+ThecontrolobjectiveoftheleadHHTistotrackthespeed
+profiles of the corresponding rail vehicle mass points under
+the constraints of speed limit and safety, and to achieve the
+minimum tracking interval errors while minimizing the en-
+ergyconsumption.Therefore,themulti-objectiveoptimization
+problem for the lead HHT can be formulated as:
+(cid:8)Np
+m i nJ1 = (Kv l (cid:5)v1 (k+l|k)−v ∗ (k+l)(cid:5)2
+1n
+u
+1
+l=0
+(cid:8)n
+l (k+l|k)(cid:5)2)
++Ki (cid:5)s1,j (k+l|k)−s1,j+1
+n
+j=0
+(cid:8)Nc
+l (k+l|k)(cid:5)2
++ (cid:5)u1
+Ku ,
+l=0
+(9)
+subject to
+(k+l+1|k)=f(x1 (k+l|k),u1 (k+l|k))
+x1 (10a)
+l l
+−u (v1,j )≤u1,j (k+l|k)≤u (v1,j ),
+min max
+(10b)
+if j is locomotive
+w
+−u ≤u1,j (k+l|k)≤0,if
+j is wagon (10c)
+min
+4565
+20,2026 at 15:12:12 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 4 ---
+[LEFT]
+0≤v1,j (k+l|k)≤v lim
+(10d)
+−fm in ≤f1 in (k+l|k)≤fm in
+(10e)
+ax ,j ax
+for all j =1,2,...,n.
+The cost function (9) includes three terms, the first term
+is used for the lead HHT to track optimal reference speed
+∗1n, = [1,...,1]T,
+v 1n the second term is to minimize the
+in-train force, which is the relative displacement between
+adjacent vehicles in ith HHT, the third term is the control
+l ≥0, l ≥0 l ≥0
+input, Kv Ki and Ku are weight coefficients
+n
+corresponding to balance the speed tracking errors, in-train
+forces and control forces respectively.
+In equation (10), (10a) is the system dynamic updates for
+the discrete-time model obtain from (6) applied to the lead
+HHT, (10b) and (10c) are the control force constraints for
+−u l (v1,j )
+locomotives and wagons respectively, in which
+min
+l (v1,j )
+and u are the lower and upper bounds of the loco-
+max
+w
+motive force, corresponding to the speed, and −u (v1,j ) is
+min
+thelowerboundofthewagonbrakingforce.(10d)isrelatedto
+thespeedlimitoftherailwayand(10e)isthesafetyconstraints
+relatedtoin-trainforce,botharethehardconstraintstoensure
+that HHTs can fulfill the transportation.
+B. Controller Design for the Following HHT
+The following HHT can receive the real-time speed and
+position information from the preceding HHT, the objective
+ofwhichistomaintainthesamespeedastheprecedingHHT
+while satisfying the minimum tracking interval. The multi-
+objective optimization problem for the following HHT i (i=
+2,3,...,m)
+can be formulated as:
+(cid:8)Np
+f (k+l|k)(cid:5)2
+minJi = (Kv (cid:5)vi (k+l|k)−vi−1
+ui
+l=0
+f (k+l|k)(cid:5)2
++K (cid:5)Di (k+l|k)−Ddes
+D
+(cid:8)n
+f
++Ki (cid:5)si,j (k+l|k)−si,j+1 (k+l|k)(cid:5)2)
+n
+j=0
+(cid:8)Nc
++ f (cid:5)ui (k+l|k)(cid:5)2
+Ku
+l=0
+(11)
+subject to
+(k+l+1|k)=f(xi (k+l|k),ui (k+l|k))
+xi (12a)
+l l
+−u (vi,j ) ≤ ( + | ) ≤u (vi,j ),
+u i ,j k l k
+min max
+(12b)
+i f j i s l o c om o ti v e
+−u w ≤ui,j (k+l|k)≤0,if
+j is wagon (12c)
+min
+lim
+0≤vi,j (k+l|k)≤v (12d)
+−fm in ≤fi i n (k+l|k)≤fm in
+(12e)
+ax , j ax
+(k+l|k)≥Dmin
+Di (12f)
+for a l l j = 1, 2, . .., n .
+C o m pa red w it h th e controlleroftheleadHHT,thefollowing
+HHT controller includes an additional term to minimize the
+4566 202537thChineseControlandDecisionConference(CCDC)
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+f ≥0isacoefficienttopenaliethe
+trackingintervalerrors.K
+D
+f ≥
+o u t pu td ev iat i o nf ro m th e d es i r e d in t er v al, t o g eth e r w ith K
+v
+f
+0 ≥ 0 f ≥ 0
+, K a n d K u , w h i c h h a s s im il a r m ea n i ng th at fo r
+i n
+theControllerofleadHHT.Eq.(12f)isusedtoguaranteethat
+the interval remains within the permissible limits, and other
+constraints are consistent with Eq. (10).
+IV. NUMERICALSIMULATION
+In this section, the 653-kilometer-long Daqin Railway is
+usedasasimulationscenario,andthesimulationobjectwillbe
+a20,000-tonheavy-dutytrain,consistingoftwoHXD2electric
+locomotives and 214 C80B fully loaded wagons, with a total
+lengthof2.7kilometers, theparametersofHXD2locomotive
+andC80BwagonareshowninTableI.Duetocommunication
+transmission limitations, the demand fence method [16] is
+applied to group a certain number of neighboring vehicles
+connected as rigid bodies.
+TABLE I: Parameters of HXD2 locomotive and fully loaded
+C80B wagon
+HXD2 C80B
+m (tons) 225 125
+j
+l(m) 37.95 12.00
+k (Nm−1) 78∼121×106 29.29∼49×106
+j
+A 1.20 0.92
+j
+B 0.0065 0.0048
+j
+C 0.000279 0.000125
+j
+The MPC controller parameters Np = 20, Nc = 15, and
+weight coefficients are shown in Table II.
+TABLE II: Parameters of weight coefficients
+Kl Kl Kl Kf Kf Kf Kf
+v in u v D in u
+1×109 1×102 1×104 1×107 1×103 1×102 100
+T h e m a x i m u m tr a c t io n an d b ra k i ng f o rc es of H X D 2 l o c o -
+mo ti v es ( b o t h m ea s u r e d in k N ) a r e g iv e n by th e f ol lo w i n g
+equations,
+⎧
+⎪⎪⎨ 760, v≤5
+7 7 9 .0 5 − 3.81v, 5 ≤ 65
+l < v
+(v)=
+u max (13)
+⎪⎪⎩ 3 4 5 4 1 /v , 6 5 < v ≤ 120
+0, v>120
+⎧
+and
+⎪⎪⎨ 153.3v, v≤3
+4 6 0 5 ≤ 65
+l , < v
+u (v)= (14)
+min
+⎪⎪⎩ 3 4 5 0 0/v, 6 5 < v ≤ 120
+0 1 2 0
+, v >
+lim 35m/s.
+where v is in km/h. v is set to
+wedefinetwoindicatorsfi in andE tomeasurethein-train
+f o r c e a nd to t a l e n er g y c o n s um pt i o n , re sp ec t iv ely . T h e m e an
+i n
+v a l u eo f the i n - tr a in f o rc e f of i t h H H T w it h in th e o p er at io n
+i , j
+period is defined as
+(cid:9)
+1 Nt (cid:10) (cid:10)
+in = (cid:10) i n (t) (cid:10)
+fi fi dt,
+, j
+N (15)
+t 0
+i=1,2,...,m;j =1,2,...,n−1.
+20,2026 at 15:12:12 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 5 ---
+[LEFT]
+in
+A smaller value of fj indicates the improved safety and
+in =2000kN.Wealso
+lesscostoftrainmaintenance,andfm
+ax
+define an indicator for the total energy consumption during
+operation as
+(cid:9)
+(cid:8)n
+Nt
+= |ui,jvi,j |dt,
+Ei
+0 (16)
+j=1
+i=1,2,...,m;j =1,2,...,n.
+The variables ui,j and vi,j represent the control force and
+speed of jth vehicle in ith HHT, respectively.
+The simulation results are categorized into two cases: A.
+Case1: without disturbance, B. Case 2: HHTs 2 and 4 with
+input disturbances. Five HHTs with the same formation are
+selected as the virtual coupling group, the minimum tracking
+intervalDminandthedesiredintervalDdesbetweentheHHTs
+are 500 meters.
+A. Case 1: Virtually Coupled HHTs Without Disturbance
+In order to show the operation state of virtual coupling
+HHTs more clearly, this paper takes the mean speeds of all
+the mass points of each HHT, together with the mean speed
+errorsandthetrackingintervalerrors,whichareshowninFig.
+5.
+40
+)s/m(deeps
+30
+Ref speed
+20 Lead HHT 1
+HHT 2
+naeM HHT 3
+10
+HHT 4
+HHT 5
+0
+0 1 2 3 4 5 6
+105
+4
+)s/m(rorre
+2
+deeps 0
+Ref - Lead HHT 1
+naeM Lead HHT 1 - HHT 2
+-2
+HHT 2 - HHT 3
+HHT 3 - HHT 4
+HHT 4 - HHT 5
+-4
+0 1 2 3 4 5 6
+105
+)m(lavretni
+20
+15
+Lead HHT 1 - HHT 2
+gnikcarT 10
+HHT 2 - HHT 3
+HHT 3 - HHT 4
+5
+HHT 4 - HHT 5
+0
+0 1 2 3 4 5 6
+Distance(m) 105
+Fig. 5: Trajectories of mean speeds, mean speed errors and
+tracking interval errors in case 1.
+As illustrated in Fig. 5, the DMPC controller designed in
+this paper enables the virtual coupling HHTs to demonstrate
+excellent performance in speed tracking and interval mainte-
+nance.
+Fig.6illustratesthetractionandbrakingforcesoflocomo-
+tives,wherethesolidlineindicatesthefirstlocomotiveineach
+HHT and the dashed line indicates the second. The in-train
+force mean values of each HHT are the average value of in-
+trainforcespercoupler.Althoughthereweresomemomentsof
+202537thChineseControlandDecisionConference(CCDC)
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+1000
+Lead HHT 1
+HHT 2
+HHT 3
+)Nk(ecroF 500 HHT 4
+HHT 5
+0
+-500
+0 1 2 3 4 5 6
+105
+)Nk(eulav
+2000
+Lead HHT 1
+HHT 2
+1000 HHT 3
+naem
+HHT 4
+HHT 5
+ecrof
+0
+niart-nI
+-1000
+0 1 2 3 4 5 6
+Distance(m) 105
+Fig. 6: Trajectories of locomotive forces and in-train force
+mean values in case 1.
+significant fluctuation, the in-train foeces were always within
+the safe range.
+B. Case 2: Virtually Coupled HHTs With Input Disturbances
+in HHTs 2 and 4.
+In this subsection, random disturbances is introduced into
+2 4
+the locomotive’s control inputs in HHT and HHT during
+500 ∼ 1000
+time interval seconds, the values of which are
+randomlytakenfrom[−10,10]kN.Thesimulationresultsare
+illustrated as Figs. 7 and 8.
+40
+)s/m(deeps
+30
+Ref speed
+20 Lead HHT 1
+HHT 2
+naeM HHT 3
+10 HHT 4
+HHT 5
+0
+0 1 2 3 4 5 6
+105
+4
+)s/m(rorre
+2
+deeps 0
+Ref - Lead HHT 1
+naeM -2 Lead HHT 1 - HHT 2
+HHT 2 - HHT 3
+HHT 3 - HHT 4
+HHT 4 - HHT 5
+-4
+0 1 2 3 4 5 6
+105
+)m(lavretni
+20
+15
+Lead HHT 1 - HHT 2
+gnikcarT 10 HHT 2 - HHT 3
+HHT 3 - HHT 4
+5 HHT 4 - HHT 5
+0
+0 1 2 3 4 5 6
+Distance(m) 105
+Fig. 7: Trajectories of mean speeds, mean speed errors and
+tracking interval errors in case 3.
+Thefluctuationsinthein-trainforcecurvesforHHT2and
+4
+HHT are more pronounced, but the speed tracking errors
+and the tracking interval errors remain almost unchanged.
+The data of the simulation results are shown in table III,
+from which it can be seen that the presence of random
+4567
+20,2026 at 15:12:12 UTC from IEEE Xplore. Restrictions apply.
+
+--- page 6 ---
+[LEFT]
+TABLE III: The performance indicators of virtual
+LeaderHHT1
+Parameters Case
+Meanvaluesof Case1 0.040
+speederror(m/s) Case2 0.040
+Meanvaluesof Case1 0
+Trackingintervalerror(m) Case2 0
+Meanvaluesof Case1 52.140
+in-trainforce(kN) Case2 52.140
+Energyconsumption Case1 18.50
+(GJ) Case2 18.50
+1000
+Lead HHT 1
+HHT 2
+HHT 3
+)Nk(ecroF 500 HHT 4
+HHT 5
+0
+-500
+0 1 2 3 4 5 6
+105
+)Nk(eulav
+2000
+Lead HHT 1
+HHT 2
+1000 HHT 3
+naem
+HHT 4
+HHT 5
+ecrof
+0
+niart-nI
+-1000
+0 1 2 3 4 5 6
+Distance(m) 105
+Fig. 8: Trajectories of locomotive forces and in-train force
+mean values in case 3.
+disturbanceshasalmostnoeffectonthespeedtrackingerrors
+andintervalerrors,duetothefactthatthespeedtrackingerror
+mean value remains almost unchanged. The most variable
+metric is the in-train force mean values, but it is still within
+safe limits and has almost no effect on the whole virtual
+coupling HHTs.
+V. CONCLUSION
+In order to enhance the capacity and operational efficiency
+of HHTs, we have proposed a virtual coupling strategy for
+HHTsbasedonamulti-mass-pointmodelinthispaper.DMPC
+controllersaredesignedforagroupofvirtuallycoupledHHTs
+withtheobjectivesofreachingthesamespeedwhileminimiz-
+ingtrackingintervals,in-trainforcesandenergyconsumption.
+The multi-objective receding horizon optimization problem is
+transformedintoanonlinearprogrammingformtosolve.The
+effectiveness of the proposed method is verified by numerical
+simulations, which demonstrate its excellent performance in
+speed tracking, interval maintenance and minimizing in-train
+force, even in the presence of random disturbances. It will
+be our future work to further consider the highly nonlinear
+operationprocessofheavy-haultrains,andtoproposeavirtual
+coupling strategy that is more suitable for the cooperative
+operation of HHT group with long formations.
+4568 202537thChineseControlandDecisionConference(CCDC)
+Authorized licensed use limited to: University of Illinois. Downloaded on October
+[RIGHT]
+coupling HHTs under different scenarios.
+HHT2 HHT3 HHT4 HHT5
+0.346 0.342 0.339 0.337
+0.348 0.343 0.336 0.337
+19.442 19.318 19.247 19.179
+19.628 19.325 19.181 19.185
+48.254 42.157 40.742 40.035
+60.137 42.958 52.682 42.331
+18.40 18.32 18.26 18.22
+18.39 18.35 18.28 18.26
+REFERENCES
+[1] Q.Wu,X.Ge,Q.-L.Han,andY.Liu,“Railwayvirtualcoupling:Asur-
+veyofemergingcontroltechniques,”IEEETransactionsonIntelligent
+Vehicles,vol.8,no.5,pp.3239–3255,2023.
+[2] J.Felez,Y.Kim,andF.Borrelli,“Amodelpredictivecontrolapproach
+for virtual coupling in railways,” IEEE Transactions on Intelligent
+TransportationSystems,vol.20,no.7,pp.2728–2739,2019.
+[3] B.Ning,“Absolutebrakingandrelativedistancebraking-trainoperation
+controlmodesinmovingblocksystems,”WITTransactionsonTheBuilt
+Environment,vol.37,1998.
+[4] H.Liu,L.Yang,andH.Yang,“Cooperativeoptimalcontrolofthefol-
+lowingoperationofhigh-speedtrains,”IEEETransactionsonIntelligent
+TransportationSystems,vol.23,no.10,pp.17744–17755,2022.
+[5] Y. Liu, R. Liu, C. Wei, J. Xun, and T. Tang, “Distributed model
+predictivecontrolstrategyforconstrainedhigh-speedvirtuallycoupled
+trainset,”IEEETransactionsonVehicularTechnology,vol.71,no.1,
+pp.171–183,2021.
+[6] J. Li, D. Tian, J. Zhou, X. Duan, Z. Sheng, D. Zhao, and D. Cao,
+“Distributedrobustmodelpredictivecontrolforvirtualcouplingunder
+structural and external uncertainty,” IEEE Transactions on Intelligent
+TransportationSystems,2024.
+[7] M. A. Vaquero-Serrano and J. Felez, “A control algorithm for a
+coordinated stop of a convoy at stations in a virtual coupling system
+based on a predecessor-leader following communication topology,” in
+2023IEEE26thInternationalConferenceonIntelligentTransportation
+Systems(ITSC),pp.1152–1157,IEEE,2023.
+[8] W. Xi, M. Hu, H. Wang, H. Dong, and Z. Ying, “Formation control
+for virtual coupling trains with parametric uncertainty and unknown
+disturbances,” IEEE Transactions on Circuits and Systems II: Express
+Briefs,vol.70,no.9,pp.3429–3433,2023.
+[9] J.Park,B.-H.Lee,andY.Eun,“Virtualcouplingofrailwayvehicles:
+Gap reference for merge and separation, robust control, and position
+measurement,”IEEETransactionsonIntelligentTransportationSystems,
+vol.23,no.2,pp.1085–1096,2020.
+[10] Y. Zhang, S. Li, and L. Yang, “Distributed optimal control to virtual
+formation of railway trains with dynamic coupling/decoupling: An
+accelerated projected gradient based decomposition method,” IEEE
+TransactionsonVehicularTechnology,2023.
+[11] H. He, M. Dai, W. Tao, and X. Li, “Multi-intelligent body-based
+cooperativecruisecontrolofheavy-haultrainswithvirtualformations,”
+ChinaRailwayScience,vol.44,no.6,pp.196–205,2023.
+[12] D. Li, H. Deng, T. Yu, and L. Zhang, “Multi-vehicle cooperative
+localizationusingatoa-basedsimulatedannealingextendedkalmanfilter
+inurbancanyons,”IEEEInternetofThingsJournal,2025.
+[13] Z. Hou and K. You, “Hybrid model predictive control for virtual
+coupling of heavy-haul trains,” in 2024 American Control Conference
+(ACC),pp.2273–2278,IEEE,2024.
+[14] L. Chen, H. Yang, F. Jin, and Y. Ren, “Distributed global composite
+learningcooperativecontrolofvirtuallycoupledheavyhaultrainforma-
+tions,”IEEETransactionsonIntelligentTransportationSystems,2024.
+[15] M. Chou, X. Xia, and C. Kayser, “Modelling and model validation
+ofheavy-haultrainsequippedwithelectronicallycontrolledpneumatic
+brakesystems,”ControlEngineeringPractice,vol.15,no.4,pp.501–
+509,2007.
+[16] L.ZhangandX.Zhuan,“ThefenceontheMPCofheavyhaultrains,”in
+201224thChineseControlandDecisionConference(CCDC),pp.3545–
+3550,IEEE,May2012.
+20,2026 at 15:12:12 UTC from IEEE Xplore. Restrictions apply.

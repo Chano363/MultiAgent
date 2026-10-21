@@ -53,3 +53,16 @@ traffic_rl_project/outputs/diag_53km_*/
 
 # Full trajectory is preserved as verified binary parts beside the local original.
 /traffic_rl_project/outputs/sim_validation/phys_validation/net_demand_release_ff_route_gate_20261017_1606/trajectory.npz
+
+# ===== 产物入库分流（2026-10-21，ADR-046 待追认）=====
+# 判据：重跑能再生 + 单文件 > 10 MB → 不入库；不可再生但体积大 → 放 D 盘/网盘，仓库只存指针。
+# 背景实测：sim_validation 工作区 6.2 GB，其中 809 个 trajectory.npz = 1.46 GB；
+#          checkpoints 2.46 GB（已 ignore）。.git 已达 1.7 GB。
+# 保留入库：metadata.json / 汇总评估 JSON / figures/*.png / md 索引。
+traffic_rl_project/outputs/**/*.npz
+traffic_rl_project/outputs/**/*.h5
+traffic_rl_project/outputs/**/*.bin
+traffic_rl_project/outputs/**/events.out.tfevents*
+traffic_rl_project/outputs/**/*.ckpt
+traffic_rl_project/outputs/**/*.pt
+

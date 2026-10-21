@@ -19,7 +19,7 @@
 | **新**重大决策记录（ADR）     | `docs/logs/decisions/DECISIONS.md`                                      |
 | 踩坑 / 失败教训            | `docs/logs/learnings/LEARNINGS.md`                                      |
 | 每日工作日志（timeline）     | `docs/logs/README.md`（→ `.codebuddy/memory/`)                            |
-| 论文（唯一权威）             | `docs/ITSC_PAPER.md` / `.tex` / `.pdf`                                   |
+| 论文稿                 | 原 `docs/ITSC_PAPER.md/.tex/.pdf` 已删除（2026-10-19 目标会议更换，见 git 历史）；重写时新建 |
 | 复现性说明                | `docs/REPRODUCIBILITY.md`                                                |
 | **文献库目录清单（文件→元数据）** | `docs/papers/README.md`（新增文献必登记；含主题分类表 + 待补清单 + 子目录结构） |
 | 文献 PDF / 信息卡         | `docs/papers/`（按主题分 5 个子目录：`01_coupler_physics/` 车钩与物理仿真 · `02_rl/` 强化学习 · `03_formation/` 列车编队 · `04_safety_mpc/` 安全层/MPC · `05_energy_other/` 节能/其他；重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
@@ -69,7 +69,7 @@
 | `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
-| `ITSC_PAPER.md` / `.tex` / `.pdf` | 论文（唯一权威）                     | active |
+| （ITSC_PAPER.md/.tex/.pdf 已删除） | 论文稿随目标会议更换移除（2026-10-19），重写时新建 | removed |
 | `REPRODUCIBILITY.md`              | 复现                           | active |
 
 ### 治理层（rules）
@@ -92,8 +92,8 @@
 
 | 文档                                                          | 说明                                     |
 | ----------------------------------------------------------- | -------------------------------------- |
-| `ITSC_PAPER.tex` / `.pdf`                                | 论文源稿 / 编译 PDF（唯一权威投稿版本）           |
-> 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`）已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。**现存唯一交接文档：`HANDOFF_2026-10-17.md`**（规则层标定 R→AE 轮快照，进度仍以 `PROJECT_PIPELINE.md` 为准）。
+| （原 `ITSC_PAPER.tex` / `.pdf`）                            | 论文源稿，已删除（2026-10-19 目标会议更换），见 git 历史 |
+> 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`，含原"现存唯一交接文档" `HANDOFF_2026-10-17.md`）均已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。规则层标定数据看 `outputs/sim_validation/phys_validation/rulecal_*/` 与 `single108_*` 归档。
 
 ### 归档区（已有，保持）
 
@@ -110,7 +110,7 @@
 | 核心思想 / 主张                                                           | 主要出处                                                                                                  |
 | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **主轴与底线**：多列 platoon + 队内车钩力≤1000kN 不可逾越；AB+ED 分工、1+1 是锦上添花         | 仓库根 `AGENTS.md`「规范性问题」；`RESEARCH_POSITIONING.md`                                                      |
-| **研究定位 / 创新点**：重载列车群组 × 车钩力 × 长大下坡分层 MARL                           | `RESEARCH_POSITIONING.md`；论文 `ITSC_PAPER.md` Intro                                                    |
+| **研究定位 / 创新点**：重载列车群组 × 车钩力 × 长大下坡分层 MARL                           | `RESEARCH_POSITIONING.md`                                                  |
 | **架构分层**：规则层（循环制动+电空分工+安全层）作内层，MARL 作外层调制                           | `RESEARCH_POSITIONING.md` §1.3；代码 `src/controllers/multi_loco_controller.py`                                      |
 | **智能体分解重构（ADR-009）**：每机车=智能体 / 每列车=智能体 vs 多列                        | `logs/decisions/DECISIONS.md` ADR-009/009.1                                                             |
 | **MPC 对比口径**（ADR-037，废止 ADR-016 Regime A 协议）：不按坡换 MPC 模型；同一仿真器/环境/坡度数据/调参力度，坡度为 MPC 固有输入，**不设逐线重喂/重标定协议** | 仓库根 `AGENTS.md`「规范性问题」；`logs/decisions/DECISIONS.md` ADR-037                                                               |
@@ -126,6 +126,8 @@
 | **验证基准 / 复现**：论文↔仿真数据对照 + 实验诊断 + 复现命令                               | `VALIDATION_BASELINE.md`；`logs/verification/`；`logs/diagnostics/`；`REPRODUCIBILITY.md` |
 | **文献库 / 立论来源**：PDF + 信息卡 + 数据基准                                     | `RESEARCH_POSITIONING.md` 文献库；`docs/papers/`                                                          |
 | **指标术语 / 防追尾机制 / ATP 边界 的文献依据**（写 Related Work、指标表、图表标签前）            | `docs/papers/LITERATURE_FINDINGS.md`（结论口径仍以 `RESEARCH_POSITIONING.md` §1.5/§1.6/§1.7 为准）                        |
+| **立论事实的唯一措辞权威**（引文献事实、写"空白/未见"前必读）                                     | `CLAIM_LEDGER.yaml`（台账）+ `RESEARCH_POSITIONING.md` §1.2 渲染区块；守卫 `scripts/check_claim_ledger.py` / `scripts/render_claims.py` |
+| **否定命题（空白/未见）的检索证据**                                                             | `logs/verification/NEGATIVE_SEARCH_YYYY-MM-DD.md`（检索式/通道/命中/排除理由；缺此文件不得写"空白"） |
 | **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `logs/learnings/LEARNINGS.md`（唯一 SSOT；原 `AGENTS.md` Gotchas 已迁入此处与 `VALIDATION_BASELINE.md`）                                                      |
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 

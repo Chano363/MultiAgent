@@ -154,3 +154,12 @@ supersedes: partial（自 docs/records/VERIFICATION_LOGS.md 按 V6 块拆出）
 ---
 
 <!-- 该文档整理/压缩于 2026-10-01 -->
+
+## 更正-2026-10-20：Si2025「未显式建模车钩力」表述失准（append-only）
+
+- **原表述**（本文件 V6.10 节）："Si2025：目标 = 提效 + 降制动时间，**未显式建模车钩力** → 我们'长大下坡 RL + 车钩力'的对照点"。
+- **更正**：Si2025（Dueling DQN，IEEE ICIRT 2025）**物理含车钩力**——多质点模型、车辆经 "coupler and draft gear" 连接
+  （`docs/papers/02_rl/Si2025_DuelingDQN_fulltext.txt` 第 III 节 Train model），编组为 `1HXD1+108C80+1HXD1+108C80`；
+  **不包含**的只是"车钩力进奖励/状态"（奖励仅 `Rk = rv + ra`：速度罚 + 空气制动罚）。
+- **正确口径**：**"物理含、目标不含"**（与本仓 `DIAGNOSTICS_2026-10.md:1228` 的"物理含"一致）。
+- 由此，与 Si2025 的差异**不得**写成"它没有车钩力"，只能写"车钩力未进其决策目标"。
