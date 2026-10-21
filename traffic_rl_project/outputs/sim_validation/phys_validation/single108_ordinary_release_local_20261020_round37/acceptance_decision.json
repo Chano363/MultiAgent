@@ -1,0 +1,12 @@
+{
+  "checks": {
+    "local_window_complete": true,
+    "all_vehicle_speed_safe": true,
+    "internal_coupler_safe": true,
+    "no_stronger_request": false,
+    "minimum_speed_improved": true,
+    "internal_coupler_improved": true
+  },
+  "continue_remaining_route": false,
+  "scope": "local improvement over round36, not full-route acceptance"
+}

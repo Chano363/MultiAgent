@@ -1,0 +1,92 @@
+{
+  "vehicle_speed_min_kmh": 45.78727698875673,
+  "brake_segment_starts_s": [
+    94.4,
+    358.50000000000006,
+    879.5000000000001
+  ],
+  "max_brake_segment": 3,
+  "140kpa_request_onsets_s": [
+    606.3000000000001,
+    885.3000000000001
+  ],
+  "release_predictions": [
+    {
+      "event": "release_feasibility",
+      "step": 6575,
+      "initial_speed_kmh": 49.95785051693811,
+      "at_floor": false,
+      "trace_path": "outputs\\sim_validation\\phys_validation\\single108_ramped_cold70_cycle_20261019_round24\\run\\release_predictions\\step6575.npz",
+      "feasible": true,
+      "reason": "horizon_completed",
+      "horizon_s": 248.47362627887046,
+      "simulated_s": 248.5,
+      "peak_kn": 500.90266487574667,
+      "max_vehicle_kmh": 77.23832968581078,
+      "live_max_steps": 10000,
+      "prediction_max_steps": 10000,
+      "singleton_leader_offset_mps": 5.0,
+      "trajectory_columns": [
+        "elapsed_s",
+        "peak_interface_N",
+        "max_vehicle_mps",
+        "mean_vehicle_mps",
+        "AB_request",
+        "v_max_adj_mps"
+      ],
+      "prediction_origin": "fresh_native_forecast"
+    },
+    {
+      "event": "release_feasibility",
+      "step": 9471,
+      "initial_speed_kmh": 49.96927118560319,
+      "at_floor": false,
+      "trace_path": "outputs\\sim_validation\\phys_validation\\single108_ramped_cold70_cycle_20261019_round24\\run\\release_predictions\\step9471.npz",
+      "feasible": false,
+      "reason": "speed_ceiling",
+      "horizon_s": 248.4724618875109,
+      "simulated_s": 222.20000000000002,
+      "peak_kn": 492.45624205675705,
+      "max_vehicle_kmh": 80.03186268252128,
+      "live_max_steps": 10000,
+      "prediction_max_steps": 11956,
+      "singleton_leader_offset_mps": 5.0,
+      "trajectory_columns": [
+        "elapsed_s",
+        "peak_interface_N",
+        "max_vehicle_mps",
+        "mean_vehicle_mps",
+        "AB_request",
+        "v_max_adj_mps"
+      ],
+      "prediction_origin": "fresh_native_forecast"
+    },
+    {
+      "event": "release_feasibility",
+      "step": 9505,
+      "initial_speed_kmh": 48.16534441626756,
+      "at_floor": false,
+      "trace_path": "outputs\\sim_validation\\phys_validation\\single108_ramped_cold70_cycle_20261019_round24\\run\\release_predictions\\step9505.npz",
+      "feasible": true,
+      "reason": "horizon_completed",
+      "horizon_s": 248.4723341125206,
+      "simulated_s": 248.5,
+      "peak_kn": 507.8551918668404,
+      "max_vehicle_kmh": 79.92971388372517,
+      "live_max_steps": 10000,
+      "prediction_max_steps": 11990,
+      "singleton_leader_offset_mps": 5.0,
+      "trajectory_columns": [
+        "elapsed_s",
+        "peak_interface_N",
+        "max_vehicle_mps",
+        "mean_vehicle_mps",
+        "AB_request",
+        "v_max_adj_mps"
+      ],
+      "prediction_origin": "fresh_native_forecast"
+    }
+  ],
+  "physical_ed_max_step_increase": 0.0050000000000000044,
+  "scope": "1000 s cold prefix, head17.17km; not whole route"
+}

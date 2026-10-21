@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 139.8955915582764,
+  "rms_signed_interface_error_kn": 1.1706519483864206,
+  "max_envelope_error_kn": 81.44595759885006,
+  "critical_signed_force": {
+    "elapsed_s": 233.8,
+    "interface_one_based": 101,
+    "reference_force_kn": 211.00382211512013,
+    "candidate_force_kn": 71.10823055684372,
+    "reference_e_m": 0.017611504585147486,
+    "candidate_e_m": 0.01760299976558599,
+    "reference_dv_mps": -0.006199945475863444,
+    "candidate_dv_mps": 0.0028097828698818716
+  },
+  "critical_envelope": {
+    "elapsed_s": 233.8,
+    "reference_interface_one_based": 101,
+    "candidate_interface_one_based": 99
+  },
+  "max_deflection_error_m": 0.0014491172933048801,
+  "max_relative_velocity_error_mps": 0.034656480671028334,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 0.0006323075238569231,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_balanced_trace_20261019_round17\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_newton_trace_20261019_round17\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_balanced_trace_20261019_round17\\result.json": "41d2c3fa125c4eee283fba9dd15d4a820bf1681ec1701694377c7743500b8132",
+    "outputs\\sim_validation\\phys_validation\\single108_balanced_trace_20261019_round17\\interface_trace.npz": "5ab244de11333d04779ee5a7490f5ae284c648d3465cb72e0e402d72938247db",
+    "outputs\\sim_validation\\phys_validation\\single108_balanced_trace_20261019_round17\\balanced.npz": "ed5c57cda2ac539ec3d59e716aef8ea624770e9f3986ed3d5e7584daed2a778e",
+    "outputs\\sim_validation\\phys_validation\\single108_newton_trace_20261019_round17\\result.json": "49c3b58136883bb55e5b851eb04a5e19eaef4ec76fb0e1520250e8e98d511e91",
+    "outputs\\sim_validation\\phys_validation\\single108_newton_trace_20261019_round17\\interface_trace.npz": "ae76bcc2c782dccbbeed3ab46be7219cebbdaf3e4bc715e13a93c1149d5be14e",
+    "outputs\\sim_validation\\phys_validation\\single108_newton_trace_20261019_round17\\balanced.npz": "6f5542b04d741b26759d4fc624cc45aa24ceaac012a6abe62c54967c1c4d12f1"
+  }
+}

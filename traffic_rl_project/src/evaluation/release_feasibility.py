@@ -20,7 +20,7 @@ def clone_native_prediction_env(train_env):
 
 
 def evaluate_native_release(train_env, controller, control_kwargs, horizon_s,
-                            singleton_leader_offset_mps=None):
+                            singleton_leader_offset_mps=None, step_observer=None):
     """Run a copied zero-RL controller and native physics through a refill window.
 
     Caller must set its wrapper to skip recursive guards when probe_active is
@@ -62,6 +62,8 @@ def evaluate_native_release(train_env, controller, control_kwargs, horizon_s,
             rows.append([(step + 1) * ctrl.dt, peak, speed,
                          float(branch.dynamics.vel.mean()), float(action[0, 1]),
                          float(step_controls.get('v_max_adj', 0.0))])
+            if step_observer is not None:
+                step_observer(branch, ctrl, rows[-1])
             if not np.all(np.isfinite(rows[-1])):
                 reason = 'nonfinite'
                 break

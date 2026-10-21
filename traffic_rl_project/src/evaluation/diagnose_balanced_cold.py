@@ -14,6 +14,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.environments.train_fleet_env import TrainFleetEnv
 from src.evaluation.adaptive_newmark_candidate import coupled_candidate
+from src.evaluation.fractional_air_timing import fractional_air_timing, fractional_advance_source
+from src.evaluation.refine_pneumatic_interval import refined_pneumatic_interval
 
 
 def relocate_forecast_archive(controller_text, target):
@@ -33,11 +35,29 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--steps', type=int, default=36000)
     parser.add_argument('--controller-source', type=Path, required=True)
+    parser.add_argument('--solver', choices=['balanced', 'newton_analytic'], default='balanced')
+    parser.add_argument('--force-tolerance-n', type=float, default=10)
+    parser.add_argument('--air-step', type=float)
+    parser.add_argument('--fractional-air-timing', action='store_true')
+    parser.add_argument('--ramp-air-force', action='store_true')
     args = parser.parse_args()
+    if args.ramp_air_force and not args.fractional_air_timing:
+        parser.error('Force interpolation requires fractional air timing')
+    if not np.isfinite(args.force_tolerance_n) or args.force_tolerance_n <= 0:
+        parser.error('Positive finite force tolerance required')
+    if args.air_step is not None and (not np.isfinite(args.air_step) or not 0 < args.air_step <= .01):
+        parser.error('Air step must lie in (0, .01]')
     args.output.mkdir(parents=True, exist_ok=False)
     source = Path('src/evaluation/adaptive_newmark_candidate.py').read_bytes()
     (args.output / 'candidate_source.py').write_bytes(source)
     (args.output / 'wrapper_source.py').write_bytes(Path(__file__).read_bytes())
+    frozen_sources = {}
+    for name in ('newton_mechanics_candidate', 'native_force_tangent',
+                 'fractional_air_timing', 'refine_pneumatic_interval'):
+        payload = Path('src/evaluation', name + '.py').read_bytes()
+        (args.output / (name + '_source.py')).write_bytes(payload)
+        frozen_sources[name] = hashlib.sha256(payload).hexdigest()
+    (args.output / 'fractional_advance_source.py').write_text(fractional_advance_source(), encoding='utf-8')
     # The existing archive entry creates a fresh output directory itself.
     # Keep wrapper provenance at this parent and native data in run/.
     target = args.output / 'run'
@@ -66,8 +86,11 @@ def main():
             '--finish-m', '49600', '--stop-on-coupler-kn', '1000',
             '--stop-on-infeasible-release', '--save-native-release-state',
             '--stop-file', str(args.output / 'STOP')]
-        with coupled_candidate(samples, live_dynamics=live, max_step=0.000625,
-                               force_tol_n=10):
+        with fractional_air_timing(args.fractional_air_timing), refined_pneumatic_interval(
+                args.air_step, hold_coarse_grade=args.air_step is not None), coupled_candidate(
+                samples, live_dynamics=live, max_step=0.000625,
+                force_tol_n=args.force_tolerance_n, numerical_solver=args.solver,
+                ramp_air_force=args.ramp_air_force):
             runpy.run_path('src/evaluation/diagnose_low_level_control.py', run_name='__main__')
     except BaseException as exc:
         status, error = 'failed', repr(exc)
@@ -87,9 +110,13 @@ def main():
         result = {'status': status, 'error': error, 'numerical': numerical,
             'experimental_numerical_solver': True, 'production_default_changed': False,
             'solver_sha256': hashlib.sha256(source).hexdigest(),
+            'frozen_sources_sha256': frozen_sources,
             'original_controller_sha256': hashlib.sha256(controller_text.encode()).hexdigest(),
             'controller_change': 'forecast archive directory relocation only',
-            'settings': {'max_step_s': 0.000625, 'force_tolerance_n': 10,
+            'settings': {'max_step_s': 0.000625, 'force_tolerance_n': args.force_tolerance_n,
+                         'solver': args.solver, 'air_step_s': args.air_step or .01,
+                         'fractional_air_timing': args.fractional_air_timing,
+                         'ramp_air_force': args.ramp_air_force,
                          'displacement_tolerance_m': 1e-9, 'max_iter': 100},
             'numpy_version': np.__version__}
         (args.output / 'solver_result.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
@@ -97,7 +124,7 @@ def main():
         if native.exists():
             archived = json.loads(native.read_text(encoding='utf-8'))
             archived['metadata']['experimental_numerical_solver'] = result
-            archived['metadata']['purpose'] += '; experimental balanced solver; not native production numerics'
+            archived['metadata']['purpose'] += '; experimental solver; not native production numerics'
             native.write_text(json.dumps(archived, indent=2), encoding='utf-8')
         state_manifest = target / 'native_release_state.json'
         if state_manifest.exists():

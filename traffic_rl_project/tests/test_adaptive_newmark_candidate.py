@@ -31,6 +31,30 @@ class ToyDynamics:
         return np.array([2.0])
 
 
+def test_time_dependent_force_integrates_linear_ramp_and_rebases_acceleration():
+    dyn = ToyDynamics()
+    dyn.time = 7.0
+    dyn._acc0[:] = 123.0  # Deliberately stale command acceleration.
+    candidate.advance_mechanics(
+        dyn, np.zeros(1), 0.1, max_step=0.001, solver='balanced',
+        force_tol_n=1e-8,
+        force_at_time=lambda t: np.array([1000.0 * (t - 7.0)]))
+    assert dyn.vel[0] == pytest.approx(1.005, abs=1e-10)
+    assert dyn.pos[0] == pytest.approx(0.1 + 0.1**3 / 6, abs=1e-8)
+    assert dyn._acc0[0] == pytest.approx(0.1, abs=1e-10)
+
+
+def test_invalid_time_force_rolls_back_initial_acceleration_and_state():
+    dyn = ToyDynamics()
+    dyn._acc0[:] = 123.0
+    with pytest.raises(ValueError, match='Time-dependent force'):
+        candidate.advance_mechanics(
+            dyn, np.zeros(1), 0.01, max_step=0.005, solver='balanced',
+            force_at_time=lambda t: np.array([0.0 if t == 0 else np.nan]))
+    assert dyn.time == 0 and dyn.pos[0] == 0
+    assert dyn.vel[0] == 1 and dyn._acc0[0] == 123.0
+
+
 @contextmanager
 def satisfied_displacement(samples):
     # Displacement alone passes even when the force equation fails.

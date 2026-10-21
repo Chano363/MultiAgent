@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 132.56869340462757,
+  "rms_signed_interface_error_kn": 1.0166066090138866,
+  "max_envelope_error_kn": 111.36292345618956,
+  "critical_signed_force": {
+    "elapsed_s": 32.800000000000004,
+    "interface_one_based": 94,
+    "reference_force_kn": 82.44602942913548,
+    "candidate_force_kn": 215.01472283376305,
+    "reference_e_m": 0.017725616642565,
+    "candidate_e_m": 0.017722568369208602,
+    "reference_dv_mps": 0.002010432844702592,
+    "candidate_dv_mps": -0.0050007263808176106
+  },
+  "critical_envelope": {
+    "elapsed_s": 32.800000000000004,
+    "reference_interface_one_based": 1,
+    "candidate_interface_one_based": 94
+  },
+  "max_deflection_error_m": 0.00048578070709481835,
+  "max_relative_velocity_error_mps": 0.01080626374160687,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 0.0013021228018260445,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\result.json": "34b33c84355d2894bbc19da42c68a04ffa979d888175e7ae66e1409cb98bd959",
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\interface_trace.npz": "56c824d02be97cf445d43e866ecd9bac3464b848306eb0c714618a7e504bd93b",
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\balanced.npz": "bb3fa45e910f87111c259fe7ec939de0d52cdda67099c905bd75e908a40a7e33",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\result.json": "65d6a2c93366fdd2e53122c006d1fec8fc90b99f52f1afc3b3d725e46ba669c8",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\interface_trace.npz": "6757320399fc66716d4937867773d7ceaad130c4aebf94f92a5b579c87ec6a46",
+    "outputs\\sim_validation\\phys_validation\\single108_local_airquarter_20261019_round20\\balanced.npz": "a3e786e58d0596ba7da074cd6cd284d13fb1a26eba6a1dece07d2552ff2193b3"
+  }
+}

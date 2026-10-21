@@ -1,0 +1,144 @@
+{
+  "scope": "Archived single-train prefix; request events are not physical refill proof",
+  "trajectory_sha256": "e76964a2d08415a0b4bc550c6be9fb223a14bd7305363c7184375c3e4d0e5720",
+  "duration_s": 1000.0000000000001,
+  "head_m": 16704.016927878845,
+  "tail_m": 15410.193192794572,
+  "mean_speed_range_kmh": [
+    49.39932459090658,
+    74.28721392213676
+  ],
+  "max_vehicle_speed_kmh": 74.37685918695279,
+  "control_sample_peak_kn": 719.023977637968,
+  "internal_microstep_peak_kn": 719.8228420527464,
+  "request_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.30000000000003,
+      "value": 0.0
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 107.5,
+      "duration_s": 13.200000000000017,
+      "value": -0.05
+    },
+    {
+      "start_s": 107.6,
+      "end_s": 358.40000000000003,
+      "duration_s": 250.90000000000006,
+      "value": 0.0
+    },
+    {
+      "start_s": 358.50000000000006,
+      "end_s": 637.8000000000001,
+      "duration_s": 279.40000000000003,
+      "value": -0.05
+    },
+    {
+      "start_s": 637.9000000000001,
+      "end_s": 859.8000000000001,
+      "duration_s": 222.0,
+      "value": 0.0
+    },
+    {
+      "start_s": 859.9000000000001,
+      "end_s": 1000.0000000000001,
+      "duration_s": 140.20000000000005,
+      "value": -0.05
+    }
+  ],
+  "admitted_source_intervals": [
+    {
+      "time_s": 94.4,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 52.64755529604727,
+      "predecision_refill_elapsed_s": 100000094.4
+    },
+    {
+      "time_s": 358.50000000000006,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 65.056000184945,
+      "predecision_refill_elapsed_s": 250.9
+    },
+    {
+      "time_s": 859.9000000000001,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 70.97019698837866,
+      "predecision_refill_elapsed_s": 222.0
+    }
+  ],
+  "physical_command_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 1000.0000000000001,
+      "duration_s": 1000.0000000000001,
+      "value": "RELEASE"
+    }
+  ],
+  "physical_head_notch_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.30000000000003,
+      "value": "release"
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 130.9,
+      "duration_s": 36.60000000000002,
+      "value": "cyclic"
+    },
+    {
+      "start_s": 131.0,
+      "end_s": 358.40000000000003,
+      "duration_s": 227.50000000000006,
+      "value": "release"
+    },
+    {
+      "start_s": 358.50000000000006,
+      "end_s": 661.2,
+      "duration_s": 302.8,
+      "value": "cyclic"
+    },
+    {
+      "start_s": 661.3000000000001,
+      "end_s": 859.8000000000001,
+      "duration_s": 198.60000000000002,
+      "value": "release"
+    },
+    {
+      "start_s": 859.9000000000001,
+      "end_s": 1000.0000000000001,
+      "duration_s": 140.20000000000005,
+      "value": "cyclic"
+    }
+  ],
+  "safety_event_counts_by_recorded_column": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "safety_column_names": [
+    "coupler_force_limit",
+    "min_gap",
+    "overspeed",
+    "etcs_ebi",
+    "etcs_permitted"
+  ],
+  "diagnostic_stop_reason": null,
+  "solver_status": "completed",
+  "note": "Source count takes priority over fallback command. Exact source-notch tuples were not archived. A 140 kPa request is not automatically ATP: inspect safety and physical notch events."
+}

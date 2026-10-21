@@ -1,0 +1,37 @@
+{
+  "scope": "100 s same-state copied forecast, no online/full route acceptance",
+  "same_initial_state": true,
+  "changed_policy": "pressure-ready ED recovery only",
+  "metrics": {
+    "baseline": {
+      "last_mean_speed_kmh": 73.93663619612431,
+      "maximum_vehicle_kmh": 73.94671268831793,
+      "internal_peak_kn": 455.21232114205833,
+      "late_force_peak_kn": 96.8409861822203,
+      "last_10s_mean_acceleration_mps2": 0.0226935961877718,
+      "earliest_all_pressure_ready_s": 48.6,
+      "source_sha256": {
+        "result.json": "7f06adb0f4068578762496e2c255f288d03ba28032136e7bed69892b86aeb916",
+        "balanced.npz": "25164f0e037138d921e3ab0cd4dd354a44455f4c5ab4fe275490d7675aafc53e",
+        "interface_trace.npz": "c94ea2597fe5cb2bbce252b0b0c29d8b20f5af510ce7118cd2e3dfea2d6c5536",
+        "controller_source.py": "9d1bb8458d7226f468b3f44c02f6a1b2ed274356eb603e535e5dc08049650ebd"
+      }
+    },
+    "pressure_ready": {
+      "last_mean_speed_kmh": 68.72268614073427,
+      "maximum_vehicle_kmh": 70.42359820573965,
+      "internal_peak_kn": 455.21232114205833,
+      "late_force_peak_kn": 415.4985388501959,
+      "last_10s_mean_acceleration_mps2": -0.0051746879486774585,
+      "earliest_all_pressure_ready_s": 48.6,
+      "source_sha256": {
+        "result.json": "213f768fce493183218733ecb55ce4e7b7f683ab6ed8471c8e5118bb668a8f4d",
+        "balanced.npz": "69570097226cce20135e99a425aee6566e94e192c62c850f172e5e0c71b9628e",
+        "interface_trace.npz": "83969db967d5c4e302129717f36ced753ba2486011b734b009ca563ea89d6030",
+        "controller_source.py": "aea7f052481c42fb72095c449df2e84222ecbacc8b7de70ab62d805ddfee8daf"
+      }
+    }
+  },
+  "AB_requests_identical": true,
+  "first_mean_speed_difference_s": 48.7
+}

@@ -1,0 +1,6 @@
+{
+  "parent_sha256": "9d1bb8458d7226f468b3f44c02f6a1b2ed274356eb603e535e5dc08049650ebd",
+  "candidate_sha256": "2e207407738c857bdb78335a9583b4acfa7541e561391f8a7d1a617d6b28dbc4",
+  "change": "Capture previous executed ED before base policy, release cap after all air pressure ready, .05/s slew; no AB/physics change",
+  "supersedes": "round26 projected-ED anchor candidate rejected; round27 stopped"
+}

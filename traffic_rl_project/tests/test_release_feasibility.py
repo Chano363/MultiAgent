@@ -80,6 +80,15 @@ def test_native_lookahead_preserves_live_state_and_diagnostic_observer():
 
         tr.dynamics.step_vehicles_ed_ab = record_inputs
         result = evaluate_native_release(tr, ctrl, {'v_max': 80 / 3.6, 'v_min': 40 / 3.6}, 0.3)
+        traces = []
+        def observe_step(branch, copied_controller, row):
+            assert branch is not tr and copied_controller is not ctrl
+            traces.append(branch.dynamics.coupler_interface_forces().copy())
+            assert max(np.abs(traces[-1])) == row[1]
+        replay = evaluate_native_release(tr, ctrl, {'v_max': 80 / 3.6, 'v_min': 40 / 3.6},
+                                         0.3, step_observer=observe_step)
+        np.testing.assert_array_equal(result['trajectory'], replay['trajectory'])
+        assert len(traces) == 3
         assert len(result['trajectory']) == 3
         assert result['feasible']
         assert result['prediction_max_steps'] >= 4

@@ -1,0 +1,96 @@
+{
+  "scope": "Archived single-train prefix; request events are not physical refill proof",
+  "trajectory_sha256": "f17272be5d193430a9dfa53911d28d5d2eb59c69fa70265944b13729291de7ba",
+  "duration_s": 745.2,
+  "head_m": 12725.375630157936,
+  "tail_m": 11431.716837634185,
+  "mean_speed_range_kmh": [
+    47.50230614466925,
+    76.00644352811865
+  ],
+  "max_vehicle_speed_kmh": 76.13889274261665,
+  "control_sample_peak_kn": 718.9805173549729,
+  "internal_microstep_peak_kn": 719.8165626023136,
+  "request_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.30000000000001,
+      "value": 0.0
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 107.5,
+      "duration_s": 13.200000000000003,
+      "value": -0.05
+    },
+    {
+      "start_s": 107.6,
+      "end_s": 352.40000000000003,
+      "duration_s": 244.90000000000003,
+      "value": 0.0
+    },
+    {
+      "start_s": 352.50000000000006,
+      "end_s": 601.4000000000001,
+      "duration_s": 249.00000000000006,
+      "value": -0.05
+    },
+    {
+      "start_s": 601.5,
+      "end_s": 607.1,
+      "duration_s": 5.700000000000031,
+      "value": -0.75
+    },
+    {
+      "start_s": 607.2,
+      "end_s": 652.6,
+      "duration_s": 45.499999999999986,
+      "value": -0.05
+    },
+    {
+      "start_s": 652.7,
+      "end_s": 745.2,
+      "duration_s": 92.60000000000001,
+      "value": 0.0
+    }
+  ],
+  "admitted_source_intervals": [],
+  "physical_command_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 605.4000000000001,
+      "duration_s": 605.4000000000001,
+      "value": "RELEASE"
+    },
+    {
+      "start_s": 605.5,
+      "end_s": 607.6,
+      "duration_s": 2.2000000000000313,
+      "value": "HOLD"
+    },
+    {
+      "start_s": 607.7,
+      "end_s": 745.2,
+      "duration_s": 137.60000000000002,
+      "value": "RELEASE"
+    }
+  ],
+  "safety_event_counts_by_recorded_column": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "safety_column_names": [
+    "coupler_force_limit",
+    "min_gap",
+    "overspeed",
+    "etcs_ebi",
+    "etcs_permitted"
+  ],
+  "diagnostic_stop_reason": "requested_stop_file",
+  "solver_status": "completed",
+  "note": "A 140 kPa request is not automatically ATP: inspect recorded safety and physical command events."
+}

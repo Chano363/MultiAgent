@@ -85,7 +85,7 @@ def main():
         'trajectory': str(trajectory.resolve()),
         'trajectory_sha256': hashlib.sha256(trajectory.read_bytes()).hexdigest(),
         'solver_result': str(args.solver_result.resolve()), 'duration_s': float(t[-1]),
-        'scope': '745.2-second archived cold-start prefix, not whole-route acceptance',
+        'scope': f'{t[-1]:.1f}-second archived cold-start prefix, not whole-route acceptance',
         'internal_microstep_peak_kn': micro_peak, 'language': args.language,
         'force_unit': 'kN; ED is locomotive total; air is entire-train total',
         'simulator_rerun': False}, ensure_ascii=False, indent=2), encoding='utf-8')

@@ -1,0 +1,14 @@
+{
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_baseline_100s_20261019_round26\\balanced.npz": "25164f0e037138d921e3ab0cd4dd354a44455f4c5ab4fe275490d7675aafc53e",
+    "outputs\\sim_validation\\phys_validation\\single108_baseline_100s_20261019_round26\\interface_trace.npz": "c94ea2597fe5cb2bbce252b0b0c29d8b20f5af510ce7118cd2e3dfea2d6c5536",
+    "outputs\\sim_validation\\phys_validation\\single108_baseline_100s_20261019_round26\\result.json": "7f06adb0f4068578762496e2c255f288d03ba28032136e7bed69892b86aeb916",
+    "outputs\\sim_validation\\phys_validation\\single108_baseline_100s_20261019_round26\\controller_source.py": "9d1bb8458d7226f468b3f44c02f6a1b2ed274356eb603e535e5dc08049650ebd",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_100s_20261019_round28\\balanced.npz": "11a5fbf8a2be17d56337d3bf7a05713811d71693c5a1265371b452abccefef8c",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_100s_20261019_round28\\interface_trace.npz": "25bcce3649a87920b0196ab86cb61c6020e9508afce8f6022cd336472bfe7c7f",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_100s_20261019_round28\\result.json": "858c5b505c328c2557f61fdf093c7f5e183665aa40f010d1891fc1f659333d0f",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_100s_20261019_round28\\controller_source.py": "e49fad283ba582882f574e2f766e038f64b41340ef4ff2e4b2d21670131825de"
+  },
+  "simulator_rerun_by_plot": false,
+  "scope": "same-state copied forecasts, not cold/full-route acceptance"
+}

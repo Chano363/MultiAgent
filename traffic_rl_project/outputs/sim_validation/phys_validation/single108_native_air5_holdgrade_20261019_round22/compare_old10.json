@@ -1,0 +1,35 @@
+{
+  "max_signed_interface_error_kn": 77.10122081399658,
+  "rms_signed_interface_error_kn": 0.5926444514803371,
+  "max_envelope_error_kn": 55.895450865558566,
+  "critical_signed_force": {
+    "elapsed_s": 32.800000000000004,
+    "interface_one_based": 94,
+    "reference_force_kn": 82.44602942913548,
+    "candidate_force_kn": 159.54725024313205,
+    "reference_e_m": 0.017725616642565,
+    "candidate_e_m": 0.017727666732753278,
+    "reference_dv_mps": 0.002010432844702592,
+    "candidate_dv_mps": -0.0005642018585199082
+  },
+  "critical_envelope": {
+    "elapsed_s": 32.800000000000004,
+    "reference_interface_one_based": 1,
+    "candidate_interface_one_based": 94
+  },
+  "max_deflection_error_m": 0.00028122522235207725,
+  "max_relative_velocity_error_mps": 0.006297299306332604,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 0.0010888412473732956,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_native_air5_holdgrade_20261019_round22\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\result.json": "34b33c84355d2894bbc19da42c68a04ffa979d888175e7ae66e1409cb98bd959",
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\interface_trace.npz": "56c824d02be97cf445d43e866ecd9bac3464b848306eb0c714618a7e504bd93b",
+    "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20\\balanced.npz": "bb3fa45e910f87111c259fe7ec939de0d52cdda67099c905bd75e908a40a7e33",
+    "outputs\\sim_validation\\phys_validation\\single108_native_air5_holdgrade_20261019_round22\\result.json": "70f3da7a9d41d10724438dfde297ef1cce822790e5593540b1d8a46bda257246",
+    "outputs\\sim_validation\\phys_validation\\single108_native_air5_holdgrade_20261019_round22\\interface_trace.npz": "4e776c92b5f50ae7c09f63a31c8865594e3924ff7c2c0a5e7a56d719d99f4e6f",
+    "outputs\\sim_validation\\phys_validation\\single108_native_air5_holdgrade_20261019_round22\\balanced.npz": "543c176dd6141c15f255e6bacb1afe5ec71780a46869ef63c9a19a0349b9a063"
+  }
+}

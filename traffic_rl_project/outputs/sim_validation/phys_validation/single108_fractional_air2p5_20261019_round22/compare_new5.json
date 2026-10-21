@@ -1,0 +1,37 @@
+{
+  "max_signed_interface_error_kn": 14.532236977846479,
+  "rms_signed_interface_error_kn": 0.1169182999241218,
+  "max_envelope_error_kn": 14.532236977846479,
+  "critical_signed_force": {
+    "elapsed_s": 32.1,
+    "interface_one_based": 90,
+    "reference_force_kn": 186.22067305515515,
+    "candidate_force_kn": 200.75291003300163,
+    "reference_e_m": 0.01751728606177494,
+    "candidate_e_m": 0.017516009540486266,
+    "reference_dv_mps": -0.001899878434624469,
+    "candidate_dv_mps": -0.0032727932813223504
+  },
+  "critical_envelope": {
+    "elapsed_s": 32.1,
+    "reference_interface_one_based": 90,
+    "candidate_interface_one_based": 90
+  },
+  "max_deflection_error_m": 6.659044083789922e-05,
+  "max_relative_velocity_error_mps": 0.0014965364549723859,
+  "AB_requests_identical": true,
+  "max_mean_speed_error_kmh": 0.00020731083829446107,
+  "scope": "same-state numerical diagnostic, no full-route acceptance",
+  "reference_result": "outputs\\sim_validation\\phys_validation\\single108_fractional_air5_20261019_round22\\result.json",
+  "candidate_result": "outputs\\sim_validation\\phys_validation\\single108_fractional_air2p5_20261019_round22\\result.json",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air5_20261019_round22\\result.json": "6e6ca44dd3df783e19fa36b7a24f356d2f66f2f889da739029622060ad624c72",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air5_20261019_round22\\interface_trace.npz": "32df9ba5bd150383c08d05c5aa85e886adac528dfa74122c157c52aba369ba1c",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air5_20261019_round22\\balanced.npz": "8dd40bf77589bbe056a2b41b0ec6f572a552f1a6b9c3ed90cdaee75d798d8501",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air2p5_20261019_round22\\result.json": "6b2e87c2dd4cb1a2b6b56234c3afac3dd1cf2e53428f5ee998c58aa0a977b9f5",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air2p5_20261019_round22\\interface_trace.npz": "e03a33b31791bb8f22f16abe77bf27247ffc6b29e966618ee6e5342567f581dc",
+    "outputs\\sim_validation\\phys_validation\\single108_fractional_air2p5_20261019_round22\\balanced.npz": "b048ad92fa040fe2f394ba3ede8f8d019cdb0334802a019b672b22405620625c"
+  },
+  "max_cylinder_pressure_coefficient_error": 2.2326585025211898e-13,
+  "max_effective_pressure_coefficient_error": 2.2326585025211898e-13
+}

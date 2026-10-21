@@ -1,0 +1,32 @@
+{
+  "scope": "same initial full state and same time window; not full route",
+  "summary": {
+    "stop_reason": "step_budget",
+    "steps": 4000,
+    "error": null,
+    "internal_microstep_peak_kn": 674.2122353675156,
+    "full_route_completed": false,
+    "peak_kn": 674.1560462702921,
+    "max_vehicle_kmh": 73.60399936005918,
+    "min_mean_kmh": 42.63586737948376,
+    "last_time_s": 2579.99999996392
+  },
+  "baseline": {
+    "min_vehicle_kmh": 46.87217374212579,
+    "max_vehicle_kmh": 78.51492673052006,
+    "min_mean_kmh": 46.972662082610306,
+    "stronger_request_onsets": 1,
+    "sampled_peak_kn": 595.5611876043753
+  },
+  "candidate": {
+    "min_vehicle_kmh": 42.62470124679659,
+    "max_vehicle_kmh": 73.60399936005918,
+    "min_mean_kmh": 42.63586737948376,
+    "stronger_request_onsets": 0,
+    "sampled_peak_kn": 674.1560462702921
+  },
+  "helper_sha256": {
+    "ordinary_release_guard": "cbcf92c17d7c8492e36fa3389a65dc234d1d25dc99966b5a4dbdd2f2ce8087fb",
+    "release_low_speed_controller": "133c335f4d4663b5856095131068e82b03a570009c0eba570d63a785e0700af3"
+  }
+}

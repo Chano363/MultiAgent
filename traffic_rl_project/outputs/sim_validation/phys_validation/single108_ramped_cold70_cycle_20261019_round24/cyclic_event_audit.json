@@ -1,0 +1,213 @@
+{
+  "scope": "Archived single-train prefix; request events are not physical refill proof",
+  "trajectory_sha256": "305382ee67d0bfbb346b934c8bed62b68df70aeca39950e651ecc7f9f89975fd",
+  "duration_s": 1000.0000000000001,
+  "head_m": 17172.929466097918,
+  "tail_m": 15878.4404020584,
+  "mean_speed_range_kmh": [
+    45.84804072970587,
+    76.19164083570055
+  ],
+  "max_vehicle_speed_kmh": 77.23832968581078,
+  "control_sample_peak_kn": 719.023977637968,
+  "internal_microstep_peak_kn": 719.8228420527464,
+  "request_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.30000000000003,
+      "value": 0.0
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 107.5,
+      "duration_s": 13.200000000000017,
+      "value": -0.05
+    },
+    {
+      "start_s": 107.6,
+      "end_s": 358.40000000000003,
+      "duration_s": 250.90000000000006,
+      "value": 0.0
+    },
+    {
+      "start_s": 358.50000000000006,
+      "end_s": 606.2,
+      "duration_s": 247.8,
+      "value": -0.05
+    },
+    {
+      "start_s": 606.3000000000001,
+      "end_s": 611.9000000000001,
+      "duration_s": 5.7000000000000455,
+      "value": -0.75
+    },
+    {
+      "start_s": 612.0,
+      "end_s": 657.4000000000001,
+      "duration_s": 45.500000000000114,
+      "value": -0.05
+    },
+    {
+      "start_s": 657.5000000000001,
+      "end_s": 879.4000000000001,
+      "duration_s": 222.0,
+      "value": 0.0
+    },
+    {
+      "start_s": 879.5000000000001,
+      "end_s": 885.2,
+      "duration_s": 5.7999999999999545,
+      "value": -0.05
+    },
+    {
+      "start_s": 885.3000000000001,
+      "end_s": 892.7,
+      "duration_s": 7.5,
+      "value": -0.75
+    },
+    {
+      "start_s": 892.8000000000001,
+      "end_s": 950.4000000000001,
+      "duration_s": 57.700000000000045,
+      "value": -0.05
+    },
+    {
+      "start_s": 950.5000000000001,
+      "end_s": 1000.0000000000001,
+      "duration_s": 49.60000000000002,
+      "value": 0.0
+    }
+  ],
+  "admitted_source_intervals": [
+    {
+      "time_s": 94.4,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 52.64755529604727,
+      "predecision_refill_elapsed_s": 100000094.4
+    },
+    {
+      "time_s": 358.50000000000006,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 65.056000184945,
+      "predecision_refill_elapsed_s": 250.9
+    },
+    {
+      "time_s": 612.5,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "service",
+      "source_count": 1,
+      "mean_speed_kmh": 74.47334661270938,
+      "predecision_refill_elapsed_s": 504.90000000000003
+    },
+    {
+      "time_s": 879.5000000000001,
+      "fallback_command": "RELEASE",
+      "controller_request": -0.05,
+      "physical_head_notch": "cyclic",
+      "source_count": 1,
+      "mean_speed_kmh": 74.69564131752266,
+      "predecision_refill_elapsed_s": 222.0
+    }
+  ],
+  "physical_command_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 610.2,
+      "duration_s": 610.2,
+      "value": "RELEASE"
+    },
+    {
+      "start_s": 610.3000000000001,
+      "end_s": 612.4000000000001,
+      "duration_s": 2.2000000000000455,
+      "value": "HOLD"
+    },
+    {
+      "start_s": 612.5,
+      "end_s": 1000.0000000000001,
+      "duration_s": 387.60000000000014,
+      "value": "RELEASE"
+    }
+  ],
+  "physical_head_notch_segments": [
+    {
+      "start_s": 0.1,
+      "end_s": 94.3,
+      "duration_s": 94.30000000000003,
+      "value": "release"
+    },
+    {
+      "start_s": 94.4,
+      "end_s": 130.9,
+      "duration_s": 36.60000000000002,
+      "value": "cyclic"
+    },
+    {
+      "start_s": 131.0,
+      "end_s": 358.40000000000003,
+      "duration_s": 227.50000000000006,
+      "value": "release"
+    },
+    {
+      "start_s": 358.50000000000006,
+      "end_s": 606.2,
+      "duration_s": 247.8,
+      "value": "cyclic"
+    },
+    {
+      "start_s": 606.3000000000001,
+      "end_s": 680.8000000000001,
+      "duration_s": 74.60000000000002,
+      "value": "service"
+    },
+    {
+      "start_s": 680.9000000000001,
+      "end_s": 879.4000000000001,
+      "duration_s": 198.60000000000002,
+      "value": "release"
+    },
+    {
+      "start_s": 879.5000000000001,
+      "end_s": 885.2,
+      "duration_s": 5.7999999999999545,
+      "value": "cyclic"
+    },
+    {
+      "start_s": 885.3000000000001,
+      "end_s": 973.8000000000001,
+      "duration_s": 88.60000000000002,
+      "value": "service"
+    },
+    {
+      "start_s": 973.9000000000001,
+      "end_s": 1000.0000000000001,
+      "duration_s": 26.200000000000045,
+      "value": "release"
+    }
+  ],
+  "safety_event_counts_by_recorded_column": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "safety_column_names": [
+    "coupler_force_limit",
+    "min_gap",
+    "overspeed",
+    "etcs_ebi",
+    "etcs_permitted"
+  ],
+  "diagnostic_stop_reason": null,
+  "solver_status": "completed",
+  "note": "Source count takes priority over fallback command. Exact source-notch tuples were not archived. A 140 kPa request is not automatically ATP: inspect safety and physical notch events."
+}

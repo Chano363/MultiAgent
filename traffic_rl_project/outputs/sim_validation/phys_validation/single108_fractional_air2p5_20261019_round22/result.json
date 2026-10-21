@@ -1,0 +1,194 @@
+{
+  "outcomes": {
+    "native": {
+      "feasible": true,
+      "reason": "horizon_completed",
+      "horizon_s": 48.5,
+      "simulated_s": 48.5,
+      "peak_kn": 835.2538299929256,
+      "max_vehicle_kmh": 70.52564967335535,
+      "live_max_steps": 9656,
+      "prediction_max_steps": 10141,
+      "singleton_leader_offset_mps": 5.0,
+      "trajectory_columns": [
+        "elapsed_s",
+        "peak_interface_N",
+        "max_vehicle_mps",
+        "mean_vehicle_mps",
+        "AB_request",
+        "v_max_adj_mps"
+      ]
+    },
+    "balanced": {
+      "feasible": true,
+      "reason": "horizon_completed",
+      "horizon_s": 48.5,
+      "simulated_s": 48.5,
+      "peak_kn": 455.13774097372453,
+      "max_vehicle_kmh": 70.249062338001,
+      "live_max_steps": 9656,
+      "prediction_max_steps": 10141,
+      "singleton_leader_offset_mps": 5.0,
+      "trajectory_columns": [
+        "elapsed_s",
+        "peak_interface_N",
+        "max_vehicle_mps",
+        "mean_vehicle_mps",
+        "AB_request",
+        "v_max_adj_mps"
+      ],
+      "wall_seconds": 657.9447427999985
+    },
+    "solver": {
+      "method": "newton_analytic",
+      "mechanical_intervals": 19400,
+      "accepted_microsteps": 77600,
+      "rejected_trials": 0,
+      "max_accepted_force_residual_n": 0.009988591016735882,
+      "internal_peak_kn": 455.2134568381088,
+      "max_step_s": 0.000625,
+      "force_tolerance_n": 0.01,
+      "pressure_control_interval_s": 0.0025,
+      "hold_coarse_grade": true,
+      "fractional_air_timing": true,
+      "displacement_tolerance_m": 1e-09
+    }
+  },
+  "metadata": {
+    "native_state_manifest": {
+      "format": "trusted-local-native-release-state-v1",
+      "sha256": "0dbb4317c35b91e9eeaab6113e1a29d5f90d4fd9da27f442fe674def5ee670b5",
+      "controller_sha256": "171dda1f327a6243759c619e6fa7759b9c74d55dacc896f8f650529265427962",
+      "native_source_sha256": {
+        "src/controllers/low_level_controller.py": "c5e13692dfa8935395213ec0d53f6e2d880aa095535a3014758dd727e828db9f",
+        "src/controllers/multi_loco_controller.py": "078a976357ddccdcfa957b689f7be7685bf7178a3d6ac1bcacebdb432f5da5d1",
+        "src/controllers/nmpc_controller.py": "c12d7be5804b7cbdb5e59d869c764fe9c219fb32bbaab99fbb93da4771a21765",
+        "src/environments/train_env.py": "b3386eda2e715d86a39682b2701be056863d37332c43fa6bc902e95f937658e0",
+        "src/environments/train_fleet_env.py": "772a6b783b45cbc897ef88bdfaa7508b54f8a0c54f8836b0b50cda0c4424f2f6",
+        "src/physics_config.py": "e8c7bf7c4e7fb718e0831845f1cb97627d14cf239821dc4434063f6a08b138d2",
+        "src/safety_layer.py": "732914ee95cbcaa34f3ca67572d057b8996961df3b46e0edbaa1f3111bc07031",
+        "src/train_dynamics/__init__.py": "83cde6352f285d525391d2e01ca51bccd367b0750982f60cb190b13d14abfc8d",
+        "src/train_dynamics/braking.py": "752755580b6a809e0cb25f5a7e59a878b19b8256981aaa6dea500b622e6ca5f3",
+        "src/train_dynamics/coupler.py": "75b0e88de6cf4f13fb981394805320ab814cecfcb7ba826f31bc4b27f8a89af1",
+        "src/train_dynamics/etcs_braking.py": "6f24bdbc51ee86ba6574cbb268ac726d13f23b9dbb5b76dfb13da9a1e23d4466",
+        "src/train_dynamics/grade_profile.py": "39de9cf85721080e68c46ddc5990fe91e58fb8088de48917b99538427dfe4be5",
+        "src/train_dynamics/params.py": "76b253a73774fab6118308df3e94d3a4711c97fbc7ba90047e06e1ec90b91394",
+        "src/train_dynamics/resistance.py": "9faaedb56e36e61bc34a13d4c6e1b84e5344963c56b1709f2e38b248cd1c477f",
+        "src/train_dynamics/rigid_multi_particle.py": "4e3918ff882d81cfb9f9825b2e8f47f4ff580215e99b12ee5075de8cf637b014",
+        "src/train_dynamics/tractive.py": "76b3ed7c946be1c19afc0f692738f68488dc6cef6e09e06cff16f7d82ed0e780",
+        "src/train_dynamics/train.py": "bc26fdc0ed1885d0a4c6cf3b664b2b375b9703874378a5d64b8b4f168fd20c2a"
+      },
+      "elapsed_s": 965.5000000038144,
+      "env_cfg": {
+        "ed_native_force_conversion": true,
+        "num_trains": 1,
+        "consist_preset": "10kt_1plus108",
+        "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+        "v_max": 22.22222222222222,
+        "v_min": 11.111,
+        "target_gap": 100.0,
+        "max_steps": 7655,
+        "max_accel": 1.0,
+        "use_coupler_constraint": true,
+        "hierarchical": false,
+        "decompose": "loco_ed_ab",
+        "ab_min_refill_s": 222.0,
+        "ab_min_hold_s": 0.0,
+        "coupler_force_limit_n": 1000000.0,
+        "coupler_force_limit_emergency_n": 2250000.0,
+        "cyclic_notch_50": true,
+        "cyclic_brake_trigger_kmh": 65.0,
+        "cyclic_release_kmh": 50.0,
+        "ed_release_coordination": true,
+        "ed_release_hold_s": 50.0,
+        "ed_release_boost_kn": 900.0,
+        "cyclic_ab_upgrade_kmh": 76.0,
+        "ed_upgrade_ramp_s": 6.0,
+        "ed_upgrade_ramp_scale": 0.7,
+        "ed_grade_feedforward": true,
+        "coupler_override": "min_brake",
+        "eot": true,
+        "start_randomization": {
+          "enabled": false
+        }
+      },
+      "origin_state_sha256": "d80b3e155226124aa6cc1c85a0e2abab1ddf3549186118877fbf4cf33c4ab6f8",
+      "forecast_elapsed_s": 200.0,
+      "experimental_numerical_solver": {
+        "method": "newton_analytic",
+        "max_step_s": 0.000625,
+        "force_tolerance_n": 0.1,
+        "source_sha256": {
+          "candidate_source.py": "34718e8dc5fd8c4f1806b71577f8b4f6971eff8c7bbe209d6499c6ef51f95751",
+          "newton_source.py": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+          "force_tangent_source.py": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec"
+        }
+      },
+      "scope": "complete single-train forecast state; recursive guard bypass active; not online or full-route acceptance",
+      "numpy_version": "2.3.5",
+      "python_version": [
+        3,
+        13
+      ]
+    },
+    "controller_sha256": "171dda1f327a6243759c619e6fa7759b9c74d55dacc896f8f650529265427962",
+    "candidate_sha256": "34718e8dc5fd8c4f1806b71577f8b4f6971eff8c7bbe209d6499c6ef51f95751",
+    "newton_sha256": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+    "force_tangent_sha256": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec",
+    "release_forecast_sha256": "94c7845dcc308c92219a0492ad436c7441aeb66e6486a155d11e77075866c988",
+    "pneumatic_refinement_sha256": "58d632c1d24c1360ea82d56dfb8a1ea48ea1c1c8a2bb24bf8cb2a957c74e770a",
+    "fractional_air_sha256": "282fcc8429ecd2494643142f27cf12af9311818f73bb8ad50f4aa1eaf614b264",
+    "native_reference_dir": "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20",
+    "scope": "same native state; zero-RL copied release forecast with live pneumatic/control feedback; not full-route acceptance",
+    "production_changed": false,
+    "experimental_numerical_solver": true,
+    "trace_after_s": 0.0,
+    "checkpoint_at_s": null,
+    "evaluation": {
+      "git_commit": "ac4181f8db72d1102b787162a1e41653ca4b7107",
+      "physics_version": "a4fa89fc50ba",
+      "simulator_model": "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave|simcase=OFFICIAL|cyclic_degrade=True|consist=10kt_1plus108|grade=shuozhou_ningwuxi_beidaniu_49km",
+      "simulator_model_version": "4d53c0044b3f",
+      "simcase": "OFFICIAL",
+      "seed": 0,
+      "entry": "diagnose_coupled_balanced.py",
+      "physics": {
+        "enable_cyclic_degrade": true,
+        "tail_pressure_kpa": null,
+        "brake_reduction_override_kpa": null,
+        "physics": {
+          "v_max_mps": 22.22222222222222,
+          "v_min_mps": 11.11111111111111,
+          "dt": 0.1,
+          "max_accel": 1.0,
+          "target_speed_mps": 20.0,
+          "target_gap_m": 100.0,
+          "consist_preset": "10kt_1plus108",
+          "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+          "coupler_force_limit_n": 1000000.0,
+          "enable_cyclic_degrade": true
+        }
+      },
+      "python": "3.13.5 (tags/v3.13.5:6cb20a2, Jun 11 2025, 16:15:46) [MSC v.1943 64 bit (AMD64)]",
+      "args": {
+        "state_dir": "outputs\\sim_validation\\phys_validation\\single108_analytic_checkpoint200_20261019_round19\\forecast_checkpoint",
+        "controller_source": "outputs\\sim_validation\\phys_validation\\single108_force_matching_prep10_source_20261019_round10\\controller_source.py",
+        "output": "outputs\\sim_validation\\phys_validation\\single108_fractional_air2p5_20261019_round22",
+        "horizon_s": 48.5,
+        "max_step": 0.000625,
+        "force_tolerance_n": 0.01,
+        "solver": "newton_analytic",
+        "native_reference_dir": "outputs\\sim_validation\\phys_validation\\single108_local_fine_20261019_round20",
+        "record_after_s": 0.0,
+        "checkpoint_at_s": null,
+        "air_step": 0.0025,
+        "hold_coarse_grade": true,
+        "fractional_air_timing": true
+      },
+      "scope": "numerical convergence diagnostic; not full-route acceptance",
+      "critic": "centralized_scalar",
+      "reward_schema": "v5-coupler-tier-limit",
+      "ed_mod_coef": 0.5
+    }
+  }
+}

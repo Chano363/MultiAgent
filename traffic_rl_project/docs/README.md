@@ -158,3 +158,11 @@
 - 2026-10-19最新冷起点：745.2秒、车头12.725km、内部峰719.817kN、单车47.411—76.139km/h，完整状态已存，尚非49.6km全线通过。74项相关回归通过；力时程精度/效率仍需核查。[D盘详细报告](D:/Codex/Documents/Train/controller_takeover_20261017/冷起点验证与力时程收敛瓶颈_20261019.md)、[TraeWork MIS检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_MIS力时程精度与计算效率专项_20261019.md)。
 
 - 2026-10-19本轮发布资料：[中文循环制动图](../outputs/sim_validation/figures/cyclic_braking_108_20261019/cyclic_cold745_zh.png)、[D盘49份工作文档及配套资料ZIP](../outputs/sim_validation/phys_validation/controller_reports_publication_20261019_round16/controller_reports_publication_20261019_round16.zip)。ZIP含逐文件SHA256。图仅覆盖745.2秒冷起点前缀，不是全线验收；可用src/evaluation/plot_cyclic_archive.py复画，无需重跑仿真。
+
+### 2026-10-20 单列控制修复与局部验证归档
+
+- 单列1机车+108货车（10988吨）、49.6公里固定起点：第33轮完整状态连续运行至尾车通过终点；最高车辆速度78.51493 km/h，最低全列平均速度43.05631 km/h，含前1000秒起步阶段的内部车钩峰值约719.82284 kN。零RL、实验数值求解；生产默认未晋升，不代表三列或随机起点验收。
+- 第36轮2180—2580秒局部候选：深制动请求0次，最低车辆42.62470 km/h，内部车钩峰674.21224 kN。第37轮细化缓解重试后最低车辆44.13940 km/h、内部峰651.09197 kN，但深制动请求恢复为1次，未达到全部接续条件，未启动第38轮剩余路段验证。保留第33轮为已通过单列基线。
+- 原始数据、完整重启状态、冻结源码与哈希位于 `outputs/sim_validation/phys_validation/single108_*`；不要将轨迹数组视为可恢复全部气动和控制器历史的检查点。
+- [D盘工作报告仓库副本](reports/controller_takeover_20261017/)；[中文循环制动图及配套资料](../outputs/sim_validation/figures/controller_repair_20261020/)。保留历史报告，各轮结论以对应result.json和local_comparison.json为准。
+- 后续流程：问题前完整状态→同工况局部对比→有明确改善后再线路验收；阶段验收出图，样式调整复用原数据。

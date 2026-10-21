@@ -1,0 +1,42 @@
+{
+  "status": "completed",
+  "error": null,
+  "numerical": {
+    "live": {
+      "mechanical_intervals": 400000,
+      "accepted_microsteps": 1600000,
+      "rejected_trials": 0,
+      "internal_peak_kn": 719.8228420527464,
+      "max_force_residual_n": 0.009999243193760776
+    },
+    "forecast": {
+      "mechanical_intervals": 99400,
+      "accepted_microsteps": 397600,
+      "rejected_trials": 0,
+      "internal_peak_kn": 576.5489027924755,
+      "max_force_residual_n": 0.009996549972584035
+    }
+  },
+  "experimental_numerical_solver": true,
+  "production_default_changed": false,
+  "solver_sha256": "e6dbe151e1c93104f77572ebea423c79925f63d869e9cc7af87f2311a691de9a",
+  "frozen_sources_sha256": {
+    "newton_mechanics_candidate": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+    "native_force_tangent": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec",
+    "fractional_air_timing": "282fcc8429ecd2494643142f27cf12af9311818f73bb8ad50f4aa1eaf614b264",
+    "refine_pneumatic_interval": "58d632c1d24c1360ea82d56dfb8a1ea48ea1c1c8a2bb24bf8cb2a957c74e770a"
+  },
+  "original_controller_sha256": "2e207407738c857bdb78335a9583b4acfa7541e561391f8a7d1a617d6b28dbc4",
+  "controller_change": "forecast archive directory relocation only",
+  "settings": {
+    "max_step_s": 0.000625,
+    "force_tolerance_n": 0.01,
+    "solver": "newton_analytic",
+    "air_step_s": 0.0025,
+    "fractional_air_timing": true,
+    "ramp_air_force": true,
+    "displacement_tolerance_m": 1e-09,
+    "max_iter": 100
+  },
+  "numpy_version": "2.3.5"
+}
