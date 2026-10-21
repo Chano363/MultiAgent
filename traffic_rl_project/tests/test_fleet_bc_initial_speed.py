@@ -28,6 +28,9 @@ def test_bc_initial_speed_matches_config(tmp_path, monkeypatch, explicit_speed, 
     def short_native_bc(agent, env, **kwargs):
         captured.append(kwargs['init_speed'] * 3.6)
         # Only shorten collection; retain the real simulator and BC optimizer.
+        # 【2026-10-21】train_runner 现在会传 bc_max_steps → max_steps，此处以 2 步覆盖，
+        # 先剔除上游值避免 "multiple values for keyword argument"。
+        kwargs.pop('max_steps', None)
         return original(agent, env, max_steps=2, **kwargs)
 
     monkeypatch.setattr(fleet_spec, 'warm_start_decompose_bc', short_native_bc)
