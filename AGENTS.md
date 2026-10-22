@@ -20,6 +20,19 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 - 网络访问/下载用 **Windows PowerShell**（不是 WSL）。
 - Windows Anaconda 位于 `D:\Anaconda\python.exe`（用于原生调用 MCP 等）。
 
+## 云服务器 / 远程算力（动手前先读规范）
+
+涉及远程服务器、云主机（阿里云 / 腾讯云等）的操作——选型、询价、开通、装环境、传代码、跑训练、回收——请先读 `traffic_rl_project/docs/rules/SERVER_OPS.md`。
+
+其中两条最常被违反：
+
+1. **最省钱原则：能本地做的绝不上服务器。** 诊断、调参、冒烟、出图、评估一律本地跑；服务器只跑产出论文资产（metadata / checkpoint / 结果 JSON）的正式训练。
+2. **关机必须二次复核。** 单次 `StopInstance` 不算完成，必须回查 `Status=Stopped` 且 `StoppedMode=StopCharging` 并贴出回执。
+
+其余见该规范：凭据红线（AK 只写 `~/.aliyun_ak.txt`、不进对话/git）、按量 + 节省停机、**vCPU ÷ 2 = 物理核**、首跑 s/ep 实测校准、numba 编译缓存预热、三输出目录重定向、实测踩过的 API 坑。本文件不复述其内容（SSOT）。
+
+配套脚本（`traffic_rl_project/scripts/cloud/`）：`probe_aliyun_ecs.py` 查库存+单价 / `preflight_aliyun_ecs.py` 查下单依赖 / `provision_aliyun_ecs.py` 一键开通 / `instance_state_aliyun_ecs.py` 查状态与关机复核。
+
 ## Key commands
 
 ```sh

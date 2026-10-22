@@ -19,6 +19,7 @@
 | **新**重大决策记录（ADR）     | `docs/logs/decisions/DECISIONS.md`                                      |
 | 踩坑 / 失败教训            | `docs/logs/learnings/LEARNINGS.md`                                      |
 | 每日工作日志（timeline）     | `docs/logs/README.md`（→ `.codebuddy/memory/`)                            |
+| **目标会议截稿时间**      | `docs/TARGET_CONFERENCE.md`（SSOT：会议 + 截稿时间，2026-10-21 官网核实；旧版检索汇总在 `杂项/项目介绍和问题简述.md` §8，已冻结） |
 | 论文稿                 | 原 `docs/ITSC_PAPER.md/.tex/.pdf` 已删除（2026-10-19 目标会议更换，见 git 历史）；重写时新建 |
 | 复现性说明                | `docs/REPRODUCIBILITY.md`                                                |
 | **文献库目录清单（文件→元数据）** | `docs/papers/README.md`（新增文献必登记；含主题分类表 + 待补清单 + 子目录结构） |
@@ -71,6 +72,7 @@
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
 | （ITSC_PAPER.md/.tex/.pdf 已删除） | 论文稿随目标会议更换移除（2026-10-19），重写时新建 | removed |
 | `REPRODUCIBILITY.md`              | 复现                           | active |
+| `TARGET_CONFERENCE.md`            | 目标会议截稿时间表（SSOT，2026-10-21 官网核实） | active |
 
 ### 治理层（rules）
 
@@ -82,6 +84,7 @@
 | `rules/TEMPLATE_EXPERIENCE.md` | 沉淀可复用经验模板                       |
 | `rules/CHECKLIST_NEW_DOC.md`   | 新建/修改文档清单                       |
 | `rules/EXECUTION_RULES.md`     | 执行规范（原 PIPELINE 七）              |
+| `rules/SERVER_OPS.md`          | **云服务器操作规范**（凭据红线 / 计费铁律 / 规格选择 / s-ep 校准 / 已知坑） |
 | `logs/decisions/DECISIONS.md`  | 决策记录（ADR）                       |
 | `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月 / 体积拆分） |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分） |

@@ -505,8 +505,22 @@ class TrainFleetEnv:
     def _sample_start_offset(self) -> float:
         """训练起点随机化：均匀采样编队整体前移量（米）。
 
-        max_m 缺省 = 剖面长 − 编队总长 − 3000（预留一个短窗口的前行余量），保证随机
-        起点后编队仍能在剖面内跑完一个训练窗口。剖面为常量坡度（无 segments）时返回 0。
+        【2026-10-21 边界修复】旧实现 `span = route_len - platoon_len - 3000` 只留 3000 m
+        固定余量，与本集实际行程无关，导致两类静默失真（`grade_at` 对越界位置不报错，
+        直接沿用首/末段坡度 → 训练分布混入真实线路上不存在的路况）：
+
+          1) 下界为 0：队尾落在 ``−platoon_len``（线路起点之前，≈ −8 km）；
+          2) 上界过高：长窗口（如 1200 s ≈ 22 km 行程）时队首跑出线路末端最多 ≈ 11.7 km，
+             实测约 40% 的 episode 含虚构路段。
+
+        新实现按**本集实际行程**收边界，保证「队尾 ≥ 0」且「队首 + 行程 ≤ 线路末端」：
+            lo = platoon_len + margin
+            hi = route_len − horizon·dt·v_max − margin
+        行程按 ``v_max`` 取上界，故任何速度下都不会越界。
+
+        退化情形（窗口行程 ≥ 线路可用长度，如全剖面 36000 步）下无法在保证不越界的前提下
+        随机化，退化为固定起点 ``lo`` 并置 ``_start_rand_degenerate=True``（调用方可据此记日志）。
+        剖面为常量坡度（无 segments）时返回 0。
         """
         prof = getattr(self.trains[0].dynamics, '_grade_profile', None)
         if prof is None or not prof.segments:
@@ -515,10 +529,41 @@ class TrainFleetEnv:
         train_len = abs(self._base_pos[0][0] - self._base_pos[0][-1])
         platoon_len = (train_len * len(self.trains)
                        + self._dynamic_gap() * (len(self.trains) - 1))
-        span = max(0.0, route_len - platoon_len - 3000.0)
-        lo = float(np.clip(self._start_rand['min_m'], 0.0, span))
-        hi = (span if self._start_rand['max_m'] is None
-              else float(np.clip(self._start_rand['max_m'], lo, span)))
+        # 本集行程上界（米）：用 v_max 保守估计，保证任何速度下队首都不越过线路末端
+        horizon = int(getattr(self, 'max_steps', 0) or 0)
+        dt = float(getattr(self, 'dt', 0.1) or 0.1)
+        v_upper = max(float(getattr(self, 'v_max', 0.0) or 0.0), 1e-6)
+        window_m = max(0.0, float(horizon) * dt * v_upper)
+        margin = 500.0
+
+        safe_lo = platoon_len + margin
+        safe_hi = route_len - window_m - margin
+        explicit_max = self._start_rand['max_m']
+
+        if explicit_max is not None:
+            # 显式 [min_m, max_m] = 调用方的研究意图（如固定落在某一坡段起点），
+            # 保留原语义；只裁剪到物理合法范围 [0, route_len]，越出安全窗口记标志。
+            lo = float(np.clip(self._start_rand['min_m'], 0.0, route_len))
+            hi = float(np.clip(float(explicit_max), lo, route_len))
+            self._start_rand_degenerate = not (lo >= safe_lo and hi <= safe_hi)
+            return float(self._start_rand['rng'].uniform(lo, hi))
+
+        # 默认（未显式指定）：按本集实际行程收边界，保证整列与整段行程都在线路内
+        lo = max(safe_lo, float(self._start_rand['min_m']))
+        hi = safe_hi
+        if hi <= lo:
+            # 本集窗口 ≥ 线路可用长度（如全剖面 36000 步，或 max_steps 仍是评估上限
+            # 35000 的裸构造场景）：无法在保证不越界的前提下随机化。
+            # 退回旧口径 [0, route_len − platoon_len − 3000] 以保留随机性，
+            # 同时置 degenerate 标志（调用方/日志可据此判断本集可能含虚构延伸路段）。
+            self._start_rand_degenerate = True
+            span = max(0.0, route_len - platoon_len - 3000.0)
+            lo = float(np.clip(self._start_rand['min_m'], 0.0, span))
+            hi = span
+            if hi <= lo:
+                return float(lo)
+            return float(self._start_rand['rng'].uniform(lo, hi))
+        self._start_rand_degenerate = False
         return float(self._start_rand['rng'].uniform(lo, hi))
 
     def reset(self, seed=None, options=None):

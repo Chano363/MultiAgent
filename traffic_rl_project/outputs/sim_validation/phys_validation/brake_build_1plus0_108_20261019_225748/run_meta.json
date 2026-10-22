@@ -1,0 +1,27 @@
+{
+  "timestamp": "20261019_225748",
+  "purpose": "中期答辩页 6 空气制动机制图（复刻 run_brake_release 场景，1+0×108 PPT 口径）",
+  "scenario": {
+    "consist_preset": "10kt_1plus108",
+    "n_vehicles": 109,
+    "grade": 0.0,
+    "init_speed_kmh": 70.0,
+    "brake_s": 35.0,
+    "release_s": 50.0,
+    "throttle": -0.5,
+    "dt": 0.1,
+    "sync_loco_brake": false,
+    "eot": false,
+    "enable_safety": true,
+    "train_length_m": 1317.0
+  },
+  "metrics": {
+    "wave_travel_s": 6.5,
+    "wave_speed_eff_mps": 202.6,
+    "total_brake_peak_kn": 3513.1,
+    "release_t50_s": 43.0,
+    "release_t90_s": 52.7
+  },
+  "figure": "D:\\Code\\MultiAgent\\traffic_rl_project\\ppt_talk\\midterm_20261018\\images\\fig_air_brake_build.png",
+  "plot": "D:/Anaconda/python.exe \"d:\\Code\\MultiAgent\\traffic_rl_project\\ppt_talk\\midterm_20261018\\images\\fig_air_brake_build.py\" --plot-only"
+}
