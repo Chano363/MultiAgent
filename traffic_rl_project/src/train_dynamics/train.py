@@ -14,6 +14,9 @@
 积分采用半隐式 Euler，时间步默认 0.1s。
 """
 
+import os as _os
+from functools import cached_property
+
 import numpy as np
 
 from .resistance import G, resistance_force_n
@@ -28,6 +31,76 @@ from .coupler import (
     RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N, STIFFNESS_BASE_N_PER_M,
 )
 from .params import TrainConsist, CouplerParams
+
+# ---------------------------------------------------------------------------
+# 【2026-10-21 性能】车钩断面力 numba 内核
+#
+# 依据：cProfile 实测 `_coupler_interface_forces_vec` 占 env.step 的 ~27%（tottime 第一），
+# 且全为逐元素数学运算（tanh / 线性插值 / clip），无 Python 对象依赖，适合 JIT。
+#
+# 守门：物理公式与下方 numpy 实现逐项对应；`TRAIN_RL_NO_NUMBA=1` 可强制回退，
+# 由 tests/test_coupler_numba_parity.py 做两实现对照（200 步末态相对误差 < 1e-10）。
+# ---------------------------------------------------------------------------
+try:
+    from numba import njit as _njit
+
+    _HAS_NUMBA = True
+except Exception:  # noqa: BLE001  # pragma: no cover
+    _HAS_NUMBA = False
+
+_NUMBA_DISABLED = _os.environ.get('TRAIN_RL_NO_NUMBA', '').strip().lower() in ('1', 'true', 'yes')
+
+
+if _HAS_NUMBA:
+
+    @_njit(cache=True)
+    def _interp_linear(x, xp, fp):
+        """单点线性插值，等价 `numpy.interp`（端点外取端点值）。"""
+        n = xp.shape[0]
+        if x <= xp[0]:
+            return fp[0]
+        if x >= xp[n - 1]:
+            return fp[n - 1]
+        lo = 0
+        hi = n - 1
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if xp[mid] <= x:
+                lo = mid
+            else:
+                hi = mid
+        return fp[lo] + (fp[hi] - fp[lo]) * (x - xp[lo]) / (xp[hi] - xp[lo])
+
+    @_njit(cache=True)
+    def _coupler_force_kernel(e, dv, gap, v_eps, rigid_k, stroke, gain,
+                              max_impulse, xs, fl_tab, fu_tab):
+        """相邻车钩断面力（MT-2 迟滞：查表 + 速度法），与 numpy 版逐项等价。"""
+        n = e.shape[0]
+        out = np.empty(n)
+        for i in range(n):
+            gi = gap[i]
+            se = np.tanh(e[i] / gi)                      # 平滑方向（间隙内≈0）
+            d = abs(e[i]) - gi                           # 有符号间隙距离
+            contact = 0.5 * (1.0 + np.tanh(d / 0.004))   # 接触渐入系数
+            x_el = d if d > 0.0 else 0.0                 # 有效弹性变形
+            rigid = rigid_k[i] * (x_el - stroke[i] if x_el > stroke[i] else 0.0)
+            dir_sm = np.tanh(se * dv[i] / v_eps[i])      # 加载/卸载选支
+            fl_x = _interp_linear(x_el, xs, fl_tab)
+            fu_x = _interp_linear(x_el, xs, fu_tab)
+            f0 = 0.5 * (fl_x + fu_x) * gain[i]
+            half = 0.5 * (fl_x - fu_x) * gain[i]
+            f_imp = contact * (f0 - dir_sm * half)
+            if f_imp < 0.0:
+                f_imp = 0.0
+            elif f_imp > max_impulse[i]:
+                f_imp = max_impulse[i]
+            out[i] = se * (f_imp + rigid)
+        return out
+
+else:  # pragma: no cover
+
+    def _coupler_force_kernel(*args, **kwargs):
+        raise RuntimeError('numba 不可用，请回退 numpy 实现')
 
 
 # 空气制动波速（米/秒），沿车列从机车向后传播。
@@ -186,8 +259,14 @@ class TrainDynamics:
     def num_vehicles(self) -> int:
         return self.consist.num_vehicles
 
-    @property
+    @cached_property
     def masses_kg(self) -> np.ndarray:
+        """每车质量（kg）。
+
+        【2026-10-21 性能】consist 在 __init__ 后不变，而本属性原先每次访问都用列表推导
+        重建数组；它在每个 Newmark Picard 迭代里被调用（实测 ~5872 次/10 步）→ 改为缓存。
+        语义不变（返回同一数组，调用方全部只读）。
+        """
         return np.array([v.mass_t for v in self.consist.vehicles]) * 1000.0
 
     def set_grade(self, grade: float):
@@ -277,7 +356,18 @@ class TrainDynamics:
             e = (self.pos[1:] - self.pos[:-1]) + fl
         if dv is None:
             dv = self.vel[:-1] - self.vel[1:]
-        gap = np.maximum(cp['coupler_gap_m'], 1e-9)
+        gap = cp['gap'] if 'gap' in cp else np.maximum(cp['coupler_gap_m'], 1e-9)
+
+        # 【2026-10-21 性能】numba 快速路径。与下方 numpy 实现逐项等价；
+        # `TRAIN_RL_NO_NUMBA=1` 可强制走 numpy 分支（parity 测试用）。
+        if _HAS_NUMBA and not _NUMBA_DISABLED:
+            return _coupler_force_kernel(
+                np.ascontiguousarray(e, dtype=np.float64),
+                np.ascontiguousarray(dv, dtype=np.float64),
+                gap, cp['friction_v_eps'], cp['rigid_stiffness_nm'],
+                cp['stroke_m'], cp['gain'], cp['max_impulse_n'],
+                RONG2025_X_M, RONG2025_FL_N, RONG2025_FU_N,
+            )
 
         # 平滑方向函数：间隙内≈0，接触后≈±1（避免 |e|≈0 处 sign 硬切换）
         s_e = np.tanh(e / gap)
@@ -336,6 +426,10 @@ class TrainDynamics:
                  'friction_v_er', 'friction_v_eps', 'unload_stiffness_ratio',
                  'coupler_gap_m', 'max_impulse_n', 'stroke_m', 'rigid_stiffness_nm')
         out = {name: np.array([float(getattr(p, name)) for p in ps]) for name in names}
+        # 预算刚度增益（stiffness / 基准刚度），供 numba 内核直接使用，避免每次调用再做数组除法
+        out['gain'] = out['stiffness'] / STIFFNESS_BASE_N_PER_M
+        # 预取车钩间隙下限（避免每次力计算再做 np.maximum）
+        out['gap'] = np.maximum(out['coupler_gap_m'], 1e-9)
         return out
 
     def _coupler_forces(self) -> np.ndarray:
@@ -400,18 +494,31 @@ class TrainDynamics:
         a, b = padded[:-1], padded[1:]
         return np.where(np.abs(a) >= np.abs(b), a, b)     # 长度 n
 
+    @cached_property
+    def _davis_params(self) -> dict:
+        """Davis 阻力所需的逐车静态参数（consist 构造后不变）。
+
+        【2026-10-21 性能】原实现每次调用 `_resistance_forces` 都用 4 个列表推导重建
+        数组，而该函数位于 Newmark Picard 迭代最内层（实测 ~5572 次/10 步，占 cumtime
+        约 40%）→ 改为构造后缓存一次，数值口径完全不变。
+        """
+        vs = self.consist.vehicles
+        return {
+            'mass_t': np.array([v.mass_t for v in vs], dtype=float),
+            'axles': np.array([v.no_of_axles for v in vs], dtype=float),
+            'area_m2': np.array([v.frontal_area_m2 for v in vs], dtype=float),
+            'drag': np.array([v.drag_coef for v in vs], dtype=float),
+        }
+
     def _resistance_forces(self) -> np.ndarray:
         """Davis 阻力（恒与速度方向相反，含坡度项在 grade 中单独计算）。
 
         向量化实现：内联 Davis 公式（与 resistance_force_n 数值一致），
-        提取每车参数为数组，替代逐车标量循环。
+        静态参数取自 `_davis_params` 缓存（不逐迭代重建数组）。
         """
-        n = self.num_vehicles
-        # 每车参数数组
-        mass_t = np.array([v.mass_t for v in self.consist.vehicles])
-        axles = np.array([v.no_of_axles for v in self.consist.vehicles])
-        area_m2 = np.array([v.frontal_area_m2 for v in self.consist.vehicles])
-        drag = np.array([v.drag_coef for v in self.consist.vehicles])
+        p = self._davis_params
+        mass_t, axles = p['mass_t'], p['axles']
+        area_m2, drag = p['area_m2'], p['drag']
 
         speed = np.abs(self.vel)
         # Davis 单位换算（与 resistance.py 的 _short_tons/_mph/_sqft 一致）

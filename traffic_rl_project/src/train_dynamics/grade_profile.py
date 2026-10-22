@@ -11,6 +11,7 @@
 """
 
 from dataclasses import dataclass, field
+from functools import cached_property
 from typing import List, Tuple
 import numpy as np
 
@@ -44,9 +45,28 @@ class GradeProfile:
                 break
         return grade_permille / 1000.0
 
+    @cached_property
+    def _starts_and_grades(self) -> Tuple[np.ndarray, np.ndarray]:
+        """坡段起点数组与坡度数组（无量纲），供批量查询用。段表构造后不变 → 缓存。"""
+        starts = np.array([float(seg.start_m) for seg in self.segments], dtype=float)
+        grades = np.array([float(seg.grade_permille) for seg in self.segments],
+                          dtype=float) / 1000.0
+        return starts, grades
+
     def grades_for_positions(self, positions: np.ndarray) -> np.ndarray:
-        """批量查询多节车位置的坡度（返回无量纲数组）。"""
-        return np.array([self.grade_at(float(p)) for p in positions])
+        """批量查询多节车位置的坡度（返回无量纲数组）。
+
+        【2026-10-21 性能】原实现逐点调用 `grade_at`（每步 218 次 Python 调用 + 线性扫描
+        段表，实测 ~68080 次/10 步、占 cumtime 7%）→ 改为 searchsorted 向量化。
+
+        数值语义与 `grade_at` **逐点一致**：取「最后一个 start_m <= position」的坡段；
+        position 小于首段起点时沿用首段坡度（`grade_at` 的初值行为），越出末端沿用末段。
+        """
+        starts, grades = self._starts_and_grades
+        pos = np.asarray(positions, dtype=float)
+        idx = np.searchsorted(starts, pos, side='right') - 1
+        np.clip(idx, 0, len(starts) - 1, out=idx)
+        return grades[idx]
 
 
 # ---------------------------------------------------------------------------

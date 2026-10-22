@@ -46,6 +46,28 @@ env_cfg:
                                # （TG/JW104-2012）最接近的是"列检站保压试验 3 min"（非运行约束）与
                                # "重载列车 v<30km/h 不应缓解"（速度门限，且本场景 v_min=40km/h ⇒ 空约束）。
                                # 详见 REFERENCE_INDEX.md 落地映射 + DIAGNOSTICS_2026-10.md「检索-2026-10-01」
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 【2026-10-22】控制器标定参数：自 single_10kt108_coupler_rulecal.yaml 继承。
+  # 依据：控制器参数按**编组**标定，与列数无关——本配置与单列标定使用同一编组
+  # 10kt_1plus108（1 机车 + 108 货车，10988 t），3 列编队沿用同一套标定即可。
+  # 若另起一套，编队与单列的规则层行为不可比，违反"两侧物理同源"。
+  # 缺这套参数时规则层退化到未标定状态（实测峰值由 ~600 kN 恶化到 >1400 kN）。
+  # ═══════════════════════════════════════════════════════════════════════════
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0  # 仅安全层紧急保护门限，**不是验收口径**
+                                              # （验收统一 1000 kN，ADR-040；紧急保护 ≠ 验收）
+  cyclic_notch_50: true
+  cyclic_brake_trigger_kmh: 65.0
+  cyclic_release_kmh: 50.0
+  ed_release_coordination: true
+  ed_release_hold_s: 50.0
+  ed_release_boost_kn: 900.0
+  cyclic_ab_upgrade_kmh: 76.0
+  ed_upgrade_ramp_s: 6.0
+  ed_upgrade_ramp_scale: 0.7
+  ed_grade_feedforward: true
+  coupler_override: min_brake
+  eot: true
   # 【2026-10-21 关闭】训练改为全剖面后，每集本来就从 km0 跑满 49.6km，起点随机化不再有意义
   # （它的原目的是让 ≤1200 步短窗在分布上覆盖全路，见 L2 A/B 结论）。
   start_randomization:
@@ -58,9 +80,9 @@ reward: env_default            # decompose 模式奖励口径 = _calculate_rewar
 
 num_trains: 3
 decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短信用链）
-episodes: 40                   # 【2026-10-21 全剖面口径】单集 36000 步 ≈ 2.5h（4 并行 worker 实测 0.25 s/步）
-                               # ⇒ 40 ep ≈ 4.2 天。旧 1400 ep 是 1200 步短窗口径，全剖面下折合 146 天，已作废。
-                               # ⚠️ 全剖面的每集梯度信息量远大于短窗，ep 数不可按短窗比例换算。
+episodes: 1400                 # 【ADR-017 §4 硬要求：总训练量达标】用户 2026-10-21 明确：必须 1400 集，不接受减量。
+                               # 单集 36000 步（全剖面）× 实测 0.25 s/步 ≈ 2.5 h ⇒ 单机 1400 集 ≈ 146 天，
+                               # 本地单机无法跑完，只能靠多机/多卡分摊或延长挂机时间；本值不得擅自下调。
 curriculum: 36000:0            # 【2026-10-21】全剖面训练：全程 3600 s，不再用 500/1000/1200 步爬坡。
                                # 旧 1200 步窗口会把工况截断（起步瞬态峰值 1009 kN 与全剖面 ≈600 kN 不是同一回事）。
 n_env: 4                       # 【ADR-017 配套 + 诊断-2026-09-10】并行 rollout ≥4 条独立短轨迹：advantage 信噪比 ×n_env，

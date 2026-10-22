@@ -157,14 +157,31 @@ def run_consist(mode, args=None):
 def make_env(mode, args):
     """mode: 'decompose'（多列机车级 ED/AB，decompose 模式）| 'single'（1+0 旧架构单机单控）。"""
     num_trains = getattr(args, 'num_trains', 3)
-    # 主训练场景：3列×头/中部双机车=6 机车智能体（20kt_1plus108_1plus108，ADR-035），全程 36000 步
-    cfg = {
-        'num_trains': 1 if mode == 'single' else num_trains,
-        'consist_preset': run_consist(mode, args),
-        'grade_profile': args.grade,
-        'max_steps': args.max_steps,
-        'eval_mode': True,
-    }
+    exp_yaml = getattr(args, 'experiment', None)
+    if exp_yaml:
+        # 【2026-10-22｜训练-评估同参】从实验 YAML 读**完整** env_cfg。
+        # 原实现只构造 6 个键（num_trains/consist/grade/max_steps/eval_mode/decompose），
+        # 缺控制器标定参数（cyclic_notch_50 / cyclic_brake_trigger_kmh / cyclic_release_kmh /
+        # cyclic_ab_upgrade_kmh / ed_release_coordination / ed_release_hold_s / ed_release_boost_kn /
+        # ed_upgrade_ramp_s / ed_upgrade_ramp_scale / ed_grade_feedforward / coupler_override /
+        # eot / ed_native_force_conversion）与 v_max/v_min/ab_min_refill_s/车钩门限
+        # ⇒ 评估出的规则基线与训练侧不是同一套，违反「训练-评估必须同参」铁律
+        # （同族缺陷见 LRN-20261001-011）。给 --experiment 即从训练配置原样取 env_cfg。
+        from src.trainer.config_schema import parse_experiment_yaml
+        cfg = dict(parse_experiment_yaml(exp_yaml).env_cfg)
+        cfg['num_trains'] = 1 if mode == 'single' else num_trains
+        cfg['grade_profile'] = args.grade
+        cfg['max_steps'] = args.max_steps
+        cfg['eval_mode'] = True          # 评估恒定基准起点，且关掉冷启动限速位移
+    else:
+        # 主训练场景：3列×头/中部双机车=6 机车智能体（20kt_1plus108_1plus108，ADR-035），全程 36000 步
+        cfg = {
+            'num_trains': 1 if mode == 'single' else num_trains,
+            'consist_preset': run_consist(mode, args),
+            'grade_profile': args.grade,
+            'max_steps': args.max_steps,
+            'eval_mode': True,
+        }
     # 【2026-10-07 修复｜训练-评估不同参】此处原**硬编码 `target_speed: 20.0`**，而训练
     # 的 `env_cfg` **不含该键**（见 run metadata 的 env_cfg）⇒ 训练侧实际用 env 默认
     # `(v_min+v_max)/2 = (11.111+22.222)/2 = 16.67 m/s（60 km/h）`。target_speed 同时
@@ -502,6 +519,10 @@ def main():
     p.add_argument('--mode', choices=['all', 'decompose_m1', 'decompose_m0', 'mpc', 'single'],
                    default='all')
     p.add_argument('--checkpoint', default=DEFAULT_CKPT)
+    p.add_argument('--experiment', default=None,
+                   help='【推荐】从实验 YAML 读取**完整** env_cfg（含控制器标定参数与车钩门限），'
+                        '保证评估与训练同参；给出后 --num_trains/--grade/--max_steps 仍可覆盖。'
+                        '不给则退回旧的 6 键最小 cfg（会缺标定参数，仅用于历史复现）。')
     p.add_argument('--formation-relative-speed-obs', action=argparse.BooleanOptionalAction,
                    default=None, help='Use 14D relative-speed observations; defaults to checkpoint schema')
     p.add_argument('--consist-preset', default=None,
