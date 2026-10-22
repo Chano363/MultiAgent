@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 452" width="620" height="452">
+  <title>现有研究与本项目在编队规模、车钩力处理两个维度上的定位</title>
+  <rect x="0" y="0" width="620" height="452" fill="#FFFFFF"/>
+  <style>
+    .frame { fill: #F8FAFD; stroke: #C7D9F2; stroke-width: 1.2; }
+    .mid { stroke: #D9E4F6; stroke-width: 1; stroke-dasharray: 6 5; fill: none; }
+    .t { fill: #333333; font: 500 14px "Microsoft YaHei", "PingFang SC", sans-serif; }
+    .c { fill: #8A93A6; font: 400 12px "Microsoft YaHei", "PingFang SC", sans-serif; }
+    .bt { fill: #FFFFFF; font: 600 14px "Microsoft YaHei", "PingFang SC", sans-serif; }
+  </style>
+  <rect class="frame" x="96" y="58" width="478" height="338" rx="2"/>
+  <line class="mid" x1="335" y1="58" x2="335" y2="396"/>
+  <line class="mid" x1="96" y1="227" x2="574" y2="227"/>
+  <text x="30" y="227" transform="rotate(-90 30 227)" text-anchor="middle" class="c">车钩力处理</text>
+  <text x="74" y="370" transform="rotate(-90 74 370)" text-anchor="middle" class="c">未纳入</text>
+  <text x="74" y="100" transform="rotate(-90 74 100)" text-anchor="middle" class="c">进目标 / 约束</text>
+  <text x="215" y="132" text-anchor="middle" class="t">单列车钩力约束控制</text>
+  <text x="215" y="154" text-anchor="middle" class="c">仅限单列场景</text>
+  <text x="215" y="300" text-anchor="middle" class="t">单列循环制动 RL</text>
+  <text x="215" y="322" text-anchor="middle" class="c">车钩力未纳入</text>
+  <text x="455" y="300" text-anchor="middle" class="t">多列编组协同</text>
+  <text x="455" y="322" text-anchor="middle" class="c">车钩力简化为安全间距</text>
+  <text x="455" y="108" text-anchor="middle" class="t">多列 MPC 含车钩约束</text>
+  <rect x="417" y="138" width="76" height="26" rx="13" fill="#2E5E9E"/>
+  <text x="455" y="155.5" text-anchor="middle" class="bt">本项目</text>
+  <text x="455" y="192" text-anchor="middle" class="c">MARL 协同控制</text>
+  <text x="335" y="436" text-anchor="middle" class="c">列车规模（单列 → 多列群组）</text>
+</svg>
