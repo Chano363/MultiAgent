@@ -1,0 +1,4 @@
+shuohuang_coupler_mt2: steps=2134 dist=51.8km v_err_avg=5.632 s_err_avg=351.4 fc_peak=['686', '840', '684'] gap_min=1746 v_max=78.0 v_min=37.9
+shuohuang_coupler_zero: steps=1962 dist=51.8km v_err_avg=8.250 s_err_avg=397.8 fc_peak=['0', '0', '0'] gap_min=1376 v_max=80.8 v_min=43.5
+shuohuang_coupler_linear: steps=2062 dist=51.8km v_err_avg=7.327 s_err_avg=658.4 fc_peak=['220', '382', '305'] gap_min=928 v_max=80.8 v_min=40.9
+shuohuang_coupler_linear_atp: steps=2637 dist=51.4km v_err_avg=7.767 s_err_avg=1448.5 fc_peak=['408', '429', '440'] gap_min=1986 v_max=77.7 v_min=22.9

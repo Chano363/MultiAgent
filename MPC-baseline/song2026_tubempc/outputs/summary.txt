@@ -1,0 +1,4 @@
+gentle_coupler_on: v_err_avg=0.600 s_err_avg=7.294 fc_max=808.9
+gentle_coupler_off: v_err_avg=4.508 s_err_avg=2015.882 fc_max=0.0
+downhill_coupler_on: v_err_avg=5.417 s_err_avg=174.772 fc_max=947.2
+downhill_coupler_off: v_err_avg=13.080 s_err_avg=1930.995 fc_max=0.0
