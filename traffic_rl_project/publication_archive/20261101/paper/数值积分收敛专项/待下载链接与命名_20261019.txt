@@ -1,0 +1,33 @@
+下载清单（你在 Edge 里下载，保存到 D:\Codex\Documents\Train\paper；文件名随便，我来改名）
+================================================================
+
+1) Zhou2022  摩擦缓冲器模型比较（Vehicle System Dynamics 60(7):2436-2450）
+   入口: https://www.tandfonline.com/doi/full/10.1080/00423114.2021.1901943
+   备用(作者许可稿，需过 Cloudflare): https://flore.unifi.it/retrieve/b71cbe68-acf7-4b44-87f4-fdb45a5f1c56/Comparison%20of%20friction%20draft%20gear%20models%20for%20simulation%20in%20longitudinal%20train%20dynamics_V2025.pdf
+   目标文件名: Comparison of friction draft gear models for simulation in longitudinal train dynamics_Zhou.pdf
+
+2) Wu2018  国际基准结果（Vehicle System Dynamics 56(3):343-365）
+   入口: https://www.tandfonline.com/doi/abs/10.1080/00423114.2017.1377840
+   目标文件名: International benchmarking of longitudinal train dynamics simulators results_Wu.pdf
+
+3) Spiryagin2017  基准问题（Vehicle System Dynamics 55(4):450-463）
+   入口: https://www.tandfonline.com/doi/abs/10.1080/00423114.2016.1270457
+   目标文件名: International benchmarking of longitudinal train dynamics simulators benchmarking questions_Spiryagin.pdf
+
+4) Cole2017  纵向动力学综述（Vehicle System Dynamics 55(10):1498-1571）
+   入口: https://www.tandfonline.com/doi/full/10.1080/00423114.2017.1330484
+   目标文件名: Modelling, simulation and applications of longitudinal train dynamics_Cole.pdf
+
+5) 武承龙2021  改进Newmark-β法车钩纵向力（铁道科学与工程学报 18(1):211-219）
+   入口: 知网 https://kns.cnki.net 篇名检索"基于改进的Newmark-β法重载列车车钩纵向力仿真研究"
+   目标文件名: 基于改进的Newmark-β法重载列车车钩纵向力仿真研究_武承龙.pdf
+
+6) 郭炎冰2022  川藏铁路货运列车纵向动力学仿真研究（西南交通大学 学位论文）
+   入口: 知网 学位论文库(CDMD) 作者检索"郭炎冰"
+   目标文件名: 川藏铁路货运列车纵向动力学仿真研究_郭炎冰.pdf
+
+================================================================
+说明：
+- 只要把文件下载到 D:\Codex\Documents\Train\paper（或任意目录并告诉我路径），下载完跟我说一声，我统一改成上面的文件名并核验页数。
+- 命名规则：篇名_作者.pdf（与目录内已有文件一致）。
+- 若某篇确实打不开（付费墙/无权限），告诉我，我如实记录为"未取得"，不编造。

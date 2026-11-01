@@ -1,0 +1,6 @@
+{
+  "status": "cancelled_incomplete",
+  "reason": "Observation preview consumes controller timers; rebuild the clock-correct baseline before continuing parameter trials.",
+  "usable_as_validation": false,
+  "complete_short_probe": "../force_mapping_prefix3000_01"
+}

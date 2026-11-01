@@ -1,0 +1,1628 @@
+=== PDF PAGE 1 ===
+ 
+车载数据驱动下重载列车纵向力实时预测方法
+熊　芯
+1
+， 何　闻
+2
+， 常崇义
+2
+， 张天婴
+1
+（1. 中国铁道科学研究院集团有限公司机车车辆研究所 ，北京  100081；
+2. 中国铁道科学研究院集团有限公司铁道科学技术研究发展中心 ，北京  100081）
+摘要 ：为实现兼顾计算精度与速度的列车纵向力实时预测 ，本文建立基于车载与试验数据的重载列车纵向力实时计算精确方
+法，其中机车牵引力 /电制力通过车载监测数据更新 ，列车基本运行阻力系数实现针对性自适应调整 ，进一步比选空气制动系
+统的经验模型与流体模型 ，同时建立高精度平衡迭代法以求解列车纵向动力学方程。为提高计算效率 ，建立使 用 Duhame l 积
+分求解振动响应的列车纵向力简化计算方法。以重载列车 −9‰~ −12‰ 典型长大下坡区段为算例 ，精确方法在列车运行速度
+计算中的最大误差 为 3.72 km/h ，并对缓冲器相对位移变化趋势 、量级水平和关键冲击有较好的预测效果 ；简化方法在一些列
+车 操 纵 工 况 比 较 稳 定 的 区 段 可 以 达 到 与 精 确 方 法 相 近 的 车 钩 力 误 差 概 率 分 布， 即 误 差 约 有 68% 的 概 率 小 于 64.6  kN，
+有 95% 的概率小 于 129.2 kN ， 有 99.7% 的概率小 于 193.8 kN 。简化方法由于对缓冲器特性等的线性化考虑 ， 对列车操纵工况
+转换时的短时剧烈纵向冲击模拟较差。
+关键词 ： 重载列车 ；纵向动力学 ；车载数据 ；纵向力预测 ；仿真结果评价
+中图分类号 ：U270.1          文献标志码 ：A         DOI：10.16385/j.cnki.issn.1004 -4523.202506045
+Real-time prediction method of longitudinal forces in heavy-haul trains driven
+by vehicle-carried data
+XIONG Xin
+1
+，HE Wen
+2
+，CHANG Chongyi
+2
+，ZHANG Tianying
+1
+（1.Locomotive and Rolling Stock Research Institute，China Academy of Railway Sciences Group Co.， Ltd.，Beijing 100081，China；
+2.Railway Science & Technology Research & Development Center，China Academy of Railway Sciences Group Co.， Ltd.，
+Beijing 100081，China）
+Abstract ：To achieve real -time prediction of train longitudinal forces with a balance between computational accuracy and speed ，this study
+develops  a  real -time  and  accurate  calculation  method  for  heavy -haul  trains  longitudinal  force  based  on  onboard  monitoring  data  and
+experimental  data.  The  locomotive  traction  and  electric  braking  forces  are  updated  using  onboard  data， and  the  basic  running  resistance
+coefficients of the train are adaptively adjusted. Furthermore ，the empirical model and fluid models of the air braking system are compared ，
+and  a  high-precision  equilibrium  iteration  method  is  established  to  solve  the  longitudinal  dynamic  equation  of  the  train.  To  further  improve
+computational efficiency，a simplified calculation method for train longitudinal forces is developed, in which the vibration response is solved
+using the Duhamel integral. Taking the example of heavy haul train passing through the typical long heavy down grade from  –9‰~–12‰，the
+precise method shows a maximum error of 3.72 km/h in predicting the train operating speed ，and achieves good agreement with respect to the
+relative  displacement  trend ， magnitude， and  key  impact  responses  of  the  buffer.  The  simplified  method  yields  a  coupler  force  error
+distribution similar to that of the precise method in sections where the train operation is relatively stable ，with approximately 68% of the errors
+less than 64.6 kN ，95% less than 129.2 kN ，and 99.7% less than 193.8 kN. However, due to the linearized treatment of buffer characteristics
+and related parameters, the simplified method performs poorly in simulating short -term severe longitudinal impacts during transitions in train
+operating conditions.
+Keywords：heavy-haul train；longitudinal dynamics；vehicle-carried data；longitudinal force prediction；evaluation of simulation results
+随着 3 万吨重载列车逐渐运行 ， 中国重载运输
+进入了全新的发展阶段。但由于重载列车运输吨位
+的不断提高 ，列车编组长度增大 ，重载组合列车的操纵
+难度进一步加大 ，列车纵向力变化更为复杂 [1]。司机
+ 
+ 
+收稿日期 ：2025-06-20；修订日期 ：2025-08-29
+基金项目 ：中国国家铁路集团有限公司科技研究开发计划项目 （P2024J002 ）；中国铁道科学研究院集团有限公司科研开发
+基金资助项目 （2024YJ217 ）
+ 
+第 38 卷第 11 期 振　动　工　程　学　报 Vol. 38  No. 11
+2025 年 11 月 Journal of Vibration Engineering Nov.  2025
+
+=== PDF PAGE 2 ===
+操纵不慎轻则导致中途停车 ，严重影响运输效率 ；重
+则直接导致列车断钩 、 脱轨事故的发生 ， 威胁运输
+安全。针对这一问题 ， 最为有效的方法是在列车运
+行时明确重载列车的全列纵向冲动变化 ， 这有助于
+司机了解列车全列受力情况 ，及时改善列车操纵 ，提
+高运行品质。
+由于传统列车纵向动力学仿真方法是列车运行
+事后分析 ， 并不能直接帮助司机及时改善关键地段
+或地点的操纵 ， 目前国内也并无适用于车载计算工
+况的列车纵向动力学计算的成熟产品 ， 因此本文建
+立基于车载数据的列车纵向冲动在线预测精确和简
+化计算两类方法。车载精确计算方法兼顾计算精度
+与实时性 ， 利用实时车载数据实现对关键模型参数
+的自适应调整 ， 有效实时预测计算重载列车全列纵
+向冲动变化状态 ，帮助司机改进关键操纵 ；车载简化
+方法则可与精确方法在不同运行工况和计算条件下
+相互补充 ，提高对车载计算场景的适应性。
+在列车纵向动力学仿真理论研究方面 ，COLE 等[2]
+通过对常见的钩缓系统类型的仿真对比 ， 对其纵向
+动力学性能和疲劳磨损等表现进行了深入分析和说
+明。 WU 等 [3] 将润滑摩擦模型引入摩擦缓冲器模型
+化方法中 ， 此后对胶泥缓冲器的动力学特性进行了
+细致研究。常崇义等 [4] 通过建立重载列车纵向动力
+学仿真模型 ， 对 2 万吨组合列车纵向力在不同延迟
+时 间 和 制 动 初 速 下 的 变 化 规 律 进 行 了 研 究 ， 对
+4 万~12 万吨 [5] 重载列车在编组长度 、机车无线同步
+控制延迟时间和长大下坡道的坡度差等因素影响下
+的纵向力规律进行了分析。魏伟等 [6] 通过建立列车
+空气制动系统与列车纵向动力学联合仿真模型 ， 对
+3 万吨组合列车纵向力在不同从控机车滞后时间下
+的规律以及循环制动过程进行了研究 ； 又利用联合
+仿真模型 ， 研究了列尾装置 对 2 万吨组合列车的影
+响 [7-8]。在试验研究方面 ， 中国铁道科学研究院在大
+秦 [9-10]、 瓦日 [11]、 唐呼 [12]、 朔黄 [13] 和晋中南通道 [14] 等
+多条重载铁路开展了系列重载列车综合试验 ， 采用
+无线网络传输的分布测量方式检测了关键断面的车
+钩力 、 车体加速度等动态响应 ， 研究了不同编组方
+式、 牵引制动工况 、 速度和线路条件下的列车纵向
+动力学性能 ， 为深入研究纵向动力学作用机理提供
+了宝贵的试验数据。
+本文通过分析列车纵向动力学计算的关键子系
+统模型化方法与模型输入数据来源 ， 比选经验模型
+与流体空气制动系统模型的计算效率和计算精度 ，
+使用遗传算法自适应调整基本阻力系数 ， 建立基于
+车载数据的列车纵向动力学计算精确方法 ； 此外为
+进一步提高计算效率 ， 建立使 用 Duhamel 积分求解
+振动响应的列车纵向力简化计算方法。在典型长大
+下坡区段进行算例分析 ， 并基于列车纵向动力学计
+算特点全面评价列车运行速度 、纵向力和缓冲器位
+移等列车纵向动力学指标 ， 以期为车载场景下的列
+车纵向动力学计算 ， 重载列车在线安全监测和辅助
+驾驶技术迭代等提供一种有效的计算解决方案。 
+1    基于车载数据的列车纵向力实时预测
+精确方法
+在传统列车纵向动力学仿真理论的基础上 ， 实
+现精确的重载列车纵向冲动预测并兼顾列车纵向动
+力学仿真精度与速度的关键有如下方面 [15]：
+（1） 实现对重载列车编组各主要子系统工作特
+性（如机车牵引电制特性 、空气制动系统工作特性和
+钩缓装置工作特性等 ） 的准确模拟而不显著增加算
+力需求 [16]；
+（2）正确处理列车各子系统的耦合控制关系 （如
+组合列车动力分布无线控制系统的指令延时传递过
+程、 无线控制系统与空气制动系统的耦合控制过
+程等 ） [17]；
+（3） 高精度多体动力学数值积分方法和编程求
+解优化方法 ；
+（4）合理有效的动力学计算结果评估。
+基于以上要求 ， 从列车纵向动力学计算原理出
+发， 结合车载数据建立一种重载列车纵向力实时预
+测精确方法。 
+1.1    基于车载数据实时更新机车牵引力 /电制力
+基于实时车载数据动态更新机车牵引力或电制
+力， 可在列车纵向动力学计算中获得最准确的机车
+信息输入 ， 避免传统列车纵向动力学仿真中由于对
+机车牵引电机工作特性不确定或受外部因素 （ 指令
+时间 、温升 、网压波动等 ）随机影响而造成的误差积
+累。 图 1 为在中国某段平均坡度为 −10‰ 的长大下
+坡循环制动时的机车牵引力 /电制力变化曲线 ，可见
+在级位转换时实际电制力有较大的波动或冲击 ， 可
+达到 50~100 kN，影响编组中机车及其相邻货车的纵
+向冲动计算精度。 
+1.2    车钩缓冲装置模型
+在列车纵向力实时预测精确方法中 ， 通过货车
+单车冲击试验确定车钩缓冲装置滞回特性曲线 ， 如
+图 2 和 3 所示 ， 其中胶泥缓冲器比钢摩擦缓冲器在
+加载过程中更易出现局部的震荡 ， 主要是由胶泥高
+分子特性和胶泥缓冲器结构导致 [18]。在试验数据的
+基础上 ，针对不同类型的缓冲器 ，进一步考虑黏滞区
+域摩擦力尖峰 、静压弹性性能和速度阻尼效应等特
+第 11 期 熊　芯 ，等：车载数据驱动下重载列车纵向力实时预测方法 2475
+
+=== PDF PAGE 3 ===
+性 [19-20]。通过对大量冲击试验数据进行回归分析并
+基于其力学特性 [21]，融合建立车钩缓冲器数值模型 ：
+Fc (t) = FE t + [Fc (t   ∆t)   FE t] exp
+(   jxt   xt ∆tj
+k
+)
+（1）
+Fc (t)
+t
+Fc (t   ∆t)
+t   ∆t
+xt
+t
+xt ∆t
+t   ∆t
+k
+FE t
+式中 ， 为当前时间步 时的车钩力 ； 为前
+一时间步 时的车钩力 ； 为当前时间步 时的车
+钩缓冲器行程 ； 为前一时间步 时的车钩缓
+冲器行程 ； 为控制上下边界力连线变化率的控制
+参数 ； 为某一类型缓冲器的动态加载特性曲线上
+的对应值。
+f a
+f d
+钢摩擦缓冲器工作时的黏滞区域摩擦力尖峰
+和胶泥缓冲器的速度阻尼效应 可以分别表示为 [19]：
+fa (xt; ˙xt) = f (xt)  (vc   j ˙xtj)  (s   k) =vc （2）
+fd (xt; ˙xt ) = c f (b   xt) ˙xn f
+t （3）
+f (xt)
+s
+k
+vc
+c f
+b
+n f
+式中 ， 为缓冲器加载平稳区特性曲线 ； 和 分
+别为缓冲器内部等效静摩擦和滑动摩擦系数 ； 为
+钢摩擦黏滞临界速度 ； 为与速度相关的阻尼系数 ；
+为预压行程 ； 为速度因子。
+FE t
+f a
+f d
+通过对 附加 和 等不同的工作特性 ，实现
+对缓冲器加载 、黏滞摩擦和卸载等非线性工作特性
+的模拟 [22]，如图 4 所示 ，冲击试验数值模拟中可模拟
+出明显的黏滞摩擦和速度阻尼效应 ， 冲击能量在两
+次冲击压缩中吸收耗散。因此在列车纵向力实时预
+测精确方法中实现对车钩缓冲模型动态行为的精确
+模拟和预测。
+ 
+ 
+阻抗力 / kN
+相对位移 / mm
+−60 −50 −40 −30 −20 −10 0 10 20
+−2000
+−1500
+−1000
+−500
+0
+500
+1000
+钢摩擦缓冲器
+胶泥缓冲器
+ 
+图 4　钢摩擦与胶泥缓冲器模拟
+Fig. 4　Simulation of steel friction buffer and polymer buffer
+  
+1.3    基本运行阻力系数的自适应调整方法
+F
+传统列车纵向动力学计算中表明 ，《 列车牵引计
+算  第 1 部 分 ： 机 车 牵 引 式 列 车》 [23]（ 以 下 简 称“ 牵
+规”）所规定的基本阻力计算系数并不能很好的与实
+际吻合。本文在牵规中对于基本阻力计算的二次多
+项式基础上 ， 通过遗传算法进行基本阻力计算系数
+优化 ， 微调寻优出一组与实际速度变化拟合较好的
+基本运行阻力系数。该方法基于一段列车无空气制
+动区段实际操纵序列 ， 通过车载数据动态更新当前
+机车实际牵引力 /电制力 ，进而控制列车基本运行阻
+力为自变量 ，以最小化速度误差的均值为目标函数 ：
+min F =
+N∑
+i=1
+jvi   vrij （4）
+vi
+i
+vri
+i
+式中 ， 为公里标 处的仿真速度 ； 为公里标 处的
+实际测试速度 ；N 为离散区间个数。
+al、bl、cl
+aw、bw、cw
+将机车基本运行阻力系数 和货车基本
+运行阻力系数 根据各自的数值精度编码
+ 
+35.0 40.0 45.0 50.0 55.0 60.0−600
+−500
+−400
+−300
+−200
+−100
+0
+100
+列车管压力 / kPa
+公里标 / km
+机车力
+海拔高度
+500
+550
+600
+列车管压力
+机车牵引力/电制力 / kN
+ 
+图 1　循环制动时机车牵引力 /电制力变化曲线
+Fig. 1　Variation curves of traction force/electric braking force
+of locomotive during cyclic braking
+ 
+阻抗力 / kN
+0 10 20 30 40 50 60 70 80 90
+0
+250
+500
+750
+1000
+1250
+1500
+1750
+2000
+2250
+2500
+位移 / mm
+6 km/h
+8 km/h
+9.5 km/h
+ 
+图 2　钢摩擦缓冲器冲击试验滞回特性曲线
+Fig. 2　Hysteresis characteristic curves of impact test for steel
+friction buffer
+ 
+阻抗力 / kN
+位移 / mm
+0 10 20 30 40 50 60 70
+0
+200
+400
+600
+800
+1000
+1200
+1400
+1600
+1800
+2000 6 km/h
+7 km/h
+8 km/h
+9 km/h
+ 
+图 3　胶泥缓冲器冲击试验滞回特性曲线
+Fig. 3　Hysteresis  characteristic  curves  of  impact  test  for
+polymer buffer
+2476 振　动　工　程　学　报 第 38 卷
+
+=== PDF PAGE 4 ===
+为占据不同长度的二进制序列 ， 如 图 5 所示。通过
+交叉 、选择和变异等操作寻找到最优染色体序列并
+解码输出 ，具体流程如 图 6 所示。
+ 
+ 
+1 0 1… … 0 1…染色体
+编码 0 1 1……
+…
+…
+cwal bl cl、aw、bw
+ 
+图 5　染色体编码格式
+Fig. 5　Encoding format of chromosome
+ 
+ 
+ 
+建立速度方差目
+标函数
+基本阻力系数
+编码
+计算种群适应度
+种群初始化
+一段线路
+实际信息
+算法求解初始化
+种群选择、交叉
+和变异操作
+产生新一代种群 是否达到指定
+迭代次数
+解码输出
+计算结果
+是
+否
+车载数据输入
+列车纵向动力学(LTD)求解器
+边界条件 实际操纵序列
+ 
+图 6　基本阻力系数优化求解流程
+Fig. 6　Optimization  solution  process  for  the  basic  resistance
+coefficient
+ 
+al
+bl
+cl
+aw
+bw
+cw
+以中国某重载线路实际车载数据为例 ， 截取一
+段 2 km 长度的无空气制动和缓解的平缓坡度线路
+区段数据 （平均坡度为 −0.2‰ ）进行基本运行阻力系
+数的自适应调整 ， 列车编组形式为 “ 1+1+可控列尾 ”
+组合 2 万吨形式 ， 机车和货车的重车基本阻力系数
+初值按照牵规取值 ， 即 =1.2， =0.0065， =0.000279，
+=0.92， =0.0048， =0.000125。遗传算法种群规
+模取 为 20，交叉概率 为 0.9，变异概率 为 0.15。
+al
+bl
+cl
+aw
+bw
+cw
+使用本文的基本阻力系数自适应调整方法后 ，
+结果如 图 7 和 8 所示 ，种群适应度在 第 6 次种群迭代
+后 趋 于 稳 定 。 此 时 优 化 后 的 基 本 阻 力 系 数 为 =
+1.0473， =0.0028， =0.000224， =0.4662， =0.0021，
+=0.000061。优化后的阻力系数得到的列车速度与
+实际速度最大误差 为 0.3 km/h，达到了与实际较好的
+吻合程度。 
+1.4    两类列车空气制动系统模型
+列车空气制动是列车运行过程中的关键子系统 ，
+国内外针对列车空气制动系统的模型化方法 [24] 一般
+有基于大量实测数据的经验模型和基于气体流动原
+理的流体模型。本文中对于两类模型的构建过程和
+应用效果如下。 
+1.4.1    空气制动系统经验模型
+经验模型根据具备实际经验的专家知识及试验
+数据建立制动机模型。该模型忽略了空气具体流动
+过程 ， 只关注关键的列车管压和制动缸压变化情
+况。按照列车制动作用顺序分为制动信号及传递
+（制动波速 ）、空气制动压力变化 （三通阀 ）和制动力
+的产生 （基础制动 ）三个子程序进行逐步模拟。
+不同减压量下的制动波速和缓解波速可根据试
+验数据确定 ， 进一步建立下式考虑漏泄和列车管压
+力梯度的列车管压模型 [25]：
+PPi / (p0; s; l; d p) （5）
+PPi
+p0
+s
+i
+l
+d p
+式中 ， 为列车管压变化 ； 为列车管定压 ； 为第
+辆车在编组中的位置 ； 为列车管漏泄量 ； 为列车
+管减压量。
+BCPi
+制动缸压变化 计算采用分段函数和幂函数
+形式 ，如下式所示 ：
+ 
+适应度
+0 1 2 3 4 5 6 7 8 9 10 111.0
+1.5
+2.0
+2.5
+3.0
+3.5
+4.0
+4.5
+种群迭代次数
+ 
+图 7　种群最优个体适应度变化
+Fig. 7　Variation of fitness of optimal individual in the
+population
+ 
+速度 / (km·h−1)
+ 机车牵引力 / kN
+0 250 500 750 1000 1250 1500 1750 2000
+73.5
+74.0
+74.5
+75.0
+75.5
+实际速度
+实际机车牵引力
+仿真速度
+运行距离 / m
+10
+15
+20
+25
+30
+35
+40
+45
+50
+ 
+图 8　优化前后速度变化对比
+Fig. 8　Comparison of speed changes before and after
+optimization
+第 11 期 熊　芯 ，等：车载数据驱动下重载列车纵向力实时预测方法 2477
+
+=== PDF PAGE 5 ===
+BCPi /
+■|||■|||■
+0，ti < ts
+i( pm
+i ; ti; s; d p) ，ts
+i ⩽ ti ⩽ tm
+i
+pm
+i ，ti > tm
+i
+（6）
+ti
+ts
+i
+i
+tm
+i
+pm
+i
+i
+式中 ， 为当前时间 ； 为编组第 辆车的开始制动时
+间； 为制动缸压力达到最大的时间 ； 为第 辆车
+的最大制动缸压力。 
+1.4.2    空气制动系统流体模型
+该模型考虑真实列车空气制动系统结构和空
+气流动过程 ， 是基于空气流动理论的空气动力学空
+气制动系统模型。对于真实空气流动过程的计算求
+解方式有特征线法 、有限差分法 [26] 和有限体积法等
+数值方法。本文采用特征线法建立流体模型 ， 主要
+分为空气管路状态计算 、 边界处理 、 系统缸压状态
+计算和阀芯位置判断等部分。由于实际空气制动系
+统使用过程中温升变化不明显 ， 因此在此将管内流
+动视为一维有摩擦等温流动 [8]，N-S 流动方程如下式
+所示 ：
+@
+@t +  @u
+@x + u @
+@x = 0，
+@u
+@t + u @u
+@x + 1
+
+@p
+@x + f u2
+2
+u
+juj
+4
+D = 0 （7）
+、u、p、D、x、 f
+式中 ， 分别为空气密度 、 空气流
+速、气体压力 、水力直径 、位移 、管壁摩擦系数。
+、
+∆
+将 N-S 方程根据特征线理论转换为黎曼变量
+[27]，不同时间步间的黎曼变量增量 计算为 ：
+∆ =   k   1
+2
+2 f xr
+D
+(    
+k   1
+) 2 (   )
+j   j
+[
+1   2(   )
+ + 
+]
+∆Z
+（8）
+k
+xr
+∆Z
+式中 ， 为绝热系数 ； 为参考长度 ； 为无量纲时间
+增量。
+˙m
+气缸与外部气体交换的气体流量 采用下式计算[28]：
+˙m =
+■|||||||■|||||||■
+P1Ae
+au
+■||■||■
+( 2k2
+k   1
+) ( P2
+P1
+) 2=k ■||||■1  
+( P2
+P1
+) (k 1)=k■||||■
+■||■||■
+1=2
+， P2
+P1
+>
+( 2k
+k + 1
+) k=(k 1)
+(亚声速流动)
+P1Ae
+au
+k
+( 2
+k + 1
+) (k+1)=[2(k 1)]
+， P2
+P1
+⩽
+( 2k
+k + 1
+) k=(k 1)
+(壅塞流)
+（9）
+P1
+P2
+Ae
+au
+式中 ， 和 为开口两侧压强 ； 为开口面积 ； 为
+上游声速。
+针对 120/120-1 分配阀 ， 主要计算主阀活塞和滑
+阀活塞位置 ，可以判断制动机所处的具体工况 （如缓
+解、减速缓解 、制动、紧急制动或保压等 ）。120/120-1
+分配阀组成简化图如 图 9 所示 ， 并依次建立联通关
+系和孔径开放逻辑 ，即可建立流体模型。
+ 
+ 
+第一段主管 第二段主管
+支管
+三通管 折角塞门折角塞门
+局减室
+紧急室
+加速缓解
+风缸
+副风缸
+滑阀室
+上腔
+制动缸
+排大气
+排大气
+排大气
+ 
+图 9　120/120-1 分配阀组成简化图
+Fig. 9　Diagram of the composition of 120/120 -1 distributing
+valve
+ 
+根据以上模型化原理 ， 建立经过试验数据校准
+后的经验模型与经过关键参数校准的流体模型 ， 主
+要针对两类空气制动系统数值模型的计算精度与计
+算效率进行对比分析。两类空气制动系统模型主要
+计算参数如 表 1 所示。
+以“ 1+1+可控列尾 ” 组合列车编组形式为例 ， 单
+元编组内货车数量 为 108 辆 ， 货车采 用 120 制动阀 ，
+以最常用的初制动减压为例进行仿真对比 ， 硬件设
+备为 Intel i7-12700H 14 核 2.3 GHz 处理器 和 16 GB 内
+存， 使 用 C++编 程 语 言 编 写 模 型 仿 真 ， 编 组 内 的
+216 辆货车的制动缸压状态依次计算。对比结果如
+表 2 所示。
+ 
+ 
+表 1　两类空气制动系统模型主要计算参数
+Tab. 1　Main calculation parameters of two types of pneumatic
+braking system models
+ 
+模型 模型参数 数值
+流体模型
+主管网格长度/m 0.675
+支管网格长度/m 0.300
+时间步长/s 由稳定性准则决定
+经验模型 时间步长/s 0.2
+ 
+ 
+ 
+表 2　两类空气制动系统模型计算效率对比
+Tab. 2　Comparison of calculation efficiency between two types
+of pneumatic braking system models
+ 
+模型 仿真列车运行时长/s 实际计算耗时/s
+经验模型 100 29
+流体模型 100 97
+ 
+两类模型计算结果与实际试验数据的对比如 图 10
+和 11 所示 ，图中车辆序号不含机车。
+由以上计算对比可见 ， 流体模型由于需要求解
+流体流动状态和缸压状态 ，对设备算力要求较高 ，耗
+时长 ， 但能较为细致地反映空气制动系统的各类升
+压、保压等工作特性和具体的空气制动系统结构特
+征的影响 ；经验模型的计算效率较高 ，满足车载实时
+性计算要求 ， 但需要大量试验数据对模型校准且不
+能细致地反映空气制动系统的内部特征影响。两类
+模型的选用应根据列车纵向动力学计算的具体场景
+2478 振　动　工　程　学　报 第 38 卷
+
+=== PDF PAGE 6 ===
+进行选择。
+在列车纵向力精确计算方法中 ， 研究重心并不
+是列车空气制动系统的动态压力特性 ， 因此结合实
+测压力数据 ， 采用计算效率更高的空气制动系统经
+验模型。 
+1.5    多体系统数值积分方法
+列车纵向动力学方程是一组复杂的非线性方
+程，含有多种非线性因素 ，如缓冲器的非线性阻抗特
+性、 车钩间隙和非线性运行阻力计算等 [29]。目前求
+解非线性动力方程主要采用直接数值积分方法。本
+文将列车整车运动学计算与编组内单车计算分离 ，
+以满足不同工况需求。
+∆t
+列车整车运动学采用计算加速度变化率的直接
+积分方式求解 ，在一个 时间步内有如下计算公式 ：
+■||||||||■||||||||■
+at+∆t = Ft+∆t=m
+at = Ft=m
+j = (at+∆t   at) =∆t
+vt+∆t = vt + (at +   j  ∆t) ∆t
+st+∆t = st + [ vt + (at + ′  j  ∆t) ∆t] ∆t
+（10）
+Ft
+Ft+∆t
+m
+at
+at+∆t
+vt
+vt+∆t
+st
+st+∆t
+式中 ， 、 分别为前 、后两个时刻的合外力 ； 为
+列车质量 ； 、 分别为前 、 后两个时刻的加速度 ；
+、 分别为前 、 后两个时刻的速度 ； 、 分别
+j
+
+′
+为前 、 后两个时刻的位置 ； 为加速度变化率 ； 和
+为运动学计算调整系数。
+t + ∆t
+编组内单车计算采用基 于 Newmark-β 的高精度
+平衡迭代法求解 ， 即 在 Newmark-β 数值积分法基础
+上， 进一步把逐步积分法应用于非线性方程的响应
+计算 ，在 时刻系统增量平衡式为 ：
+M ( ¨ut+∆t   ¨ut) + KT (∆ut) = Ft+∆t   Ft （11）
+M
+KT
+¨ut
+¨ut+∆t
+t
+t + ∆t
+∆ut
+t
+Ft
+Ft+∆t
+t
+t + ∆t
+式中 ， 为质量矩阵 ； 为刚度矩阵 ； 和 分别
+为 和 时刻的加速度矩阵 ； 为 时刻的相对位
+移矩阵 ； 和 分别为 和 时刻的抵抗变形的
+力矢量。
+KT
+ut
+ut+∆t
+t + ∆t
+∆F
+Kn
+T
+∆u(0)
+t
+K0
+T
+∆ ～F(1)
+由于 是随迭代进程而变动的 ， 只有当它变动
+到最终的平衡位置时才能找到近似解 ， 因此平衡迭
+代法的核心思想是以线性结果近似 ， 并计算由此产
+生的不平衡力 ，重复迭代直至不再产生不平衡力 ，如
+图 12 所示 ， 图中 ， 和 为 t 和 时刻的相对位
+移； 为初始不平衡力 ； 为初始斜率 ； 为迭代
+后相对位移差 ； 为迭代后斜率 ； 为迭代后不
+平衡力。
+ 
+ 
+~ΔF(1)
+(0)utΔ
+ut
+ΔF
+ut+Δt
+0
+KT n
+KT
+u
+F
+ 
+图 12　逐步积分的增量步迭代过程
+Fig. 12　Incremental  step  iteration  process  of  step -by-step
+integration
+  
+2    基于车载数据的列车纵向力简化
+计算方法
+车载数据与模型机理融合驱动的列车纵向冲动
+精确计算方法虽然已达到较高的计算效率 ， 但在部
+分需要大量迭代计算预测前方列车纵向受力情况的
+工况下 （ 如辅助驾驶时对前方复杂坡段的最优车钩
+力解算等 ）， 仍需建立一种计算效率更高 ， 满足车载
+设备短时大量计算需求的可靠方法。
+由于应用场景不同 ， 前述列车纵向力精确计算
+方法中所采用的非线性钩缓系统模型和空气制动系
+统经验模型不适用于简化方法计算 ， 此处采用如下
+假设或近似建立基于车载数据的列车纵向力快速计
+算简化方法 ：机车车辆间采用线弹性连接 ，机车 、车
+ 
+0 5 10 15 20 25 30 35 40 45 50
+0
+20
+40
+60
+80
+100
+120
+140
+160
+时间 / s
+BCP / kPa
+1#-试验 1#-流体
+27#-试验
+55#-试验
+81#-试验
+108#-试验
+109#-试验
+135#-试验
+163#-试验
+189-试验
+216#-试验
+27#-流体
+55#-流体
+81#-流体
+108#-流体
+109#-流体
+135#-流体
+163#-流体
+189#-流体
+216#-流体
+ 
+图 10　流体模型计算结果与试验数据对比
+Fig. 10　Comparison  of  calculation  results  and  test  data  of  the
+fluid model
+ 
+0 5 10 15 20 25 30 35 40 45 50
+0
+20
+40
+60
+80
+100
+120
+140
+160
+时间 / s
+BCP / kPa
+1#-试验
+27#-试验
+55#-试验
+81#-试验
+108#-试验
+109#-试验
+135#-试验
+163#-试验
+189#-试验
+216#-试验
+1#-经验
+27#-经验
+55#-经验
+81#-经验
+108#-经验
+109#-经验
+135#-经验
+163#-经验
+189#-经验
+216#-经验
+ 
+图 11　经验模型计算结果与试验数据对比
+Fig. 11　Comparison  of  calculation  results  and  test  data  of  the
+empirical model
+第 11 期 熊　芯 ，等：车载数据驱动下重载列车纵向力实时预测方法 2479
+
+=== PDF PAGE 7 ===
+辆间的钩缓连接近似为弹簧系统 [15, 30]；制动 、缓解时
+不同制动缸的升压 、 降压曲线相同 ， 制动缓解波传
+播速度为常数 ，摩擦系数为常数。
+一般对于长大列车 ， 建立其列车纵向多质点方
+程式 ：
+mi ¨yi = Fci 1   Fci   Fwi + FTEi   FDBi   FBi （12）
+¨yi
+i
+mi
+i
+Fci
+i
+Fc0
+Fc0
+Fcn
+Fwi
+i
+FTEi
+FDBi
+FBi
+i
+式中 ， 为第 辆车的加速度 ； 为第 辆车的质量 ；
+为第 辆车的后车钩力 （其中 表示 第 1 辆车的前
+车钩力 ）， =0， =0； 为第 辆车的总运行阻力 ，
+包括等效运行阻力 、坡道阻力 、曲线阻力 、起动阻力
+等； 为牵引力 ， 仅作用于机车 ； 为动力制动
+力，仅作用于机车 ； 为第 辆车的空气制动力。
+ki
+ci
+此处将钩缓模型近似为弹簧系统 ， 假设各车连
+接刚度近似为线性刚度 和比例阻尼 ，以避免复杂
+度较高的不平衡力迭代计算 ：
+Fci = ki(yi   yi+1) + ci(˙yi   ˙yi+1) （13）
+代入列车纵向动力学方程 ，可得矩阵形式 ：
+■|||■|||■
+M ¨y + C ˙y + Ky = F
+yjt=0 = y0
+˙yjt=0 = ˙y0
+（14）
+y0
+˙y0
+式中 ， 和 分别为位移和速度初值。进一步可将方
+程变换为下式所示的相对位移形式 ：
+M′ ¨u + C′ ˙u + K′u = F′ （15）
+其中 ：
+ui = yi   yi 1 （16）
+M、M′
+K、K′
+C、C′
+F
+F′
+y、˙y和¨y
+u
+˙u
+¨u
+式中 ， 分别为转换前 、 后机车车辆的质量矩
+阵； 分 别 为 转 换 前 、 后 系 统 的 总 刚 度 矩 阵 ；
+分别为转换前 、 后的阻尼矩阵 ； 、 分别为
+转换前 、 后的外加激励 ； 分别为多质点体系
+各质点相对于平衡点的位移 、 速度和加速度向量 ；
+、 和 分别为各车相对位移 、 相对速度和相对加
+速度向量。
+对方程进行正则化 ， 可以将 式 (14) 简化为单自
+由度的振动方程式 ：
+■||||■||||■
+Mp ¨yp + Cp ˙yp + Kpyp = Fp
+yp
+|||t=0 = yp0
+˙yp
+|||t=0 = ˙yp0
+（17）
+f2 = pki=mi=2N
+采用相对位移也有类似公式。中国的重载列车
+编组中货车多为同一车型 ，质量 、刚度 、阻尼参数相
+同， 忽略阻尼时 ， 可以估计 式 (17) 的第一非零频率
+（即第 2 阶频率 ），该频率近似为 。
+FTEi
+FDBi
+Fwi
+yp
+将外加激励正则化后 ，可以通 过 Duhamel 积分求
+解响应。对于施加牵引力 、电制力 可以通过
+阶跃函数模拟外加激励 ，对于运行阻力 通过分段
+线性和阶跃函数模拟 ，从而求解响应 。
+yp = 1
+mi!′ 
+∫ t
+0
+Fpe !(t ) sin !′(t   )d （18）
+!
+!′
+式中 ， 为系统固有圆频率 ； 为阻尼作用下实际圆
+
+
+频率 ； 为系统阻尼比 ； 为时间积分变量。
+FBi
+T c
+F0
+Fp
+对于制动力 ， 此处考虑空气制动系统中的关
+键因素 ， 即升压特性和制动波传播特性。在升压时
+间 ，外加激励幅值 时，制动缸压力 按指数函数
+近似为关系式 ：
+Fp = F0 
+(
+1   e t=Tc
+)
+（19）
+此时 ，根据 式 (17) 振动方程有解析解式 ：
+y = F0 
+[
+1   (!′)2  T 2
+c
+1 + (!′)2  T 2
+c
+ e t=Tc
+]
++
+√[ !′  Tc
+1 + (!′)2  T 2
+c
+] 2
++
+[
+y0 + !′  Tc
+1 + (!′)2  T 2
+c
+] 2
+ sin (!′  t + )
+（20）
+列车纵向力简化计算方法由于在钩缓模型 、 空
+气制动系统模型 、 阻力模型 、 编组形式和方程转化
+等方面做了较多近似 ，从而求得振动方程的解析解 ，
+因此在牺牲部分求解精度的前提下极大地提高了纵
+向力求解速度。 
+3    长大下坡区段算例分析
+长大下坡区段的长波浪循环制动操纵是重载线
+路有别于一般货运线路的重要特征 [31]， 以中国某重
+载线路的一段长大下坡实测运行数据为例 ， 对上述
+两类重载列车纵向力实时预测方法进行算例分析 ，
+并与实际运行数据进行对比分析。
+al
+bl
+cl
+aw
+bw
+cw
+对基本运行阻力系数的离线调整采用上述基本
+阻力系数自适应调整方法 ，使用优化后的基本运行阻力
+系数 ， 即 =1.0473， =0.0028， =0.000224， =0.4662，
+=0.0021， =0.000061。为保证实时计算效率 ，空气
+制动系统模型采用经过空气制动试验数据校准的经
+验空气制动模型。
+选 取 的 线 路 全 长为 13  km（ K44+000~K57+000） ，
+纵断面为−9‰~ −12‰ 长大下坡，最小曲线半径为 500 m，
+无电分相区段。编组参数如 表 3 所示。列车操纵序
+列为实际司机操纵序列 ， 计算硬件设备 为 Intel i7-
+12700H  14 核 2.3  GHz 处 理 器和 16  GB 内 存，单 线 程 计 算 。
+峰值误差指标体现了在循环制动风险点处对车钩
+力极值模拟的准确性 ；RMSE 与 MAE 体现了总运行距
+离内速度与车钩力计算与实测值的平均误差 ；R2 表示
+ 
+表 3　列车编组参数
+Tab. 3　Train marshalling parameters
+ 
+计算参数 参数说明
+列车编组形式 HXD1 + C80×108辆 + HXD1 +
+C80×108辆 + 可控列尾
+编组牵引总重 2.16万吨
+缓冲器类型 机车：QKX100胶泥缓冲器；
+车辆：MT-2摩擦缓冲器
+编组连挂形式/车钩间隙 两辆一组/9.5 mm
+同步控制延迟时间 3 s
+2480 振　动　工　程　学　报 第 38 卷
+
+=== PDF PAGE 8 ===
+对速度与车钩力变化趋势和极值预测计算的准确性。
+对上述典 型 13 km 长大下坡算例的计算结果进
+行统计 ， 以均方根误 差 RMSE、 平均绝对误 差 MAE
+和确定系 数 R2 等为量化指标进行分析。结果如 表 4
+所示。此外考虑到列车纵向动力学试验中的测试结
+果具有较强的离散性 ， 统计中的车钩力峰值误差在
+此特指循环制动缓解前后 （ 循环制动风险点 ）， 仿真
+车钩力最大值与实测最大值的差距。
+由表 5 结果可知 ：（ 1） 基于文中硬件配置 ， 精确
+方法的时间步长取 为 0.2 s，对于 2 万吨组合列车 ，精
+确方法可 在 1 s 内快速预测计算前 方 50.4 m 线路长
+度的列车纵向力 、 加速度和相对位移等多种信息 ；
+简化方法可更快速地计算前 方 7222.2 m 线路长度的
+列车纵向力 ； 简化方法的车钩力计算效率较精确方
+法提高 约 143 倍 ， 两类方法均满足实时计算要求。
+（2） 精确方法对于速度的平均计算误差小 于 2 km/h，
+速度 R2 接 近 0.98， 表明精确方法对于列车编组运动
+学计算精度较高 ， 简化方法不涉及对速度的计算。
+（3）车钩 力 RMSE 和 MAE 指标表明 ，本文精确方法和
+简化方法在总体车钩力变化趋势上都实现了较好的
+预测 ； 但从峰值误差 和 R2 来看 ， 精确方法对循环制
+动关键工况转换时的剧烈冲击有较好的模拟 （如图 13
+所示 ）， 而简化方法由于使用线性车钩刚度 -阻尼模
+ 
+表 4　预测方法计算结果
+Tab. 4　Calculation results of the prediction methods
+ 
+计算方法 关键参数 数值
+— 列车实际运行时间/s 821.0
+精确方法
+计算总耗时/s 257.9
+速度最大误差/(km·h−1) 3.72
+速度RMSE/(km·h−1) 1.61
+速度MAE/(km·h−1) 1.27
+速度R2
+0.9799
+简化方法 计算总耗时/s 1.8
+ 
+表 5　不同测试车位车钩力计算结果
+Tab. 5　Calculation results of coupler forces for different test vehicle positions
+ 
+计算方法 车钩力统计 2# 28# 56# 82# 108# 111# 137# 163# 191# 217#
+精确方法
+峰值误差/kN 57.9 14.5 177.8 119.8 121.8 264.2 126.3 125.9 101.9 344.9
+RMSE/kN 36.3 58.2 82.6 92.5 117.9 106.7 94.6 116.9 63.3 15.6
+MAE/kN 34.6 43.9 63.6 66.7 92.3 78.4 74.6 97.9 47.9 9.1
+R2
+0.9008 0.7692 0.4369 0.5788 0.5717 0.5648 0.6527 0.5570 0.3223 0.1347
+简化方法
+峰值误差/kN 70.9 286.7 268.4 353.9 396.2 377.9 260.5 226.0 173.7 349.7
+RMSE/kN 70.7 66.1 84.6 82.9 111.3 108.7 92.1 121.8 74.8 14.6
+MAE/kN 70.7 55.8 72.4 67.2 91.1 84.2 72.3 101.0 57.2 7.8
+R2
+0.6227 0.7026 0.4092 0.6609 0.6187 0.5480 0.6715 −0.0243 0.0556 0.0119
+ 
+30456075
+−480−320−1600
+−660−3300330
+−600−3000300
+−820−4100410
+−1100−5500550
+−880−4400440
+−1080−5400540
+−940−4700470
+−700−3500350
+42 44 46 48 50 52 54 56
+−720−3600360
+速度 / (km·h−1)
+测试速度
+仿真速度
+车钩力 / kN
+公里标 / km
+2#-测试
+2#-精确
+2#-简化
+28#-测试
+28#-精确
+28#-简化
+56#-测试
+56#-精确
+56#-简化
+82#-测试
+82#-精确
+82#-简化
+108#-测试
+108#-精确
+108#-简化
+111#-测试
+111#-精确
+111#-简化
+137#-测试
+137#-精确
+137#-简化
+163#-测试
+163#-精确
+163#-简化
+191#-测试
+191#-精确
+191#-简化
+217#-测试
+217#-精确
+217#-简化
+ 
+图 13　典型测试车位车钩力对比
+Fig. 13　Comparison of coupler forces for typical test vehicle positions
+第 11 期 熊　芯 ，等：车载数据驱动下重载列车纵向力实时预测方法 2481
+
+=== PDF PAGE 9 ===
+型， 不能反映车钩间隙 、 黏滞摩擦力和速度阻尼力
+等特性 ， 不能对组合列车同步操纵延迟有效模拟等
+原因 ，并未模拟出短时纵向冲击 ；两类方法对列车尾
+部车辆的短时冲击计算效果较差。 （ 4） 图 14 中， 精
+确方法在缓冲器相对位移的计算中 ， 对于缓冲器位
+移的变化趋势 、量级水平和关键纵向冲击点都有较
+好的模拟 ， 但由于缓冲器位移变化具有强离散性和
+随机性 ， 精确计算方法并不能在所有车位和整个运
+行时间内全部实现精确预测模拟。 （ 5） 简化方法通
+过振动方程解析解仅计算车钩力 ， 虽然牺牲了部分
+计算结果精度 ， 但相比数值求解其计算速度获得极
+大提高 ， 适合牵引 /惰行等工况 ， 或纵向力计算需求
+密集场景的车钩力求解 ； 精确方法则适用于空电联
+合制动和缓解等对计算精度要求高的计算场景。
+ 
+ 
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+45 50 55
+公里标 / km
+−16
+−14
+−12
+−10
+−8
+缓冲器位移 / mm
+测试 仿真
+−15
+−10
+−5
+0
+5
+−15
+−10
+−5
+0
+5
+−15
+−10
+−5
+0
+5
+10
+−15
+−10
+−5
+0
+5
+10
+15
+−15
+−10
+−5
+0
+5
+10
+15
+缓冲器位移 / mm
+缓冲器位移 / mm缓冲器位移 / mm
+缓冲器位移 / mm缓冲器位移 / mm
+缓冲器位移 / mm缓冲器位移 / mm
+缓冲器位移 / mm缓冲器位移 / mm
+−15
+−10
+−5
+0
+5
+10
+15
+−10
+−5
+0
+5
+10
+−15
+−10
+−5
+0
+5
+10
+15
+−4
+−3
+−2
+−1
+0
+1
+2
+2# 28# 56# 82# 108#
+111# 137# 163# 191# 217#
+ 
+图 14　典型测试车位缓冲器位移对比
+Fig. 14　Comparison of buffer displacements for typical test vehicle positions
+ 
+图 15 和 16 给出了各典型测试车位车钩力计算
+误差分布。可见简化方法在所有测试车位上都有个
+别低频率出现的高误差值 ， 主要是由于简化方法未
+能对循环制动缓解时的高纵向冲击精确模拟 ， 这可
+能导致该方法在一些恶劣工况的计算中是不利的 ，
+但通过与精确方法误差分布概率的对比 ， 在一些列
+车操纵工况比较稳定的区段 （如牵引 、惰行 、电制调
+速等工况 ） 可以达到与精确方法相近的误差概率分
+布， 根 据 3σ 原则 ， 车钩力误差约 有 68% 的概率小 于
+64.6 kN， 有 95% 的概率小 于 129.2 kN， 有 99.7% 的概
+率小 于 193.8 kN。这表明两类方法在操纵工况稳定
+区段的车钩力计算结果具有相当的可靠性 ，有约 95%
+ 
+−60 −20 20
+误差 / kN
+0
+0.05
+0.10
+0.15
+0.20
+0.25
+0.30归一化频率
+−200 0 200
+误差 / kN
+0
+0.05
+0.10
+0.15
+0.20
+0.25
+0.30
+−200 0 200
+误差 / kN
+0
+0.05
+0.10
+0.15
+0.20
+0.25
+−200 0 200
+误差 / kN
+0
+0.05
+0.10
+0.15
+0.20
+−200 0 200
+误差 / kN
+误差 / kN 误差 / kN 误差 / kN 误差 / kN 误差 / kN
+0
+0.05
+0.10
+0.15
+−200 0 2000
+0.05
+0.10
+0.15归一化频率
+归一化频率归一化频率
+归一化频率归一化频率
+归一化频率归一化频率
+归一化频率归一化频率
+−200 0 200
+0.05
+0
+0.10
+0.15
+−200 0 2000
+0.05
+0.10
+0.15
+0.20
+−200 0
+0
+0.05
+0.10
+0.15
+0.20
+0.25
+−200 0 200
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+2# 28# 56# 82# 108#
+111# 137# 163# 191# 217#
+ 
+图 15　精确方法计算典型测试车位车钩力误差分布
+Fig. 15　Errors distribution of coupler forces for typical test vehicle positions calculated by the precise method
+2482 振　动　工　程　学　报 第 38 卷
+
+=== PDF PAGE 10 ===
+的概率保证操纵稳定区段的计算误差小 于 129.2 kN，
+并进一步提高计算效率。 
+4    结　论
+（1） 为准确确定不同工况下的机车车辆基本运
+行阻力系数 ， 本文建立基于车载数据的基本阻力系
+数优化方法 ， 结果表明在牵规规定值基础上适当调
+整有利于实现更高的计算准确度。
+（2） 通过分析列车纵向动力学计算的关键子系
+统模型化方法与模型输入数据来源 ， 建立车载数据
+与模型机理相结合的列车纵向动力学计算精确方
+法；为进一步提高计算效率 ，建立了使 用 Duhamel 积
+分求解振动响应解析解的列车纵向力简化计算方法。
+（3） 以中国重载典型 −9‰~ −12‰ 长大下坡区段
+运行为例 ， 本文精确计算方法对缓冲器相对位移变
+化趋势 、 量级水平和关键冲击有较好的预测效果 ，
+简化方法计算效率更高 ， 但对列车操纵工况转换时
+（如循环制动缓解前后 ） 的短时剧烈纵向冲击模拟
+较差。
+（4） 本文重载列车纵向力实时预测方法实现了
+纵向力在线预测评估 ， 为重载列车在线安全监测和
+辅助驾驶技术迭代等提供了有效的计算解决方案 ，
+该方法未来是否能够得到实际应用还有待更详细的
+试验验证。
+参考文献 ：  
+徐明龙，李谷，李蔚，等 . 重载组合列车纵向力劣化分析
+与运行安全研 究 [J]. 铁道科学与工程学报， 2023，20（1）：
+[1]
+321-332.
+XU Minglong，LI Gu，LI Wei，et al. Analysis of  longitudi-
+nal  force  degradation  and  running  safety  of  heavy -haul
+combined trains[J]. Journal of Railway Science and  Engineer-
+ing，2023，20（1）：321-332.
+COLE  C ， SUN  Y  Q .  Simulated  comparisons  of  wagon
+coupler  systems  in  heavy  haul  trains [J].  Proceedings  of  the
+Institution of Mechanical Engineers ，Part F：Journal of Rail
+and Rapid Transit，2006，220（3）：247-256.
+[2]
+WU  Q ， SPIRYAGIN  M ， COLE  C .  Advanced  dynamic
+modelling  for  friction  draft  gears[J].  Vehicle  System  Dynam-
+ics，2015，53（4）：475-492.
+[3]
+常崇义，王成国，马大炜，等 . 2 万 t 组合列车纵向力计算
+研究 [J]. 铁道学报，2006，28（2）：89-94.
+CHANG  Chongyi， WANG  Chengguo， MA  Dawei， et  al.
+Study  on  numerical  analysis  of  longitudinal  forces  of  the
+T20000 heavy haul [J]. Journal of the China Railway Society ，
+2006，28（2）：89-94.
+[4]
+常崇义，马颖明，郭刚，等 . 超长重载列车纵向力影响规
+律仿真研究 [J]. 中国铁道科学，2021，42（1）：87-94.
+CHANG Chongyi，MA Yingming，GUO Gang，et al. Simu-
+lation  study  on  the  influence  of  longitudinal  force  on  super
+long  heavy  haul  trains [J].  China  Railway  Science ， 2021，
+42（1）：87-94.
+[5]
+魏伟，于忠建. 从控机车滞后时间对 3 万 t 列车纵向力的影
+响 [J]. 交通运输工程学报，2011，11（2）：39-44.
+WEI  Wei， YU  Zhongjian.  Influence  of  lag  time  for  slave
+control  locomotive  on  longitudinal  coupler  forces  of  30000  t
+train[J].  Journal  of  Traffic  and  Transportation  Engineering ，
+[6]
+ 
+误差 / kN 误差 / kN 误差 / kN 误差 / kN 误差 / kN
+误差 / kN 误差 / kN 误差 / kN 误差 / kN 误差 / kN
+归一化频率归一化频率
+归一化频率归一化频率
+归一化频率归一化频率
+归一化频率归一化频率
+归一化频率归一化频率
+−80 −70 −60
+0
+0.05
+0.10
+0.15
+−200 0 200
+0
+0.05
+0.10
+0.15
+−200 0 2000
+0.05
+0.10
+0.15
+0.20
+−200 0 200 400
+0
+0.05
+0.10
+0.15
+0 400200−200
+0
+0.02
+0.04
+0.06
+0.08
+0.10
+0.12
+−400 0
+0
+0.02
+0.04
+0.06
+0.08
+0.10
+0.12
+0
+0.05
+0.10
+0.15
+0
+0.05
+0.10
+0.15
+0.20
+0.25
+−200 0 200
+0
+0.05
+0.10
+0.15
+0.20
+0.25
+−200 0 200
+400
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+2# 28# 56# 82# 108#
+111# 137# 163# 191# 217#
+−200 200 −400 0−200 200 −400 0−200 200
+ 
+图 16　简化方法计算典型测试车位车钩力误差分布
+Fig. 16　Errors distribution of coupler forces for typical test vehicle positions calculated by the simplified method
+第 11 期 熊　芯 ，等：车载数据驱动下重载列车纵向力实时预测方法 2483
+
+=== PDF PAGE 11 ===
+2011，11（2）：39-44.
+魏伟，胡杨. 列尾装置对重载列车纵向力的影响 [J]. 交通运
+输工程学报，2012，12（5）：43-49.
+WEI Wei，HU Yang. Influence of train tail exhaust device on
+longitudinal  force  of  train [J].  Journal  of  Traffic  and   Trans-
+portation Engineering，2012，12（5）：43-49.
+[7]
+WEI W，HU Y，WU Q，et al. An air brake model for  longi-
+tudinal  train  dynamics  studies[J].  Vehicle  System  Dynamics，
+2017，55（4）：517-533.
+[8]
+中国铁道科学研究院. 大秦线 3 万吨组合列车综合试验 [R].
+北京：中国铁道科学研究院，2014.
+China  Academy  of  Railway  Sciences.  Comprehensive  test  of
+30000-ton  combined  trains  on  the  Datong-Qinhuangdao  Rail-
+way  Line[R].  Beijing ： China  Academy  of  Railway
+Sciences，2014.
+[9]
+张格明. 大秦线 2 万吨重载组合列车故障分离研究试验报
+告 [R]. 北京：中国铁道科学研究院，2019.
+ZHANG  Geming.  Research  and  test  report  on  separation  of
+20000-ton  heavy -haul  combined  trains  on  the  Datong -
+Qinhuangdao  Railway  Line[R].  Beijing： China  Academy  of
+Railway Sciences，2019.
+[10]
+中国铁道科学研究院 . 瓦日 线 1.2 万吨重载货物列车试 验
+[R]. 北京：中国铁道科学研究院，2020.
+China  Academy  of  Railway  Sciences.  Test  of  12000 -ton
+heavy-haul  trains  on  the  Wari  Railway  Line[R].  Beijing ：
+China Academy of Railway Sciences，2020.
+[11]
+中国铁道科学研究院 . 唐呼线万吨重载货物列车试 验 [R].
+北京：中国铁道科学研究院机车车辆研究所，2017.
+China Academy of Railway Sciences. Test of ten -thousand-ton
+heavy-haul  trains  on  the  Tangshan-Hohhot  Railway  Line[R].
+Beijing： China  Academy  of  Railway  Sciences， Locomotive
+and Rolling Stock Research Institute，2017.
+[12]
+姚小沛. 朔黄铁 路 1+1 编组牵 引 216 辆 C80 货车 2 万吨列
+车试验 [R]. 北京：中国铁道科学研究院，2016.
+YAO  Xiaopei.  Test  of  20000-ton  trains  comprising  216  C80
+freight  cars  in  1+1  marshalling  on  the  Shuozhou -Huanghua
+Railway[R].  Beijing： China  Academy  of  Railway  Sciences，
+2016.
+[13]
+康熊. 山西中南部铁路通道重载综合试验研究总报 告 [R].
+北京：中国铁道科学研究院，2015.
+KANG  Xiong.  Research  report  of  heavy  haul  comprehensive
+test  on  Shanxi  South -central  Railway[R].  Beijing ： China
+Academy of Railway Sciences，2015.
+[14]
+WU  Q ， SPIRYAGIN  M ， COLE  C .  Longitudinal  train
+dynamics： an  overview [J].  Vehicle  System  Dynamics ，
+[15]
+2016，54（12）：1688-1714.
+王开云，閤鑫，陈清华，等 . 重载列车系统动力学研究进
+展 [J]. 应用力学学报，2023，40（5）：973-986.
+WANG  Kaiyun，GE  Xin，Chen  Qinghua，et  al. Review  of
+dynamics  research  on  heavy -haul  train  system [J].  Chinese
+Journal of Applied Mechanics，2023，40（5）：973-986.
+[16]
+GE X，CHEN Q H ，LING L，et al. An approach for  simu-
+lating the air brake system of long freight trains based on fluid
+dynamics[J].  Railway  Engineering  Science， 2023， 31（ 2） ：
+122-134.
+[17]
+WU  Q， YANG  X  J， COLE  C， et  al.  Modelling  polymer
+draft  gears[J].  Vehicle  System  Dynamics ， 2016， 54（ 9） ：
+1208-1225.
+[18]
+常崇义，王新锐，姜岩，等 . 钢摩擦与弹性胶泥复合型缓
+冲器数值模型 [J]. 中国铁道科学，2016，37（4）：83-88.
+CHANG  Chongyi ， WANG  Xinrui ， JIANG  Yan ， et  al .
+Numerical  model  of  steel  friction  and  elasticity  cement
+composite  draft  gear [J].  China  Railway  Science ， 2016，
+37（4）：83-88.
+[19]
+杨俊杰，常崇义，封全保，等 . 重载组合列车机车缓冲器
+关键技术参数研 究 [J]. 中国铁道科学 ，2010，31（3）：76-
+81.
+YANG  Junjie， CHANG  Chongyi， FENG  Quanbao， et  al.
+Study  on  the  key  technical  parameter  of  the  locomotive  draft
+gear  in  a  heavy  haul  combined  train [J].  China  Railway
+Science，2010，31（3）：76-81.
+[20]
+FANCHER  P  S， ERVIN  R  D， MACADAM  C  C， et  al.
+Measurement  and  representation  of  the  mechanical  properties
+of  truck  leaf  springs[J].  SSAE  Technical  Paper  Series ，
+1980： 800905.
+[21]
+何闻. 考虑纵向冲动的重载列车自动驾驶操纵研 究 [D]. 北
+京：中国铁道科学研究院，2023.
+HE  Wen.  Research  on  automatic  operation  considering  longi-
+tudinal  impulse  of  heavy  haul  trains[D].  Beijing ： China
+Academy of Railway Sciences，2023.
+[22]
+国家铁路局 . 列车牵引计算  第 1 部分：机车牵引式列车：
+TB/T 1407.1—2018[S].  北京：中国铁道出版社有限公司，
+2018.
+National  Railway  Administration  of  the  People’s  Republic  of
+China. Railway train traction calculation—part 1 ：trains with
+locomotives： TB/T  1407.1 —2018[S].  Beijing  ： China  Rail-
+way Publishing House Co.，Ltd.，2018.
+[23]
+WU  Q， COLE  C， SPIRYAGIN  M， et  al.  Freight  train  air
+brake models[J]. International Journal of Rail Transportation ，
+2023，11（1）：1-49.
+[24]
+2484 振　动　工　程　学　报 第 38 卷
+
+=== PDF PAGE 12 ===
+何闻，常崇义，王俊彪，等 . 3 万 t 重载列车制动工况纵向
+力关键影响因素分析 [J]. 铁道学报，2024，46（1）：53-59.
+HE Wen，CHANG Chongyi，WANG Junbiao，et al. Analy-
+sis on key influencing factors of longitudinal force with 30000 t
+heavy haul trains in braking conditions[J]. Journal of the China
+Railway Society，2024，46（1）：53-59.
+[25]
+刘金朝，王成国，马大炜，等 . 长大列车空气管系充气特
+性数值仿真研究 [J]. 中国铁道科学，2004，25（1）：13-19.
+LIU Jinzhao，WANG Chengguo，MA Dawei，et al. Numer-
+ical simulation on charging characteristics of heavy haul train
+air  brake  pipe  system [J].  China  Railway  Science ， 2004，
+25（1）：13-19.
+[26]
+BENSON R S.  内燃机的热力学和空气动力学 -卷 1[M]. 程
+宏，朱倩，邵明锋，译. 北京：机械工业出版社，1986.
+BENSON  R  S.  The  Thermodynamics  and  Gasdynamics  of
+Internal Combustion Engines-Vol.1[M]. CHENG Hong，ZHU
+Qian，SHAO Mingfeng，translated. Beijing：China Machine
+Press，1986.
+[27]
+WU Q，COLE C，SPIRYAGIN M，et al. Railway air brake
+model and parallel computing scheme [J]. Journal of Computa-
+[28]
+tional and Nonlinear Dynamics，2017，12（5）：051017.
+翟婉明. 非线性结构动力分析的 Newmark 预测-校正积分模
+式 [J]. 计算结构力学及其应用，1990，7（2）：51-58.
+ZHAI Wanming. The predictor-corrector scheme based on the
+Newmark  integration  algorithm  for  nonlinear  structural
+dynamic  analysis [J].  Chinese  Journal  of  Computational
+Mechanics，1990，7（2）：51-58.
+[29]
+郭 金 松.  考 虑 纵 向 动 力 学 的 重 载 列 车 运 行 控 制 技 术 研
+究 [D]. 成都：西南交通大学，2021.
+GUO Jinsong. Research on train control considering  longitudi-
+nal  dynamics  of  freight  trains[D].  Chengdu： Southwest  Jiao-
+tong University，2021.
+[30]
+HE W，CHANG C Y ，LI L. et al. Research on optimization
+and  evaluation  method  of  heavy -haul  train  cyclic  braking
+manipulation[J]. Railway Sciences，2025，4（2）：231-248.
+[31]
+第一作者 ：熊　芯 （1977— ），男，硕士 ，研究员。
+E-mail：xxcars@139.com
+通信作者 ：何　闻 （1997— ），男，硕士 ，研究实习员。
+E-mail:  hewen_cars@163.com
+第 11 期 熊　芯 ，等：车载数据驱动下重载列车纵向力实时预测方法 2485

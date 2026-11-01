@@ -1,0 +1,872 @@
+===== PDF page 1 =====
+第 4 期
+2023 年 7 月 Electric Drive for Locomotives
+No . 4
+July  2023
+重载列车平稳运行的空电联合
+制动匹配控制
+马志强
+1
+， 王竣渝
+2
+， 魏 咪
+2
+， 王青元
+2
+（  1 . 国能朔黄铁路发展有限责任公司 ， 河北  肃宁　 　 062350 ；
+2 . 西南交通大学  电气工程学院 ， 四川  成都　 　 611756  ）
+摘 要 ： 重载列车在连续长大下坡道运行时需进行循环制动 ， 导致司机驾驶困难 ， 对列车安全平稳运行
+造成了极大的影响 。 为此 ， 文章考虑空气制动力发挥动态过程 ， 以列车运行环境和车辆机械特性为约束 ， 建
+立重载列车多目标优化操纵模型 ， 并采用二次规划算法进行求解 。 针对空气制动模型难以线性近似化 ， 利用
+模式化速度曲线的主体特征一致性 ， 将空气制动力作为一类列车已知控制力引入优化模型 ， 实现空电制动控
+制在时间与空间上的解耦 ， 并设计迭代算法解决了空气制动力与优化速度曲线的适配问题 。 最后将重载列车
+长大下坡道操纵准则量化为具体约束参数加入到模型中进行仿真 ， 并与重载列车实际运行数据进行对比 ， 结
+果表明 ， 该算法能够有效减小车钩力 ， 实现列车安全平稳运行 。
+关键词 ： 重载列车 ； 模式化操纵 ； 二次规划 ； 迭代算法 ； 纵向冲动
+中图分类号 ： U 292 . 92
++
+1 文献标识码 ： A
+Combined electro-pneumatic braking matching control 
+for smooth operation of the heavy-haul train
+MA Zhiqiang
+1
+,  WANG Junyu
+2
+,  WEI Mi
+2
+,  WANG Qingyuan
+2
+( 1 .  Shuohuang Railway Development Co .,  Ltd .,  Suning ,  Hebei 062350 ,  China ；
+2 .  School of Electrical Engineering ,  Southwest Jiaotong University ,  Chengdu ,  Sichuan 611756 ,  China )
+Abstract :   Heavy-haul trains need to be braked in cycles when running on long and steep downslopes ,  which causes great challeng ‐
+es for drivers and brings huge influences to the safe and smooth operation of the trains .  In the current study ,  a multi-objective optimal op ‐
+eration model was established for heavy-haul trains firstly ,  considering the dynamic process in the application of air braking force ,  and 
+the constraints due to the train operation environment and vehicle mechanical characteristics ,  and then was solved by the quadratic pro ‐
+gramming algorithm .  Since the air braking model can hardly be linearly approximated ,  the air braking force was incorporated into the op ‐
+timization model as a kind of train known control force ,  taking advantage of the consistent main characteristics of the modeled speed 
+curve ,  resulting in the electro-pneumatic braking control decoupled spatially and temporally .  Moreover ,  an iterative algorithm was de ‐
+signed to fit the air braking force with the optimized speed curve .  Finally ,  the operation criteria for heavy-haul trains on long and steep 
+downslopes were quantified and incorporated into the model as the specific constraints parameters for simulative study ,  and the results 
+were compared with the measured operation data .  The comparison results demonstrate that the proposed algorithm can achieve safe and 
+steady operation of heavy haul trains by reducing coupler force .
+Keywords :   heavy-haul train ;  model-based operation ;  quadratic programming ;  iterative algorithm ;  longitudinal impulse
+DOI :  10 . 13890 /j . issn . 1000 - 128 X . 2023 . 02 . 103 文章编号 ： 1000 - 128 X ( 2023 ) 04 - 0071 - 06
+基金项目 ： 国家重点研发计划项目 （ 2021 TFB 2601504 ）
+通信作者 ： 王青元 （ 1984 — ） ， 男 ， 博士 ， 高级工程师 ， 硕士生导师 ， 主要从事轨道交通电气化与自动化方面的研究 ；  E-mail :  wangqy@swjtu . edu . cn
+引用格式 ： 马志强 ,  王竣渝 ,  魏咪 ,  等 .  重载列车平稳运行的空电联合制动匹配控制 [ J ].  机车电传动 ,  2023 ( 4 ):  71 - 76 .
+Citation ： MA Zhiqiang ,  WANG Junyu ,  WEI Mi ,  et al .  Combined electro-pneumatic braking matching control for smooth operation of the heavy-haul 
+train [ J ].  Electric drive for locomotives , 2023 ( 4 ):  71 - 76 .
+
+===== PDF page 2 =====
+2023  年 7 月
+0 　引言
+随着我国列车货运量需求提升 ， 重载列车的牵引
+重量 、 开行密度也在逐步增加 。 结合我国特有的地势
+条件 ， 重载列车在满载运行时受连续长大下坡道影响
+导致操纵困难 。 同时 ， 司机仅凭经验难以实现空电联
+合制动的精准配合 ， 电制动力施加不当容易造成列车
+纵向冲动 ， 严重危害行车安全 。 因此 ， 开展列车长大
+下坡空电联合制动匹配控制策略研究 ， 优化行车指导
+操纵序列 ， 对提高司机操纵水平和保证列车安全 、 平
+稳运行具有重要意义 。
+文献 [ 1 ] 通过考虑缓解再充风 、 低速慢行等问题提
+出了长大下坡周期性制动的验算评价方法并总结出定
+性操纵规则 。 文献 [ 2 ] 比较了长大下坡区段列车 “ 惰行 +
+空气制动 ” 和 “ 电制动 + 空气制动 ” 两种操纵策略 ， 并
+证明采用空电联合操纵的周期性制动方式可以减少空
+气制动次数 ， 减小闸瓦温升 ， 保证行车安全 。 文献 [ 3 -
+4 ] 对大秦线 2 万吨重载列车在长大下坡道的操纵进行了
+仿真和现场试验 ， 表明小减压量制动和全电制动配合
+使用可延长列车再充风时间 ， 减少列车空气制动次数 。
+早 年间重载列车运行于长大下坡道的研究主要基于
+现场经验 ， 针对列车循环制动的最优操纵策略缺乏理论
+支撑 。 近年来 ， 关于长大下坡道的重载列车运行优化的
+相关研究取得了一定的成果 ， 如文献 [ 5 - 7 ] 。 文献 [ 8 ] 采
+用随机动态规划模型 ， 通过近似动态规划算法优化重载
+列车操纵策略 。 文献 [ 9 ] 将专家知识和机器学习方法融
+合 ， 考虑长大下坡区段的循环制动情况 ， 将该过程中的
+空气制动 / 缓解等操作问题表述为多级分类模型 。 文献
+[ 10 ] 采用 T-S 模糊模型近似空气制动系统的制动缸充气
+模型 ， 并通过滚动优化来抑制列车系统的不确定性干
+扰 。 但该文献并没有遵循基本的操作规则限制控制量的
+输入 ， 得出的控制方式可能会带来纵向冲动过大的问
+题 。 文献 [ 11 ] 使用列车空气制动与纵向动力学联合仿真
+系统 ， 通过优化分配大下坡区段的空气制动次数 ， 避开
+易产生较大车钩力的地点 ， 减小列车纵向冲动 。
+1 　重载列车多目标优化模型
+1 . 1 　列车运动学方程
+重载列车运行过程中主要受机车牵引力 、 电制动
+力 、 空气制动力 、 基本运行阻力 、 坡道附加阻力等力
+的影响 ， 而列车的运动状态取决于列车所受合力 。 列
+车运动学方程表示如下 ：
+ü
+ý
+þ
+ï
+ïï
+ï
+ï
+ï
+ï
+ïï
+ï
+d v
+d s
+=
+F
+t
+( v ) - F
+e b
+( v ) - B
+c
+( v ) - W
+0
+( v ) - W
+j
+( s )
+( )1 + γ × M × v
+d t
+d s
+=
+1
+v
+( 1 )
+式 中 ：  F
+t ( v ) 为列车牵引力 ； F
+e b ( v ) 为列车电制动力 ；
+B
+c ( v ) 为 列 车 空 气 制 动 力 ； W
+0 ( v ) 为 列 车 基 本 运 行 阻
+力 ； W
+j
+( s ) 为列车附加阻力 ； s 为列车运行距离 ； γ 为列
+车回转质量系数 ； v 为列车运行速度 ； M 为全列车总
+质量 。
+为精确表征长编组列车在长大下坡运行环境下的
+空气制动力发挥过程 ， 本文采用文献 [ 11 ] 中提出的空气
+制动精细化模型如下 ：
+B
+c
+( t ) =
+ì
+í
+î
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+0                                                                                 t ≤ t
+d  i
+ 
+C
+β
+× β
+c
+× ϕ
+h
+×
+( )
+P
+N
+× K
+h
++ ∑
+i = 1
+N
+G
+N
+× K
+z  i ( )t × P
+s ( )t  t
+d  i
+< t ≤ t
+m  i
+C
+β
+× β
+c
+× ϕ
+h
+×
+( )
+P
+N
+× K
+h
++ ∑
+i = 1
+N
+G
+N
+× K
+h
+× P
+s ( )t          t > t
+m  i
+ 
+( 2 )
+式中 ： C
+β
+表示常用制动对应减压量制动性能修正系数 ；
+β
+c
+表示 “ 牵规 ” 常用制动系数 ；
+h
+表示闸瓦的换算摩
+擦因数 ； P
+N
+表示机车闸瓦总个数 ； K
+h
+表示闸瓦的换算
+闸瓦压力 ； G
+N
+表示单个车辆的闸瓦个数 ； K
+z  i
+( t ) 表示暂
+态过程中第 i 辆车实时闸瓦压力函数 ； P
+s
+( t ) 表示历史操
+纵对制动性能的修正函数 ；  t
+d  i
+表示第 i 辆车辆制动缸
+充 气 开 始 时 间 ； t
+m  i
+表 示 第 i 辆 车 辆 制 动 缸 充 气 结 束
+时间 。
+1 . 2 　目标函数
+为了便于使用计算机矩阵求解 ， 将模型在里程范
+围 [ S
+s t a r t
+ S
+e n d
+] 内离散化为 N 个离散点 ， 每单位离散间隔
+[ S
+i - 1
+ S
+i
+] 步长为 D S 。 假设单个离散间隔内列车控制量
+不会突变 。 以平稳性 、 节能性和跟随性为目标 ， 建立
+优化目标函数如式 ( 3 ) 所示 。
+J = w
+f ∑
+i = 1
+N
+[ ( F
+t  i
+- F
+e b  i ) - ( F
+t  i - 1
+- F
+e b  i - 1 ) ]
+2
++
+  w
+e
+× ∑
+i = 1
+N
+(
+F
+t  i
+η
+t
+- α η
+e b
+F
+e b  i
+)
+× D s + w
+v
+× ∑
+i = 1
+N
+( E
+i
+- E
+r  i )
+2
+( 3 )
+式中 ： J 为目标函数值 ； w
+f
+为列车运行平稳性权重 ； w
+e
+为列车运行能耗权重 ； w
+v
+为列车速度追踪权重 ； F
+t  i
+为
+第 i 个离散点的机车牵引力 ； F
+e b  i
+为第 i 个离散点的机车
+电制动力 ； η
+t
+为牵引传动系统机电效率 ； η
+e b
+为再生制
+动系统机电效率 ； E
+i
+为当前速度对应动能 ； E
+r ,  i
+为第 i 个
+离散点目标速度对应的动能 。
+1 . 3 　模型约束
+列车运行依附于实际物理模型 ， 因此模型中需要
+考虑列车的能力边界和运行边界等 。 其中 ， 列车能力
+边界主要考虑列车牵引 / 电制动特性 、 列车控制力变化
+率等约束 ， 如式 ( 4 ) 所示 。
+72
+
+===== PDF page 3 =====
+ 第 4  期 马志强 ， 王竣渝 ， 魏 咪 ， 王青元 ： 重载列车平稳运行的空电联合制动匹配控制
+          
+ü
+ý
+þ
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+0 ≤ F
+t  i
+≤ F
+t  m a x
+( v )
+0 ≤ F
+e b  i
+≤ F
+e b  m a x
+( v )
+0 ≤ B
+c  i
+≤ B
+c  m a x
+( v )
+|| F
+t  i
+- F
+t  i - 1
+≤ D F
+t
+|| F
+e b  i
+- F
+e b  i - 1
+≤ D F
+e b
+F
+t  i
+× F
+e b  i
+= 0
+( 4 )
+式中 ： F
+t  m a x
+为满级 位列车牵引力 ； F
+e b  m a x
+为满级位列车
+电制动力 ； B
+c  i
+为第 i 离散点的车辆空气制动力 ； B
+c  m a x
+为最大常用制动空气制动力 ； D F
+t
+为机车牵引力变化
+率 ； D F
+e b
+为机车电制动力变化率 。
+运行边界主要考虑环境约束 ， 如线路限速 、 电分
+相约束等 ， 如式 ( 5 ) 所 示 。
+}
+0 ≤ v
+i
+≤ v
+l i m  i
+( s )
+F
+t  n e
+= F
+e b  n e
+= 0
+( 5 )
+式中 ： v
+l i m  i ( s ) 为线路限速 ； F
+t  n e
+为分相区机车牵引力 ；
+F
+e b  n e
+为分相区机车电制动力 。
+重载列车在长大下坡道区段采用空电联合制动 ，
+空气制动的施加和缓解由模式化操纵规则提供 。 由于
+空气制动模型的非线性程度大 ， 分段线性化会丢失原
+模型的重要信息 ， 同时分段点不固定 、 分段数众多等
+问题也表明了分段线性化方法并不适用于空气制动模
+型 。 由于空气制动力受时间 、 空间 、 运行速度的影响 ，
+不同于基本运行阻力和附加运行阻力 。 因此 ， 将空电
+制动控制在时间和空间上进行解耦 ， 将空气制动力按
+照模式化操纵规则 ， 转化为随空间分布的已知控制力 ，
+则长大下坡的列车运行优化问题转化为基于模式化空
+气制动的电制动操纵优化问题 。
+对列车基本运行阻力和牵引 、 电制动特性进行分
+段线性化 ， 根据文献 [ 12 ] 可将等式条件式 ( 1 ) ~ 式 ( 2 ) 、 目
+标函数式 ( 3 ) 、 约束式 ( 4 ) ~ 式 ( 5 ) 所表示的列车多目标优
+化问题转化为标准二次规划 形式 ， 如式 ( 6 ) 所示 。
+ü
+ý
+þ
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+m i n
+x
+1
+2
+x
+T
+H x + f
+T
+x
+s .  t .
+ì
+í
+î
+ïï
+ïïïï
+A x = b
+C x ≤ d
+l
+b
+≤ x ≤ u
+b
+( 6 )
+式中 ： x 为决策变 量 ， H 为 n ´ n 的对称方阵 （ n 为变量
+个数 ） ； f 为 n ´ 1 的列向量 ； A , b 分别为 k ´ n 的矩阵和
+k ´ 1 的列向量 （ k 为等式约束个数 ） ； C , d 分别为 m ´ n
+的矩阵和 m ´ 1 的列向量 （ m 为不等式约束个数 ） ； l
+b
+, u
+b
+均为 n ´ 1 的列向量 。
+2 　优化迭代算法设计
+上述 1 . 3 节采用标准二次型求解列车多目标优化
+问题时 ， 需将列车运动学模型进行线性化 ， 针对空
+气制动力无法转化为式 ( 6 ) 中的线性约束难题 ， 提出
+以下解决思路 ： 用优化目标速度 v
+r
+计算空气制动力初
+始值 ， 此时空气制动力为已知的常值向量 ， 可将它
+划归为一类附加阻力并完成优化计算 ， 但采用该方
+法会使优化结果的速度曲线分布和设定速度有偏差 ，
+即当前设定的空气制动力分布与优化曲线速度分布
+不匹配 ， 导致优化操纵序列无实际指导价值 。 因此 ，
+通过设计迭代算法使空气制动力逐渐与优化速度曲
+线相 匹配 。
+由于既有操纵规则下空气制动和缓解的位置与初
+始速度固定 ， 此时基于机理模型的空气制动力大小分
+布仅与列车运行速度相关 ， 基于优化速度曲线分布的
+空气制动力修正算法 （ 单次空气制动 ） 流程图如图 1 所
+示 ， 具体步骤如下 ：
+Step 1 ： 数据初始化 ， 设置目标速度 v
+r
+， 并根据空
+气制动模型以恒定速度值 v
+r
+计算空气制动力序列 B
+c 0
+；
+进入 Step 2 。
+Step 2 ： 将 B
+c 0
+作为按位置分布的列车阻力代入式
+( 6 ) 进行求解 。 当 B
+c 0
+为初始量有可行解时 ， 进入 Step 3 ；
+若无解则更正目标速度 v
+r
+并依次执行 Step 1 和 Step 2 ；
+若目标速度 v
+r
+在合法范围内 ( 0 ≤ v
+r
+≤ v
+l i m ) 均无解 ， 则该
+问题无解 。
+Step 3 ： 用优化计算结果的速度曲线重新计算空气
+制动力 ， 空气制动力修正后继续优化计算 ， 即迭代计
+算 。 判断相邻两次迭代计算中空气制动力或优化速度
+曲线的偏差是否在允许范围内 ， 若满足则停止迭代 ；
+不满足则继续迭代 ； 若迭代过程中偏差值不往无差方
+向收敛 ， 则及时停止迭代计算并尝试修正优化计算目
+标权重并重 新计算 。
+上述算法需要通过多次迭代计算才能得出正确结
+果 ， 并且计算前未判断迭代算法的敛散性 ， 无疑降低
+图 1 　优化迭代算法流程图
+Fig .  1 　 Flow chart of iterative algorithm for optimization
+73
+
+===== PDF page 4 =====
+2023  年 7 月
+了求解效率 。 基于上述情况 ， 定义式 ( 7 ) 为迭代敛散性
+判据用于 判定迭代算法是否收敛 。
+ü
+ý
+þ
+ïïïï
+ïï
+B
+c ( )v
+r
++ F
+e b  m a x
++ W
+0 ( )v
+r
+- W
+j ( )s ≥ 0
+B
+c ( )v
+r
++ F
+e b  m i n
++ W
+0 ( )v
+r
+- W
+j ( )s ≤ 0
+( 7 )
+式 中 ： W
+0 ( v
+r ) 为 当 前 速 度 下 的 列 车 基 本 运 行 阻 力 ；
+W
+j ( s ) 为当前位置下的线路附加阻力 。
+由式 ( 7 ) 可知 ， 重载列车在大下坡区段使用空电联
+合制动时 ， 列车运行速度全程可仅由电制动力调控 ，
+且仅有唯一电制动控制序列 F
+e b
+使得列车运行速度恒定
+于目标速度 v
+r
+。
+3 　仿真验证
+3 . 1 　仿真方案
+长大下坡道区段内重载列车采用空电联合制动操
+纵 ， 两者共同作用决定列车运行平稳性 。 列车运行平
+稳性是评估重载列车长大下坡道优化效果的重要指标 ，
+由于空气制动力难以精确施加控制 ， 因此优化电制动
+操纵以提高重载列车运行平稳性 。 本文采用由纵向动
+力学模型计算的车钩力分布作为列车运行平稳性指标 。
+首先通过对实车运行状态复现验证本文模型的正确性 ，
+在此基础上 ， 对基于操纵规则的列车电制动操纵进行
+优化仿真 ， 并与实车运行数据对比 。
+对单一机车或车辆进行受力分析 ， 每节车所受纵
+向力包括 ： 前 / 后车的车钩力 、 基本运行阻力 、 机车牵
+引 / 电制动力 、 空气制动力 。 全列车纵向动力学可表示
+为如 下形式 ：
+ü
+ý
+þ
+ï
+ïï
+ï
+ï
+ïï
+ï
+m
+1
+v ̇
+1
+= F
+t  1
++ F
+c o  1
+- F
+e b  1
+- B
+c  1
+- W
+0  1
+- W
+j  1
+m
+2
+v ̇
+2
+= F
+c o  2
+- F
+c o  1
+- F
+e b  2
+- B
+c  2
+- W
+0  2
+- W
+j  2
+
+m
+n
+v ̇
+n
+= F
+c o  n
+- F
+c o  n - 1
+- F
+e b  n
+- B
+c  n
+- W
+0  n
+- W
+j  n
+( 8 )
+式中 ： m
+n
+为第 n 辆 机车或车辆的质量 ； v ̇
+n
+为第 n 辆机车
+或车辆的加速度 ； F
+c o  n
+为第 n 个车钩的车钩力 。
+3 . 2 　实车运行状态复现
+选取近期国内某铁路货运专线列车运行数据并截
+取出长大下坡区段连续 3 次长距离空气制动操纵序列
+用于分析 。 基于纵向动力学模型 ， 按照司机的电制动
+操纵序列进行解算 ， 并统计列车车辆车钩力的分布情
+况 。 图 2 是基于国内某货运专线列车实车数据的解算
+结果 。
+由图 2 可知 ， 列车在空气制动缓解点和坡度值变化
+较大的位置上容易出现纵向冲动 ， 其中在下坡道 - 平缓
+坡道变坡点附近产生较大的压钩力 ， 在平缓坡道 - 下坡
+道变坡点附近产生较大的拉钩力 。 文献 [ 13 - 15 ] 提出重
+载列车在凹形坡道线路上制动会产生较大的压钩力 ，
+在凸形坡道上制动会产生较大的拉钩力 ， 与本文解算
+的车钩力分布情况一致 。
+统计实车纵向动力学解算结果中车钩力较大的路
+段 ， 并作为实车运行车钩力分布参考 ， 以便与列车电
+制动操纵优化后的车钩力分布进行对比 ， 统计结果如
+表 1 所示 。
+3 . 3 　基于操纵规则的列车电制动操纵优化
+根据朔黄铁路重载列车长大下坡区段安全操纵准
+则 ， 在操纵优化模型中电制动增加以下约束条件 ：
+① 空电联合制动时 ， 若列车实际速度与目标速度
+偏差过大 ， 仅调整列车电制动力保证列车速度跟踪性 ；
+② 列车循环制动时 ， 若列车开始缓解 ， 则维持恒
+定电制动力 50  s 。
+将上述规则量化指标加入算法中 ， 并结合纵向动
+力学模型进行仿真优化 ， 计算优化电制动序列下列车
+车钩力分布 。 纵向动力学解算结果如图 3 所示 ， 车钩力
+分布数据统计如表 2 所示 。
+对比图 2 与图 3 可知 ， 列车仍然在与实车相同的变
+坡区段存在最大拉钩力与压钩力 ， 但通过加入操纵规
+则约束进行优化 ， 列车运行曲线更加平滑 ， 减少了列
+图 2 　实车纵向动力学解算结果
+Fig .  2 　 Solving results of longitudinal dynamics for real train
+表 1 　实车运行车钩力分布统计表
+Table 1 　 Statistics of coupler force distribution in real train 
+operation
+起点公里标 /km
+终点公里标 /km
+最大拉钩力 /kN
+最大压钩力 /kN
+0 25 . 93
+0 28 . 16
+0 48 . 3
+755 . 9
+00 42 . 3
+00 45 . 6
+0 692 . 8
+1  028 . 5
+00 64 . 9
+00 69 . 3
+0 824 . 6
+1  195 . 8
+0 73 . 1
+0 77 . 7
+806 . 2
+892 . 4
+00 82 . 5
+00 88 . 1
+0 931 . 2
+1  028 . 9
+74
+
+===== PDF page 5 =====
+ 第 4  期 马志强 ， 王竣渝 ， 魏 咪 ， 王青元 ： 重载列车平稳运行的空电联合制动匹配控制
+车制动力变化频率 ， 电制动力操纵序列相较司机控制
+更加平滑 ， 降低了空电配合关键节点的操纵复杂度 。
+由表 2 可知 ， 列车电制动操纵优化明显降低了列车在变
+坡点的纵向冲动 ， 压钩力最多同比下降 33 . 74 % ， 拉钩
+力最多同比下降 15 . 38 % 。 通过加入合理的操纵规则约
+束能够有效地降低列车纵向冲动 ， 显著提升列车运行
+平稳性 。
+4 　结论
+本文以 2 万吨重载列车在长大下坡道循环制动过程
+为背景 ， 开展重载列车平稳运行的空电联合制动匹配
+控制研究 。 针对列车运行特点 ， 以平稳 、 达速 、 节能
+为目标构建列车多目标优化模型 ， 并转化为二次规划
+问题进行求解 。 针对空气制动过程难以近似线性化的
+问题 ， 设计了迭代算法 ， 以解决空气制动力分布与优
+化速度曲线不匹配的问题 。 最后将重载列车长大下坡
+道操纵准则量化为具体约束参数加入到优化模型中 。
+优化结果显示 ， 列车纵向冲动降低 ， 并且电制动序列
+更加平滑 ， 关键节点操纵复杂度大幅下降 ， 优化后操
+纵序列具有实际指导意义 。
+参考文献 ：
+[ 1 ] 孙中央 ,  王长明 .  长大下坡道区段开行重载列车的安全问
+题 [ J ].  铁道机车车辆 ,  2009 ,  29 ( 1 ):  4 - 7 .
+SUN Zhongyang ,  WANG Changming .  Security problems of 
+operation heavy haul trains on the long heavy down grade
+[ J ].  Railway locomotive & car ,  2009 ,  29 ( 1 ):  4 - 7 .
+[ 2 ] 陈清 .  5  000  t 级重载列车的合理操纵方法 [ J ].  西南交通大
+学学报 ,  1994 ,  7 ( 3 ):  281 - 285 .
+CHEN Qing .  A study on rational operating methods of 5  000  t
+        heavy-haul trains [ J ].  Journal of southwest jiaotong univer-
+        sity ,  1994 ,  7 ( 3 ):  281 - 285 .
+[ 3 ] 耿志修 ,  李学峰 ,  张波 .  大秦线重载列车运行仿真计算研
+究 [ J ].  中国铁道科学 ,  2008 ( 2 ):  88 - 93 .
+GENG Zhixiu ,  LI Xuefeng ,  ZHANG Bo .  Simulation study 
+of heavy haul train operation on Datong-Qinhuangdao rail ‐
+way [ J ].  China railway science ,  2008 ( 2 ):  88 - 93 .
+[ 4 ] 张波 .  重载组合列车牵引及制动系统的试验与仿真研究
+[ D ].  北京 :  中国铁道科学研究院 ,  2009 .
+ZHANG Bo .  Test and simulation study on traction and 
+brake system of combined heavy haul train [ D ].  Beijing :  Chi ‐
+na Academy of Railway Sciences ,  2009 .
+[ 5 ] 黄宇澄 .  重载列车在长大下坡区段的运行曲线优化方法
+研究 [ D ].  北京 :  北京交通大学 ,  2021 .
+HUANG Yucheng .  Research on the optimization method of 
+operating curve of heavy-haul train on the long steep down ‐
+ward slope sections [ D ].  Beijing :  Beijing Jiaotong Universi ‐
+ty ,  2021 .
+[ 6 ] 马红萍 .  重载列车长大下坡制动过程优化控制研究 [ D ].  
+南昌 :  华东交通大学 ,  2019 .
+MA Hongping .  Research on optimal braking process control 
+of heavy-haul train on long steep down grade [ D ].  Nan ‐
+chang :  East China Jiaotong University ,  2019 .
+[ 7 ] 张益铭 .  2 万 t 列车通过朔黄铁路长大坡道优化研究 [ D ].  
+大连 :  大连交通大学 ,  2020 .
+ZHANG Yiming .  The optimization study of 20  000 -ton 
+train passing long and slope rampway of Shuohuang railway
+[ D ].  Dalian :  Dalian Jiaotong University ,  2020 .
+[ 8 ] WANG Xi ,  TANG Tao ,  HE Hui .  Optimal control of heavy 
+图 3 　优化操纵纵向动力学解算结果
+Fig .  3 　 Calculation results of optimization vehicle longitudinal 
+dynamics
+表  2 　优化操纵序列车钩力分布统计
+Table 2 　 Statistics of coupler force distribution with optimized operation sequence
+数据来源对应的超始公里标
+基于规则约束的优化结果
+起点公里标 /km
+终点公里标 /km
+最大拉钩力 /kN
+( 较实车变化 )
+最大压钩力 /kN
+( 较实车变化 )
+25 . 93
+28 . 16
+44 . 9
+( - 7 . 04 % )
+680 . 8
+( - 9 . 94 % )
+42 . 3
+45 . 6
+714 . 8
+( 3 . 17 % )
+902 . 7
+( - 12 . 23 % )
+64 . 9
+69 . 3
+697 . 8
+( - 15 . 38 % )
+1  020 . 3
+( - 14 . 68 % )
+73 . 1
+77 . 7
+806 . 8
+( 0 . 07 % )
+813 . 8
+( - 8 . 81 % )
+82 . 5
+88 . 1
+903 . 3
+( - 3 . 0 % )
+681 . 7
+( - 33 . 74 % )
+75
+
+===== PDF page 6 =====
+2023  年 7 月
+haul train based on approximate dynamic programming [ J ].  
+Advances in mechanical engineering ,  2017 ,  9 ( 4 ):  1 - 15 .
+[ 9 ] WANG Xi ,  LI Shukai ,  TANG Tao ,  et al .  Intelligent opera ‐
+tion of heavy haul train with data imbalance :  a machine 
+learning method [ J ].  Knowledge-based systems ,  2019 ,  163 :  
+36 - 50 .
+[ 10 ] LIU Jianfeng ,  LIU Youmei ,  HUANG Zhiwu ,  et al .  Model ‐
+ling and control design for an electro-pneumatic braking sys ‐
+tem in trains with multiple locomotives [ J ].  International 
+Journal of modelling ,  identification and control ,  2012 ,  17
+( 2 ):  99 - 108 .
+[ 11 ] 王青元 ,  赵紫宁 ,  刘强强 ,  等 .  两万 t 重载列车空气制动过
+程建模 [ J ].  机车电传动 ,  2022 ( 4 ):  70 - 76 .
+WANG Qingyuan ,  ZHAO Zining ,  LIU Qiangqiang ,  et al .  
+Modeling of air braking process of 20  000  ton heavy haul 
+train [ J ].  Electric drive for locomotives ,  2022 ( 4 ):  70 - 76 .
+[ 12 ] 陈宝林 .  最优化理论与算法 [ M ].  2 版 .  北京 :  清华大学出
+版社 ,  2005 .
+CHEN Baolin .  Optimization theory and algorithm [ M ].  2 nd 
+ed .  Beijing :  Tsinghua University Press ,  2005 .
+[ 13 ] 魏伟 ,  张益铭 .  2 万吨重载组合列车操纵优化研究 [ J ].  铁道
+机车车辆 ,  2021 ,  41 ( 4 ):  35 - 40 .
+WEI Wei ,  ZHANG Yiming .  Operating optimization study of 
+20 , 000 -ton heavy haul combined train [ J ].  Railway locomo ‐
+tive & car ,  2021 ,  41 ( 4 ):  35 - 40 .
+[ 14 ] 高胜利 .  影响 2 万 t 重载组合列车车钩力的因素分析 [ J ].  
+运输经理世界 ,  2021 ( 14 ):  76 - 80 .
+GAO Shengli .  Analysis of factors affecting coupler force for 
+20  000  ton heavy haul train [ J ].  Transport business China ,  
+2021 ( 14 ):  76 - 80 .
+[ 15 ] 吴萌岭 ,  祝露 ,  田春 .  重载列车电控空气制动系统纵向冲
+动影响分析 [ J ].  同济大学学报 ( 自然科学版 ),  2018 ,  46 ( 7 ):  
+964 - 971 .
+WU Mengling ,  ZHU Lu ,  TIAN Chun .  Analysis of factor in ‐
+fluence for longitudinal impulse of heavy-haul train with 
+electronically controlled pneumatic braking system [ J ].  Jour ‐
+nal of Tongji university ( natural science ),  2018 ,  46 ( 7 ):  
+964 - 971 .
+收稿日期 ： 2022 - 09 - 07
+修回日期 ： 2022 - 10 - 26
+76

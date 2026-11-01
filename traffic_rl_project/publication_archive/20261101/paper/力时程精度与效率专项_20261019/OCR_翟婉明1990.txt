@@ -1,0 +1,376 @@
+﻿=== page_01.png ===
+第 7 志 第 2 期 计 算 结 构 力 学 及 其 应 用 Vel T Mo.2
+1990 半 5 月 COMPUTATIONAL STRUCTURAL MECHANICS AND APPLICATIONS May 1990
+
+非 线 性 结 构 动 力 分 析 的 Newmark
+预 测 - 校 正 积 分 模 式
+
+督 婉 明
+
+( 雨 南 交 通 大 学 机 车 车 辆 研 究 所 )
+
+摘 要
+
+本 文 在 ( 1 ] 蕊 劭 上 提 供 了 一 类 顺 测 - 枫 正 积 分 镐 式 , 这 种 邵 分 镐 式 对 其 有 秀 角
+贯 坤 陆 的 狒 线 性 动 力 学 方 程 积 分 . 无 霸 求 解 高 阮 线 性 代 数 方 程 组 , 历 而 可 以 品 相 地 提 高
+计 答 效 率 与 经 济 性 . 文 中 采 用 数 倩 浑 验 的 方 法 讨 识 了 顾 泓 - 校 正 季 分 的 荣 线 性 租 定 性 与
+精 度 ; 还 介 绍 了 一 科 判 别 复 杂 弟 纶 性 问 题 的 数 倩 结 果 可 信 与 哈 的 篓 单 办 法 ; 最 名 分 析
+了 一 个 大 坦 工 程 实 例 ~ 一 重 载 列 车 约 胡 动 力 学 闯 题 , 计 算 结 果 与 详 验 缝 果 只 合 很 好
+
+一 、 弘 言
+非 线 性 结 构 动 力 系 统 在 空 间 经 过 有 限 元 离 散 化 后 , 可 以 建 立 起 相 应 的 动 力 学 微 分 方 程 组
+CMJ{4 士 [CJ{7}+[K (X} 一 {PJ C12
+
+式 申 : 《 叉 j, {P} ( 或 { 命 ]), 〔4} ( 或 { 发 )) 分 别 是 广 义 位 移 , 速 度 与 加 速 度 矢 量 CM,
+CCJ,[&] 分 别 为 离 散 化 系 统 的 仰 量 、 阻 尼 和 刚 度 矩 阵 , 其 中 CCJ,[K ] 阵 的 元 素 是 不 断 变
+化 的 , 常 为 { 飞 } 或 ( 和 〉 } 的 函 数 {P} 代 表 广 义 载 荷 矢 量 , 一 舫 随 时 间 变 化 。
+
+为 了 获 得 离 散 系 统 的 动 力 响 应 , 必 须 求 解 非 线 性 动 力 学 方 程 ( 1 ), 目 前 普 遍 采 用 直 接
+积 分 法 。 经 典 的 方 法 有 二 种 , 隐 式 法 和 显 式 法 。 一 舫 而 言 , 隐 式 法 无 论 对 线 性 还 是 非 线 性 闭
+题 , 其 数 值 稳 定 性 较 好 , 有 助 于 选 择 时 间 积 分 步 长 , 但 由 于 每 步 积 分 都 需 求 解 高 阶 线 性 代 数
+方 程 组 , 特 别 是 对 于 非 线 性 问 题 还 需 重 新 计 算 [CJ, [K ] 矩 阵 , 重 新 进 行 三 角 分 解 , 这 对 大
+型 工 程 闰 题 的 分 析 带 来 很 大 困 难 , 其 计 算 工 作 量 是 十 分 惊 人 的 , 计 算 赏 用 也 是 相 当 可 观 的 。
+与 此 相 反 , 显 式 方 法 具 有 计 算 过 程 简 捷 , 所 占 计 算 内 存 小 , 计 算 效 率 高 等 优 点 , 但 时 间 积 分
+步 长 的 选 取 须 受 到 稳 定 性 条 件 的 限 制 。 可 见 , 显 式 法 与 隐 式 法 的 优 缺 点 是 互 补 的 。 鉴 于 此 ,
+我 们 不 妨 将 显 式 法 与 隐 式 法 联 合 使 用 , 以 期 获 得 比 较 好 的 综 合 性 能 。
+
+在 隐 式 方 法 中 ,Newmark-8 法 “ 是 十 分 常 用 的 一 种 , 其 中 梯 形 法 则 (B 一 1/4) 袖 认
+为 是 精 度 较 高 的 算 注 “““: , 而 取 一 1/12 时 其 准 确 取 甚 高 “““““ 。 作 者 在 文 [ 1 ] 中 , 曾 经 基
+于 Newmark 法 , 构 造 了 一 类 显 式 积 分 格 式 , 称 之 为 《Newmark 显 式 积 分 方 法 》 , 该 方 法 亦
+具 有 较 好 的 积 分 特 性 。 本 文 拟 以 Newmark 法 为 基 础 , 首 先 以 其 显 式 积 分 格 式 作 为 预 测 公
+
+本 文 于 1988 年 6 月 T 日 收 到 . 修 改 穗 于 4388 年 3 月 1i 日 收 到
+
+=== page_02.png ===
+晓 计 算 结 构 力 学 及 其 应 用 7 意
+
+式 进 行 初 步 计 算 , 焙 后 再 用 其 隐 式 公 式 加 以 校 正 , 从 而 形 成 所 谓 KNewmark 预 测 - 校 正 积 分
+摄 式 。
+
+预 测 校 正 积 分 模 式 实 现 了 隐 式 积 分 过 程 的 显 式 化 , 因 此 不 仅 具 有 较 高 精 度 , 而 且 保 指 了
+显 式 法 的 基 本 特 性 , 而 与 一 般 的 显 式 法 《 如 中 心 差 分 法 》 所 不 同 的 是 , 这 积 积 分 方 法 无 论 对
+于 线 佐 还 是 非 线 体 动 力 问 题 , 只 要 其 质 量 矩 阵 是 对 角 阵 而 不 管 阻 尼 形 式 知 何 , 不 再 需 要 求 解
+线 性 代 数 方 程 组 , 这 就 大 大 提 高 了 计 算 效 率 与 经 济 性 , 因 而 可 以 适 用 于 分 析 工 程 实 际 中 出 现
+的 大 型 有 限 元 离 敬 动 力 系 统 。
+
+二 、NewWmark 显 隐 式 积 分 格 式
+
+Newmark 假 定 “
+《 元 Jahx 一 ( 友 j 十 {7JsAd+ /2 一 (4JQf 十 B4nnAt「
+
+《FJsn={PJs+ 一 7)(4jsAf+YtAjnvat
+式 中 :Al 是 时 间 积 分 步 长 ; 下 标 n 和 (a+1》 表 示 在 瞬 时 ! 一 nAt 和 4 二 (+1)Al 的 相 应
+量 ; B, Y 为 决 定 方 法 牺 征 的 一 个 独 立 参 数 。
+类 似 于 上 述 隐 式 格 式 , 我 们 引 入 两 个 积 分 参 数
+, 办 构 造 相 应 的 显 式 积 分 格 式 “
+《 龙 h 一 (XJs 十 { 友 jaAi 十 (1/2 十 巾
+24 一 h C3 )
+{FJnu= 余 js+G1+e){4JaAt
+一 04hnaAt
+
+有 关 这 一 显 式 格 式 的 详 细 讨 论 巳 于 文 [ 1 ] 完 成 。 这
+里 仅 简 单 地 给 出 线 性 分 析 的 主 要 结 论 , C 1 》 当 取
+8 一 1/2 肖 方 法 具 有 二 阶 精 度 ( 参 见 本 文 第 三 节 显
+式 的 截 断 误 差 ) , 这 与 隐 式 法 取 Y 一 1/2 时 的 结
+果 是 一 致 的 , ( 2 ) 方 法 条 件 稳 定 , 临 界 步 长 与 关
+
+《C2 )
+
+厝 朝 继 率 2
+
+它 显 式 方 法 基 本 相 同 , 例 如 一 4 一 1/2 时 Al。, 6
+
+=7/Tt， 与l〕丨1′亡`差荟】\各羞槽舸同， 《 3 ) 交j7潼′】!三'晋姿J人工F鏖曼 0 一 日 乙 健 0.12 020
+尼 特 性 与 隐 式 法 类 队 ,9 一 1/2 肖 无 阻 尼 ,9 乃 1/2 At/7
+
+时 引 起 人 工 阻 尼 , 一 1/2 时 产 生 负 阡 尼 , 《 4 图 1
+
+方 法 的 计 算 周 期 呈 缩 短 趋 劾 , 而 相 对 周 期 误 差 较 小 , 例 如 一 一 1/2 疃=」【乡′]灵〕摔急王弋蓉′左 CB 一
+1/14 的 一 半 ( 图 17 。
+
+三 、 显 - 隐 式 预 测 - 校 正 积 分 模 式
+
+本 节 以 下 角 标 5, c,m 分 别 代 表 预 测 值 CPredictor) , 校 正 值 CCorrector) 和 改
+进 值 CModifier) . 本 文 以 显 式 ( 3 》 作 为 预 测 , 隐 式 ( 2 作 为 校 正 , 则 预 测 - 枫 正 积 分 的
+基 本 模 式 如 下
+
+=== page_03.png ===
+2 期 非 线 性 结 构 动 力 分 析 的 Newmark 预 测 - 校 正 积 分 模 式 日
+
+《X}pmha 一 {X)s 十 (PJnAt +(告 十 动 {4JsAf-M4hn-4f「
+
+CT 》 预 测 : C42
+{FPJpmhx={P J 十 (1+93{4}nAl 一 t4hn-At
+
+《 卫 》 计 算 《A}pmta 一 CMD-1C[PJnaa-CKJnuafX]ponkt 一 CCJnuatFjpao) C5
+
+〈Jr)n+】={叉【〉c…"二(》r〉“十〈′')“仝′十(1/z一臼)〈/夏〉^山z十日M恤…细…(零
+{FJsn= (P 1n 一 {js+(L-Y{4jaAl+Yt4pmt )
+( 邦 》 评 算 : 【 一 CMD-1C[PJh 一 [KKJa+at 飞 a 一 [CJaat 历 Jn4o) C7 》
+上 述 式 中 [CJox,[KJnu 表 示 (“+1)Ai 瞳 时 的 阻 尼 , 刚 度 矩 阵 , 仅 对 线 性 问 题 才 为 定 数 。
+
+考 察 显 式 与 隐 式 的 截 断 误 差 , 并 按 文 献 [ 6 ] 的 方 法 进 行 误 差 补 倒 , 根 据 Taylor 展 式
+可 以 方 便 地 获 得 显 式 ( 3 》 和 隐 式 〔 2 》 的 截 断 误 差 依 次 为
+
+{ 匹 CXJ}p 一 /6 一 动 [0aAf 十 /24 十 27 切 sAtt+O(A40)
+
+( 井 》 校 正 : {
+
+{ 左 }p=(i/2 一 )( 刊 sAts 十 H/6+9/2){ 刀 sAts+O(At0)
+和 [ {CX)}。 二 /6 一 印 {JsAts+C/24 一 B/2){4JsAtt+ O(Ata)
+
+亿 )1。 一 (]/2】Y){.二薹〉^〈【【+(l/6一Y/z)〈矗〉-〈尸 于 O(A40)
+于 是 不 难 得 出 如 下 修 正 公 式 :
+
+《{ 余 Jn 二 {Kj pmya 十 Eap({ 友 jpn 一 ( 八 ]
+
+贯`渍I汐]擅三龌fr爹正{ C102
+仁 jnmg 二 仁 jpmx 十 Ecp((Fjpm 一 亿 cm)
+《XXJasa 一 { 友 ] c 十 Eae(t 叉 }pmtt 一 { 友 ] an
+
+爆邑芝正式r筐蟹正{ C1DD
+《FJaa 一 (PJomqa 丨 Ese(tFJpnp 一 (jon+0
+
+其 中 误 差 补 倒 系 数 e 见 表 1 。
+
+。 各 秦 积 分 参 数 下 的 误 差 补 偿 系 数 表 1
+积 分 多 数 1 p p c cvc
+p 心 Y 一 /2 一 盲 一 5/6 一 E
+|
+
+9 心 Y 一 | 告′蓼】 一 訾一1′
+| 7 8
+
+# f-i/6 【 3/4 一 1 一
+
+口 园 园 沥
+
+妮 p \ 58 一 8 一
+
+9 - F3
+由 此 而 构 成 的 预 测 - 校 正 积 分 模 式 共 包 吾 以 下 六 个 环 节 :
+CT 预 测 , {X}pmto (Fjpmt [ 式 (4)〕
+( 改 进 ,{X}jamso 仁 jnmv [ 式 G10) ]
+( 五 》 计 算 , 《4}pmsu 一 CMJ7“CtPJosz 一 RJnhfX}pamkd 一 CCJnatFjpma0 。 012)
+( 町 》 校 正 , 《X}cmxo jcmat [ 式 (6 )
+(TT 改 进 ,{XXJsxo (PJau [ 式 (
+( 页 计 算 , 《4}n4 [ 式 (7 7
+
+=== page_04.png ===
+a _ 计 算 结 构 力 学 及 其 应 用 1 述 一
+
+《 友 (07) 一 (XJo, { 定 (0)} 一 {P(0)] 一 (P。 G13)
+得 到
+{4}s={4(0)} 二 CMD-(tPJs 一 RKJofXj 一 [CJefPJo) G4
+于 是 便 可 进 行 逐 次 积 分 。 需 要 法 意 的 是 , 起 步 时 我 们 只 需 令 7 一 9 一 一 一 0.
+这 里 颂 便 指 出 , 上 述 整 个 积 分 过 程 中 只 涉 及 到 对 质 量 阵 [M J 的 求 送 运 算 , 因 而 信 若 [Mf
+为 对 角 防 或 巳 对 角 化 , 则 积 分 中 始 终 可 遮 克 求 解 高 防 线 性 代 数 方 程 组 。
+
+四 、 非 线 性 分 析 精 度 与 数 值 稳 定 性
+
+与 其 它 任 何 一 种 直 接 积 分 一 样 , 应 用 本 文 方 法 分 析 非 线 性 动 力 系 统 阡 , 只 需 将 其 动 力 学
+方 程 简 单 地 写 成 相 应 的 增 量 形 式 , 在 不 同 的 积 分 时 殴 内 采 用 不 同 的 [CJ,[K ] 矩 阵 , 而 在 每
+一 时 段 内 的 积 分 与 线 性 情 形 并 无 二 样 。
+
+目 前 , 对 于 线 性 结 构 动 力 系 统 , 确 定 数 值 稚 定 性 及 精 度 特 性 的 方 法 业 已 成 熠 “。 然 而
+对 于 非 线 性 系 统 的 分 析 显 得 十 分 复 杂 , 没 有 统 - 结 论 , 一 舫 是 对 非 线 性 系 统 的 增 量 方 程 仍 运
+门 线 性 稳 定 条 件 进 行 积 分 计 算 。 但 是 , 研 究 发 现 “““, 对 于 线 作 系 统 来 说 是 穗 定 的 积 分 ,
+对 于 非 线 性 系 统 而 言 卵 不 一 定 是 稳 定 的 。 一 种 较 为 盛 行 的 观 点 认 为 ““ , 隐 式 时 间 积 分 对 非
+线 性 问 题 往 往 不 再 保 持 共 原 有 的 无 条 件 。 巳 此 , 非 线 性 分 析 中 时 间 积 分 步 长 必 须 谨 值
+选 取 。
+
+作 者 认 为 , 对 于 工 程 实 际 问 题 , 留 于 包 含 有 复 杂 非 线 性 因 素 , 理 论 分 析 数 值 积 分 的 稚 宏
+性 往 往 相 当 围 难 , 此 时 我 们 不 妙 采 用 一 种 素 而 可 靠 的 办 法 一 一 数 值 试 验 方 法 , 据 此 总
+积 分 的 稳 定 范 围 及 有 效 计 算 步 长 区 段 “ 。 具 体 一 点 说 , 判 断 一 个 实 际 问 题 的 数 值 分 析 结 果
+真 实 与 否 , 决 不 能 箱 单 地 取 树 个 步 长 ( 不 论 大 小 》 计 算 一 次 定 论 , 而 应 变 动 时 间 步 长 计 算 若
+干 沥 , 然 后 观 察 结 果 的 变 化 赵 势 , 最 终 取 数 借 结 果 徒 此 十 分 接 近 的 步 长 区 段 作 为 有 效 计 算 步
+长 区 段 迹 行 计 算 。 从 工 程 应 用 的 角 度 来 看 , 只 要 在 三 个 相 距 一 定 间 跟 的 步 长 下 所 荻 得 的 计 算
+结 果 具 有 相 当 好 的 接 近 度 , 相 对 候 差 为 工 程 应 用 所 允 许 , 即 可 取 中 间 那 个 步 长 下 的 计 算 结 果
+作 为 实 际 间 题 的 合 理 近 似 解
+
+下 面 我 们 分 析 两 个 算 例 以 示 预 测 - 栗 正 法 的 非 线 性 精 度 , 其 中 例 1 还 通 过 详 细 的 数 信 试
+
+验 讨 论 了 方 法 的 稳 定 体 。
+算 例 1 考 虑 文 献 [112 的 非 线 性 系 统
+英 十 h 一 0
+互【([))=l(〕 C15)
+x(0) 一 0
+
+关 中 8 的 变 化 情 况 如 图 2 所 示 。 图 3 给 出 了 几 组 积 分 参 数 下 的 数 值 试 验 结 果 , 同 财 画 出 了
+相 应 参 数 下 Newmark 显 式 法 的 误 差 分 布 曲 线 , 以 资 比 较 。 由 图 3 可 见 , 预 测 - 枫 正 积 分 方
+法 的 稳 定 区 域 与 相 应 的 显 式 法 大 致 相 同 , 而 其 精 度 得 到 了 朋 显 提 高 , 从 而 增 大 了 有 效 计 算 步
+长 区 段 。 从 图 3 中 还 可 看 出 , 将 显 式 法 精 度 与 稳 定 性 较 好 的 一 组 参 数 ( 一 = 1/2 “ 和 隐
+式 法 精 度 最 高 的 一 组 参 数 (Y 一 1/2, 一 1/12) “ 林匹 配 可 以 达 到 最 佳 效 果 , 为 表 达 方 便 起
+
+=== page_05.png ===
+2 期
+
+非 缆 性 结 果 动 力 分 析 的 Newmark 预 测 - 校 正 积 分 模 式
+
+国 2
+见 , 称 之 为 《 最 佳 颊 测 - 校 正 公 式 “。
+
+E
+
+E
+
+图
+
+00 沥 D
+
+林 E
+
+3
+
+表 2 给 出 了 步 长 分 别 取 0.005,0.05 和 0.1 秒 三 种 情 况 时 最 佳 顾 测 - 校 正 公 式 的 具 体
+数 字 结 果 , 并 与 相 应 显 式 法 及 精 确 解 进 行 了 对 比 。
+各 种 计 算 结 果 的 比 较 表 2
+Afi0.005 Ata=0.05 A 心 0
+WAti 挺 确 解
+显 式 法 | 顿 跨 - 忡 正 河 ‖ 显 式 法 | 预 测 - 怀 正 法 显 式 法 | 预 诟 - 枫 正 法
+10 0.48965 0.48915 0.48865 0.50000 0.48058 一 一
+卯 0.91813 0.81881 0.91873 0.93T50 0.91825 1.00000 0.8168T
+50 1.29418 1.28439 1.29418 1.25T81 1.29448 一 一
+红 1.40081 1.40415 1.40082 1.42528 1.401lt 1.50000 1.8308
+50 1.40828 1.40852 1.40830 1.48138 1.4085T 一 一
+60 1.25591 1.25612 1.25582 1.2T698 1.2560T 1.34000 1.24102
+3max 一 0.0204 殇 0 34 农 0.0542 形 8.8H6 夜 1.2H
+算 例 2 研 究 非 线 性 系 统 “
+荣 十 (100 十 1000x5)x 一 0
+X (0) 一 60 C16)
+x(0) 一 0
+
+Park 在 文 献 [ 3 ] 中 给 出 了 几 种 积 分 方 法 在 A 一 0.015 私 下 的 数 值 结 果 。 为 便 于 比 较 , 本
+文 也 采 用 同 样 步 长 对 此 进 行 分 析 。 最 佳 预 测 - 校 正 积 分 结 果 及 其 比 较 情 况 均 巳 示 于 图 4 之 中 。
+
+=== page_06.png ===
+56 计 算 结 构 力 学 及 其 应 用 1 恩
+
+五 、 工 程 应 _ 用
+
+为 了 说 明 预 测 - 校 正 积 分 方 法 处 理 大 型 工 程 实 际 问 题 的 有 效 怯 , 用 该 方 法 分 析 了 重 载 列
+车 动 力 学 问 题 。 具 体 针 对 国 家 重 点 科 技 攻 关 项 目 《 重 载
+
+一 P
+
+初 车 成 套 技 术 “ 中 有 关 于 5000 吨 重 载 列 车 的 纵 向 动 力 心 一 朱出 一 Hooeon
+
+Mesmarg . 一
+
+学 问 题 进 行 分 析 。
+5000 吨 重 载 列 车 由 60 蜒 C61 型 车 辆 组 成 , 装
+朐 103 型 分 配 阀 及 Mark-50 型 缓 冲 器 , 采 用 韶 山 . 型
+电 力 机 车 牵 引 。 该 问 题 包 含 有 许 多 非 线 性 因 素 , 例 如 ) 命
+缓 冲 器 的 非 线 性 刚 度 特 性 ( 图 5 》 , 机 车 车 辆 的 非 线 伯
+阻 力 特 性 , 以 及 牵 引 和 制 动 的 非 线 性 工 作 特 性 等 。 非 线 . 1 1
+性 列 车 动 力 学 方 程 请 参 见 文 C10]。 咤
+采 用 最 佳 预 测 - 校 正 式 , 积 分 步 长 分 别 取 A 一 …问′
+0.005,Ai: 一 0.010,Ats 一 0.015 秒 进 行 了 计 算 , 发 图 4
+现 三 种 结 果 十 分 接 近 , 最 大 车 钩 作 用 力 偷 差 仅 为 3%, 足 以 达 到 该 问 题 精 庭 要 求 , 故 取
+At: 一 0.010 秒 作 为 计 算 步 长 。 图 6 绘 出 了 紧 急 制 动 工 况 下 制 动 初 速 为 20kKm/h 时 的 最 大 车
+
+余 用 力 N)
+
+三
+三
+八
+医
+坂
+肖
+协
+长
+晓
+、 仪 2 D 刑 D
+月 0 ' 车 辆 号 数
+回 5 图 8
+
+钩 压 力 沿 列 车 长 度 的 分 布 规 律 , 并 与 相 应 的 试 验 结 果 “ 雄 行 了 比 较 , 获 得 了 较 好 的 一 致
+性 。 有 关 这 一 问 题 的 详 细 研 究 请 见 文 10]。
+
+值 得 提 出 的 是 , 田 于 木 文 方 法 在 各 步 积 分 中 无 需 求 解 高 阶 线 性 代 数 方 程 组 , 因 而 显 著 地
+节 省 了 计 算 内 存 和 时 间 , 使 得 计 算 可 以 在 普 通 微 机 上 实 现 , 并 且 计 算 列 车 行 进 ~ 秒 仅 耗 赏
+IBM/PC 一 AT 微 型 机 之 CPU 90 秒 , 而 整 个 计 算 时 间 约 为 20 分 钟 。 这 是 其 它 方 法 所 难
+以 达 到 的 。 例 如 ,Gogineni 和 Garg “ 曾 采 用 四 阶 Runge-Kutta 法 对 60 辆 车 进 行 过 运
+行 模 拟 计 算 , 最 大 积 分 步 长 仅 能 取 0.0001 秒 ( 本 文 方 法 步 长 为 其 100 倍 》, 尽 管 计 算 是
+在 先 进 的 IBM-870/158 中 型 机 上 进 行 的 , 然 而 , 计 算 列 车 前 逃 一 秒 竞 需 100 秒 CPU 之
+多 。 仅此J邑L】表E虞樨i才冤文)盲亓去7王处理契二型』实f蘑示r「〕〕题E静」卜F'蕾〕f聚!三莞墓萝真俨翼`s
+
+本 文 得 到 西 南 交 通 大 学 孙 翔 教 摒 的 热 情 鼓 劲 和 大 力 支 持 , 研 究 生 黄 志 辉 参 加 了 算 例 的 部
+分 计 算 工 作 , 作 者 在 此 深 表 感 谢 !
+
+=== page_07.png ===
+2 期 林佳 伟 林 又 纳 标 标 林 吊 气
+
+参 考 文 献
+[ 1 ] 翟 娆 明 , 结 构 动 力 分 析 的 Newmark 蚯 式 积 分 方 法 , 四 川 省 力 学 学 会 学 术 论 文 集
+
+1989 年 。
+
+[ 2 ] Newmark,N。M,, 友 method of compatation for structural dynamics,Journal
+of ihe Bngineering Mechamics 刃 ioision,AdSCE,85(1959),No。2,67 一 94。
+
+[ 3 ] Park,K。C,,An improved stiffly stable “method for direet integration of
+nonlinear structural dynamic eqduations, 4SM 万 Journal of 4pplied Mechanics,
+42(1975),No。2,464 一 470。
+
+[ 4 ] 蔡 承 文 、 黄 纯 明 、 刘 明 杰 , 结 构 动 力 学 方 程 直 接 积 分 的 一 个 无 条 件 稳 定 方 法 , 浙 江 大
+学 学 报 ,1982 年 ,No。2,1 一 14。
+
+[ 5 J Chan,S. P,,Cox,H。L。& Benfield, 旭 。A.,Transient analysis of foreed
+vibrations of complex structural mechanical systems, 了 。Royhal hero。Soc.,
+66(1962),457 一 460。
+
+〔 6 ] 李 庆 扬 、 王 能 超 、 易 大 义 , 数 值 分 析 , 华 中 工 学 院 出 版 社 ,1982
+
+[ 7 ] Bathe, 长 。J,& Wilson,E。L.,Namerical _Method in Finite 万 lement hna-
+Jysis,Prentice 一 Hall,1976。
+
+[ 8 ] Belytschko 少 ,& Schoeberle,D。F.,,Oa the unconditional stability of an
+implicit algorithm for nonlinear structural dynamicsA4SM 万 Tournal of
+Applied Mechanics,42(1975),No, 一 865 一 869。
+
+[ 9 ] Belytschko, 个 .,Transiemt knalysis,Sirueiural Mecjanics Computer Progr-
+ams (ed.,Pikey, 明 ,,et 吴 ),University Press of Virginia,1974,255 一 276。
+
+〔 10 ] 翟 娆 明 、 黄 志 辉 , 列 车 动 力 学 方 程 的 非 线 性 数 值 积 分 , 西 南 交 通 大 学 科 学 报 告 会 , 论
+文 编 号 ,J:CK2l,1988 年 12 月 ; 西 南 交 通 大 学 学 报 , 待 发 表 。
+
+[ 11 ] 郑 兆 昌 、 丁 奎 元 编 , 机 械 振 动 ( 中 册 ) , 机 械 工 业 出 版 社 ,1986 年 。
+
+〔 12 ] 铁 道 科 学 研 究 院 机 车 车 辆 研 究 所 , 牵 引 总 重 5000 吖 C61 型 散 车 专 列 列 车 纵 呐 动 力
+学 试 验 报 告 , 北 京 ,1984 年 。
+
+[13 ] Gogineni, ,R。& Garg,W &.。A dynamic method for longitudinal train
+action,Report No。 R 一 297,AAR Technical Center,Chicago,Ilinois,Feb.,
+1978。 「
+
+=== page_08.png ===
+3
+
+The Predictor-Corrector Scheme Based on the
+Newmarks Integration Algorithm for
+Nonlinear Structural Dynamic Analyses
+
+Zhai 伟 amming
+
+(Researeh Institate of Rail Vehicle Soutiwsest Jiaotong Uaiversitbn)
+
+Abstract
+
+Based on the Newmark「s tmplicit integration algorithm which is well known
+and wide ased in the domain 。of structural dynamie analyses,an “explicit
+algorithm 识 constructed to form a predictor-eorrector intcgration scheme。,This
+scheme is not only simple bat also with bigher aceuracy,By means of this
+predictor-corrector scheme, 让 is conyenient to analyse complex nonlinear dynamie
+systems disercted “by fintte element methods becanse of the needlessness of
+solying high order algcbraic linear eduations in each integration step。
+
+In this paper,the nonlinear ntmerical stability and aceuraey of this scheme
+诊 diseussed by asing numerieal experiment methods。 it 英 shown that 。 圭
+predictor-eorreetor integration scheme “may “have higher accuracy “than the
+Newmark (B 二 1/49,Park and Houholt methods as long as its stable condition
+is kept。 A criterion 诊 also presented in this paper “to examine whether the
+calculation result s believable for eomplex nonlinear problem。At the end of
+
+this paper,an applied cxample of engincering problems i given,
+

@@ -1,0 +1,2604 @@
+===== PDF页1 =====
+energies
+Article
+The Energy-Efficient Operation Problem of a Freight
+Train Considering Long-Distance Steep
+Downhill Sections
+XuanLin1,QingyuanWang1,*,PenglingWang2,PengfeiSun1andXiaoyunFeng1
+1 SchoolofElectricalEngineering,SouthwestJiaotongUniversity,Chengdu610031,China;
+linstu@163.com(X.L.);spf0325@163.com(P.S.);fengxy@home.swjtu.edu.cn(X.F.)
+2 DepartmentofTransportandPlanning,DelftUniversityofTechnology,
+Mekelweg2,2628CDDelft,TheNetherlands;p.l.wang@tudelft.nl
+* Correspondence:wangqy@home.swjtu.edu.cn;Tel.:+86-134-5854-8923
+AcademicEditor:Carl-FredrikLindberg
+Received:13April2017;Accepted:5June2017;Published:10June2017
+Abstract: With the energy consumption rising in rail transport, the railway sector is showing
+increasing interest in the energy-efficient operation of freight trains. Freight trains require more
+complicateddrivingstrategiesthanordinarypassengertrainsdoduetotheirheavyloads,especially
+inthelong-distancesteepdownhill(LDSD)sectionsthatareverycommoninfreightraillinesin
+China. Thispaperstudiestheenergy-efficientoperationofafreighttrainconsideringLDSDsections.
+Anoptimalcontrolmodelincludingregenerativeandpneumaticbrakingisdevelopedforthefreight
+train. Then, when a train leaves/enters the LDSD section, we verify the uniqueness of control
+transitions and discuss the speed profile linkage between LDSD and its adjacent sections, which
+indicatesthattheperiodicbrakingshouldbeappliedonLDSDsectionsforoptimality. Additionally,
+giventhesamerunningtimefortheentirejourney,ouranalysisshowsthatelectricalbraking-full
+braking strategy is more energy-efficient than coasting-full braking strategy on LDSD sections.
+Finally,anumericalalgorithmfortheoptimaldrivingsolutionisproposed. Thesimulationresults
+demonstratethatthedrivingstrategiesgeneratedbytheproposedalgorithmperformsbetterthan
+thosefromfuzzypredictivecontrolandfieldoperationregardingenergysaving.
+Keywords: freight train; energy-efficient operation; maximum principle; periodic braking;
+numericalalgorithm
+1. Introduction
+Freighttrainsplayamajorroleincargotransportallovertheworld. Duetotherisingenergy
+consumption,moreattentionhasbeenpaidtofreighttrains. TakingChinaasanexample,thehauling
+energyconsumptionoflocomotivesaccountsfor70%–75%ofthetotalenergyconsumptionofthe
+railways[1]. Thus,duetoeconomicandenvironmentalconcernsit’sverynecessarytoreducethe
+energyconsumptionofrailways.
+Asweallknow,theterraininChinaishighinthewestanddescendstowardtheeastcoast. Thus,
+someraillinesconsistoftracksectionswherethetrainspeedstillincreaseseveniffull(maximum)
+electricalbrakingapplied,i.e.,long-distancesteepdownhill(LDSD)sections. Thetraindrivermust
+dealwiththeenergy-efficientoperationproblemofthefreighttraininLDSDsections.Variousmethods
+havebeenadoptedtoreducetheenergyconsumptionoffreighttrains,suchasoptimizingthetimetable,
+changingtheappearanceofthelocomotivetoloweritsaerodynamicresistance,installingregenerative
+brakestofeedtheenergybacktothetractionnetwork[2]. Additionally,agooddrivingstrategyisan
+economicmethodwithgreatpotentialforreducingenergyconsumption,whichisaninterestingissue.
+Energies2017,10,794;doi:10.3390/en10060794 www.mdpi.com/journal/energies
+===== PDF页2 =====
+Energies2017,10,794 2of26
+1.1. PreviousWorkfortheTrainEnergy-EfficientOperation
+Lotsofmethodshavebeenutilizedtosolvethetrainenergy-efficientoperationproblemsince
+the1960s[3,4]. Reviewingtheapproaches,wecandividethemintotwocategories: classicmethods
+and intelligent methods. Classic methods refer to the optimization approaches that use precise
+mathematicalmodelswithrigorousderivations. Intelligentmethodsaretheoptimizationapproaches
+whichsolvethetrainenergy-efficientoperationproblemusingmultipleobjectivesandconstraints.
+1.1.1. ClassicMethods
+MaximumPrinciple(MP)wasfirstlyemployedinthetraintrajectoryoptimizationbyIchikawa[4].
+Then the researchers from Scheduling and Control Group (SCG) improved and developed the
+application of MP to the problem of train trajectory optimization. Based on MP, three optimal
+controlsforshort-distancetransporttrainswerepresentedbyMilroy[5]: maximumpower,coastand
+maximum brake. Asnis et al. [6] proposed that the optimal speed profile consists of four optimal
+controls: maximumpower,cruise,coastandmaximumbrake. Leeetal.[7]notedthat“cruise”was
+thefourthoptimalcontrolforlong-distancetransporttrains. Howlettetal.[8]cameupwithanew
+localenergyminimizationprincipletocalculatetheoptimalswitchingpointsofthelong-haulfreight
+trainalongasinglesteepdownhilloruphilltracksection. Albrechtetal.[9,10]discussedtheexistence
+anduniquenessofthetrainoperationoptimalstrategy. Therelationshipbetweenenergyconsumption
+andoperationtimewasstudiedbyHowlett[11]. Meanwhile,otherresearchersalsostudiedthetrain
+trajectory optimization based on MP. Khmelnitsky [12], Golovitcher and Iakov [13], and Liu [14]
+presentedthenecessaryconditionsofthetrainenergy-efficientoperationbasedonMP.Numerical
+algorithmswereusedtosearchfortheoptimalcontrolstrategywhenthespeedlimitwasconsidered
+intheoptimalcontrolproblemofthetrainenergy-efficientoperation. Yangetal.[15]presentedthe
+optimalmodeloftrainoperationwiththeregenerativebrakingconsidered. Andtheoptimalsolution
+fromcoastingtobrakingconsistsofasetofspeedtrajectories.
+Combined with the Karush-Kuhn-Tucker (KKT) condition and derivative approach, the
+Lagrangian multipliers method was applied in the trajectory optimization of diesel locomotives
+with discrete controls. For a train along the level track within a given time, Jiaxin [16,17] noted
+that the energy consumption of the diesel locomotive was minimized if the velocity of the train
+waskeptclosetothecriticalvelocity. ThenCheng’stheorywasimprovedbyHowlett. Thecritical
+velocitywasidentifiedastheselectedholdingspeed. TheLagrangianmultiplierswereintroducedto
+searchtheenergy-efficientdrivingstrategiesofalong-haulfreighttrainwithdiscretecontrolinputs.
+Andtheoptimalstrategyofafreighttrainontheleveltrackispower-coasting-powerbetweentwo
+stations[18,19]. Foratrainonthecontinuouslyvaryinggradient,aniterationmethodwasutilizedto
+findoptimalsolutiontothetrainenergy-efficientoperation[20].
+Withtheimprovementofcomputerprocessingspeed,dynamicprogramming(DP)wasapplied
+to the train trajectory optimization. A nonlinear train optimal control problem considering the
+efficiencyofthetraintractionsystemwassolvedviaDiscreteDynamicProgramming(DDP)[21,22].
+Miyatakeetal.[23,24]usedBellman’sDPtodealwithoptimizationoftherunningprofileofmetro
+andelectrictrains. ToovercomethedimensionexplosionofDP,sequentialquadraticprogramming
+(SQP)wasappliedtothetrajectoryoptimizationofarailwayvehicle[25,26].
+Thecalculusofvariationisalsousedtosolvethetrain’sminimal-energydrivingstrategyproblem.
+Thereweretwolevelsinthetraincontrolmodel: discretecontrol,i.e.,theoptimalcontrolssuchas
+power, coasting and braking; continuous control such as the traction force varying with the train
+velocity. Ahybridautomatawasusedtodescribethehierarchicalcontrolmodel[2,27].
+Mixed-integerlinearprogramming(MILP)thatwasappropriatefortheengineeringapplication
+was utilized in an automatic train operation (ATO) system to obtain the optimal control sets [28].
+The gauss pseudospectral method was applied in the single and multiple trains trajectory
+optimization[28,29],whichwasanewapproachinthetraintrajectoryoptimizationinrecentyears.
+===== PDF页3 =====
+Energies2017,10,794 3of26
+1.1.2. IntelligentMethods
+Recently many intelligent approaches have been applied to the train trajectory optimization
+problem, which have the advantage of providing rapid solution to the Multi-Input Multi-Output
+(MIMO)problemswithmultipleobjectivesandconstraints. Forexample,GeneticAlgorithm(GA)was
+usedtosearchfortheoptimaltrainspeedprofile[30]. Basedonthenecessaryconditionsderivedfrom
+MP,GAwasproposedtosearchforthepropercoastingpointstorealizetheenergy-efficientoperation
+ofatrain[31]. Zhaoetal.[32]presentedamultipletraintrajectoryoptimizationbasedonGAtomake
+acompromisebetweenenergyuseandpunctualitywhendelaysoccurred. Huangetal.[33]proposed
+theMulti-populationGeneticAlgorithm(MPGA)tosolvethetrainenergy-efficientoperationproblem
+byoptimizingthetrainoperationformultipleinterstations. Meanwhile,fuzzypredictivecontrol(FPC)
+wasappliedtotheATObyFeng[34]. Baietal.[35]employedFPCtooptimizethetrajectoryoffreight
+trainswithdiesellocomotives. Antcolonyoptimization(ACO)wasalsoappliedtoobtainthesingle
+trainoptimalspeedprofile[30].
+1.2. MainContribution
+Traintrajectoryoptimizationwasstudiedusingvariousapproachesinthepreviouswork[2–35].
+Meanwhile,references[8–11]studiedtheoptimalcontrolsofthefreighttrainalongthesinglesteep
+downhilltracksection,whichisnoteffectiveforthelongsteepdownhillsections.Inbrief,thetrajectory
+optimizationofthetrainoperationconsideringtheLDSDhasn’tbeendiscussedyet. Inthispaper,the
+abovementionedproblemwillbeworkedout.
+Thispaperprovidesfourmaincontributionstotheliterature. Firstly,themathematicalmodel
+of the train energy-efficient operation problem considering LDSD has been established. Then the
+analytical solution is derived. Secondly, the pneumatic braking (or mechanical braking) force is
+separatedfromtheintegrationbrakingforce(includingelectricalbrakingandpneumaticbraking)
+whilederivingthenecessaryconditionsfortheenergy-efficientoperationofthetrain. Analysisof
+theadjointvariableshowsthattheperiodicbrakingstrategyshouldbeappliedontheLDSDsection.
+Thirdly,wetransformthetimeconstraintwithrespecttotheauxiliaryreservoirair-filledtime(see
+Section 2.3) to the speed constraint, which could be considered the path constraint in the optimal
+controlproblem. Fourthly,theoptimalcontrolattheterminalpositionoftheLDSDsectionisverified.
+Althoughweobtaintheanalyticalsolutiontothetrainspeedandoptimalcontrol,it’snotenough
+tocalculatetheoptimizationtrajectory. Basedontheaboveconclusions,wegivethelinkagerulesof
+thespeedholdingsectionincorporatingLDSD.Thenaniterativenumericalalgorithmisproposedto
+obtaintheoptimalspeedprofile.Thecomparativesimulationresultsshowthattheproposedalgorithm
+in this paper saves more energy, which can provide the train driver the significant guidance with
+respecttotheenergy-efficientoperationissue.
+1.3. MainStructureofthisPaper
+Thispaperisorganizedasfollows: Section2proposesthemotionmodelofafreighttrainwith
+itsconstraints,whichisconsideredasanoptimalcontrolproblem;Sections3and4givethewayto
+solvetheaforementionedoptimalcontrolproblem;Section5analyzestheinfluenceofthejourneytime
+ontheenergyconsumptionbetweenstations;inSection6,thenumericalalgorithmisproposedto
+solvetheoptimalcontrolproblem;Section7illustratesthealgorithminthecasestudies;inSection8,
+conclusionsandfutureworkaregiven.
+2. FreightTrainModelandProblemFormulation
+2.1. RealCharacteristicsofaFreightTrain
+ElectriclocomotivessuchasChinarailwaysHXD1andHXD2areutilizedforfreighttransportin
+theChinesemainlinerailwaysector. Ifthetractionforceatlowspeedstageissettoolarge,themotor
+inthelocomotivewillidle,whichwouldcausewheelslippage. Theelectricalbrakingforceissimilar.
+===== PDF页4 =====
+EEnneerrggiieess 22001177,, 1100,, 779944 44 ooff 2266
+Here, an HXD2 is chosen as the simulation locomotive, which is shown in Figure 1. The HXD2
+Here,anHXD2ischosenasthesimulationlocomotive,whichisshowninFigure1. TheHXD2
+that is the source power of a freight train is driven on the track by the adhesion traction force. v is
+thatisthesourcepowerofafreighttrainisdrivenonthetrackbytheadhesiontractionforce.locv
+loc
+the linear velocity of the wheel in the locomotive. v is the angular velocity of the wheel in the
+isthelinearvelocityofthewheelinthelocomotive. wv istheangularvelocityofthewheelinthe
+w
+l l o o c c o o m m o o t t i i v v e e , , a a n n d d v v lolocc= r r  · v vww , , w w h h e e r r e e r r i i s s t t h h e e r r a a d d iu iu s s o o f f t h t e he w w he h e e l. el N . i N st h i e s o th p e p o o s p it p e o f s o it r e c e fo fr r o c m e f t r h o e m tr t a h c e k
+tarnadckf a(nvd) isft(hve)t rias ctthioe ntrfaocrtcioeng efonrecrea tgeednberyatthede mbyo ttohre. mf (ovto)ri.s tfhe(vr)o lilsin tghefr ricotliloinng. friction.
+c c r r
+motion direction v
+v w
+loc r
+f (v)
+r
+N A
+f (v)
+c
+FFiigguurree 11.. AAnn aannaallyyttiiccaall sscchheemmaattiicc ooff aa llooccoommoottiivvee’’ss tthhrreeee ffoorrcceess..
+The rolling friction is caused by the motion of the wheels of the locomotive. Assume that A is
+Therollingfrictioniscausedbythemotionofthewheelsofthelocomotive. AssumethatAisthe
+the contact point between the wheel and the track. Since the motion direction of A is opposite to that
+contactpointbetweenthewheelandthetrack. SincethemotiondirectionofAisoppositetothatof
+of the locomotive, then f (v) occurs to prevent the motion of A as follows:
+thelocomotive,then f (v)roccurstopreventthemotionofAasfollows:
+r
+f (v)N (1)
+r j
+f (v) = µ N (1)
+r j
+where N is equal to the weight of the locomotive,  is the rolling friction coefficient of the wheel.
+j
+whereNisequaltotheweightofthelocomotive,µ istherollingfrictioncoefficientofthewheel. Itis
+It is necessary to point out that  is from a numbjer of field tests [36], i.e.,
+j
+necessarytopointoutthatµ isfromanumberoffieldtests[36],i.e.,
+j
+100.11v
+ 0.38 10+0.11v (2)
+µ j=0.38 100.2v (2)
+j 10+0.2v
+where v is equal to v . When a locomotive is hauling,  is the rolling friction coefficient.
+wherevisequaltov .locWhenalocomotiveishauling,µ isjtherollingfrictioncoefficient.
+loc j
+In Figure 2a, f (v) is the traction force of the locomotive (blue solid line) and f (v) is the
+InFigure2a, f
+c
+(vc)isthetractionforceofthelocomotive(bluesolidline)and f
+r
+(v)isthreadhesion
+atrdahcetisoionnf otrraccetioofnt hfoerlcoec oomf tohteiv leoc(oremdodtiavseh (lriende )d,awshh ilcihnei)s, dwivhiidched isi ndtiovitdweod pinatrots t.wToh epafirrtsst. pTahret f(itrhset
+ptraarctt (itohne ftorraccet)iotnh afotrvcaer)i ethsalitn veaarrileys wlinitehartlhye wspitehe tdhev
+t
+sp<ee6d5 k v mt  /h 65 i k s m ca / l h le dis tchaell“ecdo tnhset a“nctontosrtqanute tzoorqnue”e,
+zwohniele”,t hwehsielec onthde psaercto(nthde ptraarctt io(tnhef otrrcaec)ttiohnat fisoricnev)e rtshealty ipsr oinpvoertrisoenlya lptorotphoerstipoeneadl vto ≥th6e5 skpme/edh
+t
+ivsca6l5lekdmt/hhe “isc ocanlsletadn tthpe o“wcoenrsztaonnte p”o.wTheru zso,nthee”.a Tdhhuess,i othnet ardachteiosinonfo trrcaectvioanri efosrnceo nvlairnieeas rnlyonwliintheatrhlye
+t
+wspiethe dth.eD supreinedg.t Dheulroinwg stpheee ldowst asgpee,etdh estraegael, ttrhaec trieoanl ftorarccetioonf afolrocceo omf oat ilvoecoismloestisvteh iasn lefscs( vth)aonw infg(vt)o
+c
+therestrictionoftheadhesionforce. Atthehighspeedstage,therealtractionforceofalocomotiveis
+owing to the restriction of the adhesion force. At the high speed stage, the real traction force of a
+l
+e
+o
+q
+c
+u
+o
+a
+m
+l
+o
+to
+tiv
+f
+ce
+( v
+is
+) .
+eq
+In
+ua
+sh
+l
+o
+to
+r t,fit(cva)n
+. I
+b
+n
+e
+s
+e
+h
+x
+o
+p
+r
+r
+t
+e
+,
+s
+it
+s e
+c
+d
+an
+a s
+b
+:
+e expressed as:
+c
+f
+t0
+f(
+t0
+v()v)=mmiinn{{ff
+cc
+((vv)),,ff
+rr
+((vv)})} (3()3 )
+w w h h e e r r e e f
+t
+f 0t0( ( v v ) ) i s i t s h t e he re r a e l a t l r t a r c a t c io ti n on fo f r o c r e c o e f o a f f a r e fr ig ei h g t h t t r a tr in ai . n.
+SimilartoEquation(2),when alocomotiveisusingelectricalbraking,therollingfrictioncoefficient
+µ isasfollows[36]:
+z
+45.6
+µ =0.0624+ (4)
+z 260+v
+wherevisequaltov . Therollingfrictioncoefficientis:
+loc
+f (v) = µ N (5)
+rz z
+In Figure 2b, the braking force of the HXD2 locomotive is defined as f (v), i.e., regenerative
+eb
+brakingforce(yellowsolidline). Whentheelectricalbrakingisapplied,themotorinthelocomotive
+===== PDF页5 =====
+Energies 2017, 10, 794 5 of 26
+Energies2017,10,794 5of26
+willgenerateelectricity.Asaresult,theelectricityisfedbacktothetractionnetworksothatothertrains
+canutilizeit. Therearetwostagesintheelectricalbrakingcharacteristics. Thefirstchangeslinearly
+withthespeedv <70.6km/h,whilethelatterch angesnonlinearlywiththespeedv ≥70.6k m/h,
+b b
+(a) (b)
+i.e.,inverselyproportionaltothespeed. f (v)thatistheadhesionbrakingforceofthelocomotive
+rz
+(reddFiagsuhreli n2.e T)rcahcatinogne/Bsrnakoinnlgi nfoearcrel yanwdi tahdthheesiovne lfoocrictey ooff at hloecolomcootmivoe t(iHveXdDe2t)e: r(am) itnraecdtiobny f(o5r)c.eT ahnuds ,the
+realbardahkeisniognf oforrccee;o (fbt)h beralokicnogm foortcive eancda nadbheeosibotna finorecde:.
+Similar to Equation (2), when f
+d
+a
+0
+(lvo)co=mmotiinv{ef
+e
+i
+b
+s( vu)s,ifnrzg( ve)l}ectrical braking, the rolling fricti(o6n)
+coefficient  is as follows [36]:
+z
+where f (v)istherealregenerativebrakingforce.
+Energies 2d0017, 10, 794 5 of 26
+45.6
+ 0.0624 (4)
+z 260v
+where v is equal to v . The rolling friction coefficient is:
+loc
+f (v)N (5)
+rz z
+In Figure 2b, the braking force of the HXD2 locomotive is defined as f (v), i.e., regenerative
+eb
+braking force (yellow solid line). When the electrical braking is applied, the motor in the locomotive
+will generate electricity. As a result, the electricity is fed back to the traction network so that other
+trains can utilize it. There are two stages in the electrical braking characteristics. The first changes
+linearly with the speed v 70.6km/h , while the latter changes nonlinearly with the speed
+b
+v 70.6km/h, i.e., inversely proportional to the speed. f (v) that is the adhesion braking force of
+b rz
+the locomotive (red dash line) changes nonlinearly with the velocity of the locomotive determined
+(a) (b)
+by (5). Thus, the real braking force of the locomotive can be obtained:
+Figure 2. Traction/Braking force and adhesion force of a locomotive (HXD2): (a) traction force and
+Figure2. Traction/Brakingforceandadhesionforceofalocomotive(HXD2): (a)tractionforceand
+a a d d h h e e s s i i o o n n f f o o r r c c e e ; ; ( ( b b ) ) b b r r a a k k i i n n g g f f o o r r c c e e a a n n d d f a add d0h h (v e e ) s s i i  o o n n m f f i o o n r r { c c e e f .e.b (v),f rz (v)} (6)
+where f (v) is the real regenerative braking force.
+Simidl0ar to Equation (2), when a locomotive is using electrical braking, the rolling friction
+FFoorr aa ffrreeiigghhtt ttrraaiinn,, tthheerree aarree ttwwoo ttyyppeess ooff bbrraakkiinngg ffoorrccee.. OOnnee iiss tthhee rreeggeenneerraattiivvee bbrraakkiinngg ffoorrccee..
+coefficient  is as follows [36]:
+TThhee ootthheerr iiss mm z eecchhaanniiccaall bbrraakkiinngg ffoorrccee,, wwhhiicchh iiss iilllluussttrraatteedd iinn [[3377]].. TThhee mmeecchhaanniiccaall bbrraakkiinngg ffoorrccee iiss
+pprreesseenntteedd aass ffoolllloowwss ((sseeee FFiigguurree 33)).. 45.6
+ 0.0624 (4)
+z 260v
+where v is equal to v . The rolling friction coefficient is:
+loc
+f (v)N (5)
+rz z
+In Figure 2b, the braking force of the HXD2 locomotive is defined as f (v), i.e., regenerative
+eb
+braking force (yellow solid line). When the electrical braking is applied, the motor in the locomotive
+will generate electricity. As a result, the electricity is fed back to the traction network so that other
+trains can utilize it. There are two stages in the electrical braking characteristics. The first changes
+linearly with the speed v 70.6km/h , while the latter changes nonlinearly with the speed
+b
+v 70.6km/h, i.e., inversely proportional to the speed. f (v) that is the adhesion braking force of
+b rz
+the locomotive (red dash line) changes nonlinearly with the velocity of the locomotive determined
+(a) (b)
+by (5). Thus, the real braking force of the locomotive can be obtained:
+Figure 3. Mechanical braking force and adhesion force of a freight train: (a) locomotive; and (b)
+Figure3.Mechanicalbrakingforceandadhesionforceofafreighttrain:(a)locomotive;and(b)wagon.
+f (v)min{f (v),f (v)} (6)
+d0 wagoneb. rz
+wherIen F f idg0u (v r ) e 3is, tthhee aredahle rseigoennfeorracteivies bgrraekatinerg tfhoarncet.h emechanicalbrakingforce. Forafreighttrain
+alongFtohre at rfarcekig,thhte tmraeinch, athneicrael abrrea ktwinog ftoyrpceesi sonf ’tbirnaflkuinegn cfeodrcbey. Othneea dish tehseio rnefgoerncee.raTthiveer ebarlamkiencgh afonriccael.
+bTrhaek iontghefro ricse mcaenchbaendiceaslc brirbaekdin[g3 6f]ourcsein, gwthhiechfo ilsl oiwlluinstgraetxepdr einss i[o3n7]:. The mechanical braking force is
+presented as follows (see Figure 3).
+f (v) = β K ϕ (7)
+m0 c h h
+(a) (b)
+Figure 3. Mechanical braking force and adhesion force of a freight train: (a) locomotive; and (b)
+wagon.
+===== PDF页6 =====
+Energies 2017, 10, 794 6 of 26
+In Figure 3, the adhesion force is greater than the mechanical braking force. For a freight train
+along the track, the mechanical braking force isn’t influenced by the adhesion force. The real
+mechanical braking force can be described [36] using the following expression:
+Energies2017,10,794 6of26
+f (v)K (7)
+m0 c h h
+where  is the service braking coefficient (equal to 0.17 in this paper). K is the force of the brake
+whereβ icstheservicebrakingcoefficient(equalto0.17inthispaper). K isthheforceofthebrakeshoe.
+c h
+shoe. For a locomotive, it’s 580 kN. For a fully loaded wagon, it’s 195 kN.  is the friction coefficient,
+Foralocomotive,it’s580kN.Forafullyloadedwagon,it’s195kN. ϕ isthehfrictioncoefficient,which
+h
+which varies nonlinearly with the speed of the train. For a locomotive [36], we have:
+variesnonlinearlywiththespeedofthetrain. Foralocomotive[36],wehave:
+2v150
+ 0.3072v+150 (8)
+ϕ h h=0.307 3 3 v v + 1 1 5 5 0 0 (8)
+For a fully loaded wagon [36], we have:
+Forafullyloadedwagon[36],wehave:
+2v150
+ 0.3782v+150 (9)
+ϕ h=0.378 3v150 (9)
+h 3v+150
+22..22.. TTrraaiinn MMooddeell
+The freight train model is proposed in this section. Every wagon in the freight train can possibly
+Thefreighttrainmodelisproposedinthissection. Everywagoninthefreighttraincanpossibly
+run on a section of track with a different gradient. For an example, the front wagon may run on an
+runonasectionoftrackwithadifferentgradient. Foranexample,thefrontwagonmayrunonan
+uphill section while the middle one is on a downhill section. Therefore, a multi-particle model of a
+uphillsectionwhilethemiddleoneisonadownhillsection. Therefore,amulti-particlemodelofa
+freight train is more appropriate in this paper instead of a single-particle one. The train marshalling
+freighttrainismoreappropriateinthispaperinsteadofasingle-particleone. Thetrainmarshalling
+w
+w
+i
+i
+t
+t
+h
+h
+o
+o
+n
+n
+e
+e
+l
+l
+o
+o
+c
+c
+o
+o
+m
+m
+o
+o
+t
+t
+i
+i
+v
+v
+e
+e
+a
+a
+n
+n
+d
+d
+n
+n −− 1
+1
+w
+w
+a
+a
+g
+g
+o
+o
+n
+n
+s
+s
+i
+i
+s
+s
+s
+s
+h
+h
+o
+o
+w
+w
+n
+n
+i
+i
+n
+n
+F
+F
+i
+i
+g
+g
+u
+u
+r
+r
+e
+e
+4
+4
+.
+.
+C-Wagon v
+L-Locomotive
+x
+x x 1
+C n C x n1 x n C 2 . . . . . . C x i .. . . .. C 2 L
+FFiigguurree 44.. MMuullttii--ppaarrttiiccllee mmooddeell ooff aa ffrreeiigghhtt ttrraaiinn..
+Due to the Figure 4 and considering the position of the train (x) as an independent variable, the
+DuetotheFigure4andconsideringthepositionofthetrain(x)asanindependentvariable,the
+dynamic equations are as follows:
+dynamicequationsareasfollows:
+dv(x) f (v(x)) f (v(x)) f (v(x))w (v(x))g(x)
+dv(x) µf (v t ( t x))−µ f d (v d (x))−µ m f m (v(x))− 0 w (v(x))−g( x) (10)
+=dx t t d d v(mx)m 0 (10)
+dx v(x)
+dt(x) 1
+dt(x)  1 (11)
+dx = v(x) (11)
+dx v(x)
+w w h h e e r r e e x x i i s s t t h h e e p p o o s s i i t t i i o o n n o o f f th th e e tr t a r i a n in , a , n a d n d x x  = x 1 , x 1 v , (x v ) (x i)s i t s h t e h v e e v lo e c l i o t c y i t o y f o th f e t h tr e ai t n ra a in t x a , t a x n , d a n t( d x) t (i x s )th is e
+tjhoeurjnoeuyrn tiemyet iomf ethoef trtahien tarta xin. Tahtex c.oTnhtreolc voanrtiraobllvesa:r iable[s0:,1µ], ∈[0,1[0],,1µ], ∈ [0,  10],,1 µ, an∈d {0,1}, an0d,
+t t d d m m t d
+µt ·µd ≡00,. µ tf·(µv(mx)≡) 0a.ndf
+t
+(vf(x(v))(xa)n) darfed (tvh(ex u))niatr teratchteiounn aitndtr aecleticotrnicaanl dbrealkeicntrgi cfoalrcber aokf ainllg lofocorcmeootfivaells
+t m t d
+locomotivesinthefreighttrain(N/kg),respectively. WhenMisconsideredasthemassofthefreight
+in the freight train (N/kg), respectively. When M is considered as the mass of the freight train, we
+t h ra a i v n e , wfe(hv(axv)e)f t ( fv( (xv) )) /M = f at0n ( d v )/fM(va(nx)d)f d ( fv( (xv ) ) ) / = M f df0 ( (vv( ) x/)M) i f sm ( th v e (x u ) n ) i i t s m th e e c u h n an it ic m a e l c b h r a a n k i i c n a g l b fo ra rc k e in o g f
+t t0 d d0 m n
+forceofthefreighttrain(N/t)withtherelationship f (v(x)n) = ∑ f (v)/M(N/t), f (v)(N)isthe
+the freight train (N/t) with the relationship f (vm(x))f (v)/Mim0(N/t), f (v) (imN0) is the real
+m im0i=1 im0
+i1
+real mechanical braking force of the ith wagon or locomotive. w (v(x))(N/t) that is the train unit
+mechanical braking force of the ith wagon or locomotive.w (v(x0))(N/t) that is the train unit basic
+basicresistanceconsistsofrollingresistanceandaero-dynam 0 icresistance. g(x)ismadeupoftwo
+resistance consists of rolling resistance and aero-dynamic resistance. g(x) is made up of two
+components: unitgradientresistanceg (x)(N/t)andunitcurveresistanceg (x)(N/t). w (v(x)),
+grad curve 0
+g
+c(o
+x
+m)p
+c
+o
+an
+ne
+b
+n
+e
+ts
+d
+:
+es
+u
+c
+n
+ri
+i
+b
+t
+e
+g
+d
+r
+a
+a
+s
+d
+:
+ient resistance g
+grad
+(x) (N/t) and unit curve resistance g
+curve
+(x) (N/t).
+w (v(x)), g(x) can be described asw: (v(x)) = a+bv(x)+cv2(x) (12)
+0 0
+gw(x
+0
+)(v=(x)g)graad (xb)v+(xg)curcvve 2((xx)) ((1123))
+wherea, bandcarepositiveconstantcoefficients, andtheequivalentunitgradientresistanceand
+n (cid:104) (cid:105) n
+curveresistanceareg (x) = ∑ g (x )·m /Mandg (x) = ∑[g (x )·m ]/M,m isthe
+grad grad i i curve curve i i i
+i=1 i=1
+massofithwagonorlocomotive. Forsimplicity,thereisv = v(x).
+===== PDF页7 =====
+Energies2017,10,794 7of26
+Remark1. Thecontrolvariableofpneumaticbrakingisbinary,whichisdifferentfromthecontinuouscontrol
+variable of traction and electrical braking. Theoretically, the control variable of pneumatic braking varies
+continuouslywiththepressurereductionofthetrainbrakepipe. However,thepressurereductionisdiscretized
+based on the operation rules of the freight train in China. The train driver is required to apply the discrete
+pressurereductiontothefreighttrain. Hence,whilemodellingthefreighttrain,thediscretepressurereductionis
+takenintoaccount. Andthepneumaticbrakingforcewithminimumpressurereductioncouldmakethetrain
+speeddecrease. Thenthebinarycontrolvariableisintroduced-µ ∈ {0,1}. If µ =0,thepneumaticbraking
+m m
+isnotapplied. If µ =1,thepneumaticbrakingisapplied.
+m
+2.3. ProblemFormulation
+Let0andXbetheinitialandterminalpositionsofthefreighttrain. Thevelocityofthefreight
+trainshouldbe0attheoriginanddestinationstation:
+v(0) =0 v(X) =0 (14)
+Assumethejourneytimefrom0toXisT.Theconstraintis:
+t(0) =0 t(X) = T (15)
+Exceedingthelinespeedlimitisnotallowedforsafetyconcerns:
+v(x) ≤V(x) (16)
+whereV(x)isthestaticspeedlimitatpositionx.
+Thepressureinthefreighttrainbrakepipeincreaseswhilethemechanicalbrakingisreleased[37].
+Ittakestimetorechargethebrakepipetothetargetpressure(600kPa). Thetimeiscalledtheauxiliary
+reservoirair-filledtime. Toensureenoughbrakingforceisavailableinthenextbrakingperiod,the
+air-filledtimeshouldnotbegreaterthanthespeedrisingtime[38]:
+t ≥ T (17)
+z c
+wheret andT arethespeedrisingtimeandtheauxiliaryreservoirair-filledtime,respectively.
+z c
+ConsideringtheLDSDsection,theenergy-efficientoperationproblemofafreighttrainthatisto
+findanoptimaltraintrajectoryminimizestheenergyconsumption. Duetotheprincipleoftheoptimal
+control,acostfunctionisdefinedasfollows:
+(cid:90) X(cid:18) µ f (v) (cid:19)
+minJ = t t −αη µ f (v) dx (18)
+d d d
+0 η t
+whereη istheenergyefficiencyratioofthetractionsystem,η istheenergyefficiencyratioofthe
+t d
+electricalbrakingsystem,αistheregenerationefficiencyrepresentingthefeedbackenergypercentage
+oftheelectricalbraking.
+Remark2. Theaimofthispaperistominimizetheenergyconsumptionofthetractionsystem(includingpower
+andregenerativebraking). Ouraimisnotthesameasminimizingtotalenergyconsumptionofthetraction
+powersupplysystembecausetheenergyefficiencyratiosvarywiththetrainspeedandtheloads,i.e.,powerand
+electricalbraking. Inpractice,wecouldtrytoturnoffsomemotorsinthelocomotiveatthecruisingphaseto
+makethetractionsystemrunnearthepeakefficiencyathighload. Thentheenergyefficiencyratioscouldbe
+approximativelyconsideredasaconstant.
+===== PDF页8 =====
+Energies2017,10,794 8of26
+Remark3. Theregenerationefficiencyisintroducedfortwopurposeswhilemodellingthefreighttrain,whichis
+Energies 2017, 10, 794 8 of 26
+illustratedbelow:
+Remark 3. The regeneration efficiency is introduced for two purposes while modelling the freight train, which
+(1) Inmostelectrictrains,theregenerativebrakingenergycanbefedbacktothetractionpowersupplysystem
+is illustrated below:
+if other trains along the railway line could utilize it. Currently, freight trains are not equipped with
+(1)o n-Ibno marodste enleercgtryics ttroariangse, tdheev riecgeesn.eHraetnivcee ,btrhaekirnegg eenneerrgayti ocanne bffie cfeiedn bcaycki stod tehceid terdacbtiyonth peoawveari slaubpipliltyy soyfstoetmhe r
+traiifn ost.hIenr tthraeirnesa alilsotnicg ttrhaec triaoinlwpaoyw lienres ucopuplldy ustyislitzeem i,t.t hCeurrergenentleyr,a ftrieoinghetf fitrcaieinnsc yaries naovta erqiuabiplep.edT hweitrha iolwn-ay
+board energy storage devices. Hence, the regeneration efficiency is decided by the availability of other trains.
+operationscheme(includingthetimetableandnumberoffreighttrainsthatarerunningalongtherailway
+In the realistic traction power supply system, the regeneration efficiency is a variable. The railway
+line)shouldbeinvestigatedtoobtaintheaccurateregenerationefficiency. Basedontheoperationdata
+operation scheme (including the timetable and number of freight trains that are running along the railway
+inmonthsoryears,wecouldcalculatetheregenerationefficiency. InChina,therailwayelectrification
+line) should be investigated to obtain the accurate regeneration efficiency. Based on the operation data in
+systemis2×25kValternatingcurrent(AC)singlephasewithafrequencyof50Hz. Twophasesofthe
+months or years, we could calculate the regeneration efficiency. In China, the railway electrification system
+three-phaseACpowerfromthepublicpowergridareusedtosupplyfortheelectrictrains. Thephases
+is 2 × 25 kV alternating current (AC) single phase with a frequency of 50 Hz. Two phases of the three-
+atdifferentfeedersofthesubstationswillbeswitchedbetweenA–C,C–B,B–A,tomaintaintheoverall
+phase AC power from the public power grid are used to supply for the electric trains. The phases at different
+balanceofthepublicpowergrid(seeFigure5). Sincethedouble-trackrailwayincludinguprailanddown
+feeders of the substations will be switched between A–C, C–B, B–A, to maintain the overall balance of the
+railisverycommoninChina,thetractionnetworkofuprailanddownrailconnectsinparallel. Wecan
+public power grid (see Figure 5). Since the double-track railway including up rail and down rail is very
+optimizethetimetabletomaketheuptrainanddowntrainrunonthesameLDSDsection. Forexample,
+common in China, the traction network of up rail and down rail connects in parallel. We can optimize the
+forafullyloadedtrainthatisrunningontheuprailoftheLDSDsection,ifelectricalbrakingisapplied,
+timetable to make the up train and down train run on the same LDSD section. For example, for a fully
+theloealedcetdr itcriatying tehnaetr aiste rdubnynitnhge uopn ttrhaei nupw irlalibl eoff etdhbe aLcDktSoDt hseecttriaocnt,i oinf enleecttwriocrakl .bAratktihneg siasm aepptilmiede,, itfhteh e
+dowelnecttrraicinityw gitehneermatpetdy bwya tghoen uspi strgaoinin wgiullp bhei lfledw bitahckp toow tehre otnratchtieoLnD nSetDwosrekc.t iAont tohre tshaemfue ltliymleo,a idf ethdeu dpowtrnai n
+isptorawiner winigtho enmtphteyn woargmoanlsg irsa gdoiienngt u(speheilFl iwguitrhe p5o)w,αero ofnt htehee nLeDrgSyDg seencetiroante odr btyheu fpultlrya lionadweidll ubpe tarbasionr ibse d
+bypthoewderoiwngn otnra tihne. normal gradient (see Figure 5),  of the energy generated by up train will be absorbed
+(2) Intbhyi sthpea dpoewr,no utrraainim. istocalculatetheoptimalspeedtrajectoryconsideringtheLDSDsection. Ourwork
+(2)i ntIhni sthpisa ppearpeisr,t ohuero apiemra itsi oton coaplctuimlaitzea tthioe nopfotirmaasl isnpgeeled ttrraaijnec.tTorhye croengseindeerraintigo ntheef LfiDcieSnDc yseicstiionntr. oOduurc ewdoirnkt o
+theino pthtiims paalpceorn itsr tohlep orpoebrlaetmiont oopetvimaliuzaatteiotnh feorr aat sioinogflec otraasitnin. Tghaen rdegreengeernateiroant ievffeicbiernakcyin igs .inTtorosdiumcpedli fiynttoh e
+the optimal control problem to evaluate the ratio of coasting and regenerative braking. To simplify the
+optimalcontrolprobleminthispaper,theregenerativeefficiencyisconsideredasaconstant.
+optimal control problem in this paper, the regenerative efficiency is considered as a constant.
+traction substation T1=traction network
+up rail A B C R F1 1 = = f r e a e il der
+section post section post
+T1
+R1
+F1
+T1
+down train
+R1
+F1
+1 2 3 down rail 4
+normal normal
+gradient LDSD gradient
+FigFuigreur5e. 5R. eRgeegneenreartaivtievee neenregrgyyfl folowwi nint htheet trraaccttiioonn ppoowweerr ssuuppppllyy ssyysstteemm. .
+The problem can be formulated as follows:
+TheFipnrdo bal emsercieasn obfe fooprtmimualla tceodnatrsoflos llaonwds :switching locations to make the cost function (18)
+mFininimdiazesder. ieMseoafnowphtiimle,a lthceo ndtyronlasmanicd csownsittcrhaiinntgs l(o1c0a)t iaonnds t(o11m), atkhee tphaetcho sctonfusntrcatiinotns ((1186)),m (1in7i)m, tihzee d.
+Meabnouwnhdialery, tchoensdtryaninatms (i1c4c) oannsdt r(a15in),t sm(u1s0t )bae nsdati(s1fi1e)d,. the path constraints (16), (17), the boundary
+constraints(14)and(15),mustbesatisfied.
+3. Solution
+3. Solution
+Section 2 gives the formula of the train energy-efficient operation problem. This section discusses
+thSee acntiaolnyt2icgail vseoslutthieonfo trom thuel atroafinth teratjreacitnoreyn oeprgtiym-eizffiactiioenn.t operationproblem. Thissectiondiscusses
+theanalyticalsolutiontothetraintrajectoryoptimization.
+3.1. Necessary Condition of the Train Energy-Efficient Operation
+3.1. NecessaryConditionoftheTrainEnergy-EfficientOperation
+Combining (10), (11) and (18), the Hamiltonian is as follows:
+Combining(10),(1f1)(va)nd(18),theHamiltonianisasfollows:
+H  t  t  d  d f d (v) v 1 v 2 t f t (v) d f d (v) m f m (v)w 0 (v)g(x) (19)
+t
+===== PDF页9 =====
+Energies2017,10,794 9of26
+µ f (v) λ λ
+H = − t t +αη µ f (v)+ 1 + 2 ·[µ f (v)−µ f (v)−µ f (v)−w (v)−g(x)] (19)
+η d d d v v t t d d m m 0
+t
+whereλ andλ aretheLagrangeMultipliers.
+1 2
+Tosimplify(19),anewadjointvariableisintroduced:
+θ = η λ /v (20)
+t 2
+whichconvertsEquation(19)asfollows:
+(θ−1) (cid:18) θ (cid:19) θ λ
+H = µ f (v)+ αη − µ f (v)− ·[µ f (v)+w (v)+g(x)]+ 1 (21)
+η t t d η d d η m m 0 v
+t t t
+Tomaximize(21),asetofsixoptimalcontrolsispresented:
+• Fullpower(FP):µ =1,µ = µ =0whenθ >1.
+t d m
+• Partialpower(PP):µ ∈ [0,1],µ = µ =0whenθ =1.
+t d m
+• Coasting(C):µ = µ = µ =0whenαη η < θ <1.
+t d m d t
+• Partialelectricalbraking(PEB):µ =0,µ ∈ [0,1],µ =0whenθ = αη η .
+t d m d t
+• Fullelectricalbraking(FEB):µ =0,µ =1,µ =0when0< θ < αη η .
+t d m d t
+• Fullbraking(FB):µ =0,µ = µ =1whenθ ≤0.
+t d m
+3.2. TransformationoftheTimeConstraint
+Inthissubsection,atheoremabouttheair-filltimeisgiven. Beforethat,thenecessarydefinitions
+andassumptionaregiven.
+Definition: Letv(cid:48)(x)betheinstantaneousspeedfromAtoB.LetthepositionofAandBbex
+A
+andx . LetthepositionofCandDbex andx . T isequaltotheintegrationfromx tox :
+B C D c A B
+(cid:90) xB 1
+T = dx (22)
+c
+xA
+v(cid:48)(x)
+wherev(cid:48)(x ) = ϕ(x )andv(cid:48)(x ) =V(x).
+A A B
+Assumption: supposev(x) ≤ ϕ(x)doesnothold,then,thereisv(x) > ϕ(x)toassuretheexisting
+oftheoptimalsolution.
+TheLipschitzcontinuityshouldbesatisfied:
+(cid:107)F(v ,x)−F(v ,x)(cid:107) ≤ L(cid:107)v −v (cid:107) (23)
+1 2 1 2
+whereL ≥0.
+Theorem1. Let ϕ(x)betheoptimalreleasespeedwhilethemechanicalbrakingisremoved. Letv(x)bethe
+velocity of the train speed. ϕ and v is the function of the train position x. If and only if v(x) ≤ ϕ(x), the
+optimalsolutiontotheproblemexists. AndT equalstothetimefromAtoB(seeFigure6)byapplyingfull
+c
+electricalbraking(FEB).
+ProofofTheorem1. Proofbycontradictionispresentedasfollows:
+Dependingontheassumption, ∃ϕ(cid:48)(x)and ϕ(cid:48)(x) > ϕ(x),i.e.,v(x ) = ϕ(cid:48)(x ). ϕ(x)and ϕ(cid:48)(x)
+A A
+areconstants. Tomakethetimefromv(x )tov(x )equaltoT ,theremustbeapointsatisfying:
+A D c
+v(x ) = v (cid:48)(x ) (24)
+C C
+===== PDF页10 =====
+Energies2017,10,794 10of26
+InFigure6,theinstantaneousspeedv(x)isalwaysgreaterthanv(cid:48)(x)fromx tox :
+A C
+v(x) > v (cid:48)(x) (25)
+Ifx > x ,thereis:
+C
+v(x) < v (cid:48)(x) (26)
+whichconvertsEquation(10)intothefollowingexpression:
+dv(x) −f (v(x))−w (v(x))−g(x)
+F(v,x) = = d 0 (27)
+dx v(x)
+where v(x ) and x are the initial states of the differential Equation (27), i.e., v = v(x ), x = x .
+C C C C
+∀v ,v > v(x ),∀x > x ,∃δ >0,giventheinitialcondition: Equation(26)andv = v(x ),onlyone
+1 2 C C C
+sEonelurgtiieos n201e7x, i1s0t,s 7a94t [ x C ,x C +δ]. 10 of 26
+v PP v(x) PP
+B D
+speed limit .
+C
+(x)
+(x)
+A v(x)
+0
+x
+C FEB FB FEB FB FEB FP
+normal gradient LDSD normal gradient
+FFiigguurree 66.. FuFull lelleecletrcitcraicl ablrabkrainkgin agnaalnyasilsy soifs thoef ftrheeigfhret itgrahitnt orani ntheo nlonthge-dliosntagn-dceis sttaenecpe dsotweenphdillo (wLnDhSiDll)
+(sLeDctSioDn). section.
+In Figure 6, the instantaneous speed v(x) is always greater than v(x) from x to x :
+However,Equation(26)impliesthattherearetwosolutionswhenx > x
+C
+. ThisAcontradCictsthe
+Lipschitzcontinuity(existenceanduniquenessvt(hxe)orevm(xo)f thedifferentialequation). Thenwehav
+(
+e
+2
+:
+5)
+Ifx > x ,thereis:
+C
+If xx C , there is: v(x) = v (cid:48)(x) (28)
+whichimpliesv(x) ≥ v(cid:48)(x). Meanwhile: v(x)v(x) (26)
+which converts Equation (10) into th(cid:90)e fxo
+D
+llo1wing exp(cid:90)rexs
+B
+sion1:
+t = dx ≥ dx = T (29)
+F(
+z
+v,x)
+xAdv( v x ( ) x
+
+) f
+d
+(v(xxA)) v w (cid:48)(
+0
+x ( ) v(x))g c (x)
+(27)
+dx v(x)
+Obviously,Equation(29)doesnotholdifv(x) ≥ v(cid:48)(x)andtheassumptiondoesnothold. Ifand
+ownhlyerief v( vx(x ) ≤ ) ϕa ( nxd ) ,Txhe oarreem th1eh ionlidtisa.lF sitnaatlelsy ,othf ethteim deifcfoernesntrtaiainl tEiqsutraatniosnfo (r2m7e),d i.teo.,t hvespve(exdc)o, nxstraxint..
+C C C C
+v,v v(x ), xx , 0, given the initial condition: Equation (26) and vv(x ), only one
+3.3.1So2lutionCtotheOptimCalControlProblemwiththeSpeedConstraint C
+solution exists at [x ,x ].
+C C
+The necessary condition of the freight train energy-efficient operation is given in Section 3.1.
+However, Equation (26) implies that there are two solutions when xx . This contradicts the
+Furtherstudyisproposedtosolvetheproblemwiththespeedconstraint. AccoCrdingtoEquation(15)
+Lipschitz continuity (existence and uniqueness theorem of the differential equation). Then we have:
+andTheorem1,twocomplementaryslacknessfactors(M(x)andT(x))areintroduced[14,38]:
+If xx C, there is:
+[v(x)−Vv((xx))]dMv((xx))/ dx =0 (28)
+(30)
+[v(x)−ϕ(x)]dT(x)/dx =0
+which implies v(x)v(x). Meanwhile:
+x 1 x 1
+t z  x D v(x) dx x B v(x) dxT c (29)
+A A
+Obviously, Equation (29) does not hold if v(x)v(x) and the assumption does not hold. If and
+only if v(x)(x) , Theorem 1 holds. Finally, the time constraint is transformed to the speed
+constraint.
+3.3. Solution to the Optimal Control Problem with the Speed Constraint
+The necessary condition of the freight train energy-efficient operation is given in Section 3.1.
+Further study is proposed to solve the problem with the speed constraint. According to Equation (15)
+and Theorem 1, two complementary slackness factors (M(x) and T(x)) are introduced [14,38]:
+v(x)V(x)dM(x)/dx0
+(30)
+v(x)(x)dT(x)/dx0
+where v(x)V(x) , dM(x)/dx0 ; v(x)V(x) , dM(x)/dx0 . v(x)(x) , dT(x)/dx0 ;
+v(x)(x), dT(x)/dx0.
+===== PDF页11 =====
+Energies2017,10,794 11of26
+where v(x) < V(x), dM(x)/dx = 0; v(x) = V(x), dM(x)/dx > 0. v(x) < ϕ(x), dT(x)/dx = 0;
+v(x) = ϕ(x),dT(x)/dx >0.
+ThederivativeoftheLagrangeMultipliersconsideringtheslacknessfactorsis:
+dλ ∂H
+1 = − (31)
+dx ∂t
+dλ ∂H dM(x) dT(x)
+2 = − + + (32)
+dx ∂v dx dx
+In(31),theHamiltoniandoesnotdependontexplicitly,thepartialderivativeofHiszero:
+dλ ∂H
+1 = − =0 (33)
+dx ∂t
+thus, λ = C, where C is a constant. Equation (20) introduces an adjoint variable to replace the
+1
+LagrangeMultiplierλ . Differentiating(20)yieldsthefollowing:
+2
+1
+dλ = d(θv) (34)
+2
+η
+t
+whichcanberewrittenas:
+1
+dλ = (vdθ+θdv) (35)
+2
+η
+t
+Combining(19),(32)and(35):
+dθ = (cid:110) (1−
+v
+θ) µt f(cid:48)
+t
+(v)+ (θ−α
+v
+ηdηt ) µ
+d
+f(cid:48)
+d
+(v)+ [w(cid:48) 0 (v)+µ
+v
+mf(cid:48) m (v)]θ + λ
+v
+1
+3
+ηt (cid:111) dx+ η
+v
+tdM(x)+ η
+v
+tdT(x) (36)
+InSection3.1,onlythegeneralrelationshipbetweentheadjointvariableandthetrainoptimal
+controlsisderived, i.e., thenecessarycondition. However, it’snotenoughtocalculatetheprecise
+speedtrajectoryofthefreighttrainenergy-efficientoperation. Inthissection, Equation(36)ofthe
+adjointvariableisobtainedtodeterminetheoptimalcontrolsforthetrainoperation.
+3.4. AnalysisoftheSpecialOptimalControls
+Tomakethefreighttrainoperationenergy-efficient,therearesixoptionaloptimalcontrols.Among
+them,therearethreeuniqueoptimalcontrols,i.e.,PP,PEBandFB.Wewilldiscussthespecialoptimal
+controlstogetmoredetailsaboutthetrainenergy-efficientoperation.
+3.4.1. PartialPower
+WhenthefreighttrainrunsontheintervalwithPP,therearetheadjointvariableθ =1,andits
+correspondingoptimalcontrolµ ∈ [0,1],µ = µ =0. Asaresult,thereis:
+t d m
+(cid:26) (cid:27)
+1 λ η η η
+dθ = w (cid:48)(v)+ 1 t dx+ t dM(x)+ t dT(x) (37)
+v 0 v3 v v
+Sinceθisconstant,dθ/dx =0. LetdM(x) =0anddT(x) =0,(37)canbeexpressedas:
+dθ 1 λ η
+= w (cid:48)(v)+ 1 t (38)
+dx v 0 v3
+Equation(38)isrewrittenas:
+v2w (cid:48)(v)+λ η =0 (39)
+0 1 t
+===== PDF页12 =====
+Energies2017,10,794 12of26
+where λ and η are constants. When θ = 1, there exists one or more optimal constant velocities.
+1 t
+Tofindthose,aspeedfunctionisdefinedasfollows:
+ζ(v) = v2w (cid:48)(v) (40)
+0
+DuetoEquations(12)and(40)canberewrittenas:
+ζ(v) = v2(b+2cv) (41)
+Obviously,ζ(v)ismonotoneincreasingforζ(cid:48)(v) > 0. Whenθ = 1,onlyoneoptimalconstant
+speedv thatmakesEquation(39)hold.
+c
+Letthetargetspeedofthetrainoperationbev . Whenθ =1,thereis:
+t
+v =min{v ,V(x)} (42)
+t c
+Themathematicaldescriptionofthenormalgradientwhereafreighttraincanmaintainaconstant
+speedispresented:
+µ f (v )−g(x)−w (v ) =0 (43)
+t t t 0 t
+whenthefreighttrainrunsontheintervalwithpartialelectricalbraking(PEB),wehavetheadjoint
+variableθ = αη η ,anditscorrespondingoptimalcontrol: µ =0,µ ∈ [0,1],µ =0. Substitutingθ
+d t t d m
+intoEquation(36)withθ = αη η yieldsthefollowing:
+d t
+(cid:26) (cid:27)
+αη η λ η η η
+dθ = d t w (cid:48)(v)+ 1 t dx+ t dM(x)+ t dT(x) (44)
+v 0 v3 v v
+Similarly,thereis:
+αη v2w (cid:48)(v)+λ =0 (45)
+d 0 1
+whichcanberewrittenas:
+αη ζ(v)+λ =0 (46)
+d 1
+whenafreighttrainisusingpartialelectricalbraking,thereisonlyoneoptimalconstantelectrical
+brakingspeedforEquation(46)duetothemonotoneincreasingofζ(v).
+Letthetargetspeedofthetrainoperationbev . Whenθ = αη η ,thereis:
+td d t
+v =min{v ,V(x)} (47)
+td d
+The mathematical description of other type of the normal gradient where a freight train can
+maintainaconstantspeedispresented:
+−µ f (v )−g(x)−w (v ) =0 (48)
+d d td 0 td
+3.4.2. FullBraking
+Whenthefreighttrainrunsontheintervalwithfullbraking(FB),θ ≤0,andthecorresponding
+optimalcontrol: µ =0,µ =1,µ =1. DuetothedefinitionoftheLDSD,thereis:
+t d m
+−µ f (v)−g(x)−w (v) >0 (49)
+d d 0
+whereµ =1,v ≤V(x),0< θ < αη η .
+d d t
+Whenpneumaticbrakingisapplied,thereis:
+−µ f (v)−µ f (v)−g(x)−w (v) <0 (50)
+d d m m 0
+===== PDF页13 =====
+Energies2017,10,794 13of26
+whereµ =1,µ =1.
+d m
+3.5. UniquenessAnalysisoftheOptimalControlattheTerminalPositionoftheLDSDSection
+SincethefreighttrainoperationonaLDSDsectionisdifferentfromthatonanormalgradient,
+thedrivingstrategiesthatareutilizedonthenormalgradientcan’tbeusedtogetthroughtheLDSD
+section. It’snecessarytoanalyzetheoptimalcontrolsfortheLDSDsection.
+Inthissection,atheoremabouttheuniquenessoftheoptimalcontrolontheLDSDsectionwillbe
+proved,whichgivesouttheoptimalcontrolattheterminalpositionoftheLDSD.
+Theorem2.AssumethatafreighttrainisattheterminalpositionoftheLDSD(seeFigure6).Whilev >V(x),
+c
+weobtainthattheadjointvariableis0< θ < αη η ,andtheoptimalcontrolisFEB,thevelocityofthetrainis
+d t
+equaltothelinespeedlimit.
+ProofofTheorem2. Proofbycontradiction:
+Assumption: theoptimalcontrolattheterminalpositionoftheLDSDisnotFEB.Thenthepossible
+optimal controls are FP, PP, PEB, C or FB. The comparison of FEB and other optimal controls is
+presented in Figure 7. In Figure 7a–d, ϕ(x) is the pneumatic braking release speed by applying
+“FB+FEB”.
+• FP
+If the freight train is accelerated to V(x) with FP (see Figure 7a), the air-filled time holds on
+viaTheorem1. Then,thereisv(x) ≤ ϕ (x),where ϕ (x)isthepneumaticbrakingreleasespeedby
+a a
+applying“FB+FP”. SincetheaccelerationofFPisgreaterthanthatofFEB,ϕ (x)isfarlessthanϕ(x)so
+a
+thatthereissufficientairintheauxiliaryreservoirforthenextpneumaticbraking. Therefore,it’svery
+possiblethat ϕ (x)islessthan30km/h[39],whichwillcauselargelongitudinalimpactonthewagon
+a
+couplers. Meanwhile,thefreighttrainisrunningontheenergy-efficientslope,i.e.,LDSDsection. It
+doesnotnecessarilyconsumeenergyfromthetractionnetwork. Insummary,FPisnottheoptimal
+controlattheterminalpositionoftheLDSD.
+• PP
+Equation(38)canberewrittenas:
+dθ ζ(v)+λ η
+= 1 t (51)
+dx v3
+InFigure7b, ϕ (x)isassumedastheholdingspeedorpneumaticbrakingreleasespeedwiththe
+b
+relationship ϕ (x) < v . Ifthetriptimeisgiven,Section3.4.1impliesthatthereisonlyoneoptimal
+b c
+holdingspeedv tomakedθ/dx = 0. Meanwhile, ζ(v)ismonotoneincreasing. When ϕ (x) < v ,
+c b c
+thereisdθ/dx <0,i.e.,θismonotonedecreasing.
+For a freight train that is running at x with PP (v(x ) = ϕ (x )), the corresponding adjoint
+1 1 b 1
+variable θ(x ) = 1. Ifthetrainrunsfrom x to x withPP,wehave v(x ) = ϕ (x ) and θ(x ) = 1.
+1 1 2 2 b 2 2
+Since ϕ (x) is the holding speed, then ϕ (x) = ϕ (x ) = ϕ (x ). Once θ is monotone decreasing,
+b b b 1 b 2
+thentheadjointvariableθ(x ) <1. Obviously,theoptimalcontrolforthefreighttrainatx isnotPP.
+2 2
+However,thiscontradictswiththeassumption: thetrainshouldberunningontheLDSDwithPPafter
+pneumaticbrakingisreleased. Thus,PPisnottheoptimalcontrol.
+• PEB
+Inasimilarway,itcanbeprovedthatthevelocityofthetrainisnotmaintainedifPEBisapplied
+ontheLDSDsection,whichcontradictswiththeassumption-thetrainshouldberunningatconstant
+speedv basedonSection3.4.2. Then,PEBisexcluded.
+d
+===== PDF页14 =====
+Energies2017,10,794 14of26
+• C
+AccordingtoEquation(18),thereisminJ =0atthecoastingphase(seeFigure7c). Ontheother
+1
+hand,whileFEBisapplied,theenergyconsumptionis:
+(cid:90) X2
+minJ = (−αη µ f (v))dx (52)
+2 d d d
+Energies 2017, 10, 794 0 14 of 26
+whereX istherunningdistancebyapplyingFEB.
+It is2 clear that minJ minJ . Thus, it’s more energy-efficient to apply FEB. Meanwhile, if FEB
+ItisclearthatminJ 2<minJ1. Thus,it’smoreenergy-efficienttoapplyFEB.Meanwhile,ifFEB
+2 1
+is applied, the electricity generated from the motor in the locomotive can be fed back to the traction
+isapplied,theelectricitygeneratedfromthemotorinthelocomotivecanbefedbacktothetraction
+network so that other trains absorb it. If C is applied, the pneumatic braking speed (x) that may
+networksothatothertrainsabsorbit. IfCisapplied,thepneumaticbrakingspeed ϕ (xc)thatmaybe
+c
+be very low leads to large longitudinal impact on the couplers. Thus, C is not the optimal control.
+verylowleadstolargelongitudinalimpactonthecouplers. Thus,Cisnottheoptimalcontrol.
+• FB
+• FB
+Assume that (x) is the pneumatic braking release speed by applying “FEB+FB” (see the blue
+d
+Assumethat ϕ (x)isthepneumaticbrakingreleasespeedbyapplying“FEB+FB”(seetheblue
+line in Figure 7(d)).d We have (x)(x). Compared with the energy consumption of accelerating
+d
+lineinFigure7(d)). Wehave ϕ(x) = ϕ (x). Comparedwiththeenergyconsumptionofaccelerating
+the train speed from v to V(x), mored traction energy is consumed if the train speed is accelerated
+thetrainspeedfromvctoV(x),moretractionenergyisconsumedifthetrainspeedisaccelerated
+c
+from v to (x) (the blue line). Therefore, FB is not the optimal control. In summary, the
+fromv cto ϕ (x)d(theblueline). Therefore,FBisnottheoptimalcontrol. Insummary,theassumption
+c d
+assumption does not hold. The only optimal control is FEB. Theorem 2 states uniqueness of the
+doesnothold. TheonlyoptimalcontrolisFEB.Theorem2statesuniquenessoftheoptimalcontrolat
+optimal control at the terminal position of the LDSD.
+theterminalpositionoftheLDSD.
+v v
+v FEB c v FEB c
+V(x) V(x)
+(x) (x)
+x x
+(x) (x) 1 2
+a b
+FP
+0 x 0 x
+FB FP PP FB PP FP PP
+LDSD normal gradient LDSD normal gradient
+(a) (b)
+v v
+v FEB c v c
+V(x) V(x)
+(x)
+(x)
+(x)
+d
+(x) FB FEB FP
+c
+C
+0 x 0 x
+FB FP PP FEB FB FP PP
+LDSD normal gradient LDSD normal gradient
+(c) (d)
+Figure 7. Comparative analysis of the optimal controls: (a) FEB and FP; (b) FEB and PP; (c) FEB and
+Figure7.Comparativeanalysisoftheoptimalcontrols:(a)FEBandFP;(b)FEBandPP;(c)FEBandC;
+(Cd;) ( F d E ) B FEanBd aFnBd. FB.
+4. Linkage of the Speed Holding Section
+4.1. Direction of the Linkage
+Let the speed holding section be the interval with PP or PEB. The corresponding velocities are
+v and v . The optimization trajectory from the initial position (0) to the terminal position ( X ) is
+c d
+divided into three parts. Figure 8 shows the linkage of the three different parts.
+As Theorem 1 and Theorem 2 should be satisfied in the optimization trajectory calculation, a
+backward integration (profile 1) is adopted to calculate the speed profile in the LDSD section. And a
+forward integration is adopted to calculate the speed profile in the normal gradient section. The two
+profiles meet at the switching position x (see Figure 8), while the adjoint variables of the two speed
+1
+profiles also meet at x .
+1
+===== PDF页15 =====
+Energies2017,10,794 15of26
+4. LinkageoftheSpeedHoldingSection
+4.1. DirectionoftheLinkage
+LetthespeedholdingsectionbetheintervalwithPPorPEB.Thecorrespondingvelocitiesarev
+c
+andv . Theoptimizationtrajectoryfromtheinitialposition(0)totheterminalposition(X)isdivided
+d
+intothreeparts. Figure8showsthelinkageofthethreedifferentparts.
+As Theorem 1 and Theorem 2 should be satisfied in the optimization trajectory calculation,
+abackwardintegration(profile1)isadoptedtocalculatethespeedprofileintheLDSDsection. Anda
+forwardintegrationisadoptedtocalculatethespeedprofileinthenormalgradientsection. Thetwo
+Energies 2017, 10, 794 15 of 26
+profilesmeetattheswitchingpositionx (seeFigure8),whiletheadjointvariablesofthetwospeed
+1
+profilesalsomeetatx .
+Meanwhile, anot1her backward integration (profile 2) is adopted to calculate the speed profile
+Meanwhile,anotherbackwardintegration(profile2)isadoptedtocalculatethespeedprofilefrom
+from the terminal position ( X ) to the end position of the LDSD section. Backward profile 1 and
+theterminalposition(X)totheendpositionoftheLDSDsection. Backwardprofile1andbackward
+backward profile 2 meet at the switching position x . And the adjoint variables of the two speed
+profile2meetattheswitchingpositionx . Andthea2djointvariablesofthetwospeedprofilesalso
+2
+profiles also meet at x .
+meetatx . 2
+2
+Forward profile
+v Backward profile 1 V(x)
+Backward profile 2 v
+v d
+c
+xX
+x x
+0 1 2
+x
+normal gradient LDSD normal gradient
+FFiigguurree 88.. FFoorrwwaarrdd aanndd bbaacckkwwaarrdd ssppeeeedd pprroofifillee..
+44..22.. SSuufffificciieenntt CCoonnddiittiioonnss ooff SSttaattee VVaarriiaabbllee IInneeqquuaalliittyy CCoonnssttrraaiinntt
+SSeeiieerrssttaadd aannddS ySdysdaseateerte[r4 0[]4p0r]o pproospedosaesdu fafi csiuenffticthieenotr etmhetoordemea ltwo itdhetahle wstiatthe vthaeri asbtaletein veqauriaalbitlye
+cinoenqsutraaliintyt (cEoqnustartaioinnts (E(1q6u)aatinodns( 1(71)6)). aSnidn c(e17θ))i.s Stihnecef un citsi otnheo ffutnhcetitornai nofp tohsei ttiroaninx ,poaspitiieocne wxi,s ea
+cpoienctienwuiosue scfounntcintiuoonuθs( xfu)n=cti[oθ
+1
+n( x)(,xθ)2(x)
+1
+(,x·),··
+2
+(,xθ),nL(x,)
+n
+](xi)sa isss uamsseudmteodb etoe xbies teexdisotnedt hoens pthaen s[p0,aXn ][w0h,Xich]
+h
+w
+a
+h
+s
+ic
+a
+h
+p
+h
+i
+a
+e
+s
+c e
+a
+w
+p
+is
+ie
+e
+ce
+c
+w
+on
+is
+ti
+e
+n
+c
+u
+o
+o
+n
+u
+t
+s
+in
+d
+u
+e
+o
+r
+u
+iv
+s
+a
+d
+t
+e
+iv
+ri
+e
+va
+−
+ti
+d
+v
+θ
+e
+/
+−
+dxd(s/edxe E
+(s
+q
+e
+u
+e
+a
+E
+ti
+q
+o
+u
+n
+at
+(
+i
+3
+o
+6
+n
+))
+(3
+e
+6
+x
+)
+c
+)
+e
+e
+p
+x
+t
+c
+f
+e
+o
+p
+r
+t
+a
+fo
+fi
+r
+n
+a
+i t
+f
+e
+in
+n
+it
+u
+e
+m
+nu
+b
+m
+er
+b
+o
+e
+f
+r
+d o i f s d co is n c t o in n u ti o n u u s ou p s o i p n o ts in . t A s. t A th t e th p e o i p n o ts in o t f s d o i f s c d o i n sc ti o n n u ti i n ty ui τ t1y , τ2 · , ··τLkof θ o ( f x )  , ( 0 x) < , τ01 < τ 2 < ·  · L · < τ k ≤  XX , ,
+1 2 k 1 2 k
+thefollowingjumpconditionissatisfied:
+the following jump condition is satisfied:
+(cid:12)
+θ j (τ i + j ) ( = i ) θ j (τ j i − ( ) i − ) b b ∂  h h ( ( x x  ∂ , , v v v v ( ( x x ) ) ) )
+x
+(cid:12) (cid:12) (cid:12)
+
+x= τi (5 (5 3 3 ) )
+i
+where:
+where:
+• • τ i − a a n n d d τ i + de d no en te o t t h e e th le e f l t e -h ft a - n h d an s d id s e id a e n d an t d h e th ri e g r h ig t- h h t a - n h d an s d id s e id o e f t o h f e th tr e a t i r n a p in o s p i o ti s o i n tio τ ni . .
+i i i
+• j =1,2,··· ,n.
+• j1,2, ,n.
+• i =1,2,··· ,k.
+• i1,2, ,k.
+• b ≥0.
+• b0.
+• h(x,v(x)) =V(x)−v(x) ≥0orh(x,v(x)) = ϕ(x)−v(x) ≥0.
+• h(x,v(x))V(x)v(x)0 or h(x,v(x))(x)v(x)0.
+AccordingtotheEquation(30),thejumpconditionofθareasfollows:
+According to the Equation (30), the jump condition of  are as follows:
+(1) Whilev(x) =V(x),dM(x)/dx >0,θjumps.
+(1) While v(x)V(x), dM(x)/dx0,  jumps.
+(2) Whilev(x) = ϕ(x),dT(x)/dx >0,θjumps.
+(2) While v(x)(x), dT(x)/dx0,  jumps.
+4.3. Linkage Case
+Two typical cases are used to illustrate the linkage of the speed holding section incorporating
+the LDSD section, i.e., v V(x) and v V(x).  is the function of the train position x . The
+c c
+relationship of  and x is presented.
+4.3.1. Case 1
+(1) In Figure 9, the optimal control of the freight train switches from PP to C before entering the
+LDSD section. Based on the linkage direction in Section 4.1, the intersection of forward profile
+(C) and backward profile 1 (FEB) is xx .
+0
+===== PDF页16 =====
+Energies2017,10,794 16of26
+4.3. LinkageCase
+Twotypicalcasesareusedtoillustratethelinkageofthespeedholdingsectionincorporatingthe
+LDSDsection,i.e.,v >V(x)andv <V(x). θisthefunctionofthetrainpositionx. Therelationship
+c c
+ofθandxispresented.
+4.3.1. Case1
+(E1n)ergieIsn 20F1i7g, u10r,e 7994, theoptimalcontrolofthefreighttrainswitchesfromPPtoCbeforeenterin16g otfh 2e6
+LDSDsection. BasedonthelinkagedirectioninSection4.1,theintersectionofforwardprofile(C)
+(2) Eanntderbinacgk twhea rLdDpSrDofi sleec1tio(FnE, Bth)ei sspxe=edx of. the freight train keeps increasing even if FEB is applied.
+0
+(2) TEhnet earidnjgoitnhte vLaDriSaDblsee c(tio)n ,isth setislpl edeedcorefatshiengfr.e iWghhtiltera inke0ep,s inv(cxr)eaVsi(nxg) .e vAelnthiofuFgEhB itshaep jpulmiedp.
+c
+T
+o
+h
+n
+e
+di
+a
+t
+d
+io
+jo
+n
+i n
+of
+t va r
+i
+i
+s
+a
+s
+b
+a
+l
+t
+e
+is
+(
+f
+θ
+ie
+)
+d
+is
+, t
+s
+h
+t
+e
+il l
+ju
+d
+m
+ec
+p
+r e
+w
+a
+i
+s
+l
+i
+l
+n
+n
+g
+o
+.
+t h
+W
+a
+h
+p
+i
+p
+le
+en
+θ
+y
+=
+et d
+0−
+ue
+, v
+to
+( x
+th
+)
+e
+=
+op
+V
+ti
+(
+m
+x)
+a
+.
+l c
+A
+o
+l
+n
+t
+t
+h
+r
+o
+o
+u
+ls
+g
+.
+h
+At
+t h
+th
+e
+e
+j u
+n
+m
+ex
+p
+t
+conditionofθissatisfied,thejumpwillnothappenyetduetotheoptimalcontrols. Atthenext
+m
+m
+o
+o
+m
+m
+e
+e
+n
+n
+t
+t
+,
+, θ
+
+=
+0
+0
+ +,
+,
+F
+F
+B
+B
+i
+i
+s
+s
+a
+a
+p
+p
+p
+p
+l
+l
+i
+i
+e
+e
+d
+d
+.
+.
+W
+W
+e
+e
+h
+h
+a
+a
+v
+v
+e
+e v
+v
+(
+(
+x
+x)
+)
+
+<
+V(
+V
+x)
+(
+.
+x ).
+( ( 3 3 ) ) O O n n c c e e F F B B i i s s a a p p p p l l i i e e d d , , p pn n e e u u m m a a t t i i c c b b r ra a k k i i n n g g i i s s r r e e l l e e a a s s e e d d u u n n t t i i l l v v ( ( x x ) ) =  ϕ (x ( ) x .) . Th T e h n e n d d T T ((x x ))/ / d d x x >0 0 , ,  θ
+jjuummppss aatt τ
+1
+−
+1
+..W Weeh haavvee0 <0θ(τ(
+1
++
+1
+))<αη
+d
+
+d
+η
+t
+,t ,ththeenn FFEEBB iiss aapppplliieedd.. AAnndd FFEEBB iiss kkeepptt uunnttiill vv(x(x))=VV((xx))
+a
+a
+n
+n
+d
+d
+
+θ =
+0
+0 −
+.
+.
+T
+T
+h
+h
+e
+e
+n
+n
+F
+F
+B
+B
+i
+i
+s
+s
+a
+a
+p
+p
+p
+p
+l
+l
+i
+i
+e
+e
+d
+d
+a
+a
+g
+g
+a
+a
+i
+i
+n
+n
+.
+.
+(4) While the freight train is running at the terminal position of the LDSD section, we have
+(4) While the freight train is running at the terminal position of the LDSD section, we have
+v(τ −) =V(τ −). For dM(x)/dx > 0, θ jumps from τ − to τ + . Then FP is applied while the
+v(3)V()3. For dM(x)/dx0,  jumps from 3 to 3. Then FP is applied while the
+frei3ghttrai3nisleavingtheLDSD.Finally,thefreighttr3ainisa3cceleratedtov .
+c
+freight train is leaving the LDSD. Finally, the freight train is accelerated to v .
+c
+v
+v v
+c c
+V(x)
+xx
+0
+(x)
+0 x
+PP C FEB FB FEB FB FEB FP PP
+
+
+3
+1
+ d  t  1   2  
+0 3
+ 
+1 2
+x
+normal gradient LDSD normal gradient
+FFiigguurree 99.. LLiinnkkaaggee ooff tthhee ssppeeeedd hhoollddiinngg sseeccttiioonn ccoonnssiiddeerriinngg tthhee LLDDSSDD sseeccttiioonn ((vv cc >VV((xx))))..
+44..33..22.. CCaassee 22
+((11)) IInn FFiigguurree 1100,, tthhee ooppttiimmaall ccoonnttrrooll ooff tthhee ffrreeiigghhtt ttrraaiinn sswwiittcchheess ffrroomm PPPP ttoo CC bbeeffoorree eenntteerriinngg tthhee
+LLDDSSDD sseeccttiioonn.. BBaasseedd oonn tthhee lliinnkkaaggeed dirierectcitoionni ninS eScetciotinon4 .14,.1t,h tehien tienrtseercsteicotnioonf foofr fwoarwrdaprdro pfirloef(iCle)
+( a C n ) d an ba d c b k a w c a k r w d a p r r d o p fi r le of 1 il ( e F 1 E B (F ) E is B) x i = s xx0. x .
+0
+(2) Whileθ =0−,v(x) =V(x). Atthenextmoment,θ =0+,FBisapplied. Wehavev(x) <V(x).
+(2) While 0 , v(x)V(x). At the next moment, 0 , FB is applied. We have v(x)V(x).
+(3) Once FB is applied, pneumatic braking is released until v(x) = ϕ(x). Then dT(x)/dx > 0, θ
+(3) Ojunmcep sFBat iτs −a.pWpleiehda, vpen0eu<mθa(tτic+ b)r<akiαnηg ηis, rFeEleBaissedap upnliteild . v A (x n ) d  F ( E x B ).i sTkheepnt udnTt(ilx)v/(xd)x=0V,( x  )
+1 1 d t
+jaunmdpθs =at 0 −..T Wheen hFaBveis 0appl(ied)again. , FEB is applied. And FEB is kept until v(x)V(x) and
+1 1 d t
+(4)
+
+W
+
+h
+0
+ile
+.
+t
+T
+h
+h
+e
+en
+fr
+F
+ei
+B
+g h
+is
+t
+a
+t
+p
+ra
+p
+i
+l
+n
+ied
+is
+a
+r
+g
+u
+a
+n
+in
+n
+.
+i ng at the terminal position of the LDSD section, we have
+v(τ −) =V(τ −). FordM(x)/dx >0,θjumpsfromτ − toτ + . ThenFPisappliedwhilethefreight
+(4) Whi2le the fre2ight train is running at the termina2l posi2tion of the LDSD section, we have
+train is leaving the LDSD. Finally, the freight train will coast to v . And the optimal control
+v()V() . For dM(x)/dx0,  jumps from  to  . The d n FP is applied while the
+bet2weenPE2BsectionandPPsectionisC. 2 2
+freight train is leaving the LDSD. Finally, the freight train will coast to v . And the optimal
+d
+control between PEB section and PP section is C.
+===== PDF页17 =====
+Energies2017,10,794 17of26
+Energies 2017, 10, 794 17 of 26
+Energies 2017, 10, 794 17 of 26
+v
+v
+V(x)
+v v c c V(x) v v d d v v c c
+xx
+(x) xx0
+(x) 0
+x
+0 x
+0 PP C FEB FB FEB C PEB C PP
+ PP C FEB FB FEB C PEB C PP
+
+   1  1 d  t   1 1    2 2 
+d t 
+0 2
+0 2
+
+1
+1
+x
+x
+normal gradient LDSD normal gradient
+normal gradient LDSD normal gradient
+F FF i ii g gg u uu r rr e ee 1 11 0 00 . . . L LL i ii n nn k kk a aa g gg e ee o oo f ff t tt h hh e ee s ss p pp e ee e ee d dd h hh o oo l ll d dd i ii n nn g gg s ss e ee c cc t tt i ii o oo n nn c cc o oo n nn s ss i ii d dd e ee r rr i ii n nn g gg t tt h hh e ee L LL D DD S SS D DD s ss e ee c cc t tt i ii o oo n nn ( ((vv v c c c <  VVV ((( xxx ))) ) ) .) . .
+55.. RReellaattiioonnsshhiipp bbeettwweeeenn JJoouurrnneeyy TTiimmeea annddE EnneerrggyyC Coonnssuummppttiioonn
+5. Relationship between Journey Time and Energy Consumption
+IInn tthhee pprreevviioouuss aarrttiicclleess [[22,,1111,,4411]],, tthhee ccoonnflfliicctteedd rreellaattiioonnsshhiipp bbeettwweeeenn tthhee jjoouurrnneeyy ttiimmee aanndd eenneerrggyy
+In the previous articles [2,11,41], the conflicted relationship between the journey time and energy
+ccoonnssuummppttioionnw wasasst usdtuieddi.eFdr. oFmrothme ptehres ppeecrtisvpeeoctfitvrea cotifo ntreancetirogny ceonnesrugmy pctioonns,uwmepdtrioawn, awcoen cdlruaswio na:
+consumption was studied. From the perspective of traction energy consumption, we draw a
+tchoentcoltuaslieonne: rtghye ctootnaslu emneerdg(yE c)oisnsaurmigeodro (uEs)l iys ma oringootroonuesldye mcreoansointognfeu dnectciroenasoifntgh feugnicvteionnjo oufr tnheey gtiivmeen
+conclusion: the total energy consumed (E) is a rigorously monotone decreasing function of the given
+(
+jo
+jTo
+u
+0u)
+r
+r.
+n
+nT
+e
+eh
+y
+y e
+t
+t
+i
+ri
+m
+mel
+e
+ae t
+(
+i(T oTn
+0
+s
+)
+)h
+.
+.
+T
+iTp
+h
+hi
+e
+es
+r
+pr
+e
+er
+l
+l
+a
+eas
+t
+t
+i
+ei
+o
+on
+n
+nt
+s
+es
+h
+dh
+i
+i
+p
+ipn
+i
+i
+s
+tsh
+p
+pe
+r
+r
+e
+feo
+s
+s
+e
+lel
+n
+on
+t
+wt
+e
+e
+d
+idn
+i
+gi
+n
+n m
+t
+t
+h
+ha
+e
+et h
+f
+f
+o
+eo
+l
+ml
+l
+l
+o
+oa
+w
+wti
+i
+ci
+n
+an
+g
+lg e
+m
+mq
+a
+ua
+t
+at
+h
+ht
+e
+ieo
+m
+mn
+a
+:a
+t
+t
+i
+i
+c
+c
+a
+a
+l
+l
+e
+e
+q
+q
+u
+u
+a
+a
+t
+t
+i
+i
+o
+o
+n
+n
+:
+:
+0
+EE E=   ψ( ( ( TTT 00) )) ( ( 5 (5 4 54 ) 4) )
+0
+ww
+w
+hh
+h
+ee
+e
+rr
+r
+ee
+e
+ψ 
+(cid:48)(T( (
+T
+T
+)0)
+)
+<
+
+0
+0
+0..
+.
+00
+TTT hhh eee rrr eeell laa att tii ioo onn nss shh hii ipp p c c caa ann n b b bee e i i ill lll luu uss stt trr raa att tee edd d i i inn n F F Fiigi g guu urr ree e 1 1 111 1.. .
+E
+E
+0
+0
+T
+T
+0
+0
+Figure 11. Energy consumption and journey time.
+FFiigguurree 1111.. EEnneerrggyy ccoonnssuummppttiioonn aanndd jjoouurrnneeyy ttiimmee..
+The conclusion will be adopted to analyze the relationship of the interval time allocation and the
+The conclusion will be adopted to analyze the relationship of the interval time allocation and the
+freigThht etrcaoinnc’sl uesnioenrgwy icllobnesuamdoppttioedn.t oDaenpaelnydzientgh eonre Tlahtieoonrsehmip 2o afnthde Sienctteirovna l4t.i3m, tehael loopcatitmioanl adnrdivtihneg
+freight train’s energy consumption. Depending on Theorem 2 and Section 4.3, the optimal driving
+fsrteriagthetgytr aoinn t’shee nLeDrgSDy csoenctsiuomn sphtoiounld. Dbee ptheen dpienrgioodnic Tbhraekoirnegm, i2.ea.,n FdEBSe+cFtBio+nFE4B.3 (,stehee Foigputirme a1l2d), rwivhinicgh
+strategy on the LDSD section should be the periodic braking, i.e., FEB+FB+FEB (see Figure 12), which
+sitnrcarteeagsyeso nthteh enuLmDbSeDr soefc tfiroenigshht oturaldinbs eththaet ppaesrsio dInicterbvraalk i2n ga,nid.e .t,hFisE Bd+eFcrBe+aFseEsB t(hsee etoFtiaglu ernee1r2g)y,
+increases the number of freight trains that pass Interval 2 and this decreases the total energy
+wcohnicshuminpctrieoans efrsotmhe 0n tuom Xb. eroffreighttrainsthatpassInterval2andthisdecreasesthetotalenergy
+consumption from 0 to X.
+consumptionfrom0toX.
+===== PDF页18 =====
+Energies2017,10,794 18of26
+Energies 2017, 10, 794 18 of 26
+v V(x)
+v v
+c c
+v v
+c c
+x
+PP FEB 1 x
+C FB 2
+T
+s x
+0
+Interval 1 Interval 2 Interval 3
+normal gradient LDSD normal gradient
+FFiigguurree 1122.. IInntteerrvvaall ttiimmee aallllooccaattiioonn aanndd eenneerrggyy ccoonnssuummppttiioonn..
+Analysis: in Figure 12, suppose there are two driving strategies on the LDSD section.
+Analysis: inFigure12,supposetherearetwodrivingstrategiesontheLDSDsection.
+(1) Strategy 1: FEB+FB+FEB, the pneumatic braking release speed is equal to (x ).
+(1) Strategy1: FEB+FB+FEB,thepneumaticbrakingreleasespeedisequalto ϕ(x 1).
+1
+(2) Strategy 2: C+FB+C, the pneumatic braking release speed is equal to (x ).
+(2) Strategy2: C+FB+C,thepneumaticbrakingreleasespeedisequalto ϕ(x2).
+2
+The trip from 0 to X is divided into three intervals as follows. v and v are the holding speed
+Thetripfrom0toXisdividedintothreeintervalsasfollows. v
+c andv(cid:48)c
+aretheholdingspeed
+(PP) of Interval 1 and Interval 3. T is the journey time of Interval c2. Givenc the total journey time
+(PP)ofInterval1andInterval3. T issthejourneytimeofInterval2. GiventhetotaljourneytimeT ,
+s set
+T , the journey time of Interval 1 and Interval 3 is T T .
+thseetjourneytimeofInterval1andInterval3isT −Tse.t s
+set s
+A
+A
+s
+s
+ϕ
+((
+x
+x
+1
+1))>
+ϕ
+(x(2x )
+2
+,) t
+,
+h
+t
+e
+h e
+jo
+j
+u
+ou
+rn
+rn
+ey
+ey
+ti
+t
+m
+im
+e
+e
+o
+o
+f
+f
+S
+S
+tr
+t
+a
+ra
+te
+te
+g
+g
+y
+y
+1
+1
+is
+is
+le
+le
+s
+s
+s
+s
+t
+t
+h
+h
+a
+a
+n
+n
+t
+t
+h
+h
+a
+a
+t
+t
+o
+o
+f
+f
+S
+S
+t
+t
+r
+r
+a
+a
+t
+t
+e
+e
+g
+g
+y
+y
+2
+2
+i
+i
+n
+n
+I
+I
+n
+n
+t
+t
+e
+e
+r
+r
+v
+v
+a
+a
+l
+l
+2
+2
+,
+,
+w
+wh
+h
+i
+i
+c
+c
+h
+h
+mmeeaannss tthhaatt tthhee aavveerraaggee ssppeeeedd ooff tthhee ffrreeiigghhtt ttrraaiinn wwiitthh SSttrraatteeggyy 11 iiss ggrreeaatteerr tthhaann tthhaatt wwiitthh SSttrraatteeggyy 22..
+OObbvviioouussllyy,, tthhee nnuummbbeerr ooff tthhee ppnneeuummaattiicc bbrraakkiinngg iinnssttaanncceess wwiitthh SSttrraatteeggyy 11 sshhoouulldd bbee lleessss tthhaann tthhaatt
+wwiitthh SSttrraatteeggyy 22 bbeeccaauussee tthhee aavveerraaggee ssppeeeedd wwiitthh SSttrraatteeggyy 11 iiss ggrreeaatteerr.. TThheerreeffoorree,, tthhee nnuummbbeerr ooff ffrreeiigghhtt
+ttrraaiinnss tthhaattp pasasssI nItnetrevravla2l i2n tinhe tfihxee fdixteimd etihmase ihnacrse ainscerde.aMseeda.n Mwheailnew,ifhSilter,a tief gSytr1aitsegayp p1l ieisd ainppInliteedrv ianl
+2In,ttehrevajol u2r,n tehye tjiomuernTey↓ t,imthee nTthe, jtohuernn ethyet ijmoueronfeyth teimrees toifn ttherev raelsst (iTnter−vaTls) (↑T. AnTd)th.e Ahonldd itnhge
+s s set s set s
+shpoeldedindgr osppseeddo wdnrofprosm dov cwtno vfr (cid:48) co.mA ccvo
+c
+r dtion gvt
+c
+o. thAeccreolradtiionngs htoip tbheet wreeleantiothnesheinpe rbgeytwcoenesnu mthpet ioennearngdy
+tchoensjouumrnpetiyonti maned( stheee Fjoiugrunreey1 t1i)m, teh (esetrea Fctigiounree n11e)r,g tyhec otnrascutmiopn teionnerogfyS ctorantseugmyp1tiiosnle osfs Sthtraantetghya t1 oisf
+Sletsrsa ttehgayn 2th.aMt oefa Sntwrahtielgey,S 2t.r Mateeagnyw1hainled, SSttrraatteeggyy 12 awndil lSgtreanteegrayt 2e welielcl tgreicnietyraoten etlheectLriDciStyD osne cthtieo LnDaSnDd
+fseeecdtiobna cakndto fteheed trbaacctkio tno nthetew torarkct.ioInn Innettewrvoarlk.2 ,Inth Ienftuerlvlaell e2c,t rtihcea lfburlla keilnecgtrdicisatla bnrcaekoinfgS tdraistteagnyce1 oisf
+gSrtreaatteegryt h1a itso gfrSetartaetre gthya2t oafn Sdtrtahteegayv e2r aagnede tlhecet raivcearlabgrea keilnecgtrfiocracle borafkSitnrgat efogryce1 oisf Saltsroateggreya 1te irs tahlasno
+tghraetatoefrS tthraante gthya2t .oTf hSetrnawtegeyc o2u. lTdhiennf ewreth caotuSltdr aintefgeyr t1hgate nSetrraatteegsym 1o greeneenreartgeys tmhoanret henaetrogfyS ttrhaatne gtyha2t.
+Hofe Sntcrea,tecognys 2id. eHrienngceth, ceoennseidrgeyricnogn tshuem epnteirognyo cfoInnsteurmvaplti1o~nI notfe Irnvtaelr3v,awl 1e~cIanntecrovnacl l3u,d weet hcaatnS ctroantcelguyd1e
+itshamt oSrteraetneegryg 1y -iesf fimcoierne te.nergy-efficient.
+6. NumericalAlgorithm
+6. Numerical Algorithm
+Inthispaper,thenecessaryconditionofthetrainenergy-efficientoperationisderived.Thelinkage
+In this paper, the necessary condition of the train energy-efficient operation is derived. The
+ofthespeedholdingsectionisgiven. Theconstraints(13),(16)and(17)areconsideredintheoptimal
+linkage of the speed holding section is given. The constraints (13), (16) and (17) are considered in the
+controlproblem. However,toobtainanoptimaltrajectoryofthetrainoperationunderthegiventime,
+optimal control problem. However, to obtain an optimal trajectory of the train operation under the
+theconstraint(15)shouldbetakenintoconsideration. Aniterativealgorithmisproposedtocalculate
+given time, the constraint (15) should be taken into consideration. An iterative algorithm is proposed
+theoptimaltrajectoryofthefreighttrainenergy-efficientoperationincorporatingtheLDSDsection.
+to calculate the optimal trajectory of the freight train energy-efficient operation incorporating the
+It’sdifficulttochooseaninitialholdingspeed(v )withPP,inthefirstiteration,supposetheinitial
+LDSD section. It’s difficult to choose an initial hcolding speed (v ) with PP, in the first iteration,
+c
+holdingspeedis:
+suppose the initial holding speed is:
+X
+v = (55)
+c
+TXset
+Thedetailedprocedureofthealgorithmis v acs  foTllow s: (55)
+set
+(1) TChaelc duelatateilethde psrhoocretdeustreti mofe th(Te a)lfgroormith0mto isX a,so bfotallionwths:e flat-outrunningtrajectory.
+1
+(1) Calculate the shortest time (T ) from 0 to X, obtain the flat-out running trajectory.
+• IfT ≥ T ,thengotost1ep(2).
+set 1
+• If T T , then go to step (2).
+set 1
+• If T T , optimization terminates, the flat-out running trajectory is returned.
+set 1
+===== PDF页19 =====
+Energies 2017, 10, 794 19 of 26
+(2) Initializing v , then solve v by combining (39) and (45). Find the speed holding interval with
+Energies2017,10,794 c d 19of26
+PP and PEB, exclude the speed holding intervals where the freight train can’t keep constant
+speed with FP. If v V(x) and v V(x), the solution is (42) and (47).
+• IfT < T ,opctimizationtermdinates,theflat-outrunningtrajectoryisreturned.
+set 1
+(3) Generate the slope partition table which consists of the initial and terminal position of the speed
+(2) hInoiltdiainligzi nigntvecr,vtahle. nSsuolpvpeovsde bythceo msebti n(inUg(3) 9)reapnrdes(e4n5)t.s Fitnhde thsleosppee epdahrtoitldioinng tianbteler.v aWlwe ithhaPvPe
+aUndPPEB,P,e,xLcl,uPd,eLth,Pesp, ewedhehroel,d nin gisi nthtee rnvuamlsbwehr eorfe ththee sfpreeeigdh htotrldaiinngc ainnt’terkveaelp. constantspeed
+1 2 i n
+withFP.Ifv >V(x)andv >V(x),thesolutionis(42)and(47).
+(4) Linkage of tche speed holdindg intervals.
+(3) Generate the slope partition table which consists of the initial and terminal position of the
+• Linkage of the adjacent speed holding intervals.
+speed holding interval. Suppose the set (U) represents the slope partition table. We have
+U = S { u P p1 , p P o2s , e · ··i,Pn i , , · a · n · d ,P nj } ,wi, h ekre,ini1st . h C e o n n u n m ec b t e rPof th an e d s pe P ed . h I o f l t d h i e n g co in n t n e e rv ct a i l o . n of the two
+j k
+(4) Linkageofthespeedholdingintervals.
+speed holding intervals fails, then jump to the linkage of the non-adjacent speed holding
+intervals.
+• Linkageoftheadjacentspeedholdingintervals.
+• Linkage of the non-adjacent speed holding intervals (see Figure 13).
+Supposei < n,and j = i,k = i+1. ConnectP andP . Iftheconnectionofthetwospeed
+j k
+Shuopldpinosgei ntejrvanlsf1ai,l s,kthennju. mTphet oltahset lsinpkeaegde ohfotlhdeinngo nin-atderjavcaeln tthspate ecdohnonledcitnsg winittehr vaPls.
+j
+•
+s
+L
+u
+in
+cc
+k
+e
+a
+s
+g
+s
+e
+fu
+o
+l
+f
+ly
+th
+is
+e n
+P
+on
+(
+-1adjamcenjt
+)
+s
+.
+p emed
+is
+h o
+eq
+ld
+u
+i
+a
+n
+l
+g
+to
+in tnerv2a
+.
+l s
+C
+(
+o
+s
+n
+ee
+ne
+F
+c
+i
+t
+g u
+P
+re 1
+a
+3
+n
+).
+d P . If the connection
+m m k
+fSauilpsp, orespeeja=t unn−til 1t,hke =connn. Techteiolna sstuscpceeeeddsh oinld tihneg dinomteravinal otfh amtc,o in.en.,e cmtsw[1it,hj)P. successfully
+j
+isP (1≤ m < j). misequalton−2. ConnectP andP . Iftheconnectionfails,repeatuntil
+Suppose m kn and jk1, then k k1, and c m onnect k P and P . If the connection fails,
+theconnectionsucceedsinthedomainofm,i.e.,m ∈ [1,j)j. k
+repeat until the connection succeeds in the domain of j, i.e., j[1,k1).
+v
+v
+d
+v ...P P ... P P P
+c j k n2 n1 n
+PP FP
+C PEB
+x
+0
+FFiigguurree 1133.. LLiinnkkaaggee ooff tthhee nnoonn--aaddjjaacceenntt ssppeeeedd hhoollddiinngg iinntteerrvvaall..
+(5) The speed profile and optimal controls during the whole trip are recorded. Calculate the train
+Supposek < nandj = k−1,thenk = k+1,andconnectP andP . Iftheconnectionfails,repeat
+j k
+operation time from 0 to X . We have T .
+untiltheconnectionsucceedsinthedomainofj,i.e.,j ∈ [1,k−1).
+(6) Evaluate the terminal condition:
+(5) Thespeedprofileandoptimalcontrolsduringthewholetriparerecorded. Calculatethetrain
+operationtimefrom0toX. WehaveT. TT set 5s (56)
+(6) Evaluatetheterminalcondition:
+If (56) is satisfied, optimization terminates. Or, if T T , increase v ; if T T , decrease v .
+|T−T | ≤5sset c set (5c6)
+set
+(7) Repeat steps 2–6 until the terminal condition is satisfied.
+(8) RIfe(t5u6r)ni sthsea toispfiteimd,aol ptrtaimjeciztoatriyo,n otpetrimmianl actoens.trOolrs, iafnTd> enTesregt ,yi nccornesausmevpct;ioifnT. < T set ,decreasev c .
+((79)) ORepptiematizsatetiposn2 t–e6rmunintialttehse. terminalconditionissatisfied.
+(8) Returntheoptimaltrajectory,optimalcontrolsandenergyconsumption.
+7. Case Study
+(9) Optimizationterminates.
+This section illustrates the methodology with case studies. The optimization algorithm is
+7. CaseStudy
+implemented on a computer equipped with 2.4 GHz Core i7 processor and 4GB RAM. Matlab 2014b
+is adTohpitseds etoct sioimnuilllautes ttrhaete tsratihne opmeertahtioodno. logy with case studies. The optimization algorithm is
+implTemhee nenteedrgoyn-eaffciocmienptu otepreeraqtuioipnp oefd aw friethig2h.t4 tGraHinz wCiothre oin7ep lrooccoemssootrivane d(H4XGDB2R) AanMd. 1M00a tfluablly2 0lo1a4dbeids
+awdaogpotends itso sstiumduieladt.e Tthhee ttrraacink ionpteerravtailo fnr.om Yanqing to Chawu is chosen as the case study line, which
+is paTrth oefe Dnaerqginy -Refafiilcwieanyt oLpineera wtioitnh othfea tfrraecigkh ltentrgatihn Xw i=t h69o.n4e45lo kcmom. Tohtiev me(aHinX pDa2r)aamnedte1r0s0 offu tlhlye lforaedigehdt
+wtraagino nasreis psrtuesdeinedte.dT hine Ttraabclke in1.t eTrhvae lsfproemedY laimnqitins garteo lCishtaewd uini sTcahbolsee 2n. aTshteh erecaals etrsatcutdioynl ianned,w bhraickhinisg
+pfoarrcteo afrDea iqlliunstRraaitlewd aiyn LSeincetiowni t2h.1t.h etracklengthX=69.445km. Themainparametersofthefreight
+trainarepresentedinTable1. ThespeedlimitsarelistedinTable2. Therealtractionandbrakingforce
+areillustratedinSection2.1.
+===== PDF页20 =====
+Energies 2017, 10, 794 20 of 26
+Table 1. Parameters of the freight train in the simulation.
+Energies2017,10,794 20of26
+Parameter Value Unit
+Train marshalling 1 locomotive + 100 wagons -
+Table1.Parametersofthefreighttraininthesimulation.
+Locomotive mass 200 t
+LocomPoatirvaem leentegrth Value38 Unit m
+MaTxriaminumm avreslhoacliltiyn g 1locomotive+110200w agons - km/h
+MaximLuocmo mtroactitvioenm foasrcse 200 777 t kN
+Locomotivelength 38 m
+Locomotive unit basic resistance 11.7720.063765v0.002737v2 N/t
+Maximumvelocity 120 km/h
+Energy efficiMenacxyi mrautimo otrf atchteio tnrafcotriocen system 777 0.9 kN -
+EnergLyo ecfofmicioetnivcye urantiitob oafs tichere esliesctatrniccael 11.772+0.063765v+0.002737v2 N/t
+Energyefficiencyratioofthe 0.9 -
+braking system 0.9 -
+tractionsystem
+REnegeregnyereaftfiivciee ncoceyffriactiieonot fthe 0.9 -
+0.9 -
+electricalbrakingsystem
+Mass per one wagon 100 t
+Regenerativecoefficient 0.9 -
+Length per one wagon 12.2 m
+Massperonewagon 100 t
+WagoLne nugntiht bpaesrico nreeswistaagnocne 9.02520.1024.72088v0.001226v2 m N/t
+Wagonunitbasicresistance 9.0252+0.047088v+0.001226v2 N/t
+Auxiliary reservoir air-filled time 130 s
+Auxiliaryreservoirair-filledtime 130 s
+Table 2. Line speed limits.
+Table2.Linespeedlimits.
+Origin Location (km) Terminal Location (km) Value (km/h)
+OriginLocation(km) TerminalLocation(km) Value(km/h)
+0 2.9 35
+0 2.9 35
+2.9 67 75
+2.9 67 75
+67 67.720 70
+67 67.720 70
+6677.7.72200 707 0 353 5
+77..11.. TTrraaiinn OOppeerraattiioonn SSiimmuullaattiioonn uunnddeerr DDiiffffeerreenntt JJoouurrnneeyy TTiimmee
+TThhee ooppttiimmiizzaattiioonn aallggoorriitthhmm iiss iimmpplleemmeenntteedd bbaasseedd oonn SSeeccttiioonn 66.. TThhee ooppttiimmaall ttrraajjeeccttoorriieess uunnddeerr
+tthhee ffoouurr ggrroouuppss ooff tthhee jjoouurrnneeyy ttiimmee aarree ccaallccuullaatteedd,, wwhhiicchh aarree sshhoowwnn iinn FFiigguurree 1144..
+Low speed limit
+LSDS section
+FFiigguurree 1144.. OOppttiimmaall vveelloocciittyy ttrraajjeeccttoorriieess aanndd ttrraacckk hheeiigghhtt..
+Thetrackgradientistransformedtothetrackheightforobservationconvenience. Assumethat
+thetrackheightis0kmattheoriginlocation,thenthetrackheightofotherlocationisequaltothe
+sumofmultiplyingthegradientvaluebythegradientlengthfrom0kmtocurrenttrainlocation.
+===== PDF页21 =====
+Energies 2017, 10, 794 21 of 26
+The track gradient is transformed to the track height for observation convenience. Assume that
+the track height is 0 km at the origin location, then the track height of other location is equal to the
+sum of multiplying the gradient value by the gradient length from 0 km to current train location.
+Now we obtain four optimal trajectories by using the multi-particle model of the freight train.
+Energies2017,10,794 21of26
+At the start phase, the freight train is running with FP. The velocity of the freight train must be kept
+less than the speed limit (2 km/h below the speed limit). To prevent the rear of the freight train from
+exceeding the speed limit, the velocity is accelerated until the last wagon passes the low speed limit
+Nowweobtainfouroptimaltrajectoriesbyusingthemulti-particlemodelofthefreighttrain.
+(see Figure 14). To make the train operation energy-efficient, the optimal control should be switched
+Atthestartphase,thefreighttrainisrunningwithFP.Thevelocityofthefreighttrainmustbekept
+from PP to C before entering the LDSD section. In the LDSD section, periodic braking is applied and
+lessthanthespeedlimit(2km/hbelowthespeedlimit). Topreventtherearofthefreighttrainfrom
+the optimization trajectories are the same under the four groups of given time because the jump
+exceedingthespeedlimit,thevelocityisaccelerateduntilthelastwagonpassesthelowspeedlimit
+condition (see Sections 4.2 and 4.3) should be satisfied. The simulation results of the optimization
+(seeFigure14). Tomakethetrainoperationenergy-efficient,theoptimalcontrolshouldbeswitched
+algorithm are listed in Table 3.
+from PP to C before entering the LDSD section. In the LDSD section, periodic braking is applied
+andtheoptimizationtrajectoriesarethesameunderthefourgroupsofgiventimebecausethejump
+Table 3. Simulation results under different journey time.
+condition(seeSections4.2and4.3)shouldbesatisfied. Thesimulationresultsoftheoptimization
+algorithmarelistedinTable3.
+Journey Energy Consumption Regenerative Total Energy
+v (km/h)
+c
+Time(s) (kWh) Energy(kWh) Consumption(kWh)
+Table3.Simulationresultsunderdifferentjourneytime.
+5704.20 25.5 1701.85 5583.39 −3323.20
+Jo4u9r1n4e.y49T ime(s) vc40(k m/h) EnergyCo1n7s8u4m.0p6ti on(kWh) Regenerat5iv6e0E8n.6e2rg y(kWh) TotalEnergyC−o3n2s6u3m.7p0t ion(kWh)
+477597.0743.2 0 4525 .5 11872011..8454 55568237.3.892 − −33322433.2.060
+4914.49 40 1784.06 5608.62 −3263.70
+468427.7597.7 3 504 5 11887213..4844 55662677.8.826 − −33224237.6.023
+4682.57 50 1873.84 5667.86 −3227.23
+The operation energy of different times is listed in Table 3. The total energy consumption is
+The operation energy of different times is listed in Table 3. The total energy consumption is
+defined as:
+definedas:
+J J= J J tt− α· J J dd (5(577) )
+wwhheerree J J is thise tthoeta ltoetnael rgenyecrognys ucomnpsutimonp,tJionis, thJee nise rtghye ceonnesrugmy pctoionnsuomftphteiofnre iogfh tthtera finreoigphetr attriaoinn
+t t
+wopitehraFtPionan wdiPthP ,FJP isanthde PrePg, enJera tiisv ethber arkeginegneernaetrivgey obfratkhientgr aeinneorpgeyr aotfi otnhew ittrhaienl eocptreircaatliobnra kwinitgh.
+d d
+IenleTctarbicleal3 b,rtahkeintogt.a Ilne Tnaebrgley 3c,o tnhseu tmotpalt ieonnerisgyle csosntshuamnp0,tiwonh iicsh leisms pthliaens 0th, wathtihceh tirmaipnligees ntheraat ttehsem troarine
+egneenregryattehsa mnoitrec oennseurmgye tshiannt hite cgoinvseunmtreasc ikn itnhtee rgvivale.nM treaacnkw inhtieler,vraeld. Muceinangwthheiljeo,u rrendeuycitnimg ethwe ijlolucarnuesye
+tthimeee nweirlgl ycacuosnes uthme petnioerngayn cdontostuamlepnteiorgny acnodn tsoutmal petnioenrgtyo cionncrseuamsep.tTiohne troe liantciorenasshei.p Tohfej oreulrantieoyntsihmipe
+aonf djoeunrneregyy ticmones aunmdp etnioenrg/yto ctoanlseunmerpgytiocnon/tsoutaml pentieorngyis cpornessuenmtepdtioinn Fisig purreese1n5.ted in Figure 15.
+(a) (b)
+Figure 15. Relationship between energy consumption/total energy consumption and journey time: (a)
+Figure15. Relationshipbetweenenergyconsumption/totalenergyconsumptionandjourneytime:
+(Ean)eErngeyr gcoyncsounmsupmtiopnti oannda njodujronueryn teiymteim; ( e b ; ) ( bto)ttaolt eanleerngeyrg cyoncosunmsupmtipotnio annadn jdoujornuernye tyimtiem. e.
+In Figure 15a, the traction energy consumption drops down while the trip time of the train
+In Figure 15a, the traction energy consumption drops down while the trip time of the train
+increases. Less energy is consumed if the train runs more slowly. It seems the train driver should
+increases. Lessenergyisconsumedifthetrainrunsmoreslowly. Itseemsthetraindrivershould
+drive very slowly. However, from the railway system’s perspective, reducing the journey time not
+driveveryslowly. However,fromtherailwaysystem’sperspective,reducingthejourneytimenot
+only allows more freight trains to operate on the railway line, but also creates more economic benefit.
+onlyallowsmorefreighttrainstooperateontherailwayline,butalsocreatesmoreeconomicbenefit.
+Dispatchers of the railway should make a compromise between the energy consumption and the
+triptime.
+===== PDF页22 =====
+Energies 2017, 10, 794 22 of 26
+EDniesrgpiaestc20h1e7r,s1 0o,f7 9th4e railway should make a compromise between the energy consumption and th22e otfri2p6
+time.
+Similarly, the total energy consumption is also monotonically decreasing while the journey time
+Similarly,thetotalenergyconsumptionisalsomonotonicallydecreasingwhilethejourneytime
+of the train increases even if the regenerative energy consumption is considered. It means that more
+ofthetrainincreaseseveniftheregenerativeenergyconsumptionisconsidered. Itmeansthatmore
+energy will be fed back to the traction network if the trip time is longer.
+energywillbefedbacktothetractionnetworkifthetriptimeislonger.
+7.2. Comparison between The Proposed Algorithm and Other Methodologies
+7.2. ComparisonbetweenTheProposedAlgorithmandOtherMethodologies
+In Section 7.1, the optimal trajectories under different journey time are calculated. The simulation
+InSection7.1,theoptimaltrajectoriesunderdifferentjourneytimearecalculated. Thesimulation
+result shows that the energy consumption is monotonically decreasing while the holding speed v
+result shows that the energy consumption is monotonically decreasing while the holding speedc
+vdecdliencelisn. eBs.asBeads eodn otnhet hseimsiumlautliaotnio nrerseuslutsl tsofo fththe epproroppoosesedd ooppttimimizizaatitoionn aallggoorriitthhmm, ,tthhee eenneerrggyy
+c
+ccoonnssuummppttiioonn ccoonnvveerrggeess ttoo aa mmiinniimmuumm vvaalluuee iiff tthhee hhoollddiinngg ssppeeeedd iiss vveerryy cclloossee ttoo 00..
+IInn tthhiiss sseeccttiioonn, ,((FFPPCC)) aanndd ffiieelldd ooppeerraattiioonn ddaattaa aarree ccoommppaarreedd wwiitthh tthhee pprrooppoosseedd aallggoorriitthhmm uunnddeerr
+tthhee ssaammee ttrriipp ttiimmee ((9955 mmiinn)),, wwhhiicchh aarree iilllluussttrraatteedd iinn ttwwoo ccaassee ssttuuddiieess.. FFiigguurree 1166 iiss tthhee ssiimmuullaattiioonn rreessuulltt
+ooff tthhee pprrooppoosseedd aallggoorriitthhmm..
+FFiigguurree 1166.. OOppttiimmaall ssppeeeedd pprroofifillee ooff ttrraaiinn eenneerrggyy--eefffificciieenntt ooppeerraattiioonn ccoonnssiiddeerriinngg LLDDSSDD sseeccttiioonn ((ttrriipp
+ttiimmee:: 9955 mmiinn))..
+In Figure 16, v 25.5km/h, the operation time is 5704.20 s (≈ 95 min), more details are shown
+InFigure16,v c=25.5km/h,theoperationtimeis5704.20s(≈95min),moredetailsareshown
+c
+in Table 3. At the origin location, the initial adjoint variable () is large and it’s decreasing quickly
+inTable3. Attheoriginlocation,theinitialadjointvariable(θ)islargeandit’sdecreasingquicklywith
+twhiethlo tchaeti oloncaotfiothne otfr atihnei ntrcariena siinncgr.eaHsienrge,. θHrearneg, e  s frraonmge−s 1frtoom2. −T1h teoo 2p.t iTmhael ocopntitmroalls caorentdroeclsi daerde
+bdyectihdeedv ablyu ethoef vthaeluaed ojof itnhtev aadrijaobinlet .vFaoriraabnlee. xFaomr apnle e,xifamθ dpelec,l iinf e  s frdoemcli1netos fαrηomη 1< toθ <1,thenth1e,
+d t d t
+othpetnim thael coopnttimroalls cwointctrhoels sfwroitmchPesP ftroomC. PAPp tpol yCi.n Agpcpolaysitningg cobaesfotirnege bnetfeorrine genthteeriLnDg StDhes LeDctSioDn smecatkioens
+tmheakfreesi gthhet tfrraeiinghotp terraaitnio onpmeroarteioenn merogrye- eefnfiecriegnyt-ebfefcicaiuesnet mbeocraeupsoe tmenotriael peonteerngtyiails ecnoenrvgeyr tiesd ctoonkvienretetidc
+eton ekrginye.tWic heilneetrhgeyt.r aWinhiisler utnhnei ntgraoinn tihs erLuDnSnDingse cotnio nth,Fe ELBDaSnDd FsBecatrieona,p pFlEieBd aalntder nFaBti vaerley baepcpaluiesde
+oalftethrneajutimveplyo bfetchaeuasde jooifn tthvea jruimabple o.fT thhee faodrcjoeintht avtavraiarbieles. wTihthe floocrcaeti othnaot fvtahreietsr awinithis laolcsaotisohno wofn thine
+Ftriagiunr ies 1a6l.so shown in Figure 16.
+77..22..11.. FFuuzzzzyy PPrreeddiiccttiivvee CCoonnttrrooll
+TThhee ((FFPPCC)) aallggoorriitthhmm wwaass ddeessiiggnneedd iinn [[3344]].. TThheerree aarree ttwwoo ccoonnttrroollss ffoorr tthhee aallggoorriitthhmm:: tthhee ddeevviiaattiioonn
+ooff tthhee ccuurrrreenntt ttrraaiinn ssppeeeedd aanndd ttaarrggeett ssppeeeedd,, tthhee aacccceelleerraattiioonn ooff tthhee ffrreeiigghhtt ttrraaiinn.. TThheeyy aarree ppuutt iinnttoo tthhee
+===== PDF页23 =====
+Energies2017,10,794 23of26
+Energies 2017, 10, 794 23 of 26
+Energies 2017, 10, 794 23 of 26
+fuzzfyuzlozyg ilcogcoicn ctoronltlreorllfeor rfofur zfuzzyzyre raesaosnoniningga anndd ooppttiimmiizziinngg.. AAnndd ththe ealaglogroitrhitmh mcalccaullcautelas ttehse tchoenctroonl trol
+sequsfeuenqzcuzeyesn liconegsit chi nce otfhnuettr fuourltleuer2r e–f o32r– k3fum kzm.zTy. hTreehaess isominmiunulgala tatiionondn roreepsstuuimlltt iuuzninnddgee.r rA thtnhede g tgihvieve nae lntgrotiprrii pttihmtmiem c(e9a5l(c 9um5lianmte) isins t )hpierse cspoernnettsreeodnl ted
+inFiisgneu qFruiegeu1n7rcee. s1 7in. the future 2–3 km. The simulation result under the given trip time (95 min) is presented
+in Figure 17.
+Figure 17. Speed profile of a freight train based on FPC (trip time: 95 min).
+Figure17.SpeedprofileofafreighttrainbasedonFPC(triptime:95min).
+Figure 17. Speed profile of a freight train based on FPC (trip time: 95 min).
+In Figure 17, P = Power. The freight train tracks the target speed before entering the LDSD section.
+T I h n e F sIinp g eFu eirgd eu r 1ris 7ee ,1s P7 u, = pP P w= oPh woilwe e r te. hrT e. T h trhe aei f n rfre iei s gi gr h uht nt t ntrri aan iig nn ottrr naa ct c hkk ess LtthD hee S tDatar gs r e gecte tst ipo s nepe. e dP e e dbrei b ofoe drf ieo c r eb enrateek nri tin eng rgi s nthhg oet uLh lDd e SL bDe D asS peDcptlis ioe end c.t ion.
+ThetsToph epee rsdepvereeinsdet srtihsueeps t uwraphi nwi lfehriotlhem et heterx atcrienaeidnisi inrsgu r unthnneni nisngpgeo oendn t tlhhimee LiLtsDD. SSTDDh ess eetcrctatiioinon n.e .PnPeerreigroiydo idccoi bcnrsbaurkmainkpgitn isoghnos uhfolodru btlrdea acbtpeiopanlip eipds l ied
+topr1teo8v 2p1er.n5et0v etkhnWet ththr. eaT ihtnrea firrneo gfmeronmeerx acetexiveceed eibdnriagnkgtihn tgeh ees npsepereegedyd l 5il4mim92iit.ts6s.0. TTkhWheeh tt.r raainin eenneregryg ycocnosnusmupmtipotni ofnorf torracttriaocnt iios nis
+18211.58021k.5W0 hk.WThh.e Trheeg reengeernaetriavteivber barkaiknignge neneregrgyy5 5449922..6600 kkWWhh..
+7.2.2. Field Operation Data
+7.2.27..F2.i2e.l dFieOldp eOrpateiroantioDna Dtaata
+We obtained the field operation data from Yanqing to Chawu, which consists of the train speed
+aWnde Wloobceat oatibiontnae.id nTehtdhe e tjohfiuee rflnideelydo p toiempreear tiaisto i9on5n dm daiatnata. fT frrhooemm sp YYeaaenndqq piinnroggf ittlooe CiCsh hsahawowwuu,n ,w iwnh ihFcihicg hcuorcneo s1ni8sst wiss otitsfh ot hPfe t= ht Preaoitwnr aesirpn,e EesBdp eed
+and=a lo nEc dlae lct o ito craincta. iolT nBh .r Taekh jio en u jgo r,u nPr eBn y e=y t P i t mnimeeue im i s sa 9 9t5i5c m mBri i nank. . TinT hgh e. e sp s e p e e d e d pr p of r i o le fi i l s e s i h s o s w h n o w in n Fi i g n u F re i g 1 u 8 r w e i 1 th 8 P w = i t P h ow P e = r, P E o B w er,
+= Electrical Braking, PB = Pneumatic Braking.
+EB=ElectricalBraking,PB=PneumaticBraking.
+Figure 18. Speed profile of a freight train based on the field operation data (trip time: 95 min).
+FiguFriegu1r8e. 1S8p. eSepdeepdr opfirolefiloef oaf far efriegihgthtt rtaraininb baasseedd oonn tthhee ffiieelldd ooppeerraatitoionn dadtaat a(tr(itpr itpimtiem: 9e5: m95inm).i n).
+===== PDF页24 =====
+Energies2017,10,794 24of26
+Besides that, the simulation results of the three strategies (optimal algorithm, FPC and field
+operation)andtheenergy-savingratiocomparisonofthethreestrategiesarelistedinTables4and5.
+Table4.Simulationresultsofthethreestrategies.
+JourneyTime EnergyConsumption RegenerativeEnergy TotalEnergyConsumption
+Strategies
+(min)
+vc(km/h)
+(kWh) (kWh) (kWh)
+Optimalalgorithm 95 25.5 1701.85 5583.39 −3323.20
+FPC 95 - 1821.50 5492.60 −3121.84
+Fieldoperation 95 - 1906.50 5231.21 −2801.59
+Table5.Energy-savingratiocomparisonofthethreestrategies.
+Strategies FPC(%) FieldOperation(%)
+Optimalalgorithm 6.5 18.6
+FPC - 11.4
+The driving strategy is usually determined by the current train running status and the track
+gradient,curve,speedlimitinthefuture2–3kmwhileadriverisoperatingthefreighttrain.Meanwhile,
+excellentdrivingexperienceisalsosignificant,whichensurestheenergy-efficientoperationofthe
+train. Foranexample, anexperienceddriverwillapplycoastingbeforethetrainenterstheLDSD
+section (see Figure 18). However, the driver operates the train intuitively without calculating the
+precisetraction/brakingforceandtheswitchinglocationoftheoptimalcontrols. Then18.6%and
+11.4%reductionofthetrainenergyconsumptioncanbeachievedrespectivelycomparedwiththatof
+thefieldoperationandFPC.FPCisalocaloptimizationalgorithmwhichpredictstheoptimalcontrols
+inthefinitedistanceaheadofthetrain. However,theproposedalgorithminthispaperisaglobal
+optimizationalgorithm. Wecanconcludethattheoptimalalgorithmsavesmoreenergythanthatof
+FPC(6.5%).
+8. Conclusions
+In this paper, an analytical solution and numerical algorithm are proposed to solve the
+energy-efficientoperationproblemconsideringtheLDSDsectionissue.Anewpathconstraint-auxiliary
+reservoirair-filledtimeconstraintistakenintoconsiderationintheoptimalcontrolmodelofthetrain
+energy-efficient operation. The adjoint variable is utilized to illustrate the optimal control set and
+calculatetheoptimizationtrajectoryofthetwoadjacentspeedholdingsections. Analysisoftheadjoint
+variableshowsthatperiodicbraking(FEB+FB+FEB)shouldbeappliedontheLDSDsection,which
+caneffectivelyreducetheoperationtimeontheLDSDsectionandsavetheenergyconsumptionofthe
+entiretrip. Thenumericalalgorithmisadoptedtocalculatetheoptimizationtrajectoryunderthegiven
+triptime. Casestudiesindicatethattheproposedalgorithminthispapersaves6.5%and18.6%ofthe
+energyconsumptioncomparingwiththatofFPCandfieldoperation,whichhasabetterperformance
+withrespecttoenergysaving.
+Thenumericalalgorithmofthetrainenergy-efficientoperationhasbeenimplementedinMATLAB.
+Fromtheperspectiveofengineeringapplication,theproposedalgorithminthispapercouldbeutilized
+tocalculatetheoff-lineoptimalspeedtrajectoryforthedriveradvisorysystem. Basedontheimproved
+numericalalgorithmconsideringthesignalsystem,temporaryspeedlimitandcurrenttrainstatus,
+thedriveradvisorysystemcalculatesthedynamicoptimalspeedtrajectoryandprovidesthedriver
+dynamicadviceabouttheenergy-efficientdrivingstrategies.
+Acknowledgments:ThisworkissupportedbytheNationalKeyResearchandDevelopmentPlanofChinaunder
+Grant2016YFB1200502.
+===== PDF页25 =====
+Energies2017,10,794 25of26
+AuthorContributions:XuanLinandQingyuanWangconceivedanddesignedthenumericalalgorithm;XuanLin
+programmed the numerical algorithm; Xuan Lin and Qingyuan Wang analyzed the data; Pengfei Sun and
+PenglingWanggaveveryconstructivesuggestionsabouttherevisionofthepaper;XiaoyunFengprovidedthe
+linedata,traindataandfieldoperationdata.XuanLinwrotethepaper.
+ConflictsofInterest:Theauthorsdeclarenoconflictofinterest.
+References
+1. Han,J.ChinaRailwayYearBook2008;ChinaRailwayPublishingHouse:Beijing,China,2008.
+2. Li,L.;Dong,W.;Ji,Y.;Zhang,Z.;Tong,L.Minimal-energydrivingstrategyforhigh-speedelectrictrainwith
+hybridsystemmodel.IEEETrans.Intell.Transp.Syst.2013,14,1642–1653.[CrossRef]
+3. Sidelnikov,V.Computationofoptimalcontrolsofarailroadlocomotive.Proc.StateRailw.Res.Inst.1965,2,
+52–58.
+4. Ichikawa,K.Applicationofoptimizationtheoryforboundedstatevariableproblemstotheoperationof
+train.Bull.JSME1968,11,857–865.[CrossRef]
+5. Milroy,I.P.AspectofAutomaticTrainControl. Ph.D.Thesis,LoughboroughUniversity,Loughborough,
+UK,1980.
+6. Asnis,I.A.;Dmitruk,A.V.;Osmolovskii,N.P.Solutionoftheproblemoftheenergeticallyoptimalcontrolof
+themotionofatrainbythemaximumprinciple.USSRComput.Math.Math.Phys.1985,25,37–44.[CrossRef]
+7. Lee,D.H.;Milroy,I.P.;Tyler,K.ApplicationofPontryagin’smaximumprincipletothesemi-automaticcontrol
+ofrailvehicles. InProceedingsoftheSecondConferenceonControlEngineering,Newcastle,Australia,
+1–3April1982.
+8. Howlett,P.G.;Pudney,P.J.;Vu,X.Localenergyminimizationinoptimaltraincontrol.Automatica2009,45,
+2692–2698.[CrossRef]
+9. Albrecht,A.;Howlett,P.G.;Pudney,P.J.;Vu,X.;Zhou,P.Thekeyprinciplesofoptimaltraincontrol-Part
+1:Formulationofthemodel,strategiesofoptimaltype,evolutionarylines,locationofoptimalswitching
+points.Transp.Res.PartBMethodol.2016,94,482–508.[CrossRef]
+10. Albrecht,A.;Howlett,P.G.;Pudney,P.J.;Vu,X.;Zhou,P.Thekeyprinciplesofoptimaltraincontrol—Part
+2: Existenceofanoptimalstrategy,thelocalenergyminimizationprinciple,uniqueness,computational
+techniques.Transp.Res.PartBMethodol.2016,94,509–538.[CrossRef]
+11. Howlett,P.G.Anewlookattherateofchangeofenergyconsumptionwithrespecttojourneytimeonan
+optimaltrainjourney.Transp.Res.PartBMethodol.2016,94,387–408.[CrossRef]
+12. Khmelnitsky,E.Onanoptimalcontrolproblem.IEEETrans.Autom.Control2000,45,1257–1266.[CrossRef]
+13. Golovitcher,I.M.;Iakov,M.Energyefficientcontrolofrailvehicles.InProceedingsoftheIEEEInternational
+ConferenceSystems,Man,andCybernetics,Newark,NJ,USA,7–10October2001.
+14. Liu,R.;Golovitcher,I.M.Energy-efficientoperationofrailvehicles.Transp.Res.PartAPolicyPract.2003,37,
+917–932.[CrossRef]
+15. Yang,J.;Jia,L.;Lu,S.;Fu,Y.;Ge,J.Energy-efficientspeedprofileapproximation: Anoptimalswitching
+region-basedapproachwithadaptiveresolution.Energies2016,9,762.[CrossRef]
+16. Jiaxin,C.;Howlett,P.Applicationofcriticalvelocitiestotheminimisationoffuelconsumptioninthecontrol
+oftrains.Automatica1992,28,165–169.[CrossRef]
+17. Jiaxin,C.;Howlett,P.Anoteonthecalculationofoptimalstrategiesfortheminimizationoffuelconsumption
+inthecontroloftrains.IEEETrans.Autom.Control1993,38,1730–1734.[CrossRef]
+18. Howlett,P.G.;Milroy,I.P.;Pudney,P.J.Energy-efficienttraincontrol. ControlEng. Pract. 1994,2,193–200.
+[CrossRef]
+19. Howlett,P.G.Optimalstrategiesforthecontrolofatrain.Automatica1996,32,519–532.[CrossRef]
+20. Howlett,P.G.;Cheng,J.Optimaldrivingstrategiesforatrainonatrackwithcontinuouslyvaryinggradient.
+J.Aust.Math.Soc.Ser.BAppl.Math.1997,38,388–410.[CrossRef]
+21. Franke, R.; Terwiesch, P.; Meyer, M. An algorithm for the optimal control of the driving of trains.
+InProceedingsoftheIEEEConferenceonDecisionandControl,Sydney,Australia,12–15December2000.
+22. Franke,R.;Meyer,M.;Terwiesch,P.OptimalControloftheDrivingofTrains.Automatisierungstechnik2002,
+50,606–613.[CrossRef]
+===== PDF页26 =====
+Energies2017,10,794 26of26
+23. Ko,H.;Koseki,T.;Miyatake,M.Applicationofdynamicprogrammingtooptimizationofrunningprofileof
+atrain.Comput.Railw.IX2004,125,103–112.
+24. Kuriyama,M.; Yamamoto,S.; Miyatake,M.TheoreticalstudyonEco-DrivingTechniqueforanElectric
+VehiclewithDynamicProgramming. InProceedingsoftheIEEEInternatioanlConferenceonElectrical
+MachinesandSystems(ICEMS),Incheon,Korea,10–13October2010.
+25. Miyatake,M.;Matsuda,K.Energysavingspeedandcharge/dischargecontrolofarailwayvehiclewith
+on-boardenergystoragebymeansofanoptimizationmodel. IEEJTrans. Electr. Electron. Eng. 2009,4,
+771–778.[CrossRef]
+26. Miyatake,M.;Ko,H.Optimizationoftrainspeedprofileforminimumenergyconsumption. IEEJTrans.
+Electr.Electron.Eng.2010,5,263–269.[CrossRef]
+27. Li, L.; Dong, W.; Ji, Y.; Zhang, Z. An optimal driving strategy for high-speed electric train. J. Control
+TheoryAppl.2012,10,280–286.[CrossRef]
+28. Wang, Y.; De Schutter, B.; van den Boom, T.J.J.; Ning, B. Optimal trajectory planning for trains—A
+pseudospectralmethodandamixedintegerlinearprogrammingapproach. Transp. Res. PartCEmerg.
+Technol.2013,29,97–114.[CrossRef]
+29. Wang,P.; Goverde,R.M.P.Multiple-phasetraintrajectoryoptimizationwithsignallingandoperational
+constraints.Transp.Res.PartCEmerg.Technol.2016,69,255–275.[CrossRef]
+30. Lu,S.;Hillmansen,S.;Ho,T.K.;Roberts,C.Single-traintrajectoryoptimization.IEEETrans.Intell.Transp.Syst.
+2013,14,743–750.[CrossRef]
+31. Wong,K.K.;Ho,T.K.Dynamiccoastcontroloftrainmovementwithgeneticalgorithm.Int.J.Syst.Sci.2003,
+2,835–846.[CrossRef]
+32. Zhao,N.;Roberts,C.;Hillmansen,S.;Nicholson,G.Amultipletraintrajectoryoptimizationtominimize
+energyconsumptionanddelay.IEEETrans.Intell.Transp.Syst.2015,16,2363–2372.[CrossRef]
+33. Huang, Y.; Ma, X.; Su, S.; Tang, T. Optimization of train operation in multiple intersections with
+multi-populationgeneticalgorithm.Energies2015,8,14311–14329.[CrossRef]
+34. Feng, X. On Fuzzy Predictive Control and Its Application in ATO. Ph.D. Thesis, Southwest Jiaotong
+University,Chengdu,China,2001.
+35. Bai,Y.;Ho,T.;Mao,B.;Ding,Y.;Chen,S.Energy-efficientlocomotiveoperationforChinesemainlinerailways
+byfuzzypredictivecontrol.IEEETrans.Intell.Transp.Syst.2014,15,938–948.[CrossRef]
+36. Kang,X.;Sun,J.;Meng,W.RegulationsonRailwayTractionCalculation(TB/T1407-201X);NationalRailway
+AdministrationofChina:Beijing,China,2014.
+37. Afshari,A.;Specchia,S.;Shabana,A.A.;Caldwell,N.Atrainairbrakeforcemodel:Carcontrolunitand
+numericalresults.Proc.Inst.Mech.Eng.PartFJ.RailRapidTransit2012,227,38–55.[CrossRef]
+38. Richard,F.H.;Suresh,P.S.;Raymond,G.V.Asurveyofthemaximumprinciplesforoptimalcontrolproblems
+withstateconstraints.SIAMRev.1995,37,181–218.
+39. Sun, Z.; Wang, C. Security problems of operation heavy haul trains on the long heavy down grade.
+Railw.Locomot.Car2009,29,4–7.
+40. Seierstad,A.;Sydsaeter,K.Sufficientconditionsinoptimalcontroltheory.Int.Econ.Rev.1977,18,367–391.
+[CrossRef]
+41. Sarosh,N.T.;Robert,L.K.Multi-objectivetrajectoryoptimizationforelectrictrains.IEEETrans.Autom.Control
+1979,24,888–893.
+©2017bytheauthors.LicenseeMDPI,Basel,Switzerland.Thisarticleisanopenaccess
+articledistributedunderthetermsandconditionsoftheCreativeCommonsAttribution
+(CCBY)license(http://creativecommons.org/licenses/by/4.0/).

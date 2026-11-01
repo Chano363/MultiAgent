@@ -1,0 +1,1206 @@
+===== PDF page 1 =====
+第 4 期
+2022 年 7 月 Electric Drive for Locomotives
+No . 4
+Jul . 2022
+两万 t 重载列车空气制动过程建模
+王青元
+1
+， 赵紫宁
+1
+， 刘强强
+1
+， 王开云
+2
+， 饶 煜
+1
+， 孙鹏飞
+1
+（ 1 . 西南交通大学 电气工程学院 ， 四川 成都 611756 ；
+2 . 西南交通大学 牵引动力国家重点实验室 ， 四川 成都 610031 ）
+摘 要 ： 针对使用 《 列 车牵引计算规程 》 规定的牵引计算方法对 2 万 t 重载组合列车空气制动过程计算准
+确性有限的问题 ， 在牵引规程既有空气制动计算模型基础上 ， 提出一种适用于长编组重载组合列车空气制动
+过程的求解方法 。 首先 ， 通过分析牵引规程模型的局限性 ， 基于空气制动系统动态行为 ， 按照时间节点将重
+载列车空气制动过程分别描述为实际系统空走阶段 、 制动力建立的暂态阶段和制动力稳定发挥的稳态阶段 。
+其次 ， 考虑历史操纵行为对当前空气制动性能发挥的影响 ， 引入空气制动性能修正函数 ； 考虑列车编组形式
+对制动波分布和制动波传递的影响 ， 引入组合列车闸瓦压力分布函数 。 然后 ， 基于牵引规程空气制动力基本
+计算方法 ， 考虑制动全过程中空气制动力分布的连续性 ， 提出一种三段式精细化空气制动力计算模型 。 最
+后 ， 基于 2 万 t 重载列车实车运行数据 ， 定义模型误差评价函数 ， 通过与既有牵引规程模型对比 ， 论证精细化
+模型的正确性和有效性 。 研究结果表明 ， 所提模型在仿真重载列车单次短坡道制动和长大下坡道循环制动工
+况下都有良好的适应度 。
+关键词 ： 重载列车 ； 空气制动 ； 暂态阶段 ； 稳态阶段 ； 数学模型 ； 仿真
+中图分类号 ： U 292 . 92
++
+3 文献标识码 ： A
+文 章编号 ： 1000 - 128 X ( 2022 ) 04 - 0070 - 07
+Modeling of air braking process of 20 000 ton heavy haul train
+W ANG Qingyuan
+1
+, ZHAO Zining
+1
+, LIU Qiangqiang
+1
+, W ANG Kaiyun
+2
+, RAO Yu
+1
+, SUN Pengfei
+1
+( 1 . School of Electrical Engineering , Southwest Jiaotong University , Chengdu , Sichuan 611756 , China ；
+2 . State Key Laboratory of Traction Power , Southwest Jiaotong University , Chengdu ， Sichuan 610031 , China )
+Abstract : In view of the limited accuracy of the traction calculation method specified in the code for train traction calculation in
+solving the air braking process of 20 000 ton heavy haul combined trains , based on the existing air braking calculation model of traction
+gauge , an air braking process solution method suitable for long marshaling heavy haul combined trains was put forward . Firstly , by ana ‐
+lyzing the limitations of the traction gauge model and based on the dynamic behavior of the air braking system , the air braking process of
+heavy haul train was described as idling stage , braking force establishment transient stage and braking force stability steady-state stage
+according to the time node . Secondly , considering the influence of historical handling behavior on the current air braking performance ,
+the air braking performance correction function was introduced ; considering the influence of train formation form on brake wave distribu ‐
+tion and brake wave transmission , the brake shoe pressure distribution function of combined train was introduced . Then , based on the ba ‐
+sic calculation method of traction gauge air braking force and considering the continuity of air braking force distribution in the whole
+braking process , a three-stage refined air braking force calculation model was summarized . Finally , based on the actual operation data of
+20 000 ton heavy haul train , the model error evaluation function was defined , and the correctness and effectiveness of the refined model
+were demonstrated by comparing with the existing traction gauge model . The results show that the model has good adaptability under the
+铁道机车车辆
+DOI : 10 . 13890 /j . issn . 1000 - 128 X . 2022 . 04 . 010
+收稿日期 ： 2022 - 01 - 26 ； 修回日期 ： 2022 - 02 - 24
+基金项目 ： 国家重点研发计划项目 （ 2021 YFB 2601500 ）
+通信作者 ： 赵紫宁 （ 1996 — ） ， 男 ， 硕士研究生 ， 研究方向为列车运行优化控制 ； E-mail : zhaozining 1001 @ 163 . com
+
+===== PDF page 2 =====
+第 4 期 王青元 ， 赵紫宁 ， 刘强强 ， 王开云 ， 饶 煜 ， 孙鹏飞 ： 两万 t 重载列车空气制动过程建模
+conditions of single short ramp braking and long downhill cyclic braking of heavy haul train .
+Keywords : heavy haul combined train ; air brake ; transient phase ; steady state phase ; mathematical model ; simulation
+0 引言
+随着重载列车牵引质量与编组长度增加 ， 其成本
+低和运能大的优势不断凸显 ， 但纵向冲动增大也给重
+载列车安全 、 平稳开行带来新的挑战 。 其中 ， 重载列
+车空气制动过程纵向冲动问题尤为突出 ， 反复的空气
+制动与缓解操纵是导致该问题出现的主要原因
+[ 1 ]
+。 通过
+优化空 气制动操纵解决重载列车纵向冲动的问题已成
+为近年的研究热点
+[ 2 - 5 ]
+， 其中制动模型的准确性直接影
+响优化结果的正确性与可行性 ， 因此对空气制动过程
+进行建模开展研究有着重大意义 。
+在 20 世纪末 ， 我国就制定了 《 列车牵引计算规
+程 》
+[ 6 ]
+（ 以下简称 “ 牵规 ” ） ， 对行业内列车运行计算
+方法进行规范 。 关于货运列车空气制动 ， 牵规通过经
+验公式建立了计算模型 。 目前 ， 国内外对空气制动过
+程的建模大致可以分为以下几类 ： 基于制动装置模型
+的 气 体 动 力 学 建 模
+[ 7 - 9 ]
+、 基 于 参 数 的 数 学 模 型 等 效
+法
+[ 10 - 11 ]
+、 基于实车运行数据的智能学习算法模型参数训
+练等
+[ 12 ]
+。 其中 ， 等效数学模型凭借搭建简易 、 计算快
+速的特点成为了列车空气制动建模研究的主流方向 。
+文献 [ 13 ] 对等效数学模型的应用最为典型 ， 其重点考虑
+了制动控制阀特性 、 制动缸充气特性和制动波传播速
+度特性 3 个因素 ， 将制动缸体的复杂气动过程抽象为数
+学描述 ， 并详细分析每个因素对制动缸压力变化曲线
+的影响 。
+本文将空气制动划分为 3 个阶段 ， 并针对不同阶段
+建立独立的数学模型 。 相比于复杂的气动力学模型 ，
+在保证精度的同时 ， 减少了计算时间 ； 同时 ， 相比于
+现有的数学等效模型 ， 考 虑了更多的影响因素 ， 扩大
+了模型的适用范围 。
+1 重载列车运动学建模
+重 载货运列车整车长度可达到上千米甚至几千米 。
+当列车运行时 ， 随着坡道 、 曲线等线路条件不断变化 ，
+列车的各种附加阻力也发生变化 。 为使模型更加准确 ，
+把列车简化成刚性多质点运动模型 — —将每辆车简化
+为均匀质量分布的棒状结构 ， 并考虑每辆车的长度与
+质量 ， 能够较好地体现列车在变坡点和变曲率点的阻
+力变化 ， 计算量相对较少 ， 易于实现 。 图 1 为货运列车
+刚性多质点模型图 。
+重载列车在运行过程中主要受机车牵引力 、 电制
+动力 、 空气 制动力 、 基本运行阻力 、 坡道附加阻力等
+力的影响 ， 而列车的运动状态取决于列车所受合力 ，
+其列车运动学方程为 ：
+ü
+ý
+þ
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+d v
+d x
+=
+g × [ ]F
+t
+( v ) - W
+0
+( v ) - B
+d
+( v ) - B
+c
+( v ) - W
+j
+( x )
+1 0 0 0 ( 1 + γ ) × v
+d t
+d x
+=
+1
+v
+( 1 )
+式中 ： x 为列车运行位置 ； v 为列车运行速度 ； γ 为列车
+回转质量系数 ； F
+t
+( v ) 为列车单位牵引力 ， N/kN ； B
+d
+( v )
+为列车单位电制动力 ， N/kN ； B
+c
+( v ) 为列车单位空气制
+动力 ， N/kN ； W
+0
+( v ) 为列车单位基本运行阻力 ， N/kN ；
+W
+j
+( x ) 为列车单位加算坡道阻力 ， N/kN 。
+式 ( 1 ) 中刚性多质点加算坡道阻力计算公式为
+W
+j
+( x ) = é
+ë
+ù
+û
+∑ ( )w
+g k
+× l
+g k
++ ∑ ( )w
+r k
+× l
+r k
++ ∑ ( )w
+s k
+× l
+s k
+L
+T r a i n
+( 2 )
+式中 ： w
+g k
+， w
+r k
+， w
+s k
+分别为列车所覆盖的第 k 个坡道 、
+曲线和隧道的单位附加阻力 ， N/kN ； l
+g k
+， l
+r k
+， l
+s k
+分别为
+列车所覆盖的第 k 个坡道 、 曲线和隧道的长度 ， m ；
+L
+T r a i n
+为列车长度 ， m 。
+2 牵规空气制动模型局限性分析
+空气制动以空气为控制对象 ， 通过调控减压量调
+节列车管压力 ， 并经过基本制动装置传递和放大 ， 使
+得闸瓦的压力作用在滚动的轮面或制动盘上 ， 以达到
+制动的效果 。
+列车在空气制动过程中 ， 制动力沿列车长度方向
+具有制动起始时间不同步和制动缸升压速度不均匀
+[ 14 ]
+的特点 。 因此 ， 列车空气制动力发挥是一个制动力逐
+渐增加至稳定的变化过程 ， 并且车辆的制动缸压力
+（ 闸瓦压力 ） 沿列车方向从前到后顺序传播 ， 并逐渐达
+到极值 ， 如图 2 虚线 Oef 所示 。 牵规考虑制动作用传播
+延迟 ， 引入 “ 空走过程 ” 与 “ 有效制动过程 ” 的概念
+并对其进行简化表征 ， 将空气制动力变化过程简化为
+空走段 （ Ode ′） 和制动有效段 （ e ′ f）
+[ 6 ]
+。
+图 1 重载列车刚性多质点模型图
+Fig . 1 Rigid multi-particle model diagram
+of heavy haul train
+71
+
+===== PDF page 3 =====
+2022 年 7 月
+同时 ， 牵规总结了 “ 空走过程 + 有效制动过程 ” 的
+空气制动力计算数学表达式
+[ 6 ]
+， 具体如下 ：
+B
+c
+( t ) =
+ì
+í
+î
+ïïïï
+ï
+ïï
+ï
+0  t < t
+k z
+β
+c
+φ
+h
+é
+ë
+ê
+êê
+ê ù
+û
+ú
+úú
+ú
+P
+N
+K
+h
++ ∑
+i = 1
+N
+( G
+i
+K
+h
+)  t ≥ t
+k z
+( 3 )
+式中 ： B
+c
+( t ) 为空气制动力 ； G
+i
+为单台车辆的闸瓦数 ；
+P
+N
+为机车闸瓦总数 ； β
+c
+为牵规规定的常用制动系数 ；
+φ
+h
+为牵规规定的闸瓦换算摩擦因数 ； K
+h
+为牵规规定的
+闸瓦换算压力 ， kN ； t
+k z
+为牵规规定的空走时间 ， s 。
+本文取国内某货运专线 2 万 t 组合列车运行数据
+中的制动区段数据 ， 结合 2 万 t 重载列车机车和车辆
+类型使用的闸瓦类型 ， 进行牵规空气制动模型适应性
+验证 。 其中 ， 闸瓦换算摩擦因数和闸瓦换算压力分别
+如下 ：
+ϕ
+h
+= 0 . 3 2 2
+v + 1 5 0
+2 v + 1 5 0
+( 4 )
+K
+h
+= 1 . 2 7 3
+K + 2 0 0
+4 K + 2 0 0
+× K ( 5 )
+式中 ： K 为车辆每块闸瓦的实算闸瓦压力 ， 按照牵规规
+定 ， K = 20 kN 。
+牵规模型验证效果如图 3 所示 。 统计实车运行数据
+中各制动区段的制动时间和 2 个制动段之间缓解再充风
+时间 ， 具体如表 1 所示 。
+针对验证结果进行分析 ， 可得出下结论 ：
+① 在牵规的 “ 制动空走 + 制动有效 ” 的两段式模型
+中 ， 当 “ 制动空走 ” 模式转变为 “ 制动有效 ” 模式时
+制动力存在突变的情况 。
+② 在实际运行过程中 ， 当列车进入制动有效段模
+式时 ， 空气制动力存在波动 ， 主要表现为制动力由弱
+变强 。
+③ 对于短距离制动 ， 牵规模型速度曲线与实际曲
+线贴合效果好 ， 但对于长距离制动 ， 贴合效果普遍较
+差 。 这表明对于长距离制动 ， 空气制动力的发挥存在
+波动 。
+④ 对于长距离制动 ， 贴合效果不理想的区段均存
+在上一个制动段缓解时间偏小的情况 。 这说明上一次
+制动的缓解时间会对本次制动空气制动力的发挥产生
+影响 。
+3 空气制动过程模型改进
+针对传统牵规模型无法表征长编组列车空气制动
+传播带来的制动力由弱变强且呈现慢时变的特点 ， 以
+及由于历史制动间隔短晾闸不充分导致的本次制动性
+能整体变弱的问题 ， 将空气制动全过程分为 3 个阶段
+— —实际系统空走阶段 、 制动力建立的暂态阶段和制
+动力稳定发挥的稳态阶段 ， 如图 4 所示 。 其中 ， t
+0
+时刻
+为制动手柄动作时间 ， t
+d , i
+为第 i 辆车辆制动缸开始充气
+时间 ， t
+m , i
+为第 i 辆车辆制动缸充气结束时间 。
+① 实际系统空走过程 ： 当 t Î [ t
+0
+ t
+d  1 ) 时 ， 这个阶段
+为 “ 制动手柄动作 → 头部车辆制动缸开始充气 ” 的过
+程 ， 其过程受空气制动物理系统影响 。 本文将其认定
+为常数不进行深入研究 ， 取值参考文献 [ 14 ] 。
+② 暂态过程 ： 当 t Î [ t
+d  1
+ t
+m  N ) 时 ， 这个阶段为 “ 头
+图 2 列车空气制动力变化示意图
+Fig . 2 Schematic diagram of train air braking force change
+( a ) 第 1 个 ~ 第 6 个制动段
+( b ) 第 7 个 ~ 第 1 2 个制动段
+图 3 列车牵引规程空气制动 模型验证结果图
+Fig . 3 Diagram of air braking model verification results
+of train traction regulations
+表 1 实车空气制动 / 缓解信息表
+Table 1 Train air braking / release information table s
+参数项目
+制动时间
+缓解再充风时间
+参数项目
+制动时间
+缓解再充风时间
+制动段
+1
+63
+244
+制动段
+7
+109
+175
+2
+66
+289
+8
+942
+232
+3
+202
+183
+9
+449
+512
+4
+946
+226
+10
+190
+460
+5
+1 358
+219
+11
+276
+365
+6
+918
+313
+12
+142
+390
+72
+
+===== PDF page 4 =====
+第 4 期 王青元 ， 赵紫宁 ， 刘强强 ， 王开云 ， 饶 煜 ， 孙鹏飞 ： 两万 t 重载列车空气制动过程建模
+部车辆制动缸开始充气 → 尾部车辆制动缸充气结束 ”
+的过程 ， 如图 4 中 t
+d , 1
+至 t
+m , N
+范围内的多条曲线所示 。
+③ 稳态过程 ： 将 t > t
+m  N
+后列车管保压的有效制动发
+挥至缓解的过程定义为空气制动稳态过程 ， 如图 4 中 ef
+段实线所示 。
+基于空气制动全过程的 3 个阶段 ， 提出一种三段式
+精细化 空气 制动力计算模型 ， 其数学模型为
+B
+c
+( t ) =
+ì
+í
+î
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+0  t ≤ t
+d  1
+C
+β
+β
+c
+φ
+h
+{ P
+N
+K
+h
++ ∑
+i = 1
+N
+[ G
+i
+K
+z  i
+( t ) P
+s
+( t ) ] }  t
+d  1
+< t ≤ t
+m  N
+C
+β
+β
+c
+φ
+h
+{ P
+N
+K
+h
++ ∑
+i = 1
+N
+[ G
+i
+K
+h
+P
+s
+( t ) ] }  t > t
+m  N
+( 6 )
+式中 ： P
+s
+( t ) 为历史操纵 对制动性能的修正函数 ； K
+z  i
+( t )
+为暂态过程中第 i 辆车实时闸瓦压力函数 ， kN ； C
+β
+为常
+用制动对应减压量制动性能修正系数 ， 本文取常数 。
+值得注意的是 ， 从空气制动力的连续性角度来分
+析 ， 式 ( 6 ) 应 满足以下约束 ：
+K
+z  i
+( t ) | t = t
+m  i
+= K
+h
+( 7 )
+3 . 1 历史操纵对 制动性能的修正函数
+考虑 2 万 t 列车在长大坡道循环制动期间缓解时间
+不充分导致制动力发挥不充分 ， 以及制动抱闸时间过
+长导致闸瓦温度波动对空气制动力发挥全过程的影响 ，
+修正函 数为 ：
+P
+s ( t ) = L
+s
++
+1 - L
+s
+1 + e
+- 1 0 λ
+s
+( )
+t
+T
+B R A
+- Q
+o f f
+( 8 )
+L
+s
+=
+(
+T
+R E L _ L a s t
+T
+R E L _ S e t )
+K
+s
+( 9 )
+Q
+o f f
+= k
+s
+× ( S
+t m p
++ b
+s ) ( 10 )
+b
+s
+= a
+0
+L
+2
+s
++ b
+0
+L
+s
++ c
+0
+( 11 )
+S
+t m p
+= a
+1
+× e
+c
+1
+× t
+- b
+1
+× e
+d
+1
+× t
+( 1 2 )
+式中 ： λ
+s
+为 S 函数上升斜率特性参数 ； T
+R E L _ S e t
+为在常用
+制动减压量下缓解充风至标定管压所需的时间 ， s ；
+T
+R E L _ L a s t
+为上一个制动段的缓解时间 ， s ； T
+B R A
+为本制动
+段的制动时间 ， s ； L
+s
+为表征历史缓解时间对空气制动
+影响的因子 ； k
+s
+为与 L
+s
+相关的特性参数 ； S
+t m p
+为闸瓦的
+温度曲线 ， 是文献 [ 15 ] 中调速制动工况闸瓦温度与控制
+时间关系的拟合曲线 ， 拟合数据来源于文献 [ 15 ] ， 此处
+为直接引用其结论 ； a
+1
+， b
+1
+， c
+1
+， d
+1
+为与闸瓦温度曲线
+S
+t m p
+相关的常数 ； Q
+off
+为表征闸瓦温度对空气制动影响
+的因子 ， 与闸瓦温度曲线 S
+t m p
+成线性关系 ； k
+s
+为与影响
+因子 Q
+off
+相关的特性参数 ； b
+s
+为表征历史缓解时间与闸
+瓦状态关联的因子 ， 与影响因子 L
+s
+成线性关系 ； a
+0
+，
+b
+0
+， c
+0
+为与关联因子 b
+s
+相关的常数 。
+3 . 2 实时闸瓦压力函数
+在列车制动暂态过程中 ， 各车辆闸瓦压力随着制
+动缸体充气处于一个逐渐增大的过程 。 将制动缸压力
+映射为闸瓦压力 ， 并描述其变化过程
+[ 13 ]
+， 结合式 ( 7 ) 约
+束 ， 定义车辆闸瓦 压力如下 ：
+K
+z  i
+( t ) =
+(
+t - t
+d  i
+T
+1
++ t
+D  i )
+λ
+z
+t - t
+d  i
++ λ
+z
+K
+h
+( 13 )
+t
+m  i
+= t
+d  i
++ t
+D  i
++ T
+1
+( 14 )
+式中 ： t
+d  i
+为第 i 辆车 辆制动缸开始充气时间 ， s ； t
+D  i
+为第
+i 辆车辆与第 1 辆车辆制动缸充气时间差 ， s ； T
+1
+为第 1 辆
+车辆的制动缸充气时长 ， s ； λ
+z
+为制动控制阀特性参数 。
+国内 2 万 t 组合列车常采用 “ 1 + 1 ” 的编组形式 （ 1
+辆 HX D 1 + 108 辆 C 80 车辆 + 1 辆 HX D 1 + 108 辆 C 80 车辆 ） ，
+“ 1 + 1 ” 编组形式的制动波传播示意图
+[ 16 ]
+如图 5 所示 。
+式 ( 13 ) 中 t
+d , i
+和 t
+Δ , i
+的表达式如下 ：
+t
+d  i
+=
+ì
+í
+î
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+t
+1
++
+t
+N
+- t
+1
+(
+N
+2
+- 1 )
+γ
+z
+( i - 1 )
+γ
+z
+ i ≤
+N
+4
+t
+1
++
+t
+N
+- t
+1
+(
+N
+2
+- 1 )
+γ
+z
+(
+N
+2
+- i - 1 )
+γ
+z
+
+N
+4
+< i ≤
+N
+2
+t
+1
++
+t
+N
+- t
+1
+(
+N
+2
+- 1 )
+γ
+z
+( i -
+N
+2
+)
+γ
+z
+
+N
+2
+< i ≤ N
+( 15 )
+t
+D  i
+=
+ì
+í
+î
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+T
+N
+- T
+1
+(
+N
+2
+- 1 )
+K
+z
+( i - 1 )
+K
+z
+ i ≤
+N
+4
+T
+N
+- T
+1
+(
+N
+2
+- 1 )
+K
+z
+(
+N
+2
+- i - 1 )
+K
+z
+
+N
+4
+< i ≤
+N
+2
+T
+N
+- T
+1
+(
+N
+2
+- 1 )
+K
+z
+( i -
+N
+2
+)
+K
+z
+
+N
+2
+< i ≤ N
+( 16 )
+图 5 制动波传递情况示意图
+Fig . 5 Schematic diagram of braking wave transmission
+图 4 空气制动过程分割示意图
+Fig . 4 Schematic diagram of air braking process segmentation
+73
+
+===== PDF page 5 =====
+2022 年 7 月
+式中 ： N 为列车车辆数 ； γ
+z
+为制动波波速特性参数 ； K
+z
+为制动缸充气特性参数 ； T
+N
+为第 N 辆车的制动缸充气
+时长 ， s ； t
+1
+为第１辆车辆制动缸开始充气时间 ， s ； t
+N
+为第 N 辆车辆制动缸开始充气时间 ， s ； t
+m  i
+为第 i 辆车
+辆制动缸结束充气时间 ， s 。
+图 6 为空气制动力在重载组合列车中的典型分布 。
+相比于牵规模型 ， 本文模型用三段式分析方法还原了
+制动系统在制动全过程的动态行为 ， 表征了闸瓦压力
+随制动缸充气逐渐增大的过程 ， 历史操纵对制动性能
+的影响 。
+4 模型验证
+为验证本文模型的正确性和有效性 ， 所用数据选
+自国内某货运专线上 2 个月内开行的 30 趟车次的实车
+运行数据 ， 并截取近 350 个空气制动段数据 。 运用评价
+函数 ， 与牵规 空气制动模型对比 。 评价函数为
+J = ∑
+i
+n
+( v
+s i m  i
+- v
+r e l  i )
+2
+( 17 )
+式中 ： v
+s i m  i
+为第 i 个 数据点对应的仿真计算速度 ； v
+r e l  i
+为第 i 个数据点对应的实际列车速度 ； n 表示该仿真区
+段数据的总点数 。
+图 7 为截取 5 个车次共 62 个制动段的精细化模型和
+牵规模型效果对比图 。
+为方便直观对比 ， 将图 7 数据按不同车次 （ 前 5 个
+车次 ） 和不同制动段重新进行归纳整理 ， 具体如表 2
+所示 。
+( a ) 单辆车换算制动力
+( b ) 列车空气制动力
+图 6 精细 化模型空气制动 过程示意图
+Fig . 6 Diagram of air braking process of refined model
+( a ) 制动段整体评价函数值
+( b ) 部分制 动段评价函数 值
+图 7 精细化模型和牵规模型的评价函数值大小分布图
+Fig . 7 Distribution diagram of evaluation function values
+of refined model and train traction regulation model
+表 2 精细化模型和牵规模型的评价函数值统计表
+Table 2 Statistical table of evaluation function values of refined model and train traction regulation model
+制动段
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+28006 次
+精细
+3 . 2
+0 . 3
+64 . 1
+21 . 7
+95 . 6
+39 . 9
+3 . 2
+31 . 0
+5 . 7
+9 . 4
+17 . 8
+1 . 6
+牵规
+2 . 1
+2 . 1
+107 . 9
+466 . 1
+599 . 5
+36 . 3
+16 . 9
+1 294 . 6
+12 . 8
+8 . 4
+64 . 1
+24 . 8
+29932 次
+精细
+0 . 5
+0 . 1
+43 . 7
+50 . 5
+250 . 9
+14 . 1
+1 . 1
+39 . 1
+38 . 5
+4 . 5
+10 . 9
+1 . 1
+牵规
+2 . 0
+7 . 0
+65 . 6
+652 . 0
+807 . 6
+162 . 3
+8 . 3
+600 . 1
+144 . 0
+25 . 1
+62 . 9
+6 . 6
+28964 次
+精细
+2 . 0
+0
+96 . 8
+77 . 8
+293 . 4
+26 . 4
+2 . 8
+89 . 1
+23 . 1
+25 . 4
+39 . 2
+1 . 7
+牵规
+2 . 4
+1 . 0
+91 . 2
+1 540 . 3
+658 . 0
+42 . 0
+5 . 3
+2 201 . 8
+26 . 3
+31 . 1
+59 . 9
+12 . 4
+28338 次
+精细
+0 . 9
+0 . 5
+13 . 6
+80 . 2
+40 . 6
+51 . 7
+1 . 6
+32 . 7
+5 . 7
+13 . 6
+21 . 1
+0 . 9
+牵规
+0 . 9
+0 . 7
+22 . 0
+1 144 . 4
+184 . 0
+47 . 0
+2 . 3
+198 . 5
+18 . 9
+15 . 2
+21 . 1
+3 . 1
+28528 次
+精细
+2 . 0
+0 . 2
+51 . 6
+3 . 5
+7 . 9
+133 . 6
+56 . 7
+3 . 2
+4 . 4
+4 . 8
+8 . 3
+5 . 2
+牵规
+9 . 7
+0 . 1
+50 . 5
+77 . 0
+628 . 8
+1 870 . 8
+253 . 9
+3 . 7
+73 . 8
+219 . 5
+52 . 1
+33 . 0
+74
+
+===== PDF page 6 =====
+第 4 期 王青元 ， 赵紫宁 ， 刘强强 ， 王开云 ， 饶 煜 ， 孙鹏飞 ： 两万 t 重载列车空气制动过程建模
+为了直观对比评价函数 J 值在速度曲线贴合程度上
+的差异 ， 选取表 2 中 28006 次列车的模型验证结果 ， 基
+于标准牵引计算方法 ， 对牵规制动模型和精细化制动
+模型计算 ， 所得的重载列车长大下坡道循环制动速度
+曲线如图 8 所示 。
+通过对上述数据进行分析 ， 可以得出以下结论 ：
+① 牵规模型在短距离制动时准确度高 ， 但对于大
+量长距离制动段其准确度相对较低 。 不同制动段的评
+价函数 J 值相差较大 ， 这表明牵规模型的适应度有限 。
+② 精细模型在牵规模型准确度高的地方同样能做
+到高准确度 ， 同时在牵规模型准确度低的制动段也能
+做到有较高的准确度 。 不同制动段的评价函数 J 值相差
+小 ， 这表明精细模型有较高的适应度 。
+5 结论
+本文通过将空气制动过程分成实际系统空走阶段 、
+制动力建立的暂态阶段和制动力稳定发挥的稳态阶段 ，
+分别对制动力建立的暂态阶段和制动力稳定发挥的稳
+态阶段进行了独立建模 ， 构建精细化空气制动模型 。
+其中 ， 暂态过程以单体车辆为建模单位 ， 详细地表征
+了空气制动过程中制动波的传递对车辆闸瓦压力的影
+响 ； 稳态过程通过分析实车运行中空气制动力的变化
+情况确定稳态特性模型 。 通过引入历史缓解时间和抱
+闸闸瓦温度等影响因子 ， 模拟空气制动力动态变化过
+程 。 基于重载组合列车长大下坡道区段循环制动实车
+数据对本文所提的精细化模型与牵规模型进行对比分
+析 ， 结果表明本文所提模型对于制动段速度曲线有着
+更好的准确度和适应度 。
+参考文献 ：
+[ 1 ] 郑永杰 . 列车管压力梯度对重载列车纵向冲动影响 [ J ]. 农
+业装备与车辆工程 , 2019 , 57 ( 8 ): 13 - 16 .
+ZHENG Y ongjie . Influence of train pipe pressure gradient
+on longitudinal impulse of heavy haul train [ J ]. Agricultural
+Equipment & V ehicle Engineering , 2019 , 57 ( 8 ): 13 - 16 .
+[ 2 ] 黄宇澄 . 重载列车在长大下坡区段的运行曲线优化方法
+研究 [ D ]. 北京 : 北京交通大学 , 2021 .
+HUANG Y ucheng . Research on the optimization method of
+operating curve of heavy-haul train on the long steep down ‐
+ward slope sections [ D ]. Beijing : Beijing Jiaotong Univer ‐
+sity , 2021 .
+[ 3 ] 董克毓 , 魏伟 . 万吨重载列车在神朔段长大下坡道循环制
+动优化 [ J ]. 大连交通大学学报 , 2017 , 38 ( 1 ): 17 - 20 .
+DONG Keyu , WEI Wei . Optimizing of cycle braking of
+1 000 t train on long heavy down grade of Shenshuo [ J ].
+Journal of Dalian Jiaotong University , 2017 , 38 ( 1 ): 17 - 20 .
+[ 4 ] 林轩 , 王青元 , 刘强强 , 等 . 长大下坡区间货运列车周期性
+制动研究 [ J ]. 铁道学报 , 2019 , 41 ( 1 ): 50 - 58 .
+LIN Xuan , W ANG Qingyuan , LIU Qiangqiang , et al . On pe ‐
+riodic braking of freight trains on long steep downhill sec ‐
+tion [ J ]. Journal of the China Railway Society , 2019 , 41 ( 1 ):
+50 - 58 .
+[ 5 ] 魏伟 , 张益铭 . 2 万吨重载组合列车操纵优化研究 [ J ]. 铁道
+机车车辆 , 2021 , 41 ( 4 ): 35 - 40 .
+WEI Wei , ZHANG Yiming . Operating optimization study of
+20 , 000 -ton heavy haul combined train [ J ]. Railway Locomo ‐
+tive & Car , 2021 , 41 ( 4 ): 35 - 40 .
+[ 6 ] 铁路部标准计量研究所 . 列车牵引计算规程 : TB/T 1407
+— 1998 [ S ]. 北京 : 中国铁道出版社 , 1998 .
+Institute of Standards and Metrology , Ministry of Railways .
+Code for calculation of train traction : TB/T 1407 — 1998 [ S ].
+Beijing : China Railway Press , 1998 .
+[ 7 ] 刘金朝 , 王成国 , 马大炜 , 等 . 长大列车空气管系充气特性
+数值仿真研究 [ J ]. 中国铁道科学 , 2004 , 25 ( 1 ): 13 - 19 .
+LIU Jinzhao , W ANG Chengguo , MA Dawei , et al . Numeri ‐
+cal simulation on charging characteristics of heavy haul
+train air brake pipe system [ J ]. China Railway Science ,
+2004 , 25 ( 1 ): 13 - 19 .
+[ 8 ] WEI Wei , AHMADIAN M , ZHANG Jun . Heavy haul train
+simulation of air brake system and longitudinal dynamics
+[ C ] //ASME . Proceedings of the 2014 Joint Rail Conference .
+Colorado : ASME , 2014 : V 001 T 04 A 003 .
+[ 9 ] WEI Wei , HU Y ang , WU Qing , et al . An air brake model for
+( a ) 0 ~ 100 km 公里标的循环制动速度曲线
+( b ) 140 ~ 220 km 公里标的循环制动速度曲线
+图 8 28006 次列车的模型验证效果图
+Fig . 8 Model verification results of train No . 28006
+75
+
+===== PDF page 7 =====
+2022 年 7 月
+longitudinal train dynamics studies [ J ]. V ehicle System Dy ‐
+namics , 2017 , 55 ( 4 ): 517 - 533 .
+[ 10 ] LIU Wentao , SU Shuai , TANG Tao , et al . Study on longitu ‐
+dinal dynamics of heavy haul trains running on long and
+steep downhills [ J/OL ]. V ehicle System Dynamics , 2021 : 1 -
+19 ( 2021 - 12 - 08 ) [ 2022 - 02 - 08 ]. https : //doi . org/ 10 . 1080 /
+00423114 . 2021 . 1998559 .
+[ 11 ] WU Qing , LUO Shihui , COLE C . Longitudinal dynamics
+and energy analysis for heavy haul trains [ J ]. Journal of
+Modern Transportation , 2014 , 22 ( 3 ): 127 - 136 .
+[ 12 ] 王悉 . 基于机器学习的重载列车智能驾驶方法研究 [ D ]. 北
+京 : 北京交通大学 , 2017 .
+W ANG Xi . Machine learning based intelligent operation
+methods for heavy haul train [ D ]. Beijing : Beijing Jiaotong
+University , 2017 .
+[ 13 ] 孙树磊 , 李芾 , 丁军君 , 等 . 重载列车空气制动特性多参数
+数学简化方法 [ J ]. 铁道车辆 , 2017 , 55 ( 9 ): 6 - 9 .
+SUN Shulei , LI Fu , DING Junjun , et al . The multi-
+parameter mathematic simplification method for air braking
+features of heavy haul trains [ J ]. Rolling Stock , 2017 , 55 ( 9 ):
+6 - 9 .
+[ 14 ] 陈浩 , 魏伟 . 重载列车制动特性的试验研究 [ J ]. 大连交通
+大学学报 , 2017 , 38 ( 2 ): 11 - 14 .
+CHEN Hao , WEI Wei . Experiment research on braking per ‐
+formance of heavy haul train [ J ]. Journal of Dalian Jiaotong
+University , 2017 , 38 ( 2 ): 11 - 14 .
+[ 15 ] 陈旭 , 肖绯雄 . 高摩擦系数合成闸瓦热负荷研究 [ J ]. 电力
+机车与城轨车辆 , 2014 , 37 ( 4 ): 32 - 37 .
+CHEN Xu , XIAO Feixiong . Research of heat load of syn ‐
+thetic brake shoe with high frictional coefficient [ J ]. Electric
+Locomotives & Mass Transit V ehicles , 2014 , 37 ( 4 ): 32 - 37 .
+[ 16 ] 魏伟 . 两万吨组合列车制动特性 [ J ]. 交通运输工程学报 ,
+2007 ( 6 ): 12 - 16 .
+WEI Wei . Brake performances of 20 000 ton connected train
+[ J ]. Journal of Traffic and Transportation Engineering , 2007
+( 6 ): 12 - 16 .
+76

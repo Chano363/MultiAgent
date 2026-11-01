@@ -1,0 +1,729 @@
+
+===== PDF PAGE 1 =====
+第 45 卷 第 6 期 摩擦学学报（中英文） Vol 45 No 6
+2025 年 6 月 Tribology Jun, 2025
+DOI: 10.16078/j.tribology.2024091 CSTR: 32261.14.j.tribology.2024091
+陈建平, 王志伟, 莫继良, 王开云. 基于轮瓦非均匀接触压力的重载列车踏面制动温度预测方法[J]. 摩擦学学报（中英文）, 2025,
+45(6): 812−822. CHEN Jianping, WANG Zhiwei, MO Jiliang, WANG Kaiyun. Temperature Prediction Method of Heavy-Haul
+Trains Tread Braking Based on Non-Uniform Contact Pressure Between Wheel and Brake Shoe[J]. Tribology, 2025, 45(6):
+812−822.
+基于轮瓦非均匀接触压力的重载列车
+踏面制动温度预测方法
+陈建平1, 王志伟1,2*, 莫继良1,2, 王开云2
+(1. 西南交通大学 机械工程学院 摩擦学研究所，四川 成都 610031；
+2. 西南交通大学 轨道交通运载系统全国重点实验室，四川 成都 610031)
+摘 要: 重载列车踏面制动过程中，车轮-闸瓦摩擦热直接影响其磨耗及服役寿命，进而影响列车制动安全. 由于重
+载列车踏面制动复杂几何界面接触及摩擦特性，轮瓦摩擦热分布特性复杂且随接触及摩擦状态变化而变化，现有
+方法难以准确预测. 为此，基于车轮踏面真实廓形及其匹配的闸瓦廓形，改进了考虑轮瓦接触状态的摩擦热流密度
+计算方法，以模拟轮瓦不同接触位置的摩擦热特性. 进一步，结合有限元方法及热力学理论，提出1种考虑轮瓦非均
+匀接触压力的温度预测方法，并通过台架试验进行验证，实现了不同制动工况下轮瓦温度场预测. 基于此，系统分
+析了所提出方法与传统(均匀接触压力)方法在不同制动工况下计算结果的差异. 结果表明，所提出方法能够更加准
+确地预测轮瓦温度演变规律及温度场分布特性. 传统方法能够较好地预测车轮最高温度，而难以准确反映闸瓦的
+最高温度，也难以反映实际制动过程中轮瓦温度分布. 因此，在重载列车踏面制动温度及其相关分析中，需要考虑
+轮瓦实际接触状态带来的非均匀接触压力特性，以保障结果的可靠性和准确性.
+关键词: 踏面制动; 温度预测; 轮瓦接触压力; 温度场分布; 重载列车
+中图分类号: TH117.1 文献标志码: A 文章编号: 1004-0595(2025)06–0812–11
+Temperature Prediction Method of Heavy-Haul Trains Tread
+Braking Based on Non-Uniform Contact Pressure
+Between Wheel and Brake Shoe
+CHEN Jianping1, WANG Zhiwei1,2*, MO Jiliang1,2, WANG Kaiyun2
+(1. Tribology Research Institute, School of Mechanical Engineering, Southwest Jiaotong University,
+Sichuan Chengdu 610031, China;
+2. State Key Laboratory of Rail Transit Vehicle System, Southwest Jiaotong University,
+Sichuan Chengdu 610031, China)
+Abstract: During the tread braking of heavy-haul trains, the frictional heat generated between the wheel and brake shoe
+Received 28 April 2024, revised 11 June 2024, accepted 12 June 2024, available online 13 September 2024.
+*Corresponding author. E-mail: wangzw@swjtu.edu.cn, Tel: +86-13880432710.
+This project was supported by the National Natural Science Foundation of China (52388102), the Independent Research Projects of
+State Key Laboratory of Rail Transit Vehicle System (2024RVL-T09) and the Young Elite Scientists Sponsorship Program by CAST
+(2022QNRC001).
+国家自然科学基金项目(52388102)、轨道交通运载系统全国重点实验室自主课题(2024RVL-T09)和中国科协青年人才托举工
+程项目(2022QNRC001)资助.
+===== PDF PAGE 2 =====
+第 6 期 陈建平, 等: 基于轮瓦非均匀接触压力的重载列车踏面制动温度预测方法 813
+directly impacts their abrasion and service life, thereby influencing the safety of train braking operations. It is necessary
+to effectively predict the tread braking temperature distribution of the of heavy-haul trains. The wheel-brake shoe
+interface of heavy- haul trains tread braking involves intricate geometric contact and frictional characteristics, leading to
+a complex distribution of frictional heat on the wheel and brake shoe that changes with variations in contact and
+frictional states. Existing methods have demonstrated limitations in effectively predicting the complex distribution of
+frictional heat. To address this challenge, a sophisticated approach had been developed based on the actual profiles of the
+wheel tread and its corresponding brake shoe profile. This method modified the calculation of frictional heat flux density
+by considering the contact state between the wheel and brake shoe, enabling the simulation of frictional heat
+characteristics at various contact positions along the wheel and brake shoe interface. Furthermore, through the
+integration of finite element methods with thermodynamic principles, a novel temperature prediction method had been
+proposed. This method took into account the non-uniform contact pressure between the wheel and brake shoe, which
+was verified by bench test, and the temperature field prediction of the wheel and brake shoe under different braking
+conditions was realized. Building on this foundation, a comprehensive analysis had been conducted to compare the
+results obtained using the proposed method with those derived from traditional method (which assume uniform contact
+pressure). The results demonstrated that the proposed method was capable of more accurately predicting the temperature
+evolution and distribution characteristics of the wheel and brake shoe. In contrast, traditional methods may effectively
+predict the highest temperature of the wheel, while often struggle to accurately reflect the highest temperature of the
+brake shoe or capture the actual temperature distribution of both components during the braking process. Therefore, in
+analyzing tread braking temperatures and associated subjects (thermal stress, thermal cracking, and thermal fatigue, et,
+al) in heavy-haul trains, it was crucial to consider the non-uniform contact pressure resulting from the actual contact state
+between the wheel and brake shoe. This consideration ensured the reliability and accuracy of the results, ultimately
+enhancing the safety and efficiency of train braking systems. In conclusion, the development of this method represented
+a significant advancement in the field of train braking safety. By accurately predicting temperature distributions and
+considering non-uniform contact pressures, the proposed method held promise for improving the design and operation of
+braking systems for heavy-haul trains, ultimately contributing to enhanced safety and reliability in rail transportation.
+Key words: tread braking; temperature prediction; contact pressure between wheel and brake shoe; temperature field
+distribution; heavy-duty trains
+在重载列车踏面制动过程中，列车巨大的动能通 膨胀对接触分析的影响，以此反复迭代，最终得到摩
+过车轮与闸瓦之间的摩擦在短时间内转化为热能，这 擦物体的温度分布. 该方法对算力要求较高，耗时较
+将导致车轮和闸瓦的温度迅速升高，严重时将引起制 长且计算成本高. 表面施加热源方法通过计算理论摩
+动性能的衰退. 同时，由制动热负荷引起的热应力是 擦热源并施加在摩擦表面，进而得到摩擦物体的温度
+造成车轮踏面热疲劳的主要原因，威胁制动安全[1-2]. 分布. 该方法避免了摩擦物体之间的接触分析，极大
+此外，研究表明车轮踏面温度还将影响车轮和闸瓦磨 提高了计算效率，可以节省大量计算成本.
+耗[3-4]. 因此，准确地预测重载列车踏面制动过程中车 由于在实际服役过程中，重载列车通常需要长时
+轮和闸瓦的温度分布是深入认识制动性能热衰退、热疲 间坡道制动. 直接热机耦合方法计算轮瓦之间摩擦生
+劳及磨耗等问题并提出对应解决措施的关键技术之一. 热面临着计算成本高和求解困难等挑战[9]，难以高效
+通常，研究人员采用台架试验[5]和有限元仿真[6] 预测长时间制动过程中车轮和闸瓦的温度分布. 因
+的方法研究车轮和闸瓦在制动过程中的温升规律. 然 此，研究人员通常采用表面施加热源方法计算车轮和
+而，采用台架试验方法的要求较高，存在试验周期长、 闸瓦的温度分布[10-12]. 刘智慧等[10]基于能量换算法研
+经济成本高以及难以测试车轮和闸瓦整体温度分布 究摩擦热在直线、曲线和道岔等载荷工况下对不同磨
+等问题[7]. 有限元仿真方法因具有耗资较少且能反映 耗程度弹性车轮强度的影响. 宋剑锋等[11]利用表面施
+车轮和闸瓦整体温度分布等优点，成为目前常用的轮 加移动热源方法分析了踏面温度分布及应力-应变随
+瓦温度预测方法. 轴重、制动初速度和减速度等影响因素的变化规律，
+一般而言，使用有限元仿真计算摩擦热包括直接 基于此建立了踏面温度回归分析预测模型. 肖绯雄等[12]
+热机耦合和表面施加热源2种方法[8-9]. 直接热机耦合 根据能量守恒定律计算闸瓦摩擦表面的理论热源，并分
+方法在进行接触分析的同时考虑摩擦生热，并考虑热 析了不同磨耗程度闸瓦在紧急制动时的温度分布，得出
+===== PDF PAGE 3 =====
+814 摩擦学学报（中英文） 第 45 卷
+闸瓦磨耗量越大其温度越高的结论. 因此，摩擦表面 划分，车轮共有56 464个单元、67 884个节点，闸瓦共有
+施加热源方法广泛应用于车轮和闸瓦温度规律分析中. 8 672个单元、10 614个节点. 为提高仿真计算精度，闸
+然而，在现有表面施加热源方法中，轮瓦之间的 瓦和踏面接触区域网格进行细化处理.
+接触压力通常被假设为均匀分布. 实际上，由于踏面 建立的踏面制动有限元模型详细考虑各部件的
+及闸瓦廓形复杂，轮瓦接触具有明显的几何非线性特 真实约束情况. 在车轮中心位置设置参考点RP1，将车
+性，接触状态极其复杂且接触压力是非均匀分布的状 轮内孔表面与参考点RP1进行动力学耦合，车轮的约
+态. 总的来说，现有方法未能有效反映轮瓦实际服役 束条件均施加于参考点上. 同样地，在推杆上表面中
+过程中的接触状态与压力分布，进而难以准确预测其 心位置设置参考点RP2，将推杆上表面与参考点RP2
+温度分布规律. 进行动力学耦合，保留其垂直于车轮踏面方向的移动
+为此，本文中考虑踏面廓形及闸瓦磨损形貌，改 自由度，并通过该参考点施加闸瓦推力. 定义闸瓦摩
+进了摩擦功率计算公式，进而提出1种基于轮瓦非均 擦表面与车轮踏面、推杆与轴承及支架为面-面接触，
+匀接触压力的重载列车踏面制动温度预测方法，并通
+主面为车轮踏面、轴承内圈和支架摩擦面，从面则为
+过试验数据验证了所提出方法的有效性，实现了不同
+闸瓦摩擦表面和推杆摩擦面. 闸瓦与夹具、力传感器
+制动工况下轮瓦温度预测. 基于此，系统对比分析了
+与推杆以及轴承与支架之间均设置Tie约束，车轮和
+所提出方法与传统方法对轮瓦温度预测结果的差异，
+闸瓦的材料参数列于表1中.
+为轮瓦温度预测提供方法指导.
+1.2 闸瓦磨合模型
+Archard磨损模型在黏着磨损和磨粒磨损等干态
+1 重载列车踏面制动温度预测方法
+磨损条件下能够有效预测磨损结果[13-14]. 因此，为获得
+1.1 踏面制动缩比试验台有限元模型 闸瓦磨合后的磨损形貌，利用Archard磨损模型进行闸
+基于有限元方法，在Abaqus平台建立了踏面制动 瓦磨合仿真，其一般形式为[14]
+缩比试验台有限元模型. 该模型包括车轮、闸瓦、夹 V F
+=k N (1)
+具、力传感器、轴承、推杆及支架等部件，忽略了螺栓 S H
+孔等对仿真结果影响较小的结构，如图1所示. 在进行 式中，V是磨损体积，S为滑移距离，k为无量纲磨损系
+网格划分时，所有部件均采用六面体网格进行网格 数，F 为法向载荷，H为材料表面硬度.
+N
+Concentrated force
+RRPP22
+Push rod
+Brake shoe
+Support frame
+Bearing
+Wheel
+Sensor
+Holder
+Refinement mesh
+RRPP11
+Y
+Z X
+Fig. 1 The finite element model of tread braking shrinkage ratio test bench
+图 1 踏面制动缩比试验台有限元模型
+===== PDF PAGE 4 =====
+第 6 期 陈建平, 等: 基于轮瓦非均匀接触压力的重载列车踏面制动温度预测方法 815
+表 1 车轮和闸瓦材料参数
+Table 1 Material parameters of wheel and brake shoe
+Component Density/(kg/m3) Thermal conductivity/[W/(m·℃)] Heat capacity/[J/(kg·℃)] Young’s modulus/GPa Poisson’s ratio
+Wheel 7 847.5 52.000 470 226.0 0.289
+Brake shoe 2 340.0 0.997 520 0.4 0.280
+p
+A k (cid:26) c
+在有限元磨损仿真中，总磨损体积为单元磨损体 (cid:11)= p 1 1 1 p1 (6)
+A k (cid:26) c +A k (cid:26) c
+积的累积，单元磨损体积又由节点磨损深度体现，且 1 1 1 1 2 2 2 2
+式中，A 和A 分别为车轮和闸瓦的名义接触面积，k 、
+整个磨损过程将被离散化为多个增量步. 因此，节点 1 2 1
+在单一增量步的磨损深度由变形后的Archard磨损公
+(cid:26)
+1
+、c
+1
+和k
+2
+、(cid:26)
+2
+、c
+2
+分别为车轮和闸瓦材料的导热系
+式计算得到，其形式为 数、密度和比热容.
+由于踏面制动过程中车轮高速旋转，可以认为车
+dh=nKPdS (2)
+轮踏面热流密度沿周向差异较小. 为了节省计算时间
+式中，dh为单一增量步磨损深度，n为磨损方向单位
+和结果文件容量[18-19]，将本该施加在车轮接触区域内
+矢量，K为有量纲磨损系数，K=k=H，P为接触压力，dS
+的热流密度沿踏面周向均匀施加.
+为单一增量步滑移量.
+基于公式(4)和(5)，考虑轮瓦之间非均匀接触压力
+闸瓦有量纲磨损系数通常由试验测试得到，计算
+以及实际摩擦半径，车轮和闸瓦热流密度计算公式为
+公式为 ■
+K= m 0 (cid:26) (cid:0) W m 1 (3) ■ ■ q 1 (x i )= (cid:17)(cid:11)(cid:22)P 2 xi π !R xi φ (7)
+q (x;z )=(cid:17)(1(cid:0)(cid:11))(cid:22)P !R
+式中，m 为闸瓦初始质量，m 为闸瓦磨损后质量，(cid:26)为 2 i j xi ;zj xi
+0 1
+式中，P 为轴向分布的平均接触压力，R 为轴向分布
+闸瓦密度，W为制动功. xi xi
+将变形后的Archard磨损公式嵌入子程序UMESH-
+的摩擦半径，φ为闸瓦圆心角，P
+xi ;zj
+为闸瓦不同节点处
+MOTION即可实现闸瓦磨合仿真. 然而，网格单元经 的接触压力.
+磨损后，可能引起网格严重变形，这将增加磨损仿真 在轴向不同位置的平均接触压力计算公式为
+的计算收敛难度和计算成本. 为克服此类问题，需要 ∑j=1
+P
+使用任意拉格朗日-欧拉技术(ALE)[15]优化磨损后网 xi ;zj
+P = N (8)
+格单元的质量，以此保障闸瓦磨合计算的正常运行. xi N
+1.3 热边界计算方法 式中，N为闸瓦在不同轴向位置处的节点数目.
+1.3.1 热流密度计算公式及改进 1.3.2 热对流及热辐射
+在踏面制动过程中，车轮与闸瓦摩擦区域产生的
+在踏面制动过程中，随着车轮和闸瓦的温度升
+热流密度可由摩擦功率公式计算[16]：
+高，其表面温度也将高于环境温度从而形成温度差，
+(cid:17)(cid:22)F!r
+q= (4) 表面与周围空气将产生对流传热，交换的热量由牛顿
+A
+冷却公式计算[16]：
+式中，(cid:17)为摩擦功转换为热能的比例系数，假设摩擦功
+全部转换为热能，取值为1，(cid:22)为摩擦系数，F为制动压力， Q c =(cid:0)h c A c ∆T (9)
+!为车轮角速度，r为摩擦半径，A为名义接触面积. 式中，h 为对流传热系数，A 为对流传热表面面积，∆T
+c c
+由摩擦区域产生的热流密度将按照一定比例分 为对流传热表面与周围环境之间的温差.
+别进入车轮和闸瓦的摩擦表面，计算公式如下： 由于踏面制动台架试验为室内环境，考虑踏面制动
+{
+q =(cid:11)q 系统温度模型为自然对流，对流传热系数经验公式为[20]
+1
+(5) ( )
+q
+2
+=(1(cid:0)(cid:11))q
+h =1:32
+∆T 1=4
+(10)
+c L
+式中，q 和q 分别为车轮和闸瓦摩擦表面的热流密
+1 2
+度，(cid:11)为热流分配系数. 式中，L为特征尺寸，车轮取直径，闸瓦取长度.
+热流分配系数与车轮和闸瓦的物理属性及摩擦 同时，车轮和闸瓦在温升过程中通过辐射电磁波
+面积相关，其计算公式为[17] 的形式向环境传递能量，且表面温度越高，辐射出的
+===== PDF PAGE 5 =====
+816 摩擦学学报（中英文） 第 45 卷
+能量越大. 单位时间内辐射出的能量计算采用Stefan- 2 试验部分
+Boltzmann定律公式[21]：
+2.1 试验装置
+Q ="(cid:27)A(T4(cid:0)T 4) (11) 为验证所提出重载列车踏面制动温度预测方法
+r s 0
+式中，"为材料辐射率，(cid:27)为Stefan-Boltzmann常数，A 为 的有效性，利用课题组研制的踏面制动缩比试验台进
+s
+辐射面积，T为辐射面绝对温度，T 为环境绝对温度. 行踏面制动试验，如图4所示. 该试验台可以实现不同
+0
+1.3.3 热边界条件设置 转速和载荷等不同工况下的踏面制动摩擦试验. 通过
+图2所示为车轮和闸瓦热边界条件设置示意图. 控制系统可以控制伺服电机的启停以及气缸的加载
+车轮踏面和闸瓦摩擦表面设置为热流密度输入区域， 状态. 安装在闸瓦上方的力传感器可以记录试验过程
+车轮整体除了内孔及螺栓孔表面，其余表面均设置了 中闸瓦受到的法向力和切向力，并由此计算得到闸瓦
+与周围环境的对流传热及热辐射，闸瓦仅侧面设置了 和踏面之间的摩擦系数. 利用电子秤(ZG-TP203，量程
+与周围环境的对流传热及热辐射. 500 g，精度0.001 g)测试闸瓦的磨损质量. 使用K型热
+1.4 踏面制动温度预测流程 电偶(WRNK-191，量程0~1 000 ℃)记录车轮踏面和闸
+为有效预测重载列车踏面制动过程中车轮和闸 瓦切入端以及切出端的实时温度. 此外，通过热成像
+瓦的温度分布，利用摩擦功率计算公式和踏面制动系 仪(FLIR E40，精度±2 ℃)测量试验结束后闸瓦摩擦表
+统有限元模型，进一步建立了基于轮瓦之间非均匀接 面的温度分布.
+触压力的温度预测方法，如图3所示. 该方法主要包括 2.2 试验过程
+闸瓦磨合模型、踏面制动瞬态动力学模型以及踏面制 试验研究中所使用的车轮样品为CL60材料，与我
+动温度模型三部分. 国铁路货车车轮的材料一致，其踏面形状为LM磨耗
+首先，利用Abaqus有限元分析软件建立踏面制动 型踏面，直径和宽度分别为280 mm和45 mm. 闸瓦样
+有限元模型，并基于Archard磨损公式进行闸瓦磨合仿 品为铁路货车常用的LH2型高摩合成闸瓦材料. 车轮
+真，以闸瓦接触面积作为磨合完成判定，得到闸瓦磨合 和闸瓦具体尺寸(单位均为mm)、安装位置以及热电偶
+后的磨损形貌，以反应实际服役过程中轮瓦接触状态. 测点如图4所示.
+然后，将磨合后闸瓦部件导入瞬态动力学模型并 在试验开始前，需要对闸瓦样品进行充分跑合，
+更新闸瓦磨损形貌. 基于踏面制动工况进行瞬态动力 直到闸瓦摩擦面积达到80%以上. 根据闸瓦跑合期间的
+学分析，并通过Python脚本提取计算稳定后的闸瓦接 磨损质量计算闸瓦有量纲磨损系数为9.02×10−3 cm3/MJ.
+触压力，进一步根据踏面廓形计算轮瓦实际摩擦半 同时，为模拟重载列车长时间坡道制动工况下的温升
+径，分别计算出车轮和闸瓦的热流密度. 过程，试验采取拖曳制动方式. 制动参数设置如下：车
+最后，根据制动工况设置车轮和闸瓦的温度边界 轮转速ω=95 r/min、制动压力F=1.5 kN和制动时间
+条件，并将计算得到的热流密度施加在各自摩擦表 t=345 s. 试验中使用热电偶实时记录踏面和闸瓦温升
+面，开展车轮和闸瓦温度仿真从而得到车轮和闸瓦的 过程. 并在试验结束后将闸瓦进行拆卸，使用热成像
+温度分布. 其中，闸瓦磨合仿真得到的闸瓦磨损形貌 仪测试摩擦表面的温度分布情况.
+是获取更准确闸瓦接触压力的关键因素. 由于车轮温度冷却时间较长，采取预试验方式进
+Wheel Brake shoe
+Axial non-uniform Non-uniform heat
+heat flux density flux density
+Heat flux density Heat convection Heat radiation
+Fig. 2 Thermal boundary conditions of wheel and brake shoe
+图 2 车轮和闸瓦热边界条件
+===== PDF PAGE 6 =====
+第 6 期 陈建平, 等: 基于轮瓦非均匀接触压力的重载列车踏面制动温度预测方法 817
+Finite element model of tread braking
+Brake shoe running-in model Tread braking transient dynamics model
+Conduct contact analysis Update brake shoe mesh component
+Extract contact pressure and Set dynamic analysis boundary
+displacement conditions and loads
+Archard formula
+Conduct tread braking dynamics
+Calculate the wear depth analysis
+ALE mesh technology Python script
+Obtain brake shoe contact
+Obtain brake shoe wear appearance
+pressure distribution
+Friction radius
+Calculate average contact pressure Calculate the heat flux density of
+brake shoe
+Friction radius
+Calculate the heat flux density of wheel
+Set thermal boundary conditions for
+brake shoe
+Set thermal boundary conditions for wheel
+Obtain brake shoe temperature
+distribution
+Obtain wheel temperature distribution
+Tread braking temperature model
+Fig. 3 Temperature prediction process of tread braking
+图 3 踏面制动温度预测流程
+Cylinder
+Control system
+Bearing
+Fixture
+Force sensor
+Servo motor
+Backplate Trip bolt
+Wheel Brake shoe Contact position between wheel and brake shoe
+118 59
+30 28
+45
+28
+26
+Φ280
+18 Thermocouple
+9
+Thermocouple 3° Unit: mm
+Fig. 4 The tread braking shrinkage ratio test bench schematic and sample
+图 4 踏面制动缩比试验台示意图及样品
+===== PDF PAGE 7 =====
+行了3次30 s温升测试，根据3次试验温升趋势相同，进 验结束5 min后的结果. 为与试验一致，仿真在制动结
+行1次正式试验. 试验验证数据为正式试验结果，且正 束后模拟了闸瓦拆卸过程发生的热交换，该过程闸瓦
+式试验平均摩擦系数为0.298. 无热通量输入，仅发生热传导、对流传热和热辐射. 可
+以看到，仿真计算得到的闸瓦摩擦表面温度分布与试
+3 结果验证 验结果基本相同，在闸瓦切入端存在温度聚集现象，
+3.1 温升规律 且呈现切入端温度高、切出端温度低的分布. 结果表
+采用与台架试验相同的制动参数，基于所提出的 明闸瓦主要摩擦区域位于切入端，这是由于摩擦力作
+踏面制动温度预测方法进行仿真计算. 将计算与试验 用下闸瓦向切入端倾斜.
+结果进行对比，踏面与闸瓦不同时间的温度结果如图5 进一步，对比分析了仿真与试验条件下的闸瓦摩
+所示. 可以看到，仿真与试验所得到的踏面温度在制 擦表面温度分布，提取了图6所示闸瓦周向路径不同
+动初期均迅速升高，随后上升速率逐渐减缓. 这是因 位置的温度，结果如图7所示. 可以看到，仿真与试验
+为在制动开始阶段，车轮整体温度基本相同，摩擦表 的闸瓦温度都沿着摩擦方向先升高再逐渐降低，最大
+面产生的热量远大于向内部热传导扩散的热量，从而 相对误差约5.04%. 仿真预测得到的最高温度位置与
+导致温度迅速上升. 随着摩擦表面向内部热传导逐渐 试验结果相比存在一定偏差，其位置相对靠近闸瓦切
+增强，其温升速率逐渐减缓. 仿真与试验制动结束时 入端. 这是由于闸瓦磨合仿真得到的磨损形貌较试验
+刻的踏面温度分别为69.29和71.66 ℃，相差3.31%，相 存在一定差别所致. 总的来说，提出的温度预测方法
+对误差较小. 基本反应了闸瓦的温度分布及温度幅值，验证了该方
+仿真与试验得到的闸瓦切入端(L-edge)温升规律 法的有效性.
+呈现制动初期快速上升，随后逐渐减缓的规律，与踏
+面温升规律基本一致. 闸瓦切出端(T-edge)温度在整 4 温度预测方法对比
+个制动过程中缓慢上升. 原因在于，闸瓦切出端热量 为了系统分析所提出的非均匀接触压力温度预
+主要来自于闸瓦切入端热传导. 仿真与试验制动结束 测方法与传统(均匀接触压力)温度预测方法在不同制
+时刻的闸瓦切入端温度分别为66.86和68.75 ℃，相对 动压力下的异同，开展了进一步仿真分析. 仿真工况
+误差为2.75%；切出端温度分别为33.90和33.77 ℃，相 如下，车轮转速ω=252.62 r/min，制动压力分别为1.1、
+对误差为0.38%. 1.5、1.9和2.3 kN，制动时间t=300 s，制动方式采取拖
+因此，所提出温度预测方法得到的踏面和闸瓦温 曳制动. 2种方法采用的摩擦系数计算公式为[22]
+升规律与试验结果基本一致. 结果表明，该方法可以 2v+150 F+200
+(cid:22)=0:481 (12)
+对车轮和闸瓦的温升规律进行有效预测. 3v+1504F+200
+3.2 闸瓦温度分布 4.1 车轮温度特性
+闸瓦摩擦表面温度分布的仿真与试验结果如图6 为分析非均匀接触压力方法与传统方法在计算
+所示. 需要说明的是，由于拍摄闸瓦摩擦表面的温度 热流密度时的差异，以制动压力F=1.5 kN时的车轮轴
+分布需要将闸瓦进行拆卸，因此该温度分布为制动试 向热流密度分布为例，结果如图8所示.
+(b)
+Error: 2.75%
+Error: 0.38%
+50 100 150
+Time/s
+℃/erutarepmeT
+80
+(a) L-edge simulation T-edge simulation
+Simulation
+L-edge test T-edge test
+Test
+60
+Error: 3.31%
+40
+20
+0
+50 100 150 0 200 250 300 350
+Time/s
+℃/erutarepmeT
+818 摩擦学学报（中英文） 第 45 卷
+80
+60
+40
+20
+0
+0 200 250 300 350
+Fig. 5 Temperature results of simulation and test: (a) tread temperature; (b) brake shoe temperature
+图 5 仿真与试验温度结果对比：(a)踏面温度；(b)闸瓦温度
+===== PDF PAGE 8 =====
+Simulation Test
+Start Temperature/℃ Leading edge Start 31 ℃ +3.045e+01
++2.935e+01
++2.824e+01
++2.714e+01 Path Path
++2.603e+01
++2.492e+01
++2.382e+01
++2.271e+01
++2.161e+01 +2.050e+01
++1.940e+01
++1.829e+01
++1.718e+01
+20 ℃
+Trailing edge End End
+缘侧体积更大，踏面向轮缘侧热传导热量更多，从而
+表现为温度聚集在靠近车轮内侧面区域.
+进一步，为分析2种方法得到踏面沿车轮轴向温度
+分布的差异，提取图9所示路径温度数据，结果如图10
+所示. 可以看出，非均匀接触压力方法计算得到的踏
+面温度梯度更明显，且2种方法得到踏面最大温差分
+别为25.58和20.30 ℃，相差20.64%.
+图11所示为2种方法预测得到不同制动压力下车
+轮最高温度及两者差值的计算结果. 结果表明，2种方
+法预测得到的车轮最高温度随着制动压力增加而增
+大，且两者之间的差值较小. 这是由于相比于传统方
+法，非均匀接触压力方法得到的温度聚集区域考虑了
+向轮缘及内侧面方向的热传导，其扩散热量更多，两
+者最高温度差别较小.
+与均匀接触压力方法结果相比，非均匀接触压力
+4.2 闸瓦温度特性
+方法计算得到的车轮轴向热流密度沿着踏面轮缘方
+与重载列车制动过程中车轮处于高速旋转不同，
+向先逐渐增加再减小，反映出踏面热流密度沿车轮轴
+闸瓦则是相对静止，其摩擦方向的非均匀接触压力也
+向非均匀分布特性. 2种方法计算得到车轮轴向热流
+是变化的. 图12所示为制动压力F=1.5 kN时，2种方法
+密度曲线的面积分别为2 287.03和2 292.26 mm2，相差 计算得到闸瓦摩擦表面的热流密度分布. 结果表明，
+0.22%. 2种方法计算得到的总热流通量基本相同，主 非均匀接触压力方法计算得到的热流密度在闸瓦摩
+要差异在于沿车轮轴向的分布. 擦表面分布不均匀，分别沿着摩擦方向和轮缘方向先
+图9所示为制动压力F=1.5 kN时车轮温度分布结 增大再逐渐减小. 2种方法计算得到的闸瓦总热流通
+果. 可以看到，2种方法预测得到的车轮最高温度都位 量分别为19 405.96和19 681.09 mW，差异为1.4%. 因
+于车轮表面，分别为158.2和148.2 ℃，相差6.32%. 然 此，2种方法输入闸瓦的热流通量基本一致，主要差异
+而，2种方法预测得到的车轮温度分布具有明显区别. 体现在沿闸瓦摩擦表面的分布趋势.
+非均匀接触压力方法预测得到的车轮温度聚集区域 图13所示为制动压力F=1.5 kN时，2种方法预测
+相对靠近轮缘，温度呈现半椭圆型向车轮内部扩散. 得到的闸瓦温度分布云图. 可以看到，2种方法预测得
+均匀接触压力方法预测得到的温度聚集区域相对靠 到的闸瓦最高温度及温度分布均有明显差异，最高温
+近车轮内侧面，温度呈半水滴型向车轮内侧面方向扩 度分别为213.1和130.5 ℃. 非均匀接触压力方法预测
+散. 原因在于，踏面靠近轮缘侧曲率半径更大作为主 得到的闸瓦温度聚集区域位于切入端左侧. 均匀接触
+要摩擦位置，从而成为温度聚集区域. 均匀接触压力 压力方法计算得到的闸瓦温度呈现对称分布，温度聚
+方法施加在踏面的热流密度没有轴向差异，且由于轮 集在其两端. 这是由于闸瓦两端体积更小，其热传导
+noitcerid
+noitcirF
+Fig. 6 Simulate and test temperature distribution of brake
+shoe friction surface
+图 6 仿真与试验闸瓦摩擦表面温度分布
+32
+28
+Deviation Error: 5.04%
+24
+20
+0.0 0.5 1.0
+Normalized distance
+℃/erutarepmeT
+255
+Non-uniform pressure
+Uniform pressure
+170
+Contact area
+Area: 2 287.03
+85 Area: 2 292.26
+Tread profile
+0
+0.0 0.5 1.0
+Normalized distance
+Simulation
+Test
+Fig. 7 Simulation and test circumferential temperature
+results of brake shoe
+图 7 仿真与试验闸瓦周向温度结果
+)2mm/Wm(/ytisned
+xulf
+taeH
+第 6 期 陈建平, 等: 基于轮瓦非均匀接触压力的重载列车踏面制动温度预测方法 819
+Fig. 8 Axial heat flux distribution of wheel
+图 8 车轮轴向热流密度分布
+===== PDF PAGE 9 =====
+Non-uniform pressure Uniform pressure
+Temperature/℃ Start Contact area Temperature/℃ Start Contact area
++1.582e+02 End +1.482e+02 End
++1.554e+02 +1.458e+02
++1.525e+02 Max: 158.2 Path +1.435e+02 Path Max: 148.2
++1.497e+02 +1.411e+02
++1.469e+02 +1.388e+02
++1.441e+02 +1.364e+02
++1.413e+02 +1.341e+02
++1.384e+02 Temperature aggregation +1.317e+02
++1.356e+02 +1.294e+02 Temperature aggregation
++1.328e+02 +1.270e+02
++1.300e+02 +1.247e+02
++1.271e+02 +1.223e+02
++1.243e+02 +1.200e+02
+Fig. 9 Temperature distribution of wheel
+图 9 车轮温度分布
+165
+Non-uniform pressure
+Uniform pressure
+152 Rim Inner side
+ΔT=25.58 ℃ ΔT=20.30 ℃
+139
+126
+0.0 0.5 1.0
+Normalized distance
+扩散的热量更少，从而表现为温度聚集. 此外，2种方 法预测得到的闸瓦最高温度随着制动压力的增加而
+法得到的闸瓦摩擦表面温度向内部扩散趋势也不相 增大. 但是，非均匀接触压力方法计算得到的最高温
+同，非均匀接触压力方法得到的闸瓦温度主要从温度 度显然要高于传统方法的结果. 在制动压力为1.1、1.5、
+聚集区域局部向内部扩散. 而传统方法得到的闸瓦摩 1.9和2.3 kN时，两者差值分别为65.79、81.27、93.26和
+擦表面温度梯度相对较小，呈现出摩擦表面整体向内 101.47 ℃. 由于闸瓦热传导系数较小，温度聚集在主要
+部扩散的趋势. 摩擦位置且扩散较慢，温度差异随着制动压力增加而
+图14所示为2种方法预测得到不同制动压力下闸 增大. 由此可见，所提出的方法能更加准确反应实际
+瓦最高温度及两者差值的计算结果. 可以看到，2种方 服役过程中轮瓦接触状态导致的踏面制动温度特性.
+℃/erutarepmeT
+260
+190 10
+120
+50
+1.1 1.5
+Fig. 10 Axial temperature distribution of tread
+图 10 踏面轴向温度分布
+97.021
+07.111
+91.851
+91.841
+19.491
+14.481
+52.132
+93.022
+12
+Non-uniform pressure
+Uniform pressure
+Difference
+8
+1.9 2.3
+Brake pressure/kN
+℃/erutarepmet
+mumixaM
+eht
+neewteb
+ecnereffid
+ehT
+℃/serutarepmet
+mumixam
+6
+Fig. 11 The maximum temperature and difference of wheel
+under different braking pressure
+图 11 不同制动压力下车轮的最高温度及差值
+Friction
+direction
+Nor d m is a ta li n z c e e d axial 0.0 Normalized d i c s i t r a c n u c m e
+ferential
+/ytisned
+xulf
+taeH
+)2mm/Wm(
+(a)
+Rim
+(b)
+Friction
+direction
+30 1.0
+15
+0.0 0 0.5 1.0
+Total heat flux: 19
+0
+4
+.
+0
+5
+5.96
+Inner side Nor d m is a ta li n z c e e d axial Normalized d i c s i t r a c n u c m e
+ferential
+/ytisned
+xulf
+taeH
+)2mm/Wm(
+820 摩擦学学报（中英文） 第 45 卷
+Rim
+30 1.0
+15
+0 0.5 0.0 0.5 1.0 0.0 Inner side
+Total heat flux: 19 681.09
+Fig. 12 Heat flux distribution of brake shoe friction surface: (a) non-uniform contact pressure method;
+(b) uniform contact pressure method
+图 12 闸瓦摩擦表面热流密度分布：(a)非均匀接触压力方法；(b)均匀接触压力方法
+===== PDF PAGE 10 =====
+A A
+Max: 213.1 ℃ A Min: 62.9 ℃ Max: 130.5 ℃ A Min: 74.2 ℃
+Temperature Temperature
+aggregation aggregation
+Friction direction Friction direction
+聚集现象，更符合试验及实际情况. 因此，为更加准确
+地预测轮瓦温度演变规律及温度场分布特性，需要考
+虑轮瓦实际接触状态引起的非均匀接触压力.
+参 考 文 献
+[ 1 ] Zhou Liang, Guo Lichang, Ding Haohao, et al. Wear and damage
+evolution behaviours of railway wheel steel in the low temperature
+environment[J]. Tribology, 2022, 42(4): 844–853 (in Chinese) [周
+亮, 郭立昌, 丁昊昊, 等. 低温环境下列车车轮材料磨损与损伤演
+变行为研究[J]. 摩擦学学报, 2022, 42(4): 844–853]. doi: 10.16078/
+j.tribology.2021143.
+[ 2 ] Faccoli M, Ghidini A, Mazzù A. Changes in the microstructure and
+mechanical properties of railway wheel steels as a result of the
+thermal load caused by shoe braking[J]. Metallurgical and Materials
+5 结论
+Transactions A, 2019, 50(4): 1701–1714. doi: 10.1007/s11661-019-
+a. 考虑踏面廓形及闸瓦磨损形貌，通过改进摩擦 05135-x.
+热流密度计算公式，提出1种基于轮瓦非均匀接触压
+[ 3 ] Chen Shuai, Wu Lei, Zhang Heji, et al. Influence of temperature
+rising of tread braking on wheel wear for heavy haul freight car[J].
+力的重载列车踏面制动温度预测方法. 基于试验结
+Journal of Mechanical Engineering, 2017, 53(2): 92–98 (in Chinese)
+果，从车轮和闸瓦温升规律及闸瓦温度分布这两方面
+[陈帅, 吴磊, 张合吉, 等. 踏面制动温升对重载铁路车轮磨耗的影
+验证了所提出方法的有效性. 需要说明的是该方法忽
+响[J]. 机械工程学报, 2017, 53(2): 92–98]. doi: 10.3901/JME.2017.
+略了车轮和闸瓦不同表面的对流传热系数差别，这对 02.092.
+车轮和闸瓦的温度分布存在影响. 在后续研究中，可 [ 4 ] Wu Bowen, Liu Ting, Wang Xiaocui, et al. Formation of
+进一步考虑不同表面的对流传热系数进行踏面制动 polygonalization of the high-speed train wheels based on the finite
+element method[J]. Tribology, 2022, 42(1): 131–141 (in Chinese)
+温度预测.
+[吴波文, 刘婷, 王晓翠, 等. 基于有限元的高速列车车轮多边形磨
+b. 传统方法计算得到的车轮最高温度与所提出
+耗成因分析[J]. 摩擦学学报, 2022, 42(1): 131–141]. doi: 10.16078/
+方法计算结果差别较小. 但是，车轮温度分布受到车
+j.tribology.2020250.
+轮结构影响较大，传统方法难以准确反映实际服役过 [ 5 ] Landström E V, Vernersson T, Lundén R. Analysis and testing of
+程中的车轮温度分布. 由于考虑了接触压力分布，所 tread braked railway wheel —Effects of hot spots on wheel
+提出方法计算得到的车轮温度分布由轮瓦实际接触 performance[J]. International Journal of Fatigue, 2024, 180: 108116.
+doi: 10.1016/j.ijfatigue.2023.108116.
+状态决定，更加真实反映车轮温度分布特性.
+[ 6 ] Kuciej M, Grzes P, Wasilewski P. A comparison of 3D and 2D FE
+c. 传统方法计算得到的闸瓦最高温度偏低，且温
+frictional heating models for long and variable applications of
+度分布呈现出两端聚集的现象，与试验结果差别较大.
+railway tread brake[J]. Materials, 2020, 13(21): 4846. doi: 10.3390/
+所提出方法计算得到的闸瓦温度分布在切入端存在 ma13214846.
+egde
+gniliarT
+egde
+gnidaeL
+egde
+gniliarT
+egde
+gnidaeL
+Non-uniform pressure Uniform pressure
+Temperature/℃ Temperature/℃
++2.131e+02 +1.305e+02
++1.963e+02 +1.207e+02
++1.796e+02 +1.109e+02
++1.629e+02 +1.010e+02
++1.462e+02 +9.120e+01
++1.295e+02 +8.136e+01
++1.128e+02 +7.152e+01
++9.609e+01 +6.169e+01
++7.938e+01 +5.185e+01
++6.267e+01 +4.201e+01
++4.596e+01 +3.218e+01
++2.926e+01 +2.234e+01
++1.255e+01 +1.250e+01
+Fig. 13 Temperature distribution of brake shoe
+图 13 闸瓦温度分布
+320
+220 80
+120
+20
+1.1 1.5
+50.561
+62.99
+18.112
+45.031
+65.452
+03.161
+49.292
+74.191
+110
+Non-uniform pressure
+Uniform pressure
+Difference
+50
+1.9 2.3
+Brake pressure/kN
+℃/erutarepmet
+mumixaM
+eht
+neewteb
+ecnereffid
+ehT
+℃/serutarepmet
+mumixam
+第 6 期 陈建平, 等: 基于轮瓦非均匀接触压力的重载列车踏面制动温度预测方法 821
+20
+Fig. 14 The maximum temperature and difference of brake
+shoe under different braking pressure
+图 14 不同制动压力下闸瓦的最高温度及差值
+===== PDF PAGE 11 =====
+822 摩擦学学报（中英文） 第 45 卷
+[ 7 ] Walia M S, Vernersson T, Lundén R, et al. Temperatures and wear 666–681 (in Chinese) [严凯, 王焕焕, 林乃明, 等. 0Cr18Ni9Ti-
+at railway tread braking: Field experiments and simulations[J]. U71Mn摩擦副高速重载磨损行为的数值模拟[J]. 摩擦学学报,
+Wear, 2019, 440: 203086. doi: 10.1016/j.wear.2019.203086. 2023, 43(6): 666–681]. doi: 10.16078/j.tribology.2022040.
+[ 8 ] Wang Zhiwei, Zhang Liang, Mo Jiliang, et al. Tribological behavior [15] Yang Xiaodong, Shen Changyu, Li Qian, et al. High quality triangle
+analysis of the braking interface of high-speed trains with wheel mesh refinement scheme in adaptive finite element method[J].
+polygonal wear[J]. Tribology, 2022, 42(6): 1083–1093 (in Chinese) Journal of Mechanical Engineering, 2009, 45(8): 292–297 (in
+[王志伟, 张亮, 莫继良, 等. 车轮多边形激励下高速列车制动界面 Chinese) [杨晓东, 申长雨, 李倩, 等. 结构自适应有限元分析中的
+摩擦学行为分析[J]. 摩擦学学报, 2022, 42(6): 1083–1093]. doi: 10. 高质量网格生成方案[J]. 机械工程学报, 2009, 45(8): 292–297].
+16078/j.tribology.2022092. doi: 10.3901/JME.2009.08.292.
+[ 9 ] Zuo Jianyong, Wang Xueping, Zhou Sufen, et al. Applicability [16] Zhang Ping. A Study of thermal load of tread braking for metro
+research on thermal simulation methods for EMU brake discs[J]. wheel[D]. Chengdu: Southwest Jiaotong University, 2013 (in
+China Railway Science, 2022, 43(5): 78–86 (in Chinese) [左建勇, Chinese) [张萍. 地铁车轮踏面制动热负荷研究[D]. 成都: 西南交
+王雪萍, 周苏芬, 等. 动车组制动盘热仿真方法适用性研究[J]. 中 通大学, 2013].
+国铁道科学, 2022, 43(5): 78–86]. doi: 10.3969/j.issn.1001-4632. [17] Xia Yichun, Yano A, Hayashi N, et al. Analysis of temperature and
+2022.05.09. heat partitioning coefficient during friction between polymer and
+[10] Liu Zhi, Chen Gang, Zhu Yilun, et al. Elastic wheel strength steel[J]. Tribology International, 2022, 171: 107561. doi: 10.1016/j.
+assessment considering the thermal stress of tread braking[J]. triboint.2022.107561.
+Lubrication Engineering, 2023, 48(4): 163–170 (in Chinese) [刘智, [18] Zhang Jinyu, Yu Dalian, Lin Peng. Analysis of temperature field of
+陈刚, 朱逸伦, 等. 考虑踏面制动热应力的不同磨耗弹性车轮强度 train tread braking based on rotating heat source method and
+校核[J]. 润滑与密封, 2023, 48(4): 163–170]. doi: 10.3969/j.issn. uniformly distributed heat source method[J]. Journal of Mechanical
+0254-0150.2023.04.021. Engineering, 2018, 54(6): 93–101 (in Chinese) [张金煜, 虞大联, 林
+[11] Song Jianfeng, Huang Xinlei, Yi Shuai, et al. Temperature field and 鹏. 基于旋转热源法和均布热源法的列车踏面制动温度场分
+stress-strain distribution of tread during train braking[J]. Journal of 析[J]. 机械工程学报, 2018, 54(6): 93–101]. doi: 10.3901/JME.2018.
+Jilin University (Engineering and Technology Edition), 2023, 06.093.
+53(10): 2773–2784 (in Chinese) [宋剑锋, 黄鑫磊, 仪帅, 等. 列车制 [19] Zhang Ping, Wen Zefeng, Wu Lei, et al. Temperature and stress
+动过程踏面温度场及应力-应变分布特性[J]. 吉林大学学报(工学 field analysisof wheel tread braking process using different heat flux
+版 ), 2023, 53(10): 2773–2784]. doi: 10.13229/j.cnki.jdxbgxb. loading modes[J]. Lubrication Engineering, 2013, 38(5): 69–74 (in
+20211324. Chinese) [张萍, 温泽峰, 吴磊, 等. 不同热流加载方式下车轮踏面
+[12] Xiao Feixiong, Chen Xu. Wear analysis of the synthetic brake shoe 制动温度和应力场模拟分析[J]. 润滑与密封, 2013, 38(5): 69–74].
+with high friction of the freight train under harsh conditions[J]. doi: 10.3969/j.issn.0254-0150.2013.05.015.
+Journal of Beijing Jiaotong University, 2014, 38(4): 20–25 (in [20] Holman J P. Heat Transfer[M]. 10th ed. New York: McGraw-Hill,
+Chinese) [肖绯雄, 陈旭. 恶劣工况下货车高摩合成闸瓦磨损分 2010.
+析[J]. 北京交通大学学报, 2014, 38(4): 20–25]. doi: 10.11860/j. [21] Zhou Suxia, Shao Jing, Tong Xin. Research on new type of brake
+issn.1673-0291-2014.04.004. disc dased on continuous braking on long ramps[J]. Journal of
+[13] Lu Chun, Yin Jiabao, Zhang Qinghe, et al. Wear degradation of Mechanical Engineering, 2022, 58(20): 391–398 (in Chinese) [周素
+railway vehicle brake pad friction block in running-in stage[J]. 霞, 邵京, 童欣. 基于长大坡道持续制动的新型制动盘研究[J]. 机
+Surface Technology, 2022, 51(12): 63–71 (in Chinese) [卢纯, 尹家 械工程学报, 2022, 58(20): 391–398]. doi: 10.3901/JME.2022.20.
+宝, 张庆贺, 等. 轨道车辆制动闸片摩擦块跑合阶段磨损分析[J]. 391.
+表面技术, 2022, 51(12): 63–71]. doi: 10.16490/j.cnki.issn.1001- [22] Railway Train Traction Calculation Part 1: Trains with
+3660.2022.12.005. Locomotives: TB/T 1407.1 —2018[S]. Beijing: China Railway
+[14] Yan Kai, Wang Huanhuan, Lin Naiming, et al. Numerical simulation Publishing House, Co Ltd, 2018. (in Chinese) [国家铁路局. 列车牵
+on wear behavior of 0Cr18Ni9Ti-U71Mn friction pairs under high- 引计算第1部分：机车牵引式列车: TB/T 1407.1—2018[S]. 北京:
+speed and heavy-load conditions[J]. Tribology, 2023, 43(6): 中国铁道出版社, 2018.].

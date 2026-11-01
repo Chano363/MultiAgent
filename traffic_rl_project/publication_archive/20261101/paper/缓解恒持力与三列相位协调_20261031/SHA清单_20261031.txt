@@ -1,0 +1,15 @@
+SHA-256 清单（2026-10-31）
+目录：D:\Codex\Documents\Train\paper\缓解恒持力与三列相位协调_20261031\原文PDF\
+
+CBC4E8056DC919EEF15D9FF8004FDADEE565F0626E15EC6BFCF561117E4B4640  重载列车平稳运行的空电联合制动匹配控制.pdf  1,358 KB
+2EE3F2D27D2880C8F83C5F74A8EF3B65F78F1B3B2F8A20B8709F403A0A8EE04E  2万吨列车大秦线长大下坡道缓解车钩力优化_于岩.pdf  3,175 KB
+089A0B77BCEA8F993C6CD2671308F6FDEAD905A20F15EFA745E1A6DF5948D2C3  rs-11-2024-0048.pdf  9,112 KB
+
+来源路径
+  1) D:\Codex\Documents\Train\paper\重载列车平稳运行的空电联合制动匹配控制.pdf
+  2) D:\Codex\Documents\Train\paper\2万吨列车大秦线长大下坡道缓解车钩力优化_于岩.pdf（文件名以"2万吨"开头）
+  3) F:\列车大创xmc\multi-agent\traffic_rl_project\docs\papers\01_coupler_physics\rs-11-2024-0048.pdf
+
+说明
+  - 以上 SHA-256 为本目录副本的哈希，副本由原件直接复制（Copy-Item），未做任何修改。
+  - 若日后替换为其他版本（如出版社正式更新版），须重新计算并追加一行，不得覆盖本行。

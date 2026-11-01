@@ -1,0 +1,710 @@
+===== PDF 1 =====
+第 3 期
+2024 年 5 月 Electric Drive for Locomotives
+No . 3
+May 2024
+车轮打滑对 2 万吨重载列车纵向冲动
+影响分析
+曾 周
+1 , 2
+， 郭欣茹
+3
+， 陈清华
+3
+， 陈 哲
+3 , 4
+， 凌 亮
+3
+（  1 . 西南交通大学  电气工程学院 ， 四川  成都  611756 ；
+2 . 朔黄铁路发展有限责任公司  机辆分公司 ， 河北  肃宁  062350 ；
+3 . 西南交通大学  轨道交通运载系统全国重点实验室 ， 四川  成都  610031 ；
+4 . 中车株洲电力机车有限公司 ， 湖南  株洲  412001  ）
+摘 要 ： 针对低黏着接触条件下车轮滑行所引起的列车纵向冲动问题 ， 文章建立了 “ 1 + 1 ” 编组 2 万吨重
+载列车 - 轨道垂纵耦合动力学模型 ， 对比分析电制动工况下不同轮轨接触状态对 2 万吨列车纵向冲动的影响 ，
+分别计算了车轮发生滑行位置和电制动力载荷大小对纵向冲动的影响规律 。 结果表明 ， 在电制动运行工况
+下 ， 当列车施加 100 % 电制动力时 ， 列车在湿润 、 油污和冰雪接触条件下均检测到了车轮滑行 ， 在 25 %~ 75 %
+电制动工况下列车仅在冰雪接触条件下检测到了车轮滑行 ； 车轮滑行导致了车钩力的波动 ， 特别是中部机车
+发生车轮滑行时会引起其前 、 中 、 后部车钩力较大幅度波动 ， 并增大中部机车前部车辆压钩力 ， 严重影响列
+车的平稳运行 ； 随着制动力的降低 ， 低黏着接触状态下的车轮滑行对最大车钩力的影响明显减小 。
+关键词 ： 重载列车 ； 轮轨黏着 ； 纵向冲动 ； 再黏着防滑控制
+中图分类号 ： U 292 . 92
++
+1    文献标志码 ： A   文章编号 ： 1000 - 128 X （ 2024 ） 03 - 0108 - 09
+0 　引言
+在 2 万吨重载列车的开行中 ， 组合列车运载量增
+大 、 长度增加以及编组形式的变化对列车的纵向动力
+学性能产生了较大影响
+[ 1 - 2 ]
+。 准确稳定的牵引力和制动
+力是保证列车正常运行的关键之一
+[ 3 ]
+， 而轮轨接触状态
+关系着列车制动能否正常平稳发挥 ， 同时对列车的纵
+向冲击有着重要的影响 。
+在实际运营中机车面临的轮轨接触条件复杂多变 ，
+尤其在雨雪天气下轨面摩擦因数会明显下降 ， 导致机
+车在牵引或制动时更易发生空转或滑行
+[ 4 ]
+。 国内外专家
+基于轮轨滚动试验台和仿真分析开展了大量轮轨黏着
+特性的相关研究工作 。 文献 [ 5 - 7 ] 通过试验分别对比了
+干态 、 水 、 油 、 砂等介质对轮轨黏着系数的影响规律 ，
+其中湿润和油污接触状态下轮轨黏着系数显著降低 。
+此外 ， 试验研究表明轮轨表面粗糙度 、 运行速度和轴
+重均对轮轨黏着特性有显著影响
+[ 8 - 9 ]
+。 文献 [ 10 - 11 ] 基于
+考虑热效应 、 轮轨表面粗糙度和界面污染物非牛顿效
+应的轮轨黏着数值分析模型 ， 分析了当轮轨间存在污
+染物时对轮轨黏着特性的影响 。 文献 [ 12 ] 根据轮轨接触
+面上的滑动功率和滑动能对轮轨表面污染物的清除效
+果 ， 建立了能够考虑列车制动过程的轮轨黏着改善和
+恢复的模型用于仿真计算 。 文献 [ 13 ] 对比分析了不同坡
+道和不同轮轨接触条件对机车黏着系数的影响 ， 并计
+算了不同黏着条件下机车能够发挥的最大牵引力和制
+动力 。
+目前已有的轮轨黏着相关的研究工作主要集中于
+轮轨复杂接触条件对车轮黏着状态及牵引制动力发挥
+情况的影响 ， 而对车轮发生滑行后引起的纵向冲动研
+DOI :  10 . 13890 /j . issn . 1000 - 128 X . 2024 . 01 . 241
+基金项目 ： 国家自然科学基金项目 ( U 2268210 ， 52072317 )
+通信作者 ： 郭欣茹 ， 女 ， 博士研究生 ， 研究方向为轮轨关系和车辆系统动力学 ； E-mail :  guoxinru 325 @ 163 . com
+引用格式 ： 曾周 ,  郭欣茹 ,  陈清华 ,  等 .  车轮打滑对 2 万吨重载列车纵向冲动影响分析 [ J ].  机车电传动 ,  2024 ( 3 ):  108 - 116 . DOI : 10 . 13890 /j . issn . 1000 -
+128 X . 2024 . 01 . 241 .
+Citation ： ZENG Zhou ,  GUO Xinru ,  CHEN Qinghua ,  et al .  Analysis of impact of wheel slip on longitudinal impulse of a 20  000 -ton heavy-haul train [ J ].  
+Electric drive for locomotives , 2024 ( 3 ):  108 - 116 . DOI : 10 . 13890 /j . issn . 1000 - 128 X . 2024 . 01 . 241 .
+
+
+===== PDF 2 =====
+ 第 3  期 曾 周 ， 郭欣茹 ， 陈清华 ， 陈 哲 ， 凌 亮 ： 车轮打滑对 2 万吨重载列车纵向冲动影响分析
+究尚少 。 2 万吨重载列车由位于不同部位的多台机车操
+纵 ， 其运行工况特别是中部机车运行工况更加恶劣 。
+近期国内某机务段出现了 2 万吨重载列车从控机车再生
+制动力异常波动导致的列车纵向冲动大的故障现象 ，
+经分析发现列车异常纵向冲动的原因为车轮打滑引起
+的电制动力卸载
+[ 14 ]
+。 因此有必要针对低黏着接触状态
+下车轮打滑对重载列车纵向动力作用的影响水平和影
+响规律进行研究 。 本文通过建立列车 - 轨道动力学模型
+分析电制动工况下不同轮轨接触条件对轮轨黏着情况
+的影响 ， 分别计算分析车轮发生滑行位置和电制动力
+载荷大小对纵向冲动的影响规律 。
+1 　 2 万吨列车 - 轨道垂纵耦合动力学模型
+“ 1 + 1 ” 编组 2 万吨重载列车由 1 台 HX D 1 型交流机
+车 + 108 辆 C 80 货车 + 1 台 HX D 1 型交流机车 + 108 辆 C 80 货
+车组成 。 为分析车轮滑行对 2 万吨重载列车纵向冲动的
+影响 ， 基于车辆 - 轨道耦合动力学理论
+[ 15 ]
+， 建立考虑再
+黏着防滑控制的 2 万吨重载列车 - 轨道垂纵耦合动力学
+模型如图 1 所示 ， 该模型主要包括重载列车模型 、 有砟
+轨道系统模型 、 轮轨动态相互作用模型和再黏着防滑
+控制模型 。
+1 . 1 　再黏着防滑控制模型
+目 前 国 内 重 载 机 车 均 配 置 了 再 黏 着 防 滑 控 制 系
+统 ， 其主要通过监测各轴速度或角加速度判断车轮
+是否发生空转或滑行 。 当车轮速度或角加速度超过
+设定阈值时 ， 牵引电机迅速消减动轮转矩 ， 直至空
+转或滑行被抑制 ， 再以缓慢速率增加牵引或制动载
+荷 ， 实现黏着再恢复
+[ 16 ]
+。 本文机车防滑控制模型采用
+再黏着防滑控制器模拟 ， 以车轮角加速度作为车轮
+滑行的判定依据 。 当车轮角加速度未超过设定的阈
+值时 ， 防滑控制器不会触发 ， 否则防滑控制器触发
+并缩减制动力 矩 。
+机车防滑控制系统采用轴控方式单独对每一个轮
+对进行滑行检测和控制 ， 第 i 位轮对上施加的力矩 T
+i
+可
+表示如下 ：
+ü
+ý
+þ
+ïï
+ïï
+T
+i
+= T
+r e f
+( )t  β
+i ( )t ≤ β
+r e f
+T
+i
+= T
+r e f
+( )t - T
+c i ( )t  β
+i ( )t > β
+r e f
+( 1 )
+式中 ： T 
+ref
+为机车输入转矩 ， 即司机手柄级位给定值 ；
+β
+i
+为机车防滑控制系统检测到的车轮角加速度 ； β
+ref
+为
+车轮角加速度判定阈值 ； T
+c i
+为防滑控制过程中的缩减
+力矩 。
+图 2 为再黏着防滑控制过程 ， 该过程主要分为 3 个
+阶段 ： 第一阶段为卸载阶段 ， 在卸载阶段 ， 电机转矩
+以较大斜率降低以抑制车轮滑行的加剧 ， 同时对加速
+度进行判断 ， 当加速度降低到释放值则说明空转或滑
+行现象已经消除 ， 图中 T
+cut
+表示电机转矩总减载量 ； 第
+二阶段为力矩保持阶段 ， 在该阶段内电机转矩维持不
+变 ； 第三阶段为力矩恢复阶段 ， 机车以分段直线斜率
+方式先快后慢恢复电机转矩 。 需要注意的是 ， 若增载
+阶段车轮再次出现滑行 ， 则需要对电机转矩再次进行
+“ 卸载 — 力矩保持 — 增载 ” 过程 。
+1 . 2 　机车及有砟轨道动力学模型
+在动力学仿真模型中 ， 对 “ 1 + 1 ” 编组 2 万吨重载
+列车的头部机车和中部机车分别建立了垂纵向动力学
+模型 ， 其中每节 HX D 1 型机车包含 1 个车体 、 2 个构架 、
+2 个牵引拉杆 、 4 个轮对以及 4 台牵引电机 ， 每个部件
+考虑纵向 、 垂向 、 点头 3 个方向自由度 。 本文重点关注
+主 、 从控机车发生车轮滑行对纵向冲动的影响 ， 因此
+为简化计算 ， 将中部机车前部 108 节货车和后部 108 节
+货车建立为单质点模型 ， 仅考虑其纵向振动 。 列车系
+统动力学响应求解方程可表示为
+M
+L
+x ̈
+L
++ C
+L
+x ̇
+L
++ K
+L
+x
+L
+= F
+w r
+( 2 )
+式中 ： M
+L
+、 C
+L
+和 K
+L
+分别为列车系统的广义质量矩阵 、
+广义阻尼矩阵和广义刚度矩阵 ； x
+L
+为列车系统的广义
+图 1 　 “ 1 + 1 ” 编组 2 万吨重载列车 - 轨道垂纵耦合动力学模型
+Fig .  1 　 Vertical-longitudinal coupled dynamics model for a 20  000 -tons heavy-haul train in a " 1 + 1 " formation
+图 2 　再黏着防滑控制过程
+Fig .  2 　 Process of re-adhesion anti-slip control
+109
+
+===== PDF 3 =====
+2024  年 5 月
+位移矢量 ； F
+wr
+为车轮受到的轮轨接触应力 。
+有砟轨道系统模型由钢轨 、 扣件 、 轨枕 、 道床和
+路基组成 。 钢轨 、 扣件考虑为弹簧阻尼元件 ； 轨枕和
+道床由于对轮轨相互作用系统的影响较小 ， 因此将其
+简化为具有垂直自由度的集中质量块 。 轨道系统模型
+中各构件仅考虑其垂向振动 ， 忽略路基的振动响应 ，
+该系统的动力学响 应求解方程可表示为
+M
+t
+x ̈
+t
++ C
+t
+x ̇
+t
++ K
+t
+x
+t
+= F
+w r
+- F
+s u b
+( 3 )
+式中 ： M
+t
+、 C
+t
+和 K
+t
+分别 为轨道系统的广义质量 、 阻尼
+矩阵和刚度矩阵 ； x
+t
+为轨道系统的广义位移矢量 ； F
+sub
+为作用在轨道系统上的外力载荷矢量 ， 具体求解过程
+可参考文献 [ 15 ] 。
+重载列车和轨道系统动力学的响应通过翟方法进
+行积分求解 ， 其积 分格式如下
+[ 15 ]
+：
+ü
+ý
+þ
+ïïïï
+ïï
+X
+n + 1
+= X
+n
++ V
+n
+D t + ( )0 . 5 + ψ A
+n
+D t
+2
+- ψ A
+n - 1
+D t
+2
+V
+n + 1
+= V
+n
++ ( )1 + φ A
+n
+D t - φ A
+n - 1
+D t
+( 4 )
+式中 ： X 、 V 和 A 分别 为系统位移 、 速度和加速度响
+应 ； Δ t 为时间积分步长 ； φ 和 ψ 为控制积分方法特性的
+独立参数 ； 下标 n 、 n - 1 和 n + 1 分别表示当前积分步时
+刻 、 上一步时刻和下一步时刻 。
+1 . 3 　轮轨 动态相互作用模型
+轮轨动态相互作用模型为联系机车动力学模型和
+有砟轨道动力学模型的枢纽 ， 其主要包含轮轨接触几
+何关系的求解 、 轮轨法向力的求解以及轮轨切向力的
+求解 。 首先通过迹线法确定接触点位置和接触斑形状 ，
+然后根据赫兹接触理论计算轮轨法向力 F
+z
+； 为反映机
+车在不同接触状态下的黏着特性 ， 采用考虑变摩擦因
+数的 Polach 滚动接触理论
+[ 17 - 18 ]
+求解轮轨纵向蠕滑力 ， 其
+表达式如下 ：
+F
+c r e e p
+=
+2 F
+z
+μ
+π (
+k
+A
+ε
+1 + k
+2
+A
+ε
+2
++ a r c t a n ( k
+S
+ε )
+)
+( 5 )
+ε =
+2
+3
+C π a
+2
+b
+F
+z
+μ
+s
+x
+( 6 )
+式中 ： k
+A
+、 k
+S
+分别为接 触斑黏着区和滑移区的缩减系
+数 ； s
+x
+为轮轨纵向蠕滑率 ； C 为 Kalker 蠕滑系数 ； a 和 b
+分别为椭圆形接触斑长短半轴 ； μ 为变摩擦因数 ， 其表
+达式如式 ( 7 )
+[ 18 ]
+。
+μ = μ
+0
+[ ( 1 - A ) e
+- B w
++ A ] ( 7 )
+式中 ： μ
+0
+为静摩擦因数 ； w 为总的相对滑动速度大小 ；
+A 为滑动速度无穷大时的摩擦因数 μ
+∞
+与最大摩擦因数 μ
+0
+之比 ； B 为摩擦力衰减系数 。
+针对典型气候条件下轨面摩擦因数的改变 ， 仿真
+中分别计算了 “ 干燥 ” “ 湿润 ” “ 油态 ” 和 “ 冰雪 ” 4 种
+轮轨表面接触状态对轮轨黏着的影响 ， 相关参数如表 1
+所示 。
+2 　电制动工况动力学仿真分析
+应用所建立的 2 万吨重载列车动力学模型 ， 分析电
+制动工况下不同轮轨接触状态对 2 万吨列车纵向冲动的
+影响 ， 分别计算了车轮发生滑行位置和电制动力载荷
+大小对纵向冲动的影响规律 。 仿真计算中 ， 列车的初
+始运行速度为 70  km/h ， 头部主控机车在初始时刻开始
+实施电制动 ， 中部从控机车与主控机车存在约 3  s 的制
+动时差 ， 机车的制动特性曲线如图 3 所示 ， 此外不考虑
+轨道不平顺的影响 。 其中 ， 轮轨接触条件考虑了干燥
+接触状态和湿润 、 油污 、 冰雪 3 种低黏着接触状态 。
+2 . 1 　车轮滑行位置对纵向冲动影响
+轮轨接触状态对轮轨黏着力的影响显著 ， 当轨面
+黏着状态不良时 ， 较大的牵引或制动转矩会导致机车
+出现车轮空转或滑行 。 由于采用 “ 1 + 1 ” 编组形式的 2
+万吨重载列车由头部主控机车和中部从控机车共同操
+纵 ， 当不同位置的机车发生车轮滑行时 ， 对重载列车
+的纵向动力学性能会产生不同影响 。 本节计算满级电
+制动工况下头部机车和中部机车分别通过低黏着区域
+并发生滑行的情况 ， 对比不同位置机车发生车轮滑行
+所引起的列车纵向冲动 。
+图 4 为 100 % 电制动工况下不同轮轨接触状态下头
+部第一节机车第 4 位轮对制动力矩的发挥情况 。 可以看
+出机车在湿润 、 油污和冰雪接触条件下检测到了车轮
+滑行 ， 防滑控制触发后负载转矩迅速降低 ， 当检测到
+车轮滑行被抑制后分阶段 、 先快后慢地恢复制动力 。
+表 1 　不同轮轨接触条件下的参数
+[ 18 ]
+Table 1 　 Parameters of different wheel/rail contact condition
+[ 18 ]
+模型参数
+k
+A
+k
+S
+μ
+0
+A
+B
+干燥
+1
+0 . 4
+0 . 55
+0 . 4
+0 . 6
+湿润
+0 . 3
+0 . 1
+0 . 30
+0 . 4
+0 . 2
+油态
+0 . 2
+0 . 1
+0 . 20
+0 . 5
+0 . 1
+冰雪
+1
+0 . 4
+0 . 05
+0 . 4
+0 . 1
+图 3 　 HX D 1 型机车制动特性曲线
+Fig .  3 　 Braking characteristic curve of HX D 1  locomotive
+110
+
+===== PDF 4 =====
+ 第 3  期 曾 周 ， 郭欣茹 ， 陈清华 ， 陈 哲 ， 凌 亮 ： 车轮打滑对 2 万吨重载列车纵向冲动影响分析
+在仿真工况中 ， 列车持续通过低黏着接触区段 ， 因此
+机车负载转矩会造成多次打滑的现象 ， 即力矩不断重
+复 “ 卸载 — 力矩维持 — 增载 — 卸载 ” 的过程 。 图 5 为不
+同轮轨接触状态下头部机车和中部机车通过低黏着区
+域时的列车运行速度 。 在列车运行 100  s 后 ， 干燥接触
+状态 下列车速度降至 57 . 50  km/h ； 头部机车通过湿润 、
+油污和冰雪接触区域时速度分别降至 57 . 53  km/h 、 58 . 60  
+km/h 和 62 . 25  km/h ； 中部机车通过湿润 、 油污和冰雪接
+触区域时速度分别降至 57 . 54  km/h 、 58 . 57  km/h 和 62 . 21  
+km/h 。 上述结果表明车轮滑行在造成制动力矩波动的
+同时降低了制动效率 。
+制动 力 矩的变化直接影响机车车轮的黏着利用 ，
+由于头部机车和中部机车在同种低黏着接触状态下发
+生车轮滑行时的变化规律相似 ， 因此仅给出了中部第
+一节机车不同轮轨接触状态下 1 ~ 4 位轮对黏着系数的变
+化情况 ， 如图 6 所示 。 黏着系数定义为纵向蠕滑力与轮
+轨法向力的比值 ， 其正值和负值分别表示轮轨纵向蠕
+滑力与列车运行方向相同或相反 。 由图 6 可以看出 ， 随
+着接触条件的恶化 ， 黏着系数有所降低 。 黏着系数受
+制动力矩影响明显 ， 在车轮发生滑行时制动力矩的增
+载和卸载会引起黏着系数的波动 。 计算结果表明 ， 在
+干燥的轮轨接触状态下车轮未发生滑行 ， 受轴重转移
+影响 1 位和 2 位轮对增载 ， 3 位和 4 位轮对减载 ， 1 ~ 4 位
+轮对黏着系数依次增加 。 在湿润接触条件下仅第 4 位轮
+对发生了滑行 ， 在油污和冰雪接触条件下 4 个轮对均发
+生了滑行 ， 黏着系数明显降低 。
+图 7 为不同轮轨接触状态下关键部位车钩力的变化
+情况 ， 其中 1 位和 2 位车钩分别为头部两节机车之间的
+车钩和机车与货车之间的车钩 ， 110 、 111 和 112 号车钩
+分别为中部从控机车的前 、 中 、 后部车钩 。 计算结果
+中正值表示拉钩力 ， 负值表示压钩力 。 计算结果表明 ，
+头部机车车轮滑行不仅导致了头部机车车钩力波动 ，
+而且引起了中部机车车钩力的小幅度波动 ； 中部机车
+车轮滑行会引起中部机车前 、 中 、 后部车钩力的波动 ，
+而对头部机车影响不明显 。 由于在低黏着接触条件下
+检测到车轮滑行时制动力矩有大幅度降低 ， 因此压钩
+力波动幅值相应降低 。 总体来看 ， 车钩力的变化明显
+受制动力矩影响 ， 车轮滑行所引起的电制动力波动导
+致了车钩力的波动 ， 尤其是中部机车发生车轮滑行时
+严 重 影 响 了 列 车 的 平 稳 运 行 ， 并 造 成 黏 着 利 用 率
+降低 。
+图 8 统计了头部机车和中部机车通过低黏着区域
+时不同车位的最大车钩力 。 图 8 中实线为压钩力最大
+值 ， 虚线为拉钩力最大值 。 从图 8 可以看出 ， 头部机
+车和中部机车均承受了较大的车钩纵向作用力 ， 最大
+压钩力出现在中部机车车钩处 。 在干燥接触状态下 ，
+最大压钩力为 527 . 89  kN ； 当头部机车通过低黏着区
+域时 ， 整列车压钩力随轮轨接触条件的恶化而降低 ，
+在 湿 润 、 油 污 、 冰 雪 条 件 下 的 最 大 压 钩 力 分 别 为
+527 . 82  kN 、 510 . 80  kN 、 305 . 34  kN ； 当中部机车通过
+低黏着区域时 ， 随着轮轨接触条件的恶化 ， 中部机车
+的前部车辆压钩力增大 ， 后部车辆压钩力降低 ， 在湿
+润 、 油 污 、 冰 雪 条 件 下 的 最 大 压 钩 力 分 别 为 526 . 88  
+kN 、 52 1 . 68  kN 、 408 . 29  kN 。
+2 . 2 　电制动力载荷对纵向冲动的影响
+由上 述分析可知 ， 在机车满级电制动力作用下通
+图 4 　不同轮轨接触状态下制动力矩
+Fig .  4 　 Braking torque under different wheel/rail contact 
+states
+( a )  头部机车通过低黏着区域
+( b )  中部机车通过低黏着区域
+图 5 　不同轮轨接触状态下列车运行速度
+Fig .  5 　 Train operating spe ed under different wheel/rail 
+contact states
+111
+
+===== PDF 5 =====
+2024  年 5 月
+过低黏着接触区域 （ 湿润 、 油污 、 冰雪 ） 时 ， 由于
+司机给定电制力超过了最大可利用黏着力 ， 从而导
+致车轮出现空转现象 。 当给定电制动力的大小不同
+时 ， 在不同黏着条件下制动力矩的发挥情况会有所
+差 异 ， 从 而 对 纵 向 冲 动 产 生 影 响 。 计 算 结 果 表 明 ，
+中部机车发生滑行时所导致纵向冲动更加明显 ， 因
+                                           ( a )  干燥轮轨接触状态                                                                     ( b )  中机车通过湿润区域
+                                        ( c )  中部机车通过油污区域                                                              ( d )  中部机车通过冰雪区域
+图 6 　不同轮轨接触状态下中部机车黏着系数
+Fig .  6 　 Adhesion coefficients of middle locomotive under different wheel/rail contact states
+( a )  干燥轮轨接触状态
+                                      ( b )  头部机车通过湿润区域                                                              ( c )  中部机车通过湿润区域
+112
+
+===== PDF 6 =====
+ 第 3  期 曾 周 ， 郭欣茹 ， 陈清华 ， 陈 哲 ， 凌 亮 ： 车轮打滑对 2 万吨重载列车纵向冲动影响分析
+此主要关注中部 机车在低黏着接触条件下发生滑行
+的 情 况 。 分 别 计 算 了 4 种 不 同 制 动 载 荷 条 件 ， 包 括
+100 % 电制动 、 75 % 电制动 、 50 % 电制动和 25 % 电制
+动 4 种工况 。
+图 9 为电制动工况时不同轮轨接触状态下中部第一
+节机车的第 4 位轮对制动力矩发挥情况 。 可以看出 ， 当
+机车施加 75 % 及以下电制动力时 ， 在湿润和油污接触
+工况下均未发生车轮滑行 ， 而机车给定电制动力高于
+25 % 电制力时 ， 车轮在冰雪接触条件下发生了持续滑
+行 ， 制动效率明显降低 。
+图 10 为中部机车通过低黏着区域情况下电制动力
+载荷对不同车位下最大车钩力的影响 。 图 10 中实线为
+压钩力最大值 ， 虚线为拉钩力最大值 。 从图 10 可以看
+出 ， 当施加 50 %~ 100 % 电制力时 ， 由于在湿润 、 油污
+接触条件下机车车轮未发生滑行或仅有单个轮对发生
+滑行 ， 因此最大车钩力与干燥接触状态下最大车钩力
+相差不大 ； 而在冰雪接触条件下 ， 车轮持续发生滑行
+引起了车钩力大幅度波动 ， 导致中部机车的前部车辆
+压钩力明显增大 。 随着制动力的降低 ， 列车不同车位
+最大压钩力有所减小 ， 当降至 25 % 电制动力作用时 ，
+在不同接触条件下的最大车钩力基本相同 。 由此可以
+说明 ， 在低黏着接触条件下 ， 降低制动力矩可以减轻
+车轮滑行引起的列车纵向冲动 ， 司机应根据轨面黏着
+条件对制动力矩进行调 整 。
+                                     ( d )  头部机车通过油污区域                                                             ( e )  中部机车通过油污区域
+                                     ( f )  头部机车通过冰雪区域                                                               ( g )  中部机车通过冰雪区域
+图 7 　不同轮轨接触状态下车钩力变化
+Fig .  7 　 Variation of coupler forces under different wheel/rail contact states
+( a )  头部机车通过低黏着区域工况
+( b )  中部机车通过低黏着区域工况
+图 8 　不同车位下最大车钩力
+Fig .  8 　 Maximum coupler forces at different positions
+113
+
+===== PDF 7 =====
+2024  年 5 月
+                                             ( a )  干燥接触工况                                                                                   ( b )  湿润接触工况
+                                              ( c )  油污接触工况                                                                                ( d )  冰雪接触工况
+图 9 　不同轮轨接触状态下中部机车第 4 位轮对制动力矩
+Fig .  9 　 Braking torque of the 4
+th
+ wheelset of the middle locomotive under different wheel/rail contact states
+                                           ( a )  100 % 电制动工况                                                                             ( b )  75 % 电制动工况
+                                          ( c )  50 % 电制动工况                                                                               ( d )  25 % 电制动工况
+图 10 　电制动力载荷对不同车位下最大车钩力影响
+Fig .  10 　 Impact of electric braking force on the maximum coupler force at different positions
+114
+
+===== PDF 8 =====
+ 第 3  期 曾 周 ， 郭欣茹 ， 陈清华 ， 陈 哲 ， 凌 亮 ： 车轮打滑对 2 万吨重载列车纵向冲动影响分析
+3 　结论
+基于车辆 - 轨道耦合动力学理论 ， 针对 “ 1 + 1 ” 编
+组 2 万吨重载列车建立了列车 - 轨道垂纵向动力学模型 ，
+对比分析了电制动工况下不同轮轨接触状态对 2 万吨列
+车纵向冲动的影响 ， 分别计算了车轮发生滑行位置和
+电制动力载荷大小对纵向冲动的影响规律 。 得到以下
+结论 ：
+① 在制动工况下 ， 当列车施加 100 % 电制动力时 ，
+列车在湿润 、 油污和冰雪接触条件下均检测到了车轮
+滑行 ， 在 20 %~ 75 % 电制动工况下列车仅在冰雪接触条
+件下检测到了车轮滑行 。 当列车检测到车轮滑行后防
+滑控制触发 ， 负载转矩迅速降低 ， 直至检测到车轮滑
+行被抑制后分阶段 、 先快后慢地恢复制动力 。
+② 随着接触条件的恶化 ， 黏着系数有所降低 。 黏
+着系数受制动力矩影响明显 ， 在车轮发生滑行时力矩
+的增载和卸载会引起黏着系数的波动 ， 进而降低列车
+的轮轨黏着利用率 。
+③ 2 万吨列车的头部机车或中部机车车轮打滑均会
+导致机车邻近的车钩力出现较大幅度波动 ， 从而引起
+列车的纵向冲动 。 当头部机车车轮滑行时整列车的压
+钩力将有所降低 ， 而中部从控机车出现车轮滑行则会
+增大中部机车前部货车的压钩力 。
+④ 为减轻车轮 滑行引起的纵向冲动 ， 需要根据轨
+面黏着条件实时调整制动力矩 ， 在湿润 、 油污和冰雪
+等低黏着接触条件下应降低制动力矩以避免出现车轮
+持续滑行 。
+参考文献 ：
+[ 1 ] 　蒋益平 ,  池茂儒 ,  朱海燕 .  两万吨重载组合列车牵引和制
+动时的车钩力分析 [ J ].  机车电传动 ,  2013 ( 1 ):  23 - 26 .
+　　 JIANG Yiping ,  CHI Maoru ,  ZHU Haiyan .  Coupler force 
+analysis of 20  000 -ton combined heavy haul train under 
+traction and brake condition [ J ].  Electric drive for locomo ‐
+tives ,  2013 ( 1 ):  23 - 26 .
+[ 2 ] 　常崇义 ,  王成国 ,  马大炜 ,  等 .  2 万 t 组合列车纵向力计算研
+究 [ J ].  铁道学报 ,  2006 ( 2 ):  89 - 94 .
+　　 CHANG Chongyi ,  WANG Chengguo ,  MA Dawei ,  et al .  
+Study on numerical analysis of longitudinal forces of the 
+20 , 000  t heavy haul [ J ].  Journal of the China railway soci ‐
+ety ,  2006 ( 2 ):  89 - 94 .
+[ 3 ] 　魏伟 ,  张益铭 .  2 万吨重载组合列车操纵优化研究 [ J ].  铁道
+机车车辆 ,  2021 ,  41 ( 4 ):  35 - 40 .
+　　 WEI Wei ,  ZHANG Yiming .  Operating optimization study of 
+20 , 000 -ton heavy haul combined train [ J ].  Railway locomo ‐
+tive & car ,  2021 ,  41 ( 4 ):  35 - 40 .
+[ 4 ] 　何静 ,  刘建华 ,  张昌凡 .  重载机车轮轨黏着利用技术研究
+综述 [ J ].  铁道学报 ,  2018 ,  40 ( 9 ):  30 - 39 .
+　　 HE Jing ,  LIU Jianhua ,  ZHANG Changfan .  An overview on 
+wheel-rail adhesion utilization of heavy-haul locomotive [ J ].  
+Journal of the China railway society ,  2018 ,  40 ( 9 ):  30 - 39 .
+[ 5 ] 　 WANG W J ,  SHEN P ,  SONG J H ,  et al .  Experimental study 
+on adhesion behavior of wheel/rail under dry and water con ‐
+ditions [ J ].  Wear ,  2011 ,  271 ( 9 / 10 ):  2699 - 2705 .
+[ 6 ] 　王文健 ,  郭俊 ,  刘启跃 .  不同介质作用下轮轨粘着特性研
+究 [ J ].  机械工程学报 ,  2012 ,  48 ( 7 ):  100 - 104 .
+　　 WANG Wenjian ,  GUO Jun ,  LIU Qiyue .  Study on adhesion 
+characteristic of wheel/rail under different medium condi ‐
+tions [ J ].  Journal of mechanical engineering ,  2012 ,  48 ( 7 ):  
+100 - 104 .
+[ 7 ] 　王文健 ,  刘启跃 .  轮轨黏着行为与增黏 [ M ].  北京 :  科学出
+版社 ,  2017 .
+　　 WANG Wenjian ,  LIU Qiyue .  Wheel rail adhesion behavior 
+and adhesion enhancement [ M ].  Beijing :  Science Press ,  
+2017 .
+[ 8 ] 　 CHEN Hua ,  NAMURA A ,  ISHIDA M ,  et al .  Influence of 
+axle load on wheel/rail adhesion under wet conditions in 
+consideration of running speed and surface roughness [ J ].  
+Wear ,  2016 ,  366 / 367 :  303 - 309 .
+[ 9 ] 　 CHANG Chongyi ,  CHEN Bo ,  CAI Yuanwu ,  et al .  An ex ‐
+perimental study of high speed wheel-rail adhesion charac ‐
+teristics in wet condition on full scale roller rig [ J ].  Wear ,  
+2019 ,  440 / 441 :  203092 .
+[ 10 ]   吴兵 ,  陈铭 ,  吴涛 ,  等 .  考虑热效应和轮轨微观粗糙度的高
+速黏着机理数值分析 [ J ].  铁道学报 ,  2020 ,  42 ( 12 ):  42 - 49 .
+　　  WU Bing ,  CHEN Ming ,  WU Tao ,  et al .  Numerical analysis 
+of wheel-rail adhesion considering thermal effect and micro 
+surface roughness at high-speed [ J ].  Journal of the China 
+railway society ,  2020 ,  42 ( 12 ):  42 - 49 .
+[ 11 ]   WU Bing ,  WEN Zefeng ,  WANG Hengyu ,  et al .  Numerical 
+analysis on wheel/rail adhesion under mixed contamination 
+of oil and water with surface roughness [ J ].  Wear ,  2014 ,  314
+( 1 / 2 ):  140 - 147 .
+[ 12 ]   朱文良 ,  郑树彬 ,  吴娜 ,  等 .  适用于制动工况下的轮轨低黏
+着改进模型 [ J ].  铁道学报 ,  2021 ,  43 ( 3 ):  34 - 41 .
+　　  ZHU Wenliang ,  ZHENG Shubin ,  WU Na ,  et al .  Improved 
+model for degraded wheel-rail adhesion under braking con ‐
+ditions [ J ].  Journal of the China railway society ,  2021 ,  43
+( 3 ):  34 - 41 .
+[ 13 ]   李伟 ,  郭欣茹 ,  裴志远 ,  等 .  复杂轮轨接触条件下机车牵
+引 / 制动性能分析 [ J ].  四川轻化工大学学报 ( 自然科学版 ),  
+2022 ,  35 ( 2 ):  46 - 53 .
+　　  LI Wei ,  GUO Xinru ,  PEI Zhiyuan ,  et al .  Analysis of trac ‐
+tion and braking performance of locomotive under complex 
+wheel-rail contact conditions [ J ].  Journal of university of 
+science & engineering ( natural science edition ),  2022 ,  35
+( 2 ):  46 - 53 .
+[ 14 ]   王蕾 ,  陈哲 ,  张启维 ,  等 .  重载列车从控机车再生制动力异
+常分析与对策 [ J ].  中国新技术新产品 ,  2020 ( 4 ):  1 - 4 .
+115
+
+===== PDF 9 =====
+2024  年 5 月
+　　  WANG Lei ,  CHEN Zhe ,  ZHANG Qiwei ,  et al .  Analysis 
+and countermeasures for abnormal regenerative braking 
+force of controlled locomotives in heavy-haul trains [ J ].  
+China new technologies and new products ,  2020 ( 4 ):  1 - 4 .
+[ 15 ]   翟婉明 .  车辆 - 轨道耦合动力学 [ M ].  4 版 .  北京 :  科学出版
+社 ,  1997 .
+　　 ZHAI Wanming .  Vehicle-track coupled dynamics [ M ].  4 th 
+ed .  Beijing :  Science Press ,  1997 .
+[ 16 ]   高翔 ,  陆阳 .  电力机车黏着控制研究 [ J ].  铁道机车车辆 ,  
+2017 ,  37 ( 3 ):  35 - 39 .
+　　 GAO Xiang ,  LU Yang .  Study of the locomotive adhesion 
+control [ J ].  Railway locomotive & car ,  2017 ,  37 ( 3 ):  35 - 39 .
+[ 17 ]   POLACH O .  Creep forces in simulations of traction ve ‐
+hicles running on adhesion limit [ J ].  Wear ,  2005 ,  258 ( 7 / 8 ):  
+992 - 1000 .
+[ 18 ]   SPIRYAGIN M ,  POLACH O ,  COLE C .  Creep force model ‐
+ling for rail traction vehicles based on the Fastsim algorithm
+[ J ].  Vehicle system dynamics ,  2013 ,  51 ( 11 ):  1765 - 1783 .
+Analysis of impact of wheel slip on longitudinal impulse of a 20  000 -ton 
+heavy-haul train
+ZENG Zhou
+1 , 2
+,  GUO Xinru
+3
+,  CHEN Qinghua
+3
+,  CHEN Zhe
+3 , 4
+,  LING Liang
+3
+( 1 .  School of Electrical Engineering ,  Southwest Jiaotong University ,  Chengdu ,  Sichuan 611756 ,  China ;  
+2 .  Locomotive Branch ,  Shuohuang Railway Development Co .,  Ltd .,  Suning ,  Hebei 062350 ,  China ;  3 .  State Key 
+Laboratory of Rail Transit Vehicle System ,  Southwest Jiaotong University ,  Chengdu ,  Sichuan 610031 ,  China ;  
+4 .  CRRC Zhuzhou Locomotive Co .,  Ltd .,  Zhuzhou ,  Hunan 412001 ,  China )
+Abstract :   In response to the longitudinal impulse issue caused by wheel slip under low-adhesion contact conditions ,  this paper es ‐
+tablished a vertical-longitudinal coupled dynamics model for a 20 , 000 -ton heavy-haul train in a ' 1 + 1 ' formation .  A comparative analysis 
+was conducted to examine the impact of different wheel/rail contact states on the longitudinal impulse of the 20 , 000 -ton train under elec ‐
+tric braking conditions .  The impact of wheel slip position and electric braking force loads on the longitudinal impulse was calculated sep ‐
+arately .  The results indicate that under electric braking operation ,  wheel slip was detected for the train under wet ,  oily and icy contact con ‐
+ditions when the train applies 100 % electric braking force .  In contrast ,  under 25 %~ 75 % electric braking conditions ,  wheel slip was only 
+detected when the train under icy contact conditions .  Wheel slip led to fluctuations in the coupler forces ,  particularly when wheel slip oc ‐
+curred in the middle locomotive ,  causing significant fluctuations in the coupler forces at the front ,  middle ,  and rear of the middle locomo ‐
+tive and increasing the coupler force at the front of the middle locomotive ,  thereby seriously affecting the smooth operation of the train .  
+As the braking force decreased ,  the impact of wheel slip on the maximum coupler force reduced significantly under low-adhesion contact 
+conditions .
+Keywords :   heavy-haul train ;  wheel/rail adhesion ;  longitudinal impulse ;  re-adhesion anti-slip control
+收稿日期 ： 2023 - 09 - 11 ； 修回日期 ： 2023 - 12 - 22
+116

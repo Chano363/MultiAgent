@@ -1,0 +1,381 @@
+
+===== PDF PAGE 1 =====
+第38卷 第4期 北 京 交 通 大 学 学 报 Vol．38 No．4
+北 京 交 通 大 学 学 报 第38卷
+2014年8月 JOUＲNAL OF BEIJING JIAOTONG UNIVEＲSITY Aug． 2014
+文章编号:1673-0291(2014)04-0020-06 DOI:10．11860/j．issn．1673_0291_2014．04．004
+恶劣工况下货车高摩合成闸瓦磨损分析
+肖绯雄，陈 旭
+(西南交通大学 牵引动力国家重点实验室，成都610031)
+摘 要:采用热_结构顺序耦合法对货车用高摩合成闸瓦在不同工况下的紧急制动和长大坡道调速
+制动进行仿真分析，并结合相关标准判定闸瓦是否满足制动要求;对相同工况下不同磨耗程度的闸
+瓦温度场进行曲线拟合，计算闸瓦在不同工况下的磨耗量．结果表明，仿真较真实地反映了整个制
+动过程中闸瓦的瞬态温度和应力变化情况、拟合曲线和原曲线具有较高的重合度、工况越恶劣闸瓦
+每万公里的磨耗量就越大，最大值达到21 mm/万km．
+关键词:高摩合成闸瓦;顺序耦合;磨损
+中图分类号:TH117 文献标志码:A
+Wear analysis of the synthetic brake shoe with high friction
+of the freight train under harsh conditions
+XIAO Feixiong，CHEN Xu
+(Traction Power State Key Laboratory，Southwest Jiaotong University，Chengdu610031，China)
+Abstract:Combined with relevant standards，the thermal structural order coupling method is adopted for
+the synthetic brake shoe with high friction on freight train under different conditions of the emergency
+brake and long slop modulation velocity brake，determining whether the brake shoe meets the require-
+ments． Curve fitting is conducted for the brake shoe＇s temperature field of different degrees of wear on the
+same condition． The amount of wear on different conditions is calculated． Simulation results accurately
+response to the transient temperature and stress of the brake shoe in the whole braking process． It has a
+high coincide degree between the fitting curve and original curve． The harsher working conditions，the
+greater the amount of wear of brake shoe per ten thousand kilometers． The maximum amount of wear a-
+chieves 21mm perten thousand kilometers．
+Key words:synthetic brake shoe with high friction;order coupling method;wear and tear
+随着科技的发展和国民经济增长的需求，铁路 析，得出制动过程中闸瓦最高温度的变化趋势，并结
+货车快速化、重载化已成为当前乃至今后若干年发 合铁标判定闸瓦是否满足标准要求［1］，计算闸瓦在
+展的必然趋势，而合理的制动方式是保证列车安全 特定恶劣工况下的磨耗量，进而算出闸瓦在此工况
+运行的关键．目前踏面制动仍是我国货车车辆最基 下的每万公里磨耗量，为闸瓦在实际使用中提供一
+本的制动方式，所使用的制动闸瓦主要是高摩合成 定的评判依据．
+闸瓦，其导热性差，制动时容易引起车轮和闸瓦的热
+1 热_结构耦合理论
+胶合、踏面热裂纹、闸瓦裂纹、掉块等． 因此，需对高
+摩合成闸瓦在恶劣工况下的制动热负荷进行仿真分 图1 为闸瓦摩擦制动机构图．
+收稿日期:2014-04-10
+基金项目:四川省科技计划项目资助(2013GZ0032)
+作者简介:肖绯雄(1963—)，男，福建莆田人，副教授．研究方向为机车车辆测试技术和强度分析．email:orangecx@126．com．
+===== PDF PAGE 2 =====
+第4期 肖绯雄等:恶劣工况下货车高摩合成闸瓦磨损分析
+21
+流换热的综合影响集中在某一参数上，简化散热边
+界条件，此参数即为对流换热系数．
+根据Stefan_Boltzmann方程和牛顿冷却定律，可
+以将热辐射系数折算成对流换热系数，其折算因
+子［4］为
+0.337 Pr0.35λυ0.8
+k = × (2)
+εσ( t2 + t2 ) L0.2v0.8
+w ∞
+式中: t 为闸瓦摩擦面温度，℃;t 为大气温度，℃;
+w ∞
+Pr为普朗特常数;λ为导热系数，w/( m·℃) ;υ为流
+图1 闸瓦的摩擦情况
+体运动黏滞系数，m2/s;L为闸瓦厚度，m;v为闸瓦相
+Fig．1 Friction state of brake shoe
+对地面的速度，m/s．
+由于踏面制动的热负荷分析是三维非稳态传热
+分析，因此需要利用热_结构顺序耦合方法对闸瓦进 这样既考虑了热辐射效应对瞬态温度场的影
+行热负荷仿真分析． 而在有限元软件 ANSYS 中，根
+响，也简化了散热边界条件．
+计算摩擦热量时，忽略材料的磨损影响，认为动
+据相关的温度场理论和热应力场理论可以实现物体
+的热_结构耦合仿真分析． 能转化成的摩擦热部分被摩擦副吸收，把闸瓦和踏
+热_结构耦合分析包括了温度场分析和应力场 面之间的摩擦热转化成热流密度，对于更好的模拟
+分析．先对闸瓦进行瞬态温度场的分析，得到闸瓦瞬 闸瓦温度场起着关键作用．
+态温度场后，根据热应力理论计算闸瓦的瞬态应力 2.1 紧急制动工况
+场分布． 列车以120 km/h速度在平直道上紧急制动，制
+在制动过程中，闸瓦受到相当大的热负荷、闸瓦 动距离不得超过 1 100 m［5］． 根据能量守恒定律和
+压力和摩擦力，以及相应约束而产生的热应力［2］． 文献［6-8］，得到输入到每个闸瓦的热流密度为
+Φ( t)
+热应力的理论公式为 q( t) = η (3)
+nS
+σ = αE( T － T ) (1) f
+a 0
+式中: Φ( t) 为热流率，W;n 为每轴所对应的闸瓦
+式中: σ 为热应力，MPa;α 为材料线膨胀系数，
+a
+数，n = 2;S 为闸瓦摩擦面积，m2;η 为摩擦热分配
+℃－1;E为弹性模量，MPa;T 为某时刻的瞬时温度， f
+到闸瓦上的比例，依据文献［9］，取 η = 10%． 因此
+通过闸瓦的温度场仿真分析得到 ℃;T 为初始温
+0
+该条件下的热流密度为 q( t) = 153.728 － 2.795t，
+度，℃．
+kW/m2．
+在ANSYS分析中，先对分析对象进行瞬态温度
+综合对流换热包含了空气对流换热和辐射折算
+场地 分 析，得 到 包 含 所 有节 点 温 度 的 文 件
+的对流换热，这样可以充分考虑列车在制动时的散
+Jobname．rth，使用后处理器查看温度场云图;在结构
+热问题．由于摩擦面背面换热条件微弱，只有摩擦体
+分析中先将瞬态温度分析采用的温度单元转化为结
+和加强钢之间的热传导联系． 所以本文假设闸背面
+构分析单元，再附加相应的结构分析参数，最后施加
+为自然热传导，闸瓦体4 个侧面的综合对流换热系
+机械载荷和约束，并将瞬态温度场分析得到的温度
+数h 相同，其随时间变化曲线见图2．
+场文件Jobname．rth作为体载荷施加在分析单元上， f
+设置求解参数，求解出应力场结果，得到的文件名为
+Jobname．rst，通过后处理可以查看应力云图分布情
+况．
+2 仿真初始条件
+ANSYS 中温度场、应力场的仿真需要初始条件
+和边界条件．
+温度场仿真分析的初始条件假定室温为20 ℃，
+图2 综合对流换热系数随时间的变化曲线
+边界条件依据热力学相关理论选取第三类边界条
+Fig．2 Curve of consolidated convection
+件．由于热量传递有3 种基本方式［3］: 导热、对流换
+coefficient as time changing
+热和辐射，而导热为材料属性，因此需要将辐射和对
+===== PDF PAGE 3 =====
+北 京 交 通 大 学 学 报 第38卷
+22
+2.2 长大坡道调速制动工况 缩弹性模量为 1.1 GPa; 泊松比为 0.28; 比热容为
+当坡度为－10‰、限速为80 km/h时，根据文献 520 J/( kg·℃) ; 密度为2 300 kg/m3; 线膨胀系数
+［6-8］相关理论，计算出列车在调速制动时所需要的 为0.000 046 ℃ －1．
+总空气制动力为713.78 kN，每个闸瓦的热流密度 3.1 紧急制动工况仿真结果
+为q( t) =29.685 kW/m2．与紧急制动过程相比，坡 分析不同磨耗程度的闸瓦在初速为120 km/h
+道制动时的综合换热系数全程为恒定值，达到h = 条件下紧急制动时的温度分布．仿真时间为80 s，包
+f2
+74.2 W/( m2·℃) ．当坡度值i 和限速不同时，各参 括55 s紧急制动时间和25 s制动后冷却散热时间．
+数也有所不同，具体如表 1 所示． 表中 i =
+以无磨耗为例，由图4、图5 分析可知，顺序耦
+－8‰、v=40 km/h时没有数据，表示在此条件下列
+合分析时，闸瓦的最高温度为206.2 ℃，出现在制动
+车使用电阻制动能够满足 40 km/h 调速制动的要
+后28 s，而非制动结束时，且分布在摩擦表面层有一
+定的深度．在出现最高温度前，摩擦面的温度先急剧
+求，无需额外的空气制动力，即闸瓦和车轮踏面无
+地升高，然后又缓慢地升高，达到最高温度后又缓慢
+摩擦．
+地降低．由于在制动过程中，闸瓦始终处于摩擦生热
+表1 不同条件下的热流密度q(t)、对流换热
+系数h 和仿真时间t
+状态，刚开始制动时，摩擦产生的热量大于闸瓦的热
+f
+Tab．1 Heat fluxq(t)、the convection coefficienth 传导和对流换热及辐射所损失的能量，所以闸瓦的
+f
+and simulation time t under different conditions 摩擦表面温度一直在增加，出现了8 s 内温度迅速
+v/ i/‰ q(t) / t/min h f / 达到150 ℃左右的现象．随着制动过程的进行，列车
+(km/h) (kW/m2) (W/(m2·℃)) 速度降低，产生的摩擦热量减少，热传导、对流换热
+－8 12.782 40
+和辐射带来的能量损失大于摩擦输入的能量，并且
+80 －10 29.685 40 74.2
+－12 46.588 10 闸瓦内部存在较大的温度梯度，所以摩擦表面的最
+－8 1.372 10 高温度升高变缓，最终达到206.2 ℃． 随后，出现了
+60 －10 14.048 10 54.3
+温度下降，而闸背部位的温度却在不断地升高．
+－12 26.725 10
+－8 — —
+40 －10 7.405 40 34.2
+－12 16.383 40
+3 模型的建立与仿真分析
+建立闸瓦的三维有限元模型，如图3 所示．顺序
+耦合时，在热分析中，采用三维8 节点6 面体 SOL-
+ID70 热学单元，网格划分采用扫掠方式［10］，靠近摩
+擦面部分划分的密，远离部分疏一些［11］． 在结构应
+力分析时，则把热单元类型转化为 SOLID 185 结构 图4 闸瓦最高温度变化曲线图
+Fig．4 Change curve of brake shoe＇s
+分析单元，将闸瓦瞬态分析得到的节点温度作为结
+highest temperature
+构分析时的体载荷施加到闸瓦上，同时施加相应的
+压力、摩擦力载荷及相关约束． 闸瓦的相关参数: 压
+图3 闸瓦有限元模型以及摩擦面中心节点5488
+图5 闸瓦最大应力变化曲线图
+Fig．3 Finite element model of brake shoe
+Fig．5 Change curve of brake shoe＇s maximum stress
+and the node5488 of the friction surface
+===== PDF PAGE 4 =====
+第4期 肖绯雄等:恶劣工况下货车高摩合成闸瓦磨损分析
+23
+制动结束到仿真结束这段时间，由于没有了热 表2 不同坡度和车速、闸瓦不同磨耗
+量的输入，闸瓦体温度在对流换热和热辐射的作用 程度时的最高温度
+Tab．2 Highest temperature when varying degrees
+下缓慢降低，高温从摩擦表面传递到闸背，使得闸瓦
+of wear shoe under the different gradient
+体内部温度梯度值变小，整体趋于一个相对平衡的
+and different speed ℃
+温度值，但仍然高于环境温度(20 ℃) ．
+－8‰ －10‰ －12‰
+最大应力出现在制动后32 s，比最高温度延迟
+磨耗/
+约4 s达到15.4 MPa．由于随着摩擦制动的进行，闸 mm 80 80 60 40 80 60 40
+km/h km/h km/h km/h km/h km/h km/h
+瓦内部的温度梯度变大，摩擦产生的热量不断地从 0 297.3 651.1 225.6 268.5 471.1 295.7 405.0
+摩擦表层传递到摩擦层的下层，但是因受到摩擦表 5 324.2 713.6 243.2 295.2 509.0 319.4 446.9
+10 359.8 796.3 266.9 330.2 560.2 351.4 501.6
+面的约束，由此产生了较大的热应力． 随着制动结
+15 408.5 909.3 300.0 377.5 631.6 395.9 575.8
+束，没有摩擦热量输入到摩擦面，闸瓦体内的温度梯 20 478.11071.0347.6 444.5 735.3 460.3 681.0
+度在减小，热应力也在降低． 因此，对闸瓦一次紧急 25 584.31317.8421.4 546.3 895.8 559.7 840.5
+28 679.21538.0487.6 636.71040.1649.0 982.2
+制动进行仿真，其结果理论上满足使用要求．
+以－10‰、80 km/h 无磨耗为例查看闸瓦温度
+不同磨耗程度0、5、10、15、20、25、28 mm( 到限)
+场、应力场的分布，如图7、图8 所示．
+闸瓦紧急制动时的最高温度的仿真结果分别为
+206.2、206.3、206.4、206.6、208.1、216.5、232.8 ℃．
+可见，不同磨耗程度的闸瓦在相同的条件下进行紧
+急制动，闸瓦的最高温度没有太大地变化．这是由于
+在制动过程中，闸瓦每秒制动产生的热量和其磨损
+程度没有关系，而是与制动初速、轴重、制动时的压
+力等有关．因此，其最高温度没有太大差别，但闸瓦
+的最低温度却有所不同，其磨耗越大，厚度越薄，最
+低温度就越高．
+3.2 坡道制动工况仿真结果
+分析不同磨耗程度的闸瓦在表1 不同条件下制
+动的温度分布情况． 表1 中可以明显的看出坡度 －
+图7 闸瓦最高温度示意图
+8‰时80 km/h 的工况比 60 km/h 的恶劣一些，因 Fig．7 Diagram of the highest temperature of brake shoe
+此，在此条件下只仿真80 km/h时的温度分布，温度
+随时间变化曲线如图6 所示． 不同坡度、不同车速、
+闸瓦不同磨耗程度时的最高温度如表2 所示．
+图8 闸瓦最大应力示意图
+Fig．8 Diagram of the maximum stress of brake shoe
+由图6、图7 可知，最高温度出现在坡道运行制
+图6 －8‰、80 km/h时不同磨耗程度闸瓦
+动结束时，且聚集在闸瓦摩擦表面层的中心面，达到
+最高温度曲线图
+651.1 ℃．这和紧急制动时有所不同，因为在长大坡
+Fig．6 Curve of highest temperature when
+道上，列车处于不断的调速制动工况下，当速度高于
+varying degrees of wear shoe under the condition of
+坡道限速时，开始制动，在一次短暂的制动结束后，
+gradient is －8‰ and the limit speed is80 km/h
+制动缓解．但由于在重力作用下，列车在坡道上不断
+===== PDF PAGE 5 =====
+北 京 交 通 大 学 学 报 第38卷
+24
+加速，当超过限速时，又开始制动，如此循环往复，使 在此线路条件上可以全程地参与制动，而当磨耗超
+得闸瓦的温度得不到充分的散热，所以温度不断升 过15 mm后，在长50 km的长大坡道上闸瓦不能满
+高．最高温度一直出现在摩擦表面层，直到制动结 足全程制动的要求．因此，为保证列车在此线路上安
+束，摩擦表面中心出现了最高温度值651.1 ℃． 全运行，当闸瓦磨耗量达到15 mm 后，应立刻更换
+由图8 可知，长大坡道工况下最大应力应该符 新闸瓦． －12‰、80 km/h; －12‰、40 km/h 两种工
+合式(1) 的变化规律，出现在制动结束时，达到62.4 况的分析类似．
+MPa，最大应力值已超过闸瓦的压缩强度极限值36
+4 闸瓦的磨耗分析
+MPa，可能造成闸瓦的裂纹萌生、掉渣、掉块等．具体
+使用情况还需要通过实车试验验证． 由于部分工况下闸瓦的最高温度超过了规定限
+对于图6 中的最高温度曲线，选取三次多项式 值，其摩擦面的磨损情况在摩擦热_力作用下加剧．
+作为拟合曲线，表示为T = at3 + bt2 + ct + d，其中: 因此有必要依据文献［1］标准中的“闸瓦的磨耗量
+T为温度;t为时间;a、b、c、d为未知数，以系数Ｒ2 判 不应该超过1 cm3/MJ”的规定，计算闸瓦在仿真过
+定拟合曲线的重合度． 不同磨耗程度 0、5、10、15、 程中的磨耗量L ，进而计算闸瓦在此工况下的每万
+Q
+20、25、28 mm 在坡度为 －8‰、车速为80 km/h 时， 公里的磨耗量L ． 制动仿真过程中的能量可表示为
+w
+得到拟合曲线的 Ｒ2 值分别为 0.998 3、0.998 9、 Q = q( t) ·103·S·t (4)
+0.999 2、0.999 5、0.999 6、0.999 7、0.999 7． 可知， 则由闸瓦的磨耗量不超过1 cm3/MJ的规定，可得
+拟合曲线和变化趋势曲线有较好的重合度． 闸瓦每 L ·10－1·S·104
+Q ≤1 (5)
+磨耗5 mm，制动结束后的最高温度都比没有磨耗前 Q·10－6
+高，且磨耗越大最高温度的差值就越大． 把式(4) 带入到式(5) 中，简化后得到闸瓦在仿真过
+由表2 可以看出，有部分工况的最高温度超过
+程中的磨耗量为
+了1 000 ℃． 而文献［1］标准中规定了闸瓦在温度 L ≤q( t) ·t·10－6 (6)
+Q
+900 ℃时的热失重应不超过其标称值的 ±10%，因
+式中: Q为制动仿真过程中的能量，J; S为闸瓦的摩
+此暂以该值作为闸瓦承受的最高温度．对－10‰、80 擦面积，m2; t为仿真时间，s．
+km/h; －12‰、40 km/h; －12‰、40 km/h 这3 种超 结合表1 和式(6) 可以得到在不同工况下闸瓦
+过限值的工况分别做出最高温度随时间变化曲线．
+仿真过程中的最大磨耗量，如表3 所示．
+图9 为－10‰、80 km/h时最高温度-时间曲线．
+表3 不同工况下闸瓦制动全过程的磨耗量L
+Q
+Tab．3 Amount of shoe wear during braking
+process under different conditions mm
+v /(km/h) －8‰ －10‰ －12‰
+80 0.0306768 0.0712440 0.0279528
+60 0.0008232 0.0084288 0.0160350
+40 — 0.0177720 0.0393192
+依据表3，可以进而计算出闸瓦在各工况下每
+万公里的磨耗量为
+L ·104
+L = Q (7)
+w vt
+图9 －10‰、80 km/h时不同磨耗程度
+依据式(7) 和表3 可以得到闸瓦在各种恶劣工况下
+闸瓦最高温度曲线
+Fig．9 Curve of highest temperature when 的极限磨耗量，如表4 所示．
+varying degrees of wear shoe under the condition 表4 不同工况下闸瓦每万公里的极限磨耗量L
+w
+of gradient is －10‰ and the limit speed is80 km/h Tab．4 The limited amount of shoe wear per ten
+图9 中的点线即为闸瓦能承受的最高温度线． thousand kilometers under different conditions mm
+图中曲线5、6、7 在点线以上，表示闸瓦在这些磨耗 v /(km/h) －8‰ －10‰ －12‰
+情况下能够进行的制动时间小于2 400 s．由图9 可 80 5.7519 13.358 20.9646
+60 0.8232 8.4288 16.0350
+知，当闸瓦磨耗达到15 mm，仿真结束时，闸瓦的最
+40 — 6.6645 14.7447
+高温度约为909 ℃．即当磨耗为0 ～15 mm 时，闸瓦
+===== PDF PAGE 6 =====
+第4期 肖绯雄等:恶劣工况下货车高摩合成闸瓦磨损分析
+25
+由表4 可知，线路制动工况越恶劣，闸瓦每万公 brake discs in 160 km/h wagon［D］． Chengdu: Southwest
+里磨耗量越大，最大值达到21 mm/万km．依据文献 Jiaotong University，2012．(in Chinese)
+［12］“提速货车高摩合成闸瓦磨耗剩余厚度≥18
+［5］中华人民共和国铁道部．铁路技术管理规程［M］．北京:
+中国铁道出版社，2010．
+mm”规定，按闸瓦厚度45 mm 算，－12‰、80 km/h
+Ministry of Ｒailways of People＇s Ｒepublic of China． Man-
+工况下闸瓦的极限使用里程为12 857.1 km．如按照
+agement rules of railway technology［M］． Beijing: China
+“大秦线、侯月线、高原铁路及C 型敞车二、三位转
+100 Ｒailway Publishing House，2010．(in Chinese)
+向架闸瓦磨耗剩余厚度≥25 mm”的规定，则闸瓦的
+［6］王宏林． 基于有限元法的车轮踏面制动热负荷研究
+极限使用里程为9 523.8 km．
+［D］． 成都:西南交通大学，2008．
+WANG Honglin． Ｒesearch on tread braking heat load of
+5 结论
+wheels based onFEM［D］．Chengdu:SouthwestJiaotongU-
+1) 紧急制动仿真得到的温度、应力最大值都小 niversity，2008．(in Chinese)
+于闸瓦的破坏阈值; 长大坡道工况下的最高温度达 ［7］刘俊红．重载货车踏面制动热响应分析研究［D］． 成
+651 ℃左右．因此在制动过程中会造成闸瓦粘合剂
+都:西南交通大学，2006．
+LIU Junhong． Temperatureandstressanalysisofwheelsfor
+的高温分解软化、塑性变形或掉渣、掉块，产生热疲
+the heavy_haul freight car in tread braking［D］．Chengdu:
+劳损伤问题，影响其使用效果．而增加闸瓦的导热性
+Southwest Jiaotong University，2006．(in Chinese)
+能，可减少热量存储，避免热损伤对闸瓦体的影响．
+［8］侯耐．重载货车车轮踏面制动热负荷研究［D］． 成都:
+2) 温度拟合曲线较好的反映制动过程中闸瓦
+西南交通大学，2011．
+温度随时间的变化关系．相同坡度和限速时，闸瓦磨
+HOU Nai． Heat load analysis of heavy_haul freight car
+耗量越大温度越高; 相同限速、不同坡度和磨耗量 wheel for tread breaking［D］．Chengdu:Southwest Jiaotong
+时，坡度越大、磨耗量越大，温度越高． University，2011．(in Chinese)
+3) 理论计算中闸瓦极限磨耗量为21 mm/万km． ［9］应之丁，李小宁，林建平，等．列车车轮踏面制动温度循
+在各种极限恶劣制动工况下闸瓦的磨耗量的值，可 环试验与温度场仿真分析［J］． 中国铁道科学，2010，31
+(3):70－75．
+以作为实际使用过程中更换闸瓦的参考依据，并根
+YING Zhiding，LI Xiaoning，LIN Jianping，et al． The
+据实车试验来综合评判闸瓦在极限恶劣情况下的使
+temperature cycle testofwheeltreadbrakingforfreightand
+用寿命和磨损情况．
+the simulation analysis of the temperature field［J］． China
+Ｒailway Science，2010，31(3):70－75．(in Chinese)
+参考文献(Ｒeferences):
+［10］荣兵，巢凯年． 盘式制动器摩擦片热_结构耦合分析
+［1］TB/T2403—2010，铁道货车用合成闸瓦［S］．北京:中国
+［J］． 机械设计与制造，2010(7):195－197．
+铁道出版社，2011．
+ＲONG Bing，CHAO Kainian． Analysis of the thermal_
+Ministry of Ｒailways of People＇s Ｒepublic of China． TB/T
+structure coupling on the friction plate of the disc brake
+2403—2010，Brake shoes for freight rolling stock of rail-
+［J］． Mechanical Design and Manufacturing，2010( 7):
+ways［S］． Beijing:China Ｒailway Publishing House，2011．
+195－197．(in Chinese)
+(in Chinese)
+［11］朱真才，史志远，彭玉兴，等．提升机盘形制动器闸瓦三
+［2］杨强．列车制动盘温度场和应力场仿真与分析［D］． 北 维瞬态温度场仿真与试验研究［J］． 摩擦学学报，
+京:北京交通大学，2009．
+2008，28(4):356－360．
+YANG Qiang． Simulation and analysis of temperature field
+ZHU Zhencai，SHIZhiyuan，PENGYuxing，etal． Simu-
+and stress field of train brake disc［D］． Beijing: Beijing
+lation and experimental research on three dimensional
+Jiaotong University，2009．(in Chinese)
+transient temperature field of brake shoe for winder disc
+［3］胡仁喜，康士廷． ANSYS 14.0 热力学有限元分析从入 brake［J］． Tribology，2008，28(4):356 －360． ( in Chi-
+门到精通［M］． 北京:机械工业出版社，2013．
+nese)
+HU Ｒenxi，KANG Shiting． ANSYS 14.0 finite element a-
+［12］中华人民共和国铁道部．铁路货车运用维修规程［M］．
+nalysis of thermodynamics from entry to the master［M］．
+北京:中国铁道出版社，2010．
+Beijing:Mechanical Industry Press，2013．(in Chinese)
+Ministry of Ｒailways of People＇s Ｒepublic of China． The
+［4］张新芳．160 km/h货车制动盘热_应力及强度分析［D］．
+use andrepairrulesofrailwaywagons［M］．Beijing:China
+成都:西南交通大学，2012．
+Ｒailway Publishing House，2010．(in Chinese)
+ZHANG Xinfang． Thermal_stress and strength analysis of

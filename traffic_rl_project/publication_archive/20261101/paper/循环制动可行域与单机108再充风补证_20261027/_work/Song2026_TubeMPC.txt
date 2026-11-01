@@ -1,0 +1,1069 @@
+第 50 卷 第 2 期                               北 京 交 通 大 学 学 报                                                              Vol.50 No.2
+ 2026 年 4 月                          JOURNAL OF BEIJING JIAOTONG UNIVERSITY                                              Apr. 2026
+
+文章编号：1673-0291（2026）02-0116-16                                                             DOI：10.11860/j.issn.1673-0291.20250156
+
+
+
+                基于传统空气制动的重载虚拟编组列车
+                      协同控制方法
+                                    宋宗莹 1 ，张                韦 2 ，王兴中 1 ，张辰东 2
+      （1. 中国神华能源股份有限公司，北京 100011；2. 北京全路通信信号研究设计院集团有限公司，北京 100070）
+
+
+    摘     要：针对传统空气制动系统架构下，长大编组重载列车存在纵向冲动过大、编组不灵活等控制
+    问 题 ，提 出 一 种 基 于 虚 拟 编 组 技 术 与 鲁 棒 约 束 的 管 状 模 型 预 测 控 制（Tube Model Predictive Con⁃
+    trol，Tube-MPC）方 法 . 该 方 法 采 用 小 编 组 运 行 模 式 ，根 据 运 营 需 求 将 长 大 编 组 重 载 列 车 解 编 为 多
+    个 独 立 列 车 单 元 ，以 提 升 列 车 运 营 效 率 与 灵 活 性 ，并 降 低 单 列 车 内 部 的 纵 向 冲 动 . 首 先 ，综 合 考 虑
+    电 制 动 力 、空 气 制 动 力 、车 钩 力 及 运 行 阻 力 等 因 素 ，构 建 重 载 虚 拟 编 组 列 车（Heavy-Haul Virtually
+    Coupled Train Set，HHVCTS）多质点动力学模型 ，并进行模型离散化处理 ；其次 ，基于该动力学模
+    型构建多目标代价函数，兼顾速度跟踪精度、车钩力抑制效果、能效与系统稳定性，并将速度限制、
+    车钩力安全限值及执行器物理特性等约束条件纳入整体优化框架；再次，采用 Tube-MPC 方法，为
+    HHVCTS 中各列车单元的机车设计协同控制策略，通过创建终端控制器与终端约束集，推导控制
+    器稳定的充分条件，证明所提控制算法的可行性与稳定性；最后，在平缓坡道和长大下坡两种典型
+    运行场景下开展仿真验证 . 研究结果表明：所提协同控制策略可保持各单元列车间距的平稳性；系
+    统平均最大速度误差与间距误差分别收敛至 0.44 m/s 与 0.66 m，可实现对目标速度曲线的高精度
+    跟踪；在加减速及长大下坡工况下，最大车钩力峰值约为 330.4 kN，仅为安全约束限值的 22%. 量化
+    结果验证了该方法在满足严格追踪误差约束的同时，可有效保证系统的鲁棒稳定性，能够为重载虚
+    拟编组技术的工程化应用提供理论支撑与算法储备 .
+    关键词：重载列车；虚拟编组；传统空气制动；模型预测控制；Tube 方法
+    中图分类号：U296                      文献标志码：A
+
+
+             Cooperative control methods for virtually coupled
+          heavy-haul trains based on traditional pneumatic braking
+
+          SONG Zongying1 , ZHANG Wei2 , WANG Xingzhong1 , ZHANG Chendong2
+   （1.China Shenhua Energy Co., Ltd., Beijing 100011, China；2.CRSC Research & Design Institute Group Co., Ltd.,
+                                                     Beijing 100070, China）
+
+
+    Abstract : To address control issues such as excessive longitudinal impulses and inflexible formations in
+
+
+   收稿日期：2025-10-16；修回日期：2026-02-28
+   基金项目：中 央 高 校 青 年 教 师 科 研 创 新 能 力 支 持 项 目（2025JBZD001）；国 家 自 然 科 学 基 金（U22A2046）；国 家 能 源 集 团 重 点 科 技 项 目
+            （GJNY-22-7）；北京全路通信信号研究设计院集团有限公司科研项目（2300-K1220053）
+   Foundation items: Scientific Research Innovation Capability Support Project for Young Faculty（2025JBZD001）；National Natural Science
+              Foundation of China（ U22A2046）；Key Science and Technology Project of National Energy Group（GJNY-22-7）；Scientific Re⁃
+              search Project of Beijing National Railway Research & Design Institute of Communication and Signals Group Co.，Ltd.（2300-
+              K1220053）
+   第一作者：宋宗莹（1981—），男，北京市人，高级工程师，博士，博士生导师 . 研究方向为重载铁路调度 .email：10000372@chnenergy.com.cn.
+
+   引用格式：宋宗莹，张韦，王兴中，等 . 基于传统空气制动的重载虚拟编组列车协同控制方法［J］. 北京交通大学学报，2026，50（2）：116−131.
+        SONG Zongying，ZHANG Wei，WANG Xingzhong，et al. Cooperative control methods for virtually coupled heavy-haul trains
+        based on traditional pneumatic braking［J］.Journal of Beijing Jiaotong University，2026，50（ 2）：116−131.（in Chinese）
+第2期                            宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                                 117
+
+     long heavy-haul trains under traditional pneumatic braking system architectures, this paper proposes a
+     Tube Model Predictive Control (Tube-MPC) method based on virtual coupling technology and robust
+     constraints. This method adopts a short-consist operation mode, dividing long heavy-haul trains into
+     multiple independent train units according to operational requirements to enhance operational efficiency
+     and flexibility while reducing longitudinal impulses within individual trains. First, a multi-body dy⁃
+     namic model of the Heavy-Haul Virtually Coupled Train Set (HHVCTS) is constructed by compre⁃
+     hensively considering factors such as electric braking force, pneumatic braking force, coupler force,
+     and running resistance, followed by model discretization. Second, based on this dynamic model, a
+     multi-objective cost function is formulated to balance speed tracking accuracy, coupler force suppres⁃
+     sion, energy efficiency, and system stability, while incorporating constraints such as speed limits, cou⁃
+     pler force safety limits, and actuator physical characteristics into the overall optimization framework.
+     Third, the Tube-MPC method is employed to design a cooperative control strategy for the locomo⁃
+     tives of each train unit within the HHVCTS. By designing terminal controllers and terminal constraint
+     sets, sufficient conditions for controller stability are derived, demonstrating the feasibility and stability
+     of the proposed control algorithm. Finally, simulation verification is conducted under two typical oper⁃
+     ating scenarios: gentle gradients and long downhill grades. The results indicate that the proposed coop⁃
+     erative control strategy achieves stable spacing regulation among train units. The average maximum speed
+     error and spacing error of the system converge to 0.44 m/s and 0.66 m, respectively, realizing high-
+     precision tracking of the target speed profile. During acceleration, deceleration, and on extended steep
+     downgrades, the peak coupler force reaches approximately 330.4 kN—merely 22% of the safety limit
+     (1500 kN). Quantitative results verify that the proposed method effectively ensures the robust stability
+     of the system while satisfying stringent tracking error constraints, providing a theoretical basis and al⁃
+     gorithmic foundation for the engineering deployment of heavy-haul virtual coupling technology.
+     Keywords : heavy-haul train； virtual coupling； traditional pneumatic braking； model predictive con⁃
+     trol；Tube method
+
+
+     重 载 铁 路 因 其 运 能 大 、效 率 高 、能 耗 低 、运 输 成                        针 对 基 于 状 态 反 馈 的 控 制 器 设 计 ，现 有 研 究 在
+本 相 对 较 低 及 环 境 污 染 小 等 优 势 ，已 成 为 能 源 和 大                    重 载 列 车 速 度 跟 踪 、巡 航 控 制 和 抗 扰 性 能 提 升 方 面
+宗货物运输的首选方式 . 然而，传统固定编组模式 ［1］
+                                                              取 得 了 一 定 进 展 . 文 献［6］基 于 周 期 性 间 歇 控 制 理
+受 限 于 物 理 联 挂 的 刚 性 约 束 ，不 仅 暴 露 出 车 辆 周 转                    论 ，设 计 重 载 列 车 巡 航 控 制 器 ，保 障 速 度 误 差 与 车
+效率低下、进而加剧车钩疲劳的问题，更因其引发的                                       钩 位 移 稳 定 收 敛 ；文 献［7］引 入 干 扰 观 测 器 ，构 建 考
+纵向冲动超标而直接导致断裂风险 . 随着货运需                ［2］
+                                                              虑 输 入 饱 和 的 鲁 棒 巡 航 控 制 策 略 ；文 献［8］通 过 研
+求持续增长，提升运输能力与效率的需求日益迫切，                                       究 重 载 列 车 的 容 错 控 制 ，提 出 传 感 器 故 障 和 制 动 系
+虚 拟 编 组 技 术 作 为 突 破 运 输 瓶 颈 、提 升 线 路 利 用 率                    统 故 障 的 检 测 方 法 ，并 优 化 了 速 度 调 节 器 性 能 ；文
+的重要手段正快速发展 . 虚拟编组列车是指多个列                                      献［9］基 于 重 载 列 车 在 整 个 运 行 过 程 中 的 轨 迹 跟 踪
+车 之 间 不 依 靠 物 理 连 接 ，而 通 过 无 线 通 信 实 现 多 列                    控 制 ，提 出 一 种 基 于 实 时 速 度 误 差 和 位 移 的 比 例 -
+车 以 相 同 速 度 、极 小 间 隔 协 同 运 行 的 一 种 列 车 组 织                    积 分 控 制 方 法 ，该 方 法 采 用 端 口 哈 密 顿 框 架 研 究 重
+方式 ［3-5］
+        . 目 前 ，虚 拟 编 组 控 制 方 法 的 研 究 主 要 集 中                  载 列 车 的 动 态 模 型 ；文 献［10］提 出 重 载 列 车 的 协 同
+于 高 速 铁 路 和 城 市 轨 道 交 通 系 统 ，在 重 载 铁 路 领 域                    主 动 干 扰 抑 制 控 制 ，并 利 用 扩 展 状 态 观 测 器 估 计 非
+的研究尚处于起步阶段 .                                                  线 性 干 扰 ；文 献［11］融 合 径 向 基 神 经 网 络 与 滑 模 控
+     虚拟编组列车协同控制问题本质上是一个在无                                     制 ，搭 配 扰 动 观 测 器 提 升 系 统 抗 扰 与 速 度 跟 踪 能
+物理连挂条件下，协调多列单元列车纵向运动，使其                                       力 ；文 献［12］为 简 化 计 算 ，提 出 将 重 载 列 车 多 质 点
+在满足安全约束与制动能力限制的前提下协同跟踪                                        模 型 转 化 为 单 位 移 模 型 ，并 设 计 自 抗 扰 控 制 器 ，通
+期望运行轨迹的多约束控制问题 . 其在控制方法上                                      过仿真验证该控制器能够有效补偿未建模动态和
+可以分为状态反馈控制和优化控制 .                                             外 界 扰 动 ，精 确 跟 踪 目 标 速 度 曲 线 . 状 态 反 馈 方 法
+                                  北    京      交    通   大    学          学         报                              第 50 卷
+  118
+
+的 控 制 结 构 通 常 较 为 简 单 ，大 多 侧 重 于 速 度 调 节 或             稳定编组运行 .
+单 车 运 行 品 质 改 善 ，对 于 车 钩 力 约 束 、空 气 制 动 传                    现 有 研 究 表 明 ，列 车 运 行 控 制 方 法 在 系 统 建 模
+递延迟以及线路限速等多约束耦合条件下的协同                                  层面仍有进一步完善的空间 . 为降低建模难度和在
+优 化 考 虑 仍 相 对 不 足 ，在 兼 顾 安 全 约 束 与 综 合 控 制             线 求 解 复 杂 度 ，部 分 研 究 将 整 列 重 载 列 车 简 化 为 单
+性能方面仍存在一定局限 .                                          一 质 点 模 型 或 等 效 单 位 移 模 型［12］. 该 类 方 法 在 控 制
+    相 比 之 下 ，基 于 优 化 的 控 制 方 法 可 在 控 制 器 设             器 初 步 设 计 和 仿 真 验 证 中 具 有 一 定 便 利 ，但 其 对 列
+计 中 显 式 引 入 状 态 约 束 与 输 入 约 束 ，在 多 目 标 协 调             车 编 组 内 部 纵 向 动 力 学 特 性 的 描 述 较 为 单 一 ，难 以
+优化方面具备更强的灵活性 . 现有相关研究主要为                               反 映 机 车 与 车 辆 之 间 的 牵 引/制 动 传 递 关 系 及 车 钩
+动态规划、强化学习、最优控制及模型预测控制等典                                力沿编组的动态分布 . 对于采用传统空气制动的重
+型 方 法 . 文 献［13］基 于 随 机 动 态 规 划 与 近 似 动 态 规             载列车而言，制动指令需沿列车管逐节传播，不同车
+划，构建重载列车纵向力最优控制模型，并验证了算                                辆 制 动 力 的 建 立 存 在 明 显 时 滞 和 衰 减 效 应 ；在 长 大
+法 与 动 力 学 模 型 的 适 配 性 ；文 献［14］引 入 深 度 强 化              下坡等典型工况下，这种分布式、时滞性制动特征会
+学 习 智 能 控 制 方 法 ，优 化 重 载 列 车 在 长 大 下 坡 场 景             进一步影响列车纵向动力响应 . 若仍采用单质点简
+下 的 运 行 性 能 ；文 献［15］结 合 迭 代 学 习 与 模 型 预 测              化 模 型 ，则 难 以 准 确 表 征 空 气 制 动 作 用 下 的 运 行 安
+控制，提出一种抗干扰增强的重载列车跟踪控制器，                                全边界及控制需求，也不利于对列车间距、速度跟踪
+借助多质点动力学模型与最优控制模型提升轨迹跟                                 和车钩力约束进行统一协调 .
+踪精度与鲁棒性；文献［16］针对复杂不确定工况，基                                    综上，本文结合重载列车实际运行特点，构建多
+于 模 型 预 测 控 制 的 空 电 联 合 制 动 解 耦 策 略 ，融 入 限             质点、分布式、非线性建模体系，深入研究鲁棒性强、
+速、制动能力等约束实现控制优化；文献［17］建立数                              自 适 应 性 高 的 协 同 控 制 策 略 ，为 实 现 重 载 铁 路 运 输
+据 驱 动 的 重 载 列 车 动 态 模 型 ，利 用 区 间 二 型 模 糊 系             系统的智能化和高效化发展奠定理论基础与技术支
+统 与 优 化 算 法 提 高 模 型 精 度 ，并 设 计 迭 代 学 习 自 抗             撑 . 研 究 主 要 围 绕 3 个 方 面 展 开 . 在 建 模 层 面 ，构 建
+扰 控 制 器 以 优 化 控 制 性 能 ；文 献［18］提 出 重 载 列 车              考 虑 牵 引 力 、制 动 力 、车 钩 力 等 因 素 的 多 质 点 动 力
+模 糊 自 适 应 模 型 预 测 控 制 方 法 ，可 根 据 不 同 线 路 条             学 模 型 ，并 将 传 统 空 气 制 动 产 生 的 空 气 制 动 力 及 其
+件 进 行 动 态 调 整 ，仿 真 结 果 表 明 该 策 略 在 速 度 误 差             固 有 延 时 特 性 纳 入 模 型 . 在 方法层面，将“空气制动
+控制方面具有明显优越性 .                                          力-坡道阻力”之间难以精确匹配的偏差建模为有界
+    在 各 类 基 于 优 化 的 控 制 方 法 中 ，模 型 预 测 控 制             不确定因素和扰动，并提出以电制动进行补充修正；
+（Model Predictive Control，MPC）凭 借 其 独 特 优 势            在 此 基 础 上 采 用 Tube-MPC 为 各 单 元 列 车 机 车 设
+成为最具应用潜力的方案之一 .MPC 能够在滚动优                              计 协 同 控 制 策 略 ，以 满 足 在 扰 动 不 确 定 性 下 的 安 全
+化框架内显式处理多约束、非线性与时滞问题，这与                                性 约 束 ，并 提 升 鲁 棒 跟 踪 能 力 . 在 验 证 层 面 ，设 置 平
+虚 拟 编 组 列 车 系 统 中 存 在 的 约 束 耦 合 、动 态 时 变 特             缓坡道与长大下坡两类典型运行场景开展仿真测
+性高度契合 . 已有研究也充分验证了其在该场景下                               试，验证所提方法在两类工况下的有效性，并对控制
+的有效性：文献［19］结合分布式鲁棒 MPC 与卡尔曼                            器 权 重 参 数 影 响 进 行 分 析 ，系 统 反 映 该 方 法 在 典 型
+滤 波 实 现 列 车 抗 干 扰 运 行 控 制 ；文 献［20］采 用 增 广              工况下的适用性 .
+拉格朗日交替方向非精确牛顿法提升非线性模型求
+                                                       1     符号定义
+解 效 率 ；文 献［21］则 利 用 Tube-MPC 有 效 处 理 系 统
+不 确 定 性 与 安 全 间 距 约 束 ，保 证 了 延 时 与 扰 动 下 的                   本文使用的主要符号及其含义说明如表 1 所示 .
+
+                                              表1   符号定义
+                                      Tab.1    Notation definitions
+        符号                   描述                                 符号                             描述
+         i          单元重载列车编号，i = 1,2,3,…,I                   uˉ ( i,j ) ( t )        车辆 ( i,j ) 的名义控制向量
+
+         j       单元重载列车内车辆编号，j = 1,2,3,…,J                   uˉ (∗i,j ) ( t )        车辆 ( i,j ) 的最优控制向量
+
+        n sh                闸瓦数量                             uˉ̇ ( i,j ) ( t )           uˉ ( i,j ) ( t ) 的导数
+
+        nZ                  制动缸数                                uˉ ( t )
+                                                                   f
+                                                                                         终端控制变量
+
+        dZ               制动缸直径/ mm                           z ( i,j ) ( t )         车辆 ( i,j ) 的系统状态误差
+第2期                                     宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                                              119
+
+                                                                     续表
+        符号                                       描述                          符号                              描述
+           ηZ                             制动缸传动效率                         ż ( i,j ) ( t )             z ( i,j ) ( t ) 的导数
+             t                               当前时刻/s                          A ( i,j )              车辆 ( i,j ) 的状态矩阵
+             tk                           第 k 个采样时刻                          B ( i,j )              车辆 ( i,j ) 的输入矩阵
+             tq                时间计数辅助变量，q 表示第 q 个序列元素                          Af                      终端闭环矩阵
+            T                                 预测时域                          W ( i,j )               车辆 ( i,j ) 的扰动矩阵
+            H                                 控制时域                           A (di,j )          车辆 ( i,j ) 的离散化后的状态矩阵
+        Pi ( t )                  第 i 辆车在 t 时刻的制动缸压强，kPa                     B (di,j )          车辆 ( i,j ) 的离散化后的输入矩阵
+                                                                                  d
+         P max                          制动缸最大压强，kPa                         W    ( i,j )        车辆 ( i,j ) 的离散化后的扰动矩阵
+            λ1                           制动建立特性参数                         L (total
+                                                                              i,j ) ( · )           车辆 ( i,j ) 的总代价函数
+            λ2                           制动缓解特性参数                         V ( i,j ) ( · )        车辆 ( i,j ) 的单步 MPC 代价函数
+         t max    1           制动缸压强由 0 增长到最大值所需的时间，s                       VE ( · )                    Lyapunov 函数
+         t max    2            制动缸压强由最大值降到 0 所需的时间，s                      L ( i,j ) ( · )          车辆 ( i,j ) 的阶段代价函数
+        t idelay1            第 i 列单元重载列车空气制动建立时的延迟时间，s                    G ( i,j ) ( · )          车辆 ( i,j ) 的终端代价函数
+        t idelay2            第 i 列单元重载列车空气制动缓解时的延迟时间，s                          Q                   运行状态误差权重矩阵
+        D    hafe
+             ( i,j )
+                             车辆 ( i,j ) 中心点与机车 i 中心点之间的距离，m                     R                    控制输入增量权重
+      s ( i,j ) ( t )                 t 时刻车辆 ( i,j ) 的位置，m                      P                   终端状态误差权重矩阵
+      ṡ ( i,j ) ( t )                     s ( i,j ) ( t ) 的导数                  K                    反馈控制增益矩阵
+      s͂ ( i,j ) ( t )              t 时刻车辆 ( i,j ) 的位置扰动，m                       κ                     反馈控制增益
+      s (ei,j ) ( t )            车辆 ( i,j ) 与前车 ( i,j - 1 ) 位置之差，m              t i0                     空走时间,s
+           Di                        第 i 列单元重载列车长度，m                             n             单列重载列车被机车牵引的货车数量
+         D des                   单元重载列车之间的期望追踪距离，m                               α                 当前所处位置对应的坡度
+          s safe
+            i                   第 i 列单元重载列车的最小追踪间距，m                            U                    控制输入约束集合
+                                                                                -
+         D min                   单元重载列车之间的静态最小间隔，m                              U                   控制变量改进约束集
+            va                            制动波波速，m/s                             U͂                     控制误差集合
+            vr                            缓解波波速，m/s                             X                      状态约束集合
+                                                                                -
+            v0                     重载列车系统平衡状态速度，m/s                             X                   状态变量改进约束集
+      v ( i,j ) ( t )                t 时刻车辆 ( i,j ) 的速度，m/s                     X͂                     状态误差集合
+      v̇ ( i,j ) ( t )                     v ( i,j ) ( t ) 的导数                 Xf                      终端约束集合
+      v (ei,j ) ( t )         t 时刻车辆 ( i,j ) 与前车 ( i,j - 1 ) 速度误差，m/s           R                           实数集
+      v͂ ( i,j ) ( t )             t 时刻车辆 ( i,j ) 的速度扰动，m/s                 ϕl ( · )           第 l 个状态约束函数，l = 1,2,3,4,5,6
+ v lim ( s ( i,j ) ( t ) )       列车在位置 s ( i,j ) ( t ) 处的速度限制，m/s           β1 ( · )              动态最小追踪间距约束函数
+        m ( i,j )                        车辆 ( i,j ) 的质量，t                   β2 ( · )              静态最小追踪间距约束函数
+           mi                           第 i 列重载列车质量，t                       β3 ( · )                 速度下界约束函数
+      u ( i,j ) ( t )          车辆 ( i,j ) 在 t 时刻的电牵引力或制动力，kN                β4 ( · )                 速度上界约束函数
+     u (MPC
+        i,j ) ( t )              车辆 ( i,j ) 在 t 时刻的 MPC 控制器，kN              β5 ( · )                车钩力下界约束函数
+      u͂ ( i,j ) ( t )           车辆 ( i,j ) 在 t 时刻的等效控制输入，kN                β6 ( · )                车钩力上界约束函数
+      μ ( i,j ) ( t )             t 时刻车辆 ( i,j ) 的车钩力补偿器，kN                      δ                        采样周期
+            U                         控制输入的允许取值集合                               φi            第 i 列单元重载列车的车轮与闸瓦摩擦系数
+        U (min
+           i,j )
+                                       机车 ( i,j ) 控制输入下界                         ξ                   误差系统阻尼系数
+        U (max
+           i,j )
+                                       机车 ( i,j ) 控制输入上界                         τ                  预测时域里的某一时刻
+         F (airi,j )                 车辆 ( i,j ) 的空气制动力，kN                        ε                     误差边界参数
+          P ish                 第 i 列单元重载列车的单块闸瓦压力，kN                          ψZ                      制动倍率系数
+          F jC                     车辆 j - 1 与 j 车辆的车钩力，kN                       Ω                        鲁棒不变集
+             W0
+         F   ( i,j )                  车辆 ( i,j ) 的基本阻力，kN                   σ1 ( · )                     KL 类函数
+         F   W
+             ( i,j )
+                                      车辆 ( i,j ) 的附加阻力，kN                   σ2 ( · )                      K 类函数
+        w ( i,j )                     车辆 ( i,j ) 受到的扰动，kN                 xˉ (*i,j ) ( t )         车辆 ( i,j ) 的最优状态向量
+           w0                           单位基本阻力，N/kN                       x͂ i,j ( t k )           车辆 ( i,j ) 状态向量的扰动
+            cy                   基本阻力的戴维斯经验系数 y = 1,2,3                   ẋ ( i,j ) ( t )             x ( i,j ) ( t ) 的导数
+             γ                      车钩系统的等效刚度系数，N/m                       xˉ̇ ( i,j ) ( t )            xˉ ( i,j ) ( t ) 的导数
+                                                                                       北          京       交         通    大       学           学         报                                                          第 50 卷
+    120
+
+                                                                                                                    续表
+          符号                                                               描述                                                         符号                                                   描述
+      x ( i,j ) ( t )                                   车辆 ( i,j ) 的状态向量                                                             u     eMPC
+                                                                                                                                           ( i,j )
+                                                                                                                                                               车辆 ( i,j ) 与车辆 ( i,j - 1 ) 的控制输入之差
+      xˉ ( i,j ) ( t )                                车辆 ( i,j ) 的名义状态向量                                                                    ℓ                                    扰动上界参数
+      xˉ̇ ( i,j ) ( t )                                         xˉ ( i,j ) ( t ) 的导数                                                 μˉ f ( t )                                   终端控制器
+
+                                                                                                                                                                  P + 150
+                                                                                                                                                                    sh
+                                                                                                                                                                                           v ( i，j ) ( t )+ 150
+2
+                                                                                                                                                                    i
+      模型构建                                                                                                                                 φ i = 0.41 ⋅                                ⋅                            （6）
+                                                                                                                                                                 4P + 200 2v ( i，j ) ( t )+ 150
+                                                                                                                                                                     sh
+                                                                                                                                                                     i
+
+2.1       空气制动模型                                                                                                                  单块闸瓦产生的压力为
+      传统空气制动系统的核心原理是借助列车管内                                                                                                             π 2
+                                                                                                                                         d Z n Z η Z ψ Z ⋅ P i ( t ) ⋅ 10- 6 /n sh
+                                                                                                                                                P ish =                            （7）
+压 缩 空 气 的 压 力 变 化 驱 动 制 动 装 置 ，实 现 列 车 减 速                                                                                             4
+与停车控制 .                                                                                                                           当重载列车在长大下坡场景下运行并施加空气
+      当 列 车 正 常 运 行 时 ，车 辆 制 动 单 元 中 的 副 风 缸                                                                             制 动 进 行 减 速 时 ，考 虑 采 用 文 献［22］所 提 出 的 循 环
+的压力与列车主管压力保持相同 . 在这种条件下，                                                                                                 空气制动策略 .
+车辆制动单元中每个制动缸的活塞在弹簧力的作用                                                                                                   2.2        状态空间模型
+下，使制动闸瓦保持松弛状态 .                                                                                                                   建立考虑扰动影响的重载虚拟编组列车的多质
+      实施制动时，司机操作机车制动控制阀排气，使                                                                                              点模型，每个单元重载列车的动力学模型为
+列车主管减压 . 则每辆车上车辆制动单元中的控制                                                                                                         ìï ṡ ( i，j ) ( t )= v ( i，j ) ( t )
+阀对列车主管的减压作出响应并将一定量的压缩空                                                                                                            ï m ( i，1 ) v̇ ( 1，1) ( t )= u ( i，1) ( t )- F (airi，1) -
+                                                                                                                                  ï
+气从副风缸送入制动缸 . 制动缸活塞在压缩空气的                                                                                                          ï               F (Ci，1) - F (Wi，1) - F (Wi，1) + w ( i，1)
+                                                                                                                                                                                   0
+
+
+                                                                                                                                  ï
+作 用 下 动 作 ，推 动 杠 杆 机 构 使 闸 瓦 压 向 车 轮 踏 面 而                                                                                        ï m ( i，2) v̇ ( 1，2) ( t )= u ( i，2) ( t )- F (airi，2) + F (Ci，1) -
+                                                                                                                                  í                                                                   （8）
+实施制动 .                                                                                                                            ïï              F (Ci，2) - F (Wi，2) - F (Wi，2) + w ( i，2)
+                                                                                                                                                                                   0
+
+
+                                                                                                                                   ïï
+      缓 解 制 动 时 ，列 车 主 管 和 每 辆 车 上 的 副 风 缸 由                                                                                        ïï                                 ⋮
+机 车 供 给 压 缩 空 气 重 新 充 气 ，制 动 缸 中 的 压 缩 空 气                                                                                           ïï m ( i，J ) v̇ ( 1，J ) ( t )= u ( i，J ) ( t )- F (airi，J - 1) -
+                                                                                                                                      ïï
+排往大气，使制动缸活塞回到制动缓解位 .                                                                                                                   ï          F (Ci，J ) - F (Wi，J ) - F (Wi，J ) + w ( i，J )
+                                                                                                                                                                                   0
+
+                                                                                                                                       î
+      制动缸压力变化过程分为空气制动建立过程和                                                                                                        描述单位基本阻力的戴维斯公式为
+空气制动缓解过程 .                                                                                                                                           w 0 = c 0 + c 1 v ( 1，j ) ( t )+ c 2 v (2i，j ) ( t )           （9）
+      空气制动建立过程的制动缸压强为
+                                                                                                                                  在 平 衡 状 态 v 0 处 进 行 泰 勒 一 阶 展 开 ，将 基 本 阻
+           ì0                                             t ≤ t idelay
+
+                      (            )
+                                                                                1
+
+           ï                           λ1                                                                                力F       W0
+                                                                                                                                 ( i，j )   = m ( i，j ) w 0 中的非线性部分线性化，同时带入
+           ï t - t idelay      1
+
+
+P i ( t )= í                                ⋅ P max       t   i
+                                                               delay 1
+                                                                         ≤t≤t           i
+                                                                                         delay 1
+                                                                                                      + t max            车钩力方程 F (Ci，j ) = γ ( s ( i，j ) - s ( i，j + 1) ) 可以得到
+           ïï       t max 1
+                                                                                                                1
+
+
+
+
+            ïî P max                                      t ≥ t idelay + t max  1
+                                                                                              1                          ìï ṡ ( i，j ) ( t )= v ( i，j ) ( t )
+                                                                                                        （1）
+                                                                                                                          ïï
+                                                                                                                           ïï m ( i，1) v̇ ( i，1) ( t )= u ( i，1) ( t )- F (airi，1) - γ ( s ( i，1) - s ( i，2) )-
+      空气制动缓解过程的制动缸的压强为                                                                                                      ïï
+                                                                                                                             ïïï                  F (Wi，1) -( c 0 - c 2 v 20 + c 1 v ( i，1) + 2c 2 v 0 v ( i，1) )+ w ( i，1)
+           ìï 0                                           t ≤ t idelay                                                         ïï m v̇
+
+                      (            )
+                                                                                2
+
+
+
+                                                                                                                                ïï ( i，2) ( i，2) ( t )= u ( i，2) ( t )- F ( i，2) + γ ( s ( i，1) - s ( i，2) )-
+                                                                                                                                                                                         air
+                                       λ2
+            ï t - t idelay     2
+
+
+P i ( t )= í                                ⋅ P max       t idelay ≤ t ≤ t idelay + t max
+                                                                     2                            2
+                                                                                                                                 ïï               γ ( s ( i，2) - s ( i，3) )- F (Wi，2) -( c 0 - c 2 v 20 +
+            ïï       t max2
+                                                                                                                2
+
+                                                                                                                                  í
+             ïî P max                                     t≥t             delay 2
+                                                                                    + t max                                       ï               c 1 v ( i，2) + 2c 2 v 0 v ( i，2) )+ w ( i，2)
+                                                                         i                    2
+                                                                                                                                  ïï
+                                                                                                        （2）                        ïï                                             ⋮
+                                                                                                                                    ïï
+                                                      D( )                                                                           ïï m ( i，J ) v̇ i，J ( i，J ) ( t )= u ( i，J ) ( t )- F ( i，J ) -
+                                                         hafe                                                                                                                                air
+                                                          i，j
+                                   t idelay =1
+                                                                                                        （3）                           ïï
+                                                       va                                                                              ïï         γ ( s ( i，J - 1) - s ( i，J ) )- F (Wi，J ) -( c 0 - c 2 v 20 +
+                                                      D (hafe                                                                           ïï
+                                                          i，j )                                                                          ïî       c 1 v ( i，J ) + 2c 2 v 0 v ( i，J ) )+ w ( i，J )
+                                   t idelay =2
+                                                                                                        （4）
+                                                        vr
+                                                                                                                                                                                                                   （10）
+      空气制动力为
+                                                                                                                                  由于重载列车运行线路相关数据固定且可以提
+                              F (airi，j ) =      ∑P
+                                                 nz
+                                                          max     φi                                    （5）
+                                                                                                                         前计算，令
+      车轮与闸瓦摩擦系数为                                                                                                               u͂ ( i，j ) ( t )= u ( i，j ) ( t )- F (airi，j ) -( c 0 + c 2 v 20 )- F (Wi，（11）
+                                                                                                                                                                                                         j)
+第2期                                                          宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                                                                                                                         121
+
+
+                                                                                                                                                                                       i，j ) ( t ) 
+                                                                                                            L ( i，j ) ( x ( i，j ) ( t )，u ( i，j ) ( t ) )=  x ( i，j ) ( t )  +  u (eMPC
+                                                                                                                                                                                   2                         2
+       每个单元重载列车动力学方程可改写为
+                                                                                                                                                                                   Q                         R
+ì ṡ ( i，j ) ( t )= v ( i，j ) ( t )
+ï                                                                                                                                                                                                        （22）
+ï m ( i，1 ) v̇ ( i，1 ) ( t )= u͂ ( i，1 ) ( t )- γ ( s ( i，1 ) - s ( i，2 ) )-
+                                                                                                                        G ( i，j ) ( x ( i，j ) ( t )，u ( i，j ) ( t ) )=  x ( i，j ) ( t ) 
+                                                                                                                                                                                                 2
+ï                                                                                                                                                                                                        （23）
+ï              ( c 1 + 2c 2 v 0 ) v ( i，1 ) + w ( i，1 )                                                                                                                                          P
+ï
+ï m ( i，2 ) v̇ ( i，2 ) ( t )= u͂ ( i，2 ) ( t )+ γ ( s ( i，1 ) - s ( i，2 ) )-                               2.4     约束条件
+í                                                                                （12）
+                                                                                                                  重载虚拟编组列车在运行过程中需要满足以下
+ïï             γ ( s ( i，2 ) - s ( i，3 ) )-( c 1 + 2c 2 v 0 ) v ( i，2 ) + w ( i，2 )
+ ïï                                                                                                        4 个约束 .
+                                            ⋮
+  ïï
+   ïï m v̇                                                                                                        约束 1：速度运行约束 . 重载列车运行过程中受
+    ïï ( i，J ) ( i，J ) ( t )= u͂ ( i，J ) ( t )- γ ( s ( i，J - 1 ) - s ( i，J ) )-
+     ï         ( c 1 + 2c 2 v 0 ) v ( i，J ) + w ( i，J )                                                    到的速度约束为
+     î
+                                                                                                                                  0 ≤ v ( i，j ) ( t ) ≤ v lim ( s ( i，j ) ( t ) )                        （24）
+       为 消 除 车 钩 带 来 的 耦 合 影 响 ，设 计 车 钩 力 耦 合
+                                                                                                                  约束 2：控制输入约束 . 考虑到重载列车的牵引
+项 μ ( i，j ) ( t ) 为
+                                                                                                           制动特性，控制输入约束为
+                              μ ( i，j ) ( t )= F (Ci，j ) - F (Ci，j + 1 )                        （13）
+                                                                                                                       i.j ) ( v ( i，j ) ( t ) ) ≤ u ( i，j ) ( t ) ≤ U ( i.j ) ( v ( i，j ) ( t ) )（25）
+                                                                                                                    U (min                                              max
+
+       进一步令 u͂ ( i，j ) ( t )= - μ ( i，j ) ( t )+ u (MPC
+                                                    i，j ) ( t )，其中的
+                                                                                                                  约束 3：最小间距约束 . 重载虚拟编组列车在运
+车 钩 力 补 偿 器 用 于 抵 消 车 钩 力 作 用 ，对 各 子 系 统 解
+                                                                                                           行 过 程 中 ，各 单 元 重 载 列 车 之 间 为 了 防 止 追 尾 碰 撞
+耦 ，MPC 控 制 器 用 于 调 整 车 厢 之 间 的 速 度 和 间 距 .
+                                                                                                           事 故 的 发 生 ，必 须 保 持 一 定 的 安 全 追 踪 间 距 . 本 研
+代 入 动 力 学 方 程（12）后 可 以 得 到 重 载 虚 拟 编 组 列
+                                                                                                           究对象为采用传统空气制动的重载虚拟编组列车，
+车状态空间方程为
+                                                                                                           其 制 动 信 号 依 靠 空 气 波 传 递 ，需 要 考 虑 空 走 时 间［23］
+   ẋ ( i，j ) ( t )= A ( i，j ) x ( i，j ) ( t )+ B ( i，j ) u          eMPC
+                                                                     ( i，j )    ( t )+ W ( i，j ) ( t )     对制动距离产生的影响 . 最小追踪间距 s safe 为
+
+
+                                                                                                                                                      ((
+                                                                                                                                 i
+
+
+
+
+                                                                                                                                                                                                     )
+                                                                                                （14）
+                                                                                                                                                            v (2i，1 ) ( t )
+                       x ( i，j ) ( t )= [ s       e
+                                                            (t )v   e
+                                                                              (t ) ]   T
+                                                                                                （15）             s safe
+                                                                                                                   i    = D min + max                                         + v ( i，1 ) ( t ) t i0 -
+                                                  ( i，j )           ( i，j )
+                                                                                                                                                           - 2U imin
+
+
+                                                                                                                            (                                                          ))
+                        i，j ) ( t )= u ( i，j - 1 ) ( t )- u ( i，j ) ( t )
+                    u (eMPC            MPC                  MPC
+                                                                                                （16）
+                                                                                                                                v (2i - 1，1 ) ( t )
+                       s (ei，j ) ( t )= s ( i，j - 1 ) ( t )- s ( i，j ) ( t )                    （17）                                                  + v ( i - 1，1 ) ( t ) t i0- 1 ，0                   （26）
+                                                                                                                                 - 2U imin
+                                                                                                                                       -1
+                      v   e
+                          ( i，j )   ( t )= v ( i，j - 1 ) ( t )- v ( i，j ) ( t )                 （18）
+                                                                                                           式中：t i0 = ( 1.6 + 0.065n )⋅( 1 - 0.028α ) 为空走时间 .
+ ìï               êé 0                                1                úù
+                   ê                                                        é0                      1 ùú          最小追踪间距约束为
+  ï A ( i，j ) = ê  ê                 c 1 + 2c 2 v 0     c 1 + 2c 2 v 0 ú = êê                          ú
+  ï                ê
+                   ê0 - m                             +                 ú     0                     ξû                          s ( i - 1，J ) ( t )- s ( i，1 ) ( t )- D i ≥ s safe
+  ï                ë                      ( i，j - 1 )       m ( i，j ) û ë                                                                                                     i                          （27）
+  ï                                                                                                               约束 4：车钩力约束 . 为了防止重载列车纵向冲
+  í              êé 0 úù
+  ï B ( i，j ) = êë1 û                                                                                      动过大，造成脱钩等现象，需要将列车运行过程中的
+  ï
+  ï                   0                                                                                    车 钩 力 控 制 在 一 定 的 范 围 内 ，一 般 需 要 控 制 在
+  ï W ( i，j ) = êéê              úùú
+  ïî                  w                                                                                    ± 1 500 kN ，车钩力约束为
+                    ë    ( i，j )   û
+                                                                                                                                  - 1 500                     1 500
+                                                                                                （19）                                      ≤ s (ei，j ) ( t ) ≤                                            （28）
+                                                                                                                                     γ                          γ
+2.3      控制目标
+                                                                                                                  将上述约束条件整合为如下集合形式
+       由 于 重 载 列 车 动 力 分 布 的 特 性 ，货 车 只 能 通 过
+                                                                                                             u ( i，j ) ( t ) ∈ U ≜ { u ( i，j ) ∈ R：U (min
+                                                                                                                                                      i，j ) ≤ u ( i，j ) ≤ U ( i，j ) } （29）
+                                                                                                                                                                             max
+
+车 钩 力 的 作 用 进 行 调 节 ，因 此 本 文 只 设 计 所 有 机 车
+                                                                                                           x ( i，j ) ( t )∈ X ≜ { x ( i，j ) ∈ R 2：ϕ l ( x ( i，j )，x ( i - 1，j ) )≥ 0 } （30）
+的控制器 . 控制目标为单元重载列车与期望位置的
+                                                                                                                                                                                  v (2i - 1，j ) ( t )
+位置差和相互之间的速度差趋于 0，即                                                                                                ( )
+                                                                                                              β 1 x ( i，j ) = s ( i - 1，J ) ( t )- s ( i，1 ) ( t )-
+                                                                                                                                                                                   2U (min
+                                                                                                                                                                                       i - 1，j )
+                                                                                                                                                                                                         -
+ì lim ( s ( i - 1，1 ) ( t )- s ( i，1 ) ( t )- D i - 1 - D des )= 0
+ï t→ ∞                                                                                                                                         v (2i，j ) ( t )
+ï                                                                                                                v ( i - 1，J ) t (0i - 1 ) +                     + v ( i，1 ) t i0 - s safe - D i （31）
+í i = 2，3，…，I                                                      （20）                                                                         2U (min
+                                                                                                                                                    i，j )
+                                                                                                                                                                                      i
+
+ï lim v
+        (                                             )
+ïî t → ∞ ( i - 1，1 ) ( t )- v ( i，1 ) ( t ) = 0 i = 1，2，…，I                                                         β 2 ( x ( i，j ) )= s ( i - 1，j ) ( t )- s ( i，j ) ( t )- s safe
+                                                                                                                                                                               i    - D i（32）
+       根据上述目标，设计目标函数为                                                                                                                      β 3 ( x ( i，j ) )= v ( i，j ) ( t )                            （33）
+            V ( i，j ) ( x ( i，j ) ( t )，u ( i，j ) ( t ) )= L ( i，j ) ( x ( i，j ) ( t )，                                             β 4 ( x ( i，j ) )= v lim - v ( i，j ) ( t )                           （34）
+                     u ( i，j ) ( t ) )+ G ( i.j ) ( x ( i，j ) ( t + T ) )                       （21）                                                                                      1 500
+                                                                                                                      β 5 ( x ( i，j ) )= s ( i，j - 1 ) ( t )- s ( i，j ) ( t )+                  （35）
+其中，阶段代价函数和终端代价函数分别为                                                                                                                                                                         γ
+                                                                                                 北    京   交   通   大      学       学               报                                                           第 50 卷
+    122
+
+                                                                                                 1 500                                                   xˉ ( i，j ) ( t k + T ) ∈ X f                         （45）
+           β 6 ( x ( i，j ) )= - s ( i，j - 1 ) ( t )+ s ( i，j ) ( t )+                                  （36）
+                                                                                                   γ                       式（40）中 ，目 标 函 数 为 代 价 函 数 . 式（41）是 名
+                                                                                                                  义状态方程 . 式（42）是状态约束集合，Ω 为鲁棒不变
+3        求解方法
+                                                                                                                  集，当系统状态在该集合内时，后续状态均会位于该
+3.1       算法设计                                                                                                                 -           - ~
+                                                                                                                  集 合 内 . 其 中 ，X ≜ X ⊖ X͂ ；U ≜ U ⊖ KΩ ；⊕ 和 ⊖ 分
+         Tube-MPC 是一种针对系统存在不确定性或扰
+                                                                                                                  别表示闵可夫斯基和与差 .
+动时的鲁棒控制策略 . 其基本思想是在传统模型预
+                                                                                                                           在 采 样 时 刻 t k 求 解 优 化 问 题（40）~（45），得 到
+测控制的基础上，结合鲁棒控制理论，将系统的控制
+                                                                                                                  最优控制向量 uˉ (∗i，j ) ( τ ) 为
+目 标 划 定 在 一 个“ 管 道 ”内 ，确 保 系 统 状 态 始 终 保 持
+                                                                                                                                  uˉ (∗i，j ) ( τ )= { uˉ (∗i，j ) ( t k )，uˉ (∗i，j ) ( t k + 1 )，…，
+在可接受的范围内，以抵御不确定性、外部扰动或测
+                                                                                                                                                          uˉ (∗i，j ) ( t k + H - 1 ) }                        （46）
+量误差对模型的影响 . 本文采用固定管压降的空气
+                                                                                                                           预测状态轨迹 xˉ                          ∗
+                                                                                                                                                             ( i，j )   ( τ )为
+制 动 力 ，因 此 包 含 空 气 制 动 带 来 的 影 响 的 扰 动 w ( i，j )
+                                                                                                                                 xˉ     ∗
+                                                                                                                                       ( i，j )   ( τ )= { xˉ    ∗
+                                                                                                                                                               ( i，j )   ( t k )，xˉ (∗i，j ) ( t k + 1 )，…，
+是有界的 .
+                                                                                                                                                            xˉ (∗i，j ) ( t k + T ) }                          （47）
+         为 刻 画 系 统 受 到 不 确 定 扰 动 时 的 动 态 行 为 ，需
+                                                                                                                           对于名义 MPC 控制器，重载列车机车 ( i，j ) 在 t k
+要引入列车的名义状态方程
+                                                                                                                  时 的 最 优 控 制 量 为 uˉ (∗i，j ) ( τ ). 但 是 由 于 重 载 虚 拟 编 组
+               xˉ̇ ( i，j ) ( t )= A (di，j ) xˉ ( i，j ) ( t )+ B (di，j ) uˉ ( i，j ) ( t )              （37）
+                                                                                                                  列车考虑了扰动因素的影响，实际的控制器为
+式中：xˉ ( i，j ) ( t ) ∈ X ；uˉ ( i，j ) ( t ) ∈ U .
+                                                                                                                                           u ( i，j ) ( t k )= uˉ (∗i，j ) ( t k )+ Kz ( i.j ) ( t k )          （48）
+         定 义 z ( i，j ) ( t )= x ( i，j ) ( t )- xˉ ( i，j ) ( t ) 为 实 际 系 统 和
+                                                                                                                  式中：K = [ 0 κ ].
+名义系统之间的误差，可得误差系统的扰动状态为
+                                                                                                                           算法流程共包括 5 个步骤 .
+    ż ( i，j ) ( t )= A (di，j ) x ( i，j ) ( t )+ B (di，j ) u ( i，j ) ( t )+
+                                                                                                                           步 骤 1：在 初 始 时 刻 t k ，设 xˉ ( i，j ) ( t k )= x ( i，j ) ( t k )，其
+                        W ( i，j ) ( t )-( A (di，j ) xˉ ( i，j ) ( t )+ B (di，j ) uˉ ( i，j ) ( t ) )
+                                                                                                                  中 x i，j ( t k ) 为当前状态 .
+                                                                                                      （38）
+                                                                                                                           步 骤 2 ：在 t k 时 刻 ，根 据 当 前 状 态 ( xˉ ( i，j ) ( t k )，
+         为 方 便 MPC 的 表 示 ，将 状 态 空 间 方 程 离 散 化 ，
+                                                                                                                  x ( i，j ) ( t k ) )，求 解 最 优 控 制 问 题 ，得 到 名 义 控 制 输 入
+采样周期为 δ = t k + 1 - t k ，预测时域为 T = H /δ ，控
+                                                                                                                  uˉ ( i，j ) ( t k ) 和 实 际 控 制 输 入 u ( i，j )( t k )=uˉ ∗ ( i，j )( t k )+
+制 时 域 与 预 测 时 域 相 同 ，因 此 离 散 化 后 的 状 态 空 间
+                                                                                                                  Kz ( i，j )( t k ).
+方程为
+                                                                                                                           步 骤 3：在 采 样 间 隔 [ t k，t k + 1 ] 内 ，将 控 制 u ( i，j ) ( t k )
+ì x ( i，j ) ( t k + 1 )= A (di，j ) x ( i，j ) ( t k )+ B (di，j ) u ( i，j ) ( t k )+ W (di，j ) ( t k )
+ï                                                                                                                 输入施加至实际系统中 .
+ï                    é1        δ ùú
+ï A (di，j ) = êê                         ú                                                                                 步 骤 4：测 量 实 际 系 统 在 下 一 时 刻 t k + 1 的 状 态
+ï                    ë 0 1 + ξδ û
+ï                                                                                                                 x ( i，j ) ( t k + 1 )，并 计 算 名 义 系 统 在 名 义 控 制 输 入
+í d                 é0ù
+ïï B ( i，j ) = êê ú                                                                                               uˉ ( i，j ) ( t k ) 下的后续状态 xˉ ( i，j ) ( t k + 1 ).
+ ïï                 ëδû
+  ïï                                                                                                                           令 ( xˉ ( i，j ) ( t k+1 )，x ( i，j ) ( t k + 1 ) )=( xˉ ( i，j ) ( t k + 1 )，
+                                                                                                                           步骤 5：
+   ïï W ( i，j ) ( t k )= éêê          0          ùú
+                                                  ú                                                               x ( i，j ) ( t k + 1 ) )，t k + 1 = t k + 1 ，并返回步骤 1.
+    ïî                     ë w ( i，j ) ( t k ) δ û
+                                                                                                                           考 虑 扰 动 存 在 的 条 件 下 ，为 了 确 保 重 载 虚 拟 编
+                                                                                                      （39）
+                                                                                                                  组列车系统的状态始终保持在预设的 Tube 范围内，
+         在 t k 时刻，考虑预测时域为 [ t k，t k + T ]，令 xˉ ( i，j ) ( t k )、
+                                                                                                                  需要对以下 4 个条件进行设计 .
+uˉ ( i，j ) ( t k ) 分别表示名义状态向量和控制输入向量 . 则
+                                                                                                                           条 件 1：设 计 优 化 问 题 的 鲁 棒 不 变 集 ，保 证 系 统
+重载虚拟编组列车的有限时域最优控制问题表示为
+                                                                                                                  状 态 在 面 对 最 坏 情 况 下 的 不 确 定 性 时 ，仍 能 维 持 在
+                      min L ( i，j ) ( xˉ ( i，j ) ( t k )，uˉ ( i，j ) ( t k ) )=
+                    uˉ ( i，j ) ( τ|t k )
+                                                                                                                  可控范围内 .
+                                            N-1
+
+                       min
+                     uˉ ( i，j ) ( τ|t k )
+                                            ∑ V ( xˉ
+                                            tk = 0
+                                                       i     ( i，j )   ( t k )，uˉ ( i，j ) ( t k ) )   （40）                 条 件 2：状 态 约 束 集 ，明 确 系 统 状 态 变 量 所 允 许
+                                                                                                                  的范围 .
+     s.t. xˉ̇ ( i，j ) ( t k + 1 ) = A (di，j ) xˉ̇ ( i，j ) ( t k ) + B (di，j ) xˉ ( i，j ) ( t k ) （41）
+                                                                                                                           条 件 3：控 制 变 量 约 束 集 ，限 定 控 制 输 入 信 号 的
+                                       x ( i，j ) ( t k ) ∈ xˉ ( i，j ) ( τ ) ⊕Ω                        （42）        取值范围，以确保控制动作在实际可执行的范围内 .
+                                                                           -
+                                                     xˉ ( i，j ) ( τ ) ∈ X                             （43）                 条 件 4：终 端 约 束 集 ，定 义 系 统 在 优 化 周 期 结 束
+                                                                           -
+                                                     uˉ ( i，j ) ( τ ) ∈ U                             （44）        时 应 达 到 的 目 标 状 态 范 围 ，有 助 于 引 导 系 统 趋 向 期
+第2期                                                           宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                                                                                                 123
+
+                                                                                                  -                                            -
+望的稳定点 .                                                                                           X 和 控 制 变 量 改 进 约 束 集 U . 根 据 定 理 2 可 知 ，控 制
+           在 完 成 上 述 设 计 条 件 的 基 础 上 ，证 明 所 提 出 方                                                 器能够确保系统状态变量和控制变量始终符合其各
+法的可行性和单车渐近稳定性 . 可行性证明将验证                                                                          自的约束条件，即控制器不仅能将系统维持在 Tube
+在 所 有 预 期 的 不 确 定 扰 动 下 ，系 统 状 态 都 能 被 有 效                                                        内 ，还 能 保 证 所 有 相 关 的 状 态 量 和 控 制 输 入 都 在 安
+约束在 Tube 内；单车渐近稳定性证明将确保每个独                                                                        全且可操作的范围内 .
+立车辆在虚拟编组中都能逐渐收敛到其期望的轨                                                                                     定理 2           对 于 重 载 虚 拟 编 组 列 车 系 统 ，在 控 制
+迹，从而保证整个系统的长期稳定运行 .                                                                               器（48）的作用下有
+                                                                                                                                                                                     -
+           引理 1              假设 Ω 是重载虚拟编组列车系统的鲁                                                           1）如果名义控制变量 uˉ ( i，j ) ( t k ) 满足 uˉ ( i，j ) ( t k ) ∈ U ，
+棒 控 制 不 变 集 ，并 且 存 在 一 个 状 态 x ( i，j ) ( t k ) 满 足                                                那 么 实 际 控 制 变 量 u ( i，j ) ( t k ) 将 满 足 u ( i，j ) ( t k ) ∈ U . 其
+                                                                                                        -
+x ( i，j ) ( t k ) ∈ xˉ ( i，j ) ( t k ) ⊕Ω . 将 控 制 输 入 u ( i，j ) ( t k ) 施 加 到                     中，U 的表达式为
+                                                                                                    -
+系统，然后有 x ( i，j ) ( t k + 1 ) ∈ xˉ ( i，j ) ( t k + 1 ) ⊕Ω .                                          U ≜ { uˉ ( i，j ) ( t k )：U (min                                 i，j ) - κε }
+                                                                                                                                             ˉ ( i，j ) ( t k ) ≤ U (max
+                                                                                                                                i，j ) + κε ≤ u
+
+           首先，设计式（42）中的鲁棒不变集 Ω .
+                                                                                                                                                                                （56）
+           定理 1               对 于 重 载 虚 拟 编 组 列 车 系 统 ，如 果 满                                                                                                                         -
+                                                                                                          2）如果名义状态变量 xˉ ( i，j ) ( t k ) 满足 xˉ ( i，j ) ( t k )∈ X，
+足 κ ∈ ( 0，2/δ + ξ )，其鲁棒不变集可被定义为
+                                                                                                  那么实际状态变量 x i，j ( t k ) 将满足 x ( i，j ) ( t k ) ∈ X . 其中，
+                                      {
+                        Ω ≜ z ( i，j ) ( t k ) ∈ R 2：|z ( i，j ) | ≤ ε        }       （49）          -
+                                                                                                  X 的表达式为
+                                                                                                      -
+证明                根 据 扰 动 状 态 方 程（38），位 置 扰 动 差 分 方 程                                                 X ≜ { xˉ ( i，j ) ( t k )：ϕ l′ ( xˉ ( i，j ) ( t k )，xˉ ( i - 1，j ) ( t k ) ) ≥ 0 } （57）
+可表示为                                                                                              证明          考 虑 式（48），将 式（29）中 的 控 制 变 量 约 束 条
+  s͂ ( i，j ) ( t k + 1 )= ( 1 + ξδ ) Hδs͂ ( i，j ) ( t k )+                                                                                                    -
+                                                                                                  件 和 式（49）中 的 鲁 棒 不 变 集 代 入 U ≜ U ⊖ KΩ ，可
+                                          u͂ ( i，j ) ( t k ) Hδ 2 + w ( i，j ) ( t k ) Hδ 2 （50）                                                                          -
+                                                                                                  得 名 义 控 制 变 量 uˉ i，j ( t k ) 的 改 进 约 束 集 . U 、U 和 Ω
+式 中 ：s͂ ( i，j ) ( t k )= s ( i，j ) ( t k )- sˉ( i.j ) ( t k ). 将 式（48）中 的 控                       之 间 的 关 系 表 明 ，如 果 在 扰 动 x͂ i，j ( t k ) ∈ Ω 下 有
+                                                                                                                 -
+制器代入式（50），可得                                                                                      uˉ i，j ( t k ) ∈ U ，那么满足 u i，j ( t k ) ∈ U . 这说明控制约束在
+  s͂ ( i，j ) ( t k )= [ 1 + ( ξ - κ ) δ ] Hδs͂ ( i，j ) ( t k - 1 )+                               扰动下仍能得到满足 .
+ w ( i，j ) ( t k - 1 ) Hδ 2 = [ 1 + ( ξ - κ ) δ ]t Hδs͂ ( i，j ) ( t k )+
+                                                                       k
+
+                                                                                                          将式（30）中的状态变量约束条件及式（49）中的鲁
+         tk - 1                                                                                                           -
+                                                                                                  棒不变集代入 X ≜ X ⊖ Ω，可得名义状态变量 xˉ i，j ( t k )
+         ∑        [ 1 + ( ξ - κ ) δ ]t w ( i，j ) ( t k - t q - 1 ) Hδ 2 （51）
+                                                  q
+
+
+
+         tq = 0                                                                                   的改进约束集（57）. 由于状态变量之间存在关系
+           离散化后的扰动矩阵为                                                                                              x ( i，j ) ( t k )= xˉ ( i，j ) ( t k )+ z ( i，j ) ( t k ) （58）
+                                                                                                                                  - ͂
+                        W    d
+                            ( i，j )                               |
+                                      = { w ( i，j ) ∈ R  w ( i，j )  ≤ ℓ }
+                                                              2
+                                                                                    （52）                  如果 xˉ ( i，j ) ( t k )∈X 且 x i，j ( t k )∈ X，    ͂ 那么满足 x ( i，j ) ( t k )∈
+
+           由式（42）和式（52）可以得到                                                                       X . 类 似 地 ，如 果 用 最 优 问 题（40）的 最 优 解 xˉ ∗ ( i，j ) ( t k )
+             s͂ ( i，j ) ( t k ) ≤ ηHδ [ 1 + ( ξ - κ ) δ ]t +                k                     代 替 名 义 状 态 xˉ ( i，j ) ( t k )，可 得 x ( i，j ) ( t k ) ∈ xˉ (∗i，j ) ( t k ) ⊕Ω .
+tk - 1                                                                                            因 此 ，证 明 了 重 载 虚 拟 编 组 列 车 系 统 的 实 际 状 态 和
+∑ η Hδ [ 1 + ( ξ - κ ) δ ] = ηHδ [ 1 + ( ξ - κ ) δ ] +
+tq = 0
+                    2                                 tq                                 tk
+                                                                                                  轨迹始终位于 Tube 内，即 X ≜ xˉ (∗i，j ) ( t k ) ⊕Ω .
+                                          [ 1 + ( ξ - κ ) δ ]t - 1     k                                  证毕 .
+                            ηHδ                                                     （53）
+                                                    ξ-κ                                           3.2       可行性与稳定性分析
+           若 |1 +( ξ - κ ) δ| < 1，即 κ ∈ ( 0，2/δ + ξ )，式（53）                                               为 了 保 证 控 制 器 的 可 行 性 及 稳 定 性 ，在 定 理 3
+
+可改写为                                                                                              中 设 计 终 端 约 束 集 合 X f. 终 端 控 制 器 的 设 计 主 要 负
+                                                                      ηHδ                         责生成一系列可行的控制序列 uˉ f ( t k )，这些序列能确
+                                      lim |s͂ ( i，j ) ( t k )| ≤                    （54）
+                                      tk → ∞                          κ-ξ                         保重载列车系统在约束条件下正常运行 . 基于这些
+           同理可得速度扰动为                                                                              控 制 序 列 ，可 推 导 出 一 条 可 行 的 状 态 轨 迹 . 可 行 状
+                                                               η                                  态 轨 将 严 格 满 足 终 端 约 束 ，可 直 接 证 明 整 个 优 化 问
+                                          v͂ i，j ( t k )| ≤                         （55）
+                                                              κ-ξ                                 题的可行性，即系统能够从初始状态出发，经过一系
+                                       ηHδ   η                                                    列 受 控 运 动 ，最 终 达 到 期 望 的 目 标 状 态 区 域 . 更 为
+           因此，ε = [                        ，   ].
+                                       κ-ξ κ-ξ                                                    重 要 的 是 ，这 种 终 端 约 束 的 设 计 也 为 重 载 虚 拟 编 组
+           证毕 .                                                                                   列车系统提供了渐进稳定性的保障 . 这说明在控制
+           基于定理 1，定理 2 给出了状态变量改进约束集                                                               器作用下，系统将逐渐收敛到稳定的运行状态，即使
+                                                                                  北     京   交   通   大      学        学               报                                                             第 50 卷
+  124
+
+面对外部扰动或初始偏差，也能最终恢复平衡，确保                                                                                     证毕 .
+列车的长期可靠运行 .                                                                                                 考虑扰动的重载虚拟编组列车系统稳定的充分
+      定理 3             对 于 重 载 虚 拟 编 组 列 车 系 统 ，若 满 足                                               条件如定理 4 所示 .
+如下终端约束条件                                                                                                    定理 4                        对 于 重 载 虚 拟 编 组 列 车 系 统 ，若 满 足
+                                                                             -
+                X f = { xˉ ( i，j ) ( t k )：Kxˉ ( i，j ) ( t k ) ∈ X }                    （59）        如下约束条件
+
+式中：                                                                                                 ìï R + B (dTi，j ) PB (di，j ) > 0
+                                                                                                     ïï
+                                                                                                      ïï P - Q - A ( i，j ) PA ( i，j ) -
+                                                                                                                            dT          d
+           K = -( R + B (dTi，j ) PB (di，j ) )- 1 B (dTi，j ) PA (di，j ) （60）
+                                                                                                       ï
+                                                                                                       í ( A ( i，j ) PB ( i，j ) ) ( R+B ( i，j ) PB ( i，j ) ) ( B ( i，j ) PA ( i，j ) ) > 0
+                                                                                                                dT           d             dT          d       -1      dT          d
+         P = Q + A (dTi，j ) PA (di，j ) - A (dTi，j ) PB (di，j ) ( R +
+                                                                                                       ï
+                                                                                                       ïï P - F - A ( i，j ) PA ( i，j ) -
+                                                                                                                            dT          d
+                        B (dTi，j ) PB (di，j ) )-1 B (dTi，j ) PA (di，j )                 （61）
+                                                                                                        ïï
+      其中，T 表示转置，则最优问题（40）在任意 t k > 0                                                                     ïî 2 ( A (dTi，j ) PB (di，j) ) ( R+B (dTi，j) PB (di，j) )- 1 ( B (dTi，j ) PA (di，j) ) > 0
+时刻均可行 .                                                                                                                                                                                            （66）
+证明                   构造一个可行控制序列 uˉ ( i，j ) ( t k + 1 )
+         在 t k + 1 时刻，                                                                                      那 么 基 于 Tube 模 型 预 测 控 制 问 题（40）~（45）
+                      ì uˉ ∗i，j ( t k + t q ) t q = 1，2，⋯，H - 1                                     的算法是渐近稳定且输入是状态稳定的 .
+uˉ i，j ( t k + t q )= í                                       （62）
+                      î uˉ f ( t k + t q ) t q = H                                                  证明             根 据 可 行 的 控 制 序 列（62）及 状 态 轨 迹（64），
+式中 ：uˉ f ( t k )= Kxˉ ( i，j ) ( t k ) /δ 为终端控制器 ，用于驱使                                               选择最优代价函数
+当前时刻终端状态转移至下一时刻，其状态转移方程                                                                                                 V E ( t k )= L ( i，j ) ( xˉ (∗i，j ) ( t k )，uˉ (∗i，j ) ( t k ) )           （67）
+              xˉ ( i，j ) ( t k + H + 1 )= A      d
+                                                 ( i，j )   xˉ ( i，j ) ( t k + H )+                  作为 Lyapunov 函数 . 因此，只需要证明
+               B   d
+                   ( i，j )   uˉ f ( t k + H )= A   d
+                                                   ( i，j ) f   xˉ ( i，j ) ( t k + H )   （63）          V E ( t k + 1 ) < L (total    ˉ ( i，j ) ( t k + 1 )，uˉ ( i，j ) ( t k + 1 ) ) < V E ( t k )
+                                                                                                                            i，j ) ( x
+
+式中：A f = ( A (di，j ) + B (di，j ) K ). 值得注意的是，终端控制                                                                                                                                                  （68）
+                                                                                            -
+器本身也必须满足预设的控制器约束条件 uˉ f ( t k )∈ U.                                                                 成 立 即 可 证 明 重 载 列 车 系 统 的 渐 进 稳 定 性 . 将 tk 和
+这是确保整个系统有效运行的关键一环 . 基于这一要                                                                           t k + 1 时刻的 Lyapunov 函数做差值，可以得到
+求，式（59）中的终端约束集可以通过将式（62）代入名                                                                         V E ( t k + 1 )- V E ( t k ) < L (total    ˉ ( i，j ) ( t k + 1 )，uˉ ( i，j ) ( t k + 1 ) )-
+                                                                                                                                       i，j ) ( x
+
+义控制约束（44）中推导出来 . 此外，为了确保控制器                                                                                                              L (total    ˉ (∗i，j ) ( t k )，uˉ ∗i ( t k ) )=
+                                                                                                                                             i，j ) ( x
+
+的可行性，终端约束集中的控制器增益参数需要经过                                                                                  - L (total    ˉ (∗i，j ) ( t k )，uˉ (∗i，j ) ( t k ) )+ G ( i，j ) ( xˉ ( i，j ) ( t k + 1 +
+                                                                                                               i，j ) ( x
+
+
+精心的设计和调整 . 只有通过合理设置这些增益参                                                                                                           H ) )- G ( i，j ) ( xˉ ( i，j ) ( t k + H ) )+
+数，才能保证终端控制器在实际操作中始终满足所有                                                                                                L      total
+                                                                                                                              ( i，j )   ( xˉ ( i，j ) ( t k + H )，uˉ f ( t k + H ) ) <
+约束，并成功引导系统达到期望的稳定状态 .                                                                                   ( A PA + Q - P + RK K ) xˉ ( t + H )  +
+                                                                                                               T
+                                                                                                               f               f
+                                                                                                                                                                      T
+                                                                                                                                                                                    ( i，j )   k
+                                                                                                                                                                                                   2
+
+      基 于 式（62），可 构 造 出 一 条 时 刻 t k + 1 的 可 行 预                                                               ( A PA + K - P ) ( xˉ ( t + H )-
+                                                                                                                                    T
+                                                                                                                                    f          f                          ( i，j )       k
+
+测状态轨迹为
+                                                                                                                     xˉ   (t + H ))            （69）( i - 1，j )   k
+                           ìï xˉ (∗i，j ) ( t k + t q ) t q = 1，2，⋯，H                                                                                                                    2
+
+ xˉ ( i，j ) ( t k + t q )= í                                                                        为了得到 V E ( t k +1 )-V E ( t k )< 0，
+                                                                                                                                      将式（65）代入式（69）
+                            ïî xˉ ( i，j ) ( uˉ f ( t k + t q - 1 ) ) t q = H + 1
+                                                                                                    中，得到如下不等式
+                                                                                        （64）
+                                                                                                                                   A (dTi，j ) PA (di，j ) - A (dTi，j ) PB (di，j ) ( R +
+      动 态 xˉ i，j ( t k + 1 + H ) 必 须 位 于 终 端 约 束 集 内 . 实
+                                                                                                                   B   dT
+                                                                                                                       ( i，j )     PB (di，j ) )- 1 B (dTi，j ) PA (di，j ) + Q - P < 0
+现这一目标的一种有效方法是使终端状态渐进地收                                                                                                                                                                             （70）
+                                                                                                                              A (dTi，j ) PA (di，j ) - 2A (dTi，j ) PB (di，j ) ( R +
+敛于零，具体体现在式（63）中 A f 的特征值小于 1. 可                                                                                    B (dTi，j ) PB (di，j ) )- 1 B (dTi，j ) PA (di，j ) + Q - P < 0
+以通过将式（63）构造为一个线性二次调节问题来确                                                                                    代入式（66）中的条件，式（69）可写为 V E ( t k + 1 )-
+保该收敛性 . 这意味着在特定条件下                                                                                  V E ( t k ) < 0 ，表 示 名 义 重 载 虚 拟 编 组 列 车 系 统 的 最
+             K = -( R + B (dTi，j ) PB )- 1 B (dTi，j ) PA (di，j )                        （65）        优状态渐近收敛于平衡状态 . 因此，存在一个 KL 函
+      如 果 满 足 xˉ i，j ( t k + H ) ∈ X f 这 一 条 件 ，那 么 可 以                                             数 σ 1 ( ·) 使
+推 导 出 xˉ ( i，j ) ( t k + 1 + H ) ∈ X f 也 成 立 . 因 此 ，可 证 明 ：
+                                                                                                              xˉ    ∗
+                                                                                                                    ( i，j )    ( t k )  2 ≤ σ 1 (  xˉ (∗i，j ) ( 0 )  ，t k )，∀t k > 0（71）
+如 果 Tube 模 型 预 测 控 制 问 题（40）~（45）在 初 始 时                                                                                                                                            2
+
+
+刻 t k 是可行的，那么通过递推归纳法，可以得出在所                                                                                 根 据 定 理 1，扰 动 边 界 由 式（50）给 出 ，意 味 着 存
+                                                                                                    在一个 K 类函数 σ 2 ( · ) ，使得
+有后续时刻系统都将保持可行 . 这为系统的长期稳
+定运行提供了理论依据 .                                                                                                                       z    ( i，j )   ( t k )  2 ≤ σ 2 ( η )，∀t k > 0                （72）
+第2期                                              宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                                                                      125
+
+          根 据 关 系 x ( i，j ) ( t k )= xˉ ( i，j ) ( t k )+ z ( i，j ) ( t k ) 以 及 初                         表4     三列重载列车的初始状态
+
+始条件 z ( i，j ) ( 0 )= 0 ，结合式（71）和式（72），可得                                                        Tab. 4    Initial states of three heavy-haul trains
+
+ x      ( i，j )
+                           2        (
+                   ( t k )  ≤ σ 1  x ( i，j ) ( 0 )  ，t k + σ 2 ( η )，∀t k > 0
+                                                  2   )                                    列车头部机车编号 初始位置/m 列车头部机车编号 初始位置/m
+                                                                                              （1,1）              10 000         （2,3）            7 500
+
+                                                                                  （73）        （1,2）              9 750          （3,1）            6 000
+                                                                                              （1,3）              9 500           (3,2)           5 750
+          根 据 定 理 1，由 此 得 证 重 载 虚 拟 编 组 列 车 系 统
+                                                                                              （2,1）              8 000          （3,3）            5 500
+是 输 入 到 输 出 稳 定 的 ，且 所 提 出 的 算 法 所 得 解 为 渐
+                                                                                              （2,2）              7 750            -                   -
+进有界的 . 证毕 .
+
+4         算例分析
+4.1          参数设置
+          根 据 文 献［22］设 置 传 统 空 气 制 动 系 统 的 参 数
+如表 2 所示 .
+                           表2       传统空气制动系统的参数
+              Tab.2            Parameters of the traditionalair brake system
+ 符号                               描述                  机车 HXD1           货车 C80
+    dZ                   制动缸直径/mm                         225                    254
+ P max               制动缸最大工作压力/kPa                        450                    430
+    ψZ                     制动倍率系数                         2.4                    6.6                       图1         平缓坡道坡道数据
+    ηZ                     制动效率系数                         0.9                    0.9                          Fig.1   Gentle slope data
+    nZ                   车辆制动缸数量                          16                      1
+                                                                                           Tube-MPC 控制方法在平缓坡道场景下的控制效果
+ t idelay2             制动缓解延迟时间/s                         32                      8
+                                                                                           如图 2 所示 .
+          列车参数值和控制器参数值如表 3 所示 .
+                                                                                              由 图 2 可 知 ：① 基 于 传 统 空 气 制 动 的 Tube-
+                               表3       列车模型和控制器参数
+                                                                                           MPC 控 制 方 法 同 样 确 保 了 重 载 列 车 的 机 车 和 货 车
+                   Tab.3       Train model and controller parameters
+                                                                                           能够稳定地追踪期望的轨迹，但在速度变换区（加减
+             符号                            描述                          数值
+              mi                         列车质量/t                       5 584
+                                                                                           速阶段）速度曲线出现较明显的振荡现象；列车的最
+              va                    制动波波速/（ m/s）                        220                大车钩力约为 330.4 kN，远小于其极限值 1 500 kN，
+              vr                    缓解波波速/（ m/s）                        180                最 大 控 制 力 接 近 牵 引 力 和 制 动 力 的 极 限 值 .② 速 度
+    U 1max ∼ U 3max                 列车最大牵引力/kN                          760                波 动 反 映 了 空 气 制 动 带 来 的 响 应 滞 后 与 不 均 匀 ，引
+    U 1min ∼ U 3min                 列车最大制动力/kN                          470
+                                                                                           发 了 列 车 间 的 纵 向 冲 击 ；由 于 机 车 具 备 牵 引 力 和 电
+              c0                         戴维斯系数                      0.006 3
+                                                                                           制动力，能够可靠地追踪期望的轨迹，但货车在该阶
+              c1                         戴维斯系数                   1.08 × 10- 4
+              c2                         戴维斯系数                  1.491 8 × 10- 5
+                                                                                           段 未 使 用 空 气 制 动 力 ，仅 依 靠 车 钩 力 由 机 车 牵 引 运
+             D des                      期望列车间距/m                      2 000                行 .③在空气制动的影响下，控制器需要通过提前或
+             v lim                   列车限速/（ km/h）                           80             加大控制力调节，来弥补系统动态不足，确保列车速
+               i                         列车数量                               3              度 与 期 望 一 致 ；虽 然 Tube-MPC 控 制 已 尽 量 平 衡 动
+              T                          预测时域                               5
+                                                                                           力 输 出 ，空 气 制 动 的 物 理 特 性 决 定 了 纵 向 冲 击 难 以
+                                                                  êéê 0.5            úù
+              Q                   运行状态误差权重矩阵
+                                                                    ë            0.5 û     完全避免 .
+                                                                  êéê 0.6             úù      机车间的最大速度误差、最大间距误差、平均最
+              P                   终端状态误差权重矩阵
+                                                                    ë            0.4 û
+                                                                                           大速度误差、平均最大间距误差如表 5 所示 .
+              R                   控制输入增量权重矩阵                            0.1
+                                                                                              由 表 5 可 知 ：3 台 机 车 中 ，机 车 3 的 最 大 速 度 误
+          令重载列车的机车与货车合并后的初始速度为                                                             差 与 最 大 间 距 误 差 均 为 最 高 ，分 别 为 0.741 m/s 和
+18 m/s，初始位置如表 4 所示 .                                                                       1.244 m；从机车 1 至机车 3，最大速度误差与最大间
+4.2          平缓坡道下的仿真验证                                                                    距 误 差 均 呈 现 递 增 的 趋 势 ，表 明 在 列 车 纵 向 协 同 控
+          平缓坡道场景下的坡道信息如图 1 所示 .                                                            制过程中，动态误差存在向后传递与累积的现象；整
+          基于传统空气制动系统的重载虚拟编组列车                                                              体 机 车 平 均 最 大 速 度 误 差 为 0.44 m/s，平 均 最 大 间
+                                          北       京   交   通   大     学    学    报                    第 50 卷
+  126
+
+
+
+
+                                         图2        平缓坡道场景下的仿真结果
+                              Fig.2    Simulation results under the gentle slope scenario
+
+                表5    误差分析                                          基于传统空气制动系统的重载虚拟编组列车
+              Tab.5   Error analysis
+                                                               Tube-MPC 控制方法在长大下坡场景下的控制效果
+      误差值   机车最大速度误差/（ m/s） 机车最大间距误差/m
+                                                               如图 4 所示 .
+ 列车 1 机车         0.234                     0.227
+                                                                    由图 4 可知：在长大下坡工况下，机车仍能较好
+ 列车 2 机车         0.343                     0.51
+ 列车 3 机车         0.741                     1.244               地跟踪期望速度曲线，但相较平缓坡道，系统纵向动
+
+距 误 差 仅 为 0.66 m，系 统 整 体 仍 保 持 了 较 高 的 追 踪                     力 学 响 应 更 为 剧 烈 ；受 持 续 下 坡 和 制 动 需 求 变 化 影
+
+精度与协同稳定性 .                                                     响 ，车 钩 力 波 动 有 所 增 大 ，虽 然 最 大 车 钩 力 仍 低 于
+4.3     长大坡道下的仿真验证                                             1 500 kN 的安全限值，但是安全裕度显著降低；控制
+      长大下坡场景下运行的列车的坡道信息如图 3                                    力更频繁接近牵引/制动约束边界，说明该工况下控
+所示 .                                                           制 资 源 占 用 更 高 ；单 元 列 车 间 的 速 度 误 差 和 间 距 误
+第2期                         宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                  127
+
+                                                             差 峰 值 及 其 持 续 时 间 均 有 所 增 加 ，且 在 制 动 需 求 切
+                                                             换及下坡维持阶段更易出现误差累积与振荡加剧
+                                                             现象 .
+                                                             4.4    控制器参数分析
+                                                                   在 MPC 中，权重矩阵在性能指标函数中扮演着
+                                                             至 关 重 要 的 角 色 ，它 们 用 于 精 确 衡 量 不 同 控 制 目 标
+                                                             的重要性 . 权重矩阵的取值大小直接且显著地影响
+                                                             MPC 控制器的性能表现 . 为了深入探究权重矩阵对
+                                                             控制器效果的影响，本文设计一系列仿真实验 .
+              图3   长大下坡坡道数据                                        参数设置如表 6 所示 ，通过调整 P、Q 和 R，分析
+      Fig.3   Long continuous downgrade data                 权重矩阵对控制器行为和最终系统性能的影响 .
+
+
+
+
+                                         图4    长大下坡场景下的仿真结果
+                       Fig.4   Simulation results under the long continuous downgrade scenario
+                                                                     北   京     交   通   大   学   学    报                                     第 50 卷
+ 128
+
+   采 用 表 6 中 的 不 同 权 重 矩 阵 进 行 案 例 仿 真 ，仿
+真结果如图 5~图 10 所示 .
+               表6      不同案例下的权重矩阵数值
+       Tab.6     Weight matric values for different cases
+   案例                         P                       Q                  R
+                    éê 0.5            ùú     éê 0.5           ùú
+       1             ê                        ê                          0.1
+                     ë            0.5 û       ë           0.5 û
+                    éê 0.5              ùú   éê 0.5             ùú
+       2             ê                        ê                          1
+                     ë            0.5 û       ë           0.5 û
+                       éê 1        ùú        éê 0.5             ùú
+       3                ê                     ê                          1
+                        ë         1û          ë           0.5 û
+                    éê 0.5              ùú     éê 1        ùú
+       4             ê                          ê                        1
+                     ë            0.5 û         ë         1û
+                    éê 0.5              ùú     éê 1        ùú
+       5             ê                          ê                        0.1
+                     ë            0.5 û         ë         1û
+                       éê 1        ùú          éê 1        ùú
+       6                ê                       ê                        1
+                        ë         1û            ë         1û
+
+
+
+
+                                                                                                        图6    案例 2 的仿真结果
+                                                                                                   Fig.6   Simulation results of Case 2
+
+
+
+
+                     图5            案例 1 的仿真结果
+               Fig.5      Simulation results of Case 1
+
+   图 5~图 10 分别为表 6 中案例 1~案例 6 对应的
+仿真结果 . 速度时间曲线用于反映列车速度对期望
+速度的跟踪情况；速度误差曲线，用于反映不同权重
+参数配置下系统的跟踪误差变化情况 .
+   由图 5~图 10 可知：①当 R 增大时，速度误差幅
+值明显减小，系统运行过程更加平稳；提高控制增量                                                                                 图7    案例 3 的仿真结果
+权 重 能 够 有 效 抑 制 控 制 输 入 的 剧 烈 变 化 ，从 而 降 低                                                         Fig.7   Simulation results of Case 3
+第2期                        宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                             129
+
+
+
+
+          图8     案例 4 的仿真结果
+      Fig.8   Simulation results of Case 4               图 10    案例 6 的仿真结果
+                                                     Fig.10   Simulation results of Case 6
+
+                                             系 统 振 荡 程 度 ，改 善 列 车 运 行 的 平 顺 性 .② 增 大 P
+                                             同 样 有 助 于 减 小 速 度 误 差 ，在 优 化 过 程 中 强 化 对 预
+                                             测 时 域 终 端 状 态 精 度 的 约 束 ，有 利 于 引 导 系 统 状 态
+                                             在 预 测 末 端 更 好 地 收 敛 至 期 望 值 ，从 而 提 升 整 体 跟
+                                             踪 性 能 .③ 当 Q 增 大 时 ，系 统 速 度 误 差 虽 有 所 减 小 ，
+                                             但 控 制 过 程 中 振 荡 现 象 更 为 明 显 ，系 统 平 稳 性 反 而
+                                             下 降 ，说 明 过 度 强 调 状 态 误 差 的 最 小 化 会 促 使 控 制
+                                             器 施 加 较 为 激 进 的 控 制 作 用 ，从 而 引 发 振 荡 .④ 当
+                                             运 行 过 程 中 的 Q 与 P 同 时 取 较 大 值 时 ，系 统 在 保 证
+                                             跟 踪 精 度 的 同 时 表 现 出 更 好 的 稳 定 性 ，综 合 考 虑 预
+                                             测 时 域 内 的 误 差 演 化 与 终 端 状 态 精 度 ，有 助 于 实 现
+                                             更加鲁棒和协调的控制效果 .
+                                                 仿 真 结 果 说 明 ，R 主 要 用 于 约 束 控 制 输 入 变
+                                             化 ，提 升 控 制 的 平 顺 性 与 能 量 效 率 ；Q 决 定 系 统 对
+                                             运 行 误 差 的 修 正 力 度 ；P 则 强 化 预 测 末 端 状 态 的 收
+                                             敛 特 性 . 合 理 协 调 3 类 权 重 参 数 ，是 保 证 重 载 列 车
+                                             在 运 行 安 全 性 、平 顺 性 与 跟 踪 精 度 之 间 实 现 平 衡 的
+                                             关键 .
+
+                                             5   结论
+          图9     案例 5 的仿真结果
+      Fig.9   Simulation results of Case 5       1）考 虑 空 气 制 动 力 及 其 延 时 效 应 的 多 质 点 动
+                                                北    京    交      通    大    学   学    报                                        第 50 卷
+  130
+
+力 学 模 型 ，可 有 效 表 征 传 统 空 气 制 动 系 统 下 重 载 虚                                way Signalling & Communication Engineering， 2020，
+
+拟编组列车的动力学特性 .                                                             17（ 2）：1−9.（in Chinese）
+                                                                     ［4］刘佳 . CBTC 系统中虚拟编组列控方案研究［J］. 铁路通
+     2）将 空 气 制 动 力 与 坡 道 阻 力 的 匹 配 误 差 建 模
+                                                                          信信号工程技术，2022，19（ 1）：73−77.
+为有界不确定扰动，并结合电制动协同补偿，可有效
+                                                                          LIU Jia. Research on virtual coupling train control solution
+抑制因传统空气制动响应滞后引发的速度震荡与纵
+                                                                          in CBTC system［J］. Railway Signalling & Communication
+向冲击 .
+                                                                          Engineering，2022，19（ 1）：73−77.（in Chinese）
+     3）Tube-MPC 协同控制策略通过构造鲁棒不变                                       ［5］郝 瑞 庭 ，刘 艳 杰 ，黄 嘉 钦 . 全 自 动 运 行 系 统 虚 拟 编 组 关
+集，可有效减小由模型不确定性与扰动带来的偏差，                                                   键 运 营 场 景 研 究［J］. 铁 路 通 信 信 号 工 程 技 术 ，2025，
+确保系统的状态变量与控制变量在强扰动下依然被                                                    22（ 4）：71−77.
+严格限制在安全的预设边界内 .                                                           HAO Ruiting， LIU Yanjie， HUANG Jiaqin. Research
+     4）所提模型与控制策略在平缓坡道工况下将机                                                on key operation scenarios of virtual coupling in fully auto⁃
+
+车平均最大速度误差与间距误差分别控制在                                                       matic operation systems［J］. Railway Signalling & Com ⁃
+                                                                          munication Engineering，2025，22（4）：71 − 77.（in Chi⁃
+0.44 m/s 与 0.66 m；在长大下坡工况下，最大车钩力
+                                                                          nese）
+被 抑 制 在 约 330.4 kN，远 低 于 1 500 kN 的 极 限 安 全
+                                                                     ［6］WANG X，LI S K，TANG T. Periodically intermittent
+阈 值 ，客 观 验 证 了 所 提 方 法 在 典 型 工 况 下 对 运 行 目
+                                                                          cruise control of heavy haul train with uncertain param ⁃
+标的高精度追踪与安全边界的可靠维持 .
+                                                                          eters［J］. Journal of the       Franklin   Institute， 2019，
+     本文提出的模型预测控制方法在保障虚拟编组                                                 356（ 13）：6989−7008.
+列车的运行平稳性和安全性方面展现出良好的控制                                               ［7］WANG X，SU S，CAO Y，et al. Robust cruise control
+性能 . 然而，MPC 在求解优化问题时计算规模较大，                                               for the heavy haul train subject to disturbance and actuator
+尤 其 在 面 对 列 车 规 模 扩 大 、运 行 环 境 更 加 复 杂 的 情                                saturation［J］. IEEE Transactions on Intelligent Transpor⁃
+况 下 ，时 效 性 难 以 保 障 . 未 来 可 从 多 个 角 度 入 手 进                                tation Systems，2023，24（ 8）：8003−8013.
+
+行 优 化 ，如 引 入 快 速 求 解 器 、高 效 近 似 算 法 、分 布 式                           ［8］ZHUAN X T. Fault-tolerant control of heavy haul trains
+                                                                          ［J］. IFAC Proceedings Volumes，2007，40（ 12）：1016−
+并行优化策略、稀疏优化方法等，从而显著降低在线
+                                                                          1021.
+计 算 开 销 . 此 外 ，还 可 探 索 基 于 强 化 学 习 策 略 的 预
+                                                                     ［9］CAI L C，HUANG D Q. Trajectory tracking control of
+测 控 制 方 法 ，如 基 于 深 度 强 化 学 习 的 MPC 近 似 策
+                                                                          heavy haul train in whole operation procedure［J］. IEEE
+略，进一步提升系统的响应速度与自适应能力，以适
+                                                                          Transactions on Vehicular Technology，2024，73（11）：
+应 大 规 模 、复 杂 编 组 的 重 载 列 车 系 统 对 高 实 时 性 的                                16225−16237.
+严格要求 .                                                               ［10］SONG Z Y，LI S，YU X Q，et al. Cooperative active
+                                                                           disturbance rejection control for heavy-haul trains［J］.
+参考文献（References）：                                                          Journal of Advanced Computational Intelligence and In⁃
+［1］肖 家 博 ，丁 荣 军 ，尚 敬 . 重 载 列 车 关 键 控 制 技 术 研 究 和                           telligent Informatics，2025，29（ 1）：165−174.
+    展望［J］. 机车电传动，2019（ 1）：1−8.                                       ［11］李中奇，曾祥泉，余剑烽 . 重载列车运行过程的建模与
+    XIAO Jiabo， DING Rongjun， SHANG Jing. Research                         RBFNN 滑 模 控 制［J］. 华 东 交 通 大 学 学 报 ，2024，
+    and prospect of key control technology for heavy-haul                  41（ 5）：94−104.
+    trains［J］. Electric Drive for Locomotives，2019（1）：1 −                  LI Zhongqi，ZENG Xiangquan，YU Jianfeng. Modeling
+    8.（in Chinese）                                                         and RBFNN sliding mode control for the operation pro⁃
+［2］张 福 田 ，王 曦 ，邵 文 东 . 铁 路 货 车 车 钩 的 纵 向 载 荷 谱 特                           cess of heavy haul trains［J］. Journal of East China Jiao⁃
+    性［J］. 北京交通大学学报，2017，41（ 1）：68−73.                                      tong University，2024，41（ 5）：94−104.（in Chinese）
+    ZHANG Futian，WANG Xi，SHAO Wendong. Charac⁃                       ［12］金爱丽 . 基于自抗扰控制的重载列车速度跟踪控制［D］.
+    teristics of the longitudinal load spectrum of railway                 南昌：华东交通大学，2021.
+    freight train coupler［J］. Journal of Beijing Jiaotong Uni⁃             JIN Aili. Speed tracking control of heavy haul train based
+    versity，2017，41（ 1）：68−73.（in Chinese）                                 on active disturbance rejection c.ontrol［D］. Nanchang：East
+［3］刘岭 . 基于虚拟耦合的列车群体智能控制技术研究及展                                              China Jiaotong University，2021.（in Chinese）
+    望［J］. 铁路通信信号工程技术，2020，17（ 2）：1−9.                                ［13］WANG X，TANG T，HE H. Optimal control of heavy
+    LIU Ling. Research and prospect of intelligent control                 haul train based on approximate dynamic programming
+    technology for virtually coupled train formation［J］. Rail⁃            ［J］. Advances in Mechanical Engineering，2017，9（ 4）：
+第2期                              宋宗莹等：基于传统空气制动的重载虚拟编组列车协同控制方法
+                                                                                                                           131
+
+     1687814017698110.                                                fuzzy adaptive model predictive control methodology for
+［14］LIU W T，SU S，TANG T，et al. A DQN-based intel⁃                     heavy-haul trains［J］. Control and Information Technol⁃
+     ligent control method for heavy haul trains on long steep        ogy，2024（ 4）：36−43.（in Chinese）
+     downhill section［J］. Transportation Research Part C：        ［19］LI J W，TIAN D X，ZHOU J S，et al. Distributed ro⁃
+     Emerging Technologies，2021，129：103249.                           bust model predictive control for virtual coupling under
+［15］孙 鹏 飞 ，张 传 鑫 ，蒋 春 宏 ，等 . 结 合 迭 代 学 习 和 模 型                        structural and external uncertainty［J］. IEEE Transac⁃
+     预 测 的 重 载 列 车 运 行 控 制［J］. 中 国 铁 道 科 学 ，2023，                     tions on Intelligent Transportation Systems， 2024，
+     44（ 2）：111−119.                                                  25（ 8）：8751−8769.
+     SUN Pengfei，ZHANG Chuanxin，JIANG Chunhong，                  ［20］ZHANG Y W，LI S K，CHEN Z B，et al. Distributed
+     et al. Operation control of heavy-haul train based on            virtual formation control for railway trains with nonlinear
+     combination of iterative learning and model prediction           dynamics and collision avoidance constraints［J］. Trans⁃
+    ［J］. China Railway Science，2023，44（2）：111−119.（in                 portation Research Part C： Emerging Technologies，
+     Chinese）                                                         2024，167：104808.
+［16］俞 花 珍 . 复 杂 条 件 下 重 载 列 车 自 动 驾 驶 曲 线 优 化 与 控                ［21］LIU Y F，ZHOU Y，SU S，et al. Control strategy for
+     制方法研究［D］. 北京：北京交通大学，2024.                                        stable formation of high-speed virtually coupled trains with
+     YU Huazhen. Research on profile optimization and con⁃            disturbances and delays［J］. Computer-Aided Civil and
+     trol methods of automatic operation for heavy haul trains        Infrastructure Engineering，2023，38（ 5）：621−639.
+     under complex conditions［D］. Beijing：Beijing Jiaotong       ［22］刘 文 韬 . 基 于 深 度 强 化 学 习 的 重 载 列 车 循 环 制 动 智 能
+     University，2024.（in Chinese）                                     控制方法［D］. 北京：北京交通大学，2025.
+［17］FU Y T，RAO W X，YANG H. Linear active distur⁃                      LIU Wentao. Intelligent cyclic braking control method
+     bance rejection control of heavy-haul train operation            for heavy haul trains based on deep reinforcement learn⁃
+     based on an interval type-2 fuzzy logic system model［J］.         ing［D］. Beijing：Beijing Jiaotong University，2025.（in
+     Transportation Safety and Environment，2022，4（4）：                 Chinese）
+     tdac037.                                                    ［23］ZHANG K P，GAO J K，XU Z Q，et al. Headway
+［18］易 杰 ，江 帆 ，罗 源 ，等 . 重 载 列 车 模 糊 自 适 应 模 型 预 测                      compression oriented trajectory optimization for virtual
+     控制方法研究［J］. 控制与信息技术，2024（ 4）：36−43.                               coupling of heavy-haul trains［J］. Control Engineering
+     YI Jie， JIANG Fan， LUO Yuan， et al. Research on                  Practice，2024，143：105784.
+

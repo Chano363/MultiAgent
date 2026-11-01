@@ -1,0 +1,13 @@
+{
+  "git_commit": "34f08aee903a54601d3c3a3500134c75ad9085d9",
+  "working_tree_dirty": true,
+  "sha256": {
+    "src/controllers/multi_loco_controller.py": "60c8de03ee89f2c91f6dde0852b2a1911dabc20fb2d245994ffd8a17fc97d7a8",
+    "src/environments/train_fleet_env.py": "c57f8370bf069c0f9f94e9ef569aeb491f8e9cd75b3abbe4bc4e0de70d138232",
+    "src/environments/train_env.py": "6e0ce368674599b7545da0a05322f0c691478bcbe4d73940e9feceeac6fd03d5",
+    "src/train_dynamics/train.py": "a67e6c9945ca65b98f783b2dd43b2292082f404de95bb31e50b7d0d74a30dfdf",
+    "src/train_dynamics/braking.py": "752755580b6a809e0cb25f5a7e59a878b19b8256981aaa6dea500b622e6ca5f3",
+    "src/physics_config.py": "e8c7bf7c4e7fb718e0831845f1cb97627d14cf239821dc4434063f6a08b138d2",
+    "configs/experiments/single_20kt_coupler_rulecal.yaml": "32300b99692e5e80d8b83fca1e8ab6b63aeb889f3776dfad5058dee23a1f6cd0"
+  }
+}

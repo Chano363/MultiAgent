@@ -1,0 +1,10 @@
+{
+  "source": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single108_ramped_air2p5_20261019_round23",
+  "rerun": false,
+  "scope": "48.5 s copied diagnostic forecast, not full cyclic/full route",
+  "source_sha256": {
+    "balanced.npz": "1551f76902592ed4125890073677631e1d2bd72c6ea1f1188ad95cbad670161f",
+    "interface_trace.npz": "09b256f33ff8666adde5acef411c6dd50584ab3c9294d96899a9f2ee01a181ff",
+    "result.json": "4ae41abcde79ee4117f557d01dad3cfcdab986420a095ef7aab6a5376f86c0bd"
+  }
+}

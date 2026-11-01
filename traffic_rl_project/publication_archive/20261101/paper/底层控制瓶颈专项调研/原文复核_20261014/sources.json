@@ -1,0 +1,39 @@
+[
+  {
+    "file": "D:\\Codex\\Documents\\Train\\paper\\王青元赵紫宁_2022_两万t重载列车空气制动过程建模.pdf",
+    "pages": 7,
+    "sha256": "de2aa7df60548c7b9d5b90d749b86e13bddd0cc2942ae679256de8f7626731be"
+  },
+  {
+    "file": "D:\\Codex\\Documents\\Train\\paper\\赵文涛魏伟_2020_基于主从控机车异步控制的重载列车操纵优化.pdf",
+    "pages": 9,
+    "sha256": "991f78ad60b70b731f8e233db91a8fe0063142e9cea56b6cf950a5be2f0e0eaa"
+  },
+  {
+    "file": "D:\\Codex\\Documents\\Train\\paper\\刘海明等_2025_典型制动系统故障下2万吨重载列车纵向冲动特性.pdf",
+    "pages": 21,
+    "sha256": "13fa59145d6427186f9b6d12e90a2be23921dee115c7679274c5bf0c39af81d9"
+  },
+  {
+    "file": "D:\\Codex\\Documents\\Train\\paper\\基于多质点模型的重载列车制动策略.pdf",
+    "pages": 11,
+    "sha256": "576f84f51a0eb92d447f32043f9404305158398fc39ccb3911266079d1f3cb09"
+  },
+  {
+    "file": "D:\\Codex\\Documents\\Train\\paper\\重载列车平稳运行的空电联合制动匹配控制.pdf",
+    "pages": 6,
+    "sha256": "cbc4e8056dc919eef15d9ff8004fdadee565f0626e15ec6bfcf561117e4b4640"
+  },
+  {
+    "file": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\docs\\papers\\01_coupler_physics\\Zhao2022_AirBrakeRefinedModeling_Optimization.pdf",
+    "pages": 83,
+    "sha256": "02d7ddc39413c9789529626108d29bb8500a27d7eb584295e7a17d1708131744",
+    "reviewed_pdf_page": 65
+  },
+  {
+    "file": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\docs\\papers\\01_coupler_physics\\朔黄铁路2万t重载组合列车纵向车钩力分析及应用研究_张二田.pdf",
+    "pages": 5,
+    "sha256": "4c3500106a1a6d47094f1ee61d75e49a33a2f437d9babc10b0d60b1933b8bc35",
+    "reviewed_pdf_page": 3
+  }
+]
