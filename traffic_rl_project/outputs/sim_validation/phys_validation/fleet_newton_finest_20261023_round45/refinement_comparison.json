@@ -1,0 +1,6 @@
+{
+  "scope": "2s refinement; not a rigorous full-route error bound",
+  "max_signed_interface_difference_kn": 4.3054567676114095,
+  "max_speed_difference_kmh": 0.003983198470655225,
+  "same_requests": true
+}

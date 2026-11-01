@@ -1,0 +1,57 @@
+{
+  "scope": "250-second local restored54 validation; no full-route claim",
+  "metrics": {
+    "internal_peak_kn": 566.4872592605957,
+    "min_vehicle_kmh": 50.735624198161744,
+    "max_vehicle_kmh": 75.9694695884648,
+    "safety_event_count": 0,
+    "mean_speed_spread_kmh": 7.089857050654202,
+    "max_speed_spread_kmh": 14.324066189928317,
+    "mean_absolute_gap_error_m": 557.1046929236703,
+    "max_absolute_gap_error_m": 1054.3055572706367,
+    "min_gap_m": 342.4755261766695,
+    "max_gap_m": 1237.6386128261365,
+    "end_mean_kmh": [
+      75.69788753656391,
+      69.59743697601607,
+      67.7673337181438
+    ],
+    "end_gaps_m": [
+      1237.6386128261365,
+      366.9410370400292
+    ]
+  },
+  "air_cost": {
+    "air_work_mj_by_train": [
+      299.65032578646816,
+      2216.175687597549,
+      2346.029324473787
+    ],
+    "source_on_s_by_train": [
+      34.9,
+      250.0,
+      250.0
+    ],
+    "head_displacement_m_by_train": [
+      4440.728198101569,
+      4415.699729340064,
+      4493.615464046285
+    ]
+  },
+  "source_edges": [
+    [
+      {
+        "time_s": 2736.2999999284616,
+        "on": true,
+        "mean_kmh": 74.26366677128738
+      }
+    ],
+    [],
+    []
+  ],
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\trajectory.npz": "7d123097d3431fa2e65718b8be1ff43da7ffb3b6895a9d3f1d0ef12b7d9e4fde",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\telemetry.npz": "c1da735c2bb50947ef00011ea38db07f976f132eb8f904c0ca4f6473fbc8e168",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\metadata.json": "4c8c5411359faa884236cf2326cebf1179f24eb5c1d508ab0b44f1c0a769bdc7"
+  }
+}

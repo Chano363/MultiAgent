@@ -1,0 +1,26 @@
+{
+  "scope": "Forecast executed-command force reconstruction, not native multibody force validation",
+  "first_source_off_s": 2531.1999999722225,
+  "sample_count": 499,
+  "requested_ed_force_min_kn": 349.8716024249386,
+  "requested_ed_force_max_kn": 350.34950890661685,
+  "peak_speed_spread_kmh": 22.48349597047295,
+  "source_edges": [
+    [
+      2475.7,
+      true
+    ],
+    [
+      2531.2,
+      false
+    ],
+    [
+      2753.2,
+      true
+    ],
+    [
+      2808.6,
+      false
+    ]
+  ]
+}

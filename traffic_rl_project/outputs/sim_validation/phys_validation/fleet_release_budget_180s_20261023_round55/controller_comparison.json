@@ -1,0 +1,144 @@
+{
+  "scope": "Same-condition controller comparison; not full-route acceptance",
+  "baseline": "outputs\\sim_validation\\phys_validation\\fleet_time_error_180s_20261023_round54",
+  "candidate": "outputs\\sim_validation\\phys_validation\\fleet_release_budget_180s_20261023_round55",
+  "common_initial_and_numerical_settings": true,
+  "baseline_results": {
+    "summary": {
+      "steps": 1800,
+      "speed_min_kmh": 37.45283028784723,
+      "speed_max_kmh": 69.98591682751714,
+      "peak_kn": 813.8144155726773,
+      "jerk_rms": 0.012166271061161452,
+      "jerk_peak": 0.6310235311158152,
+      "command_switches": 2,
+      "violations": 0,
+      "safety_events": 0,
+      "diagnostic_stop_reason": null,
+      "diagnostic_first_crossing_s": null,
+      "physical_ed_change_rms_per_s": 0.19685818990334347,
+      "physical_ed_max_step_increase": 0.011407732963562012,
+      "physical_ed_max_step_decrease": 1.0,
+      "min_gap_m": 182.63237932717288,
+      "negative_gap_steps": 0,
+      "requested_notch_switches": 2,
+      "stored_head_notch_switches": 2,
+      "elapsed_s": 180.0,
+      "mean_speed_kmh": 52.30861060344449,
+      "distance_leader_m": 2699.0852935987687,
+      "leader_end_m": 2699.0852935987687,
+      "last_tail_end_m": -1686.859369139361,
+      "max_vehicle_speed_kmh": 69.99332235768597,
+      "overspeed_train_steps": 0,
+      "subenv_safety_events": 0,
+      "full_route_completed": false
+    },
+    "per_train": [
+      {
+        "train_one_based": 1,
+        "min_mean_kmh": 43.76737396821232,
+        "min_vehicle_kmh": 43.31975850195461,
+        "first_mean_below40_s": null,
+        "below40_train_samples": 0,
+        "largest_ed_decrease_per_control": 0.29713577032089233,
+        "physical_air_onset_s": [
+          94.4
+        ],
+        "physical_air_offset_s": [
+          134.3
+        ]
+      },
+      {
+        "train_one_based": 2,
+        "min_mean_kmh": 38.04016977127849,
+        "min_vehicle_kmh": 37.22554361386368,
+        "first_mean_below40_s": 137.4,
+        "below40_train_samples": 423,
+        "largest_ed_decrease_per_control": 1.0,
+        "physical_air_onset_s": [],
+        "physical_air_offset_s": []
+      },
+      {
+        "train_one_based": 3,
+        "min_mean_kmh": 37.45283028784723,
+        "min_vehicle_kmh": 36.98700639543269,
+        "first_mean_below40_s": 137.2,
+        "below40_train_samples": 429,
+        "largest_ed_decrease_per_control": 1.0,
+        "physical_air_onset_s": [],
+        "physical_air_offset_s": []
+      }
+    ],
+    "internal_peak_kn": 816.7988691008359,
+    "command_sha256": "7366508b772e96d11d55b3c5946d57e961e433c25e4601c2f0dc89c0f0c9693e"
+  },
+  "candidate_results": {
+    "summary": {
+      "steps": 1800,
+      "speed_min_kmh": 43.486521229591766,
+      "speed_max_kmh": 69.98591682751714,
+      "peak_kn": 719.0460583902308,
+      "jerk_rms": 0.003961782641282999,
+      "jerk_peak": 0.17490585646857681,
+      "command_switches": 2,
+      "violations": 0,
+      "safety_events": 0,
+      "diagnostic_stop_reason": null,
+      "diagnostic_first_crossing_s": null,
+      "physical_ed_change_rms_per_s": 0.06770294451311074,
+      "physical_ed_max_step_increase": 0.011449456214904785,
+      "physical_ed_max_step_decrease": 0.31651896238327026,
+      "min_gap_m": 182.88010302461828,
+      "negative_gap_steps": 0,
+      "requested_notch_switches": 2,
+      "stored_head_notch_switches": 2,
+      "elapsed_s": 180.0,
+      "mean_speed_kmh": 53.55042450869227,
+      "distance_leader_m": 2700.8842436016935,
+      "leader_end_m": 2700.8842436016935,
+      "last_tail_end_m": -1592.9725715212314,
+      "max_vehicle_speed_kmh": 69.99332235768597,
+      "overspeed_train_steps": 0,
+      "subenv_safety_events": 0,
+      "full_route_completed": false
+    },
+    "per_train": [
+      {
+        "train_one_based": 1,
+        "min_mean_kmh": 43.950518189206655,
+        "min_vehicle_kmh": 43.505212834016476,
+        "first_mean_below40_s": null,
+        "below40_train_samples": 0,
+        "largest_ed_decrease_per_control": 0.29566991329193115,
+        "physical_air_onset_s": [
+          94.4
+        ],
+        "physical_air_offset_s": [
+          134.3
+        ]
+      },
+      {
+        "train_one_based": 2,
+        "min_mean_kmh": 44.2259259184032,
+        "min_vehicle_kmh": 43.682396688776265,
+        "first_mean_below40_s": null,
+        "below40_train_samples": 0,
+        "largest_ed_decrease_per_control": 0.31651896238327026,
+        "physical_air_onset_s": [],
+        "physical_air_offset_s": []
+      },
+      {
+        "train_one_based": 3,
+        "min_mean_kmh": 43.486521229591766,
+        "min_vehicle_kmh": 43.417456027962125,
+        "first_mean_below40_s": null,
+        "below40_train_samples": 0,
+        "largest_ed_decrease_per_control": 0.21887749433517456,
+        "physical_air_onset_s": [],
+        "physical_air_offset_s": []
+      }
+    ],
+    "internal_peak_kn": 719.8257410107791,
+    "command_sha256": "a178abb1bd5cc053b5f8cd850c96f6b0d960fce87e4ffa34256d3bd16af16146"
+  }
+}

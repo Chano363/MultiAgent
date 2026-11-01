@@ -1,0 +1,44 @@
+{
+  "scope": "Same 350 seconds; first two train trajectories bit-identical; rejected tail-only ablation",
+  "baseline": {
+    "air_work_mj_per_train": [
+      1306.3289079782933,
+      3199.317375255335,
+      3355.76208688579
+    ],
+    "source_on_s_per_train": [
+      134.9,
+      350.0,
+      350.0
+    ]
+  },
+  "candidate": {
+    "air_work_mj_per_train": [
+      1306.3289079782933,
+      3199.317375255335,
+      2981.217034363744
+    ],
+    "source_on_s_per_train": [
+      134.9,
+      350.0,
+      341.40000000000003
+    ]
+  },
+  "candidate_source_edges": [
+    [
+      {
+        "time_s": 2736.2999999284616,
+        "on": true,
+        "mean_kmh": 74.26366677128738
+      }
+    ],
+    [],
+    [
+      {
+        "time_s": 2862.5999999082446,
+        "on": false,
+        "mean_kmh": 49.992120106766585
+      }
+    ]
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scope": "Centroid screening, not safety proof. Native ED/Davis/route; no residual air, no coupler force, no acceleration ramp. No pressure calibration.",
+  "source_manifest_sha256": "9a25455488b7fdfacd554b422873332aa6996dc029b60ba61cf3d4cde63e8c15",
+  "projection_source_sha256": "d65f9d2ae684e5778c371bcc45c61eb7eb397933509426a8df3c12ee72688e3e",
+  "initial_head_speed_kmh": 56.00894346594942,
+  "trials": [
+    {
+      "dt": 0.2,
+      "max_projected_kmh": 78.42018135602814,
+      "min_projected_kmh": 56.031733612797
+    },
+    {
+      "dt": 0.1,
+      "max_projected_kmh": 78.4204767034696,
+      "min_projected_kmh": 56.02229550069991
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "scope": "same-time 0.1 to 21.1 seconds; sampled forces only",
+  "baseline_peak_kn": 1013.1348017706785,
+  "candidate_common_peak_kn": 972.3699391591803,
+  "candidate_completed_30s_peak_kn": 972.3699391591803,
+  "candidate_min_vehicle_kmh": 64.29675144948463,
+  "production_default_changed": false
+}

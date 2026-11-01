@@ -1,0 +1,155 @@
+{
+  "scope": "Same 1870s full state; different maximum mechanical step, threshold stops may produce different final windows",
+  "runs": [
+    {
+      "factor": 1.0,
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_micropeak_original_20261026_round97",
+      "summary": {
+        "stop_reason": "coupler_threshold",
+        "error": null,
+        "steps": 22,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          29171.837360844143,
+          26997.883861990835,
+          25490.12895266584
+        ],
+        "last_time_s": 1872.2000000347875,
+        "internal_peak_kn": 1002.4702440220067,
+        "max_force_residual_n": 0.009994225831178483,
+        "accepted_microsteps": 7204,
+        "min_train_mean_kmh": 46.5821344150276,
+        "min_gap_m": 214.2393629484759,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 1168.186672144065,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 45.603806871196944,
+        "max_vehicle_kmh": 65.62022974038531
+      },
+      "peak": {
+        "interval_start_s": 1872.1900000346554,
+        "interval_end_s": 1872.2000000346561,
+        "time_s": 1872.1918750346551,
+        "train_one_based": 2,
+        "coupler_one_based": 55,
+        "vehicle_pair_one_based": [
+          55,
+          56
+        ],
+        "signed_native_force_n": -1002470.2440220066,
+        "peak_kn": 1002.4702440220067,
+        "adjacent_speeds_kmh": [
+          48.43652353264518,
+          48.39262520269721
+        ],
+        "adjacent_positions_m": [
+          27645.397842914877,
+          27633.35958227314
+        ],
+        "relative_velocity_mps": 0.01219398054110421
+      }
+    },
+    {
+      "factor": 0.5,
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_micropeak_half_20261026_round97",
+      "summary": {
+        "stop_reason": "coupler_threshold",
+        "error": null,
+        "steps": 22,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          29171.83736078966,
+          26997.883861990933,
+          25490.12895265973
+        ],
+        "last_time_s": 1872.2000000343874,
+        "internal_peak_kn": 1002.4708405900427,
+        "max_force_residual_n": 0.00999330398190068,
+        "accepted_microsteps": 11848,
+        "min_train_mean_kmh": 46.58213440782313,
+        "min_gap_m": 214.23936102678636,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 1168.186684524516,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 45.60380687119696,
+        "max_vehicle_kmh": 65.620229164764
+      },
+      "peak": {
+        "interval_start_s": 1872.1900000344049,
+        "interval_end_s": 1872.200000034406,
+        "time_s": 1872.1918750344048,
+        "train_one_based": 2,
+        "coupler_one_based": 55,
+        "vehicle_pair_one_based": [
+          55,
+          56
+        ],
+        "signed_native_force_n": -1002470.8405900428,
+        "peak_kn": 1002.4708405900427,
+        "adjacent_speeds_kmh": [
+          48.43648486837218,
+          48.39319997576814
+        ],
+        "adjacent_positions_m": [
+          27645.39784982264,
+          27633.359589138126
+        ],
+        "relative_velocity_mps": 0.012023581278899798
+      }
+    },
+    {
+      "factor": 0.25,
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_micropeak_quarter_20261026_round97",
+      "summary": {
+        "stop_reason": "coupler_threshold",
+        "error": null,
+        "steps": 22,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          29171.837360762223,
+          26997.88386199022,
+          25490.12895267662
+        ],
+        "last_time_s": 1872.2000000351877,
+        "internal_peak_kn": 1002.4798842827176,
+        "max_force_residual_n": 0.0099995720647712,
+        "accepted_microsteps": 21962,
+        "min_train_mean_kmh": 46.58213440293633,
+        "min_gap_m": 214.23935931705637,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 1168.1866907147592,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 45.60380687119697,
+        "max_vehicle_kmh": 65.6202288767575
+      },
+      "peak": {
+        "interval_start_s": 1872.1900000350988,
+        "interval_end_s": 1872.2000000351013,
+        "time_s": 1872.1918750350992,
+        "train_one_based": 2,
+        "coupler_one_based": 55,
+        "vehicle_pair_one_based": [
+          55,
+          56
+        ],
+        "signed_native_force_n": -1002479.8842827176,
+        "peak_kn": 1002.4798842827176,
+        "adjacent_speeds_kmh": [
+          48.43648239455922,
+          48.39319535968305
+        ],
+        "adjacent_positions_m": [
+          27645.39784943642,
+          27633.3595884599
+        ],
+        "relative_velocity_mps": 0.012024176354493932
+      }
+    }
+  ]
+}

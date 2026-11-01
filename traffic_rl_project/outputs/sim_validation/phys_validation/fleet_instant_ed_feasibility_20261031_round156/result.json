@@ -1,0 +1,499 @@
+{
+  "scope": "Sparse end-sample feasibility audit; no phase optimization or safety guarantee",
+  "equation": "M*a = G_down - R - B_air - E; E_equilibrium = G_down - R - B_air",
+  "limitations": [
+    "Instantaneous authority does not certify a 50s hold or 222s recharge interval",
+    "Negative required ED would need positive traction or less air, not stronger ED",
+    "Classification uses existing native model, not a replacement locomotive curve"
+  ],
+  "samples": [
+    {
+      "time_s": 2491.999999967567,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": -731.2548367012861,
+          "available_ed_interval_kn": [
+            0.0,
+            390.24072270220495
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.10206548593042328,
+            -0.06655031276859173
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": 776.3988556914778,
+          "available_ed_interval_kn": [
+            0.0,
+            381.05106670244015
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.03597995895422622,
+            0.07065879647720039
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": 806.0258874803112,
+          "available_ed_interval_kn": [
+            0.0,
+            384.53258857963397
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.03835941926653415,
+            0.07335510443031591
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2501.9999999659663,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": -1283.1492153247625,
+          "available_ed_interval_kn": [
+            0.0,
+            417.9267824848153
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.15481215851925534,
+            -0.11677732210818734
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": 741.5878930439069,
+          "available_ed_interval_kn": [
+            0.0,
+            374.65207010399473
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.03339423215689044,
+            0.06749070741207744
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": 810.121796733014,
+          "available_ed_interval_kn": [
+            0.0,
+            377.7547085563599
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.039349025134387886,
+            0.07372786646641918
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2511.9999999643655,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": -1272.74557548887,
+          "available_ed_interval_kn": [
+            0.0,
+            454.6681343558427
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.15720911083406558,
+            -0.11583050377583455
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": 395.03962374541385,
+          "available_ed_interval_kn": [
+            0.0,
+            370.6038830265517
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.002223857000260477,
+            0.03595191333685965
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": 582.3232996575728,
+          "available_ed_interval_kn": [
+            0.0,
+            371.66750924962037
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.019171440699668037,
+            0.052996295928064506
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2521.999999962765,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": -1281.065916272083,
+          "available_ed_interval_kn": [
+            0.0,
+            499.06988301171816
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.16200726240296698,
+            -0.1165877244514091
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": -790.418018220345,
+          "available_ed_interval_kn": [
+            0.0,
+            379.14161282894844
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.10643971887962261,
+            -0.07193465764655486
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": -566.8795182852956,
+          "available_ed_interval_kn": [
+            0.0,
+            376.8348263793963
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.08588590686791882,
+            -0.051590782515953365
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2531.999999961164,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": -1138.8692288489801,
+          "available_ed_interval_kn": [
+            0.0,
+            554.6886946539722
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.1541279508102432,
+            -0.10364663531570623
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": -1415.6287784811286,
+          "available_ed_interval_kn": [
+            0.0,
+            406.72921925158346
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.16584983597858685,
+            -0.12883407157636773
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": -1293.6101601519742,
+          "available_ed_interval_kn": [
+            0.0,
+            400.71619848190943
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.1541978848410888,
+            -0.11772935567455171
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2541.9999999595634,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": 554.4671022577493,
+          "available_ed_interval_kn": [
+            0.0,
+            579.3244408159013
+          ],
+          "classification": "instantaneous_ed_equilibrium_possible",
+          "instantaneous_accel_interval_mps2": [
+            -0.0022622259335777248,
+            0.05046114873113845
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": -1410.4417176984598,
+          "available_ed_interval_kn": [
+            0.0,
+            444.2906493846312
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.16879617465262933,
+            -0.12836200561507644
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": -1288.7230721895562,
+          "available_ed_interval_kn": [
+            0.0,
+            434.40391126070386
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.15681898284039497,
+            -0.11728458975150675
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2551.9999999579627,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": 891.0045965924702,
+          "available_ed_interval_kn": [
+            0.0,
+            571.9972244483909
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.029032341840560555,
+            0.08108887846673372
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": -1401.0567503473799,
+          "available_ed_interval_kn": [
+            0.0,
+            489.72918023609196
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.17207735079936948,
+            -0.1275078950079523
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": -1307.052197652364,
+          "available_ed_interval_kn": [
+            0.0,
+            474.6078582367123
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.16214598251629742,
+            -0.11895269363417946
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2561.999999956362,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": 954.925673202315,
+          "available_ed_interval_kn": [
+            0.0,
+            558.4644391724058
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.036081291775565086,
+            0.08690623163472105
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": -1394.8782585350052,
+          "available_ed_interval_kn": [
+            0.0,
+            547.0034863481226
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.17672749771415433,
+            -0.1269456005219335
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": -1330.3706371523278,
+          "available_ed_interval_kn": [
+            0.0,
+            525.1398127891202
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.16886698670744887,
+            -0.12107486686861375
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2571.9999999547613,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": 930.1304820848703,
+          "available_ed_interval_kn": [
+            0.0,
+            545.1607836635325
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.035035465819197115,
+            0.08464966163859396
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": -632.7291354080803,
+          "available_ed_interval_kn": [
+            0.0,
+            617.043517918273
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.11373977551204525,
+            -0.05758364901784495
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": -1350.3750069367456,
+          "available_ed_interval_kn": [
+            0.0,
+            591.0106978538784
+          ],
+          "classification": "decelerates_even_with_zero_ed",
+          "instantaneous_accel_interval_mps2": [
+            -0.17668235391250675,
+            -0.12289543201098888
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2581.9999999531606,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": 898.5114990949633,
+          "available_ed_interval_kn": [
+            0.0,
+            532.9986507657572
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.033264729553076626,
+            0.08177206944803088
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": 641.2441263006245,
+          "available_ed_interval_kn": [
+            0.0,
+            636.8373647736045
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.00040105219576083733,
+            0.058358584483129285
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": 394.1671032857431,
+          "available_ed_interval_kn": [
+            0.0,
+            633.5084151040671
+          ],
+          "classification": "instantaneous_ed_equilibrium_possible",
+          "instantaneous_accel_interval_mps2": [
+            -0.021782063325293415,
+            0.03587250666961623
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2591.99999995156,
+      "trains": [
+        {
+          "train": 1,
+          "equilibrium_ed_kn": 867.1083447859396,
+          "available_ed_interval_kn": [
+            0.0,
+            521.9448757551426
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.03141276565624291,
+            0.07891411947451216
+          ]
+        },
+        {
+          "train": 2,
+          "equilibrium_ed_kn": 901.7662072595147,
+          "available_ed_interval_kn": [
+            0.0,
+            629.1805343302123
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.024807578533791626,
+            0.08206827514192888
+          ]
+        },
+        {
+          "train": 3,
+          "equilibrium_ed_kn": 820.4464834451154,
+          "available_ed_interval_kn": [
+            0.0,
+            631.8151334689591
+          ],
+          "classification": "accelerates_even_with_full_ed",
+          "instantaneous_accel_interval_mps2": [
+            0.017167032214793987,
+            0.07466749940345062
+          ]
+        }
+      ]
+    }
+  ],
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_phase_hold_audit_20261031_round151\\result.json": "0ba9ecb3e7dc86bde7704baec3c785d631b5f01443ec4efe5ef772c4f5f06149"
+  },
+  "entry_sha256": "5022260ed7aeddd450d55b499e008e07cdb73411ce7516b1637956b0100ad8d4"
+}

@@ -1,0 +1,36 @@
+{
+  "status": "max_step_budget",
+  "full_route_completed": false,
+  "stages": [
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_fixed_candidate_preflight_20261025_round93\\stage_0001",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 1,
+        "full_route_completed": false,
+        "finish_m": 49600.0,
+        "final_tail_positions_m": [
+          -1294.055648301423,
+          -2773.3887038569783,
+          -4252.721759412534
+        ],
+        "last_time_s": 0.10000000000000006,
+        "internal_peak_kn": 14.33826510809512,
+        "max_force_residual_n": 0.007285029280865274,
+        "accepted_microsteps": 288,
+        "min_train_mean_kmh": 69.98591682751713,
+        "min_gap_m": 183.34423649147584,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 0.0,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 69.18740107412148,
+        "max_vehicle_kmh": 69.99332235768597
+      }
+    }
+  ],
+  "elapsed_wall_s": 10.446327209472656,
+  "last_time_s": 0.10000000000000006,
+  "steps": 1
+}

@@ -1,0 +1,33 @@
+{
+  "time_s": 900.0000000138746,
+  "scope": "Read-only force bookkeeping, not a newly tested controller",
+  "trains": [
+    {
+      "train_one_based": 1,
+      "mean_kmh": 67.93815670407456,
+      "net_downhill_kn": 746.6319572743076,
+      "air_signed_kn": 0.0,
+      "full_ED_kn": 432.3715616479492,
+      "ED_for_zero_acceleration_kn": 746.6319572743076,
+      "centroid_acceleration_at_full_ED": 0.028600327232103966
+    },
+    {
+      "train_one_based": 2,
+      "mean_kmh": 65.6393597760357,
+      "net_downhill_kn": 760.140892516122,
+      "air_signed_kn": -520.711265676174,
+      "full_ED_kn": 447.5522591997928,
+      "ED_for_zero_acceleration_kn": 239.429626839948,
+      "centroid_acceleration_at_full_ED": -0.01894090210773979
+    },
+    {
+      "train_one_based": 3,
+      "mean_kmh": 67.07179198011907,
+      "net_downhill_kn": 751.7689022240611,
+      "air_signed_kn": -518.8852842204258,
+      "full_ED_kn": 438.0568411594978,
+      "ED_for_zero_acceleration_kn": 232.88361800363526,
+      "centroid_acceleration_at_full_ED": -0.018672481175451634
+    }
+  ]
+}

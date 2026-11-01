@@ -1,0 +1,16 @@
+{
+  "scope": "Offline validation of an advisory warning, not an online future-data input",
+  "state_sha256": "8692bae71c5c1eaf3fe85592aa4055a23e5ad4347a5648585952b2a761d086b2",
+  "prediction_horizon_s": 241.66741761434997,
+  "actual_sample_window_s": [
+    2521.199999962893,
+    2762.6999999242357
+  ],
+  "predicted_leader_max_kmh": 80.11864653284535,
+  "actual_leader_max_kmh": 75.9694695884648,
+  "advisory_false_warning_on_this_actual_control_trajectory": true,
+  "actual_source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\metadata.json": "4c8c5411359faa884236cf2326cebf1179f24eb5c1d508ab0b44f1c0a769bdc7",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\trajectory.npz": "7d123097d3431fa2e65718b8be1ff43da7ffb3b6895a9d3f1d0ef12b7d9e4fde"
+  }
+}

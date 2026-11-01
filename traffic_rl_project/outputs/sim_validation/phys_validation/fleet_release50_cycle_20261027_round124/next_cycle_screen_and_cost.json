@@ -1,0 +1,20 @@
+{
+  "scope": "Read-only diagnostic; centroid forecast omits residual air, coupler evolution and actuator ramping",
+  "source_state_sha256": "8692bae71c5c1eaf3fe85592aa4055a23e5ad4347a5648585952b2a761d086b2",
+  "remaining_refill_s": 215.2,
+  "forecast_max_before_refill_kmh": 76.43286717324216,
+  "forecast_max_with30s_zero_air_kmh": 80.5860430779496,
+  "forecast_first80_after_state_s": 240.7999999999906,
+  "air_work_mj_per_train": [
+    2889.0015206968537,
+    3235.1820882289126,
+    3378.4612304962707
+  ],
+  "source_on_s_per_train": [
+    171.10000000000002,
+    400.0,
+    400.0
+  ],
+  "gap_mae_m": 451.5793859639692,
+  "mean_speed_spread_kmh": 8.443341086082926
+}

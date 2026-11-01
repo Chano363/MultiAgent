@@ -1,0 +1,24 @@
+{
+  "status": "completed",
+  "error": null,
+  "settings": {
+    "max_step": 3.90625e-05,
+    "force_tol_n": 0.01,
+    "tol": 1e-09,
+    "max_iter": 100
+  },
+  "numerical_solver": "newton_analytic",
+  "experimental": true,
+  "production_default_changed": false,
+  "frozen_source_sha256": {
+    "adaptive_newmark_candidate": "e6dbe151e1c93104f77572ebea423c79925f63d869e9cc7af87f2311a691de9a",
+    "newton_mechanics_candidate": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+    "native_force_tangent": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec"
+  },
+  "intervals": 2100,
+  "accepted_microsteps": 537600,
+  "rejected_trials": 0,
+  "internal_peak_kn": 719.5928336962496,
+  "max_force_residual_n": 0.009984150703530759,
+  "scope": "Short cold-start numerical study; not fleet route acceptance"
+}

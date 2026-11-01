@@ -1,0 +1,29 @@
+{
+  "scope": "Hypothetical centroid sensitivity, not reachable full states or controller results; no leader data after668.2s",
+  "trials": [
+    {
+      "hypothetical_uniform_speed_shift_kmh": 0.0,
+      "min_kmh": 51.216213448460074,
+      "max_kmh": 67.78017316679677,
+      "first_hindsight_sbi_s": 630.8000000048369
+    },
+    {
+      "hypothetical_uniform_speed_shift_kmh": -1.5,
+      "min_kmh": 49.62114061624424,
+      "max_kmh": 65.54613450846162,
+      "first_hindsight_sbi_s": null
+    },
+    {
+      "hypothetical_uniform_speed_shift_kmh": -3.0,
+      "min_kmh": 47.997694323412674,
+      "max_kmh": 63.159623113379666,
+      "first_hindsight_sbi_s": null
+    },
+    {
+      "hypothetical_uniform_speed_shift_kmh": -5.0,
+      "min_kmh": 45.768806667107754,
+      "max_kmh": 59.676738429364676,
+      "first_hindsight_sbi_s": null
+    }
+  ]
+}

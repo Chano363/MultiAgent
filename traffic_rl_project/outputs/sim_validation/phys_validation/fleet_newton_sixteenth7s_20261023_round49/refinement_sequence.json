@@ -1,0 +1,68 @@
+{
+  "scope": "Same-input prefix comparisons, no smoothing; not route acceptance",
+  "runs": [
+    {
+      "run": "fleet_newton_crossing25s_20261023_round45",
+      "max_step_s": 0.000625,
+      "internal_peak_kn": 719.7990011047832,
+      "accepted_microsteps": 120000
+    },
+    {
+      "run": "fleet_newton_half25s_20261023_round46",
+      "max_step_s": 0.0003125,
+      "internal_peak_kn": 719.826442369855,
+      "accepted_microsteps": 240000,
+      "comparison_parent": "fleet_newton_crossing25s_20261023_round45",
+      "compared_seconds": 25.000000000000004,
+      "commands_equal": true,
+      "max_signed_force_difference_kn": 93.20162409868202,
+      "difference_time_s": 5.7,
+      "difference_train_one_based": 1,
+      "difference_interface_one_based": 67,
+      "max_vehicle_speed_difference_kmh": 0.003997270527442254
+    },
+    {
+      "run": "fleet_newton_eighth7s_20261023_round48",
+      "max_step_s": 0.00015625,
+      "internal_peak_kn": 719.5875806830857,
+      "accepted_microsteps": 134400,
+      "comparison_parent": "fleet_newton_half25s_20261023_round46",
+      "compared_seconds": 7.0,
+      "commands_equal": true,
+      "max_signed_force_difference_kn": 34.53123218297691,
+      "difference_time_s": 5.7,
+      "difference_train_one_based": 1,
+      "difference_interface_one_based": 67,
+      "max_vehicle_speed_difference_kmh": 0.002027168470590368
+    },
+    {
+      "run": "fleet_newton_sixteenth7s_20261023_round49",
+      "max_step_s": 7.8125e-05,
+      "internal_peak_kn": 719.592205938998,
+      "accepted_microsteps": 268800,
+      "comparison_parent": "fleet_newton_eighth7s_20261023_round48",
+      "compared_seconds": 7.0,
+      "commands_equal": true,
+      "max_signed_force_difference_kn": 14.208670628919615,
+      "difference_time_s": 5.7,
+      "difference_train_one_based": 2,
+      "difference_interface_one_based": 67,
+      "max_vehicle_speed_difference_kmh": 0.0010250422357060529
+    },
+    {
+      "run": "fleet_newton_thirtysecond7s_20261023_round50",
+      "max_step_s": 3.90625e-05,
+      "internal_peak_kn": 719.5928336962496,
+      "accepted_microsteps": 537600,
+      "comparison_parent": "fleet_newton_sixteenth7s_20261023_round49",
+      "compared_seconds": 7.0,
+      "commands_equal": true,
+      "max_signed_force_difference_kn": 6.563915441768709,
+      "difference_time_s": 5.7,
+      "difference_train_one_based": 1,
+      "difference_interface_one_based": 67,
+      "max_vehicle_speed_difference_kmh": 0.00051377424100707
+    }
+  ],
+  "pending": []
+}

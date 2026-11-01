@@ -1,0 +1,19 @@
+{
+  "baseline": {
+    "time_s": 2321.099999994922,
+    "remaining_refill_s": 52.099999999999994,
+    "current_air_force_n": 0.0,
+    "first_projected_80_s": 2348.599999994922,
+    "max_projected_kmh": 86.02914999219163,
+    "initial_acceleration_mps2": 0.04139791944342881
+  },
+  "candidate": {
+    "time_s": 2321.0999999949213,
+    "remaining_refill_s": 75.5,
+    "current_air_force_n": 0.0,
+    "first_projected_80_s": 2383.999999994922,
+    "max_projected_kmh": 84.76575669897521,
+    "initial_acceleration_mps2": 0.04275449278627101
+  },
+  "scope": "Read-only native-curve centroid screen, instantaneous full ED, no AB during projection; fixed relative positions, no coupler or future air forecast. Not acceptance."
+}

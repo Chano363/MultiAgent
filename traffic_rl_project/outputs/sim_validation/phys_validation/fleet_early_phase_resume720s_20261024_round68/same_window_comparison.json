@@ -1,0 +1,21 @@
+{
+  "window_s": [
+    526.9,
+    668.2
+  ],
+  "steps": 1414,
+  "baseline": {
+    "events": 120,
+    "internal_peak_kn": 583.7518239636028,
+    "min_vehicle_kmh": 49.255073093044416,
+    "min_gap_m": 206.50746477201483
+  },
+  "candidate": {
+    "events": 0,
+    "internal_peak_kn": 594.788140241336,
+    "min_vehicle_kmh": 48.24978464197289,
+    "min_gap_m": 206.50746477201483
+  },
+  "first_two_train_max_position_difference_m": 0.0,
+  "first_two_train_max_velocity_difference_mps": 0.0
+}

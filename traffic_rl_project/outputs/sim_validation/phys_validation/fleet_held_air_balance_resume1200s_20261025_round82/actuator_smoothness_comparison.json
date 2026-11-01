@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "third_ED_total_variation": 0.0,
+    "third_max_ED_step_increase": 0.0,
+    "third_max_ED_step_decrease": -0.0,
+    "third_head_jerk_peak_mps3": 0.06886226119320327,
+    "third_head_jerk_mean_abs_mps3": 0.0006226167928538121
+  },
+  "candidate": {
+    "third_ED_total_variation": 1.9153146743774414,
+    "third_max_ED_step_increase": 0.25972408056259155,
+    "third_max_ED_step_decrease": 0.0050000000000000044,
+    "third_head_jerk_peak_mps3": 1.2147442315953327,
+    "third_head_jerk_mean_abs_mps3": 0.0009408157501801882
+  }
+}

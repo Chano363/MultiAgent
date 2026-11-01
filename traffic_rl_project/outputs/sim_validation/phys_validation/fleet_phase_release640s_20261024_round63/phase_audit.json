@@ -1,0 +1,48 @@
+{
+  "event_counts": {
+    "(3, 'etcs_permitted')": 36,
+    "(3, 'etcs_ebi')": 98
+  },
+  "air_releases": [
+    {
+      "train": 1,
+      "release_records": [],
+      "refill_veto_end": 0
+    },
+    {
+      "train": 2,
+      "release_records": [
+        {
+          "time_s": 591.1000000071319,
+          "head_kmh": 49.97509353578415,
+          "mean_kmh": 49.98540519354499
+        }
+      ],
+      "refill_veto_end": 0
+    },
+    {
+      "train": 3,
+      "release_records": [],
+      "refill_veto_end": 536
+    }
+  ],
+  "first_event": {
+    "time_s": 589.500000007097,
+    "refill_remaining_s": [
+      [
+        0.0
+      ],
+      [
+        0.0
+      ],
+      [
+        119.39999999999999
+      ]
+    ],
+    "refill_veto": [
+      0,
+      0,
+      51
+    ]
+  }
+}

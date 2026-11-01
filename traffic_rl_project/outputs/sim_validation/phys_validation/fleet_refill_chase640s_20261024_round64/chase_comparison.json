@@ -1,0 +1,34 @@
+[
+  {
+    "run": "fleet_phase_release640s_20261024_round63",
+    "safety": 134,
+    "traction_samples_during_refill": [
+      0,
+      0,
+      236
+    ],
+    "gap_min_m": 205.79346727021948,
+    "gap_max_m": 549.6827744784459,
+    "gap_end_m": [
+      549.6827744784459,
+      223.16417772070963
+    ],
+    "mean_speed_spread_max_kmh": 15.77754538888729
+  },
+  {
+    "run": "fleet_refill_chase640s_20261024_round64",
+    "safety": 0,
+    "traction_samples_during_refill": [
+      0,
+      0,
+      0
+    ],
+    "gap_min_m": 205.79346727021948,
+    "gap_max_m": 549.6827744784459,
+    "gap_end_m": [
+      549.6827744784459,
+      276.2281995678686
+    ],
+    "mean_speed_spread_max_kmh": 15.77754538888729
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "scope": "Failure forecast from safe origin; no future trajectory input",
+  "prediction_reason": "predicted_speed_ceiling",
+  "actual_reason": "speed_ceiling",
+  "predicted_last_time_s": 2382.4999999962615,
+  "actual_last_time_s": 2382.4999999850947,
+  "speed_mae_kmh_by_train": [
+    0.0002325333528759328,
+    5.840322553102336e-05,
+    0.0006606303333054336
+  ],
+  "predicted_leader_max_mean_kmh": 80.00326760645605,
+  "actual_leader_max_mean_kmh": 80.00290778805494,
+  "refill_remaining_at_stop_s": [
+    14.099999999999994
+  ],
+  "max_refill_error_s": 0.0,
+  "source_disagreement_fraction": 0.0,
+  "actual_source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_leader53_refill_limit_20261027_round122\\metadata.json": "28ef085257a42a3673e3aee5e96481110a5a2d6f3f1cb45fa885b457108e4c1e",
+    "outputs\\sim_validation\\phys_validation\\fleet_leader53_refill_limit_20261027_round122\\trajectory.npz": "e48ae0d5a6f937d14834ffaa0d84bfe58eda59f36afba87301d2ab05154ff9db",
+    "outputs\\sim_validation\\phys_validation\\fleet_leader53_refill_limit_20261027_round122\\telemetry.npz": "a2c627e7ce912e157a08f65be6e65e89b7af94d052d65daadd2b6c81139ed089"
+  }
+}

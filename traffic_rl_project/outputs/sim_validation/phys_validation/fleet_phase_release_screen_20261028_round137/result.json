@@ -1,0 +1,53 @@
+{
+  "scope": "Advisory only; no controller change",
+  "states": [
+    {
+      "state": "fleet_leader_prerelease55_20261027_round116",
+      "state_sha256": "69c7de3976c62e67a4c4c5189344271421b3da630f5756a6a7311aeb20e37d50",
+      "screen": {
+        "scope": "Phase-aware centroid advisory; no hard safety or recharge certificate",
+        "horizon_s": 248.46767258431387,
+        "build_reserve_s": 26.467672584313878,
+        "hypothetical_new_release": true,
+        "native_refill_remaining_s": [
+          0.0
+        ],
+        "current_residual_air_present": false,
+        "speed_ceiling_warning": true,
+        "speed_floor_warning": false,
+        "result": "warning_requires_native_validation",
+        "min_predicted_kmh": 55.02731654302434,
+        "max_predicted_kmh": 88.34170982150432,
+        "assumptions": [
+          "Instant full native ED; translating fixed relative vehicle positions",
+          "Residual air and future pneumatic buildup omitted; may cause false warnings",
+          "No future recorded trajectory used; actual ATP retains priority"
+        ]
+      }
+    },
+    {
+      "state": "fleet_release50_cycle_20261027_round124/stage_0008",
+      "state_sha256": "8692bae71c5c1eaf3fe85592aa4055a23e5ad4347a5648585952b2a761d086b2",
+      "screen": {
+        "scope": "Phase-aware centroid advisory; no hard safety or recharge certificate",
+        "horizon_s": 241.66741761434997,
+        "build_reserve_s": 26.46741761434998,
+        "hypothetical_new_release": false,
+        "native_refill_remaining_s": [
+          215.2
+        ],
+        "current_residual_air_present": true,
+        "speed_ceiling_warning": true,
+        "speed_floor_warning": false,
+        "result": "warning_requires_native_validation",
+        "min_predicted_kmh": 51.169545991731226,
+        "max_predicted_kmh": 80.11864653284535,
+        "assumptions": [
+          "Instant full native ED; translating fixed relative vehicle positions",
+          "Residual air and future pneumatic buildup omitted; may cause false warnings",
+          "No future recorded trajectory used; actual ATP retains priority"
+        ]
+      }
+    }
+  ]
+}

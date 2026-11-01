@@ -1,0 +1,815 @@
+{
+  "initial_cumulative_count": 0,
+  "event_count_from_counter_delta": 115,
+  "recorded_rule_counts": {
+    "etcs_permitted": 101,
+    "etcs_ebi": 14
+  },
+  "records": [
+    {
+      "time_s": 501.1000000051675,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.39 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 501.30000000517185,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.40 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 501.40000000517404,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.39 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 501.5000000051762,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.40 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 501.6000000051784,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.40 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 501.7000000051806,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.41 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 501.80000000518277,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.41 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 501.90000000518495,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.42 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 502.00000000518713,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.42 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 502.1000000051893,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.43 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 502.2000000051915,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.44 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 502.3000000051937,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.44 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 502.40000000519586,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.45 > SBI=17.37 -> service brake"
+    },
+    {
+      "time_s": 502.50000000519805,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.46 > SBI=17.37 -> service brake"
+    },
+    {
+      "time_s": 502.60000000520023,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.46 > SBI=17.37 -> service brake"
+    },
+    {
+      "time_s": 502.7000000052024,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.47 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 502.8000000052046,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.48 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 502.9000000052068,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.49 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 503.00000000520896,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.49 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 503.10000000521114,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.50 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 503.2000000052133,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.51 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 503.3000000052155,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.51 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 503.4000000052177,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.52 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 503.5000000052199,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.53 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 503.60000000522206,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.54 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 503.70000000522424,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.54 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 503.8000000052264,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.55 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 503.9000000052286,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.55 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 504.0000000052308,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.56 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 504.10000000523297,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.57 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 504.20000000523515,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.57 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 504.30000000523734,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.58 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 504.4000000052395,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.58 > SBI=17.37 -> service brake"
+    },
+    {
+      "time_s": 504.5000000052417,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.59 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 504.6000000052439,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.59 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 504.70000000524607,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.60 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 504.80000000524825,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.60 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 504.90000000525043,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.61 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 505.0000000052526,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.61 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 505.1000000052548,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.62 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 505.200000005257,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.62 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 505.30000000525916,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.63 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 505.40000000526135,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.63 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 505.50000000526353,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 505.6000000052657,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 505.7000000052679,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 505.8000000052701,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.65 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 505.90000000527226,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.65 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 506.00000000527444,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.66 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 506.1000000052766,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.66 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 506.2000000052788,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.66 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 506.300000005281,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 506.4000000052832,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 506.50000000528536,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 506.60000000528754,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.68 > SBI=17.38 -> service brake"
+    },
+    {
+      "time_s": 506.7000000052897,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.68 > EBI=17.64 -> emergency brake"
+    },
+    {
+      "time_s": 506.8000000052919,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.68 > EBI=17.64 -> emergency brake"
+    },
+    {
+      "time_s": 506.9000000052941,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.68 > EBI=17.64 -> emergency brake"
+    },
+    {
+      "time_s": 507.0000000052963,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.64 -> emergency brake"
+    },
+    {
+      "time_s": 507.10000000529845,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.65 -> emergency brake"
+    },
+    {
+      "time_s": 507.20000000530064,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.65 -> emergency brake"
+    },
+    {
+      "time_s": 507.3000000053028,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.65 -> emergency brake"
+    },
+    {
+      "time_s": 507.400000005305,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.66 -> emergency brake"
+    },
+    {
+      "time_s": 507.5000000053072,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.66 -> emergency brake"
+    },
+    {
+      "time_s": 507.60000000530937,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.66 -> emergency brake"
+    },
+    {
+      "time_s": 507.70000000531155,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.66 -> emergency brake"
+    },
+    {
+      "time_s": 507.80000000531373,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.67 -> emergency brake"
+    },
+    {
+      "time_s": 507.9000000053159,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.66 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 508.0000000053181,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.67 > EBI=17.67 -> emergency brake"
+    },
+    {
+      "time_s": 508.1000000053203,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.66 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 508.20000000532247,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 508.30000000532465,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 508.40000000532683,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 508.500000005329,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 508.6000000053312,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 508.7000000053334,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.67 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 508.80000000533556,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.66 > SBI=17.39 -> service brake"
+    },
+    {
+      "time_s": 508.90000000533774,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_ebi",
+      "detail": "v=17.66 > EBI=17.65 -> emergency brake"
+    },
+    {
+      "time_s": 509.0000000053399,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 509.1000000053421,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.65 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 509.2000000053443,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.40 -> service brake"
+    },
+    {
+      "time_s": 509.3000000053465,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 509.40000000534866,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.64 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 509.50000000535084,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.63 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 509.600000005353,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.63 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 509.7000000053552,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.62 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 509.8000000053574,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.61 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 509.9000000053596,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.61 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 510.00000000536176,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.60 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 510.10000000536394,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.60 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 510.2000000053661,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.59 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 510.3000000053683,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.58 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 510.4000000053705,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.58 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 510.50000000537267,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.57 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 510.60000000537485,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.56 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 510.70000000537703,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.55 > SBI=17.45 -> service brake"
+    },
+    {
+      "time_s": 510.8000000053792,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.54 > SBI=17.45 -> service brake"
+    },
+    {
+      "time_s": 510.9000000053814,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.54 > SBI=17.45 -> service brake"
+    },
+    {
+      "time_s": 511.0000000053836,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.53 > SBI=17.45 -> service brake"
+    },
+    {
+      "time_s": 511.10000000538577,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.52 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 511.20000000538795,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.51 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 511.30000000539013,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.50 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 511.4000000053923,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.49 > SBI=17.41 -> service brake"
+    },
+    {
+      "time_s": 511.5000000053945,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.48 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 511.6000000053967,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.47 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 511.70000000539886,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.46 > SBI=17.42 -> service brake"
+    },
+    {
+      "time_s": 511.80000000540105,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.45 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 511.90000000540323,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.44 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 512.0000000054054,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.43 > SBI=17.43 -> service brake"
+    },
+    {
+      "time_s": 512.2000000054097,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.49 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 512.4000000054141,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.48 > SBI=17.44 -> service brake"
+    },
+    {
+      "time_s": 512.6000000054185,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.46 > SBI=17.45 -> service brake"
+    },
+    {
+      "time_s": 512.900000005425,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.47 > SBI=17.46 -> service brake"
+    },
+    {
+      "time_s": 513.3000000054337,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.47 > SBI=17.47 -> service brake"
+    },
+    {
+      "time_s": 513.9000000054468,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=17.47 > SBI=17.43 -> service brake"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "initial_cumulative_count": 0,
+  "event_count_from_counter_delta": 8,
+  "recorded_rule_counts": {
+    "etcs_permitted": 8
+  },
+  "records": [
+    {
+      "time_s": 680.4000000090812,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.84 > SBI=16.82 -> service brake"
+    },
+    {
+      "time_s": 680.5000000090834,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.84 > SBI=16.82 -> service brake"
+    },
+    {
+      "time_s": 680.6000000090855,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.85 > SBI=16.82 -> service brake"
+    },
+    {
+      "time_s": 680.7000000090877,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.85 > SBI=16.82 -> service brake"
+    },
+    {
+      "time_s": 680.8000000090899,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.85 > SBI=16.83 -> service brake"
+    },
+    {
+      "time_s": 680.9000000090921,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.85 > SBI=16.83 -> service brake"
+    },
+    {
+      "time_s": 681.0000000090943,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.86 > SBI=16.83 -> service brake"
+    },
+    {
+      "time_s": 681.1000000090964,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=16.86 > SBI=16.83 -> service brake"
+    }
+  ]
+}

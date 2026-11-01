@@ -1,0 +1,11 @@
+{
+  "time_s": 5.7,
+  "train_one_based": 2,
+  "interface_one_based": 67,
+  "relative_speed_mps": -4.976995935379591e-05,
+  "velocity_force_slope_n_per_mps": -139215379.37765783,
+  "position_force_slope_n_per_m": 25459315.9874642,
+  "local_pair_velocity_relaxation_s": 0.00035915572132560173,
+  "note": "Local linearized isolated-pair scale only; not a global stability or error bound",
+  "physical_parameters_changed": false
+}

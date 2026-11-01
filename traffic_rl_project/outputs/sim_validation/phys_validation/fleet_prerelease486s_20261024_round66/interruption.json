@@ -1,0 +1,4 @@
+{
+  "status": "interrupted_before_result",
+  "reason": "Entry lacked the anticipation and margin overrides of round61; stopped and restarted with diagnose_following_margin.py. Not used for comparisons."
+}

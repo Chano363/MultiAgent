@@ -1,0 +1,53 @@
+{
+  "baseline": {
+    "air_work_mj_by_train": [
+      291.2566976690341,
+      1641.3045179854785,
+      1727.3325117969425
+    ],
+    "total_air_work_mj": 3659.893727451455,
+    "source_on_s": [
+      30.0,
+      200.0,
+      200.0
+    ],
+    "end_refill_remaining_s": [
+      52.099999999999994,
+      0.0,
+      0.0
+    ],
+    "final_leader_release_kmh": 54.0,
+    "override_active": false,
+    "heads_km": [
+      38.152859805417805,
+      35.81560371562268,
+      34.101270137653174
+    ]
+  },
+  "candidate": {
+    "air_work_mj_by_train": [
+      469.6817679660826,
+      1601.6198640405546,
+      1699.578777027438
+    ],
+    "total_air_work_mj": 3770.8804090340755,
+    "source_on_s": [
+      53.400000000000006,
+      200.0,
+      200.0
+    ],
+    "end_refill_remaining_s": [
+      75.5,
+      0.0,
+      0.0
+    ],
+    "final_leader_release_kmh": 54.0,
+    "override_active": false,
+    "heads_km": [
+      37.972831782716234,
+      35.72321077115616,
+      34.039410825607
+    ]
+  },
+  "scope": "Same 2121.2-2321.1s 200s window; not a completed fleet braking cycle or thermal safety verdict"
+}

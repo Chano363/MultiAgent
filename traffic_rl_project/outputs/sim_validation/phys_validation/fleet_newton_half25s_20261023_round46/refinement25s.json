@@ -1,0 +1,7 @@
+{
+  "scope": "25-second same-input refinement only; not a full-route error bound",
+  "commands_equal": true,
+  "max_signed_interface_difference_kn": 93.20162409868202,
+  "max_vehicle_speed_difference_kmh": 0.003997270527442254,
+  "internal_peak_difference_kn": 0.02744126507184319
+}

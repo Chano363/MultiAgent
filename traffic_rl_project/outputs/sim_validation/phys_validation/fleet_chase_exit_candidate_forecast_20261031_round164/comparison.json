@@ -1,0 +1,68 @@
+{
+  "scope": "Approximate forecast ranking only; frozen relative geometry, not native coupler acceptance",
+  "window_s": [
+    2521.2,
+    2671.1
+  ],
+  "samples": 1500,
+  "reference_gap_m": 183.33305555555555,
+  "baseline": {
+    "min_predicted_mean_kmh": 46.24128690913697,
+    "max_predicted_mean_kmh": 78.18800653135158,
+    "gap_mae_m": 249.87360935580298,
+    "mean_speed_spread_kmh": 4.146583824473583,
+    "min_gap_m": 333.3397354647459,
+    "end_gaps_m": [
+      600.6902797903458,
+      364.98234306765517
+    ],
+    "end_mean_kmh": [
+      58.77202086009596,
+      56.1812737403762,
+      53.52620667512872
+    ],
+    "air_work_mj_by_train": [
+      1878.3349955181313,
+      2409.4241581208157,
+      2303.2314885525834
+    ],
+    "air_work_mj_total": 6590.990642191528,
+    "native_safety_events": 0
+  },
+  "candidate": {
+    "min_predicted_mean_kmh": 46.204875343773864,
+    "max_predicted_mean_kmh": 78.18800653135158,
+    "gap_mae_m": 251.2859388906159,
+    "mean_speed_spread_kmh": 4.11716695263931,
+    "min_gap_m": 332.4238677417525,
+    "end_gaps_m": [
+      604.8110970460548,
+      358.9156614396925
+    ],
+    "end_mean_kmh": [
+      58.77202086009596,
+      56.92064466137447,
+      54.03536712665578
+    ],
+    "air_work_mj_by_train": [
+      1878.3349955181313,
+      2163.7834034211496,
+      2167.513560884357
+    ],
+    "air_work_mj_total": 6209.631959823634,
+    "native_safety_events": 0
+  },
+  "equal_completed_horizons": true,
+  "no_worse_on_all_three_screening_costs": false,
+  "changed_action_samples": 328,
+  "strictly_improves_at_least_one_cost": true,
+  "passes_effect_and_cost_screen": false,
+  "next_step": "Tradeoff or incomplete horizon: do not claim overall improvement",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_baseline_forecast_20261031_round163\\result.json": "8fdd35f09b8955c09ec1996f68d35d261a4c50f6571dc3cbf6a8b31654375543",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_baseline_forecast_20261031_round163\\forecast.npz": "fb2de343471010ace38959ae8774d2a585f949bacddb690d4b7ce11c5dc43b62",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_candidate_forecast_20261031_round164\\result.json": "8ed736c8c7c3477af7c4ceee3971e7aefbd6325cb963fc864fe7711c86799d79",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_candidate_forecast_20261031_round164\\forecast.npz": "438741c13339b3a15adf44dad26252b89e738adc942f945248f9837a3cad87d3"
+  },
+  "entry_sha256": "7a6ed69cac00496cbc8212548b55727e663a131f65fbfd8a0721808590190bdd"
+}

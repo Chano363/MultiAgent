@@ -1,0 +1,271 @@
+[
+  {
+    "run": "fleet_safety_attribution520s_20261023_round59",
+    "events": {
+      "etcs_permitted": 101,
+      "etcs_ebi": 14
+    },
+    "checkpoints": [
+      {
+        "time": 480.0000000047069,
+        "train2_head_kmh": 58.22215356777272,
+        "train1_head_kmh": 56.58747752527594,
+        "request": [
+          -0.07283929326670148,
+          0.0
+        ],
+        "physical_ed": [
+          0.0
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 490.0000000049252,
+        "train2_head_kmh": 60.55836438685314,
+        "train1_head_kmh": 57.545181489287764,
+        "request": [
+          0.03348432087319253,
+          0.0
+        ],
+        "physical_ed": [
+          0.03348432087319253
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 500.0000000051435,
+        "train2_head_kmh": 62.377531668469004,
+        "train1_head_kmh": 58.51446176904866,
+        "request": [
+          0.5346656303999069,
+          0.0
+        ],
+        "physical_ed": [
+          0.5346656303999069
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 501.0000000051653,
+        "train2_head_kmh": 62.590685725324455,
+        "train1_head_kmh": 58.61198779815403,
+        "request": [
+          0.5982150403847797,
+          0.0
+        ],
+        "physical_ed": [
+          0.5982150403847797
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 502.00000000518713,
+        "train2_head_kmh": 62.75158169887495,
+        "train1_head_kmh": 58.709618752379214,
+        "request": [
+          0.6327573110494527,
+          0.0
+        ],
+        "physical_ed": [
+          0.75
+        ],
+        "air_peak_n": 1059.5209662712468,
+        "safety_delta": 1
+      },
+      {
+        "time": 502.50000000519805,
+        "train2_head_kmh": 62.87379510178749,
+        "train1_head_kmh": 58.75847324230922,
+        "request": [
+          0.6723167381197115,
+          0.0
+        ],
+        "physical_ed": [
+          0.75
+        ],
+        "air_peak_n": 1648.7113686211305,
+        "safety_delta": 1
+      },
+      {
+        "time": 502.60000000520023,
+        "train2_head_kmh": 62.89918519111386,
+        "train1_head_kmh": 58.76824724437841,
+        "request": [
+          0.6808599207828223,
+          0.0
+        ],
+        "physical_ed": [
+          0.75
+        ],
+        "air_peak_n": 1766.5010656746344,
+        "safety_delta": 1
+      },
+      {
+        "time": 505.0000000052526,
+        "train2_head_kmh": 63.423092466903846,
+        "train1_head_kmh": 59.00312586542164,
+        "request": [
+          0.8462068414639035,
+          0.0
+        ],
+        "physical_ed": [
+          0.8462068414639035
+        ],
+        "air_peak_n": 4589.8926784457235,
+        "safety_delta": 1
+      },
+      {
+        "time": 510.00000000536176,
+        "train2_head_kmh": 63.34503237724515,
+        "train1_head_kmh": 59.49430090579991,
+        "request": [
+          -0.029182525490539332,
+          0.0
+        ],
+        "physical_ed": [
+          0.75
+        ],
+        "air_peak_n": 18242.787977006716,
+        "safety_delta": 1
+      }
+    ]
+  },
+  {
+    "run": "fleet_etcs_anticipation520s_20261023_round60",
+    "events": {
+      "etcs_permitted": 93
+    },
+    "checkpoints": [
+      {
+        "time": 480.0000000047069,
+        "train2_head_kmh": 58.22215356777272,
+        "train1_head_kmh": 56.58747752527594,
+        "request": [
+          -0.07283929326670148,
+          0.0
+        ],
+        "physical_ed": [
+          0.0
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 490.0000000049252,
+        "train2_head_kmh": 60.55836438685314,
+        "train1_head_kmh": 57.545181489287764,
+        "request": [
+          0.03348432087319253,
+          0.0
+        ],
+        "physical_ed": [
+          0.03348432087319253
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 500.0000000051435,
+        "train2_head_kmh": 62.17434990738183,
+        "train1_head_kmh": 58.51446176904866,
+        "request": [
+          0.7216516243685618,
+          0.0
+        ],
+        "physical_ed": [
+          0.7216516243685618
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 501.0000000051653,
+        "train2_head_kmh": 62.34853582417181,
+        "train1_head_kmh": 58.61198779815403,
+        "request": [
+          0.8644049457547993,
+          0.0
+        ],
+        "physical_ed": [
+          0.8644049457547993
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 502.00000000518713,
+        "train2_head_kmh": 62.57362207626199,
+        "train1_head_kmh": 58.709618752379214,
+        "request": [
+          0.9335930757366455,
+          0.0
+        ],
+        "physical_ed": [
+          0.9335930757366455
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 502.50000000519805,
+        "train2_head_kmh": 62.69272385656724,
+        "train1_head_kmh": 58.75847324230922,
+        "request": [
+          0.9724042109778352,
+          0.0
+        ],
+        "physical_ed": [
+          0.9724042109778352
+        ],
+        "air_peak_n": 0.0,
+        "safety_delta": 0
+      },
+      {
+        "time": 502.60000000520023,
+        "train2_head_kmh": 62.71288998226484,
+        "train1_head_kmh": 58.76824724437841,
+        "request": [
+          1.0,
+          -0.05
+        ],
+        "physical_ed": [
+          1.0
+        ],
+        "air_peak_n": 167.34254776931627,
+        "safety_delta": 1
+      },
+      {
+        "time": 505.0000000052526,
+        "train2_head_kmh": 63.2647877566678,
+        "train1_head_kmh": 59.00312586542164,
+        "request": [
+          1.0,
+          -0.05
+        ],
+        "physical_ed": [
+          1.0
+        ],
+        "air_peak_n": 4177.6757879041,
+        "safety_delta": 1
+      },
+      {
+        "time": 510.00000000536176,
+        "train2_head_kmh": 63.154130680226324,
+        "train1_head_kmh": 59.49430090579991,
+        "request": [
+          1.0,
+          -0.05
+        ],
+        "physical_ed": [
+          1.0
+        ],
+        "air_peak_n": 12536.557678354406,
+        "safety_delta": 1
+      }
+    ]
+  }
+]

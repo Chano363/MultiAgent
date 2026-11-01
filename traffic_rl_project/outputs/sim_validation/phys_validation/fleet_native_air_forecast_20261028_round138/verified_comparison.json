@@ -1,0 +1,77 @@
+{
+  "scope": "Retrospective forecast validation; not unseen generalization, real-time control or safety acceptance",
+  "window_s": [
+    2521.2,
+    2771.1
+  ],
+  "shared_samples": 2500,
+  "predicted_stop_reason": "horizon_completed",
+  "actual_stop_reason": "step_budget",
+  "predicted_end_s": 2771.099999968366,
+  "actual_end_s": 2771.099999922891,
+  "speed_mae_kmh_by_train": [
+    0.0008649813943195356,
+    0.003649848544625899,
+    0.00912449162144312
+  ],
+  "max_abs_speed_error_kmh_by_train": [
+    0.0017268255287774537,
+    0.007308574818213742,
+    0.025663184966124675
+  ],
+  "predicted_max_mean_kmh_by_train": [
+    75.95189197115826,
+    69.59170807119533,
+    67.74167053317768
+  ],
+  "actual_max_mean_kmh_by_train": [
+    75.95309427121684,
+    69.59743697601607,
+    67.7673337181438
+  ],
+  "actual_max_vehicle_kmh_by_train": [
+    75.9694695884648,
+    69.68775429041314,
+    67.78204514369247
+  ],
+  "source_disagreement_fraction_by_train": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "max_refill_error_s": 0.0,
+  "max_effective_coefficient_error_by_train": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "source_edges": {
+    "prediction": [
+      [
+        {
+          "time_s": 2736.2999999676063,
+          "on": true
+        }
+      ],
+      [],
+      []
+    ],
+    "actual": [
+      [
+        {
+          "time_s": 2736.2999999284616,
+          "on": true
+        }
+      ],
+      [],
+      []
+    ]
+  },
+  "actual_source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\metadata.json": "4c8c5411359faa884236cf2326cebf1179f24eb5c1d508ab0b44f1c0a769bdc7",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\fleet_state.json": "f9f499071417ae3de91b936cfea78df5a4ab772848c2ec7308122087172efb6d",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\trajectory.npz": "7d123097d3431fa2e65718b8be1ff43da7ffb3b6895a9d3f1d0ef12b7d9e4fde",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\telemetry.npz": "c1da735c2bb50947ef00011ea38db07f976f132eb8f904c0ca4f6473fbc8e168"
+  },
+  "entry_sha256": "483e3db3c9ad265de1cff8d8ac5729f99d7a153e1c267a5ebcc8704776e51282"
+}

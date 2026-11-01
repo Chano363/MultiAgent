@@ -1,0 +1,75 @@
+{
+  "scope": "Shared-window mechanical cost, not wheel heat or route acceptance",
+  "window_s": [
+    960.1,
+    980.0
+  ],
+  "sample_count": 200,
+  "integrated_duration_s": 20.0,
+  "baseline": {
+    "air_mechanical_work_mj_by_train": [
+      28.44005165003335,
+      185.18991008767594,
+      182.74417689857398
+    ],
+    "air_source_on_s_by_train": [
+      13.600000000000001,
+      20.0,
+      20.0
+    ],
+    "start_gaps_m": [
+      399.3962936143307,
+      286.88729390002845
+    ],
+    "end_gaps_m": [
+      462.0941560519768,
+      292.2396967075565
+    ],
+    "gap_change_m": [
+      62.69786243764611,
+      5.352402807528051
+    ],
+    "max_vehicle_power_kw_by_train": [
+      63.98432241752907,
+      85.83758609629791,
+      84.61120806652627
+    ]
+  },
+  "candidate": {
+    "air_mechanical_work_mj_by_train": [
+      28.44005165003335,
+      185.18991008767594,
+      183.570288781929
+    ],
+    "air_source_on_s_by_train": [
+      13.600000000000001,
+      20.0,
+      20.0
+    ],
+    "start_gaps_m": [
+      399.3962936143307,
+      286.88729390002845
+    ],
+    "end_gaps_m": [
+      462.0941560519768,
+      289.868534891988
+    ],
+    "gap_change_m": [
+      62.69786243764611,
+      2.9812409919595666
+    ],
+    "max_vehicle_power_kw_by_train": [
+      63.98432241752907,
+      85.83758609629791,
+      84.61120806652627
+    ]
+  },
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_second_held_air980s_20261025_round89\\metadata.json": "792131295c34db6f0654dd23f58e0446f17337f988e41b555889e2f32bc58bdd",
+    "outputs\\sim_validation\\phys_validation\\fleet_second_held_air980s_20261025_round89\\trajectory.npz": "ae12af3bab285537bbc8d359ea7e551df7272da2b989fa1508b5461b42dbf434",
+    "outputs\\sim_validation\\phys_validation\\fleet_second_held_air980s_20261025_round89\\telemetry.npz": "be60ad7ab66d8b6ea007a182a445e0d5f3e1293674627522ffc848f22cebfc6e",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_aware_air980s_20261025_round92\\metadata.json": "a5cdeb3d696ed54bb9ab481173b17a78fbb8e7d22a00b52bc8c7967300906da2",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_aware_air980s_20261025_round92\\trajectory.npz": "8860b831c6d7ed922a0a5ce325a925b5b7c3819ddab27d0eee6348bb60d91899",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_aware_air980s_20261025_round92\\telemetry.npz": "3891e5c552fa66eea14606b314122d6f8b4800c67702ff19d1074fbbeac441eb"
+  }
+}

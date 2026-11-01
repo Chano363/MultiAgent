@@ -1,0 +1,22 @@
+{
+  "trajectory.npz/rows": 0.0,
+  "trajectory.npz/commands": 0.0,
+  "trajectory.npz/vehicle_positions_m": 0.0,
+  "trajectory.npz/vehicle_speeds_mps": 0.0,
+  "trajectory.npz/coupler_interface_force_n": 0.0,
+  "trajectory.npz/effective_pressure_coefficient": 0.0,
+  "trajectory.npz/controller_steps": 0.0,
+  "telemetry.npz/vehicle_air_force_n": 0.0,
+  "telemetry.npz/physical_loco_ed": 0.0,
+  "telemetry.npz/heads": 0.0,
+  "telemetry.npz/last_vehicle_centers": 0.0,
+  "telemetry.npz/gap_min_m": 0.0,
+  "telemetry.npz/safety_events": 0.0,
+  "telemetry.npz/cyclic_braking": 0.0,
+  "telemetry.npz/safety_events_delta": 0.0,
+  "telemetry.npz/ab_source_on": 0.0,
+  "telemetry.npz/ab_last_release_step": 0.0,
+  "telemetry.npz/ab_refill_remaining_s": 0.0,
+  "telemetry.npz/ab_refill_veto_cumulative": 0.0,
+  "telemetry.npz/ed_hold_steps": 0.0
+}

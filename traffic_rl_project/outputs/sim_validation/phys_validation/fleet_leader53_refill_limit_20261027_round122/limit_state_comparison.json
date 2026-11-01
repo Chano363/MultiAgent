@@ -1,0 +1,32 @@
+{
+  "baseline54": {
+    "stop_time_s": 2347.599999990681,
+    "last_max_vehicle_kmh": 80.00705046019397,
+    "leader_mean_kmh": 79.9996846450758,
+    "leader_physical_ed": 1.0,
+    "leader_air_total_kn": -0.0,
+    "remaining_refill_s": 25.599999999999994,
+    "current_release_threshold": 54.0,
+    "leader_source_on": false,
+    "source_hold_elapsed_s": [
+      null,
+      425.8,
+      360.70000000000005
+    ]
+  },
+  "current_cycle53": {
+    "stop_time_s": 2382.4999999850947,
+    "last_max_vehicle_kmh": 80.00838339566678,
+    "leader_mean_kmh": 80.00290778805494,
+    "leader_physical_ed": 1.0,
+    "leader_air_total_kn": -0.0,
+    "remaining_refill_s": 14.099999999999994,
+    "current_release_threshold": 54.0,
+    "leader_source_on": false,
+    "source_hold_elapsed_s": [
+      null,
+      460.70000000000005,
+      395.6
+    ]
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "scope": "Shared-window mechanical cost, not wheel heat or route acceptance",
+  "window_s": [
+    1870.1,
+    1872.2
+  ],
+  "sample_count": 22,
+  "integrated_duration_s": 2.2,
+  "baseline": {
+    "air_mechanical_work_mj_by_train": [
+      1.2784405236386718,
+      0.0,
+      0.0
+    ],
+    "air_source_on_s_by_train": [
+      2.2,
+      0.0,
+      0.0
+    ],
+    "start_gaps_m": [
+      866.6023456249313,
+      216.6562959985131
+    ],
+    "end_gaps_m": [
+      876.6283622426308,
+      214.2393629484759
+    ],
+    "gap_change_m": [
+      10.026016617699497,
+      -2.416933050037187
+    ],
+    "max_vehicle_power_kw_by_train": [
+      21.284039866061203,
+      -0.0,
+      -0.0
+    ]
+  },
+  "candidate": {
+    "air_mechanical_work_mj_by_train": [
+      1.2784405236386718,
+      0.0,
+      0.0
+    ],
+    "air_source_on_s_by_train": [
+      2.2,
+      0.0,
+      0.0
+    ],
+    "start_gaps_m": [
+      866.6054635389883,
+      216.65629599851673
+    ],
+    "end_gaps_m": [
+      876.9427742501939,
+      214.23936294855594
+    ],
+    "gap_change_m": [
+      10.337310711205646,
+      -2.4169330499607895
+    ],
+    "max_vehicle_power_kw_by_train": [
+      21.284039866061203,
+      -0.0,
+      -0.0
+    ]
+  },
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_micropeak_original_20261026_round97\\metadata.json": "7ea21ce06be7f7e604f0fc4ebee16c14599e9f2c2bed0df99cd62a00707b1b2a",
+    "outputs\\sim_validation\\phys_validation\\fleet_micropeak_original_20261026_round97\\trajectory.npz": "64f23deca974363895897a7135ed9bf544039e421c42670819d36f2d393d45d6",
+    "outputs\\sim_validation\\phys_validation\\fleet_micropeak_original_20261026_round97\\telemetry.npz": "3dc5cb8121377f0ce4e340a23249cfe3f1b523dd2a180ee573ca51424ee17bca",
+    "outputs\\sim_validation\\phys_validation\\fleet_micropeak_no_traction_20261026_round98\\metadata.json": "f9046b0dfe7440927b2f9125442001fa6f48a55c626e36c1089d30005d4a5da3",
+    "outputs\\sim_validation\\phys_validation\\fleet_micropeak_no_traction_20261026_round98\\trajectory.npz": "4f0b016d756e0eb1a8b4d29e8f1513cffc44bff463c9ddeedc3b507fdff62cda",
+    "outputs\\sim_validation\\phys_validation\\fleet_micropeak_no_traction_20261026_round98\\telemetry.npz": "8611afe4d447dc4e72814922ce2948a7eb59a4aa7a834a090d52ad934d0210ae"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "scope": "Shared-window mechanical cost, not wheel heat or route acceptance",
+  "window_s": [
+    2871.2,
+    2971.1
+  ],
+  "sample_count": 1000,
+  "integrated_duration_s": 100.0,
+  "baseline": {
+    "air_mechanical_work_mj_by_train": [
+      885.2162270001058,
+      978.183026008864,
+      1041.61080727727
+    ],
+    "air_source_on_s_by_train": [
+      92.30000000000001,
+      100.0,
+      100.0
+    ],
+    "start_gaps_m": [
+      1295.8977005192355,
+      403.48645228511305
+    ],
+    "end_gaps_m": [
+      1115.9392980414123,
+      353.87949619020947
+    ],
+    "gap_change_m": [
+      -179.95840247782326,
+      -49.60695609490358
+    ],
+    "max_vehicle_power_kw_by_train": [
+      90.68567676326191,
+      91.06889508026639,
+      95.82902233594916
+    ]
+  },
+  "candidate": {
+    "air_mechanical_work_mj_by_train": [
+      885.2162270001058,
+      984.757057549288,
+      1044.793053021242
+    ],
+    "air_source_on_s_by_train": [
+      92.30000000000001,
+      100.0,
+      100.0
+    ],
+    "start_gaps_m": [
+      1295.8976871636114,
+      403.4864518748436
+    ],
+    "end_gaps_m": [
+      1099.9424716568246,
+      362.39429882324475
+    ],
+    "gap_change_m": [
+      -195.95521550678677,
+      -41.09215305159887
+    ],
+    "max_vehicle_power_kw_by_train": [
+      90.68567676326191,
+      91.2924218891124,
+      96.15599533821656
+    ]
+  },
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\metadata.json": "54c5e7c1cb0b1c079d172c94414a8574c23a89bf22d90c91a626914618bece31",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\trajectory.npz": "0345421d8066a810867b5f0b63a5771c313be8f8e58d6d0130e54b12b7c4fe56",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\telemetry.npz": "9ddca8b9970df7f36cf907d0e618445648cad604ac53ec0d2e649125d0eb478e",
+    "outputs\\sim_validation\\phys_validation\\fleet_shared_gap_balance_20261027_round130\\metadata.json": "a8058acffd7f52d9748805c5c1e3934394bcda94fed601409b4db69a9d827d99",
+    "outputs\\sim_validation\\phys_validation\\fleet_shared_gap_balance_20261027_round130\\trajectory.npz": "b3dc7664be264fc98f99e148b59004319241b683bf10d94ee5bf7891c45ee0ae",
+    "outputs\\sim_validation\\phys_validation\\fleet_shared_gap_balance_20261027_round130\\telemetry.npz": "0b1b2934a8cfa5b7ee0cc8f67fd2093d22115cd0f44d76f73cea3ccdf687bddd"
+  }
+}

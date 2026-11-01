@@ -1,0 +1,29 @@
+{
+  "status": "failed",
+  "error": "MechanicalConvergenceError('Time-error tolerance unresolved at t=0.0, h=1.953125e-05, ratio=1.0975493704989958')",
+  "settings": {
+    "max_step": 0.0025,
+    "min_step": 1e-05,
+    "force_atol_n": 1000.0,
+    "velocity_atol": 1e-05,
+    "position_atol": 1e-06,
+    "tol": 1e-09,
+    "max_iter": 100,
+    "force_tol_n": 0.01
+  },
+  "source_sha256": {
+    "error_controlled_mechanics": "5ce8dace6951eebd046d1dc2669e3969114574fa28456da37f247b50738b5622",
+    "adaptive_newmark_candidate": "e6dbe151e1c93104f77572ebea423c79925f63d869e9cc7af87f2311a691de9a",
+    "newton_mechanics_candidate": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+    "native_force_tangent": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec"
+  },
+  "elapsed_wall_s": 1.4042026000024634,
+  "experimental": true,
+  "production_default_changed": false,
+  "accepted_microsteps": 0,
+  "newton_calls": 0,
+  "rejected_trials": 0,
+  "internal_peak_kn": 0.0,
+  "max_force_residual_n": 0,
+  "scope": "Local engineering error indicators; not route acceptance"
+}

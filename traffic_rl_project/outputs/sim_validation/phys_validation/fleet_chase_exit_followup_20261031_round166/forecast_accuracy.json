@@ -1,0 +1,99 @@
+{
+  "scope": "Retrospective forecast validation; not unseen generalization, real-time control or safety acceptance",
+  "window_s": [
+    2521.2,
+    2671.1
+  ],
+  "shared_samples": 1500,
+  "predicted_stop_reason": "horizon_completed",
+  "actual_stop_reason": "step_budget",
+  "predicted_end_s": 2671.0999999661813,
+  "actual_end_s": 2671.099999939002,
+  "speed_mae_kmh_by_train": [
+    0.051440721919438784,
+    0.003376321154189835,
+    0.002405085566180771
+  ],
+  "max_abs_speed_error_kmh_by_train": [
+    0.11820306569486334,
+    0.004950530644422457,
+    0.004111102917887167
+  ],
+  "predicted_max_mean_kmh_by_train": [
+    76.0113868914613,
+    77.77063639693048,
+    78.18800653135158
+  ],
+  "actual_max_mean_kmh_by_train": [
+    76.00900839898897,
+    77.77059962226946,
+    78.18797094751712
+  ],
+  "actual_max_vehicle_kmh_by_train": [
+    76.02634257227099,
+    77.7756497937613,
+    78.19399850710236
+  ],
+  "source_disagreement_fraction_by_train": [
+    0.0013333333333333333,
+    0.0,
+    0.0
+  ],
+  "max_refill_error_s": 222.0,
+  "max_refill_error_s_when_source_mode_matches": 0.20000000000001705,
+  "timing_note": "A one-sample source-off shift can compare fresh 222s against pre-release 0s; raw error is retained",
+  "max_effective_coefficient_error_by_train": [
+    0.0327838995179941,
+    0.0,
+    0.0
+  ],
+  "source_edges": {
+    "prediction": [
+      [
+        {
+          "time_s": 2570.399999963983,
+          "on": false
+        }
+      ],
+      [
+        {
+          "time_s": 2571.499999964007,
+          "on": false
+        }
+      ],
+      [
+        {
+          "time_s": 2571.6999999640116,
+          "on": false
+        }
+      ]
+    ],
+    "actual": [
+      [
+        {
+          "time_s": 2570.199999955153,
+          "on": false
+        }
+      ],
+      [
+        {
+          "time_s": 2571.499999954945,
+          "on": false
+        }
+      ],
+      [
+        {
+          "time_s": 2571.699999954913,
+          "on": false
+        }
+      ]
+    ]
+  },
+  "actual_source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\metadata.json": "749df166b4a3dbebcdb42ee06ce2076d226b03a9a620e751cde18f8f03a8eab5",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\fleet_state.json": "95384933a8e1ba9b0608f7d68c751b7ec5cbd0fc98d3f4d20b6f23b3e4f656d3",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\trajectory.npz": "6e98f2a90d649ac32dd3ea8b9e515d60d0c992144360f025feb4d9d3536d9a98",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\telemetry.npz": "25b058a1f83612d2c94cd58dc8e7493a6ee0a142e9fca6d46cbdfa1f4148a844"
+  },
+  "entry_sha256": "5c0cddf0bea9e2fcc1af002294006465387ccd1f6f4d47e236385737565f5ce5"
+}

@@ -1,0 +1,65 @@
+{
+  "scope": "Approximate forecast ranking only; frozen relative geometry, not native coupler acceptance",
+  "window_s": [
+    2121.2,
+    2521.1
+  ],
+  "samples": 4000,
+  "reference_gap_m": 183.33305555555555,
+  "baseline": {
+    "min_predicted_mean_kmh": 49.862223505270485,
+    "max_predicted_mean_kmh": 78.17765615514388,
+    "gap_mae_m": 452.5115256021363,
+    "mean_speed_spread_kmh": 8.469614110092373,
+    "min_gap_m": 320.81050820541714,
+    "end_gaps_m": [
+      1214.1637617814922,
+      449.1603465521839
+    ],
+    "end_mean_kmh": [
+      51.15490445753986,
+      64.90732094843844,
+      64.92840293710333
+    ],
+    "air_work_mj_by_train": [
+      2888.203184935131,
+      3234.599189079224,
+      3376.635646169031
+    ],
+    "air_work_mj_total": 9499.438020183381,
+    "native_safety_events": 0
+  },
+  "candidate": {
+    "min_predicted_mean_kmh": 48.840736929753625,
+    "max_predicted_mean_kmh": 79.34812023992144,
+    "gap_mae_m": 376.0026518501262,
+    "mean_speed_spread_kmh": 4.447586740235629,
+    "min_gap_m": 319.99322534354724,
+    "end_gaps_m": [
+      775.7210720010917,
+      341.0064678343624
+    ],
+    "end_mean_kmh": [
+      59.46535210365548,
+      77.80606016115735,
+      78.23779946749774
+    ],
+    "air_work_mj_by_train": [
+      2433.656233196745,
+      1493.4291757446654,
+      1588.4363743303065
+    ],
+    "air_work_mj_total": 5515.521783271717,
+    "native_safety_events": 0
+  },
+  "equal_completed_horizons": true,
+  "no_worse_on_all_three_screening_costs": true,
+  "next_step": "Native mechanical validation still required; no automatic adoption",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_native_air_candidate50_20261028_round142\\result.json": "5d4f206be5446d1e43582d94aa5188001ffa475d6569a0ee0f03d435f89d9d4c",
+    "outputs\\sim_validation\\phys_validation\\fleet_native_air_candidate50_20261028_round142\\forecast.npz": "87879f4d477163b9a9445f705972b9c26473a9c689055038dd78f6ad09807660",
+    "outputs\\sim_validation\\phys_validation\\fleet_native_air_pace49_20261028_round143\\result.json": "a7e0d61dfecc70e0706c3d3d7350362ea5e9de6b04ad9529033bd375aabedffc",
+    "outputs\\sim_validation\\phys_validation\\fleet_native_air_pace49_20261028_round143\\forecast.npz": "f1aaa7f1a2988a36f45a9bf4a077d82d729707e6f315bb07cf9983405a71c8e9"
+  },
+  "entry_sha256": "30720cf4b5c98decba13f209a250485be7ca87123db769023d23485f61fe4bb6"
+}

@@ -1,0 +1,6 @@
+{
+  "parent_sha_equal": true,
+  "native_equal": true,
+  "numerical_settings_equal": true,
+  "scope": "Only leader release in current established-AB cycle 54 vs53; restore54 after source release"
+}

@@ -1,0 +1,26 @@
+{
+  "abrupt": {
+    "head_jerk_peak_mps3": 1.2147442315953327,
+    "head_jerk_mean_abs_mps3": 0.001030896399347008,
+    "ED_max_increase_per_step": 0.25972408056259155,
+    "third_air_mechanical_work_MJ_900to1200": 2029.1708496895458,
+    "third_source_changes": [
+      [
+        1126.9000000188273,
+        false
+      ]
+    ]
+  },
+  "smooth": {
+    "head_jerk_peak_mps3": 0.02079706824531513,
+    "head_jerk_mean_abs_mps3": 0.00029659744471257434,
+    "ED_max_increase_per_step": 0.0050000000000000044,
+    "third_air_mechanical_work_MJ_900to1200": 2042.6896424987588,
+    "third_source_changes": [
+      [
+        1128.3000000188579,
+        false
+      ]
+    ]
+  }
+}

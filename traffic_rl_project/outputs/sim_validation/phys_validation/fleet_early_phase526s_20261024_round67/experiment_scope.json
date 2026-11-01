@@ -1,0 +1,8 @@
+{
+  "comparison": "Enable existing phase release and refill chase isolation at complete486.8s state, before third train release, versus margin baseline round61",
+  "state_dir": "fleet_prerelease486s_margin_20261024_round66",
+  "scope_note": "Generic diagnose_refill_chase wrapper retains a legacy 520s comparison string; this run starts486.8s as manifest records",
+  "production_defaults_changed": false,
+  "rl_actions": "zero",
+  "pressure_timing_changed": false
+}

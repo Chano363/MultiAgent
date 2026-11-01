@@ -1,0 +1,13 @@
+{
+  "second_mean_minus_predecessor_head_kmh_min_max": [
+    3.6929854912993036,
+    5.237445536212668
+  ],
+  "second_command_ed_min_max": [
+    1.0,
+    1.0
+  ],
+  "second_final_gap_balance_enabled": true,
+  "second_final_held_balance_active": false,
+  "scope": "Post-step observations plus final flags; not an exact per-step eligibility trace"
+}

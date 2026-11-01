@@ -1,0 +1,114 @@
+{
+  "scope": "Measured coordination phase ledger; ED crossings are observations, not internal eligibility events or a thermal safety verdict",
+  "window_s": [
+    960.1,
+    980.0
+  ],
+  "samples": 200,
+  "gap_change_m": [
+    62.69786243764611,
+    2.9812409919595666
+  ],
+  "snapshots": [
+    {
+      "time_s": 960.1,
+      "mean_kmh": [
+        74.11941558327183,
+        62.990926324434405,
+        63.40449208414641
+      ],
+      "gaps_m": [
+        399.3962936143307,
+        286.88729390002845
+      ],
+      "physical_ed": [
+        1.0,
+        0.06728184223175049,
+        1.0
+      ],
+      "air_source_on": [
+        false,
+        true,
+        true
+      ],
+      "refill_remaining_s": [
+        6.399999999999977,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "time_s": 970.0,
+      "mean_kmh": [
+        75.12036108607302,
+        63.70497662621864,
+        62.9190923464433
+      ],
+      "gaps_m": [
+        430.30030206793526,
+        287.23501358779686
+      ],
+      "physical_ed": [
+        1.0,
+        0.06123155355453491,
+        0.6299999999999997
+      ],
+      "air_source_on": [
+        true,
+        true,
+        true
+      ],
+      "refill_remaining_s": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "time_s": 980.0,
+      "mean_kmh": [
+        75.70643068493581,
+        64.4250338467106,
+        63.15632343309237
+      ],
+      "gaps_m": [
+        462.0941560519768,
+        289.868534891988
+      ],
+      "physical_ed": [
+        1.0,
+        0.05502974987030029,
+        0.20524168014526367
+      ],
+      "air_source_on": [
+        true,
+        true,
+        true
+      ],
+      "refill_remaining_s": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_s": 962.9,
+      "train_one_based": 3,
+      "kind": "ED_below_0.99",
+      "physical_ed": 0.985,
+      "mean_kmh": 63.20828510527641
+    },
+    {
+      "time_s": 966.5,
+      "train_one_based": 1,
+      "kind": "air_source_on"
+    }
+  ],
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_aware_air980s_20261025_round92\\trajectory.npz": "8860b831c6d7ed922a0a5ce325a925b5b7c3819ddab27d0eee6348bb60d91899",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_aware_air980s_20261025_round92\\telemetry.npz": "3891e5c552fa66eea14606b314122d6f8b4800c67702ff19d1074fbbeac441eb",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_aware_air980s_20261025_round92\\metadata.json": "a5cdeb3d696ed54bb9ab481173b17a78fbb8e7d22a00b52bc8c7967300906da2"
+  }
+}

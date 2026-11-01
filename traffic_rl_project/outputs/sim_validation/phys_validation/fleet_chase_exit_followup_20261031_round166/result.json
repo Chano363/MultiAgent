@@ -1,0 +1,63 @@
+{
+  "status": "bounded_750s_completed",
+  "stages": [
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_followup_20261031_round166\\followup"
+  ],
+  "frozen_source_sha256": {
+    "pre_release_chase_exit": "34c97a10ccb91aa4ef0d3322027c728a0cc136fbcfbeb1a5a86f2c25925b7780",
+    "forecast_pre_release_chase_exit": "e49e1a852aef0e07af25ed86a73af4d2cc87eb42e4ec27119bb63d572a6b16c1",
+    "diagnose_pre_release_chase_exit": "6c42997181dd45dfa39eab26d58d486489475ec47b3dcc232ef8686750f63638",
+    "continue_fleet_numerics": "f64ebf6a030a86f8a791221c37d5c7b4bb685a2f0379166e3223fc1ebc8fdd1e"
+  },
+  "wall_s": 515.1781163000051,
+  "first_summary": {
+    "stop_reason": "step_budget",
+    "error": null,
+    "steps": 1500,
+    "full_route_completed": false,
+    "finish_m": null,
+    "final_tail_positions_m": [
+      42159.745588616635,
+      40261.70106793716,
+      38609.14696457533
+    ],
+    "last_time_s": 2671.099999939002,
+    "internal_peak_kn": 622.1634823831795,
+    "max_force_residual_n": 0.009999818244978087,
+    "accepted_microsteps": 361040,
+    "min_train_mean_kmh": 46.20080141190136,
+    "min_gap_m": 332.72203456974967,
+    "safety_event_count": 0,
+    "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+    "actual_air_force_peak_n": 21213.060026538154,
+    "vehicle_speed_floor_stop_enabled": true,
+    "min_vehicle_kmh": 46.18225681452237,
+    "max_vehicle_kmh": 78.19399850710236
+  },
+  "followup_summary": {
+    "stop_reason": "step_budget",
+    "error": null,
+    "steps": 2000,
+    "full_route_completed": false,
+    "finish_m": null,
+    "final_tail_positions_m": [
+      45980.528796063845,
+      44032.39170793185,
+      42294.47499158018
+    ],
+    "last_time_s": 2871.0999999069877,
+    "internal_peak_kn": 532.2892786842096,
+    "max_force_residual_n": 0.009989289584154903,
+    "accepted_microsteps": 480000,
+    "min_train_mean_kmh": 54.043073991991605,
+    "min_gap_m": 359.0928684304963,
+    "safety_event_count": 0,
+    "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+    "actual_air_force_peak_n": 4505.01655926331,
+    "vehicle_speed_floor_stop_enabled": true,
+    "min_vehicle_kmh": 54.03698487551929,
+    "max_vehicle_kmh": 74.81241225553912
+  },
+  "document": "D:\\Codex\\Documents\\Train\\controller_takeover_20261017\\\u7f16\u961f\u8ffd\u8d76\u4e0e\u7f13\u89e3\u4fdd\u6301\u63a5\u53e3\u4fee\u590d_20261031.md"
+}

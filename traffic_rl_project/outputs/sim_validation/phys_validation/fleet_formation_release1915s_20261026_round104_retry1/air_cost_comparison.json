@@ -1,0 +1,75 @@
+{
+  "scope": "Shared-window mechanical cost, not wheel heat or route acceptance",
+  "window_s": [
+    1895.1,
+    1915.0
+  ],
+  "sample_count": 200,
+  "integrated_duration_s": 20.0,
+  "baseline": {
+    "air_mechanical_work_mj_by_train": [
+      182.121153237004,
+      0.0,
+      0.0
+    ],
+    "air_source_on_s_by_train": [
+      20.0,
+      0.0,
+      0.0
+    ],
+    "start_gaps_m": [
+      970.1574332993114,
+      234.7881753734291
+    ],
+    "end_gaps_m": [
+      1003.1654368461022,
+      312.84047943941914
+    ],
+    "gap_change_m": [
+      33.00800354679086,
+      78.05230406599003
+    ],
+    "max_vehicle_power_kw_by_train": [
+      83.98046138624646,
+      -0.0,
+      -0.0
+    ]
+  },
+  "candidate": {
+    "air_mechanical_work_mj_by_train": [
+      182.121153237004,
+      0.0,
+      0.0
+    ],
+    "air_source_on_s_by_train": [
+      20.0,
+      0.0,
+      0.0
+    ],
+    "start_gaps_m": [
+      970.1574332993114,
+      234.78816150813145
+    ],
+    "end_gaps_m": [
+      1003.1654368461022,
+      308.41175452352036
+    ],
+    "gap_change_m": [
+      33.00800354679086,
+      73.6235930153889
+    ],
+    "max_vehicle_power_kw_by_train": [
+      83.98046138624646,
+      -0.0,
+      -0.0
+    ]
+  },
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_traction_slew1915s_20261026_round103\\metadata.json": "0851a12b81153c0028178e65505fa655c25f53af81e3b02638afadbe559ae3a8",
+    "outputs\\sim_validation\\phys_validation\\fleet_traction_slew1915s_20261026_round103\\trajectory.npz": "206cece5af85f9bbd276116b18b9419d59afa1bdc41427714416b29ec798892a",
+    "outputs\\sim_validation\\phys_validation\\fleet_traction_slew1915s_20261026_round103\\telemetry.npz": "e3e9acae232ad82a7ddbcf62542b392ff8e80629801cc1b577fef5197ab9215d",
+    "outputs\\sim_validation\\phys_validation\\fleet_formation_release1915s_20261026_round104_retry1\\metadata.json": "0e1ba18754d510d934525948a7fbf6dfbfca51a0d8b877f7c34e1c1b6e63cc93",
+    "outputs\\sim_validation\\phys_validation\\fleet_formation_release1915s_20261026_round104_retry1\\trajectory.npz": "1b27473ee0070a3a16fa4ec455a6f87b0af076abe6adc7e22704cea425c3fa4e",
+    "outputs\\sim_validation\\phys_validation\\fleet_formation_release1915s_20261026_round104_retry1\\telemetry.npz": "07f442f4035eb855b341c1267f036873bcc7de44886b21c97f4a83f73cfbd7a9"
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "status": "bounded_window_completed",
+  "scope": "One-cycle 50km/h candidate from 2121.1s, real native pneumatic evolution, 400s maximum; not full-route acceptance",
+  "initial_state": "outputs\\sim_validation\\phys_validation\\fleet_leader_prerelease55_20261027_round116",
+  "stages": [
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0001",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          34129.68672151524,
+          32086.813102420663,
+          30388.7022755212
+        ],
+        "last_time_s": 2171.100000018932,
+        "internal_peak_kn": 538.5750031186639,
+        "max_force_residual_n": 0.009949915333436365,
+        "accepted_microsteps": 120014,
+        "min_train_mean_kmh": 53.158463255166474,
+        "min_gap_m": 404.455949345127,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 4857.648261078258,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 53.153525605792915,
+        "max_vehicle_kmh": 61.75753650846998
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0002",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          34851.270964049574,
+          32831.04741772596,
+          31188.757526955014
+        ],
+        "last_time_s": 2221.1000000109284,
+        "internal_peak_kn": 564.9121884736851,
+        "max_force_residual_n": 0.008583578281104565,
+        "accepted_microsteps": 120034,
+        "min_train_mean_kmh": 50.75198795980869,
+        "min_gap_m": 348.8000183040567,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 4903.1153852223715,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 50.747771206218225,
+        "max_vehicle_kmh": 59.13989544926109
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0003",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          35557.13262891136,
+          33547.04186890873,
+          31931.9441525919
+        ],
+        "last_time_s": 2271.100000002925,
+        "internal_peak_kn": 576.0230829462433,
+        "max_force_residual_n": 0.009885295768071956,
+        "accepted_microsteps": 120012,
+        "min_train_mean_kmh": 49.86687898287186,
+        "min_gap_m": 321.49342168890144,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 4966.871881014901,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 49.86090422511608,
+        "max_vehicle_kmh": 55.726260587131776
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0004",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          36337.58153090348,
+          34268.26255955419,
+          32641.15624598097
+        ],
+        "last_time_s": 2321.0999999949213,
+        "internal_peak_kn": 562.400392402596,
+        "max_force_residual_n": 0.009987520694267005,
+        "accepted_microsteps": 120178,
+        "min_train_mean_kmh": 50.42474904104338,
+        "min_gap_m": 320.85288964752544,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 4980.188094361134,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 50.325782512617955,
+        "max_vehicle_kmh": 59.730080709364294
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0005",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          37219.31196934819,
+          35038.880974207204,
+          33386.1650866281
+        ],
+        "last_time_s": 2371.0999999869177,
+        "internal_peak_kn": 484.04579844833387,
+        "max_force_residual_n": 0.009129549619501631,
+        "accepted_microsteps": 120000,
+        "min_train_mean_kmh": 52.16320839191269,
+        "min_gap_m": 332.8830501989505,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 4953.3744100631975,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 52.154378019506645,
+        "max_vehicle_kmh": 67.12975872009304
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0006",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          38194.93457436392,
+          35859.43919780864,
+          34175.83848519728
+        ],
+        "last_time_s": 2421.099999978914,
+        "internal_peak_kn": 430.7893855883366,
+        "max_force_residual_n": 0.009984854142203403,
+        "accepted_microsteps": 120000,
+        "min_train_mean_kmh": 55.205257497412695,
+        "min_gap_m": 358.56137529098487,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 4910.381535871496,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 55.20037484267006,
+        "max_vehicle_kmh": 73.19100730078286
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0007",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          39250.93071200641,
+          36730.088591588596,
+          35013.26807750357
+        ],
+        "last_time_s": 2471.0999999709124,
+        "internal_peak_kn": 393.87220177318454,
+        "max_force_residual_n": 0.00993747846723636,
+        "accepted_microsteps": 120030,
+        "min_train_mean_kmh": 58.56325026076994,
+        "min_gap_m": 389.2677667243479,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 14642.991512845976,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 58.545961585401,
+        "max_vehicle_kmh": 78.31678691588571
+      }
+    },
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0008",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 500,
+        "full_route_completed": false,
+        "finish_m": null,
+        "final_tail_positions_m": [
+          40145.11560795729,
+          37638.067196761986,
+          35897.75478692472
+        ],
+        "last_time_s": 2521.099999962909,
+        "internal_peak_kn": 556.1304833919068,
+        "max_force_residual_n": 0.00994491401797859,
+        "accepted_microsteps": 120000,
+        "min_train_mean_kmh": 51.14219116456358,
+        "min_gap_m": 422.48977459365415,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 20950.97193312897,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 51.11470787970055,
+        "max_vehicle_kmh": 77.2883373070441
+      }
+    }
+  ],
+  "elapsed_wall_s": 4802.191827058792,
+  "last_time_s": 2521.099999962909
+}

@@ -1,0 +1,6 @@
+{
+  "parent_state_sha_equal": true,
+  "native_hashes_equal": true,
+  "numerical_settings_equal": true,
+  "scope": "Only third-train preview enabling differs; same tested logic, same state and physics"
+}

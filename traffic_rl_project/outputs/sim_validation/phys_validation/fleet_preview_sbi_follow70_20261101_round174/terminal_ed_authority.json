@@ -1,0 +1,56 @@
+{
+  "scope": "Read-only failed-trajectory terminal force audit, not restart or new validation",
+  "time_s": 3113.1999998683173,
+  "trains": [
+    {
+      "train": 1,
+      "gravity_kn": 161.63238119999997,
+      "resistance_kn": 224.18024708064473,
+      "air_kn": -0.0,
+      "full_ed_capacity_kn": 691.8086563884732,
+      "equilibrium_ed_kn": -62.547865880644764,
+      "acceleration_with_full_ed_mps2": -0.06865275958037113,
+      "refill_remaining_s": [
+        103.8
+      ],
+      "source_on": [
+        false
+      ]
+    },
+    {
+      "train": 2,
+      "gravity_kn": 300.68996920000006,
+      "resistance_kn": 229.5791100842844,
+      "air_kn": -0.0,
+      "full_ed_capacity_kn": 670.903569559602,
+      "equilibrium_ed_kn": 71.11085911571567,
+      "acceleration_with_full_ed_mps2": -0.05458615857698275,
+      "refill_remaining_s": [
+        133.6
+      ],
+      "source_on": [
+        false
+      ]
+    },
+    {
+      "train": 3,
+      "gravity_kn": 1178.4983483999995,
+      "resistance_kn": 274.87355113700005,
+      "air_kn": 0.11589780252245391,
+      "full_ed_capacity_kn": 547.2352131132584,
+      "equilibrium_ed_kn": 903.5088994604771,
+      "acceleration_with_full_ed_mps2": 0.032423888455334796,
+      "refill_remaining_s": [
+        140.89999999999998
+      ],
+      "source_on": [
+        false
+      ]
+    }
+  ],
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_preview_sbi_follow70_20261101_round174\\trajectory.npz": "40d1788c833473e578c7d9746e30197fc932682dc452de4fb930262aefbe35ee",
+    "outputs\\sim_validation\\phys_validation\\fleet_preview_sbi_follow70_20261101_round174\\telemetry.npz": "e0923cdc45f2472defc24a89ac6098f2fe26f54415014870565ce60cf8276bab",
+    "outputs\\sim_validation\\phys_validation\\fleet_preview_sbi_follow70_20261101_round174\\metadata.json": "779e54278290299c956f180fcfe4d3a2fe8926de7bebb3d922e15764979ec189"
+  }
+}

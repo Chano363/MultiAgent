@@ -1,0 +1,2142 @@
+{
+  "scope": "Read-only sampled force attribution, not a causal control counterfactual",
+  "accounting": "End-sample forces versus preceding 0.1s mass-weighted acceleration; not an exact microstep reconstruction",
+  "origin_manifest": {
+    "format": "trusted-local-fleet-v1",
+    "sha256": "69c7de3976c62e67a4c4c5189344271421b3da630f5756a6a7311aeb20e37d50",
+    "native_source_sha256": {
+      "src/controllers/low_level_controller.py": "c5e13692dfa8935395213ec0d53f6e2d880aa095535a3014758dd727e828db9f",
+      "src/controllers/multi_loco_controller.py": "078a976357ddccdcfa957b689f7be7685bf7178a3d6ac1bcacebdb432f5da5d1",
+      "src/controllers/nmpc_controller.py": "c12d7be5804b7cbdb5e59d869c764fe9c219fb32bbaab99fbb93da4771a21765",
+      "src/environments/train_env.py": "b3386eda2e715d86a39682b2701be056863d37332c43fa6bc902e95f937658e0",
+      "src/environments/train_fleet_env.py": "3492ccea5f23fca89192c577dd10269aca3f67bcbba3c02c737d1d5e81710770",
+      "src/physics_config.py": "e8c7bf7c4e7fb718e0831845f1cb97627d14cf239821dc4434063f6a08b138d2",
+      "src/safety_layer.py": "732914ee95cbcaa34f3ca67572d057b8996961df3b46e0edbaa1f3111bc07031",
+      "src/train_dynamics/__init__.py": "83cde6352f285d525391d2e01ca51bccd367b0750982f60cb190b13d14abfc8d",
+      "src/train_dynamics/braking.py": "752755580b6a809e0cb25f5a7e59a878b19b8256981aaa6dea500b622e6ca5f3",
+      "src/train_dynamics/coupler.py": "75b0e88de6cf4f13fb981394805320ab814cecfcb7ba826f31bc4b27f8a89af1",
+      "src/train_dynamics/etcs_braking.py": "6f24bdbc51ee86ba6574cbb268ac726d13f23b9dbb5b76dfb13da9a1e23d4466",
+      "src/train_dynamics/grade_profile.py": "2dc78407b29700e5d6c801daa3193a39681e495a03efd03878eede034f85944c",
+      "src/train_dynamics/params.py": "76b253a73774fab6118308df3e94d3a4711c97fbc7ba90047e06e1ec90b91394",
+      "src/train_dynamics/resistance.py": "9faaedb56e36e61bc34a13d4c6e1b84e5344963c56b1709f2e38b248cd1c477f",
+      "src/train_dynamics/rigid_multi_particle.py": "4e3918ff882d81cfb9f9825b2e8f47f4ff580215e99b12ee5075de8cf637b014",
+      "src/train_dynamics/tractive.py": "76b3ed7c946be1c19afc0f692738f68488dc6cef6e09e06cff16f7d82ed0e780",
+      "src/train_dynamics/train.py": "f940f3574c2df73d71d9c045ac76b9fb51b59ecb7b0ac196e270d5076a88525e"
+    },
+    "numerical": {
+      "solver": "newton_analytic_time_error",
+      "settings": {
+        "max_step": 0.0025,
+        "min_step": 1e-07,
+        "force_atol_n": 1000.0,
+        "velocity_atol": 1e-05,
+        "position_atol": 1e-06,
+        "tol": 1e-09,
+        "max_iter": 100,
+        "force_tol_n": 0.01
+      },
+      "source_sha256": {
+        "error_controlled_mechanics": "5ce8dace6951eebd046d1dc2669e3969114574fa28456da37f247b50738b5622",
+        "adaptive_newmark_candidate": "e6dbe151e1c93104f77572ebea423c79925f63d869e9cc7af87f2311a691de9a",
+        "newton_mechanics_candidate": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+        "native_force_tangent": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec",
+        "release_budget_guard": "545a9347b716277daab1bab69af7d78fce83e84d0544039958167c2d0cd30216",
+        "release_low_speed_controller": "133c335f4d4663b5856095131068e82b03a570009c0eba570d63a785e0700af3",
+        "diagnose_etcs_anticipation": "c2ad7280e5cf82da6b78cd0a1108ba1471f3f8500bebb1d3ebe985d0537dc420",
+        "following_speed_margin": "307af0d4b4095b23e01e2f5cc0f09e8840ba46fb39d19090984f686e8ac43553",
+        "diagnose_following_margin": "b27f77bb1e92f6199d92bc0573cc8b5230b4bdb70fd8b7f8fba067e06c0dab54",
+        "phase_aware_release": "0918fec94d0fba5fa14c2b42ec85222a09201240d27fc33422ff0f6e7e30ac59",
+        "refill_chase_guard": "811c1484030a7ca26d308d2dd07847c236306b23f9c88193be31b4d9a092f9b6",
+        "diagnose_refill_chase": "0a4a67de686b995ac462c5d069218c7dbd69837b5399f379e33ea16455beef48",
+        "diagnose_leader_release": "bac5a43ebdab3180e4a883736a493b524ecadab3b5e509a443b0e3d6e75c2f58",
+        "held_air_speed_balance": "e05344d5a9c773f542c9f67e7e3290b2916c6cef5196a1093699465572dd5f47",
+        "diagnose_held_air_balance": "a7a86571cf2ba328dc71dc551b20cee13577dad4fc2da135d8974c2056dd0805",
+        "held_air_smooth_handoff": "f3a071d333b6db1c38b1baffbe0dc72071e6a2ef5f2eda50279cdb3e114298fc",
+        "diagnose_smooth_held_air": "f5739cc250dbcbe53b487b15c70bebf61e21924469f95fc7d07c68e05552f3f4",
+        "diagnose_second_held_air": "de40f32175a1424be6ffe955d75c15ac4aab351524c47425ead6151f98c65600",
+        "gap_aware_air_balance": "6e62eccea355b502e226e102dc7f00bd4e0567d79ee7b9beece743e20323e20b",
+        "diagnose_gap_aware_air": "ac214b73da1f9f80aa2943a47cbe25023a1fda32a775405d0ffd058490cc6d61",
+        "formation_traction_slew": "9d685aa717eec52e3a8a66c13fffd6e0eeae3796e5462e26abae96eb8fa6af5d",
+        "diagnose_formation_traction_slew": "9e3fecc4f400a10adc271340859b7370cee1574f71b01838e01779b559919573",
+        "micropeak_observer": "25f585fcb8856aa03fc1a44c0db0b3c80ef96db17a15cf5cf48d40927a89e14d",
+        "diagnose_micropeak": "20fe8357bf12a2d61b2b7534200e49295284f0e92022a00a344596dc2351a403",
+        "formation_release_budget": "238a2e75c3ee0bbfeed0147f3cd2f0278b142c427d37ff87e452ce5acaca605a",
+        "diagnose_formation_release_budget": "21cca1854dc1de2e0090082720cb5a71a6e9a9b84b67b1cd113fbd3b2d1b1b58",
+        "traction_brake_preview": "4c0027852cc8da7a5223a8b1947f05863456f6def1c8b0256e1b46f102b1e90f",
+        "diagnose_traction_brake_preview": "843d0e7112c8cf07e281c05dd6bd358dc30a145d7385a1879e9b4831e68d9347",
+        "diagnose_shared_brake_preview": "71518166a5c5753b0ab3055bb3ae18052d1bfc988ac6c637b8c342d50a6976a7"
+      }
+    },
+    "elapsed_s": [
+      2121.1000000269355,
+      2121.100000026574,
+      2121.1000000253753
+    ],
+    "num_trains": 3,
+    "numpy_version": "2.3.5",
+    "python_version": [
+      3,
+      13
+    ],
+    "scope": "Complete fleet/controller/air/history state; requires matching numerical context"
+  },
+  "native_source_sha256": {
+    "src/controllers/low_level_controller.py": "c5e13692dfa8935395213ec0d53f6e2d880aa095535a3014758dd727e828db9f",
+    "src/controllers/multi_loco_controller.py": "078a976357ddccdcfa957b689f7be7685bf7178a3d6ac1bcacebdb432f5da5d1",
+    "src/controllers/nmpc_controller.py": "c12d7be5804b7cbdb5e59d869c764fe9c219fb32bbaab99fbb93da4771a21765",
+    "src/environments/train_env.py": "b3386eda2e715d86a39682b2701be056863d37332c43fa6bc902e95f937658e0",
+    "src/environments/train_fleet_env.py": "3492ccea5f23fca89192c577dd10269aca3f67bcbba3c02c737d1d5e81710770",
+    "src/physics_config.py": "e8c7bf7c4e7fb718e0831845f1cb97627d14cf239821dc4434063f6a08b138d2",
+    "src/safety_layer.py": "732914ee95cbcaa34f3ca67572d057b8996961df3b46e0edbaa1f3111bc07031",
+    "src/train_dynamics/__init__.py": "83cde6352f285d525391d2e01ca51bccd367b0750982f60cb190b13d14abfc8d",
+    "src/train_dynamics/braking.py": "752755580b6a809e0cb25f5a7e59a878b19b8256981aaa6dea500b622e6ca5f3",
+    "src/train_dynamics/coupler.py": "75b0e88de6cf4f13fb981394805320ab814cecfcb7ba826f31bc4b27f8a89af1",
+    "src/train_dynamics/etcs_braking.py": "6f24bdbc51ee86ba6574cbb268ac726d13f23b9dbb5b76dfb13da9a1e23d4466",
+    "src/train_dynamics/grade_profile.py": "2dc78407b29700e5d6c801daa3193a39681e495a03efd03878eede034f85944c",
+    "src/train_dynamics/params.py": "76b253a73774fab6118308df3e94d3a4711c97fbc7ba90047e06e1ec90b91394",
+    "src/train_dynamics/resistance.py": "9faaedb56e36e61bc34a13d4c6e1b84e5344963c56b1709f2e38b248cd1c477f",
+    "src/train_dynamics/rigid_multi_particle.py": "4e3918ff882d81cfb9f9825b2e8f47f4ff580215e99b12ee5075de8cf637b014",
+    "src/train_dynamics/tractive.py": "76b3ed7c946be1c19afc0f692738f68488dc6cef6e09e06cff16f7d82ed0e780",
+    "src/train_dynamics/train.py": "f940f3574c2df73d71d9c045ac76b9fb51b59ecb7b0ac196e270d5076a88525e"
+  },
+  "peak_spread_time_s": 2531.999999961164,
+  "peak_spread_kmh": 20.265997231782237,
+  "controller_config": [
+    {
+      "train": 1,
+      "locomotives": 1,
+      "native_conversion": true,
+      "release_boost_request_kn": 900.0,
+      "hold_s": 50.0,
+      "coordination": true
+    },
+    {
+      "train": 2,
+      "locomotives": 1,
+      "native_conversion": true,
+      "release_boost_request_kn": 900.0,
+      "hold_s": 50.0,
+      "coordination": true
+    },
+    {
+      "train": 3,
+      "locomotives": 1,
+      "native_conversion": true,
+      "release_boost_request_kn": 900.0,
+      "hold_s": 50.0,
+      "coordination": true
+    }
+  ],
+  "samples": [
+    {
+      "time_s": 2491.999999967567,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 40780.579129531994,
+          "mean_kmh": 75.27218401137999,
+          "mass_weighted_grade_per_mille": -11.476701856570804,
+          "gravity_kn": 1236.6710995999997,
+          "resistance_kn": 398.1430135251243,
+          "air_braking_kn": 1569.7829227761615,
+          "actual_ed_kn": 390.24072270220495,
+          "native_ed_capacity_kn": 390.24072270220495,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.1020654859304233,
+          "measured_interval_cm_accel_mps2": -0.10156332945954202,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7687562704086304,
+              "achieved_kn": 300.0000025461156,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 390.24072270220495,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 390.24072270220495,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 390.24072270220495,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 390.24072270220495,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 38622.62386265602,
+          "mean_kmh": 77.1452918365052,
+          "mass_weighted_grade_per_mille": -11.014197306152166,
+          "gravity_kn": 1186.8339583999993,
+          "resistance_kn": 410.4351027085216,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 381.05106670244015,
+          "native_ed_capacity_kn": 381.05106670244015,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            14.099999999999994
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.035979958954226225,
+          "measured_interval_cm_accel_mps2": 0.03599499595748716,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7872960567474365,
+              "achieved_kn": 300.0000022342356,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 381.05106670244015,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 381.05106670244015,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 381.05106670244015,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 381.05106670244015,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 36992.04576785605,
+          "mean_kmh": 76.29889337731704,
+          "mass_weighted_grade_per_mille": -11.23734983618493,
+          "gravity_kn": 1210.8797415999995,
+          "resistance_kn": 404.85385411968826,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 299.9321534607236,
+          "native_ed_capacity_kn": 384.53258857963397,
+          "ed_command": [
+            0.7799915075302124
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            15.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.0460587672023651,
+          "measured_interval_cm_accel_mps2": 0.0460603313195912,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7801679968833923,
+              "achieved_kn": 300.00001936855864,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 384.53258857963397,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 384.53258857963397,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 384.53258857963397,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 384.53258857963397,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2501.9999999659663,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 40983.191422079726,
+          "mean_kmh": 70.23317031450216,
+          "mass_weighted_grade_per_mille": -11.708773207135057,
+          "gravity_kn": 1261.6779295999995,
+          "resistance_kn": 366.34131209118163,
+          "air_braking_kn": 2178.4858328335804,
+          "actual_ed_kn": 417.9267824848153,
+          "native_ed_capacity_kn": 417.9267824848153,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.1548121585192553,
+          "measured_interval_cm_accel_mps2": -0.1547960672611097,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7178291082382202,
+              "achieved_kn": 300.00000957994354,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.9571054577827454,
+              "achieved_kn": 400.0000044697989,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 417.9267824848153,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 417.9267824848153,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 417.9267824848153,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 38838.59315144079,
+          "mean_kmh": 78.39284259653246,
+          "mass_weighted_grade_per_mille": -10.768474699672371,
+          "gravity_kn": 1160.3561383999995,
+          "resistance_kn": 418.76824535609256,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 374.65207010399473,
+          "native_ed_capacity_kn": 374.65207010399473,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            4.099999999999994
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.03339423215689045,
+          "measured_interval_cm_accel_mps2": 0.033399751628817115,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.8007429838180542,
+              "achieved_kn": 300.0000165086836,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 374.65207010399473,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 374.65207010399473,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 374.65207010399473,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 374.65207010399473,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 37206.17149308794,
+          "mean_kmh": 77.81295500560773,
+          "mass_weighted_grade_per_mille": -11.368401892974154,
+          "gravity_kn": 1225.0012455999997,
+          "resistance_kn": 414.87944886698574,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 377.7547085563599,
+          "native_ed_capacity_kn": 377.7547085563599,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            5.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.03934902513438789,
+          "measured_interval_cm_accel_mps2": 0.039349395093163556,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7941661477088928,
+              "achieved_kn": 300.0000016730999,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 377.7547085563599,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 377.7547085563599,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 377.7547085563599,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 377.7547085563599,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2511.9999999643655,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 41170.484603499935,
+          "mean_kmh": 64.63225814606935,
+          "mass_weighted_grade_per_mille": -11.773571168547505,
+          "gravity_kn": 1268.6602288000004,
+          "resistance_kn": 333.16187991748285,
+          "air_braking_kn": 2208.2439243713875,
+          "actual_ed_kn": 454.6681343558427,
+          "native_ed_capacity_kn": 454.6681343558427,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.15720911083406558,
+          "measured_interval_cm_accel_mps2": -0.15718797548201657,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.6598219275474548,
+              "achieved_kn": 300.00000480507725,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.879762589931488,
+              "achieved_kn": 400.000015440214,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.9897329211235046,
+              "achieved_kn": 450.00002075778224,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 454.6681343558427,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 454.6681343558427,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 39057.854190431644,
+          "mean_kmh": 79.34762576425712,
+          "mass_weighted_grade_per_mille": -10.631962140516928,
+          "gravity_kn": 1145.6462384,
+          "resistance_kn": 425.21664853252963,
+          "air_braking_kn": 325.38996612205636,
+          "actual_ed_kn": 370.6038830265517,
+          "native_ed_capacity_kn": 370.6038830265517,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.0022238570002604857,
+          "measured_interval_cm_accel_mps2": 0.0026728631531369343,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.8094896674156189,
+              "achieved_kn": 300.0000140141003,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 370.6038830265517,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 370.6038830265517,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 370.6038830265517,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 370.6038830265517,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 37424.22934124723,
+          "mean_kmh": 79.1204194797011,
+          "mass_weighted_grade_per_mille": -11.517655624317438,
+          "gravity_kn": 1241.0840696,
+          "resistance_kn": 423.6752312862233,
+          "air_braking_kn": 235.08553865620388,
+          "actual_ed_kn": 371.66750924962037,
+          "native_ed_capacity_kn": 371.66750924962037,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.019171440699668047,
+          "measured_interval_cm_accel_mps2": 0.01955355580092489,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.8071730732917786,
+              "achieved_kn": 300.0000056837166,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 371.66750924962037,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 371.66750924962037,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 371.66750924962037,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 371.66750924962037,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2521.999999962765,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 41342.01493802407,
+          "mean_kmh": 58.890042426108174,
+          "mass_weighted_grade_per_mille": -11.7098653076083,
+          "gravity_kn": 1261.7956088000003,
+          "resistance_kn": 301.5239551618318,
+          "air_braking_kn": 2241.3375699102517,
+          "actual_ed_kn": 499.06988301171816,
+          "native_ed_capacity_kn": 499.06988301171816,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.16200726240296698,
+          "measured_interval_cm_accel_mps2": -0.1619785836799733,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.601118266582489,
+              "achieved_kn": 300.00002297952966,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.8014909625053406,
+              "achieved_kn": 400.00000089248977,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.9016773700714111,
+              "achieved_kn": 450.0000195958529,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 499.06988301171816,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 499.06988301171816,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 39276.5063618387,
+          "mean_kmh": 77.47653303210235,
+          "mass_weighted_grade_per_mille": -10.550054605023663,
+          "gravity_kn": 1136.8202984,
+          "resistance_kn": 412.6380940363629,
+          "air_braking_kn": 1514.600222583982,
+          "actual_ed_kn": 379.14161282894844,
+          "native_ed_capacity_kn": 379.14161282894844,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.1064397188796226,
+          "measured_interval_cm_accel_mps2": -0.10594107843342235,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7912610769271851,
+              "achieved_kn": 300.0000008749435,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 379.14161282894844,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 379.14161282894844,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 379.14161282894844,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 379.14161282894844,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 37643.17180479573,
+          "mean_kmh": 77.95300494374338,
+          "mass_weighted_grade_per_mille": -11.646159446669094,
+          "gravity_kn": 1254.9309888000003,
+          "resistance_kn": 415.81772665951564,
+          "air_braking_kn": 1405.9927804257802,
+          "actual_ed_kn": 376.8348263793963,
+          "native_ed_capacity_kn": 376.8348263793963,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.08588590686791882,
+          "measured_interval_cm_accel_mps2": -0.0854068629081441,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7961047887802124,
+              "achieved_kn": 300.00000985979733,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 1.0,
+              "achieved_kn": 376.8348263793963,
+              "infeasible": true
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 376.8348263793963,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 376.8348263793963,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 376.8348263793963,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2531.999999961164,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 41497.322854490696,
+          "mean_kmh": 52.97871366637328,
+          "mass_weighted_grade_per_mille": -11.65070986530761,
+          "gravity_kn": 1255.4213188000006,
+          "resistance_kn": 271.46738073809934,
+          "air_braking_kn": 2122.8231669108814,
+          "actual_ed_kn": 554.6886946539722,
+          "native_ed_capacity_kn": 554.6886946539722,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            220.4
+          ],
+          "hold_steps": 483,
+          "end_sample_external_accel_mps2": -0.1541279508102432,
+          "measured_interval_cm_accel_mps2": -0.15480270819561937,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.5408439636230469,
+              "achieved_kn": 300.0000321935483,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7211252450942993,
+              "achieved_kn": 400.00002088338266,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8112658858299255,
+              "achieved_kn": 450.0000152282998,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 554.6886946539722,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 554.6886946539722,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 39484.92856414573,
+          "mean_kmh": 72.15935905944649,
+          "mass_weighted_grade_per_mille": -10.5,
+          "gravity_kn": 1131.4266683999995,
+          "resistance_kn": 378.2801486911964,
+          "air_braking_kn": 2168.7752981899316,
+          "actual_ed_kn": 406.72921925158346,
+          "native_ed_capacity_kn": 406.72921925158346,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.16584983597858682,
+          "measured_interval_cm_accel_mps2": -0.1658344744700461,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7375915050506592,
+              "achieved_kn": 300.000016975855,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.9834553003311157,
+              "achieved_kn": 400.0000064725062,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 406.72921925158346,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 406.72921925158346,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 406.72921925158346,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 37853.81252051085,
+          "mean_kmh": 73.24471089815552,
+          "mass_weighted_grade_per_mille": -11.646159446669094,
+          "gravity_kn": 1254.9309888000003,
+          "resistance_kn": 385.12630840085075,
+          "air_braking_kn": 2163.4148405511237,
+          "actual_ed_kn": 400.71619848190943,
+          "native_ed_capacity_kn": 400.71619848190943,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.1541978848410888,
+          "measured_interval_cm_accel_mps2": -0.15418469204481766,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.7486595511436462,
+              "achieved_kn": 300.0000092914545,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.9982127547264099,
+              "achieved_kn": 400.0000203501216,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 400.71619848190943,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 400.71619848190943,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 400.71619848190943,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2541.9999999595634,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 41639.99973268604,
+          "mean_kmh": 50.72639056168333,
+          "mass_weighted_grade_per_mille": -11.582453585729887,
+          "gravity_kn": 1248.0663687999997,
+          "resistance_kn": 260.68579743349216,
+          "air_braking_kn": 432.9134691087583,
+          "actual_ed_kn": 579.3244408159013,
+          "native_ed_capacity_kn": 579.3244408159013,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            210.4
+          ],
+          "hold_steps": 383,
+          "end_sample_external_accel_mps2": -0.0022622259335777183,
+          "measured_interval_cm_accel_mps2": -0.002563103072426021,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.517844557762146,
+              "achieved_kn": 300.0000088551129,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6904594302177429,
+              "achieved_kn": 400.00002331695975,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.776766836643219,
+              "achieved_kn": 450.00001328266944,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 579.3244408159013,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 579.3244408159013,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 39677.01977597966,
+          "mean_kmh": 66.13938450933487,
+          "mass_weighted_grade_per_mille": -10.5,
+          "gravity_kn": 1131.4266683999995,
+          "resistance_kn": 341.86422584360037,
+          "air_braking_kn": 2200.004160254859,
+          "actual_ed_kn": 444.2906493846312,
+          "native_ed_capacity_kn": 444.2906493846312,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.16879617465262936,
+          "measured_interval_cm_accel_mps2": -0.16877513802311825,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.6752336621284485,
+              "achieved_kn": 300.000002233411,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.9003115892410278,
+              "achieved_kn": 400.0000206324056,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 444.2906493846312,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 444.2906493846312,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 444.2906493846312,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 38049.50955951532,
+          "mean_kmh": 67.65104789892428,
+          "mass_weighted_grade_per_mille": -11.637058609392064,
+          "gravity_kn": 1253.9503287999999,
+          "resistance_kn": 350.7589084296398,
+          "air_braking_kn": 2191.914492559916,
+          "actual_ed_kn": 434.40391126070386,
+          "native_ed_capacity_kn": 434.40391126070386,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.156818982840395,
+          "measured_interval_cm_accel_mps2": -0.15672899805539126,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.6906015276908875,
+              "achieved_kn": 300.0000047515388,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.9208020567893982,
+              "achieved_kn": 400.0000149662153,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 1.0,
+              "achieved_kn": 434.40391126070386,
+              "infeasible": true
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 434.40391126070386,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 434.40391126070386,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2551.9999999579627,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 41781.506188615036,
+          "mean_kmh": 51.3595975213348,
+          "mass_weighted_grade_per_mille": -11.473243538405534,
+          "gravity_kn": 1236.2984488,
+          "resistance_kn": 263.67994920902765,
+          "air_braking_kn": 81.61390299850214,
+          "actual_ed_kn": 571.9972244483909,
+          "native_ed_capacity_kn": 571.9972244483909,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            200.4
+          ],
+          "hold_steps": 283,
+          "end_sample_external_accel_mps2": 0.029032341840560538,
+          "measured_interval_cm_accel_mps2": 0.02897172436483475,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.5244780778884888,
+              "achieved_kn": 300.0000048362425,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6993041038513184,
+              "achieved_kn": 400.0000064483234,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7867171168327332,
+              "achieved_kn": 450.0000072543638,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 571.9972244483909,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 571.9972244483909,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 39852.19529007832,
+          "mean_kmh": 60.002002252925976,
+          "mass_weighted_grade_per_mille": -10.589916272297051,
+          "gravity_kn": 1141.1155891999995,
+          "resistance_kn": 307.46303853707803,
+          "air_braking_kn": 2234.7093010103013,
+          "actual_ed_kn": 489.72918023609196,
+          "native_ed_capacity_kn": 489.72918023609196,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.17207735079936948,
+          "measured_interval_cm_accel_mps2": -0.17212033610152655,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.6125835180282593,
+              "achieved_kn": 300.00002411012065,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.8167780041694641,
+              "achieved_kn": 400.00002241678294,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.9188752174377441,
+              "achieved_kn": 450.00000697504714,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 489.72918023609196,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 489.72918023609196,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 38229.45637388032,
+          "mean_kmh": 61.91841887092581,
+          "mass_weighted_grade_per_mille": -11.455587914088097,
+          "gravity_kn": 1234.3959683999997,
+          "resistance_kn": 317.9097300206024,
+          "air_braking_kn": 2223.538436031761,
+          "actual_ed_kn": 474.6078582367123,
+          "native_ed_capacity_kn": 474.6078582367123,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.16214598251629742,
+          "measured_interval_cm_accel_mps2": -0.1620758355277634,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.6321008205413818,
+              "achieved_kn": 300.00001662681365,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.8428010940551758,
+              "achieved_kn": 400.00002216908484,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.9481512308120728,
+              "achieved_kn": 450.0000249402204,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 474.6078582367123,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 474.6078582367123,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2561.999999956362,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 41925.83262383176,
+          "mean_kmh": 52.594934342710026,
+          "mass_weighted_grade_per_mille": -11.36403349108118,
+          "gravity_kn": 1224.5305287999997,
+          "resistance_kn": 269.60485559768466,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 558.4644391724058,
+          "native_ed_capacity_kn": 558.4644391724058,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            190.4
+          ],
+          "hold_steps": 183,
+          "end_sample_external_accel_mps2": 0.03608129177556509,
+          "measured_interval_cm_accel_mps2": 0.036077152732852266,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.5371873378753662,
+              "achieved_kn": 300.0000253770841,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7162497639656067,
+              "achieved_kn": 400.00002274042066,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8057809472084045,
+              "achieved_kn": 450.0000047785516,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 558.4644391724058,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 558.4644391724058,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 40010.13522293533,
+          "mean_kmh": 53.72870506576178,
+          "mass_weighted_grade_per_mille": -10.708227156898435,
+          "gravity_kn": 1153.8641691999994,
+          "resistance_kn": 275.13941765489056,
+          "air_braking_kn": 2273.603010080114,
+          "actual_ed_kn": 547.0034863481226,
+          "native_ed_capacity_kn": 547.0034863481226,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.17672749771415433,
+          "measured_interval_cm_accel_mps2": -0.17668801135070364,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.5484426021575928,
+              "achieved_kn": 300.0000154420396,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7312567830085754,
+              "achieved_kn": 400.0000097214033,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8226639032363892,
+              "achieved_kn": 450.0000231630595,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 547.0034863481226,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 547.0034863481226,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 38393.17316115262,
+          "mean_kmh": 55.964867765013615,
+          "mass_weighted_grade_per_mille": -11.278121587186021,
+          "gravity_kn": 1215.2730983999995,
+          "resistance_kn": 286.33204190629135,
+          "air_braking_kn": 2259.311693646036,
+          "actual_ed_kn": 525.1398127891202,
+          "native_ed_capacity_kn": 525.1398127891202,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            true
+          ],
+          "refill_remaining_s": [
+            0.0
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": -0.16886698670744887,
+          "measured_interval_cm_accel_mps2": -0.16883284929275602,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.5712764859199524,
+              "achieved_kn": 300.0000268668303,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7617019414901733,
+              "achieved_kn": 400.00001495525896,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8569146990776062,
+              "achieved_kn": 450.0000246498594,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 525.1398127891202,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 525.1398127891202,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2571.9999999547613,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 42073.74295557949,
+          "mean_kmh": 53.879816248468615,
+          "mass_weighted_grade_per_mille": -11.192209683290862,
+          "gravity_kn": 1206.0156679999996,
+          "resistance_kn": 275.8851859151292,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 545.1607836635325,
+          "native_ed_capacity_kn": 545.1607836635325,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            180.4
+          ],
+          "hold_steps": 83,
+          "end_sample_external_accel_mps2": 0.035035465819197115,
+          "measured_interval_cm_accel_mps2": 0.035031845593287876,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.550296425819397,
+              "achieved_kn": 300.0000307469434,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7337285280227661,
+              "achieved_kn": 400.00001933318134,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8254445791244507,
+              "achieved_kn": 450.00001362630024,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 545.1607836635325,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 545.1607836635325,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 40150.517410983004,
+          "mean_kmh": 47.65026433236487,
+          "mass_weighted_grade_per_mille": -10.808336366945758,
+          "gravity_kn": 1164.6514291999995,
+          "resistance_kn": 246.55803743926023,
+          "air_braking_kn": 1550.8225271688195,
+          "actual_ed_kn": 617.043517918273,
+          "native_ed_capacity_kn": 617.043517918273,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            218.0
+          ],
+          "hold_steps": 459,
+          "end_sample_external_accel_mps2": -0.11373977551204524,
+          "measured_interval_cm_accel_mps2": -0.11478955394000881,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.48618942499160767,
+              "achieved_kn": 300.0000331714839,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.648252546787262,
+              "achieved_kn": 400.00003196909194,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7292841076850891,
+              "achieved_kn": 450.000031367896,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 0.9723787903785706,
+              "achieved_kn": 600.0000295643081,
+              "infeasible": false
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 617.043517918273,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 38539.97188117588,
+          "mean_kmh": 49.736232083221864,
+          "mass_weighted_grade_per_mille": -11.100655260283947,
+          "gravity_kn": 1196.1502283999996,
+          "resistance_kn": 256.0627974875973,
+          "air_braking_kn": 2290.462437849148,
+          "actual_ed_kn": 591.0106978538784,
+          "native_ed_capacity_kn": 591.0106978538784,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            221.7
+          ],
+          "hold_steps": 496,
+          "end_sample_external_accel_mps2": -0.17668235391250675,
+          "measured_interval_cm_accel_mps2": -0.17672489695344482,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.5076050758361816,
+              "achieved_kn": 300.0000301041125,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6768067479133606,
+              "achieved_kn": 400.0000283964891,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7614075541496277,
+              "achieved_kn": 450.00000992918615,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 591.0106978538784,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 591.0106978538784,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2581.9999999531606,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 42225.14463326982,
+          "mean_kmh": 55.10919575478907,
+          "mass_weighted_grade_per_mille": -10.955587914088095,
+          "gravity_kn": 1180.5185079999994,
+          "resistance_kn": 282.0070089050362,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 532.9986507657572,
+          "native_ed_capacity_kn": 532.9986507657572,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            170.4
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.03326472955307664,
+          "measured_interval_cm_accel_mps2": 0.033261606492234565,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.562853217124939,
+              "achieved_kn": 300.0000053067583,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7504709959030151,
+              "achieved_kn": 400.00002825514116,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8442798256874084,
+              "achieved_kn": 450.0000079601374,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 532.9986507657572,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 532.9986507657572,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 40279.798585005636,
+          "mean_kmh": 46.146837276035996,
+          "mass_weighted_grade_per_mille": -10.908445576993083,
+          "gravity_kn": 1175.4386891999993,
+          "resistance_kn": 239.90525651781516,
+          "air_braking_kn": 294.28930638155964,
+          "actual_ed_kn": 636.8373647736045,
+          "native_ed_capacity_kn": 636.8373647736045,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            208.0
+          ],
+          "hold_steps": 359,
+          "end_sample_external_accel_mps2": 0.00040105219576082107,
+          "measured_interval_cm_accel_mps2": 0.00019614089476236492,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.47107791900634766,
+              "achieved_kn": 300.00002054303593,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6281038522720337,
+              "achieved_kn": 400.0000020850713,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7066168785095215,
+              "achieved_kn": 450.0000308145539,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 0.9421557784080505,
+              "achieved_kn": 600.000003127607,
+              "infeasible": false
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 636.8373647736045,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 38671.96721620849,
+          "mean_kmh": 46.393063650166454,
+          "mass_weighted_grade_per_mille": -10.95049144521296,
+          "gravity_kn": 1179.9693383999993,
+          "resistance_kn": 240.98353423974217,
+          "air_braking_kn": 544.818700874514,
+          "actual_ed_kn": 633.5084151040671,
+          "native_ed_capacity_kn": 633.5084151040671,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            211.7
+          ],
+          "hold_steps": 396,
+          "end_sample_external_accel_mps2": -0.021782063325293404,
+          "measured_interval_cm_accel_mps2": -0.022093591142463523,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.47355329990386963,
+              "achieved_kn": 300.0000004894014,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6314043998718262,
+              "achieved_kn": 400.0000006525351,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7103299498558044,
+              "achieved_kn": 450.0000007341021,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 0.9471065998077393,
+              "achieved_kn": 600.0000009788027,
+              "infeasible": false
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 633.5084151040671,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_s": 2591.99999995156,
+      "trains": [
+        {
+          "train": 1,
+          "mass_t": 10988.0,
+          "head_m": 42379.87707409205,
+          "mean_kmh": 56.274776647775795,
+          "mass_weighted_grade_per_mille": -10.718966144885329,
+          "gravity_kn": 1155.0213479999998,
+          "resistance_kn": 287.91300321406015,
+          "air_braking_kn": -0.0,
+          "actual_ed_kn": 521.9448757551426,
+          "native_ed_capacity_kn": 521.9448757551426,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            160.4
+          ],
+          "hold_steps": 0,
+          "end_sample_external_accel_mps2": 0.031412765656242916,
+          "measured_interval_cm_accel_mps2": 0.0314100742808885,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.574773371219635,
+              "achieved_kn": 300.00001582859676,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.7663644552230835,
+              "achieved_kn": 400.00000036456976,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.8621600270271301,
+              "achieved_kn": 450.0000081877257,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 1.0,
+              "achieved_kn": 521.9448757551426,
+              "infeasible": true
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 521.9448757551426,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 2,
+          "mass_t": 10988.0,
+          "head_m": 40408.52156758157,
+          "mean_kmh": 46.68947139579864,
+          "mass_weighted_grade_per_mille": -11.053512923188933,
+          "gravity_kn": 1191.0704095999993,
+          "resistance_kn": 242.28816121889957,
+          "air_braking_kn": 47.016041121584976,
+          "actual_ed_kn": 629.1805343302123,
+          "native_ed_capacity_kn": 629.1805343302123,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            198.0
+          ],
+          "hold_steps": 259,
+          "end_sample_external_accel_mps2": 0.02480757853379163,
+          "measured_interval_cm_accel_mps2": 0.024726789397800313,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.4768106937408447,
+              "achieved_kn": 300.0000070622239,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6357476115226746,
+              "achieved_kn": 400.00002191699264,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7152160406112671,
+              "achieved_kn": 450.00001059333584,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 0.9536213874816895,
+              "achieved_kn": 600.0000141244478,
+              "infeasible": false
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 629.1805343302123,
+              "infeasible": true
+            }
+          ]
+        },
+        {
+          "train": 3,
+          "mass_t": 10988.0,
+          "head_m": 38800.63593306144,
+          "mean_kmh": 46.50006395076026,
+          "mass_weighted_grade_per_mille": -10.809428467419002,
+          "gravity_kn": 1164.7691083999994,
+          "resistance_kn": 241.45399605190272,
+          "air_braking_kn": 102.8686289029812,
+          "actual_ed_kn": 631.8151334689591,
+          "native_ed_capacity_kn": 631.8151334689591,
+          "ed_command": [
+            1.0
+          ],
+          "source_on": [
+            false
+          ],
+          "refill_remaining_s": [
+            201.7
+          ],
+          "hold_steps": 296,
+          "end_sample_external_accel_mps2": 0.017167032214794,
+          "measured_interval_cm_accel_mps2": 0.017123759934524828,
+          "force_request_mapping": [
+            {
+              "request_kn": 300.0,
+              "command": 0.474822461605072,
+              "achieved_kn": 300.0000169530682,
+              "infeasible": false
+            },
+            {
+              "request_kn": 400.0,
+              "command": 0.6330966353416443,
+              "achieved_kn": 400.00003515712984,
+              "infeasible": false
+            },
+            {
+              "request_kn": 450.0,
+              "command": 0.7122336626052856,
+              "achieved_kn": 450.00000660004395,
+              "infeasible": false
+            },
+            {
+              "request_kn": 600.0,
+              "command": 0.949644923210144,
+              "achieved_kn": 600.0000339061364,
+              "infeasible": false
+            },
+            {
+              "request_kn": 900.0,
+              "command": 1.0,
+              "achieved_kn": 631.8151334689591,
+              "infeasible": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "held_windows": [
+    {
+      "train": 1,
+      "start_s": 2253.70000000571,
+      "end_s": 2303.4999999977385,
+      "samples": 499,
+      "definition": "Samples with archived hold_steps > 0; boundary may omit last command",
+      "ed_command_min": 1.0,
+      "ed_command_max": 1.0,
+      "actual_ed_min_kn": 546.4304384946595,
+      "actual_ed_max_kn": 601.4497372311256
+    },
+    {
+      "train": 1,
+      "start_s": 2530.3999999614202,
+      "end_s": 2580.1999999534487,
+      "samples": 499,
+      "definition": "Samples with archived hold_steps > 0; boundary may omit last command",
+      "ed_command_min": 1.0,
+      "ed_command_max": 1.0,
+      "actual_ed_min_kn": 535.1043283966953,
+      "actual_ed_max_kn": 579.3360435108943
+    },
+    {
+      "train": 2,
+      "start_s": 2284.100000000844,
+      "end_s": 2333.8999999928724,
+      "samples": 499,
+      "definition": "Samples with archived hold_steps > 0; boundary may omit last command",
+      "ed_command_min": 1.0,
+      "ed_command_max": 1.0,
+      "actual_ed_min_kn": 535.7557636541856,
+      "actual_ed_max_kn": 588.8222591278828
+    },
+    {
+      "train": 2,
+      "start_s": 2567.9999999554016,
+      "end_s": 2617.79999994743,
+      "samples": 499,
+      "definition": "Samples with archived hold_steps > 0; boundary may omit last command",
+      "ed_command_min": 1.0,
+      "ed_command_max": 1.0,
+      "actual_ed_min_kn": 588.8459784767199,
+      "actual_ed_max_kn": 636.841469482799
+    },
+    {
+      "train": 3,
+      "start_s": 2285.0000000007,
+      "end_s": 2334.7999999927283,
+      "samples": 499,
+      "definition": "Samples with archived hold_steps > 0; boundary may omit last command",
+      "ed_command_min": 1.0,
+      "ed_command_max": 1.0,
+      "actual_ed_min_kn": 539.3130063336699,
+      "actual_ed_max_kn": 590.8336921209864
+    },
+    {
+      "train": 3,
+      "start_s": 2571.6999999548093,
+      "end_s": 2621.4999999468378,
+      "samples": 499,
+      "definition": "Samples with archived hold_steps > 0; boundary may omit last command",
+      "ed_command_min": 1.0,
+      "ed_command_max": 1.0,
+      "actual_ed_min_kn": 588.7536280746638,
+      "actual_ed_max_kn": 635.1628444152774
+    }
+  ],
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0001\\metadata.json": "01b5d32ea3a1b722c9085fda14b670cf9f1c1ccdb9fc1a584ff1fc1d98a689e7",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0001\\fleet_state.json": "ce1f0f01c5c2ae275b3d22b4dbaf92c3e669fa90c5910191e894a1f446be9be4",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0001\\trajectory.npz": "58728a0103c98085d0f12432204a2ee2674c1e5e99bce4a05b57abdda11cef34",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0001\\telemetry.npz": "6fa6e0f3f9b3970dbaf509f180e03c3f08fdb2d580137967a9ce66318533b05b",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0002\\metadata.json": "f4b1d251c53f4e0400f2d62510458173d9cab2cf59e898f466fcff3944cc0319",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0002\\fleet_state.json": "5a764dba7b2e9030dc02ea4cc896350d624437f3cd36234e34bd1d2ccd0690a1",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0002\\trajectory.npz": "bb634062df3914861da2b2bba2fb4b59e19b66fd06dbc7e8dfd60e240cb86288",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0002\\telemetry.npz": "b97999b096754571f9786c887e51ea1770f85db2dc6d51c4e744188aae950fc7",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0003\\metadata.json": "4bc9998e6f2502fa2bb64db037beabb88f48e6cf70ccf0d49d7faec011b6f01b",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0003\\fleet_state.json": "fba2729b6f51ba62e957ff60032c2b2a72a623a2e965c6266a3bb651e0c48381",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0003\\trajectory.npz": "5fab31e188068d161219a57cac2023811809164531e78cbc60faf6ae8123f9a7",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0003\\telemetry.npz": "135f9df5595a35da6b6337d7238b3c85ac515d33c753e23a8b62e9e0a13dec0b",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0004\\metadata.json": "6bf4f236e4e14d31522167e0704a64c0765163733e3076f9c6f5fd0fc0a40700",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0004\\fleet_state.json": "b0175db785ee991e48089fc59400e40859c16904bdc9c67ea4c81ea9411245b3",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0004\\trajectory.npz": "bb451638a64621523e3782237211d715d44a7ad3a4ce66a4c9afbe4856e4663d",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0004\\telemetry.npz": "b04cd2091cfcf2d42887b03e4786415535d632f45925a54c85e318a23706aa0d",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0005\\metadata.json": "160acc1c2ec766bb4a7ffe3614a8bc6a6f8191dbf00e9684c7f2c284c0f64e31",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0005\\fleet_state.json": "ab574001e36163a305fc23a05bf033b6c2d345f2344aab6964d15a2bc8ffb87b",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0005\\trajectory.npz": "18c4c85b9fe4a33d13e2bcb7f6ef4362ccf4f2648304335f24082d06c27fb203",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0005\\telemetry.npz": "0ef1eb6c2ee0e186fb960fc4631c1c4d63e123e987f2de67a4e4d9c446b060c0",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0006\\metadata.json": "6bc045c314adda074a228b15ad4aca9451e5b571a0f6884f01a11672745544cb",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0006\\fleet_state.json": "2f5cf023900d15b94082a7a152ab83272d7a285d854469995da603bc1284bf01",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0006\\trajectory.npz": "9c4858c2e099e7c93759c3fdc37d72c6d2255f6ed4904c82eea0d44c4e1b3680",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0006\\telemetry.npz": "7fa866dc93a6ab43ce748c93f2f416e8ece8f9a59d5ab85e52f89143d1359292",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0007\\metadata.json": "65b1241b3d83b4f6e98a799091d85f0d0ec41a48c74387914cb0f477d81e3d1f",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0007\\fleet_state.json": "7fddca959c61f1f3666da38c5017274cb8d3543de7caf5201e5480bb6ba1eb94",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0007\\trajectory.npz": "a2508ac1d158d72c9da4eabeb1a554356b4718108de8090fede854231076a94b",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0007\\telemetry.npz": "ce95dc55156d12afb71818a8a1cf0eac4a7a0ab1f17ae061581138b1a1119532",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0008\\metadata.json": "f0ec5f8719aa436530f4ffb980aa1f2d5f6ba1dc2dada65e9d8df22cc256e431",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0008\\fleet_state.json": "7a8c1c2efdd7fe068e67f6697bbc9e438ddf2f2d4133bae75fbd5b1a9b7099a7",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0008\\trajectory.npz": "f1292443df026c7db9bed1b0a43fbdc628a611fed7c0ddd14e901e0da24ab560",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_native_20261028_round144\\stage_0008\\telemetry.npz": "942f788bd75a79941fbf939f18bd395d210b9bcd8237eaf1c11e7cfa4100ac8f",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_20261031_round145\\metadata.json": "a90a345625490717a84e97464c328569165e8be21fe00319fa6c94f0805630d3",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_20261031_round145\\fleet_state.json": "6cb5a4cf95091bd246f6fbfa500216a269720cf176a7b39c546e8e92a40f63fd",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_20261031_round145\\trajectory.npz": "016585d36c441a8b9d0ea6578610ecc0889fdf31da96c5a3c50cb72370ae660c",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_20261031_round145\\telemetry.npz": "3bf38acd44de45483b069250fb5bfcd541244f3641beda11549926d6289b25a7"
+  },
+  "entry_sha256": "2b8df3c371d07da7ab9d087dcd47b98ac035d1246dc31d09056b7821a65bf9b4"
+}

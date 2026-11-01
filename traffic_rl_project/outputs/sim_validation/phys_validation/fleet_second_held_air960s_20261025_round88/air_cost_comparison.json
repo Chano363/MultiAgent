@@ -1,0 +1,75 @@
+{
+  "scope": "Shared-window mechanical cost, not wheel heat or route acceptance",
+  "window_s": [
+    940.1,
+    960.0
+  ],
+  "sample_count": 200,
+  "integrated_duration_s": 20.0,
+  "baseline": {
+    "air_mechanical_work_mj_by_train": [
+      0.0,
+      181.37903219297314,
+      186.1560045963905
+    ],
+    "air_source_on_s_by_train": [
+      0.0,
+      20.0,
+      20.0
+    ],
+    "start_gaps_m": [
+      342.19024653319866,
+      295.2007749500226
+    ],
+    "end_gaps_m": [
+      402.6719641748841,
+      284.41371838491614
+    ],
+    "gap_change_m": [
+      60.481717641685464,
+      -10.787056565106468
+    ],
+    "max_vehicle_power_kw_by_train": [
+      -0.0,
+      83.99876194601744,
+      86.16343486100281
+    ]
+  },
+  "candidate": {
+    "air_mechanical_work_mj_by_train": [
+      0.0,
+      182.66021769877955,
+      186.1560045963905
+    ],
+    "air_source_on_s_by_train": [
+      0.0,
+      20.0,
+      20.0
+    ],
+    "start_gaps_m": [
+      342.19023382130945,
+      295.2007749500226
+    ],
+    "end_gaps_m": [
+      399.09145940610324,
+      286.90177051784667
+    ],
+    "gap_change_m": [
+      56.90122558479379,
+      -8.299004432175934
+    ],
+    "max_vehicle_power_kw_by_train": [
+      -0.0,
+      84.31027931161435,
+      86.16343486100281
+    ]
+  },
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_held_air_smooth_resume1200s_20261025_round85\\metadata.json": "823b3b876f446c572dcc080f81aa81a3ee53c09abf6bc114c8c10e675ada19ed",
+    "outputs\\sim_validation\\phys_validation\\fleet_held_air_smooth_resume1200s_20261025_round85\\trajectory.npz": "22131fc023491e7207438a5cd26b2239055a0ced0daa6a1d41877207b588cc44",
+    "outputs\\sim_validation\\phys_validation\\fleet_held_air_smooth_resume1200s_20261025_round85\\telemetry.npz": "af00879c49444cd61a8a540a1012edd7326e89d253f24a8ef2e11930ba449504",
+    "outputs\\sim_validation\\phys_validation\\fleet_second_held_air960s_20261025_round88\\metadata.json": "29bea0a58a4551224b292d23d433d1a38e53fd948bb95d857dd980c165037521",
+    "outputs\\sim_validation\\phys_validation\\fleet_second_held_air960s_20261025_round88\\trajectory.npz": "7f1495e964baa9e9ce3a1dcb561c068041c068af45cc97d07dfc26ce55a52938",
+    "outputs\\sim_validation\\phys_validation\\fleet_second_held_air960s_20261025_round88\\telemetry.npz": "9fafa5b61eb7bc5efe22257e7d06dbac52c4f95ae17c44cb8c654e7bd9dc86d1"
+  }
+}

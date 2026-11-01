@@ -1,0 +1,38 @@
+{
+  "baseline": {
+    "mean_speed_spread_kmh": 10.989901553961312,
+    "max_speed_spread_kmh": 11.92979342078386,
+    "end_mean_kmh": [
+      52.6535429591845,
+      63.752982091236845,
+      64.58333637996836
+    ],
+    "end_gaps_m": [
+      538.3624069052585,
+      238.88626170479256
+    ],
+    "mean_absolute_gap_error_m": 237.17147451335666,
+    "internal_peak_kn": 543.7654995177362,
+    "safety_count": 0
+  },
+  "leader_candidate": {
+    "mean_speed_spread_kmh": 8.5528041925438,
+    "max_speed_spread_kmh": 9.682293696703233,
+    "end_mean_kmh": [
+      58.5158495708996,
+      63.752982091236845,
+      64.58333637996836
+    ],
+    "end_gaps_m": [
+      565.3259212406065,
+      238.88626170479256
+    ],
+    "mean_absolute_gap_error_m": 241.00793583234082,
+    "internal_peak_kn": 515.2032452911524,
+    "safety_count": 0
+  },
+  "window_s": [
+    720.1000000099477,
+    760.0000000108187
+  ]
+}

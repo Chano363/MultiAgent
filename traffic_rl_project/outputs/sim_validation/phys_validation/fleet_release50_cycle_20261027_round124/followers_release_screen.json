@@ -1,0 +1,132 @@
+{
+  "scope": "Isolated rigid-centroid screen; held established AB plus instantaneous full ED, then zero air/full ED; not actual trajectory, not safety guarantee",
+  "source_state_sha256": "8692bae71c5c1eaf3fe85592aa4055a23e5ad4347a5648585952b2a761d086b2",
+  "candidates": [
+    {
+      "train": 2,
+      "target_kmh": 60,
+      "holding_s": 119.39999999999749,
+      "head_m": 40991.68371029448,
+      "max_until222_kmh": 87.43755270548236,
+      "max_until250_kmh": 90.86069168542333,
+      "first80_s": 161.1999999999994
+    },
+    {
+      "train": 2,
+      "target_kmh": 55,
+      "holding_s": 249.99999999999008,
+      "head_m": 43107.097720118385,
+      "max_until222_kmh": 81.28263498391215,
+      "max_until250_kmh": 84.75073675171427,
+      "first80_s": 211.9999999999965
+    },
+    {
+      "train": 2,
+      "target_kmh": 50,
+      "holding_s": 310.100000000002,
+      "head_m": 43983.83570262721,
+      "max_until222_kmh": 77.31956985730811,
+      "max_until250_kmh": 79.94590285093166,
+      "first80_s": null
+    },
+    {
+      "train": 2,
+      "target_kmh": 48,
+      "holding_s": 333.60000000000736,
+      "head_m": 44303.699822546616,
+      "max_until222_kmh": 75.40221538986923,
+      "max_until250_kmh": 77.20743912870816,
+      "first80_s": null
+    },
+    {
+      "train": 2,
+      "target_kmh": 46,
+      "holding_s": 357.70000000001284,
+      "head_m": 44618.23416747144,
+      "max_until222_kmh": 73.01846579128852,
+      "max_until250_kmh": 73.99800332654483,
+      "first80_s": null
+    },
+    {
+      "train": 2,
+      "target_kmh": 44,
+      "holding_s": 382.6000000000185,
+      "head_m": 44929.43156625001,
+      "max_until222_kmh": 70.04259947371727,
+      "max_until250_kmh": 70.42663347176627,
+      "first80_s": null
+    },
+    {
+      "train": 2,
+      "target_kmh": 42,
+      "holding_s": 408.70000000002443,
+      "head_m": 45241.12111970441,
+      "max_until222_kmh": 66.23888919166575,
+      "max_until250_kmh": 66.31419507633046,
+      "first80_s": null
+    },
+    {
+      "train": 3,
+      "target_kmh": 60,
+      "holding_s": 133.6999999999967,
+      "head_m": 39534.125227380595,
+      "max_until222_kmh": 87.40984581432875,
+      "max_until250_kmh": 90.32883059835609,
+      "first80_s": 146.8000000000002
+    },
+    {
+      "train": 3,
+      "target_kmh": 55,
+      "holding_s": 238.9999999999907,
+      "head_m": 41204.29025844022,
+      "max_until222_kmh": 82.08585268291527,
+      "max_until250_kmh": 85.76351267770885,
+      "first80_s": 206.9999999999968
+    },
+    {
+      "train": 3,
+      "target_kmh": 50,
+      "holding_s": 337.60000000000827,
+      "head_m": 42655.95017343951,
+      "max_until222_kmh": 74.97014262553526,
+      "max_until250_kmh": 78.41562050118354,
+      "first80_s": null
+    },
+    {
+      "train": 3,
+      "target_kmh": 48,
+      "holding_s": 359.50000000001324,
+      "head_m": 42954.18353773208,
+      "max_until222_kmh": 72.61109406419908,
+      "max_until250_kmh": 76.18347317505516,
+      "first80_s": null
+    },
+    {
+      "train": 3,
+      "target_kmh": 46,
+      "holding_s": 378.6000000000176,
+      "head_m": 43203.638367649844,
+      "max_until222_kmh": 70.28061437632776,
+      "max_until250_kmh": 73.9229937343387,
+      "first80_s": null
+    },
+    {
+      "train": 3,
+      "target_kmh": 44,
+      "holding_s": 395.7000000000215,
+      "head_m": 43417.403723380674,
+      "max_until222_kmh": 67.90404551815745,
+      "max_until250_kmh": 71.57534575181829,
+      "first80_s": null
+    },
+    {
+      "train": 3,
+      "target_kmh": 42,
+      "holding_s": 411.90000000002516,
+      "head_m": 43610.9105099368,
+      "max_until222_kmh": 65.30202134130522,
+      "max_until250_kmh": 68.97631810823295,
+      "first80_s": null
+    }
+  ]
+}

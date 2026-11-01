@@ -1,0 +1,71 @@
+{
+  "baseline": {
+    "air_work_mj_by_train": [
+      523.4592027497631,
+      546.0736380084946,
+      69.87258898843075
+    ],
+    "source_on_s": [
+      60.0,
+      60.0,
+      20.2
+    ],
+    "max_recorded_peak": {
+      "interval_start_s": 1994.9400000358048,
+      "interval_end_s": 1994.9500000358055,
+      "time_s": 1994.9443750358048,
+      "train_one_based": 3,
+      "coupler_one_based": 108,
+      "vehicle_pair_one_based": [
+        108,
+        109
+      ],
+      "signed_native_force_n": 977514.7531574784,
+      "peak_kn": 977.5147531574784,
+      "adjacent_speeds_kmh": [
+        66.28197789578039,
+        66.31976215705895
+      ],
+      "adjacent_positions_m": [
+        27293.647590677585,
+        27281.685046143815
+      ],
+      "relative_velocity_mps": -0.010495628132932922
+    }
+  },
+  "candidate": {
+    "air_work_mj_by_train": [
+      523.4592027497631,
+      546.0736380084946,
+      54.75989859252964
+    ],
+    "source_on_s": [
+      60.0,
+      60.0,
+      18.200000000000003
+    ],
+    "max_recorded_peak": {
+      "interval_start_s": 1996.3200000359486,
+      "interval_end_s": 1996.3300000359493,
+      "time_s": 1996.3203125359487,
+      "train_one_based": 3,
+      "coupler_one_based": 108,
+      "vehicle_pair_one_based": [
+        108,
+        109
+      ],
+      "signed_native_force_n": 911621.3465077284,
+      "peak_kn": 911.6213465077285,
+      "adjacent_speeds_kmh": [
+        66.55992089886196,
+        66.5928732436196
+      ],
+      "adjacent_positions_m": [
+        27319.078591844707,
+        27307.113924848672
+      ],
+      "relative_velocity_mps": -0.009153429099342247
+    }
+  },
+  "scope": "Identical 1945.1-2005.0s 600-sample window; power work, not temperature or heat safety"
+}

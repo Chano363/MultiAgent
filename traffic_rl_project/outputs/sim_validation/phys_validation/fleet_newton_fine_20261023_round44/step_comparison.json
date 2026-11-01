@@ -1,0 +1,9 @@
+{
+  "scope": "2-second same-command cold-start numerical comparison only",
+  "commands_equal": true,
+  "max_signed_interface_difference_kn": 8.754603114777012,
+  "max_vehicle_speed_difference_kmh": 0.007759803443391888,
+  "native_to_fine_interface_difference_kn": 550.3005699721404,
+  "fine_train_translation_spread_kn": 5.628680519293994e-07,
+  "native_train_translation_spread_kn": 704.7440846856871
+}

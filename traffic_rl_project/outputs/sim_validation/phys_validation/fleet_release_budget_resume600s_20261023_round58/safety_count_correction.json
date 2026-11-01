@@ -1,0 +1,8 @@
+{
+  "correct_event_count": 115,
+  "incorrect_time_sum_in_original_summary": 45624,
+  "first_event_s": 501.1000000051675,
+  "last_event_s": 513.9000000054468,
+  "explanation": "Train counters are cumulative. Original safety_event_count sums them across samples and overcounts. Preserve archive; use this correction.",
+  "rule_attribution": "Pending exact replay"
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "run": "fleet_etcs_anticipation520s_20261023_round60",
+    "summary": {
+      "stop_reason": "step_budget",
+      "error": null,
+      "steps": 1000,
+      "last_time_s": 520.00000000558,
+      "internal_peak_kn": 743.9062494697057,
+      "max_force_residual_n": 0.009998448454098252,
+      "accepted_microsteps": 256474,
+      "min_train_mean_kmh": 46.365224939447465,
+      "min_gap_m": 174.5642602829107,
+      "safety_event_count": 93,
+      "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+      "actual_air_force_peak_n": 29599.067935901156,
+      "vehicle_speed_floor_stop_enabled": true,
+      "min_vehicle_kmh": 46.35800158264178,
+      "max_vehicle_kmh": 64.53444339489862
+    },
+    "air_events": [
+      {
+        "train": 1,
+        "air_on_s": [],
+        "air_off_s": [],
+        "peak_vehicle_air_kn": 0.0
+      },
+      {
+        "train": 2,
+        "air_on_s": [
+          502.60000000520023
+        ],
+        "air_off_s": [],
+        "peak_vehicle_air_kn": 29.599067935901157
+      },
+      {
+        "train": 3,
+        "air_on_s": [],
+        "air_off_s": [],
+        "peak_vehicle_air_kn": 0.0
+      }
+    ]
+  },
+  {
+    "run": "fleet_follow_margin520s_20261024_round61",
+    "summary": {
+      "stop_reason": "step_budget",
+      "error": null,
+      "steps": 1000,
+      "last_time_s": 520.00000000558,
+      "internal_peak_kn": 732.8745153478902,
+      "max_force_residual_n": 0.009996486942554839,
+      "accepted_microsteps": 250782,
+      "min_train_mean_kmh": 46.365224939447465,
+      "min_gap_m": 174.5642602829107,
+      "safety_event_count": 0,
+      "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+      "actual_air_force_peak_n": 6857.49619607299,
+      "vehicle_speed_floor_stop_enabled": true,
+      "min_vehicle_kmh": 46.35800158264178,
+      "max_vehicle_kmh": 62.71053745500343
+    },
+    "air_events": [
+      {
+        "train": 1,
+        "air_on_s": [],
+        "air_off_s": [],
+        "peak_vehicle_air_kn": 0.0
+      },
+      {
+        "train": 2,
+        "air_on_s": [
+          496.3000000050627
+        ],
+        "air_off_s": [],
+        "peak_vehicle_air_kn": 6.85749619607299
+      },
+      {
+        "train": 3,
+        "air_on_s": [
+          476.1000000046218
+        ],
+        "air_off_s": [
+          513.6000000054403
+        ],
+        "peak_vehicle_air_kn": 3.8024003598254006
+      }
+    ]
+  }
+]

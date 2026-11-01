@@ -1,0 +1,50 @@
+{
+  "scope": "Same 10-second warm replay, observer only",
+  "arrays_compared": 20,
+  "all_arrays_bit_identical": true,
+  "max_absolute_differences": {
+    "trajectory.npz:rows": 0.0,
+    "trajectory.npz:commands": 0.0,
+    "trajectory.npz:vehicle_positions_m": 0.0,
+    "trajectory.npz:vehicle_speeds_mps": 0.0,
+    "trajectory.npz:coupler_interface_force_n": 0.0,
+    "trajectory.npz:effective_pressure_coefficient": 0.0,
+    "trajectory.npz:controller_steps": 0.0,
+    "telemetry.npz:vehicle_air_force_n": 0.0,
+    "telemetry.npz:physical_loco_ed": 0.0,
+    "telemetry.npz:heads": 0.0,
+    "telemetry.npz:last_vehicle_centers": 0.0,
+    "telemetry.npz:gap_min_m": 0.0,
+    "telemetry.npz:safety_events": 0.0,
+    "telemetry.npz:cyclic_braking": 0.0,
+    "telemetry.npz:safety_events_delta": 0.0,
+    "telemetry.npz:ab_source_on": 0.0,
+    "telemetry.npz:ab_last_release_step": 0.0,
+    "telemetry.npz:ab_refill_remaining_s": 0.0,
+    "telemetry.npz:ab_refill_veto_cumulative": 0.0,
+    "telemetry.npz:ed_hold_steps": 0.0
+  },
+  "phase_records": 100,
+  "first_leader_observation": {
+    "controller_step": 25212,
+    "source_on": [
+      false
+    ],
+    "native_elapsed_since_release_counter_s": [
+      6.9
+    ],
+    "refill_remaining_s": [
+      215.1
+    ],
+    "ordinary_refill_gate_ready": [
+      false
+    ],
+    "max_abs_mechanical_air_n": 11230.650166387359,
+    "effective_coefficient_min": 0.3114032239146031,
+    "effective_coefficient_max": 0.5343700691439409,
+    "source_off_with_residual_air": true,
+    "source_off_with_refill_wait": true,
+    "negligible_air_threshold_n": 1.0,
+    "coefficient_semantics": "Normalized effective coefficient; not kPa or reservoir charge"
+  }
+}

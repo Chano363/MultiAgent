@@ -1,0 +1,9 @@
+{
+  "status": "audit_completed",
+  "native": "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_20261031_round145",
+  "forecast": "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_forecast_20261031_round146",
+  "wall_s": 1223.4008986000003,
+  "native_stop_reason": "step_budget",
+  "native_last_time_s": 2871.099999906884,
+  "document": "D:\\Codex\\Documents\\Train\\controller_takeover_20261017\\\u9886\u822a49\u7f13\u89e3_\u540e\u7eed\u8054\u5408\u6838\u9a8c_20261031.md"
+}

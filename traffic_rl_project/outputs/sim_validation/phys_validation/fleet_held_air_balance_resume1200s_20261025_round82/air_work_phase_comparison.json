@@ -1,0 +1,38 @@
+{
+  "baseline": {
+    "air_mechanical_work_proxy_MJ_per_train": [
+      2156.31694362202,
+      2498.125612055782,
+      2366.3497110736325
+    ],
+    "third_source_transitions": [
+      [
+        945.100000014859,
+        false
+      ],
+      [
+        1167.1000000197043,
+        true
+      ]
+    ],
+    "third_air_source_on_duration_in_window_s": 218.0,
+    "third_actual_ed_min": 1.0,
+    "third_actual_ed_max": 1.0
+  },
+  "candidate": {
+    "air_mechanical_work_proxy_MJ_per_train": [
+      2156.31694362202,
+      2498.125612055782,
+      3358.625350040377
+    ],
+    "third_source_transitions": [
+      [
+        1126.9000000188273,
+        false
+      ]
+    ],
+    "third_air_source_on_duration_in_window_s": 366.8,
+    "third_actual_ed_min": 0.0423426628112793,
+    "third_actual_ed_max": 1.0
+  }
+}

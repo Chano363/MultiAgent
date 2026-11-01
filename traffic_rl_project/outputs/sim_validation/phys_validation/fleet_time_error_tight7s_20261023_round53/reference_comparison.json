@@ -1,0 +1,8 @@
+{
+  "reference": "fleet_newton_thirtysecond7s_20261023_round50",
+  "commands_equal": true,
+  "max_signed_force_difference_kn": 2.7189473815205276,
+  "max_vehicle_speed_difference_kmh": 0.0002714952615875177,
+  "loose_to_tight_force_difference_kn": 0.7350132838641293,
+  "note": "Reference has finite discretization error; this is not a certified true error"
+}

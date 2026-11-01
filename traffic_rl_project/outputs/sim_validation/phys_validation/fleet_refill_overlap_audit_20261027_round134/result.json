@@ -1,0 +1,102 @@
+{
+  "scope": "Observed source/air-force/refill-clock overlap, not a full valve-state reconstruction",
+  "negligible_air_force_threshold_n": 1.0,
+  "threshold_scope": "Existing diagnostic convention, not pneumatic calibration",
+  "window_s": [
+    2121.2000000269195,
+    2971.0999998909115
+  ],
+  "trains": [
+    {
+      "train_one_based": 1,
+      "source_off_air_present_and_refill_wait_s": 61.1,
+      "source_off_air_negligible_and_refill_wait_s": 390.6,
+      "source_on_with_refill_wait_s": 0.0,
+      "releases": [
+        {
+          "source_off_s": 2235.8000000085754,
+          "refill_remaining_at_source_off_s": 222.0,
+          "first_negligible_mechanical_air_s": 2262.5000000043015,
+          "first_refill_gate_ready_s": null,
+          "next_source_on_s": 2457.7999999730414
+        },
+        {
+          "source_off_s": 2514.2999999639974,
+          "refill_remaining_at_source_off_s": 222.0,
+          "first_negligible_mechanical_air_s": 2540.9999999597235,
+          "first_refill_gate_ready_s": null,
+          "next_source_on_s": 2736.2999999284616
+        },
+        {
+          "source_off_s": 2963.499999892128,
+          "refill_remaining_at_source_off_s": 222.0,
+          "first_negligible_mechanical_air_s": null,
+          "first_refill_gate_ready_s": null,
+          "next_source_on_s": null
+        }
+      ]
+    },
+    {
+      "train_one_based": 2,
+      "source_off_air_present_and_refill_wait_s": 0.0,
+      "source_off_air_negligible_and_refill_wait_s": 0.0,
+      "source_on_with_refill_wait_s": 0.0,
+      "releases": []
+    },
+    {
+      "train_one_based": 3,
+      "source_off_air_present_and_refill_wait_s": 0.0,
+      "source_off_air_negligible_and_refill_wait_s": 0.0,
+      "source_on_with_refill_wait_s": 0.0,
+      "releases": []
+    }
+  ],
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0001\\metadata.json": "052334bb7353665fd39d8b8d6e9423969ab0a2d69ab1285ae4e4d28b93b42b1a",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0001\\fleet_state.json": "2bfc1887f0b706039cb52c55fc6b8dbf41aeecc212d0a5a49cac99a727ce2afa",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0001\\trajectory.npz": "58728a0103c98085d0f12432204a2ee2674c1e5e99bce4a05b57abdda11cef34",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0001\\telemetry.npz": "6fa6e0f3f9b3970dbaf509f180e03c3f08fdb2d580137967a9ce66318533b05b",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0002\\metadata.json": "bf0a0f8b9e4435a6c40f8b2f2f7b3e593978314e84b2db516ea1922be6da5b74",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0002\\fleet_state.json": "4e0ea918ee41439e4a9c8e933b8a15347264bde517cfa395d5ebbfa22daf6e32",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0002\\trajectory.npz": "bb634062df3914861da2b2bba2fb4b59e19b66fd06dbc7e8dfd60e240cb86288",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0002\\telemetry.npz": "b97999b096754571f9786c887e51ea1770f85db2dc6d51c4e744188aae950fc7",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0003\\metadata.json": "b8c768865c008f3b76573577692161bab8af100993fb2c1b180f904d94b3e145",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0003\\fleet_state.json": "d22d40cd18a92c4f2fa60557c16ab40552f0fdb081c740aee84561f70141fe04",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0003\\trajectory.npz": "9af783a716fef91f253ef337977df0295eea7f2c09466aba844d62ee43b83089",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0003\\telemetry.npz": "c72bc2cb9360978e7144aa94e6ccdaa3e877e91f3c7b986e776560abd80fa124",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0004\\metadata.json": "a42fc34d001ab178e6b61b4207d4af49ac8329fa4ba45de1aec9d6f107a25cf0",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0004\\fleet_state.json": "4db97794368a37ebad1aaa4f4df08f9ae872828103564c4d0954dff7286f53d7",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0004\\trajectory.npz": "0d06d96a50b0d539175276089169a96b7ad6a594d3d1584b62ae82af6c275bbd",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0004\\telemetry.npz": "d5f6d1c7a3ad6acf9f18b884bdae62ffe6b9ede38fe057d7a5cf276133173bd2",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0005\\metadata.json": "69594b58ab4e9d4fa51a72241b97ed284c7ca14ee694076c291558c6b5559c92",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0005\\fleet_state.json": "6661c02f30853ccdf5710b483e6a542f0a57c3566b0d0487c12fa11739e8bcb3",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0005\\trajectory.npz": "c3699a8ffad2d73bf04d2865534047ec257b3ce226cabb89e41b4d674895702e",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0005\\telemetry.npz": "7c2fd18d0cb5d078f67f5f31015ec246beafd395fd08e2d4c014946e0654218e",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0006\\metadata.json": "f5849f2cf9428096835de5f3117e11d5938ef4a7d2e2c1d7801256222de82bb2",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0006\\fleet_state.json": "df031740863374a056d2d0d04cd0fdbdcf10263bda642437253b7325b72b9d92",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0006\\trajectory.npz": "551ef87062377b241be6177e8aece2489d93d1c53c87602d77653399fb1e1e0a",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0006\\telemetry.npz": "fce37e0d4e4f6ee1a3ca177d2272d3185a47013e4d372ad61b743b20661a7db1",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0007\\metadata.json": "efcd8bf462f2289f26fe8e345e7641baaed79e5095c93a3fbf495b0bacb1a8f9",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0007\\fleet_state.json": "827d125752dcd7337a065d09c7520a27deaa69d619aa07e830dd9485852a049b",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0007\\trajectory.npz": "03b0e2f8084b027ba04246d3c695294deef44cf7e5077ea88737f0e2a4434217",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0007\\telemetry.npz": "02dbe6d0c1f38e119dbe948f3d4f4532bb159ef667663fec54ddbd8cf367bda5",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0008\\metadata.json": "771eb9592ab10494f6ce1d5bab242b7c0edcb53bf3b29d4f82d04ba3b18de796",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0008\\fleet_state.json": "ea353207d9864c756a7ecc14054205f7e7e67bd442d386961a7a97a0ac8eb899",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0008\\trajectory.npz": "3eb1c7f06332c9643e21607880657c23db8a5f1a138d44b0242e6c72ed75b7d5",
+    "outputs\\sim_validation\\phys_validation\\fleet_release50_cycle_20261027_round124\\stage_0008\\telemetry.npz": "bc66b9e48031a84b6c1a51c6ef46467673b5b5bcac8904a90b685e4f9e1a711c",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\metadata.json": "4c8c5411359faa884236cf2326cebf1179f24eb5c1d508ab0b44f1c0a769bdc7",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\fleet_state.json": "f9f499071417ae3de91b936cfea78df5a4ab772848c2ec7308122087172efb6d",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\trajectory.npz": "7d123097d3431fa2e65718b8be1ff43da7ffb3b6895a9d3f1d0ef12b7d9e4fde",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_nextcycle_20261027_round125\\telemetry.npz": "c1da735c2bb50947ef00011ea38db07f976f132eb8f904c0ca4f6473fbc8e168",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_match350_20261027_round128\\metadata.json": "68035993a1285006fa328a86b48f0a002ab553bf4261c91ae0ec8f995d71baa5",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_match350_20261027_round128\\fleet_state.json": "768645826e8285cd7ad1e85031a4ec8099253ba70ef23ebe16fdb62e1bd83efa",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_match350_20261027_round128\\trajectory.npz": "0c311bc1c3a100b557a83743f7ac9c238eae679a08195568f72e9583dad037a5",
+    "outputs\\sim_validation\\phys_validation\\fleet_restored54_match350_20261027_round128\\telemetry.npz": "198d30cf918b465aa13156148b8e46cd8692ab63ba4f54b76ea5c9b56484d340",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\metadata.json": "54c5e7c1cb0b1c079d172c94414a8574c23a89bf22d90c91a626914618bece31",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\fleet_state.json": "74918b7f2610ab5bd7e372f2fb466e68722514695d471c64e737e5cda34db7bd",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\trajectory.npz": "0345421d8066a810867b5f0b63a5771c313be8f8e58d6d0130e54b12b7c4fe56",
+    "outputs\\sim_validation\\phys_validation\\fleet_gap_balance_baseline_20261027_round129\\telemetry.npz": "9ddca8b9970df7f36cf907d0e618445648cad604ac53ec0d2e649125d0eb478e"
+  },
+  "entry_sha256": "65e9ab46e7d607eed7ff825cea7b4a463dc12c1f9eb76d41ff3e82d3ba5fb868",
+  "warning": "Relief and refill waiting are independent observed dimensions. Pacing must not reset the native release clock; native ATP priority is unchanged."
+}

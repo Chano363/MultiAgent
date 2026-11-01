@@ -1,0 +1,60 @@
+{
+  "scope": "Common-window diagnostic comparison, not full-route acceptance",
+  "window_s": [
+    2521.2,
+    2585.8
+  ],
+  "samples": 647,
+  "reference_gap_m": 183.333055555556,
+  "baseline": {
+    "internal_peak_kn": 1117.968244880794,
+    "min_vehicle_kmh": 46.11137452026873,
+    "max_vehicle_kmh": 78.19399850710236,
+    "safety_event_count": 0,
+    "mean_speed_spread_kmh": 2.4028142289737806,
+    "max_speed_spread_kmh": 4.066612441874128,
+    "mean_absolute_gap_error_m": 224.4205671273782,
+    "max_absolute_gap_error_m": 314.2998631927501,
+    "min_gap_m": 332.6452188753028,
+    "max_gap_m": 497.6329187483061,
+    "end_mean_kmh": [
+      50.62745384313334,
+      46.89939308875508,
+      46.56084140125921
+    ],
+    "end_gaps_m": [
+      497.6329187483061,
+      339.8862148084372
+    ]
+  },
+  "candidate": {
+    "internal_peak_kn": 621.8578667536425,
+    "min_vehicle_kmh": 46.18225681452237,
+    "max_vehicle_kmh": 78.19399850710236,
+    "safety_event_count": 0,
+    "mean_speed_spread_kmh": 3.1246436797732637,
+    "max_speed_spread_kmh": 4.424130985385858,
+    "mean_absolute_gap_error_m": 226.5562535741957,
+    "max_absolute_gap_error_m": 332.92393447782774,
+    "min_gap_m": 332.74813374365476,
+    "max_gap_m": 516.2569900333838,
+    "end_mean_kmh": [
+      50.62745384313334,
+      46.20332285774748,
+      46.26706245654062
+    ],
+    "end_gaps_m": [
+      516.2569900333838,
+      332.7837869730283
+    ]
+  },
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_delayed_release_native_20261031_round162\\stage_0009\\trajectory.npz": "784134bbfd5413c86004fb77cf94d25cafb8f7a2cef9c40c0d33e395b7f3a61d",
+    "outputs\\sim_validation\\phys_validation\\fleet_delayed_release_native_20261031_round162\\stage_0009\\telemetry.npz": "585c0e28ddd48acd938d6151a529c6d703e8946d5468314fde844e37e4c813ba",
+    "outputs\\sim_validation\\phys_validation\\fleet_delayed_release_native_20261031_round162\\stage_0009\\metadata.json": "f260c17f6a61d3b3f25b5eb3fed81cdc8a336082e3d41beca3f780a2f20d8ac2",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\trajectory.npz": "6e98f2a90d649ac32dd3ea8b9e515d60d0c992144360f025feb4d9d3536d9a98",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\telemetry.npz": "25b058a1f83612d2c94cd58dc8e7493a6ee0a142e9fca6d46cbdfa1f4148a844",
+    "outputs\\sim_validation\\phys_validation\\fleet_chase_exit_native_20261031_round165\\metadata.json": "749df166b4a3dbebcdb42ee06ce2076d226b03a9a620e751cde18f8f03a8eab5"
+  },
+  "entry_sha256": "9f905eea434ca1e67b7e9bb4c7619fe54300e6823d7e71bc811679756164616d"
+}

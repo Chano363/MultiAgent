@@ -1,0 +1,30 @@
+{
+  "status": "completed",
+  "error": null,
+  "settings": {
+    "max_step": 0.0025,
+    "min_step": 1e-07,
+    "force_atol_n": 1000.0,
+    "velocity_atol": 1e-05,
+    "position_atol": 1e-06,
+    "tol": 1e-09,
+    "max_iter": 100,
+    "force_tol_n": 0.01
+  },
+  "source_sha256": {
+    "error_controlled_mechanics": "5ce8dace6951eebd046d1dc2669e3969114574fa28456da37f247b50738b5622",
+    "adaptive_newmark_candidate": "e6dbe151e1c93104f77572ebea423c79925f63d869e9cc7af87f2311a691de9a",
+    "newton_mechanics_candidate": "6d520b052389c0a459124ffeac26ee7d933835aec9a4bdfb33d5462da4669757",
+    "native_force_tangent": "e8b3756be528eb8abb2f2a6e276de6410b6008888a63cb8ef568ac33aea2b0ec"
+  },
+  "elapsed_wall_s": 289.5115034000046,
+  "experimental": true,
+  "production_default_changed": false,
+  "accepted_microsteps": 303082,
+  "newton_calls": 464664,
+  "rejected_trials": 3347,
+  "internal_peak_kn": 719.8257410107791,
+  "max_force_residual_n": 0.009999282039643731,
+  "statistics_scope": "Completed native mechanical intervals only; failed interval trials excluded",
+  "scope": "Local engineering error indicators; not route acceptance"
+}

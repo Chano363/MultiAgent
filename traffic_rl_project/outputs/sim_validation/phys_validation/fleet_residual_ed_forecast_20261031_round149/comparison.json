@@ -1,0 +1,65 @@
+{
+  "scope": "Approximate forecast ranking only; frozen relative geometry, not native coupler acceptance",
+  "window_s": [
+    2521.2,
+    2871.1
+  ],
+  "samples": 3500,
+  "reference_gap_m": 183.33305555555555,
+  "baseline": {
+    "min_predicted_mean_kmh": 46.14926051744067,
+    "max_predicted_mean_kmh": 78.18800653135158,
+    "gap_mae_m": 454.07931854283356,
+    "mean_speed_spread_kmh": 8.094936206052207,
+    "min_gap_m": 314.0087119444943,
+    "end_gaps_m": [
+      1093.7284954810311,
+      444.5123998007184
+    ],
+    "end_mean_kmh": [
+      72.61765015635223,
+      73.10746336411266,
+      74.01302851097117
+    ],
+    "air_work_mj_by_train": [
+      1638.048636145591,
+      2700.28286426601,
+      2809.056639083267
+    ],
+    "air_work_mj_total": 7147.388139494872,
+    "native_safety_events": 0
+  },
+  "candidate": {
+    "min_predicted_mean_kmh": 46.15380217453951,
+    "max_predicted_mean_kmh": 78.18800653135158,
+    "gap_mae_m": 458.71022078030677,
+    "mean_speed_spread_kmh": 8.23478638917459,
+    "min_gap_m": 314.03260026731004,
+    "end_gaps_m": [
+      1111.434651358817,
+      446.155884836342
+    ],
+    "end_mean_kmh": [
+      72.83996989429382,
+      73.26238992654082,
+      74.08540171051571
+    ],
+    "air_work_mj_by_train": [
+      1641.0982717031732,
+      2701.0489273653275,
+      2809.2773468111805
+    ],
+    "air_work_mj_total": 7151.4245458796895,
+    "native_safety_events": 0
+  },
+  "equal_completed_horizons": true,
+  "no_worse_on_all_three_screening_costs": false,
+  "next_step": "Tradeoff or incomplete horizon: do not claim overall improvement",
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_forecast_20261031_round146\\result.json": "12dab5b1e000637b64cd43d933a150403028b8e714d7cbb33d47279c38cdd4e2",
+    "outputs\\sim_validation\\phys_validation\\fleet_pace49_nextcycle_forecast_20261031_round146\\forecast.npz": "abb3e8d7dc461dd7a70c3d276dd6731d553bb1628e835fd029fb62ca1552513e",
+    "outputs\\sim_validation\\phys_validation\\fleet_residual_ed_forecast_20261031_round149\\result.json": "bd882ea336750ba99295d7a10ec2fbcdcff8ad6752b4815dcfa88cd48b98fc57",
+    "outputs\\sim_validation\\phys_validation\\fleet_residual_ed_forecast_20261031_round149\\forecast.npz": "ead94dd09279dfcba6631f9d79369868b2b8b050d3f8b1ede41af75761e41e2e"
+  },
+  "entry_sha256": "30720cf4b5c98decba13f209a250485be7ca87123db769023d23485f61fe4bb6"
+}

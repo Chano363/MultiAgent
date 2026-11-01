@@ -1,0 +1,33 @@
+[
+  {
+    "train_one_based": 1,
+    "first_below40_s": null,
+    "min_mean_kmh": 43.76737396821232,
+    "min_time_s": 160.0,
+    "ed_at_min": 0.7309992909431458,
+    "ab_force_max_n": 4667.819154022601,
+    "large_ed_drop_times_s": []
+  },
+  {
+    "train_one_based": 2,
+    "first_below40_s": 137.4,
+    "min_mean_kmh": 38.04016977127849,
+    "min_time_s": 145.4,
+    "ed_at_min": 0.0,
+    "ab_force_max_n": 0.0,
+    "large_ed_drop_times_s": [
+      145.3
+    ]
+  },
+  {
+    "train_one_based": 3,
+    "first_below40_s": 137.2,
+    "min_mean_kmh": 37.45283028784723,
+    "min_time_s": 180.0,
+    "ed_at_min": 0.0,
+    "ab_force_max_n": 0.0,
+    "large_ed_drop_times_s": [
+      145.3
+    ]
+  }
+]

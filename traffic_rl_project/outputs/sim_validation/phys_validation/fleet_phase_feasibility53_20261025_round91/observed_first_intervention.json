@@ -1,0 +1,22 @@
+{
+  "scope": "Observed first intervention, existing 222s model; not evidence that 222s is an operational standard",
+  "time_s": 810.1000000119122,
+  "train_one_based": 2,
+  "physical_ed": [
+    1.0
+  ],
+  "source_on": [
+    false
+  ],
+  "refill_remaining_s": [
+    3.0
+  ],
+  "air_force_total_kn": 0.11616658029568892,
+  "head_speed_kmh": 68.89315583837762,
+  "gap_m": 372.24764849624444,
+  "mean_speed_kmh": [
+    56.63632501898242,
+    68.88986472544276,
+    61.03744430068723
+  ]
+}

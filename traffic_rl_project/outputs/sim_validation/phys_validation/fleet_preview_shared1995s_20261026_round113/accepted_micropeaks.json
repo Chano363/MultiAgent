@@ -1,0 +1,6012 @@
+{
+  "scope": "Only endpoints accepted by original step-doubling criteria; native signed force convention, not relabelled tension/compression",
+  "interval_peak_filter_kn": 800,
+  "records": [
+    {
+      "interval_start_s": 1987.2800000359305,
+      "interval_end_s": 1987.2900000359307,
+      "time_s": 1987.2900000359307,
+      "train_one_based": 3,
+      "coupler_one_based": 4,
+      "vehicle_pair_one_based": [
+        4,
+        5
+      ],
+      "signed_native_force_n": 803004.2234334694,
+      "peak_kn": 803.0042234334694,
+      "adjacent_speeds_kmh": [
+        63.75633812392637,
+        63.97189922957854
+      ],
+      "adjacent_positions_m": [
+        28400.090290753014,
+        28388.12228743194
+      ],
+      "relative_velocity_mps": -0.059878084903381534
+    },
+    {
+      "interval_start_s": 1987.2900000359307,
+      "interval_end_s": 1987.3000000359318,
+      "time_s": 1987.295625035931,
+      "train_one_based": 3,
+      "coupler_one_based": 4,
+      "vehicle_pair_one_based": [
+        4,
+        5
+      ],
+      "signed_native_force_n": 809467.327704573,
+      "peak_kn": 809.467327704573,
+      "adjacent_speeds_kmh": [
+        63.77297119403972,
+        63.81009315593322
+      ],
+      "adjacent_positions_m": [
+        28400.189923053054,
+        28388.222117276648
+      ],
+      "relative_velocity_mps": -0.010311656081526621
+    },
+    {
+      "interval_start_s": 1987.3700000359302,
+      "interval_end_s": 1987.3800000359304,
+      "time_s": 1987.3800000359304,
+      "train_one_based": 3,
+      "coupler_one_based": 5,
+      "vehicle_pair_one_based": [
+        5,
+        6
+      ],
+      "signed_native_force_n": 807797.1672331168,
+      "peak_kn": 807.7971672331169,
+      "adjacent_speeds_kmh": [
+        63.77157989981671,
+        64.02265162909704
+      ],
+      "adjacent_positions_m": [
+        28389.71508723215,
+        28377.747229913402
+      ],
+      "relative_velocity_mps": -0.06974214702231407
+    },
+    {
+      "interval_start_s": 1987.3800000359304,
+      "interval_end_s": 1987.3900000359306,
+      "time_s": 1987.3868750359304,
+      "train_one_based": 3,
+      "coupler_one_based": 5,
+      "vehicle_pair_one_based": [
+        5,
+        6
+      ],
+      "signed_native_force_n": 816672.6620298524,
+      "peak_kn": 816.6726620298524,
+      "adjacent_speeds_kmh": [
+        63.78960755505288,
+        63.823304190625315
+      ],
+      "adjacent_positions_m": [
+        28389.836890523755,
+        28377.869305386943
+      ],
+      "relative_velocity_mps": -0.009360176547897225
+    },
+    {
+      "interval_start_s": 1987.4600000359294,
+      "interval_end_s": 1987.4700000359296,
+      "time_s": 1987.4700000359296,
+      "train_one_based": 3,
+      "coupler_one_based": 6,
+      "vehicle_pair_one_based": [
+        6,
+        7
+      ],
+      "signed_native_force_n": 811467.3261815791,
+      "peak_kn": 811.4673261815791,
+      "adjacent_speeds_kmh": [
+        63.79305683652133,
+        64.06492230498255
+      ],
+      "adjacent_positions_m": [
+        28379.340625608533,
+        28367.372880118477
+      ],
+      "relative_velocity_mps": -0.07551818568366997
+    },
+    {
+      "interval_start_s": 1987.4700000359296,
+      "interval_end_s": 1987.4800000359303,
+      "time_s": 1987.4775000359298,
+      "train_one_based": 3,
+      "coupler_one_based": 6,
+      "vehicle_pair_one_based": [
+        6,
+        7
+      ],
+      "signed_native_force_n": 821933.0757041106,
+      "peak_kn": 821.9330757041106,
+      "adjacent_speeds_kmh": [
+        63.81103904178029,
+        63.846191922403406
+      ],
+      "adjacent_positions_m": [
+        28379.473546662855,
+        28367.50612134
+      ],
+      "relative_velocity_mps": -0.009764689061977805
+    },
+    {
+      "interval_start_s": 1987.5500000359282,
+      "interval_end_s": 1987.5600000359284,
+      "time_s": 1987.5600000359284,
+      "train_one_based": 3,
+      "coupler_one_based": 7,
+      "vehicle_pair_one_based": [
+        7,
+        8
+      ],
+      "signed_native_force_n": 814685.0487804264,
+      "peak_kn": 814.6850487804264,
+      "adjacent_speeds_kmh": [
+        63.8179708787123,
+        64.10140264847392
+      ],
+      "adjacent_positions_m": [
+        28368.966926995505,
+        28356.999279568583
+      ],
+      "relative_velocity_mps": -0.07873104715600476
+    },
+    {
+      "interval_start_s": 1987.5600000359284,
+      "interval_end_s": 1987.57000003593,
+      "time_s": 1987.5678125359286,
+      "train_one_based": 3,
+      "coupler_one_based": 7,
+      "vehicle_pair_one_based": [
+        7,
+        8
+      ],
+      "signed_native_force_n": 826079.0997864006,
+      "peak_kn": 826.0790997864005,
+      "adjacent_speeds_kmh": [
+        63.83550050959879,
+        63.872489478610895
+      ],
+      "adjacent_positions_m": [
+        28369.105440037754,
+        28357.138140694376
+      ],
+      "relative_velocity_mps": -0.010274713614474962
+    },
+    {
+      "interval_start_s": 1987.6400000359274,
+      "interval_end_s": 1987.6500000359276,
+      "time_s": 1987.6500000359276,
+      "train_one_based": 3,
+      "coupler_one_based": 8,
+      "vehicle_pair_one_based": [
+        8,
+        9
+      ],
+      "signed_native_force_n": 817764.8115725124,
+      "peak_kn": 817.7648115725124,
+      "adjacent_speeds_kmh": [
+        63.84492354094867,
+        64.13345687466192
+      ],
+      "adjacent_positions_m": [
+        28358.594006009356,
+        28346.62645245841
+      ],
+      "relative_velocity_mps": -0.08014814825368077
+    },
+    {
+      "interval_start_s": 1987.6500000359276,
+      "interval_end_s": 1987.6600000359288,
+      "time_s": 1987.658125035928,
+      "train_one_based": 3,
+      "coupler_one_based": 8,
+      "vehicle_pair_one_based": [
+        8,
+        9
+      ],
+      "signed_native_force_n": 829556.2007970596,
+      "peak_kn": 829.5562007970595,
+      "adjacent_speeds_kmh": [
+        63.862274995428365,
+        63.894381109486055
+      ],
+      "adjacent_positions_m": [
+        28358.738120247177,
+        28346.770928955306
+      ],
+      "relative_velocity_mps": -0.008918365016025831
+    },
+    {
+      "interval_start_s": 1987.7300000359262,
+      "interval_end_s": 1987.7400000359264,
+      "time_s": 1987.7400000359264,
+      "train_one_based": 3,
+      "coupler_one_based": 9,
+      "vehicle_pair_one_based": [
+        9,
+        10
+      ],
+      "signed_native_force_n": 820852.2765392951,
+      "peak_kn": 820.8522765392951,
+      "adjacent_speeds_kmh": [
+        63.8731323361975,
+        64.16180546388273
+      ],
+      "adjacent_positions_m": [
+        28348.221872878203,
+        28336.254413454768
+      ],
+      "relative_velocity_mps": -0.08018697991256118
+    },
+    {
+      "interval_start_s": 1987.7400000359264,
+      "interval_end_s": 1987.7500000359275,
+      "time_s": 1987.7481250359267,
+      "train_one_based": 3,
+      "coupler_one_based": 9,
+      "vehicle_pair_one_based": [
+        9,
+        10
+      ],
+      "signed_native_force_n": 832634.5747235247,
+      "peak_kn": 832.6345747235248,
+      "adjacent_speeds_kmh": [
+        63.889896068835135,
+        63.921824279757864
+      ],
+      "adjacent_positions_m": [
+        28348.366050145723,
+        28336.398952910833
+      ],
+      "relative_velocity_mps": -0.008868947478536171
+    },
+    {
+      "interval_start_s": 1987.8200000359263,
+      "interval_end_s": 1987.8300000359266,
+      "time_s": 1987.8300000359266,
+      "train_one_based": 3,
+      "coupler_one_based": 10,
+      "vehicle_pair_one_based": [
+        10,
+        11
+      ],
+      "signed_native_force_n": 824028.1777759014,
+      "peak_kn": 824.0281777759014,
+      "adjacent_speeds_kmh": [
+        63.902129291055296,
+        64.18682925024044
+      ],
+      "adjacent_positions_m": [
+        28337.85053431037,
+        28325.88317172788
+      ],
+      "relative_velocity_mps": -0.07908332199587065
+    },
+    {
+      "interval_start_s": 1987.8300000359266,
+      "interval_end_s": 1987.8400000359281,
+      "time_s": 1987.8378125359268,
+      "train_one_based": 3,
+      "coupler_one_based": 10,
+      "vehicle_pair_one_based": [
+        10,
+        11
+      ],
+      "signed_native_force_n": 835474.7257987631,
+      "peak_kn": 835.4747257987631,
+      "adjacent_speeds_kmh": [
+        63.91790218078776,
+        63.95527270805457
+      ],
+      "adjacent_positions_m": [
+        28337.98922815433,
+        28326.022215375524
+      ],
+      "relative_velocity_mps": -0.010380702018558452
+    },
+    {
+      "interval_start_s": 1987.910000035927,
+      "interval_end_s": 1987.9200000359272,
+      "time_s": 1987.9200000359272,
+      "train_one_based": 3,
+      "coupler_one_based": 11,
+      "vehicle_pair_one_based": [
+        11,
+        12
+      ],
+      "signed_native_force_n": 827308.2098490433,
+      "peak_kn": 827.3082098490432,
+      "adjacent_speeds_kmh": [
+        63.93162552497061,
+        64.20871096380743
+      ],
+      "adjacent_positions_m": [
+        28327.479995132646,
+        28315.512732584448
+      ],
+      "relative_velocity_mps": -0.07696817745467044
+    },
+    {
+      "interval_start_s": 1987.9200000359272,
+      "interval_end_s": 1987.9300000359287,
+      "time_s": 1987.9275000359273,
+      "train_one_based": 3,
+      "coupler_one_based": 11,
+      "vehicle_pair_one_based": [
+        11,
+        12
+      ],
+      "signed_native_force_n": 838098.6971937094,
+      "peak_kn": 838.0986971937094,
+      "adjacent_speeds_kmh": [
+        63.946565609351715,
+        63.98564920073694
+      ],
+      "adjacent_positions_m": [
+        28327.613201809032,
+        28315.646268867946
+      ],
+      "relative_velocity_mps": -0.01085655316256151
+    },
+    {
+      "interval_start_s": 1988.0000000359285,
+      "interval_end_s": 1988.0100000359287,
+      "time_s": 1988.0100000359287,
+      "train_one_based": 3,
+      "coupler_one_based": 12,
+      "vehicle_pair_one_based": [
+        12,
+        13
+      ],
+      "signed_native_force_n": 830696.9892605724,
+      "peak_kn": 830.6969892605723,
+      "adjacent_speeds_kmh": [
+        63.96145148032945,
+        64.22754324894622
+      ],
+      "adjacent_positions_m": [
+        28317.110258097437,
+        28305.1430989192
+      ],
+      "relative_velocity_mps": -0.07391438017132401
+    },
+    {
+      "interval_start_s": 1988.0100000359287,
+      "interval_end_s": 1988.0200000359298,
+      "time_s": 1988.0175000359288,
+      "train_one_based": 3,
+      "coupler_one_based": 12,
+      "vehicle_pair_one_based": [
+        12,
+        13
+      ],
+      "signed_native_force_n": 840399.339081365,
+      "peak_kn": 840.399339081365,
+      "adjacent_speeds_kmh": [
+        63.976234224255684,
+        64.00367529669967
+      ],
+      "adjacent_positions_m": [
+        28317.243526779188,
+        28305.27667355534
+      ],
+      "relative_velocity_mps": -0.007622520123330645
+    },
+    {
+      "interval_start_s": 1988.0900000359304,
+      "interval_end_s": 1988.1000000359306,
+      "time_s": 1988.1000000359306,
+      "train_one_based": 3,
+      "coupler_one_based": 13,
+      "vehicle_pair_one_based": [
+        13,
+        14
+      ],
+      "signed_native_force_n": 834186.7352311623,
+      "peak_kn": 834.1867352311623,
+      "adjacent_speeds_kmh": [
+        63.99151860043736,
+        64.24334182579024
+      ],
+      "adjacent_positions_m": [
+        28306.74132452502,
+        28294.774271816586
+      ],
+      "relative_velocity_mps": -0.06995089593135617
+    },
+    {
+      "interval_start_s": 1988.1000000359306,
+      "interval_end_s": 1988.1100000359304,
+      "time_s": 1988.1065625359302,
+      "train_one_based": 3,
+      "coupler_one_based": 13,
+      "vehicle_pair_one_based": [
+        13,
+        14
+      ],
+      "signed_native_force_n": 842971.9896224459,
+      "peak_kn": 842.9719896224459,
+      "adjacent_speeds_kmh": [
+        64.00446681001947,
+        64.04683773274365
+      ],
+      "adjacent_positions_m": [
+        28306.85798771269,
+        28294.891203282852
+      ],
+      "relative_velocity_mps": -0.011769700756715906
+    },
+    {
+      "interval_start_s": 1988.18000003593,
+      "interval_end_s": 1988.1900000359303,
+      "time_s": 1988.1900000359303,
+      "train_one_based": 3,
+      "coupler_one_based": 14,
+      "vehicle_pair_one_based": [
+        14,
+        15
+      ],
+      "signed_native_force_n": 832803.6540350196,
+      "peak_kn": 832.8036540350196,
+      "adjacent_speeds_kmh": [
+        64.04262347026673,
+        64.2596114266355
+      ],
+      "adjacent_positions_m": [
+        28296.373359442943,
+        28284.406264535224
+      ],
+      "relative_velocity_mps": -0.06027443232466112
+    },
+    {
+      "interval_start_s": 1988.1900000359303,
+      "interval_end_s": 1988.2000000359315,
+      "time_s": 1988.1956250359306,
+      "train_one_based": 3,
+      "coupler_one_based": 14,
+      "vehicle_pair_one_based": [
+        14,
+        15
+      ],
+      "signed_native_force_n": 839272.0993206504,
+      "peak_kn": 839.2720993206505,
+      "adjacent_speeds_kmh": [
+        64.05512928666992,
+        64.09175118482906
+      ],
+      "adjacent_positions_m": [
+        28296.47343594556,
+        28284.50653920061
+      ],
+      "relative_velocity_mps": -0.01017274948865321
+    },
+    {
+      "interval_start_s": 1988.2700000359298,
+      "interval_end_s": 1988.28000003593,
+      "time_s": 1988.28000003593,
+      "train_one_based": 3,
+      "coupler_one_based": 15,
+      "vehicle_pair_one_based": [
+        15,
+        16
+      ],
+      "signed_native_force_n": 828651.7870546791,
+      "peak_kn": 828.6517870546792,
+      "adjacent_speeds_kmh": [
+        64.08161215019122,
+        64.28994162309073
+      ],
+      "adjacent_positions_m": [
+        28286.006449807934,
+        28274.039228241367
+      ],
+      "relative_velocity_mps": -0.05786929802764007
+    },
+    {
+      "interval_start_s": 1988.28000003593,
+      "interval_end_s": 1988.2900000359311,
+      "time_s": 1988.2853125359302,
+      "train_one_based": 3,
+      "coupler_one_based": 15,
+      "vehicle_pair_one_based": [
+        15,
+        16
+      ],
+      "signed_native_force_n": 834660.9358640527,
+      "peak_kn": 834.6609358640527,
+      "adjacent_speeds_kmh": [
+        64.09180245580116,
+        64.13226274706979
+      ],
+      "adjacent_positions_m": [
+        28286.101022314444,
+        28274.133984342072
+      ],
+      "relative_velocity_mps": -0.011238969796838916
+    },
+    {
+      "interval_start_s": 1988.3600000359318,
+      "interval_end_s": 1988.370000035932,
+      "time_s": 1988.370000035932,
+      "train_one_based": 3,
+      "coupler_one_based": 16,
+      "vehicle_pair_one_based": [
+        16,
+        17
+      ],
+      "signed_native_force_n": 830963.9966817108,
+      "peak_kn": 830.9639966817108,
+      "adjacent_speeds_kmh": [
+        64.10926140395682,
+        64.31734192409282
+      ],
+      "adjacent_positions_m": [
+        28275.64020676078,
+        28263.67305572805
+      ],
+      "relative_velocity_mps": -0.057800144482218485
+    },
+    {
+      "interval_start_s": 1988.370000035932,
+      "interval_end_s": 1988.380000035933,
+      "time_s": 1988.3753125359322,
+      "train_one_based": 3,
+      "coupler_one_based": 16,
+      "vehicle_pair_one_based": [
+        16,
+        17
+      ],
+      "signed_native_force_n": 836944.0323843657,
+      "peak_kn": 836.9440323843656,
+      "adjacent_speeds_kmh": [
+        64.11959111864833,
+        64.15922136830503
+      ],
+      "adjacent_positions_m": [
+        28275.73482017097,
+        28263.767851936722
+      ],
+      "relative_velocity_mps": -0.011008402682413987
+    },
+    {
+      "interval_start_s": 1988.4400000359335,
+      "interval_end_s": 1988.4500000359337,
+      "time_s": 1988.4500000359337,
+      "train_one_based": 3,
+      "coupler_one_based": 17,
+      "vehicle_pair_one_based": [
+        17,
+        18
+      ],
+      "signed_native_force_n": 801348.032274895,
+      "peak_kn": 801.348032274895,
+      "adjacent_speeds_kmh": [
+        64.11577387401937,
+        64.63227597329008
+      ],
+      "adjacent_positions_m": [
+        28265.09660021115,
+        28253.128546449254
+      ],
+      "relative_velocity_mps": -0.14347280535297813
+    },
+    {
+      "interval_start_s": 1988.4500000359337,
+      "interval_end_s": 1988.460000035934,
+      "time_s": 1988.460000035934,
+      "train_one_based": 3,
+      "coupler_one_based": 17,
+      "vehicle_pair_one_based": [
+        17,
+        18
+      ],
+      "signed_native_force_n": 834191.6623026067,
+      "peak_kn": 834.1916623026067,
+      "adjacent_speeds_kmh": [
+        64.1371476242633,
+        64.33984403244122
+      ],
+      "adjacent_positions_m": [
+        28265.274729645796,
+        28253.307677087698
+      ],
+      "relative_velocity_mps": -0.05630455782719679
+    },
+    {
+      "interval_start_s": 1988.460000035934,
+      "interval_end_s": 1988.4700000359346,
+      "time_s": 1988.4653125359341,
+      "train_one_based": 3,
+      "coupler_one_based": 17,
+      "vehicle_pair_one_based": [
+        17,
+        18
+      ],
+      "signed_native_force_n": 839845.8858066415,
+      "peak_kn": 839.8458858066415,
+      "adjacent_speeds_kmh": [
+        64.1475499187371,
+        64.18113104260263
+      ],
+      "adjacent_positions_m": [
+        28265.36938426368,
+        28253.402506059065
+      ],
+      "relative_velocity_mps": -0.009328089962650665
+    },
+    {
+      "interval_start_s": 1988.5300000359332,
+      "interval_end_s": 1988.5400000359334,
+      "time_s": 1988.5400000359334,
+      "train_one_based": 3,
+      "coupler_one_based": 18,
+      "vehicle_pair_one_based": [
+        18,
+        19
+      ],
+      "signed_native_force_n": 805529.8315102819,
+      "peak_kn": 805.5298315102818,
+      "adjacent_speeds_kmh": [
+        64.14397152691284,
+        64.6519723126957
+      ],
+      "adjacent_positions_m": [
+        28254.73183048902,
+        28242.763904097537
+      ],
+      "relative_velocity_mps": -0.14111132938413107
+    },
+    {
+      "interval_start_s": 1988.5400000359334,
+      "interval_end_s": 1988.5500000359336,
+      "time_s": 1988.5500000359336,
+      "train_one_based": 3,
+      "coupler_one_based": 18,
+      "vehicle_pair_one_based": [
+        18,
+        19
+      ],
+      "signed_native_force_n": 837524.9878655841,
+      "peak_kn": 837.5249878655841,
+      "adjacent_speeds_kmh": [
+        64.16539821299375,
+        64.35818120801089
+      ],
+      "adjacent_positions_m": [
+        28254.910038332542,
+        28242.94308749066
+      ],
+      "relative_velocity_mps": -0.05355083194920596
+    },
+    {
+      "interval_start_s": 1988.5500000359336,
+      "interval_end_s": 1988.5600000359343,
+      "time_s": 1988.5550000359337,
+      "train_one_based": 3,
+      "coupler_one_based": 18,
+      "vehicle_pair_one_based": [
+        18,
+        19
+      ],
+      "signed_native_force_n": 842594.9467188434,
+      "peak_kn": 842.5949467188434,
+      "adjacent_speeds_kmh": [
+        64.17521539199114,
+        64.20826968585816
+      ],
+      "adjacent_positions_m": [
+        28254.999163851637,
+        28243.032369847664
+      ],
+      "relative_velocity_mps": -0.009181748296391845
+    },
+    {
+      "interval_start_s": 1988.6200000359324,
+      "interval_end_s": 1988.6300000359327,
+      "time_s": 1988.6300000359327,
+      "train_one_based": 3,
+      "coupler_one_based": 19,
+      "vehicle_pair_one_based": [
+        19,
+        20
+      ],
+      "signed_native_force_n": 810159.7679609134,
+      "peak_kn": 810.1597679609133,
+      "adjacent_speeds_kmh": [
+        64.17263150155841,
+        64.66778532166043
+      ],
+      "adjacent_positions_m": [
+        28244.36784588283,
+        28232.400060549036
+      ],
+      "relative_velocity_mps": -0.13754272780611387
+    },
+    {
+      "interval_start_s": 1988.6300000359327,
+      "interval_end_s": 1988.6400000359329,
+      "time_s": 1988.6400000359329,
+      "train_one_based": 3,
+      "coupler_one_based": 19,
+      "vehicle_pair_one_based": [
+        19,
+        20
+      ],
+      "signed_native_force_n": 840908.7481021284,
+      "peak_kn": 840.9087481021284,
+      "adjacent_speeds_kmh": [
+        64.19403623495661,
+        64.37254539072111
+      ],
+      "adjacent_positions_m": [
+        28244.546133320917,
+        28232.579285752654
+      ],
+      "relative_velocity_mps": -0.04958587660124891
+    },
+    {
+      "interval_start_s": 1988.6400000359329,
+      "interval_end_s": 1988.650000035934,
+      "time_s": 1988.6443750359329,
+      "train_one_based": 3,
+      "coupler_one_based": 19,
+      "vehicle_pair_one_based": [
+        19,
+        20
+      ],
+      "signed_native_force_n": 845208.0142920039,
+      "peak_kn": 845.2080142920039,
+      "adjacent_speeds_kmh": [
+        64.20263699280977,
+        64.24092220069753
+      ],
+      "adjacent_positions_m": [
+        28244.624152196113,
+        28232.657436362235
+      ],
+      "relative_velocity_mps": -0.010634779968821562
+    },
+    {
+      "interval_start_s": 1988.7100000359326,
+      "interval_end_s": 1988.7200000359328,
+      "time_s": 1988.7200000359328,
+      "train_one_based": 3,
+      "coupler_one_based": 20,
+      "vehicle_pair_one_based": [
+        20,
+        21
+      ],
+      "signed_native_force_n": 815173.5768338692,
+      "peak_kn": 815.1735768338692,
+      "adjacent_speeds_kmh": [
+        64.20171639870651,
+        64.67984010793967
+      ],
+      "adjacent_positions_m": [
+        28234.00464633771,
+        28222.037013800764
+      ],
+      "relative_velocity_mps": -0.13281214145365539
+    },
+    {
+      "interval_start_s": 1988.7200000359328,
+      "interval_end_s": 1988.730000035933,
+      "time_s": 1988.730000035933,
+      "train_one_based": 3,
+      "coupler_one_based": 20,
+      "vehicle_pair_one_based": [
+        20,
+        21
+      ],
+      "signed_native_force_n": 844294.0805093161,
+      "peak_kn": 844.294080509316,
+      "adjacent_speeds_kmh": [
+        64.22304076446639,
+        64.38308204695097
+      ],
+      "adjacent_positions_m": [
+        28234.183014476122,
+        28222.216270247736
+      ],
+      "relative_velocity_mps": -0.044455911801275505
+    },
+    {
+      "interval_start_s": 1988.730000035933,
+      "interval_end_s": 1988.7400000359341,
+      "time_s": 1988.7337500359329,
+      "train_one_based": 3,
+      "coupler_one_based": 20,
+      "vehicle_pair_one_based": [
+        20,
+        21
+      ],
+      "signed_native_force_n": 847686.2280002105,
+      "peak_kn": 847.6862280002105,
+      "adjacent_speeds_kmh": [
+        64.23039212371135,
+        64.26988268347539
+      ],
+      "adjacent_positions_m": [
+        28234.249917345256,
+        28222.283277036666
+      ],
+      "relative_velocity_mps": -0.010969599934455232
+    },
+    {
+      "interval_start_s": 1988.8000000359327,
+      "interval_end_s": 1988.810000035933,
+      "time_s": 1988.810000035933,
+      "train_one_based": 3,
+      "coupler_one_based": 21,
+      "vehicle_pair_one_based": [
+        21,
+        22
+      ],
+      "signed_native_force_n": 820495.4847775386,
+      "peak_kn": 820.4954847775385,
+      "adjacent_speeds_kmh": [
+        64.23118741291157,
+        64.6882060197356
+      ],
+      "adjacent_positions_m": [
+        28223.64223170227,
+        28211.674761400478
+      ],
+      "relative_velocity_mps": -0.1269496130066763
+    },
+    {
+      "interval_start_s": 1988.810000035933,
+      "interval_end_s": 1988.8200000359332,
+      "time_s": 1988.8200000359332,
+      "train_one_based": 3,
+      "coupler_one_based": 21,
+      "vehicle_pair_one_based": [
+        21,
+        22
+      ],
+      "signed_native_force_n": 847616.2973299364,
+      "peak_kn": 847.6162973299364,
+      "adjacent_speeds_kmh": [
+        64.2523800613317,
+        64.38988584248668
+      ],
+      "adjacent_positions_m": [
+        28223.820681549998,
+        28211.854038752354
+      ],
+      "relative_velocity_mps": -0.03819605032082407
+    },
+    {
+      "interval_start_s": 1988.8200000359332,
+      "interval_end_s": 1988.8300000359343,
+      "time_s": 1988.8231250359333,
+      "train_one_based": 3,
+      "coupler_one_based": 21,
+      "vehicle_pair_one_based": [
+        21,
+        22
+      ],
+      "signed_native_force_n": 850068.6928048123,
+      "peak_kn": 850.0686928048124,
+      "adjacent_speeds_kmh": [
+        64.25846744372214,
+        64.29524256685504
+      ],
+      "adjacent_positions_m": [
+        28223.87645884999,
+        28211.909891690128
+      ],
+      "relative_velocity_mps": -0.01021531198135861
+    },
+    {
+      "interval_start_s": 1988.8900000359338,
+      "interval_end_s": 1988.900000035934,
+      "time_s": 1988.900000035934,
+      "train_one_based": 3,
+      "coupler_one_based": 22,
+      "vehicle_pair_one_based": [
+        22,
+        23
+      ],
+      "signed_native_force_n": 826032.7890203703,
+      "peak_kn": 826.0327890203704,
+      "adjacent_speeds_kmh": [
+        64.26100033159419,
+        64.69296384093549
+      ],
+      "adjacent_positions_m": [
+        28213.280601672912,
+        28201.313300224803
+      ],
+      "relative_velocity_mps": -0.1199898637059178
+    },
+    {
+      "interval_start_s": 1988.900000035934,
+      "interval_end_s": 1988.9100000359338,
+      "time_s": 1988.9100000359338,
+      "train_one_based": 3,
+      "coupler_one_based": 22,
+      "vehicle_pair_one_based": [
+        22,
+        23
+      ],
+      "signed_native_force_n": 850795.821712424,
+      "peak_kn": 850.7958217124241,
+      "adjacent_speeds_kmh": [
+        64.28201323547295,
+        64.39306266518314
+      ],
+      "adjacent_positions_m": [
+        28213.459134124678,
+        28201.492588417248
+      ],
+      "relative_velocity_mps": -0.03084706380838753
+    },
+    {
+      "interval_start_s": 1988.9100000359338,
+      "interval_end_s": 1988.9200000359344,
+      "time_s": 1988.9125000359338,
+      "train_one_based": 3,
+      "coupler_one_based": 22,
+      "vehicle_pair_one_based": [
+        22,
+        23
+      ],
+      "signed_native_force_n": 852253.0641246451,
+      "peak_kn": 852.2530641246451,
+      "adjacent_speeds_kmh": [
+        64.28683341104968,
+        64.3171119513396
+      ],
+      "adjacent_positions_m": [
+        28213.50377609609,
+        28201.537279455788
+      ],
+      "relative_velocity_mps": -0.008410705636087812
+    },
+    {
+      "interval_start_s": 1988.9800000359335,
+      "interval_end_s": 1988.9900000359337,
+      "time_s": 1988.9900000359337,
+      "train_one_based": 3,
+      "coupler_one_based": 23,
+      "vehicle_pair_one_based": [
+        23,
+        24
+      ],
+      "signed_native_force_n": 830697.3105277118,
+      "peak_kn": 830.6973105277118,
+      "adjacent_speeds_kmh": [
+        64.29641868207014,
+        64.69470863933105
+      ],
+      "adjacent_positions_m": [
+        28202.91978879436,
+        28190.952629625925
+      ],
+      "relative_velocity_mps": -0.11063609923914441
+    },
+    {
+      "interval_start_s": 1988.9900000359337,
+      "interval_end_s": 1989.000000035934,
+      "time_s": 1989.000000035934,
+      "train_one_based": 3,
+      "coupler_one_based": 23,
+      "vehicle_pair_one_based": [
+        23,
+        24
+      ],
+      "signed_native_force_n": 852294.7230832137,
+      "peak_kn": 852.2947230832136,
+      "adjacent_speeds_kmh": [
+        64.31820967341662,
+        64.39369668553071
+      ],
+      "adjacent_positions_m": [
+        28203.098420780167,
+        28191.1319208487
+      ],
+      "relative_velocity_mps": -0.020968614476135627
+    },
+    {
+      "interval_start_s": 1989.000000035934,
+      "interval_end_s": 1989.0100000359346,
+      "time_s": 1989.0012500359342,
+      "train_one_based": 3,
+      "coupler_one_based": 23,
+      "vehicle_pair_one_based": [
+        23,
+        24
+      ],
+      "signed_native_force_n": 852881.5388891068,
+      "peak_kn": 852.8815388891069,
+      "adjacent_speeds_kmh": [
+        64.32072475953485,
+        64.35567758554397
+      ],
+      "adjacent_positions_m": [
+        28203.120753930256,
+        28191.154273171378
+      ],
+      "relative_velocity_mps": -0.009709118335866407
+    },
+    {
+      "interval_start_s": 1989.070000035934,
+      "interval_end_s": 1989.0800000359343,
+      "time_s": 1989.0800000359343,
+      "train_one_based": 3,
+      "coupler_one_based": 24,
+      "vehicle_pair_one_based": [
+        24,
+        25
+      ],
+      "signed_native_force_n": 831916.8701530432,
+      "peak_kn": 831.9168701530432,
+      "adjacent_speeds_kmh": [
+        64.33940778895891,
+        64.69905438036265
+      ],
+      "adjacent_positions_m": [
+        28192.55991265043,
+        28180.59279068765
+      ],
+      "relative_velocity_mps": -0.099901830945484
+    },
+    {
+      "interval_start_s": 1989.0800000359343,
+      "interval_end_s": 1989.0900000359345,
+      "time_s": 1989.0900000359345,
+      "train_one_based": 3,
+      "coupler_one_based": 24,
+      "vehicle_pair_one_based": [
+        24,
+        25
+      ],
+      "signed_native_force_n": 849969.7834562637,
+      "peak_kn": 849.9697834562637,
+      "adjacent_speeds_kmh": [
+        64.36123700241124,
+        64.39823568430695
+      ],
+      "adjacent_positions_m": [
+        28192.73866418625,
+        28180.772093960684
+      ],
+      "relative_velocity_mps": -0.010277411637698464
+    },
+    {
+      "interval_start_s": 1989.0900000359345,
+      "interval_end_s": 1989.1000000359352,
+      "time_s": 1989.0903125359346,
+      "train_one_based": 3,
+      "coupler_one_based": 24,
+      "vehicle_pair_one_based": [
+        24,
+        25
+      ],
+      "signed_native_force_n": 849703.4595136574,
+      "peak_kn": 849.7034595136573,
+      "adjacent_speeds_kmh": [
+        64.36186481433718,
+        64.38876236780553
+      ],
+      "adjacent_positions_m": [
+        28192.744251126434,
+        28180.777683674143
+      ],
+      "relative_velocity_mps": -0.007471542630096195
+    },
+    {
+      "interval_start_s": 1989.1600000359351,
+      "interval_end_s": 1989.1700000359353,
+      "time_s": 1989.1700000359353,
+      "train_one_based": 3,
+      "coupler_one_based": 25,
+      "vehicle_pair_one_based": [
+        25,
+        26
+      ],
+      "signed_native_force_n": 831025.208764736,
+      "peak_kn": 831.0252087647359,
+      "adjacent_speeds_kmh": [
+        64.38219091079817,
+        64.70947910339216
+      ],
+      "adjacent_positions_m": [
+        28182.200978835514,
+        28170.233829670175
+      ],
+      "relative_velocity_mps": -0.09091338683165873
+    },
+    {
+      "interval_start_s": 1989.1700000359353,
+      "interval_end_s": 1989.1800000359356,
+      "time_s": 1989.1790625359354,
+      "train_one_based": 3,
+      "coupler_one_based": 25,
+      "vehicle_pair_one_based": [
+        25,
+        26
+      ],
+      "signed_native_force_n": 846039.1054263884,
+      "peak_kn": 846.0391054263885,
+      "adjacent_speeds_kmh": [
+        64.4008599506978,
+        64.43779135228759
+      ],
+      "adjacent_positions_m": [
+        28182.363076074926,
+        28170.396385839616
+      ],
+      "relative_velocity_mps": -0.010258722663834874
+    },
+    {
+      "interval_start_s": 1989.2500000359344,
+      "interval_end_s": 1989.2600000359346,
+      "time_s": 1989.2600000359346,
+      "train_one_based": 3,
+      "coupler_one_based": 26,
+      "vehicle_pair_one_based": [
+        26,
+        27
+      ],
+      "signed_native_force_n": 832835.3446813406,
+      "peak_kn": 832.8353446813406,
+      "adjacent_speeds_kmh": [
+        64.41367399477494,
+        64.72177916217079
+      ],
+      "adjacent_positions_m": [
+        28171.842828687528,
+        28159.87573474669
+      ],
+      "relative_velocity_mps": -0.08558476872106979
+    },
+    {
+      "interval_start_s": 1989.2600000359346,
+      "interval_end_s": 1989.2700000359353,
+      "time_s": 1989.2681250359346,
+      "train_one_based": 3,
+      "coupler_one_based": 26,
+      "vehicle_pair_one_based": [
+        26,
+        27
+      ],
+      "signed_native_force_n": 846015.1809265466,
+      "peak_kn": 846.0151809265466,
+      "adjacent_speeds_kmh": [
+        64.42998547451816,
+        64.47805255038993
+      ],
+      "adjacent_positions_m": [
+        28171.98822552702,
+        28160.021533876286
+      ],
+      "relative_velocity_mps": -0.013351965519934339
+    },
+    {
+      "interval_start_s": 1989.3400000359345,
+      "interval_end_s": 1989.3500000359347,
+      "time_s": 1989.3500000359347,
+      "train_one_based": 3,
+      "coupler_one_based": 27,
+      "vehicle_pair_one_based": [
+        27,
+        28
+      ],
+      "signed_native_force_n": 836657.9083505938,
+      "peak_kn": 836.6579083505937,
+      "adjacent_speeds_kmh": [
+        64.44277454857107,
+        64.7297544477588
+      ],
+      "adjacent_positions_m": [
+        28161.485416806136,
+        28149.518439503638
+      ],
+      "relative_velocity_mps": -0.07971663866325684
+    },
+    {
+      "interval_start_s": 1989.3500000359347,
+      "interval_end_s": 1989.3600000359359,
+      "time_s": 1989.357812535935,
+      "train_one_based": 3,
+      "coupler_one_based": 27,
+      "vehicle_pair_one_based": [
+        27,
+        28
+      ],
+      "signed_native_force_n": 848126.5807135036,
+      "peak_kn": 848.1265807135037,
+      "adjacent_speeds_kmh": [
+        64.45836223600581,
+        64.49459480670738
+      ],
+      "adjacent_positions_m": [
+        28161.62528380981,
+        28149.658657466152
+      ],
+      "relative_velocity_mps": -0.010064602972661874
+    },
+    {
+      "interval_start_s": 1989.4200000359363,
+      "interval_end_s": 1989.4300000359365,
+      "time_s": 1989.4300000359365,
+      "train_one_based": 3,
+      "coupler_one_based": 28,
+      "vehicle_pair_one_based": [
+        28,
+        29
+      ],
+      "signed_native_force_n": 802715.0194623035,
+      "peak_kn": 802.7150194623035,
+      "adjacent_speeds_kmh": [
+        64.45019896827542,
+        65.02679933844956
+      ],
+      "adjacent_positions_m": [
+        28150.94971020131,
+        28138.98169807189
+      ],
+      "relative_velocity_mps": -0.16016676949281816
+    },
+    {
+      "interval_start_s": 1989.4300000359365,
+      "interval_end_s": 1989.4400000359367,
+      "time_s": 1989.4400000359367,
+      "train_one_based": 3,
+      "coupler_one_based": 28,
+      "vehicle_pair_one_based": [
+        28,
+        29
+      ],
+      "signed_native_force_n": 840964.7146738167,
+      "peak_kn": 840.9647146738167,
+      "adjacent_speeds_kmh": [
+        64.47179810830322,
+        64.73286221262781
+      ],
+      "adjacent_positions_m": [
+        28151.128768821713,
+        28139.161922961724
+      ],
+      "relative_velocity_mps": -0.0725178067568315
+    },
+    {
+      "interval_start_s": 1989.4400000359367,
+      "interval_end_s": 1989.4500000359374,
+      "time_s": 1989.4468750359365,
+      "train_one_based": 3,
+      "coupler_one_based": 28,
+      "vehicle_pair_one_based": [
+        28,
+        29
+      ],
+      "signed_native_force_n": 850365.5024155556,
+      "peak_kn": 850.3655024155556,
+      "adjacent_speeds_kmh": [
+        64.48547280139437,
+        64.52519248825685
+      ],
+      "adjacent_positions_m": [
+        28151.25190532763,
+        28139.28534681196
+      ],
+      "relative_velocity_mps": -0.011033246350688586
+    },
+    {
+      "interval_start_s": 1989.5100000359378,
+      "interval_end_s": 1989.520000035938,
+      "time_s": 1989.520000035938,
+      "train_one_based": 3,
+      "coupler_one_based": 29,
+      "vehicle_pair_one_based": [
+        29,
+        30
+      ],
+      "signed_native_force_n": 809930.5346536676,
+      "peak_kn": 809.9305346536676,
+      "adjacent_speeds_kmh": [
+        64.47964747682246,
+        65.0268709639705
+      ],
+      "adjacent_positions_m": [
+        28140.593749902026,
+        28128.625957583386
+      ],
+      "relative_velocity_mps": -0.15200652420778482
+    },
+    {
+      "interval_start_s": 1989.520000035938,
+      "interval_end_s": 1989.5300000359382,
+      "time_s": 1989.5300000359382,
+      "train_one_based": 3,
+      "coupler_one_based": 29,
+      "vehicle_pair_one_based": [
+        29,
+        30
+      ],
+      "signed_native_force_n": 845394.2528077129,
+      "peak_kn": 845.3942528077129,
+      "adjacent_speeds_kmh": [
+        64.50110882135856,
+        64.730830542912
+      ],
+      "adjacent_positions_m": [
+        28140.772890163178,
+        28128.80617952229
+      ],
+      "relative_velocity_mps": -0.06381158932040165
+    },
+    {
+      "interval_start_s": 1989.5300000359382,
+      "interval_end_s": 1989.5400000359389,
+      "time_s": 1989.5356250359382,
+      "train_one_based": 3,
+      "coupler_one_based": 29,
+      "vehicle_pair_one_based": [
+        29,
+        30
+      ],
+      "signed_native_force_n": 852502.6198449554,
+      "peak_kn": 852.5026198449553,
+      "adjacent_speeds_kmh": [
+        64.51224649735003,
+        64.56033118750841
+      ],
+      "adjacent_positions_m": [
+        28140.873681970425,
+        28128.907188421166
+      ],
+      "relative_velocity_mps": -0.013356858377324698
+    },
+    {
+      "interval_start_s": 1989.6000000359384,
+      "interval_end_s": 1989.6100000359386,
+      "time_s": 1989.6100000359386,
+      "train_one_based": 3,
+      "coupler_one_based": 30,
+      "vehicle_pair_one_based": [
+        30,
+        31
+      ],
+      "signed_native_force_n": 817623.8470742678,
+      "peak_kn": 817.6238470742678,
+      "adjacent_speeds_kmh": [
+        64.50949964254502,
+        65.02165036715647
+      ],
+      "adjacent_positions_m": [
+        28130.238559098452,
+        28118.271001250323
+      ],
+      "relative_velocity_mps": -0.14226409016984576
+    },
+    {
+      "interval_start_s": 1989.6100000359386,
+      "interval_end_s": 1989.6200000359388,
+      "time_s": 1989.6200000359388,
+      "train_one_based": 3,
+      "coupler_one_based": 30,
+      "vehicle_pair_one_based": [
+        30,
+        31
+      ],
+      "signed_native_force_n": 849781.8196787399,
+      "peak_kn": 849.7818196787399,
+      "adjacent_speeds_kmh": [
+        64.53076923332517,
+        64.72342825389168
+      ],
+      "adjacent_positions_m": [
+        28130.41778205888,
+        28118.451205386114
+      ],
+      "relative_velocity_mps": -0.0535163946018109
+    },
+    {
+      "interval_start_s": 1989.6200000359388,
+      "interval_end_s": 1989.63000003594,
+      "time_s": 1989.625000035939,
+      "train_one_based": 3,
+      "coupler_one_based": 30,
+      "vehicle_pair_one_based": [
+        30,
+        31
+      ],
+      "signed_native_force_n": 854731.6482474313,
+      "peak_kn": 854.7316482474313,
+      "adjacent_speeds_kmh": [
+        64.54052697850659,
+        64.57129733782071
+      ],
+      "adjacent_positions_m": [
+        28130.507414996613,
+        28118.540993487568
+      ],
+      "relative_velocity_mps": -0.008547322031699167
+    },
+    {
+      "interval_start_s": 1989.6900000359385,
+      "interval_end_s": 1989.7000000359387,
+      "time_s": 1989.7000000359387,
+      "train_one_based": 3,
+      "coupler_one_based": 31,
+      "vehicle_pair_one_based": [
+        31,
+        32
+      ],
+      "signed_native_force_n": 825632.8332162808,
+      "peak_kn": 825.6328332162808,
+      "adjacent_speeds_kmh": [
+        64.53976322809268,
+        65.01085174893869
+      ],
+      "adjacent_positions_m": [
+        28119.88413906913,
+        28107.91682542307
+      ],
+      "relative_velocity_mps": -0.13085792245722772
+    },
+    {
+      "interval_start_s": 1989.7000000359387,
+      "interval_end_s": 1989.7100000359385,
+      "time_s": 1989.7100000359385,
+      "train_one_based": 3,
+      "coupler_one_based": 31,
+      "vehicle_pair_one_based": [
+        31,
+        32
+      ],
+      "signed_native_force_n": 853942.7735334439,
+      "peak_kn": 853.9427735334439,
+      "adjacent_speeds_kmh": [
+        64.56077652592047,
+        64.71042616159728
+      ],
+      "adjacent_positions_m": [
+        28120.063445798856,
+        28108.09699620222
+      ],
+      "relative_velocity_mps": -0.041569343243558876
+    },
+    {
+      "interval_start_s": 1989.7100000359385,
+      "interval_end_s": 1989.7200000359392,
+      "time_s": 1989.7131250359384,
+      "train_one_based": 3,
+      "coupler_one_based": 31,
+      "vehicle_pair_one_based": [
+        31,
+        32
+      ],
+      "signed_native_force_n": 856753.1056185832,
+      "peak_kn": 856.7531056185832,
+      "adjacent_speeds_kmh": [
+        64.56683326795945,
+        64.61504254000765
+      ],
+      "adjacent_positions_m": [
+        28120.119490789766,
+        28108.15312706775
+      ],
+      "relative_velocity_mps": -0.01339146445783257
+    },
+    {
+      "interval_start_s": 1989.7800000359382,
+      "interval_end_s": 1989.7900000359384,
+      "time_s": 1989.7900000359384,
+      "train_one_based": 3,
+      "coupler_one_based": 32,
+      "vehicle_pair_one_based": [
+        32,
+        33
+      ],
+      "signed_native_force_n": 833568.385138679,
+      "peak_kn": 833.568385138679,
+      "adjacent_speeds_kmh": [
+        64.57184570207961,
+        64.9942455776517
+      ],
+      "adjacent_positions_m": [
+        28109.530498033862,
+        28097.563426458517
+      ],
+      "relative_velocity_mps": -0.11733329877002063
+    },
+    {
+      "interval_start_s": 1989.7900000359384,
+      "interval_end_s": 1989.8000000359386,
+      "time_s": 1989.8000000359386,
+      "train_one_based": 3,
+      "coupler_one_based": 32,
+      "vehicle_pair_one_based": [
+        32,
+        33
+      ],
+      "signed_native_force_n": 857328.6248593688,
+      "peak_kn": 857.3286248593688,
+      "adjacent_speeds_kmh": [
+        64.59293526659012,
+        64.69178079200204
+      ],
+      "adjacent_positions_m": [
+        28109.709894060998,
+        28097.74354788804
+      ],
+      "relative_velocity_mps": -0.027457090392196903
+    },
+    {
+      "interval_start_s": 1989.8000000359386,
+      "interval_end_s": 1989.8100000359398,
+      "time_s": 1989.801875035939,
+      "train_one_based": 3,
+      "coupler_one_based": 32,
+      "vehicle_pair_one_based": [
+        32,
+        33
+      ],
+      "signed_native_force_n": 858474.7232817634,
+      "peak_kn": 858.4747232817634,
+      "adjacent_speeds_kmh": [
+        64.59658231312325,
+        64.6343855124715
+      ],
+      "adjacent_positions_m": [
+        28109.743537170205,
+        28097.77722658048
+      ],
+      "relative_velocity_mps": -0.010500888707849043
+    },
+    {
+      "interval_start_s": 1989.8700000359393,
+      "interval_end_s": 1989.8800000359395,
+      "time_s": 1989.8800000359395,
+      "train_one_based": 3,
+      "coupler_one_based": 33,
+      "vehicle_pair_one_based": [
+        33,
+        34
+      ],
+      "signed_native_force_n": 839684.6719623456,
+      "peak_kn": 839.6846719623456,
+      "adjacent_speeds_kmh": [
+        64.60914750555065,
+        64.97367239244446
+      ],
+      "adjacent_positions_m": [
+        28099.177698289455,
+        28087.210813359812
+      ],
+      "relative_velocity_mps": -0.10125691302605944
+    },
+    {
+      "interval_start_s": 1989.8800000359395,
+      "interval_end_s": 1989.8900000359397,
+      "time_s": 1989.8900000359397,
+      "train_one_based": 3,
+      "coupler_one_based": 33,
+      "vehicle_pair_one_based": [
+        33,
+        34
+      ],
+      "signed_native_force_n": 858096.7591321993,
+      "peak_kn": 858.0967591321994,
+      "adjacent_speeds_kmh": [
+        64.63010009983938,
+        64.66996207454898
+      ],
+      "adjacent_positions_m": [
+        28099.357197858044,
+        28087.3908754733
+      ],
+      "relative_velocity_mps": -0.011072770752665662
+    },
+    {
+      "interval_start_s": 1989.8900000359397,
+      "interval_end_s": 1989.9000000359404,
+      "time_s": 1989.8903125359398,
+      "train_one_based": 3,
+      "coupler_one_based": 33,
+      "vehicle_pair_one_based": [
+        33,
+        34
+      ],
+      "signed_native_force_n": 858029.3549745801,
+      "peak_kn": 858.0293549745801,
+      "adjacent_speeds_kmh": [
+        64.63070312937572,
+        64.66039535287152
+      ],
+      "adjacent_positions_m": [
+        28099.36280813596,
+        28087.396488770064
+      ],
+      "relative_velocity_mps": -0.00824783985994415
+    },
+    {
+      "interval_start_s": 1989.9500000359405,
+      "interval_end_s": 1989.9600000359403,
+      "time_s": 1989.9600000359403,
+      "train_one_based": 3,
+      "coupler_one_based": 34,
+      "vehicle_pair_one_based": [
+        34,
+        35
+      ],
+      "signed_native_force_n": 801547.0860216405,
+      "peak_kn": 801.5470860216404,
+      "adjacent_speeds_kmh": [
+        64.62689493656889,
+        65.24614838846077
+      ],
+      "adjacent_positions_m": [
+        28088.646227971025,
+        28076.67818027122
+      ],
+      "relative_velocity_mps": -0.172014847747743
+    },
+    {
+      "interval_start_s": 1989.9600000359403,
+      "interval_end_s": 1989.9700000359405,
+      "time_s": 1989.9700000359405,
+      "train_one_based": 3,
+      "coupler_one_based": 34,
+      "vehicle_pair_one_based": [
+        34,
+        35
+      ],
+      "signed_native_force_n": 843640.6528112997,
+      "peak_kn": 843.6406528112997,
+      "adjacent_speeds_kmh": [
+        64.64930372989099,
+        64.95191765989694
+      ],
+      "adjacent_positions_m": [
+        28088.825778547813,
+        28076.859014371632
+      ],
+      "relative_velocity_mps": -0.08405942500165153
+    },
+    {
+      "interval_start_s": 1989.9700000359405,
+      "interval_end_s": 1989.980000035942,
+      "time_s": 1989.9781250359408,
+      "train_one_based": 3,
+      "coupler_one_based": 34,
+      "vehicle_pair_one_based": [
+        34,
+        35
+      ],
+      "signed_native_force_n": 856265.5020139766,
+      "peak_kn": 856.2655020139765,
+      "adjacent_speeds_kmh": [
+        64.66598394618538,
+        64.70508442492635
+      ],
+      "adjacent_positions_m": [
+        28088.971707627432,
+        28077.00532937622
+      ],
+      "relative_velocity_mps": -0.010861244094716227
+    },
+    {
+      "interval_start_s": 1990.0400000359416,
+      "interval_end_s": 1990.0500000359418,
+      "time_s": 1990.0500000359418,
+      "train_one_based": 3,
+      "coupler_one_based": 35,
+      "vehicle_pair_one_based": [
+        35,
+        36
+      ],
+      "signed_native_force_n": 810598.534011078,
+      "peak_kn": 810.598534011078,
+      "adjacent_speeds_kmh": [
+        64.66362592904238,
+        65.22533211773967
+      ],
+      "adjacent_positions_m": [
+        28078.295040099176,
+        28066.327268135057
+      ],
+      "relative_velocity_mps": -0.15602949686035572
+    },
+    {
+      "interval_start_s": 1990.0500000359418,
+      "interval_end_s": 1990.060000035942,
+      "time_s": 1990.060000035942,
+      "train_one_based": 3,
+      "coupler_one_based": 35,
+      "vehicle_pair_one_based": [
+        35,
+        36
+      ],
+      "signed_native_force_n": 847356.970253065,
+      "peak_kn": 847.356970253065,
+      "adjacent_speeds_kmh": [
+        64.68513495610178,
+        64.92879830474281
+      ],
+      "adjacent_positions_m": [
+        28078.474691491705,
+        28066.508040775916
+      ],
+      "relative_velocity_mps": -0.06768426351139567
+    },
+    {
+      "interval_start_s": 1990.060000035942,
+      "interval_end_s": 1990.0700000359427,
+      "time_s": 1990.066250035942,
+      "train_one_based": 3,
+      "coupler_one_based": 35,
+      "vehicle_pair_one_based": [
+        35,
+        36
+      ],
+      "signed_native_force_n": 855451.937388418,
+      "peak_kn": 855.4519373884181,
+      "adjacent_speeds_kmh": [
+        64.69746156122596,
+        64.73874798735868
+      ],
+      "adjacent_positions_m": [
+        28078.5870029476,
+        28066.620599664293
+      ],
+      "relative_velocity_mps": -0.011468451703532168
+    },
+    {
+      "interval_start_s": 1990.1300000359427,
+      "interval_end_s": 1990.1400000359429,
+      "time_s": 1990.1400000359429,
+      "train_one_based": 3,
+      "coupler_one_based": 36,
+      "vehicle_pair_one_based": [
+        36,
+        37
+      ],
+      "signed_native_force_n": 820705.0436333875,
+      "peak_kn": 820.7050436333875,
+      "adjacent_speeds_kmh": [
+        64.69668980618533,
+        65.1994424058847
+      ],
+      "adjacent_positions_m": [
+        28067.944626711593,
+        28055.977162799092
+      ],
+      "relative_velocity_mps": -0.13965349991649134
+    },
+    {
+      "interval_start_s": 1990.1400000359429,
+      "interval_end_s": 1990.150000035943,
+      "time_s": 1990.150000035943,
+      "train_one_based": 3,
+      "coupler_one_based": 36,
+      "vehicle_pair_one_based": [
+        36,
+        37
+      ],
+      "signed_native_force_n": 851968.0214702197,
+      "peak_kn": 851.9680214702197,
+      "adjacent_speeds_kmh": [
+        64.71768873971291,
+        64.90025257475234
+      ],
+      "adjacent_positions_m": [
+        28068.12436929328,
+        28056.157859384148
+      ],
+      "relative_velocity_mps": -0.05071217639984127
+    },
+    {
+      "interval_start_s": 1990.150000035943,
+      "interval_end_s": 1990.1600000359438,
+      "time_s": 1990.1543750359428,
+      "train_one_based": 3,
+      "coupler_one_based": 36,
+      "vehicle_pair_one_based": [
+        36,
+        37
+      ],
+      "signed_native_force_n": 856402.1272706513,
+      "peak_kn": 856.4021272706512,
+      "adjacent_speeds_kmh": [
+        64.72612321553338,
+        64.76685418897958
+      ],
+      "adjacent_positions_m": [
+        28068.203024449864,
+        28056.23665022763
+      ],
+      "relative_velocity_mps": -0.01131415929061319
+    },
+    {
+      "interval_start_s": 1990.2200000359428,
+      "interval_end_s": 1990.230000035943,
+      "time_s": 1990.230000035943,
+      "train_one_based": 3,
+      "coupler_one_based": 37,
+      "vehicle_pair_one_based": [
+        37,
+        38
+      ],
+      "signed_native_force_n": 831184.4085937332,
+      "peak_kn": 831.1844085937332,
+      "adjacent_speeds_kmh": [
+        64.72882739924623,
+        65.16642163993897
+      ],
+      "adjacent_positions_m": [
+        28057.59498188194,
+        28045.627837573327
+      ],
+      "relative_velocity_mps": -0.12155395574798789
+    },
+    {
+      "interval_start_s": 1990.230000035943,
+      "interval_end_s": 1990.2400000359432,
+      "time_s": 1990.2400000359432,
+      "train_one_based": 3,
+      "coupler_one_based": 37,
+      "vehicle_pair_one_based": [
+        37,
+        38
+      ],
+      "signed_native_force_n": 856385.6955945117,
+      "peak_kn": 856.3856955945117,
+      "adjacent_speeds_kmh": [
+        64.7493636209222,
+        64.86454331174214
+      ],
+      "adjacent_positions_m": [
+        28057.774813179734,
+        28045.808438202486
+      ],
+      "relative_velocity_mps": -0.03199435856109645
+    },
+    {
+      "interval_start_s": 1990.2400000359432,
+      "interval_end_s": 1990.250000035944,
+      "time_s": 1990.2425000359433,
+      "train_one_based": 3,
+      "coupler_one_based": 37,
+      "vehicle_pair_one_based": [
+        37,
+        38
+      ],
+      "signed_native_force_n": 858027.5876870425,
+      "peak_kn": 858.0275876870426,
+      "adjacent_speeds_kmh": [
+        64.75407294743022,
+        64.78807185506423
+      ],
+      "adjacent_positions_m": [
+        28057.81977966109,
+        28045.85345647805
+      ],
+      "relative_velocity_mps": -0.00944414100944968
+    },
+    {
+      "interval_start_s": 1990.3100000359439,
+      "interval_end_s": 1990.320000035944,
+      "time_s": 1990.320000035944,
+      "train_one_based": 3,
+      "coupler_one_based": 38,
+      "vehicle_pair_one_based": [
+        38,
+        39
+      ],
+      "signed_native_force_n": 841373.9536156948,
+      "peak_kn": 841.3739536156947,
+      "adjacent_speeds_kmh": [
+        64.76096123144751,
+        65.12549238834286
+      ],
+      "adjacent_positions_m": [
+        28047.246107848885,
+        28035.2792744803
+      ],
+      "relative_velocity_mps": -0.10125865469315443
+    },
+    {
+      "interval_start_s": 1990.320000035944,
+      "interval_end_s": 1990.3300000359443,
+      "time_s": 1990.3300000359443,
+      "train_one_based": 3,
+      "coupler_one_based": 38,
+      "vehicle_pair_one_based": [
+        38,
+        39
+      ],
+      "signed_native_force_n": 859803.6858806944,
+      "peak_kn": 859.8036858806944,
+      "adjacent_speeds_kmh": [
+        64.78091304654616,
+        64.82115712761052
+      ],
+      "adjacent_positions_m": [
+        28047.426027718153,
+        28035.45975744942
+      ],
+      "relative_velocity_mps": -0.01117891140676619
+    },
+    {
+      "interval_start_s": 1990.3300000359443,
+      "interval_end_s": 1990.340000035945,
+      "time_s": 1990.3303125359444,
+      "train_one_based": 3,
+      "coupler_one_based": 38,
+      "vehicle_pair_one_based": [
+        38,
+        39
+      ],
+      "signed_native_force_n": 859754.2942396192,
+      "peak_kn": 859.7542942396192,
+      "adjacent_speeds_kmh": [
+        64.78148555841823,
+        64.81157063712713
+      ],
+      "adjacent_positions_m": [
+        28047.431651086146,
+        28035.465383869894
+      ],
+      "relative_velocity_mps": -0.00835696630802829
+    },
+    {
+      "interval_start_s": 1990.3900000359456,
+      "interval_end_s": 1990.4000000359458,
+      "time_s": 1990.4000000359458,
+      "train_one_based": 3,
+      "coupler_one_based": 39,
+      "vehicle_pair_one_based": [
+        39,
+        40
+      ],
+      "signed_native_force_n": 810341.6095727461,
+      "peak_kn": 810.341609572746,
+      "adjacent_speeds_kmh": [
+        64.7720783952785,
+        65.3733404903038
+      ],
+      "adjacent_positions_m": [
+        28036.71805444187,
+        28024.750274648944
+      ],
+      "relative_velocity_mps": -0.16701724861813716
+    },
+    {
+      "interval_start_s": 1990.4000000359458,
+      "interval_end_s": 1990.410000035946,
+      "time_s": 1990.410000035946,
+      "train_one_based": 3,
+      "coupler_one_based": 39,
+      "vehicle_pair_one_based": [
+        39,
+        40
+      ],
+      "signed_native_force_n": 850695.9505392867,
+      "peak_kn": 850.6959505392867,
+      "adjacent_speeds_kmh": [
+        64.79336068579704,
+        65.07623347628733
+      ],
+      "adjacent_positions_m": [
+        28036.898006699135,
+        28024.931457941795
+      ],
+      "relative_velocity_mps": -0.07857577513619063
+    },
+    {
+      "interval_start_s": 1990.410000035946,
+      "interval_end_s": 1990.4200000359476,
+      "time_s": 1990.4175000359462,
+      "train_one_based": 3,
+      "coupler_one_based": 39,
+      "vehicle_pair_one_based": [
+        39,
+        40
+      ],
+      "signed_native_force_n": 861654.3672297383,
+      "peak_kn": 861.6543672297382,
+      "adjacent_speeds_kmh": [
+        64.80806189428843,
+        64.8467609791433
+      ],
+      "adjacent_positions_m": [
+        28037.033008461716,
+        28025.06679489369
+      ],
+      "relative_velocity_mps": -0.01074974579301724
+    },
+    {
+      "interval_start_s": 1990.4800000359467,
+      "interval_end_s": 1990.4900000359469,
+      "time_s": 1990.4900000359469,
+      "train_one_based": 3,
+      "coupler_one_based": 40,
+      "vehicle_pair_one_based": [
+        40,
+        41
+      ],
+      "signed_native_force_n": 826275.5337702857,
+      "peak_kn": 826.2755337702856,
+      "adjacent_speeds_kmh": [
+        64.80536174296638,
+        65.31985897420687
+      ],
+      "adjacent_positions_m": [
+        28026.37063730797,
+        28014.403343263282
+      ],
+      "relative_velocity_mps": -0.14291589756680168
+    },
+    {
+      "interval_start_s": 1990.4900000359469,
+      "interval_end_s": 1990.500000035947,
+      "time_s": 1990.500000035947,
+      "train_one_based": 3,
+      "coupler_one_based": 40,
+      "vehicle_pair_one_based": [
+        40,
+        41
+      ],
+      "signed_native_force_n": 858504.5030882725,
+      "peak_kn": 858.5045030882725,
+      "adjacent_speeds_kmh": [
+        64.8262835413188,
+        65.018472717035
+      ],
+      "adjacent_positions_m": [
+        28026.550681618264,
+        28014.584371367495
+      ],
+      "relative_velocity_mps": -0.05338588214338458
+    },
+    {
+      "interval_start_s": 1990.500000035947,
+      "interval_end_s": 1990.5100000359482,
+      "time_s": 1990.504687535947,
+      "train_one_based": 3,
+      "coupler_one_based": 40,
+      "vehicle_pair_one_based": [
+        40,
+        41
+      ],
+      "signed_native_force_n": 863419.5283171029,
+      "peak_kn": 863.419528317103,
+      "adjacent_speeds_kmh": [
+        64.83530220144239,
+        64.87438060562036
+      ],
+      "adjacent_positions_m": [
+        28026.635096791848,
+        28014.66893711625
+      ],
+      "relative_velocity_mps": -0.010855112271659806
+    },
+    {
+      "interval_start_s": 1990.5700000359468,
+      "interval_end_s": 1990.580000035947,
+      "time_s": 1990.580000035947,
+      "train_one_based": 3,
+      "coupler_one_based": 41,
+      "vehicle_pair_one_based": [
+        41,
+        42
+      ],
+      "signed_native_force_n": 840550.5949716046,
+      "peak_kn": 840.5505949716046,
+      "adjacent_speeds_kmh": [
+        64.84033879729705,
+        65.25759254451013
+      ],
+      "adjacent_positions_m": [
+        28016.024008834025,
+        28004.057150333927
+      ],
+      "relative_velocity_mps": -0.11590381867030075
+    },
+    {
+      "interval_start_s": 1990.580000035947,
+      "interval_end_s": 1990.5900000359472,
+      "time_s": 1990.5900000359472,
+      "train_one_based": 3,
+      "coupler_one_based": 41,
+      "vehicle_pair_one_based": [
+        41,
+        42
+      ],
+      "signed_native_force_n": 863749.6527239694,
+      "peak_kn": 863.7496527239695,
+      "adjacent_speeds_kmh": [
+        64.86081655313876,
+        64.9526842072037
+      ],
+      "adjacent_positions_m": [
+        28016.204149833582,
+        28004.237999842913
+      ],
+      "relative_velocity_mps": -0.025518792795818257
+    },
+    {
+      "interval_start_s": 1990.5900000359472,
+      "interval_end_s": 1990.600000035948,
+      "time_s": 1990.591562535947,
+      "train_one_based": 3,
+      "coupler_one_based": 41,
+      "vehicle_pair_one_based": [
+        41,
+        42
+      ],
+      "signed_native_force_n": 864682.9348872134,
+      "peak_kn": 864.6829348872134,
+      "adjacent_speeds_kmh": [
+        64.86376552018775,
+        64.90449758980128
+      ],
+      "adjacent_positions_m": [
+        28016.232301872515,
+        28004.266180656577
+      ],
+      "relative_velocity_mps": -0.011314463781534556
+    },
+    {
+      "interval_start_s": 1990.650000035949,
+      "interval_end_s": 1990.6600000359492,
+      "time_s": 1990.6600000359492,
+      "train_one_based": 3,
+      "coupler_one_based": 42,
+      "vehicle_pair_one_based": [
+        42,
+        43
+      ],
+      "signed_native_force_n": 809012.4668660767,
+      "peak_kn": 809.0124668660767,
+      "adjacent_speeds_kmh": [
+        64.85669781477424,
+        65.48483627168297
+      ],
+      "adjacent_positions_m": [
+        28005.498014928915,
+        27993.53019463728
+      ],
+      "relative_velocity_mps": -0.17448290469686967
+    },
+    {
+      "interval_start_s": 1990.6600000359492,
+      "interval_end_s": 1990.6700000359494,
+      "time_s": 1990.6700000359494,
+      "train_one_based": 3,
+      "coupler_one_based": 42,
+      "vehicle_pair_one_based": [
+        42,
+        43
+      ],
+      "signed_native_force_n": 851801.6460481439,
+      "peak_kn": 851.8016460481439,
+      "adjacent_speeds_kmh": [
+        64.8784365100662,
+        65.18776396362212
+      ],
+      "adjacent_positions_m": [
+        28005.678202860327,
+        27993.711687870058
+      ],
+      "relative_velocity_mps": -0.08592429265442192
+    },
+    {
+      "interval_start_s": 1990.6700000359494,
+      "interval_end_s": 1990.6800000359501,
+      "time_s": 1990.6781250359495,
+      "train_one_based": 3,
+      "coupler_one_based": 42,
+      "vehicle_pair_one_based": [
+        42,
+        43
+      ],
+      "signed_native_force_n": 864851.3220842188,
+      "peak_kn": 864.8513220842189,
+      "adjacent_speeds_kmh": [
+        64.89472311346947,
+        64.938460592518
+      ],
+      "adjacent_positions_m": [
+        28005.824648615646,
+        27993.85853240134
+      ],
+      "relative_velocity_mps": -0.012149299735703778
+    },
+    {
+      "interval_start_s": 1990.7400000359487,
+      "interval_end_s": 1990.750000035949,
+      "time_s": 1990.750000035949,
+      "train_one_based": 3,
+      "coupler_one_based": 43,
+      "vehicle_pair_one_based": [
+        43,
+        44
+      ],
+      "signed_native_force_n": 827025.1348410823,
+      "peak_kn": 827.0251348410823,
+      "adjacent_speeds_kmh": [
+        64.89559429333107,
+        65.41380989601996
+      ],
+      "adjacent_positions_m": [
+        27995.15293867641,
+        27983.18566749428
+      ],
+      "relative_velocity_mps": -0.14394877852468824
+    },
+    {
+      "interval_start_s": 1990.750000035949,
+      "interval_end_s": 1990.7600000359491,
+      "time_s": 1990.7600000359491,
+      "train_one_based": 3,
+      "coupler_one_based": 43,
+      "vehicle_pair_one_based": [
+        43,
+        44
+      ],
+      "signed_native_force_n": 859573.6258586559,
+      "peak_kn": 859.5736258586559,
+      "adjacent_speeds_kmh": [
+        64.9165665403627,
+        65.11208661187086
+      ],
+      "adjacent_positions_m": [
+        27995.3332337195,
+        27983.366956131395
+      ],
+      "relative_velocity_mps": -0.05431113097449014
+    },
+    {
+      "interval_start_s": 1990.7600000359491,
+      "interval_end_s": 1990.7700000359498,
+      "time_s": 1990.7650000359492,
+      "train_one_based": 3,
+      "coupler_one_based": 43,
+      "vehicle_pair_one_based": [
+        43,
+        44
+      ],
+      "signed_native_force_n": 864651.0809769527,
+      "peak_kn": 864.6510809769527,
+      "adjacent_speeds_kmh": [
+        64.92616043091182,
+        64.95816408148605
+      ],
+      "adjacent_positions_m": [
+        27995.423402373082,
+        27983.457282794152
+      ],
+      "relative_velocity_mps": -0.008889902937283978
+    },
+    {
+      "interval_start_s": 1990.8300000359488,
+      "interval_end_s": 1990.840000035949,
+      "time_s": 1990.840000035949,
+      "train_one_based": 3,
+      "coupler_one_based": 44,
+      "vehicle_pair_one_based": [
+        44,
+        45
+      ],
+      "signed_native_force_n": 842734.3203631669,
+      "peak_kn": 842.7343203631668,
+      "adjacent_speeds_kmh": [
+        64.9325154780997,
+        65.33514639109055
+      ],
+      "adjacent_positions_m": [
+        27984.808663126514,
+        27972.841871282995
+      ],
+      "relative_velocity_mps": -0.11184192027523565
+    },
+    {
+      "interval_start_s": 1990.840000035949,
+      "interval_end_s": 1990.8500000359493,
+      "time_s": 1990.8500000359493,
+      "train_one_based": 3,
+      "coupler_one_based": 44,
+      "vehicle_pair_one_based": [
+        44,
+        45
+      ],
+      "signed_native_force_n": 864592.2366083751,
+      "peak_kn": 864.5922366083751,
+      "adjacent_speeds_kmh": [
+        64.95254455185982,
+        65.02968487191022
+      ],
+      "adjacent_positions_m": [
+        27984.989059583597,
+        27973.022935340945
+      ],
+      "relative_velocity_mps": -0.02142786668066421
+    },
+    {
+      "interval_start_s": 1990.8500000359493,
+      "interval_end_s": 1990.8600000359495,
+      "time_s": 1990.851250035949,
+      "train_one_based": 3,
+      "coupler_one_based": 44,
+      "vehicle_pair_one_based": [
+        44,
+        45
+      ],
+      "signed_native_force_n": 865207.6234749487,
+      "peak_kn": 865.2076234749487,
+      "adjacent_speeds_kmh": [
+        64.95484363087556,
+        64.99110463750709
+      ],
+      "adjacent_positions_m": [
+        27985.01161295095,
+        27973.04550839528
+      ],
+      "relative_velocity_mps": -0.01007250184209596
+    },
+    {
+      "interval_start_s": 1990.9100000359497,
+      "interval_end_s": 1990.92000003595,
+      "time_s": 1990.92000003595,
+      "train_one_based": 3,
+      "coupler_one_based": 45,
+      "vehicle_pair_one_based": [
+        45,
+        46
+      ],
+      "signed_native_force_n": 815574.8938867663,
+      "peak_kn": 815.5748938867663,
+      "adjacent_speeds_kmh": [
+        64.94735839496124,
+        65.54672753620234
+      ],
+      "adjacent_positions_m": [
+        27974.284732190983,
+        27962.3171118862
+      ],
+      "relative_velocity_mps": -0.16649142812252649
+    },
+    {
+      "interval_start_s": 1990.92000003595,
+      "interval_end_s": 1990.9300000359501,
+      "time_s": 1990.9300000359501,
+      "train_one_based": 3,
+      "coupler_one_based": 45,
+      "vehicle_pair_one_based": [
+        45,
+        46
+      ],
+      "signed_native_force_n": 855673.4679136258,
+      "peak_kn": 855.6734679136258,
+      "adjacent_speeds_kmh": [
+        64.96834581016584,
+        65.24776664274891
+      ],
+      "adjacent_positions_m": [
+        27974.46517092856,
+        27962.498774195297
+      ],
+      "relative_velocity_mps": -0.07761689793974114
+    },
+    {
+      "interval_start_s": 1990.9300000359501,
+      "interval_end_s": 1990.9400000359508,
+      "time_s": 1990.9375000359503,
+      "train_one_based": 3,
+      "coupler_one_based": 45,
+      "vehicle_pair_one_based": [
+        45,
+        46
+      ],
+      "signed_native_force_n": 866319.6123736618,
+      "peak_kn": 866.3196123736618,
+      "adjacent_speeds_kmh": [
+        64.98280645571288,
+        65.01697398647197
+      ],
+      "adjacent_positions_m": [
+        27974.60053699739,
+        27962.634467119504
+      ],
+      "relative_velocity_mps": -0.009490980766415191
+    },
+    {
+      "interval_start_s": 1991.0000000359507,
+      "interval_end_s": 1991.010000035951,
+      "time_s": 1991.010000035951,
+      "train_one_based": 3,
+      "coupler_one_based": 46,
+      "vehicle_pair_one_based": [
+        46,
+        47
+      ],
+      "signed_native_force_n": 836612.8490249551,
+      "peak_kn": 836.612849024955,
+      "adjacent_speeds_kmh": [
+        64.98333466470525,
+        65.45598635186916
+      ],
+      "adjacent_positions_m": [
+        27963.94192071785,
+        27951.974942040313
+      ],
+      "relative_velocity_mps": -0.13129213532330652
+    },
+    {
+      "interval_start_s": 1991.010000035951,
+      "interval_end_s": 1991.0200000359512,
+      "time_s": 1991.0200000359512,
+      "train_one_based": 3,
+      "coupler_one_based": 46,
+      "vehicle_pair_one_based": [
+        46,
+        47
+      ],
+      "signed_native_force_n": 864898.9016570417,
+      "peak_kn": 864.8989016570417,
+      "adjacent_speeds_kmh": [
+        65.0036455179475,
+        65.151566372634
+      ],
+      "adjacent_positions_m": [
+        27964.12245861022,
+        27952.156343739003
+      ],
+      "relative_velocity_mps": -0.04108912630180228
+    },
+    {
+      "interval_start_s": 1991.0200000359512,
+      "interval_end_s": 1991.0300000359518,
+      "time_s": 1991.0231250359511,
+      "train_one_based": 3,
+      "coupler_one_based": 46,
+      "vehicle_pair_one_based": [
+        46,
+        47
+      ],
+      "signed_native_force_n": 867642.8993341065,
+      "peak_kn": 867.6428993341065,
+      "adjacent_speeds_kmh": [
+        65.0094825070127,
+        65.05494004870629
+      ],
+      "adjacent_positions_m": [
+        27964.178887940674,
+        27952.21285699892
+      ],
+      "relative_velocity_mps": -0.012627094914886783
+    },
+    {
+      "interval_start_s": 1991.080000035952,
+      "interval_end_s": 1991.0900000359522,
+      "time_s": 1991.0900000359522,
+      "train_one_based": 3,
+      "coupler_one_based": 47,
+      "vehicle_pair_one_based": [
+        47,
+        48
+      ],
+      "signed_native_force_n": 808527.7906373573,
+      "peak_kn": 808.5277906373573,
+      "adjacent_speeds_kmh": [
+        64.99821341324126,
+        65.65276121303717
+      ],
+      "adjacent_positions_m": [
+        27953.41930883946,
+        27941.45147378064
+      ],
+      "relative_velocity_mps": -0.1818188332766404
+    },
+    {
+      "interval_start_s": 1991.0900000359522,
+      "interval_end_s": 1991.1000000359525,
+      "time_s": 1991.1000000359525,
+      "train_one_based": 3,
+      "coupler_one_based": 47,
+      "vehicle_pair_one_based": [
+        47,
+        48
+      ],
+      "signed_native_force_n": 853748.3800937987,
+      "peak_kn": 853.7483800937987,
+      "adjacent_speeds_kmh": [
+        65.01923344436524,
+        65.35541230962268
+      ],
+      "adjacent_positions_m": [
+        27953.59988882101,
+        27941.633433286985
+      ],
+      "relative_velocity_mps": -0.09338301812706717
+    },
+    {
+      "interval_start_s": 1991.1000000359525,
+      "interval_end_s": 1991.1100000359522,
+      "time_s": 1991.109218785952,
+      "train_one_based": 3,
+      "coupler_one_based": 47,
+      "vehicle_pair_one_based": [
+        47,
+        48
+      ],
+      "signed_native_force_n": 869237.7130254096,
+      "peak_kn": 869.2377130254096,
+      "adjacent_speeds_kmh": [
+        65.03710607127573,
+        65.07131284885419
+      ],
+      "adjacent_positions_m": [
+        27953.766411105156,
+        27941.800430402327
+      ],
+      "relative_velocity_mps": -0.009501882660682526
+    },
+    {
+      "interval_start_s": 1991.1100000359522,
+      "interval_end_s": 1991.1200000359524,
+      "time_s": 1991.1100781609523,
+      "train_one_based": 3,
+      "coupler_one_based": 46,
+      "vehicle_pair_one_based": [
+        46,
+        47
+      ],
+      "signed_native_force_n": 824642.901814994,
+      "peak_kn": 824.642901814994,
+      "adjacent_speeds_kmh": [
+        65.02793843612976,
+        65.03822031316354
+      ],
+      "adjacent_positions_m": [
+        27965.7481709881,
+        27953.781936623924
+      ],
+      "relative_velocity_mps": -0.002856076953825948
+    },
+    {
+      "interval_start_s": 1991.1700000359517,
+      "interval_end_s": 1991.180000035952,
+      "time_s": 1991.180000035952,
+      "train_one_based": 3,
+      "coupler_one_based": 48,
+      "vehicle_pair_one_based": [
+        48,
+        49
+      ],
+      "signed_native_force_n": 833817.6973949544,
+      "peak_kn": 833.8176973949544,
+      "adjacent_speeds_kmh": [
+        65.0346646775507,
+        65.54969659716663
+      ],
+      "adjacent_positions_m": [
+        27943.077955415134,
+        27931.110891446653
+      ],
+      "relative_velocity_mps": -0.1430644221155397
+    },
+    {
+      "interval_start_s": 1991.180000035952,
+      "interval_end_s": 1991.1900000359522,
+      "time_s": 1991.1900000359522,
+      "train_one_based": 3,
+      "coupler_one_based": 48,
+      "vehicle_pair_one_based": [
+        48,
+        49
+      ],
+      "signed_native_force_n": 865979.1420208123,
+      "peak_kn": 865.9791420208122,
+      "adjacent_speeds_kmh": [
+        65.05513779699213,
+        65.245579242857
+      ],
+      "adjacent_positions_m": [
+        27943.258636048806,
+        27931.292554189964
+      ],
+      "relative_velocity_mps": -0.05290040162913101
+    },
+    {
+      "interval_start_s": 1991.1900000359522,
+      "interval_end_s": 1991.2000000359528,
+      "time_s": 1991.1950000359523,
+      "train_one_based": 3,
+      "coupler_one_based": 48,
+      "vehicle_pair_one_based": [
+        48,
+        49
+      ],
+      "signed_native_force_n": 870403.4288435873,
+      "peak_kn": 870.4034288435873,
+      "adjacent_speeds_kmh": [
+        65.06449928371339,
+        65.09052812544616
+      ],
+      "adjacent_positions_m": [
+        27943.348997004476,
+        27931.383065465776
+      ],
+      "relative_velocity_mps": -0.007230233814656373
+    },
+    {
+      "interval_start_s": 1991.2500000359535,
+      "interval_end_s": 1991.2600000359532,
+      "time_s": 1991.2600000359532,
+      "train_one_based": 3,
+      "coupler_one_based": 49,
+      "vehicle_pair_one_based": [
+        49,
+        50
+      ],
+      "signed_native_force_n": 805975.3467623302,
+      "peak_kn": 805.9753467623301,
+      "adjacent_speeds_kmh": [
+        65.05144583621413,
+        65.7335311782954
+      ],
+      "adjacent_positions_m": [
+        27932.556664719617,
+        27920.588751899682
+      ],
+      "relative_velocity_mps": -0.18946815057812927
+    },
+    {
+      "interval_start_s": 1991.2600000359532,
+      "interval_end_s": 1991.2700000359534,
+      "time_s": 1991.2700000359534,
+      "train_one_based": 3,
+      "coupler_one_based": 49,
+      "vehicle_pair_one_based": [
+        49,
+        50
+      ],
+      "signed_native_force_n": 853725.1192000033,
+      "peak_kn": 853.7251192000033,
+      "adjacent_speeds_kmh": [
+        65.07269143244793,
+        65.43664025561803
+      ],
+      "adjacent_positions_m": [
+        27932.737392855182,
+        27920.7709366107
+      ],
+      "relative_velocity_mps": -0.10109689532502841
+    },
+    {
+      "interval_start_s": 1991.2700000359534,
+      "interval_end_s": 1991.2800000359537,
+      "time_s": 1991.2800000359537,
+      "train_one_based": 3,
+      "coupler_one_based": 49,
+      "vehicle_pair_one_based": [
+        49,
+        50
+      ],
+      "signed_native_force_n": 871875.9213535574,
+      "peak_kn": 871.8759213535574,
+      "adjacent_speeds_kmh": [
+        65.09233997371778,
+        65.1278634088101
+      ],
+      "adjacent_positions_m": [
+        27932.91817822367,
+        27920.9522776891
+      ],
+      "relative_velocity_mps": -0.009867620858976522
+    },
+    {
+      "interval_start_s": 1991.2800000359537,
+      "interval_end_s": 1991.2900000359539,
+      "time_s": 1991.2801562859536,
+      "train_one_based": 3,
+      "coupler_one_based": 49,
+      "vehicle_pair_one_based": [
+        49,
+        50
+      ],
+      "signed_native_force_n": 871810.2192573316,
+      "peak_kn": 871.8102192573316,
+      "adjacent_speeds_kmh": [
+        65.09262189164632,
+        65.12300182332754
+      ],
+      "adjacent_positions_m": [
+        27932.921003418156,
+        27920.95510431378
+      ],
+      "relative_velocity_mps": -0.008438869911451263
+    },
+    {
+      "interval_start_s": 1991.340000035954,
+      "interval_end_s": 1991.3500000359543,
+      "time_s": 1991.3500000359543,
+      "train_one_based": 3,
+      "coupler_one_based": 50,
+      "vehicle_pair_one_based": [
+        50,
+        51
+      ],
+      "signed_native_force_n": 833416.2239619737,
+      "peak_kn": 833.4162239619736,
+      "adjacent_speeds_kmh": [
+        65.09122930679538,
+        65.61977111822881
+      ],
+      "adjacent_positions_m": [
+        27922.21680921283,
+        27910.249732994886
+      ],
+      "relative_velocity_mps": -0.1468171698426204
+    },
+    {
+      "interval_start_s": 1991.3500000359543,
+      "interval_end_s": 1991.3600000359545,
+      "time_s": 1991.3600000359545,
+      "train_one_based": 3,
+      "coupler_one_based": 50,
+      "vehicle_pair_one_based": [
+        50,
+        51
+      ],
+      "signed_native_force_n": 866799.178520712,
+      "peak_kn": 866.799178520712,
+      "adjacent_speeds_kmh": [
+        65.11185181534294,
+        65.31557208893334
+      ],
+      "adjacent_positions_m": [
+        27922.39764717369,
+        27910.431590376455
+      ],
+      "relative_velocity_mps": -0.05658896488622034
+    },
+    {
+      "interval_start_s": 1991.3600000359545,
+      "interval_end_s": 1991.3700000359556,
+      "time_s": 1991.3650000359546,
+      "train_one_based": 3,
+      "coupler_one_based": 50,
+      "vehicle_pair_one_based": [
+        50,
+        51
+      ],
+      "signed_native_force_n": 872300.4420820922,
+      "peak_kn": 872.3004420820922,
+      "adjacent_speeds_kmh": [
+        65.12131364896332,
+        65.1603058561611
+      ],
+      "adjacent_positions_m": [
+        27922.48808696154,
+        27910.522198732455
+      ],
+      "relative_velocity_mps": -0.010831168666051383
+    },
+    {
+      "interval_start_s": 1991.4200000359554,
+      "interval_end_s": 1991.4300000359551,
+      "time_s": 1991.4300000359551,
+      "train_one_based": 3,
+      "coupler_one_based": 51,
+      "vehicle_pair_one_based": [
+        51,
+        52
+      ],
+      "signed_native_force_n": 806581.1825645781,
+      "peak_kn": 806.5811825645782,
+      "adjacent_speeds_kmh": [
+        65.10932382420867,
+        65.79371751071889
+      ],
+      "adjacent_positions_m": [
+        27911.696869349038,
+        27899.72897498502
+      ],
+      "relative_velocity_mps": -0.1901093573639514
+    },
+    {
+      "interval_start_s": 1991.4300000359551,
+      "interval_end_s": 1991.4400000359553,
+      "time_s": 1991.4400000359553,
+      "train_one_based": 3,
+      "coupler_one_based": 51,
+      "vehicle_pair_one_based": [
+        51,
+        52
+      ],
+      "signed_native_force_n": 854537.8067564607,
+      "peak_kn": 854.5378067564607,
+      "adjacent_speeds_kmh": [
+        65.13035175967377,
+        65.49656572970635
+      ],
+      "adjacent_positions_m": [
+        27911.877757957045,
+        27899.911326534955
+      ],
+      "relative_velocity_mps": -0.10172610278682725
+    },
+    {
+      "interval_start_s": 1991.4400000359553,
+      "interval_end_s": 1991.4500000359556,
+      "time_s": 1991.4500000359556,
+      "train_one_based": 3,
+      "coupler_one_based": 51,
+      "vehicle_pair_one_based": [
+        51,
+        52
+      ],
+      "signed_native_force_n": 872905.1884216098,
+      "peak_kn": 872.9051884216099,
+      "adjacent_speeds_kmh": [
+        65.14977787859439,
+        65.1874541639372
+      ],
+      "adjacent_positions_m": [
+        27912.058703183247,
+        27900.092833625018
+      ],
+      "relative_velocity_mps": -0.010465634817446556
+    },
+    {
+      "interval_start_s": 1991.4500000359556,
+      "interval_end_s": 1991.4600000359562,
+      "time_s": 1991.4503125359556,
+      "train_one_based": 3,
+      "coupler_one_based": 51,
+      "vehicle_pair_one_based": [
+        51,
+        52
+      ],
+      "signed_native_force_n": 872677.4954324374,
+      "peak_kn": 872.6774954324374,
+      "adjacent_speeds_kmh": [
+        65.15033289056295,
+        65.17772015729955
+      ],
+      "adjacent_positions_m": [
+        27912.06435857,
+        27900.09849183571
+      ],
+      "relative_velocity_mps": -0.007607574093498215
+    },
+    {
+      "interval_start_s": 1991.5100000359564,
+      "interval_end_s": 1991.5200000359566,
+      "time_s": 1991.5200000359566,
+      "train_one_based": 3,
+      "coupler_one_based": 52,
+      "vehicle_pair_one_based": [
+        52,
+        53
+      ],
+      "signed_native_force_n": 836088.7779763011,
+      "peak_kn": 836.0887779763011,
+      "adjacent_speeds_kmh": [
+        65.14814798542055,
+        65.66931056681977
+      ],
+      "adjacent_positions_m": [
+        27901.358500390837,
+        27889.391505720883
+      ],
+      "relative_velocity_mps": -0.1447673837220087
+    },
+    {
+      "interval_start_s": 1991.5200000359566,
+      "interval_end_s": 1991.5300000359568,
+      "time_s": 1991.5300000359568,
+      "train_one_based": 3,
+      "coupler_one_based": 52,
+      "vehicle_pair_one_based": [
+        52,
+        53
+      ],
+      "signed_native_force_n": 868769.9745454411,
+      "peak_kn": 868.7699745454411,
+      "adjacent_speeds_kmh": [
+        65.16847206222981,
+        65.36426924176712
+      ],
+      "adjacent_positions_m": [
+        27901.539496047273,
+        27889.573499484584
+      ],
+      "relative_velocity_mps": -0.0543881054270301
+    },
+    {
+      "interval_start_s": 1991.5300000359568,
+      "interval_end_s": 1991.540000035958,
+      "time_s": 1991.535000035957,
+      "train_one_based": 3,
+      "coupler_one_based": 52,
+      "vehicle_pair_one_based": [
+        52,
+        53
+      ],
+      "signed_native_force_n": 873792.3160882125,
+      "peak_kn": 873.7923160882125,
+      "adjacent_speeds_kmh": [
+        65.17777134622348,
+        65.20868094605156
+      ],
+      "adjacent_positions_m": [
+        27901.630014364062,
+        27889.664175243404
+      ],
+      "relative_velocity_mps": -0.008585999952245515
+    },
+    {
+      "interval_start_s": 1991.5900000359572,
+      "interval_end_s": 1991.6000000359575,
+      "time_s": 1991.6000000359575,
+      "train_one_based": 3,
+      "coupler_one_based": 53,
+      "vehicle_pair_one_based": [
+        53,
+        54
+      ],
+      "signed_native_force_n": 812117.0633135899,
+      "peak_kn": 812.1170633135899,
+      "adjacent_speeds_kmh": [
+        65.16564688300998,
+        65.83342636131127
+      ],
+      "adjacent_positions_m": [
+        27890.839869867516,
+        27878.872144177312
+      ],
+      "relative_velocity_mps": -0.18549429952813412
+    },
+    {
+      "interval_start_s": 1991.6000000359575,
+      "interval_end_s": 1991.6100000359577,
+      "time_s": 1991.6100000359577,
+      "train_one_based": 3,
+      "coupler_one_based": 53,
+      "vehicle_pair_one_based": [
+        53,
+        54
+      ],
+      "signed_native_force_n": 858477.9280616218,
+      "peak_kn": 858.4779280616218,
+      "adjacent_speeds_kmh": [
+        65.18643007110892,
+        65.53455550011407
+      ],
+      "adjacent_positions_m": [
+        27891.020914595076,
+        27879.054603532437
+      ],
+      "relative_velocity_mps": -0.09670150805698441
+    },
+    {
+      "interval_start_s": 1991.6100000359577,
+      "interval_end_s": 1991.620000035958,
+      "time_s": 1991.6193750359578,
+      "train_one_based": 3,
+      "coupler_one_based": 53,
+      "vehicle_pair_one_based": [
+        53,
+        54
+      ],
+      "signed_native_force_n": 874998.8346287168,
+      "peak_kn": 874.9988346287168,
+      "adjacent_speeds_kmh": [
+        65.20443545711116,
+        65.24383945803676
+      ],
+      "adjacent_positions_m": [
+        27891.19069487118,
+        27879.224889092864
+      ],
+      "relative_velocity_mps": -0.010945555812664765
+    },
+    {
+      "interval_start_s": 1991.620000035958,
+      "interval_end_s": 1991.6300000359586,
+      "time_s": 1991.620078160958,
+      "train_one_based": 3,
+      "coupler_one_based": 53,
+      "vehicle_pair_one_based": [
+        53,
+        54
+      ],
+      "signed_native_force_n": 867868.1805438797,
+      "peak_kn": 867.8681805438797,
+      "adjacent_speeds_kmh": [
+        65.20563698868843,
+        65.2219172131016
+      ],
+      "adjacent_positions_m": [
+        27891.203430231966,
+        27879.23762988751
+      ],
+      "relative_velocity_mps": -0.004522284559214995
+    },
+    {
+      "interval_start_s": 1991.6800000359583,
+      "interval_end_s": 1991.6900000359585,
+      "time_s": 1991.6900000359585,
+      "train_one_based": 3,
+      "coupler_one_based": 54,
+      "vehicle_pair_one_based": [
+        54,
+        55
+      ],
+      "signed_native_force_n": 842467.5383025635,
+      "peak_kn": 842.4675383025635,
+      "adjacent_speeds_kmh": [
+        65.20398123592442,
+        65.69894620067417
+      ],
+      "adjacent_positions_m": [
+        27880.50295424976,
+        27868.536154262514
+      ],
+      "relative_velocity_mps": -0.13749026798604191
+    },
+    {
+      "interval_start_s": 1991.6900000359585,
+      "interval_end_s": 1991.7000000359587,
+      "time_s": 1991.7000000359587,
+      "train_one_based": 3,
+      "coupler_one_based": 54,
+      "vehicle_pair_one_based": [
+        54,
+        55
+      ],
+      "signed_native_force_n": 872677.2818052827,
+      "peak_kn": 872.6772818052827,
+      "adjacent_speeds_kmh": [
+        65.2240574802633,
+        65.39204469234865
+      ],
+      "adjacent_positions_m": [
+        27880.68410468625,
+        27868.718227560985
+      ],
+      "relative_velocity_mps": -0.046663114468152855
+    },
+    {
+      "interval_start_s": 1991.7000000359587,
+      "interval_end_s": 1991.7100000359594,
+      "time_s": 1991.7040625359589,
+      "train_one_based": 3,
+      "coupler_one_based": 54,
+      "vehicle_pair_one_based": [
+        54,
+        55
+      ],
+      "signed_native_force_n": 876338.539176314,
+      "peak_kn": 876.338539176314,
+      "adjacent_speeds_kmh": [
+        65.23152973995228,
+        65.26518398826619
+      ],
+      "adjacent_positions_m": [
+        27880.75771249265,
+        27868.791949137943
+      ],
+      "relative_velocity_mps": -0.009348402309417025
+    },
+    {
+      "interval_start_s": 1991.7600000359587,
+      "interval_end_s": 1991.770000035959,
+      "time_s": 1991.770000035959,
+      "train_one_based": 3,
+      "coupler_one_based": 55,
+      "vehicle_pair_one_based": [
+        55,
+        56
+      ],
+      "signed_native_force_n": 820784.418150232,
+      "peak_kn": 820.7844181502321,
+      "adjacent_speeds_kmh": [
+        65.22147264325149,
+        65.85873971395195
+      ],
+      "adjacent_positions_m": [
+        27869.98561068755,
+        27858.018149195137
+      ],
+      "relative_velocity_mps": -0.1770186307501298
+    },
+    {
+      "interval_start_s": 1991.770000035959,
+      "interval_end_s": 1991.7800000359591,
+      "time_s": 1991.7800000359591,
+      "train_one_based": 3,
+      "coupler_one_based": 55,
+      "vehicle_pair_one_based": [
+        55,
+        56
+      ],
+      "signed_native_force_n": 864227.9456705888,
+      "peak_kn": 864.2279456705887,
+      "adjacent_speeds_kmh": [
+        65.24215123361415,
+        65.55726803906462
+      ],
+      "adjacent_positions_m": [
+        27870.166810366994,
+        27858.200674992062
+      ],
+      "relative_velocity_mps": -0.0875324459584661
+    },
+    {
+      "interval_start_s": 1991.7800000359591,
+      "interval_end_s": 1991.7900000359598,
+      "time_s": 1991.7881250359592,
+      "train_one_based": 3,
+      "coupler_one_based": 55,
+      "vehicle_pair_one_based": [
+        55,
+        56
+      ],
+      "signed_native_force_n": 877590.888923644,
+      "peak_kn": 877.590888923644,
+      "adjacent_speeds_kmh": [
+        65.25768722536196,
+        65.3042508575701
+      ],
+      "adjacent_positions_m": [
+        27870.314076145514,
+        27858.348349299344
+      ],
+      "relative_velocity_mps": -0.012934342280036759
+    },
+    {
+      "interval_start_s": 1991.8500000359588,
+      "interval_end_s": 1991.860000035959,
+      "time_s": 1991.860000035959,
+      "train_one_based": 3,
+      "coupler_one_based": 56,
+      "vehicle_pair_one_based": [
+        56,
+        57
+      ],
+      "signed_native_force_n": 849630.0871024919,
+      "peak_kn": 849.6300871024919,
+      "adjacent_speeds_kmh": [
+        65.26047055474154,
+        65.72101935351964
+      ],
+      "adjacent_positions_m": [
+        27859.650134228676,
+        27847.683552922474
+      ],
+      "relative_velocity_mps": -0.1279302218828029
+    },
+    {
+      "interval_start_s": 1991.860000035959,
+      "interval_end_s": 1991.8700000359593,
+      "time_s": 1991.8700000359593,
+      "train_one_based": 3,
+      "coupler_one_based": 56,
+      "vehicle_pair_one_based": [
+        56,
+        57
+      ],
+      "signed_native_force_n": 876604.2547468452,
+      "peak_kn": 876.6042547468452,
+      "adjacent_speeds_kmh": [
+        65.2804855056206,
+        65.41211233803836
+      ],
+      "adjacent_positions_m": [
+        27859.831441549573,
+        27847.865684484255
+      ],
+      "relative_velocity_mps": -0.03656300900492937
+    },
+    {
+      "interval_start_s": 1991.8700000359593,
+      "interval_end_s": 1991.8800000359604,
+      "time_s": 1991.8728125359594,
+      "train_one_based": 3,
+      "coupler_one_based": 56,
+      "vehicle_pair_one_based": [
+        56,
+        57
+      ],
+      "signed_native_force_n": 878759.004773841,
+      "peak_kn": 878.759004773841,
+      "adjacent_speeds_kmh": [
+        65.28565251344621,
+        65.32398992466464
+      ],
+      "adjacent_positions_m": [
+        27859.882443962506,
+        27847.91675328593
+      ],
+      "relative_velocity_mps": -0.010649280894007518
+    },
+    {
+      "interval_start_s": 1991.9300000359597,
+      "interval_end_s": 1991.9400000359599,
+      "time_s": 1991.9400000359599,
+      "train_one_based": 3,
+      "coupler_one_based": 57,
+      "vehicle_pair_one_based": [
+        57,
+        58
+      ],
+      "signed_native_force_n": 828887.7918965615,
+      "peak_kn": 828.8877918965616,
+      "adjacent_speeds_kmh": [
+        65.27948044537578,
+        65.88166054964516
+      ],
+      "adjacent_positions_m": [
+        27849.134087164246,
+        27837.166872796584
+      ],
+      "relative_velocity_mps": -0.16727225118593836
+    },
+    {
+      "interval_start_s": 1991.9400000359599,
+      "interval_end_s": 1991.95000003596,
+      "time_s": 1991.95000003596,
+      "train_one_based": 3,
+      "coupler_one_based": 57,
+      "vehicle_pair_one_based": [
+        57,
+        58
+      ],
+      "signed_native_force_n": 869007.2893948298,
+      "peak_kn": 869.0072893948297,
+      "adjacent_speeds_kmh": [
+        65.30018652404475,
+        65.57785972465317
+      ],
+      "adjacent_positions_m": [
+        27849.315448063884,
+        27837.349458754754
+      ],
+      "relative_velocity_mps": -0.07713144461344967
+    },
+    {
+      "interval_start_s": 1991.95000003596,
+      "interval_end_s": 1991.9600000359612,
+      "time_s": 1991.9575000359603,
+      "train_one_based": 3,
+      "coupler_one_based": 57,
+      "vehicle_pair_one_based": [
+        57,
+        58
+      ],
+      "signed_native_force_n": 879247.4143131925,
+      "peak_kn": 879.2474143131925,
+      "adjacent_speeds_kmh": [
+        65.31443314239269,
+        65.34347448705903
+      ],
+      "adjacent_positions_m": [
+        27849.451505249996,
+        27837.485835616382
+      ],
+      "relative_velocity_mps": -0.008067040185093077
+    },
+    {
+      "interval_start_s": 1992.0100000359619,
+      "interval_end_s": 1992.0200000359616,
+      "time_s": 1992.0200000359616,
+      "train_one_based": 3,
+      "coupler_one_based": 58,
+      "vehicle_pair_one_based": [
+        58,
+        59
+      ],
+      "signed_native_force_n": 804330.2938896266,
+      "peak_kn": 804.3302938896267,
+      "adjacent_speeds_kmh": [
+        65.29924082903607,
+        66.02955730894749
+      ],
+      "adjacent_positions_m": [
+        27838.6186855039,
+        27826.650722573224
+      ],
+      "relative_velocity_mps": -0.2028656888642857
+    },
+    {
+      "interval_start_s": 1992.0200000359616,
+      "interval_end_s": 1992.0300000359618,
+      "time_s": 1992.0300000359618,
+      "train_one_based": 3,
+      "coupler_one_based": 58,
+      "vehicle_pair_one_based": [
+        58,
+        59
+      ],
+      "signed_native_force_n": 856489.0333658506,
+      "peak_kn": 856.4890333658506,
+      "adjacent_speeds_kmh": [
+        65.32015047803792,
+        65.73244016959373
+      ],
+      "adjacent_positions_m": [
+        27838.800101447283,
+        27826.8337296267
+      ],
+      "relative_velocity_mps": -0.11452491432105916
+    },
+    {
+      "interval_start_s": 1992.0300000359618,
+      "interval_end_s": 1992.040000035962,
+      "time_s": 1992.040000035962,
+      "train_one_based": 3,
+      "coupler_one_based": 58,
+      "vehicle_pair_one_based": [
+        58,
+        59
+      ],
+      "signed_native_force_n": 879000.102412572,
+      "peak_kn": 879.000102412572,
+      "adjacent_speeds_kmh": [
+        65.33973244634308,
+        65.421859975887
+      ],
+      "adjacent_positions_m": [
+        27838.981574029116,
+        27827.015890222796
+      ],
+      "relative_velocity_mps": -0.02281320265108988
+    },
+    {
+      "interval_start_s": 1992.040000035962,
+      "interval_end_s": 1992.0500000359627,
+      "time_s": 1992.0412500359619,
+      "train_one_based": 3,
+      "coupler_one_based": 58,
+      "vehicle_pair_one_based": [
+        58,
+        59
+      ],
+      "signed_native_force_n": 879688.4263273163,
+      "peak_kn": 879.6884263273163,
+      "adjacent_speeds_kmh": [
+        65.34198116227091,
+        65.38262527793007
+      ],
+      "adjacent_positions_m": [
+        27839.004261827926,
+        27827.03859933549
+      ],
+      "relative_velocity_mps": -0.01129003212754398
+    },
+    {
+      "interval_start_s": 1992.100000035962,
+      "interval_end_s": 1992.1100000359622,
+      "time_s": 1992.1100000359622,
+      "train_one_based": 3,
+      "coupler_one_based": 59,
+      "vehicle_pair_one_based": [
+        59,
+        60
+      ],
+      "signed_native_force_n": 841334.169655898,
+      "peak_kn": 841.334169655898,
+      "adjacent_speeds_kmh": [
+        65.34058792980437,
+        65.87048107836853
+      ],
+      "adjacent_positions_m": [
+        27828.28540000062,
+        27816.318565417678
+      ],
+      "relative_velocity_mps": -0.14719254126782033
+    },
+    {
+      "interval_start_s": 1992.1100000359622,
+      "interval_end_s": 1992.1200000359624,
+      "time_s": 1992.1200000359624,
+      "train_one_based": 3,
+      "coupler_one_based": 59,
+      "vehicle_pair_one_based": [
+        59,
+        60
+      ],
+      "signed_native_force_n": 874719.520754914,
+      "peak_kn": 874.719520754914,
+      "adjacent_speeds_kmh": [
+        65.36070048357688,
+        65.56340161944802
+      ],
+      "adjacent_positions_m": [
+        27828.466929905633,
+        27816.5011152154
+      ],
+      "relative_velocity_mps": -0.056305871075316816
+    },
+    {
+      "interval_start_s": 1992.1200000359624,
+      "interval_end_s": 1992.1300000359631,
+      "time_s": 1992.1250000359626,
+      "train_one_based": 3,
+      "coupler_one_based": 59,
+      "vehicle_pair_one_based": [
+        59,
+        60
+      ],
+      "signed_native_force_n": 880133.8653506278,
+      "peak_kn": 880.1338653506278,
+      "adjacent_speeds_kmh": [
+        65.36991769062563,
+        65.4067042804889
+      ],
+      "adjacent_positions_m": [
+        27828.557715146584,
+        27816.592066783647
+      ],
+      "relative_velocity_mps": -0.010218497184240505
+    },
+    {
+      "interval_start_s": 1992.180000035962,
+      "interval_end_s": 1992.1900000359622,
+      "time_s": 1992.1900000359622,
+      "train_one_based": 3,
+      "coupler_one_based": 60,
+      "vehicle_pair_one_based": [
+        60,
+        61
+      ],
+      "signed_native_force_n": 817969.2834249815,
+      "peak_kn": 817.9692834249815,
+      "adjacent_speeds_kmh": [
+        65.35757675112579,
+        66.03163096778258
+      ],
+      "adjacent_positions_m": [
+        27817.77124049916,
+        27805.80369318143
+      ],
+      "relative_velocity_mps": -0.18723728240466286
+    },
+    {
+      "interval_start_s": 1992.1900000359622,
+      "interval_end_s": 1992.2000000359624,
+      "time_s": 1992.2000000359624,
+      "train_one_based": 3,
+      "coupler_one_based": 60,
+      "vehicle_pair_one_based": [
+        60,
+        61
+      ],
+      "signed_native_force_n": 864790.1026227132,
+      "peak_kn": 864.7901026227132,
+      "adjacent_speeds_kmh": [
+        65.37828249275319,
+        65.73055173189951
+      ],
+      "adjacent_positions_m": [
+        27817.952818250113,
+        27805.986700054065
+      ],
+      "relative_velocity_mps": -0.097852566429534
+    },
+    {
+      "interval_start_s": 1992.2000000359624,
+      "interval_end_s": 1992.2100000359621,
+      "time_s": 1992.2096875359623,
+      "train_one_based": 3,
+      "coupler_one_based": 60,
+      "vehicle_pair_one_based": [
+        60,
+        61
+      ],
+      "signed_native_force_n": 881558.2842912546,
+      "peak_kn": 881.5582842912546,
+      "adjacent_speeds_kmh": [
+        65.39678448428447,
+        65.427805354405
+      ],
+      "adjacent_positions_m": [
+        27818.128774853158,
+        27806.163173105822
+      ],
+      "relative_velocity_mps": -0.008616908366814613
+    },
+    {
+      "interval_start_s": 1992.2100000359621,
+      "interval_end_s": 1992.2200000359628,
+      "time_s": 1992.2100781609622,
+      "train_one_based": 3,
+      "coupler_one_based": 60,
+      "vehicle_pair_one_based": [
+        60,
+        61
+      ],
+      "signed_native_force_n": 877277.0668162801,
+      "peak_kn": 877.2770668162801,
+      "adjacent_speeds_kmh": [
+        65.39744970725441,
+        65.41553019156585
+      ],
+      "adjacent_positions_m": [
+        27818.135870894977,
+        27806.17027181067
+      ],
+      "relative_velocity_mps": -0.005022356753176638
+    },
+    {
+      "interval_start_s": 1992.2700000359616,
+      "interval_end_s": 1992.2800000359618,
+      "time_s": 1992.2800000359618,
+      "train_one_based": 3,
+      "coupler_one_based": 61,
+      "vehicle_pair_one_based": [
+        61,
+        62
+      ],
+      "signed_native_force_n": 813457.9453302948,
+      "peak_kn": 813.4579453302948,
+      "adjacent_speeds_kmh": [
+        65.37404563779637,
+        66.10183234920632
+      ],
+      "adjacent_positions_m": [
+        27807.43871558721,
+        27795.47103076096
+      ],
+      "relative_velocity_mps": -0.2021629753916514
+    },
+    {
+      "interval_start_s": 1992.2800000359618,
+      "interval_end_s": 1992.290000035962,
+      "time_s": 1992.290000035962,
+      "train_one_based": 3,
+      "coupler_one_based": 61,
+      "vehicle_pair_one_based": [
+        61,
+        62
+      ],
+      "signed_native_force_n": 865151.4921908221,
+      "peak_kn": 865.1514921908222,
+      "adjacent_speeds_kmh": [
+        65.39629263850868,
+        65.80149319888781
+      ],
+      "adjacent_positions_m": [
+        27807.620341217364,
+        27795.654234065216
+      ],
+      "relative_velocity_mps": -0.11255571121642305
+    },
+    {
+      "interval_start_s": 1992.290000035962,
+      "interval_end_s": 1992.3000000359623,
+      "time_s": 1992.3000000359623,
+      "train_one_based": 3,
+      "coupler_one_based": 61,
+      "vehicle_pair_one_based": [
+        61,
+        62
+      ],
+      "signed_native_force_n": 886814.4087742731,
+      "peak_kn": 886.8144087742731,
+      "adjacent_speeds_kmh": [
+        65.41713943433919,
+        65.48792804547237
+      ],
+      "adjacent_positions_m": [
+        27807.802027070768,
+        27795.83658225988
+      ],
+      "relative_velocity_mps": -0.019663503092548495
+    },
+    {
+      "interval_start_s": 1992.3000000359623,
+      "interval_end_s": 1992.310000035963,
+      "time_s": 1992.3006250359622,
+      "train_one_based": 3,
+      "coupler_one_based": 61,
+      "vehicle_pair_one_based": [
+        61,
+        62
+      ],
+      "signed_native_force_n": 887155.8938417287,
+      "peak_kn": 887.1558938417287,
+      "adjacent_speeds_kmh": [
+        65.41834742560103,
+        65.46813898440901
+      ],
+      "adjacent_positions_m": [
+        27807.81338431789,
+        27795.84794997403
+      ],
+      "relative_velocity_mps": -0.01383098855777476
+    },
+    {
+      "interval_start_s": 1992.3700000359606,
+      "interval_end_s": 1992.3800000359608,
+      "time_s": 1992.3800000359608,
+      "train_one_based": 3,
+      "coupler_one_based": 62,
+      "vehicle_pair_one_based": [
+        62,
+        63
+      ],
+      "signed_native_force_n": 844698.8813587495,
+      "peak_kn": 844.6988813587494,
+      "adjacent_speeds_kmh": [
+        65.40401095932108,
+        65.9988802924174
+      ],
+      "adjacent_positions_m": [
+        27797.28814273018,
+        27785.321410859862
+      ],
+      "relative_velocity_mps": -0.16524148141564154
+    },
+    {
+      "interval_start_s": 1992.3800000359608,
+      "interval_end_s": 1992.390000035961,
+      "time_s": 1992.390000035961,
+      "train_one_based": 3,
+      "coupler_one_based": 62,
+      "vehicle_pair_one_based": [
+        62,
+        63
+      ],
+      "signed_native_force_n": 883756.7542578543,
+      "peak_kn": 883.7567542578543,
+      "adjacent_speeds_kmh": [
+        65.42718274711704,
+        65.68954385087706
+      ],
+      "adjacent_positions_m": [
+        27797.46985298986,
+        27785.504314652917
+      ],
+      "relative_velocity_mps": -0.07287808437778054
+    },
+    {
+      "interval_start_s": 1992.390000035961,
+      "interval_end_s": 1992.4000000359617,
+      "time_s": 1992.396562535961,
+      "train_one_based": 3,
+      "coupler_one_based": 62,
+      "vehicle_pair_one_based": [
+        62,
+        63
+      ],
+      "signed_native_force_n": 892753.9002977976,
+      "peak_kn": 892.7539002977976,
+      "adjacent_speeds_kmh": [
+        65.44135894241127,
+        65.48120068203289
+      ],
+      "adjacent_positions_m": [
+        27797.589134400943,
+        27785.62387163449
+      ],
+      "relative_velocity_mps": -0.011067149894895323
+    },
+    {
+      "interval_start_s": 1992.4600000359585,
+      "interval_end_s": 1992.4700000359587,
+      "time_s": 1992.4700000359587,
+      "train_one_based": 3,
+      "coupler_one_based": 63,
+      "vehicle_pair_one_based": [
+        63,
+        64
+      ],
+      "signed_native_force_n": 816673.9280627995,
+      "peak_kn": 816.6739280627995,
+      "adjacent_speeds_kmh": [
+        65.41791771141897,
+        66.15630632785762
+      ],
+      "adjacent_positions_m": [
+        27786.95675462035,
+        27774.989167815653
+      ],
+      "relative_velocity_mps": -0.20510794901073837
+    },
+    {
+      "interval_start_s": 1992.4700000359587,
+      "interval_end_s": 1992.480000035959,
+      "time_s": 1992.480000035959,
+      "train_one_based": 3,
+      "coupler_one_based": 63,
+      "vehicle_pair_one_based": [
+        63,
+        64
+      ],
+      "signed_native_force_n": 869201.6217256887,
+      "peak_kn": 869.2016217256887,
+      "adjacent_speeds_kmh": [
+        65.44151298581268,
+        65.8546451824085
+      ],
+      "adjacent_positions_m": [
+        27787.138504038117,
+        27775.17252066884
+      ],
+      "relative_velocity_mps": -0.11475894349884186
+    },
+    {
+      "interval_start_s": 1992.480000035959,
+      "interval_end_s": 1992.4900000359592,
+      "time_s": 1992.4900000359592,
+      "train_one_based": 3,
+      "coupler_one_based": 63,
+      "vehicle_pair_one_based": [
+        63,
+        64
+      ],
+      "signed_native_force_n": 891455.4887825408,
+      "peak_kn": 891.4554887825408,
+      "adjacent_speeds_kmh": [
+        65.46355955031474,
+        65.53950131708055
+      ],
+      "adjacent_positions_m": [
+        27787.32031719236,
+        27775.355014363733
+      ],
+      "relative_velocity_mps": -0.021094935212722987
+    },
+    {
+      "interval_start_s": 1992.4900000359592,
+      "interval_end_s": 1992.5000000359594,
+      "time_s": 1992.491250035959,
+      "train_one_based": 3,
+      "coupler_one_based": 63,
+      "vehicle_pair_one_based": [
+        63,
+        64
+      ],
+      "signed_native_force_n": 892015.2679523128,
+      "peak_kn": 892.0152679523128,
+      "adjacent_speeds_kmh": [
+        65.4661031186044,
+        65.49970651293884
+      ],
+      "adjacent_positions_m": [
+        27787.343048038034,
+        27775.377764226752
+      ],
+      "relative_velocity_mps": -0.009334276204015168
+    },
+    {
+      "interval_start_s": 1992.5500000359564,
+      "interval_end_s": 1992.5600000359557,
+      "time_s": 1992.5600000359557,
+      "train_one_based": 3,
+      "coupler_one_based": 64,
+      "vehicle_pair_one_based": [
+        64,
+        65
+      ],
+      "signed_native_force_n": 804518.4400440591,
+      "peak_kn": 804.518440044059,
+      "adjacent_speeds_kmh": [
+        65.44373903221322,
+        66.21829118851684
+      ],
+      "adjacent_positions_m": [
+        27776.626261335245,
+        27764.658304135522
+      ],
+      "relative_velocity_mps": -0.2151533767510081
+    },
+    {
+      "interval_start_s": 1992.5600000359557,
+      "interval_end_s": 1992.570000035956,
+      "time_s": 1992.570000035956,
+      "train_one_based": 3,
+      "coupler_one_based": 64,
+      "vehicle_pair_one_based": [
+        64,
+        65
+      ],
+      "signed_native_force_n": 860576.6487466234,
+      "peak_kn": 860.5766487466234,
+      "adjacent_speeds_kmh": [
+        65.46672591308004,
+        65.92037717563204
+      ],
+      "adjacent_positions_m": [
+        27776.808081606294,
+        27764.841834662973
+      ],
+      "relative_velocity_mps": -0.1260142395977759
+    },
+    {
+      "interval_start_s": 1992.570000035956,
+      "interval_end_s": 1992.5800000359561,
+      "time_s": 1992.5800000359561,
+      "train_one_based": 3,
+      "coupler_one_based": 64,
+      "vehicle_pair_one_based": [
+        64,
+        65
+      ],
+      "signed_native_force_n": 886661.5025996024,
+      "peak_kn": 886.6615025996025,
+      "adjacent_speeds_kmh": [
+        65.48831328769083,
+        65.60765209444592
+      ],
+      "adjacent_positions_m": [
+        27776.98996410885,
+        27765.02451462059
+      ],
+      "relative_velocity_mps": -0.0331496685430821
+    },
+    {
+      "interval_start_s": 1992.5800000359561,
+      "interval_end_s": 1992.5900000359568,
+      "time_s": 1992.5825000359562,
+      "train_one_based": 3,
+      "coupler_one_based": 64,
+      "vehicle_pair_one_based": [
+        64,
+        65
+      ],
+      "signed_native_force_n": 888375.2157617677,
+      "peak_kn": 888.3752157617677,
+      "adjacent_speeds_kmh": [
+        65.49326601199009,
+        65.52843358800315
+      ],
+      "adjacent_positions_m": [
+        27777.035443834553,
+        27765.070047990364
+      ],
+      "relative_velocity_mps": -0.009768771114739394
+    },
+    {
+      "interval_start_s": 1992.6400000359552,
+      "interval_end_s": 1992.650000035955,
+      "time_s": 1992.650000035955,
+      "train_one_based": 3,
+      "coupler_one_based": 65,
+      "vehicle_pair_one_based": [
+        65,
+        66
+      ],
+      "signed_native_force_n": 808151.2093674714,
+      "peak_kn": 808.1512093674714,
+      "adjacent_speeds_kmh": [
+        65.475595554521,
+        66.21375570921586
+      ],
+      "adjacent_positions_m": [
+        27766.296557386566,
+        27754.328710854308
+      ],
+      "relative_velocity_mps": -0.20504448741523973
+    },
+    {
+      "interval_start_s": 1992.650000035955,
+      "interval_end_s": 1992.6600000359551,
+      "time_s": 1992.6600000359551,
+      "train_one_based": 3,
+      "coupler_one_based": 65,
+      "vehicle_pair_one_based": [
+        65,
+        66
+      ],
+      "signed_native_force_n": 860884.7168449981,
+      "peak_kn": 860.884716844998,
+      "adjacent_speeds_kmh": [
+        65.49779322331766,
+        65.91513077319614
+      ],
+      "adjacent_positions_m": [
+        27766.47846505378,
+        27754.512227522984
+      ],
+      "relative_velocity_mps": -0.11592709718846805
+    },
+    {
+      "interval_start_s": 1992.6600000359551,
+      "interval_end_s": 1992.6700000359554,
+      "time_s": 1992.6700000359554,
+      "train_one_based": 3,
+      "coupler_one_based": 65,
+      "vehicle_pair_one_based": [
+        65,
+        66
+      ],
+      "signed_native_force_n": 883724.0356090777,
+      "peak_kn": 883.7240356090776,
+      "adjacent_speeds_kmh": [
+        65.5184682994478,
+        65.60288037413733
+      ],
+      "adjacent_positions_m": [
+        27766.66043263782,
+        27754.694893300162
+      ],
+      "relative_velocity_mps": -0.02344779852486667
+    },
+    {
+      "interval_start_s": 1992.6700000359554,
+      "interval_end_s": 1992.680000035956,
+      "time_s": 1992.6715625359552,
+      "train_one_based": 3,
+      "coupler_one_based": 65,
+      "vehicle_pair_one_based": [
+        65,
+        66
+      ],
+      "signed_native_force_n": 884458.7511911527,
+      "peak_kn": 884.4587511911527,
+      "adjacent_speeds_kmh": [
+        65.52142814863376,
+        65.55356342062375
+      ],
+      "adjacent_positions_m": [
+        27766.688870118494,
+        27754.72335607144
+      ],
+      "relative_velocity_mps": -0.00892646444166445
+    },
+    {
+      "interval_start_s": 1992.7300000359562,
+      "interval_end_s": 1992.7400000359564,
+      "time_s": 1992.7400000359564,
+      "train_one_based": 3,
+      "coupler_one_based": 66,
+      "vehicle_pair_one_based": [
+        66,
+        67
+      ],
+      "signed_native_force_n": 824700.5908267815,
+      "peak_kn": 824.7005908267814,
+      "adjacent_speeds_kmh": [
+        65.51194655987105,
+        66.14463042817572
+      ],
+      "adjacent_positions_m": [
+        27755.96764140272,
+        27744.000299325962
+      ],
+      "relative_velocity_mps": -0.1757455189735211
+    },
+    {
+      "interval_start_s": 1992.7400000359564,
+      "interval_end_s": 1992.7500000359566,
+      "time_s": 1992.7500000359566,
+      "train_one_based": 3,
+      "coupler_one_based": 66,
+      "vehicle_pair_one_based": [
+        66,
+        67
+      ],
+      "signed_native_force_n": 867629.8851007668,
+      "peak_kn": 867.6298851007667,
+      "adjacent_speeds_kmh": [
+        65.53315957946735,
+        65.84180473303354
+      ],
+      "adjacent_positions_m": [
+        27756.149648749495,
+        27744.18361734094
+      ],
+      "relative_velocity_mps": -0.08573476487949705
+    },
+    {
+      "interval_start_s": 1992.7500000359566,
+      "interval_end_s": 1992.7600000359582,
+      "time_s": 1992.758125035957,
+      "train_one_based": 3,
+      "coupler_one_based": 66,
+      "vehicle_pair_one_based": [
+        66,
+        67
+      ],
+      "signed_native_force_n": 880453.8079198827,
+      "peak_kn": 880.4538079198827,
+      "adjacent_speeds_kmh": [
+        65.54897285410571,
+        65.58784137184571
+      ],
+      "adjacent_positions_m": [
+        27756.29757165347,
+        27744.33193273582
+      ],
+      "relative_velocity_mps": -0.010796810483331143
+    },
+    {
+      "interval_start_s": 1992.8200000359573,
+      "interval_end_s": 1992.8300000359575,
+      "time_s": 1992.8300000359575,
+      "train_one_based": 3,
+      "coupler_one_based": 67,
+      "vehicle_pair_one_based": [
+        67,
+        68
+      ],
+      "signed_native_force_n": 847860.9620951107,
+      "peak_kn": 847.8609620951107,
+      "adjacent_speeds_kmh": [
+        65.55215553854947,
+        66.00729762767436
+      ],
+      "adjacent_positions_m": [
+        27745.639518271826,
+        27733.67288294473
+      ],
+      "relative_velocity_mps": -0.12642835809024788
+    },
+    {
+      "interval_start_s": 1992.8300000359575,
+      "interval_end_s": 1992.8400000359577,
+      "time_s": 1992.8400000359577,
+      "train_one_based": 3,
+      "coupler_one_based": 67,
+      "vehicle_pair_one_based": [
+        67,
+        68
+      ],
+      "signed_native_force_n": 874387.5633573437,
+      "peak_kn": 874.3875633573437,
+      "adjacent_speeds_kmh": [
+        65.57189961265023,
+        65.69907859340485
+      ],
+      "adjacent_positions_m": [
+        27745.821635481905,
+        27733.855810642726
+      ],
+      "relative_velocity_mps": -0.035327494654062264
+    },
+    {
+      "interval_start_s": 1992.8400000359577,
+      "interval_end_s": 1992.8500000359584,
+      "time_s": 1992.8428125359578,
+      "train_one_based": 3,
+      "coupler_one_based": 67,
+      "vehicle_pair_one_based": [
+        67,
+        68
+      ],
+      "signed_native_force_n": 876397.8097841147,
+      "peak_kn": 876.3978097841147,
+      "adjacent_speeds_kmh": [
+        65.57697138777405,
+        65.61117746911215
+      ],
+      "adjacent_positions_m": [
+        27745.872865525216,
+        27733.907103722562
+      ],
+      "relative_velocity_mps": -0.009501689260581259
+    },
+    {
+      "interval_start_s": 1992.9000000359572,
+      "interval_end_s": 1992.9100000359574,
+      "time_s": 1992.9100000359574,
+      "train_one_based": 3,
+      "coupler_one_based": 68,
+      "vehicle_pair_one_based": [
+        68,
+        69
+      ],
+      "signed_native_force_n": 832816.9545644277,
+      "peak_kn": 832.8169545644278,
+      "adjacent_speeds_kmh": [
+        65.57458139336049,
+        66.12013340332159
+      ],
+      "adjacent_positions_m": [
+        27735.129980161775,
+        27723.162885659855
+      ],
+      "relative_velocity_mps": -0.15154222498919268
+    },
+    {
+      "interval_start_s": 1992.9100000359574,
+      "interval_end_s": 1992.9200000359576,
+      "time_s": 1992.9200000359576,
+      "train_one_based": 3,
+      "coupler_one_based": 68,
+      "vehicle_pair_one_based": [
+        68,
+        69
+      ],
+      "signed_native_force_n": 867776.31175439,
+      "peak_kn": 867.77631175439,
+      "adjacent_speeds_kmh": [
+        65.59444703378142,
+        65.8157111457521
+      ],
+      "adjacent_positions_m": [
+        27735.31215968925,
+        27723.346132755996
+      ],
+      "relative_velocity_mps": -0.061462253325192506
+    },
+    {
+      "interval_start_s": 1992.9200000359576,
+      "interval_end_s": 1992.9300000359583,
+      "time_s": 1992.9256250359579,
+      "train_one_based": 3,
+      "coupler_one_based": 68,
+      "vehicle_pair_one_based": [
+        68,
+        69
+      ],
+      "signed_native_force_n": 874319.4187867722,
+      "peak_kn": 874.3194187867722,
+      "adjacent_speeds_kmh": [
+        65.60466641473398,
+        65.64060898227167
+      ],
+      "adjacent_positions_m": [
+        27735.41465912279,
+        27723.448833171446
+      ],
+      "relative_velocity_mps": -0.00998404653824636
+    },
+    {
+      "interval_start_s": 1992.9800000359571,
+      "interval_end_s": 1992.9900000359573,
+      "time_s": 1992.9900000359573,
+      "train_one_based": 3,
+      "coupler_one_based": 69,
+      "vehicle_pair_one_based": [
+        69,
+        70
+      ],
+      "signed_native_force_n": 818806.2741671504,
+      "peak_kn": 818.8062741671504,
+      "adjacent_speeds_kmh": [
+        65.5963593329442,
+        66.22409244784838
+      ],
+      "adjacent_positions_m": [
+        27724.620990788317,
+        27712.653468986566
+      ],
+      "relative_velocity_mps": -0.17437030969560396
+    },
+    {
+      "interval_start_s": 1992.9900000359573,
+      "interval_end_s": 1993.0000000359576,
+      "time_s": 1993.0000000359576,
+      "train_one_based": 3,
+      "coupler_one_based": 69,
+      "vehicle_pair_one_based": [
+        69,
+        70
+      ],
+      "signed_native_force_n": 861445.8638487363,
+      "peak_kn": 861.4458638487363,
+      "adjacent_speeds_kmh": [
+        65.61641538204677,
+        65.92333578985573
+      ],
+      "adjacent_positions_m": [
+        27724.803230964793,
+        27712.837010579296
+      ],
+      "relative_velocity_mps": -0.08525566883582414
+    },
+    {
+      "interval_start_s": 1993.0000000359576,
+      "interval_end_s": 1993.0100000359582,
+      "time_s": 1993.0084375359572,
+      "train_one_based": 3,
+      "coupler_one_based": 69,
+      "vehicle_pair_one_based": [
+        69,
+        70
+      ],
+      "signed_native_force_n": 874158.0225474885,
+      "peak_kn": 874.1580225474885,
+      "adjacent_speeds_kmh": [
+        65.63193898996266,
+        65.66133818346134
+      ],
+      "adjacent_positions_m": [
+        27724.957038026532,
+        27712.99121212469
+      ],
+      "relative_velocity_mps": -0.008166442638522398
+    },
+    {
+      "interval_start_s": 1993.060000035957,
+      "interval_end_s": 1993.0700000359568,
+      "time_s": 1993.0700000359568,
+      "train_one_based": 3,
+      "coupler_one_based": 70,
+      "vehicle_pair_one_based": [
+        70,
+        71
+      ],
+      "signed_native_force_n": 804050.3540515411,
+      "peak_kn": 804.050354051541,
+      "adjacent_speeds_kmh": [
+        65.61765120485974,
+        66.32241998016102
+      ],
+      "adjacent_positions_m": [
+        27714.11258592896,
+        27702.144614471403
+      ],
+      "relative_velocity_mps": -0.19576910425035265
+    },
+    {
+      "interval_start_s": 1993.0700000359568,
+      "interval_end_s": 1993.080000035957,
+      "time_s": 1993.080000035957,
+      "train_one_based": 3,
+      "coupler_one_based": 70,
+      "vehicle_pair_one_based": [
+        70,
+        71
+      ],
+      "signed_native_force_n": 853931.1976939202,
+      "peak_kn": 853.9311976939202,
+      "adjacent_speeds_kmh": [
+        65.63781474029672,
+        66.02567720419576
+      ],
+      "adjacent_positions_m": [
+        27714.2948853155,
+        27702.3284353653
+      ],
+      "relative_velocity_mps": -0.10773957330529171
+    },
+    {
+      "interval_start_s": 1993.080000035957,
+      "interval_end_s": 1993.0900000359572,
+      "time_s": 1993.0900000359572,
+      "train_one_based": 3,
+      "coupler_one_based": 70,
+      "vehicle_pair_one_based": [
+        70,
+        71
+      ],
+      "signed_native_force_n": 874309.5514903599,
+      "peak_kn": 874.3095514903599,
+      "adjacent_speeds_kmh": [
+        65.65657254793959,
+        65.7162672881099
+      ],
+      "adjacent_positions_m": [
+        27714.477239181935,
+        27702.51141195906
+      ],
+      "relative_velocity_mps": -0.01658187226953345
+    },
+    {
+      "interval_start_s": 1993.0900000359572,
+      "interval_end_s": 1993.1000000359584,
+      "time_s": 1993.0906250359574,
+      "train_one_based": 3,
+      "coupler_one_based": 70,
+      "vehicle_pair_one_based": [
+        70,
+        71
+      ],
+      "signed_native_force_n": 874576.8800463313,
+      "peak_kn": 874.5768800463313,
+      "adjacent_speeds_kmh": [
+        65.65764831749843,
+        65.69675194629824
+      ],
+      "adjacent_positions_m": [
+        27714.488637985996,
+        27702.52281933927
+      ],
+      "relative_velocity_mps": -0.010862119111060053
+    },
+    {
+      "interval_start_s": 1993.150000035958,
+      "interval_end_s": 1993.1600000359583,
+      "time_s": 1993.1600000359583,
+      "train_one_based": 3,
+      "coupler_one_based": 71,
+      "vehicle_pair_one_based": [
+        71,
+        72
+      ],
+      "signed_native_force_n": 845329.73285389,
+      "peak_kn": 845.32973285389,
+      "adjacent_speeds_kmh": [
+        65.65897366447456,
+        66.12305466119595
+      ],
+      "adjacent_positions_m": [
+        27703.787121846097,
+        27691.820409235406
+      ],
+      "relative_velocity_mps": -0.12891138797816382
+    },
+    {
+      "interval_start_s": 1993.1600000359583,
+      "interval_end_s": 1993.1700000359585,
+      "time_s": 1993.1700000359585,
+      "train_one_based": 3,
+      "coupler_one_based": 71,
+      "vehicle_pair_one_based": [
+        71,
+        72
+      ],
+      "signed_native_force_n": 872728.0345708905,
+      "peak_kn": 872.7280345708905,
+      "adjacent_speeds_kmh": [
+        65.67820582830187,
+        65.81547708736116
+      ],
+      "adjacent_positions_m": [
+        27703.96953501693,
+        27692.003659443202
+      ],
+      "relative_velocity_mps": -0.038130905294245565
+    },
+    {
+      "interval_start_s": 1993.1700000359585,
+      "interval_end_s": 1993.1800000359592,
+      "time_s": 1993.1731250359587,
+      "train_one_based": 3,
+      "coupler_one_based": 71,
+      "vehicle_pair_one_based": [
+        71,
+        72
+      ],
+      "signed_native_force_n": 875111.6228781153,
+      "peak_kn": 875.1116228781153,
+      "adjacent_speeds_kmh": [
+        65.6837003607098,
+        65.7179331020543
+      ],
+      "adjacent_positions_m": [
+        27704.026549755046,
+        27692.06074861402
+      ],
+      "relative_velocity_mps": -0.009509094817914843
+    },
+    {
+      "interval_start_s": 1993.230000035958,
+      "interval_end_s": 1993.2400000359582,
+      "time_s": 1993.2400000359582,
+      "train_one_based": 3,
+      "coupler_one_based": 72,
+      "vehicle_pair_one_based": [
+        72,
+        73
+      ],
+      "signed_native_force_n": 835718.5853330741,
+      "peak_kn": 835.7185853330741,
+      "adjacent_speeds_kmh": [
+        65.6802946320369,
+        66.21592314899482
+      ],
+      "adjacent_positions_m": [
+        27693.279940525426,
+        27681.31293455904
+      ],
+      "relative_velocity_mps": -0.14878569915497408
+    },
+    {
+      "interval_start_s": 1993.2400000359582,
+      "interval_end_s": 1993.2500000359585,
+      "time_s": 1993.2500000359585,
+      "train_one_based": 3,
+      "coupler_one_based": 72,
+      "vehicle_pair_one_based": [
+        72,
+        73
+      ],
+      "signed_native_force_n": 869740.6467925275,
+      "peak_kn": 869.7406467925275,
+      "adjacent_speeds_kmh": [
+        65.69989186396194,
+        65.91061406351787
+      ],
+      "adjacent_positions_m": [
+        27693.462413322657,
+        27681.49644642919
+      ],
+      "relative_velocity_mps": -0.05853394432109482
+    },
+    {
+      "interval_start_s": 1993.2500000359585,
+      "interval_end_s": 1993.2600000359591,
+      "time_s": 1993.2553125359586,
+      "train_one_based": 3,
+      "coupler_one_based": 72,
+      "vehicle_pair_one_based": [
+        72,
+        73
+      ],
+      "signed_native_force_n": 875648.708832249,
+      "peak_kn": 875.6487088322491,
+      "adjacent_speeds_kmh": [
+        65.70942564432924,
+        65.7449359909026
+      ],
+      "adjacent_positions_m": [
+        27693.559373428303,
+        27681.59358824324
+      ],
+      "relative_velocity_mps": -0.009863985159263677
+    },
+    {
+      "interval_start_s": 1993.310000035958,
+      "interval_end_s": 1993.3200000359582,
+      "time_s": 1993.3200000359582,
+      "train_one_based": 3,
+      "coupler_one_based": 73,
+      "vehicle_pair_one_based": [
+        73,
+        74
+      ],
+      "signed_native_force_n": 825156.689145921,
+      "peak_kn": 825.1566891459211,
+      "adjacent_speeds_kmh": [
+        65.70191360789799,
+        66.30487670197776
+      ],
+      "adjacent_positions_m": [
+        27682.773342275326,
+        27670.806014108064
+      ],
+      "relative_velocity_mps": -0.1674897483554929
+    },
+    {
+      "interval_start_s": 1993.3200000359582,
+      "interval_end_s": 1993.3300000359584,
+      "time_s": 1993.3300000359584,
+      "train_one_based": 3,
+      "coupler_one_based": 73,
+      "vehicle_pair_one_based": [
+        73,
+        74
+      ],
+      "signed_native_force_n": 865448.6480127232,
+      "peak_kn": 865.4486480127232,
+      "adjacent_speeds_kmh": [
+        65.72175137611279,
+        66.00224337636932
+      ],
+      "adjacent_positions_m": [
+        27682.955875373398,
+        27670.989777302337
+      ],
+      "relative_velocity_mps": -0.07791444451570229
+    },
+    {
+      "interval_start_s": 1993.3300000359584,
+      "interval_end_s": 1993.340000035959,
+      "time_s": 1993.3375000359586,
+      "train_one_based": 3,
+      "coupler_one_based": 73,
+      "vehicle_pair_one_based": [
+        73,
+        74
+      ],
+      "signed_native_force_n": 876080.5048235338,
+      "peak_kn": 876.0805048235338,
+      "adjacent_speeds_kmh": [
+        65.73540831596289,
+        65.76867247896938
+      ],
+      "adjacent_positions_m": [
+        27683.092810194,
+        27671.12703915882
+      ],
+      "relative_velocity_mps": -0.009240045279582887
+    },
+    {
+      "interval_start_s": 1993.3900000359583,
+      "interval_end_s": 1993.4000000359586,
+      "time_s": 1993.4000000359586,
+      "train_one_based": 3,
+      "coupler_one_based": 74,
+      "vehicle_pair_one_based": [
+        74,
+        75
+      ],
+      "signed_native_force_n": 813829.042636073,
+      "peak_kn": 813.8290426360729,
+      "adjacent_speeds_kmh": [
+        65.72356325383727,
+        66.39031146685319
+      ],
+      "adjacent_positions_m": [
+        27672.267323935568,
+        27660.299650419238
+      ],
+      "relative_velocity_mps": -0.18520783694886944
+    },
+    {
+      "interval_start_s": 1993.4000000359586,
+      "interval_end_s": 1993.4100000359588,
+      "time_s": 1993.4100000359588,
+      "train_one_based": 3,
+      "coupler_one_based": 74,
+      "vehicle_pair_one_based": [
+        74,
+        75
+      ],
+      "signed_native_force_n": 860094.6813643673,
+      "peak_kn": 860.0946813643673,
+      "adjacent_speeds_kmh": [
+        65.74353090230176,
+        66.09067899223514
+      ],
+      "adjacent_positions_m": [
+        27672.449917280544,
+        27660.483655611766
+      ],
+      "relative_velocity_mps": -0.096430024981494
+    },
+    {
+      "interval_start_s": 1993.4100000359588,
+      "interval_end_s": 1993.420000035959,
+      "time_s": 1993.4193750359589,
+      "train_one_based": 3,
+      "coupler_one_based": 74,
+      "vehicle_pair_one_based": [
+        74,
+        75
+      ],
+      "signed_native_force_n": 876528.9528721878,
+      "peak_kn": 876.5289528721878,
+      "adjacent_speeds_kmh": [
+        65.76081751509173,
+        65.7992789543681
+      ],
+      "adjacent_positions_m": [
+        27672.62114739733,
+        27660.655388513816
+      ],
+      "relative_velocity_mps": -0.010683733132324846
+    },
+    {
+      "interval_start_s": 1993.420000035959,
+      "interval_end_s": 1993.4300000359592,
+      "time_s": 1993.420078160959,
+      "train_one_based": 3,
+      "coupler_one_based": 74,
+      "vehicle_pair_one_based": [
+        74,
+        75
+      ],
+      "signed_native_force_n": 867287.9858747702,
+      "peak_kn": 867.2879858747702,
+      "adjacent_speeds_kmh": [
+        65.76195612365885,
+        65.7773177154303
+      ],
+      "adjacent_positions_m": [
+        27672.63399142088,
+        27660.668237788344
+      ],
+      "relative_velocity_mps": -0.004267108825402488
+    },
+    {
+      "interval_start_s": 1993.4700000359592,
+      "interval_end_s": 1993.480000035959,
+      "time_s": 1993.480000035959,
+      "train_one_based": 3,
+      "coupler_one_based": 75,
+      "vehicle_pair_one_based": [
+        75,
+        76
+      ],
+      "signed_native_force_n": 801904.0083762027,
+      "peak_kn": 801.9040083762027,
+      "adjacent_speeds_kmh": [
+        65.7451003026934,
+        66.47247662294428
+      ],
+      "adjacent_positions_m": [
+        27661.761880804883,
+        27649.793843975174
+      ],
+      "relative_velocity_mps": -0.20204897784746834
+    },
+    {
+      "interval_start_s": 1993.480000035959,
+      "interval_end_s": 1993.4900000359592,
+      "time_s": 1993.4900000359592,
+      "train_one_based": 3,
+      "coupler_one_based": 75,
+      "vehicle_pair_one_based": [
+        75,
+        76
+      ],
+      "signed_native_force_n": 853877.0930896434,
+      "peak_kn": 853.8770930896434,
+      "adjacent_speeds_kmh": [
+        65.76513078701629,
+        66.17611864794276
+      ],
+      "adjacent_positions_m": [
+        27661.944534001967,
+        27649.978082399237
+      ],
+      "relative_velocity_mps": -0.11416329470179676
+    },
+    {
+      "interval_start_s": 1993.4900000359592,
+      "interval_end_s": 1993.5000000359594,
+      "time_s": 1993.5000000359594,
+      "train_one_based": 3,
+      "coupler_one_based": 75,
+      "vehicle_pair_one_based": [
+        75,
+        76
+      ],
+      "signed_native_force_n": 876345.5506545315,
+      "peak_kn": 876.3455506545315,
+      "adjacent_speeds_kmh": [
+        65.78391633019231,
+        65.86633860033281
+      ],
+      "adjacent_positions_m": [
+        27662.127241518745,
+        27650.161476543377
+      ],
+      "relative_velocity_mps": -0.022895075039027546
+    },
+    {
+      "interval_start_s": 1993.5000000359594,
+      "interval_end_s": 1993.5100000359605,
+      "time_s": 1993.5012500359596,
+      "train_one_based": 3,
+      "coupler_one_based": 75,
+      "vehicle_pair_one_based": [
+        75,
+        76
+      ],
+      "signed_native_force_n": 877039.5240477977,
+      "peak_kn": 877.0395240477976,
+      "adjacent_speeds_kmh": [
+        65.7860702756065,
+        65.8272038027558
+      ],
+      "adjacent_positions_m": [
+        27662.150083531946,
+        27650.184340006475
+      ],
+      "relative_velocity_mps": -0.011425979763696859
+    },
+    {
+      "interval_start_s": 1993.5600000359593,
+      "interval_end_s": 1993.5700000359595,
+      "time_s": 1993.5700000359595,
+      "train_one_based": 3,
+      "coupler_one_based": 76,
+      "vehicle_pair_one_based": [
+        76,
+        77
+      ],
+      "signed_native_force_n": 846924.0516062074,
+      "peak_kn": 846.9240516062074,
+      "adjacent_speeds_kmh": [
+        65.7865726161266,
+        66.25864637491479
+      ],
+      "adjacent_positions_m": [
+        27651.439721884984,
+        27639.473057950938
+      ],
+      "relative_velocity_mps": -0.13113159966338372
+    },
+    {
+      "interval_start_s": 1993.5700000359595,
+      "interval_end_s": 1993.5800000359598,
+      "time_s": 1993.5800000359598,
+      "train_one_based": 3,
+      "coupler_one_based": 76,
+      "vehicle_pair_one_based": [
+        76,
+        77
+      ],
+      "signed_native_force_n": 875020.9805717054,
+      "peak_kn": 875.0209805717054,
+      "adjacent_speeds_kmh": [
+        65.80570449882967,
+        65.95035551316657
+      ],
+      "adjacent_positions_m": [
+        27651.622489342597,
+        27639.656683869038
+      ],
+      "relative_velocity_mps": -0.040180837315809015
+    },
+    {
+      "interval_start_s": 1993.5800000359598,
+      "interval_end_s": 1993.5900000359609,
+      "time_s": 1993.5831250359597,
+      "train_one_based": 3,
+      "coupler_one_based": 76,
+      "vehicle_pair_one_based": [
+        76,
+        77
+      ],
+      "signed_native_force_n": 877654.2059211901,
+      "peak_kn": 877.65420592119,
+      "adjacent_speeds_kmh": [
+        65.81118228969324,
+        65.8525381282427
+      ],
+      "adjacent_positions_m": [
+        27651.679614748686,
+        27639.713890004587
+      ],
+      "relative_velocity_mps": -0.011487732930408612
+    },
+    {
+      "interval_start_s": 1993.6400000359602,
+      "interval_end_s": 1993.6500000359604,
+      "time_s": 1993.6500000359604,
+      "train_one_based": 3,
+      "coupler_one_based": 77,
+      "vehicle_pair_one_based": [
+        77,
+        78
+      ],
+      "signed_native_force_n": 839316.0962003338,
+      "peak_kn": 839.3160962003338,
+      "adjacent_speeds_kmh": [
+        65.80797705970201,
+        66.33841103485715
+      ],
+      "adjacent_positions_m": [
+        27640.935478571784,
+        27628.968582392903
+      ],
+      "relative_velocity_mps": -0.14734277087642766
+    },
+    {
+      "interval_start_s": 1993.6500000359604,
+      "interval_end_s": 1993.6600000359606,
+      "time_s": 1993.6600000359606,
+      "train_one_based": 3,
+      "coupler_one_based": 77,
+      "vehicle_pair_one_based": [
+        77,
+        78
+      ],
+      "signed_native_force_n": 872812.0440204873,
+      "peak_kn": 872.8120440204873,
+      "adjacent_speeds_kmh": [
+        65.82738506590704,
+        66.03188728804528
+      ],
+      "adjacent_positions_m": [
+        27641.118305782475,
+        27629.152432776962
+      ],
+      "relative_velocity_mps": -0.05680617281618083
+    },
+    {
+      "interval_start_s": 1993.6600000359606,
+      "interval_end_s": 1993.6700000359617,
+      "time_s": 1993.6650000359607,
+      "train_one_based": 3,
+      "coupler_one_based": 77,
+      "vehicle_pair_one_based": [
+        77,
+        78
+      ],
+      "signed_native_force_n": 878334.2134342475,
+      "peak_kn": 878.3342134342475,
+      "adjacent_speeds_kmh": [
+        65.836279733746,
+        65.87544769232451
+      ],
+      "adjacent_positions_m": [
+        27641.20973897026,
+        27629.24403520075
+      ],
+      "relative_velocity_mps": -0.010879988494032489
+    },
+    {
+      "interval_start_s": 1993.7200000359596,
+      "interval_end_s": 1993.7300000359598,
+      "time_s": 1993.7300000359598,
+      "train_one_based": 3,
+      "coupler_one_based": 78,
+      "vehicle_pair_one_based": [
+        78,
+        79
+      ],
+      "signed_native_force_n": 831069.468251074,
+      "peak_kn": 831.069468251074,
+      "adjacent_speeds_kmh": [
+        65.82953280533519,
+        66.41563925319927
+      ],
+      "adjacent_positions_m": [
+        27630.431803771855,
+        27618.46465595674
+      ],
+      "relative_velocity_mps": -0.16280734662891305
+    },
+    {
+      "interval_start_s": 1993.7300000359598,
+      "interval_end_s": 1993.74000003596,
+      "time_s": 1993.74000003596,
+      "train_one_based": 3,
+      "coupler_one_based": 78,
+      "vehicle_pair_one_based": [
+        78,
+        79
+      ],
+      "signed_native_force_n": 869737.9943314026,
+      "peak_kn": 869.7379943314025,
+      "adjacent_speeds_kmh": [
+        65.84916295503278,
+        66.1111540963313
+      ],
+      "adjacent_positions_m": [
+        27630.614691094073,
+        27618.648724119532
+      ],
+      "relative_velocity_mps": -0.07277531702736795
+    },
+    {
+      "interval_start_s": 1993.74000003596,
+      "interval_end_s": 1993.7500000359603,
+      "time_s": 1993.74687503596,
+      "train_one_based": 3,
+      "coupler_one_based": 78,
+      "vehicle_pair_one_based": [
+        78,
+        79
+      ],
+      "signed_native_force_n": 878961.8649013005,
+      "peak_kn": 878.9618649013005,
+      "adjacent_speeds_kmh": [
+        65.86155017430339,
+        65.89620618230438
+      ],
+      "adjacent_positions_m": [
+        27630.740456751133,
+        27618.77477316932
+      ],
+      "relative_velocity_mps": -0.009626668889161749
+    },
+    {
+      "interval_start_s": 1993.800000035959,
+      "interval_end_s": 1993.8100000359593,
+      "time_s": 1993.8100000359593,
+      "train_one_based": 3,
+      "coupler_one_based": 79,
+      "vehicle_pair_one_based": [
+        79,
+        80
+      ],
+      "signed_native_force_n": 822188.7107664646,
+      "peak_kn": 822.1887107664646,
+      "adjacent_speeds_kmh": [
+        65.85132011131842,
+        66.49068431235885
+      ],
+      "adjacent_positions_m": [
+        27619.928697641455,
+        27607.961278967025
+      ],
+      "relative_velocity_mps": -0.17760116695567518
+    },
+    {
+      "interval_start_s": 1993.8100000359593,
+      "interval_end_s": 1993.8200000359595,
+      "time_s": 1993.8200000359595,
+      "train_one_based": 3,
+      "coupler_one_based": 79,
+      "vehicle_pair_one_based": [
+        79,
+        80
+      ],
+      "signed_native_force_n": 865829.1360272093,
+      "peak_kn": 865.8291360272093,
+      "adjacent_speeds_kmh": [
+        65.87110709015386,
+        66.18850295093328
+      ],
+      "adjacent_positions_m": [
+        27620.111645639252,
+        27608.145559196095
+      ],
+      "relative_velocity_mps": -0.08816551688317276
+    },
+    {
+      "interval_start_s": 1993.8200000359595,
+      "interval_end_s": 1993.8300000359602,
+      "time_s": 1993.8281250359596,
+      "train_one_based": 3,
+      "coupler_one_based": 79,
+      "vehicle_pair_one_based": [
+        79,
+        80
+      ],
+      "signed_native_force_n": 879362.2511569933,
+      "peak_kn": 879.3622511569934,
+      "adjacent_speeds_kmh": [
+        65.88596914680276,
+        65.93485525444706
+      ],
+      "adjacent_positions_m": [
+        27620.26033016816,
+        27608.294657463106
+      ],
+      "relative_velocity_mps": -0.013579474345636555
+    },
+    {
+      "interval_start_s": 1993.880000035959,
+      "interval_end_s": 1993.8900000359592,
+      "time_s": 1993.8900000359592,
+      "train_one_based": 3,
+      "coupler_one_based": 80,
+      "vehicle_pair_one_based": [
+        80,
+        81
+      ],
+      "signed_native_force_n": 812717.9563216862,
+      "peak_kn": 812.7179563216862,
+      "adjacent_speeds_kmh": [
+        65.8731807676982,
+        66.56387081516814
+      ],
+      "adjacent_positions_m": [
+        27609.42615833733,
+        27597.4584509592
+      ],
+      "relative_velocity_mps": -0.19185834651942812
+    },
+    {
+      "interval_start_s": 1993.8900000359592,
+      "interval_end_s": 1993.9000000359595,
+      "time_s": 1993.9000000359595,
+      "train_one_based": 3,
+      "coupler_one_based": 80,
+      "vehicle_pair_one_based": [
+        80,
+        81
+      ],
+      "signed_native_force_n": 861173.213880993,
+      "peak_kn": 861.173213880993,
+      "adjacent_speeds_kmh": [
+        65.89305798948931,
+        66.26423464360099
+      ],
+      "adjacent_positions_m": [
+        27609.609167130362,
+        27597.642938414254
+      ],
+      "relative_velocity_mps": -0.10310462614213378
+    },
+    {
+      "interval_start_s": 1993.9000000359595,
+      "interval_end_s": 1993.9100000359592,
+      "time_s": 1993.9100000359592,
+      "train_one_based": 3,
+      "coupler_one_based": 80,
+      "vehicle_pair_one_based": [
+        80,
+        81
+      ],
+      "signed_native_force_n": 879925.1571707745,
+      "peak_kn": 879.9251571707746,
+      "adjacent_speeds_kmh": [
+        65.91147287085,
+        65.9524745349689
+      ],
+      "adjacent_positions_m": [
+        27609.79222955902,
+        27597.82657428089
+      ],
+      "relative_velocity_mps": -0.01138935114413897
+    },
+    {
+      "interval_start_s": 1993.9100000359592,
+      "interval_end_s": 1993.92000003596,
+      "time_s": 1993.9103125359593,
+      "train_one_based": 3,
+      "coupler_one_based": 80,
+      "vehicle_pair_one_based": [
+        80,
+        81
+      ],
+      "signed_native_force_n": 879896.4484801748,
+      "peak_kn": 879.8964484801747,
+      "adjacent_speeds_kmh": [
+        65.91199907788891,
+        65.94265474587826
+      ],
+      "adjacent_positions_m": [
+        27609.79795106388,
+        27597.832298895875
+      ],
+      "relative_velocity_mps": -0.008515463330375894
+    },
+    {
+      "interval_start_s": 1993.9600000359599,
+      "interval_end_s": 1993.9700000359596,
+      "time_s": 1993.9700000359596,
+      "train_one_based": 3,
+      "coupler_one_based": 81,
+      "vehicle_pair_one_based": [
+        81,
+        82
+      ],
+      "signed_native_force_n": 802709.0751977046,
+      "peak_kn": 802.7090751977046,
+      "adjacent_speeds_kmh": [
+        65.8949508776346,
+        66.63550722965076
+      ],
+      "adjacent_positions_m": [
+        27598.92418217453,
+        27586.95616986407
+      ],
+      "relative_velocity_mps": -0.20571009778226568
+    },
+    {
+      "interval_start_s": 1993.9700000359596,
+      "interval_end_s": 1993.9800000359598,
+      "time_s": 1993.9800000359598,
+      "train_one_based": 3,
+      "coupler_one_based": 81,
+      "vehicle_pair_one_based": [
+        81,
+        82
+      ],
+      "signed_native_force_n": 855863.4042967597,
+      "peak_kn": 855.8634042967598,
+      "adjacent_speeds_kmh": [
+        65.9148761825969,
+        66.33863138277799
+      ],
+      "adjacent_positions_m": [
+        27599.107251460075,
+        27587.140860528616
+      ],
+      "relative_velocity_mps": -0.11770977782808245
+    },
+    {
+      "interval_start_s": 1993.9800000359598,
+      "interval_end_s": 1993.99000003596,
+      "time_s": 1993.99000003596,
+      "train_one_based": 3,
+      "coupler_one_based": 81,
+      "vehicle_pair_one_based": [
+        81,
+        82
+      ],
+      "signed_native_force_n": 879451.8129467174,
+      "peak_kn": 879.4518129467174,
+      "adjacent_speeds_kmh": [
+        65.93364154461909,
+        66.0279180776159
+      ],
+      "adjacent_positions_m": [
+        27599.290374886026,
+        27587.324704892748
+      ],
+      "relative_velocity_mps": -0.026187925832442005
+    },
+    {
+      "interval_start_s": 1993.99000003596,
+      "interval_end_s": 1994.0000000359607,
+      "time_s": 1993.99187503596,
+      "train_one_based": 3,
+      "coupler_one_based": 81,
+      "vehicle_pair_one_based": [
+        81,
+        82
+      ],
+      "signed_native_force_n": 880436.3032149433,
+      "peak_kn": 880.4363032149432,
+      "adjacent_speeds_kmh": [
+        65.93685691480142,
+        65.96898855908351
+      ],
+      "adjacent_positions_m": [
+        27599.32471616702,
+        27587.359079089947
+      ],
+      "relative_velocity_mps": -0.008925456745021876
+    },
+    {
+      "interval_start_s": 1994.05000003596,
+      "interval_end_s": 1994.0600000359602,
+      "time_s": 1994.0600000359602,
+      "train_one_based": 3,
+      "coupler_one_based": 82,
+      "vehicle_pair_one_based": [
+        82,
+        83
+      ],
+      "signed_native_force_n": 849905.5417925854,
+      "peak_kn": 849.9055417925854,
+      "adjacent_speeds_kmh": [
+        65.93648908662757,
+        66.4120010561325
+      ],
+      "adjacent_positions_m": [
+        27588.60589501088,
+        27576.639322116225
+      ],
+      "relative_velocity_mps": -0.13208665819581356
+    },
+    {
+      "interval_start_s": 1994.0600000359602,
+      "interval_end_s": 1994.0700000359604,
+      "time_s": 1994.0700000359604,
+      "train_one_based": 3,
+      "coupler_one_based": 82,
+      "vehicle_pair_one_based": [
+        82,
+        83
+      ],
+      "signed_native_force_n": 878263.727774354,
+      "peak_kn": 878.263727774354,
+      "adjacent_speeds_kmh": [
+        65.9555403537301,
+        66.10257310620645
+      ],
+      "adjacent_positions_m": [
+        27588.789078785347,
+        27576.82337246171
+      ],
+      "relative_velocity_mps": -0.04084243124343345
+    },
+    {
+      "interval_start_s": 1994.0700000359604,
+      "interval_end_s": 1994.0800000359611,
+      "time_s": 1994.0731250359604,
+      "train_one_based": 3,
+      "coupler_one_based": 82,
+      "vehicle_pair_one_based": [
+        82,
+        83
+      ],
+      "signed_native_force_n": 880962.2394240979,
+      "peak_kn": 880.9622394240979,
+      "adjacent_speeds_kmh": [
+        65.96099786059811,
+        66.00438292478108
+      ],
+      "adjacent_positions_m": [
+        27588.846334248334,
+        27576.880710569232
+      ],
+      "relative_velocity_mps": -0.012051406717493052
+    },
+    {
+      "interval_start_s": 1994.1300000359604,
+      "interval_end_s": 1994.1400000359606,
+      "time_s": 1994.1400000359606,
+      "train_one_based": 3,
+      "coupler_one_based": 83,
+      "vehicle_pair_one_based": [
+        83,
+        84
+      ],
+      "signed_native_force_n": 843269.6058398933,
+      "peak_kn": 843.2696058398933,
+      "adjacent_speeds_kmh": [
+        65.95793646910433,
+        66.4847476572181
+      ],
+      "adjacent_positions_m": [
+        27578.105094148385,
+        27566.138318645208
+      ],
+      "relative_velocity_mps": -0.1463364411427115
+    },
+    {
+      "interval_start_s": 1994.1400000359606,
+      "interval_end_s": 1994.1500000359608,
+      "time_s": 1994.1500000359608,
+      "train_one_based": 3,
+      "coupler_one_based": 83,
+      "vehicle_pair_one_based": [
+        83,
+        84
+      ],
+      "signed_native_force_n": 876371.4079689039,
+      "peak_kn": 876.3714079689039,
+      "adjacent_speeds_kmh": [
+        65.97723838701394,
+        66.17685454267209
+      ],
+      "adjacent_positions_m": [
+        27578.288337770406,
+        27566.322573585636
+      ],
+      "relative_velocity_mps": -0.055448932127266204
+    },
+    {
+      "interval_start_s": 1994.1500000359608,
+      "interval_end_s": 1994.1600000359615,
+      "time_s": 1994.155000035961,
+      "train_one_based": 3,
+      "coupler_one_based": 83,
+      "vehicle_pair_one_based": [
+        83,
+        84
+      ],
+      "signed_native_force_n": 881611.7227237212,
+      "peak_kn": 881.6117227237212,
+      "adjacent_speeds_kmh": [
+        65.98606693240745,
+        66.01978924369165
+      ],
+      "adjacent_positions_m": [
+        27578.3799790436,
+        27566.414376913173
+      ],
+      "relative_velocity_mps": -0.009367308690052312
+    },
+    {
+      "interval_start_s": 1994.2100000359594,
+      "interval_end_s": 1994.2200000359596,
+      "time_s": 1994.2200000359596,
+      "train_one_based": 3,
+      "coupler_one_based": 84,
+      "vehicle_pair_one_based": [
+        84,
+        85
+      ],
+      "signed_native_force_n": 835809.5572584001,
+      "peak_kn": 835.8095572584001,
+      "adjacent_speeds_kmh": [
+        65.97930882980178,
+        66.55742905297899
+      ],
+      "adjacent_positions_m": [
+        27567.604847214767,
+        27555.637844024368
+      ],
+      "relative_velocity_mps": -0.16058895088255554
+    },
+    {
+      "interval_start_s": 1994.2200000359596,
+      "interval_end_s": 1994.2300000359598,
+      "time_s": 1994.2300000359598,
+      "train_one_based": 3,
+      "coupler_one_based": 84,
+      "vehicle_pair_one_based": [
+        84,
+        85
+      ],
+      "signed_native_force_n": 873674.606364945,
+      "peak_kn": 873.6746063649449,
+      "adjacent_speeds_kmh": [
+        65.99881869622503,
+        66.25136469485672
+      ],
+      "adjacent_positions_m": [
+        27567.788150424363,
+        27555.822303788438
+      ],
+      "relative_velocity_mps": -0.07015166628658065
+    },
+    {
+      "interval_start_s": 1994.2300000359598,
+      "interval_end_s": 1994.24000003596,
+      "time_s": 1994.2365625359598,
+      "train_one_based": 3,
+      "coupler_one_based": 84,
+      "vehicle_pair_one_based": [
+        84,
+        85
+      ],
+      "signed_native_force_n": 882198.9989870971,
+      "peak_kn": 882.1989989870971,
+      "adjacent_speeds_kmh": [
+        66.0105627984325,
+        66.04535520805823
+      ],
+      "adjacent_positions_m": [
+        27567.908471667764,
+        27555.94288703414
+      ],
+      "relative_velocity_mps": -0.009664558229367515
+    },
+    {
+      "interval_start_s": 1994.2900000359593,
+      "interval_end_s": 1994.3000000359596,
+      "time_s": 1994.3000000359596,
+      "train_one_based": 3,
+      "coupler_one_based": 85,
+      "vehicle_pair_one_based": [
+        85,
+        86
+      ],
+      "signed_native_force_n": 827374.522731516,
+      "peak_kn": 827.3745227315161,
+      "adjacent_speeds_kmh": [
+        66.00051420116357,
+        66.63082429016636
+      ],
+      "adjacent_positions_m": [
+        27557.10515112002,
+        27545.13789059442
+      ],
+      "relative_velocity_mps": -0.17508613583411048
+    },
+    {
+      "interval_start_s": 1994.3000000359596,
+      "interval_end_s": 1994.3100000359593,
+      "time_s": 1994.3100000359593,
+      "train_one_based": 3,
+      "coupler_one_based": 85,
+      "vehicle_pair_one_based": [
+        85,
+        86
+      ],
+      "signed_native_force_n": 870105.381510742,
+      "peak_kn": 870.1053815107421,
+      "adjacent_speeds_kmh": [
+        66.02018623701998,
+        66.32691603361475
+      ],
+      "adjacent_positions_m": [
+        27557.28851339665,
+        27545.322557651878
+      ],
+      "relative_velocity_mps": -0.08520272127632467
+    },
+    {
+      "interval_start_s": 1994.3100000359593,
+      "interval_end_s": 1994.320000035961,
+      "time_s": 1994.3181250359596,
+      "train_one_based": 3,
+      "coupler_one_based": 85,
+      "vehicle_pair_one_based": [
+        85,
+        86
+      ],
+      "signed_native_force_n": 882788.5001557076,
+      "peak_kn": 882.7885001557075,
+      "adjacent_speeds_kmh": [
+        66.03490543144827,
+        66.07212584910167
+      ],
+      "adjacent_positions_m": [
+        27557.43753423935,
+        27545.471966975776
+      ],
+      "relative_velocity_mps": -0.010339004903723747
+    },
+    {
+      "interval_start_s": 1994.3700000359593,
+      "interval_end_s": 1994.3800000359595,
+      "time_s": 1994.3800000359595,
+      "train_one_based": 3,
+      "coupler_one_based": 86,
+      "vehicle_pair_one_based": [
+        86,
+        87
+      ],
+      "signed_native_force_n": 817724.3176075873,
+      "peak_kn": 817.7243176075873,
+      "adjacent_speeds_kmh": [
+        66.02139415498911,
+        66.70575942549827
+      ],
+      "adjacent_positions_m": [
+        27546.606001771986,
+        27534.638446986613
+      ],
+      "relative_velocity_mps": -0.1901014640303238
+    },
+    {
+      "interval_start_s": 1994.3800000359595,
+      "interval_end_s": 1994.3900000359597,
+      "time_s": 1994.3900000359597,
+      "train_one_based": 3,
+      "coupler_one_based": 86,
+      "vehicle_pair_one_based": [
+        86,
+        87
+      ],
+      "signed_native_force_n": 865516.5321300417,
+      "peak_kn": 865.5165321300417,
+      "adjacent_speeds_kmh": [
+        66.0411869327409,
+        66.40442255561295
+      ],
+      "adjacent_positions_m": [
+        27546.789422156708,
+        27534.823326160204
+      ],
+      "relative_velocity_mps": -0.1008987841311253
+    },
+    {
+      "interval_start_s": 1994.3900000359597,
+      "interval_end_s": 1994.40000003596,
+      "time_s": 1994.40000003596,
+      "train_one_based": 3,
+      "coupler_one_based": 86,
+      "vehicle_pair_one_based": [
+        86,
+        87
+      ],
+      "signed_native_force_n": 883387.4037654495,
+      "peak_kn": 883.3874037654496,
+      "adjacent_speeds_kmh": [
+        66.0594688866897,
+        66.0912318033179
+      ],
+      "adjacent_positions_m": [
+        27546.972895884828,
+        27535.007349372987
+      ],
+      "relative_velocity_mps": -0.008823032396723107
+    },
+    {
+      "interval_start_s": 1994.40000003596,
+      "interval_end_s": 1994.4100000359606,
+      "time_s": 1994.40007816096,
+      "train_one_based": 3,
+      "coupler_one_based": 86,
+      "vehicle_pair_one_based": [
+        86,
+        87
+      ],
+      "signed_native_force_n": 883301.5504675282,
+      "peak_kn": 883.3015504675282,
+      "adjacent_speeds_kmh": [
+        66.05959928331839,
+        66.08876709089519
+      ],
+      "adjacent_positions_m": [
+        27546.974329468467,
+        27535.008783617766
+      ],
+      "relative_velocity_mps": -0.008102168771330298
+    },
+    {
+      "interval_start_s": 1994.4500000359606,
+      "interval_end_s": 1994.4600000359603,
+      "time_s": 1994.4600000359603,
+      "train_one_based": 3,
+      "coupler_one_based": 87,
+      "vehicle_pair_one_based": [
+        87,
+        88
+      ],
+      "signed_native_force_n": 806510.4694862439,
+      "peak_kn": 806.5104694862439,
+      "adjacent_speeds_kmh": [
+        66.04180633104508,
+        66.78327022558561
+      ],
+      "adjacent_positions_m": [
+        27536.107393524908,
+        27524.139497006683
+      ],
+      "relative_velocity_mps": -0.2059621929279274
+    },
+    {
+      "interval_start_s": 1994.4600000359603,
+      "interval_end_s": 1994.4700000359605,
+      "time_s": 1994.4700000359605,
+      "train_one_based": 3,
+      "coupler_one_based": 87,
+      "vehicle_pair_one_based": [
+        87,
+        88
+      ],
+      "signed_native_force_n": 859675.140204636,
+      "peak_kn": 859.675140204636,
+      "adjacent_speeds_kmh": [
+        66.06169126594229,
+        66.48500673434589
+      ],
+      "adjacent_positions_m": [
+        27536.290870684214,
+        27524.32459619755
+      ],
+      "relative_velocity_mps": -0.1175876301121086
+    },
+    {
+      "interval_start_s": 1994.4700000359605,
+      "interval_end_s": 1994.4800000359608,
+      "time_s": 1994.4800000359608,
+      "train_one_based": 3,
+      "coupler_one_based": 87,
+      "vehicle_pair_one_based": [
+        87,
+        88
+      ],
+      "signed_native_force_n": 883158.7173373271,
+      "peak_kn": 883.1587173373271,
+      "adjacent_speeds_kmh": [
+        66.08041583413339,
+        66.1729227981816
+      ],
+      "adjacent_positions_m": [
+        27536.474401875555,
+        27524.508845247605
+      ],
+      "relative_velocity_mps": -0.025696378902278383
+    },
+    {
+      "interval_start_s": 1994.4800000359608,
+      "interval_end_s": 1994.4900000359614,
+      "time_s": 1994.4815625359606,
+      "train_one_based": 3,
+      "coupler_one_based": 87,
+      "vehicle_pair_one_based": [
+        87,
+        88
+      ],
+      "signed_native_force_n": 884093.4611867889,
+      "peak_kn": 884.0934611867889,
+      "adjacent_speeds_kmh": [
+        66.0830971131691,
+        66.12360904215875
+      ],
+      "adjacent_positions_m": [
+        27536.503083196323,
+        27524.537555434115
+      ],
+      "relative_velocity_mps": -0.011253313608236226
+    },
+    {
+      "interval_start_s": 1994.5400000359607,
+      "interval_end_s": 1994.550000035961,
+      "time_s": 1994.550000035961,
+      "train_one_based": 3,
+      "coupler_one_based": 88,
+      "vehicle_pair_one_based": [
+        88,
+        89
+      ],
+      "signed_native_force_n": 852181.3263074267,
+      "peak_kn": 852.1813263074266,
+      "adjacent_speeds_kmh": [
+        66.08161545191048,
+        66.57010746371004
+      ],
+      "adjacent_positions_m": [
+        27525.792852836847,
+        27513.826349442144
+      ],
+      "relative_velocity_mps": -0.1356922254998807
+    },
+    {
+      "interval_start_s": 1994.550000035961,
+      "interval_end_s": 1994.5600000359611,
+      "time_s": 1994.5600000359611,
+      "train_one_based": 3,
+      "coupler_one_based": 88,
+      "vehicle_pair_one_based": [
+        88,
+        89
+      ],
+      "signed_native_force_n": 881668.0652984504,
+      "peak_kn": 881.6680652984504,
+      "adjacent_speeds_kmh": [
+        66.10075016617215,
+        66.25964001899807
+      ],
+      "adjacent_positions_m": [
+        27525.976439838567,
+        27514.010837620972
+      ],
+      "relative_velocity_mps": -0.044136070229420454
+    },
+    {
+      "interval_start_s": 1994.5600000359611,
+      "interval_end_s": 1994.5700000359618,
+      "time_s": 1994.563750035961,
+      "train_one_based": 3,
+      "coupler_one_based": 88,
+      "vehicle_pair_one_based": [
+        88,
+        89
+      ],
+      "signed_native_force_n": 884897.1919705342,
+      "peak_kn": 884.8971919705342,
+      "adjacent_speeds_kmh": [
+        66.10730876106996,
+        66.14129301665864
+      ],
+      "adjacent_positions_m": [
+        27526.04529824146,
+        27514.079796475224
+      ],
+      "relative_velocity_mps": -0.009440070996856065
+    },
+    {
+      "interval_start_s": 1994.6200000359602,
+      "interval_end_s": 1994.6300000359604,
+      "time_s": 1994.6300000359604,
+      "train_one_based": 3,
+      "coupler_one_based": 89,
+      "vehicle_pair_one_based": [
+        89,
+        90
+      ],
+      "signed_native_force_n": 842383.9301440716,
+      "peak_kn": 842.3839301440715,
+      "adjacent_speeds_kmh": [
+        66.1009154955245,
+        66.66150121764936
+      ],
+      "adjacent_positions_m": [
+        27515.295363144167,
+        27503.32856060474
+      ],
+      "relative_velocity_mps": -0.15571825614579282
+    },
+    {
+      "interval_start_s": 1994.6300000359604,
+      "interval_end_s": 1994.6400000359606,
+      "time_s": 1994.6400000359606,
+      "train_one_based": 3,
+      "coupler_one_based": 89,
+      "vehicle_pair_one_based": [
+        89,
+        90
+      ],
+      "signed_native_force_n": 878544.0687507676,
+      "peak_kn": 878.5440687507676,
+      "adjacent_speeds_kmh": [
+        66.12043176546159,
+        66.3533604827353
+      ],
+      "adjacent_positions_m": [
+        27515.479004185643,
+        27503.513306434357
+      ],
+      "relative_velocity_mps": -0.06470242146492211
+    },
+    {
+      "interval_start_s": 1994.6400000359606,
+      "interval_end_s": 1994.6500000359608,
+      "time_s": 1994.6456250359606,
+      "train_one_based": 3,
+      "coupler_one_based": 89,
+      "vehicle_pair_one_based": [
+        89,
+        90
+      ],
+      "signed_native_force_n": 885655.3984911889,
+      "peak_kn": 885.6553984911889,
+      "adjacent_speeds_kmh": [
+        66.13052245673273,
+        66.17599375690094
+      ],
+      "adjacent_positions_m": [
+        27515.582325364856,
+        27503.61684517122
+      ],
+      "relative_velocity_mps": -0.012630916713387563
+    },
+    {
+      "interval_start_s": 1994.7000000359606,
+      "interval_end_s": 1994.7100000359608,
+      "time_s": 1994.7100000359608,
+      "train_one_based": 3,
+      "coupler_one_based": 90,
+      "vehicle_pair_one_based": [
+        90,
+        91
+      ],
+      "signed_native_force_n": 829324.5138248316,
+      "peak_kn": 829.3245138248316,
+      "adjacent_speeds_kmh": [
+        66.11948142780575,
+        66.7613579065331
+      ],
+      "adjacent_positions_m": [
+        27504.798395560123,
+        27492.83119451413
+      ],
+      "relative_velocity_mps": -0.17829902186870683
+    },
+    {
+      "interval_start_s": 1994.7100000359608,
+      "interval_end_s": 1994.720000035961,
+      "time_s": 1994.720000035961,
+      "train_one_based": 3,
+      "coupler_one_based": 90,
+      "vehicle_pair_one_based": [
+        90,
+        91
+      ],
+      "signed_native_force_n": 873055.6731329575,
+      "peak_kn": 873.0556731329575,
+      "adjacent_speeds_kmh": [
+        66.13933383300113,
+        66.45655887579312
+      ],
+      "adjacent_positions_m": [
+        27504.98208854366,
+        27493.016222986083
+      ],
+      "relative_velocity_mps": -0.0881180674422204
+    },
+    {
+      "interval_start_s": 1994.720000035961,
+      "interval_end_s": 1994.7300000359617,
+      "time_s": 1994.728125035961,
+      "train_one_based": 3,
+      "coupler_one_based": 90,
+      "vehicle_pair_one_based": [
+        90,
+        91
+      ],
+      "signed_native_force_n": 886490.9079914266,
+      "peak_kn": 886.4909079914266,
+      "adjacent_speeds_kmh": [
+        66.1542343163036,
+        66.2007871933528
+      ],
+      "adjacent_positions_m": [
+        27505.13137849304,
+        27493.16592383832
+      ],
+      "relative_velocity_mps": -0.012931354735886913
+    },
+    {
+      "interval_start_s": 1994.780000035961,
+      "interval_end_s": 1994.7900000359607,
+      "time_s": 1994.7900000359607,
+      "train_one_based": 3,
+      "coupler_one_based": 91,
+      "vehicle_pair_one_based": [
+        91,
+        92
+      ],
+      "signed_native_force_n": 811634.1819255746,
+      "peak_kn": 811.6341819255746,
+      "adjacent_speeds_kmh": [
+        66.13701329085018,
+        66.8721410135836
+      ],
+      "adjacent_positions_m": [
+        27494.301941796977,
+        27482.33420139155
+      ],
+      "relative_velocity_mps": -0.20420214520373037
+    },
+    {
+      "interval_start_s": 1994.7900000359607,
+      "interval_end_s": 1994.800000035961,
+      "time_s": 1994.800000035961,
+      "train_one_based": 3,
+      "coupler_one_based": 91,
+      "vehicle_pair_one_based": [
+        91,
+        92
+      ],
+      "signed_native_force_n": 864116.1015763897,
+      "peak_kn": 864.1161015763897,
+      "adjacent_speeds_kmh": [
+        66.15713975804965,
+        66.5721416214204
+      ],
+      "adjacent_positions_m": [
+        27494.48568377141,
+        27482.519544978702
+      ],
+      "relative_velocity_mps": -0.11527829538076162
+    },
+    {
+      "interval_start_s": 1994.800000035961,
+      "interval_end_s": 1994.8100000359607,
+      "time_s": 1994.8100000359607,
+      "train_one_based": 3,
+      "coupler_one_based": 91,
+      "vehicle_pair_one_based": [
+        91,
+        92
+      ],
+      "signed_native_force_n": 886763.4153636468,
+      "peak_kn": 886.7634153636468,
+      "adjacent_speeds_kmh": [
+        66.17602503089037,
+        66.25858983114857
+      ],
+      "adjacent_positions_m": [
+        27494.669480346147,
+        27482.704033975337
+      ],
+      "relative_velocity_mps": -0.022934666738390064
+    },
+    {
+      "interval_start_s": 1994.8100000359607,
+      "interval_end_s": 1994.8200000359614,
+      "time_s": 1994.8112500359605,
+      "train_one_based": 3,
+      "coupler_one_based": 91,
+      "vehicle_pair_one_based": [
+        91,
+        92
+      ],
+      "signed_native_force_n": 887455.1165837942,
+      "peak_kn": 887.4551165837943,
+      "adjacent_speeds_kmh": [
+        66.17818968314012,
+        66.2189820319998
+      ],
+      "adjacent_positions_m": [
+        27494.692458509722,
+        27482.72703355446
+      ],
+      "relative_velocity_mps": -0.011331208016578387
+    },
+    {
+      "interval_start_s": 1994.8700000359606,
+      "interval_end_s": 1994.8800000359608,
+      "time_s": 1994.8800000359608,
+      "train_one_based": 3,
+      "coupler_one_based": 92,
+      "vehicle_pair_one_based": [
+        92,
+        93
+      ],
+      "signed_native_force_n": 850049.9649515606,
+      "peak_kn": 850.0499649515606,
+      "adjacent_speeds_kmh": [
+        66.17341399999478,
+        66.70343681860426
+      ],
+      "adjacent_positions_m": [
+        27483.989777771196,
+        27472.02320928683
+      ],
+      "relative_velocity_mps": -0.14722856072485513
+    },
+    {
+      "interval_start_s": 1994.8800000359608,
+      "interval_end_s": 1994.890000035961,
+      "time_s": 1994.890000035961,
+      "train_one_based": 3,
+      "coupler_one_based": 92,
+      "vehicle_pair_one_based": [
+        92,
+        93
+      ],
+      "signed_native_force_n": 883304.2339650361,
+      "peak_kn": 883.3042339650361,
+      "adjacent_speeds_kmh": [
+        66.19305272514343,
+        66.39304681611456
+      ],
+      "adjacent_positions_m": [
+        27484.173620419097,
+        27472.20806824174
+      ],
+      "relative_velocity_mps": -0.05555391415864719
+    },
+    {
+      "interval_start_s": 1994.890000035961,
+      "interval_end_s": 1994.9000000359617,
+      "time_s": 1994.8950000359612,
+      "train_one_based": 3,
+      "coupler_one_based": 92,
+      "vehicle_pair_one_based": [
+        92,
+        93
+      ],
+      "signed_native_force_n": 888507.9823546844,
+      "peak_kn": 888.5079823546844,
+      "adjacent_speeds_kmh": [
+        66.20203185511724,
+        66.23472408381956
+      ],
+      "adjacent_positions_m": [
+        27484.265561540855,
+        27472.300170962546
+      ],
+      "relative_velocity_mps": -0.009081174639533174
+    },
+    {
+      "interval_start_s": 1994.9500000359615,
+      "interval_end_s": 1994.9600000359617,
+      "time_s": 1994.9600000359617,
+      "train_one_based": 3,
+      "coupler_one_based": 93,
+      "vehicle_pair_one_based": [
+        93,
+        94
+      ],
+      "signed_native_force_n": 828253.86419477,
+      "peak_kn": 828.25386419477,
+      "adjacent_speeds_kmh": [
+        66.18769059044052,
+        66.85369154715822
+      ],
+      "adjacent_positions_m": [
+        27473.49435709299,
+        27461.52712338871
+      ],
+      "relative_velocity_mps": -0.18500026575491546
+    },
+    {
+      "interval_start_s": 1994.9600000359617,
+      "interval_end_s": 1994.970000035962,
+      "time_s": 1994.970000035962,
+      "train_one_based": 3,
+      "coupler_one_based": 93,
+      "vehicle_pair_one_based": [
+        93,
+        94
+      ],
+      "signed_native_force_n": 874167.0547146414,
+      "peak_kn": 874.1670547146414,
+      "adjacent_speeds_kmh": [
+        66.20793648720662,
+        66.54887606664369
+      ],
+      "adjacent_positions_m": [
+        27473.678240079942,
+        27461.71240849923
+      ],
+      "relative_velocity_mps": -0.09470543873251813
+    },
+    {
+      "interval_start_s": 1994.970000035962,
+      "interval_end_s": 1994.9800000359621,
+      "time_s": 1994.979062535962,
+      "train_one_based": 3,
+      "coupler_one_based": 93,
+      "vehicle_pair_one_based": [
+        93,
+        94
+      ],
+      "signed_native_force_n": 889757.4392553106,
+      "peak_kn": 889.7574392553106,
+      "adjacent_speeds_kmh": [
+        66.22486899450118,
+        66.2627323849799
+      ],
+      "adjacent_positions_m": [
+        27473.84493113864,
+        27461.879576938172
+      ],
+      "relative_velocity_mps": -0.010517608466308559
+    },
+    {
+      "interval_start_s": 1994.9800000359621,
+      "interval_end_s": 1994.9900000359614,
+      "time_s": 1994.980156285962,
+      "train_one_based": 3,
+      "coupler_one_based": 92,
+      "vehicle_pair_one_based": [
+        92,
+        93
+      ],
+      "signed_native_force_n": 839702.8857383592,
+      "peak_kn": 839.7028857383592,
+      "adjacent_speeds_kmh": [
+        66.21601828259065,
+        66.22563865353246
+      ],
+      "adjacent_positions_m": [
+        27485.830584528354,
+        27473.865051781027
+      ],
+      "relative_velocity_mps": -0.0026723252616136506
+    }
+  ]
+}

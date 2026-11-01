@@ -1,0 +1,27 @@
+{
+  "scope": "960s instantaneous ED-free bound at fixed air state; not a future trajectory or thermal validation",
+  "checkpoint_sha256": "4e15cd67b1756c2b891ca12a7ed16ac5b8b3bd126931e3bed6bd8e958ac45ef6",
+  "trains": [
+    {
+      "train_one_based": 1,
+      "mean_kmh": 74.10919087922363,
+      "net_force_without_ed_kn": 708.4618791997035,
+      "acceleration_without_ed_mps2": 0.06447596279575023,
+      "ed_fraction": null
+    },
+    {
+      "train_one_based": 2,
+      "mean_kmh": 62.98369515993379,
+      "net_force_without_ed_kn": 251.064400303717,
+      "acceleration_without_ed_mps2": 0.022848962532191208,
+      "ed_fraction": 0.0673443078994751
+    },
+    {
+      "train_one_based": 3,
+      "mean_kmh": 63.41150490527495,
+      "net_force_without_ed_kn": 249.2386072596974,
+      "acceleration_without_ed_mps2": 0.02268280007823966,
+      "ed_fraction": 1.0
+    }
+  ]
+}

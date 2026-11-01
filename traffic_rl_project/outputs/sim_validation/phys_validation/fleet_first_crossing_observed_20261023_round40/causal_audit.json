@@ -1,0 +1,15 @@
+{
+  "observer_errors": {
+    "rows": 0.0,
+    "commands": 0.0,
+    "vehicle_speeds_mps": 0.0,
+    "coupler_interface_force_n": 0.0
+  },
+  "peak_train_1based": 2,
+  "peak_interface_1based": 39,
+  "time_s": 21.1,
+  "peak_kn": 1013.1348017706785,
+  "all_air_force_zero": true,
+  "all_controller_baseline_ed_one": false,
+  "safety_events": 0
+}

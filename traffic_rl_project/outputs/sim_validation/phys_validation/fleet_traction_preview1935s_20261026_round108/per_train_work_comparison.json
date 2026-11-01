@@ -1,0 +1,27 @@
+{
+  "baseline": {
+    "accepted_trace_peak_by_train_kn": [
+      null,
+      1000.5929633676934,
+      978.1387070464424
+    ],
+    "air_work_mj_by_train": [
+      131.76717297111747,
+      10.934737936172532,
+      0.0
+    ]
+  },
+  "candidate": {
+    "accepted_trace_peak_by_train_kn": [
+      null,
+      917.1678733210498,
+      978.1071993995128
+    ],
+    "air_work_mj_by_train": [
+      131.76717297111753,
+      5.778112246811459,
+      0.0
+    ]
+  },
+  "scope": "Air work uses identical 1915.1-1929.6s grid; trace per-train peaks below 800kN are unrecorded, reported null"
+}
