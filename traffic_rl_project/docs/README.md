@@ -11,7 +11,7 @@
 | 项目总览 / 任务清单 / 下一步    | `docs/PROJECT_PIPELINE.md`                                               |
 | 研究定位 / 创新点 / 文献库     | `docs/RESEARCH_POSITIONING.md`                                           |
 | **技术/公式 → 论文 引用索引**  | `docs/REFERENCE_INDEX.md`（写作速查）                                    |
-| **文献讨论成果（证据/口径/机制）** | `docs/papers/LITERATURE_FINDINGS.md`（指标术语对照 · 防追尾机制分级 · ATP 诚实边界；写 Related Work / 指标表前读） |
+| **文献讨论成果（证据/口径/机制）** | `docs/papers/LITERATURE_FINDINGS.md`（指标术语对照 · 防追尾机制分级 · ATP 诚实边界 · §七 核心文献结论处不足原文+中译；写 Related Work / 指标表 / GAP 段前读） |
 | 论文↔项目验证基准（对照）        | `docs/VALIDATION_BASELINE.md`                                            |
 | 验证执行日志（V 系列过程记录）     | `docs/logs/verification/`（按月/按 V 拆分）                               |
 | 实验/诊断数据记录（按月拆分）     | `docs/logs/diagnostics/`（`DIAGNOSTICS_YYYY-MM.md`）                      |
@@ -63,7 +63,7 @@
 | `PROJECT_PIPELINE.md`             | 总览+工作计划（执行流水按月拆至 `logs/progress/`）                | active |
 | `RESEARCH_POSITIONING.md`         | 定位+文献库                       | active |
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
-| `papers/LITERATURE_FINDINGS.md`   | 文献讨论成果：逐篇证据 + 指标术语对照 + 防追尾机制分级 + ATP 诚实边界（`RESEARCH_POSITIONING.md` §1.7 的证据层） | active |
+| `papers/LITERATURE_FINDINGS.md`   | 文献讨论成果：逐篇证据 + 指标术语对照 + 防追尾机制分级 + ATP 诚实边界 + §七 核心文献结论处的不足（原文/中译/行号）（`RESEARCH_POSITIONING.md` §1.7 的证据层） | active |
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
 | `logs/progress/PROGRESS_2026-08.md` / `PROGRESS_2026-09.md` / `PROGRESS_2026-10.md` | 阶段二执行流水（按月拆分，append-only；2026-10-12 自 `PROJECT_PIPELINE.md` 迁出，内容零丢失） | active |
