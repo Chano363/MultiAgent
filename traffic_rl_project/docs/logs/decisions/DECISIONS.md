@@ -33,9 +33,9 @@ owner: Owner
 - 选项与权衡：
   - A. 复制 ARIS skills 进项目 `.trae/skills/`：污染项目、升级难同步
   - B. `@` 引用 ARIS 仓库（不复制），MCP 配 `llm-chat` 接 OpenAI 兼容端点（TRAE 无 codex MCP；Minimal 依赖仅 httpx，`D:\Anaconda\python.exe`），reviewer=OpenRouter `minimax/minimax-m3:free`（与 executor deepseek 跨族）→ 选用
-- 结论：选 B。跨族对抗评审（`family_relation=different`）对 [ITSC_PAPER.md](file:///D:/Code/MultiAgent/traffic_rl_project/docs/ITSC_PAPER.md) 独立戳中 3 条硬伤（title-内层失配 / fair-MPC strawman / 证据薄）。
+- 结论：选 B。跨族对抗评审（`family_relation=different`）对 [ITSC_PAPER.md](traffic_rl_project/docs/ITSC_PAPER.md) 独立戳中 3 条硬伤（title-内层失配 / fair-MPC strawman / 证据薄）。
 - 后果：
-  - 集成遇 TRAE 密钥遮罩坑（`sk-...` env 被替换成 `\u2026`），已用 `LLM_CRED_FILE`<本地 key 文件路径>绕开（[server.py L52-72](file:///D:/Code/MultiAgent/Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)）
+  - 集成遇 TRAE 密钥遮罩坑（`sk-...` env 被替换成 `\u2026`），已用 `LLM_CRED_FILE`<本地 key 文件路径>绕开（[server.py L52-72](Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)）
   - 评审结论反哺论文：标题改 "Hierarchical Hybrid MARL"、补 "MPC+规则内层" 公平基线、20km/5 列结果补全指标升独立小节
   - 新依赖约束：OpenRouter 公端点 `independence_verified=unverified`；更严格独立需私有部署 ump/challenge 端点
 - 相关：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（诊断-2026-09-02-ARIS 试点）；`docs/docs/logs/progress/PROGRESS_2026-09.md` ARIS 条目；ARIS 仓库 `docs/TRAE_ARIS_RUNBOOK_CN.md`
@@ -917,3 +917,51 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
   5. **PPT 更正**：页 2 主结论与文案改检索事实口径；页 4 两条创新点改对比定位式；最近邻备答补 Ma2025（四邻居各缺一角 + MPC 侧 C-LIT-01/04 两个硬约束先例）。
 - **后果**：叙述层与事实层分离后，若后续 C-LIT 再纠错，§1.2.1 的对比锚点须同步复核；主 claim 仍为 ADR-042"相对传统基线的编队指标收益"，本 ADR 不改变实验矩阵与指标。
 - **相关**：ADR-034 / ADR-042 / ADR-044 / ADR-045 / ADR-046；`CLAIM_LEDGER.yaml` C-GAP-01。
+
+## ADR-048 生产积分器改为机械子步 0.0025 s（保留原 Newmark 公式） - 2026-11-04
+
+- **状态**：决策 + 已落地（`src/train_dynamics/train.py` 新增类属性 `mechanical_max_step=0.0025`，`_advance_control_once` 在 0.01 s 气动子步内对力学方程细分；`src/evaluation/solver_registry.py` 的 `runtime_solver_record` 增记 `newmark_mechanical_max_step`）。
+- **背景（事实）**：单列 70 km/h 冷起点 30 s 阶梯实验（同一控制器、同一冷起点）显示，生产 `h=0.01 s` 的 Picard-Newmark 每控制步 10 个力学子步中约 99%（2964/3000）打满 30 次迭代仍未收敛，随后回退到欠松弛态；车钩峰值 917.12 kN。固定记录输入的步长收敛序列（10 s 窗口）为 865.82 → 812.98 → 728.12 → 727.45 kN（h=0.01/0.005/0.0025/0.00125），即生产口径相对 h/8 参考高估 19.0%，h=0.0025 仅高 0.09%。同窗口 30 s 单列耗时：生产 0.0674 s/控制步，h=0.0025 为 0.0305 s/控制步（子步数 ×4，但每个子步 1 次迭代即满足判据，净耗时反而下降）。
+- **逐项归因（事实）**：
+  - 只抬迭代上限：历史诊断 max_iter=200 仍 2965/3000 未收敛、峰值更高（本轮按用户指示不重跑）。
+  - 只换判据为界面力残差（Picard，0.01 N）：峰值 933.67 kN，2978/3000 未收敛，平均末端残差 989 kN → 仅改判据无效；h=0.01 下 Picard 根本达不到 0.01 N。
+  - 只把 Picard 换解析切线 Newton（判据仍为位移 1e-5、h=0.01）：峰值 715.75 kN，0/3000 未收敛，平均 2.95 次迭代，0.0373 s/控制步 → 有效。
+  - 只细化步长（公式/判据不变，h=0.0025）：峰值 729.18 kN，0/12000 未收敛，1.0 次迭代，0.0305 s/控制步 → 有效且最便宜。
+  - 组合版（Newton + 力残差 0.01 N + 自适应步长）：峰值 719.05 kN，每次控制步 96.4 个接受半步、3.55 次拒绝，0.2885 s/控制步 → 有效但约 10 倍成本。
+- **结论**：选"只细化步长"作为生产默认：保持 `β=1/4, γ=1/2` 的同一 Newmark 公式、同一 Picard 与同一位移判据，仅把力学子步上限由 0.01 s 改为 0.0025 s；气动波速/充风仍按 0.01 s 推进，不改变制动时序物理（ADR-011 车钩参数不变）。不引入新积分实现；Newton 与自适应误差控制保留为诊断显式开关。设 `mechanical_max_step=0.01` 可复现旧生产口径。
+- **后果**：
+  1. `src/train_dynamics/` 源码哈希变化 → 旧 fleet checkpoint 的 `native_source_hashes` 校验失效，旧 checkpoint 不可续跑；所有零 RL/基线结果需在 0.0025 s 口径下重跑，旧归档车钩峰值不可与新结果直接比较（单列 30 s 量级差约 19%）。
+  2. metadata 必须同时记录 `solver=production_newmark` 与 `newmark_mechanical_max_step`；不得把 0.0025 口径写成新 solver 名称，也不得静默替换回 0.01。
+  3. 论文实验矩阵（ADR-042）主对比与跨线实验全部按新口径重跑；已有 `publication_archive/` 与 round 归档保持原标签不动（D4），仅在引用时标注口径。
+- **复现证据（相对仓库根）**：`traffic_rl_project/outputs/sim_validation/phys_validation/solver_ladder_single70_20261104/`（production_300、fine_300、picard_force_300、newton_displacement_300、error_controlled_300b、production_subcycle_300）；`traffic_rl_project/outputs/sim_validation/phys_validation/solver_reference_single70_20261104/convergence.json`。
+- **相关**：ADR-011（车钩统一 MT-2）、ADR-017（训练/评估时域）、ADR-018（车钩力口径）、ADR-021（车钩力定位）、`docs/rules/EXECUTION_RULES.md`「生产与诊断必须同一数值实现」。
+
+## ADR-049 起点条件规范化 + 三列主工况初速下调至 70 km/h - 2026-11-04
+
+- **状态**：决策（D2 定案）+ 实验入口已按此执行；`train_fleet_env.reset` 的默认起点仍待同步（当前以评估入口显式参数落地）。
+- **背景（事实）**：
+  1. 三列 80 km/h 冷起点零 RL 全程未通过，且历史短窗累计出现 **329 次安全事件**。成因已定位为**起点条件**，不是设备/仿真故障：`init_speed_kmh: 80.0` 与 `env_cfg.v_max: 22.2222 m/s` 恰相等，安全层按 `vel >= max_speed_mps - 1e-6` 判 overspeed，3 列 × 109 辆在 t=0 即计入超速；跟随列车起点位于 km<0（编队以后车为基准向后排布），不在 ETCS 覆盖区，触发 `etcs_permitted`。
+  2. 物理缺口：单机车满 ED 约 547 kN，而 49.6 km 长大下坡维持 80 km/h 所需约 903 kN；循环制动周期内掉速不可避免。`ab_min_refill_s = 222.0`（张二田 S6 充风门，文献锚）进一步限制 AB 源复用节奏。
+- **决策**：
+  1. **起点条件（硬约束）**：评估/训练的冷起点初速必须 **严格小于 `v_max`**（建议 `init_speed_kmh ≤ v_max_kmh − 1.0`，即 ≤79 km/h，留数值余量）；跟随列车的初始车头位置必须 **≥ km0**（落在 ETCS 覆盖区）。实现方式二选一：① 整编队沿剖面整体前移一个编队长度（领航列随之少跑等长距离，口径须注明）；② 将 ETCS 覆盖下界延伸到编组尾部。当前采用 ①。
+  2. **三列主工况初速 80 → 70 km/h**（代价最低的备选，见下表），编组 `10kt_1plus108`、目标列距、充风门、车钩限值均不变。
+  3. 新工况结果落**新目录**，不覆盖 `publication_archive/` 与既有 round 归档；metadata 必须记录 `init_speed_kmh`、起点整体偏移、编组与 `solver + newmark_mechanical_max_step`。
+  4. **归档标签不改**（D4）：现有 80 km/h 冷起点归档保持原标签，引用时必须注明"旧起点口径"。
+- **备选工况代价排序（低 → 高）**：
+
+  | # | 方案 | 代价 | 牵动的论文设定 / 归档可比性 |
+  |---|---|---|---|
+  | 1 | 初速 80 → 70 km/h | 最低（改一个入口参数） | 主工况初速设定；起步段峰值与安全事件口径变化；旧 80 km/h 归档不可直接比 |
+  | 2 | 加大初始间距（每对 +200 m 起） | 低（改布置参数） | 初始编队长度与 gap 指标起点；"安全列距"叙事不变，但初始相位差与旧归档不同 |
+  | 3 | 放宽充风门 `ab_min_refill_s` 222 → 更小 | 高（改规则层物理参数） | 破坏 222 s 文献锚（张二田 S6），须补文献或标为假设；规则层行为不可与单列标定复用 |
+  | 4 | 缩短编组（1+108 → 1+54） | 最高（改研究对象） | 与 ADR-039/040 研究对象（10988 t）不一致，全部归档与训练配置需重建，不建议 |
+
+- **后果**：
+  1. 70 km/h 冷起点三列结果的"通过/不通过"只在该工况下成立，不得写成"80 km/h 工况达标"。
+  2. 论文主对比（ADR-042）须统一采用本 ADR 的起点口径；旧归档车钩峰值与安全事件数不可与新口径混表。
+  3. 若 70 km/h 仍不通过，按上表依次尝试方案 2，方案 3/4 须先补文献或改研究对象，需另行决策。
+- **复现证据（相对仓库根）**：
+  - 单列 70 km/h 全程（ADR-048 定案子步口径）：`traffic_rl_project/outputs/sim_validation/phys_validation/single_production_subcycle_70kmh_full_20261104/run/result.json` —— `full_route_completed=true`、峰值 937.05 kN、violations 0、over 1000 kN 无、`max_vehicle_speed_kmh=80.34`（86 个列车步进超 80 km/h，安全层介入）、0 未收敛子步（1 227 000 机械子步，最大位移残差 5.87e-6 m）。
+  - 三列 70 km/h 全程（本 ADR 工况）：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_production_subcycle_70kmh_full_20261104/run/result.json` —— 在 t=103.5 s、行进 1.77 km 处车钩峰值 **1005.11 kN** 越 1000 kN 触发诊断早停，`full_route_completed=false`；超速列车步进 0，`negative_gap_steps=0`，未收敛子步 0。数值侧健康（残差 6.78e-6 m、平均迭代 1.0），**越线属规则层策略/工况问题而非求解器数值问题**。
+  - 对照旧 80 km/h 冷起点（未做起点规范）：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet_production_edramp02_80kmh_full_20261104/run/result.json` —— t=301.5 s、5.91 km 处峰值 1007.99 kN 早停，safety_events 329（含初始 3×109 辆超速判定）。
+- **相关**：ADR-039（三列 1+0 研究对象）、ADR-040（1000 kN 验收）、ADR-048（求解器口径）、ADR-017（训练/评估时域）。

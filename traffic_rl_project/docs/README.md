@@ -132,6 +132,7 @@
 | **立论事实的唯一措辞权威**（引文献事实、写"空白/未见"前必读）                                     | `CLAIM_LEDGER.yaml`（台账）+ `RESEARCH_POSITIONING.md` §1.2 渲染区块；守卫 `scripts/check_claim_ledger.py` / `scripts/render_claims.py` |
 | **否定命题（空白/未见）的检索证据**                                                             | `logs/verification/NEGATIVE_SEARCH_YYYY-MM-DD.md`（检索式/通道/命中/排除理由；缺此文件不得写"空白"） |
 | **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `logs/learnings/LEARNINGS.md`（唯一 SSOT；原 `AGENTS.md` Gotchas 已迁入此处与 `VALIDATION_BASELINE.md`）                                                      |
+| **求解器口径 / 开训门槛状态**（2026-11-04）：时间线、同源铁律落地位置、规则层状态、链路证据、阻塞项、待决策 | `logs/SOLVER_AND_GATE_STATUS_2026-11-04.md`；`logs/decisions/DECISIONS.md` ADR-048 / ADR-049 |
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 
 <!-- 该文档整理/压缩于 2026-10-01 -->
@@ -143,24 +144,24 @@
 
 - **当前双人职责与接口核对（2026-10-14）**：见 [PROJECT_PIPELINE末尾当前清单](PROJECT_PIPELINE.md#p0-当前双人职责接口与联合验收核对---2026-10-14)。历史两层RL/NMPC/53km任务不作为现行安排；共享owner与编组版本同步尚未完成。
 
-- 2026-10-18 缓解幅值与保持退出诊断（未达标）：[D盘完整报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节缓解幅值与保持退出复核_20261018.md)；状态与后续见 PROJECT_PIPELINE.md 同日条目。
+- 2026-10-18 缓解幅值与保持退出诊断（未达标）：[D盘完整报告](reports/controller_takeover_20261017/万吨108节缓解幅值与保持退出复核_20261018.md)；状态与后续见 PROJECT_PIPELINE.md 同日条目。
 
-- 2026-10-18 再制动准入与压力建立诊断（未达标）：[D盘完整报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节再制动准入与压力建立复核_20261018.md)；状态与后续见 PROJECT_PIPELINE.md 同日条目。
+- 2026-10-18 再制动准入与压力建立诊断（未达标）：[D盘完整报告](reports/controller_takeover_20261017/万吨108节再制动准入与压力建立复核_20261018.md)；状态与后续见 PROJECT_PIPELINE.md 同日条目。
 
-- 2026-10-18 阶段ED延长与充风速度余量（整体未达标）：[D盘报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节阶段ED与充风速度余量复核_20261018.md)、[TraeWork MIS定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_MIS再制动专项检索指令_20261018.md)。
+- 2026-10-18 阶段ED延长与充风速度余量（整体未达标）：[D盘报告](reports/controller_takeover_20261017/万吨108节阶段ED与充风速度余量复核_20261018.md)、[TraeWork MIS定向检索指令](reports/controller_takeover_20261017/TraeWork_MIS再制动专项检索指令_20261018.md)。
 
-- 2026-10-18 新增全文与缓解可行性：[D盘核对报告](D:/Codex/Documents/Train/controller_takeover_20261017/新增全文复核与缓解可行性修复依据_20261018.md)，含林轩/黄宇澄关键公式、董文编组判据及旧汇总解释更正。
-- 2026-10-18 原生缓解预测（下一周期候选受限，未验收）：[D盘复核报告](D:/Codex/Documents/Train/controller_takeover_20261017/万吨108节原生缓解预测与可行性瓶颈复核_20261018.md)、[TraeWork定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_缓解预测与数值收敛定向检索_20261018.md)。52项回归通过；完整实跑中止，12段完成预测单独留存，不作全线证据。
+- 2026-10-18 新增全文与缓解可行性：[D盘核对报告](reports/controller_takeover_20261017/新增全文复核与缓解可行性修复依据_20261018.md)，含林轩/黄宇澄关键公式、董文编组判据及旧汇总解释更正。
+- 2026-10-18 原生缓解预测（下一周期候选受限，未验收）：[D盘复核报告](reports/controller_takeover_20261017/万吨108节原生缓解预测与可行性瓶颈复核_20261018.md)、[TraeWork定向检索指令](reports/controller_takeover_20261017/TraeWork_缓解预测与数值收敛定向检索_20261018.md)。52项回归通过；完整实跑中止，12段完成预测单独留存，不作全线证据。
 
-- 2026-10-19 缓解速度细筛与ED保持对照：[D盘报告](D:/Codex/Documents/Train/controller_takeover_20261017/缓解细化与空电保持时间对照_20261019.md)、[最新MIS原文核对指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_108节缓解恒持力与充风可行域_20261019.md)。两候选1050秒通过及局部重复/相邻时机检查；延长至车头18.36km速度下界失败，42个连续原生决策点未通过，无全线三列验收。
+- 2026-10-19 缓解速度细筛与ED保持对照：[D盘报告](reports/controller_takeover_20261017/缓解细化与空电保持时间对照_20261019.md)、[最新MIS原文核对指令](reports/controller_takeover_20261017/TraeWork_108节缓解恒持力与充风可行域_20261019.md)。两候选1050秒通过及局部重复/相邻时机检查；延长至车头18.36km速度下界失败，42个连续原生决策点未通过，无全线三列验收。
 
-- 2026-10-19 恒力目标与数值收敛瓶颈（当前）：[D盘最终报告](D:/Codex/Documents/Train/controller_takeover_20261017/新增文献与50秒恒力目标修复_20261019.md)、[数值积分定向检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_非线性积分收敛专项检索_20261019.md)。局部改善未转化为全线通过；关键窗口1475/1599步未满足迭代准则，细步力峰仍未收敛，先核查数值可靠性。62项回归通过；未训练、未晋升默认。
+- 2026-10-19 恒力目标与数值收敛瓶颈（当前）：[D盘最终报告](reports/controller_takeover_20261017/新增文献与50秒恒力目标修复_20261019.md)、[数值积分定向检索指令](reports/controller_takeover_20261017/TraeWork_非线性积分收敛专项检索_20261019.md)。局部改善未转化为全线通过；关键窗口1475/1599步未满足迭代准则，细步力峰仍未收敛，先核查数值可靠性。62项回归通过；未训练、未晋升默认。
 
-2026-10-19后续：已读新增相关原文并做联合容差/步长诊断，1e-9容差最细两级片段峰633.055883/633.040330kN，迭代均达准则；包络逐时差仍15.79kN，非完整闭环或全线验收。65项回归通过，生产物理未改，未训练/未推送。报告：[D盘详细复核](D:/Codex/Documents/Train/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md)。下一步验证失败步回退/力残差与完整闭环，禁止把633kN当整线效果。
+2026-10-19后续：已读新增相关原文并做联合容差/步长诊断，1e-9容差最细两级片段峰633.055883/633.040330kN，迭代均达准则；包络逐时差仍15.79kN，非完整闭环或全线验收。65项回归通过，生产物理未改，未训练/未推送。报告：[D盘详细复核](reports/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md)。下一步验证失败步回退/力残差与完整闭环，禁止把633kN当整线效果。
 
-2026-10-19最新平衡迭代候选：独立加速度Picard同时检查局部位移与末状态力平衡，β/γ及物理力律未改；气动子步事务回滚与解析解等71项回归通过。固定输入细化峰633.065/633.043kN，全断面时程最大差15.823kN，仍非严密误差界。同765.5秒完整原生状态，248.5秒零RL局部气动机械反馈窗口通过：内部峰572.462kN、最高70.248/最低均速40.288km/h，397600接受细步，力残差均≤10N。原求解235.5秒峰1004.883kN失败，旧2355×6记录精确复现；新方案前20秒与独立短试验精确一致。该窗口继承旧积分历史，预测跳过递归guard但保留原准入与ATP，未作全线/冷起点/三列验收，生产默认未改，未训练，新增工作未推送。数据single108_balanced_{mechanics,tight_mechanics,coupled,coupled_fullwindow}_20261019_round14；D盘报告：D:/Codex/Documents/Train/controller_takeover_20261017/平衡迭代与气动闭环候选复核_20261019.md。下一步冷起点及气动/机械联合细化验证，不能将572kN标为全线规则修复效果。
+2026-10-19最新平衡迭代候选：独立加速度Picard同时检查局部位移与末状态力平衡，β/γ及物理力律未改；气动子步事务回滚与解析解等71项回归通过。固定输入细化峰633.065/633.043kN，全断面时程最大差15.823kN，仍非严密误差界。同765.5秒完整原生状态，248.5秒零RL局部气动机械反馈窗口通过：内部峰572.462kN、最高70.248/最低均速40.288km/h，397600接受细步，力残差均≤10N。原求解235.5秒峰1004.883kN失败，旧2355×6记录精确复现；新方案前20秒与独立短试验精确一致。该窗口继承旧积分历史，预测跳过递归guard但保留原准入与ATP，未作全线/冷起点/三列验收，生产默认未改，未训练，新增工作未推送。数据single108_balanced_{mechanics,tight_mechanics,coupled,coupled_fullwindow}_20261019_round14；D盘报告：reports/controller_takeover_20261017/平衡迭代与气动闭环候选复核_20261019.md。下一步冷起点及气动/机械联合细化验证，不能将572kN标为全线规则修复效果。
 
-- 2026-10-19最新冷起点：745.2秒、车头12.725km、内部峰719.817kN、单车47.411—76.139km/h，完整状态已存，尚非49.6km全线通过。74项相关回归通过；力时程精度/效率仍需核查。[D盘详细报告](D:/Codex/Documents/Train/controller_takeover_20261017/冷起点验证与力时程收敛瓶颈_20261019.md)、[TraeWork MIS检索指令](D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_MIS力时程精度与计算效率专项_20261019.md)。
+- 2026-10-19最新冷起点：745.2秒、车头12.725km、内部峰719.817kN、单车47.411—76.139km/h，完整状态已存，尚非49.6km全线通过。74项相关回归通过；力时程精度/效率仍需核查。[D盘详细报告](reports/controller_takeover_20261017/冷起点验证与力时程收敛瓶颈_20261019.md)、[TraeWork MIS检索指令](reports/controller_takeover_20261017/TraeWork_MIS力时程精度与计算效率专项_20261019.md)。
 
 - 2026-10-19本轮发布资料：[中文循环制动图](../outputs/sim_validation/figures/cyclic_braking_108_20261019/cyclic_cold745_zh.png)、[D盘49份工作文档及配套资料ZIP](../outputs/sim_validation/phys_validation/controller_reports_publication_20261019_round16/controller_reports_publication_20261019_round16.zip)。ZIP含逐文件SHA256。图仅覆盖745.2秒冷起点前缀，不是全线验收；可用src/evaluation/plot_cyclic_archive.py复画，无需重跑仿真。
 
@@ -169,5 +170,5 @@
 - 单列1机车+108货车（10988吨）、49.6公里固定起点：第33轮完整状态连续运行至尾车通过终点；最高车辆速度78.51493 km/h，最低全列平均速度43.05631 km/h，含前1000秒起步阶段的内部车钩峰值约719.82284 kN。零RL、实验数值求解；生产默认未晋升，不代表三列或随机起点验收。
 - 第36轮2180—2580秒局部候选：深制动请求0次，最低车辆42.62470 km/h，内部车钩峰674.21224 kN。第37轮细化缓解重试后最低车辆44.13940 km/h、内部峰651.09197 kN，但深制动请求恢复为1次，未达到全部接续条件，未启动第38轮剩余路段验证。保留第33轮为已通过单列基线。
 - 原始数据、完整重启状态、冻结源码与哈希位于 `outputs/sim_validation/phys_validation/single108_*`；不要将轨迹数组视为可恢复全部气动和控制器历史的检查点。
-- [D盘工作报告仓库副本](reports/controller_takeover_20261017/)；[中文循环制动图及配套资料](../outputs/sim_validation/figures/controller_repair_20261020/)。保留历史报告，各轮结论以对应result.json和local_comparison.json为准。
+- [工作报告仓库副本](reports/controller_takeover_20261017/)；[归档总索引](../publication_archive/20261101/INDEX.md)（95 份报告 + 11 个数据目录 + `paper/` 原文，覆盖第 24 轮起至 20261101）；[中文循环制动图及配套资料](../outputs/sim_validation/figures/controller_repair_20261020/)。保留历史报告，各轮结论以对应result.json和local_comparison.json为准。
 - 后续流程：问题前完整状态→同工况局部对比→有明确改善后再线路验收；阶段验收出图，样式调整复用原数据。

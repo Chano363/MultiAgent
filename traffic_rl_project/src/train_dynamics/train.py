@@ -120,6 +120,14 @@ class TrainDynamics:
         friction_coef: 轮轨摩擦系数
     """
 
+    # 【ADR-048 2026-11-04】机械子步上限（秒）。生产 Picard-Newmark 在
+    # h=0.01 s 时约 99% 子步打满 30 次迭代仍未收敛并回退到松弛态，
+    # 30 s 车钩峰值较收敛解高约 19%。改为在每个 0.01 s 气动子步内
+    # 对力学方程做 0.0025 s 机械细分（公式/判据不变），收敛序列显示
+    # 峰值偏差 0.09%，且单控制步耗时由 0.067 s 降到 0.031 s。
+    # 设为 0.01 可复现旧生产口径（ADR-011 车钩物理未变）。
+    mechanical_max_step = 0.0025
+
     def __init__(
         self,
         consist: TrainConsist,
@@ -820,7 +828,10 @@ class TrainDynamics:
             + self._electric_braking_forces(ed_throttle)
             + self._air_braking_forces()
         )
-        self._step_newmark(control_forces, h)
+        # 【ADR-048】力学方程按 mechanical_max_step 细分；气动/波速仍按 h 推进。
+        mech_sub = max(1, int(np.ceil(h / self.mechanical_max_step)))
+        for _ in range(mech_sub):
+            self._step_newmark(control_forces, h / mech_sub)
         self._update_grade_from_profile()
 
     # ------------------------------------------------------------------

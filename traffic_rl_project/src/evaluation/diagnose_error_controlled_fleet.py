@@ -13,18 +13,46 @@ import time
 import math
 from contextlib import nullcontext
 
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.evaluation.solver_registry import (
     PRODUCTION_SOLVER, SOLVERS, active_solver_label, assert_active_solver,
     solver_context)
 from src.environments.train_fleet_env import TrainFleetEnv
 
+# Ladder variants used to attribute the coupler-peak overestimate one change
+# at a time. Every row keeps the same controller and cold start.
+VARIANTS = {
+    'production': (PRODUCTION_SOLVER, {}),
+    'fine': ('native_newmark_fine', dict(max_step=.0025, tol=1e-5, max_iter=30)),
+    'picard_force': ('newmark_picard_force', dict(force_tol_n=.01, max_iter=100)),
+    'newton_displacement': ('newmark_newton_displacement', dict(tol=1e-5, max_iter=30)),
+    'error_controlled': ('newton_analytic_time_error', dict(
+        max_step=.0025, min_step=.0000001, force_atol_n=1000.,
+        velocity_atol=1e-5, position_atol=1e-6,
+        tol=1e-9, max_iter=100, force_tol_n=.01)),
+}
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--steps', type=int, default=70)
-    parser.add_argument('--solver', choices=SOLVERS, default=PRODUCTION_SOLVER,
+    parser.add_argument('--config', default='configs/experiments/formation_ed_ab_3train_1plus108.yaml')
+    parser.add_argument('--trains', type=int, default=3)
+    parser.add_argument('--speed', type=float, default=70)
+    parser.add_argument('--finish-m', type=float)
+    parser.add_argument('--start-m', type=float, default=0.0,
+                        help='Shift the whole formation forward along the route '
+                             '(ADR-049: keep follower heads inside ETCS coverage)')
+    parser.add_argument('--stop-on-coupler-kn', type=float, default=1000.0,
+                        help='Diagnostic early-stop threshold; 0 disables the stop '
+                             'to observe the full-route peak')
+    parser.add_argument('--profile', default='shuozhou_ningwuxi_beidaniu_49km')
+    parser.add_argument('--variant', choices=sorted(VARIANTS),
+                        help='Ladder variant; overrides --solver and settings')
+    parser.add_argument('--solver', choices=SOLVERS, default=None,
                         help='production_newmark = unmodified production path')
     parser.add_argument('--error-scale', type=float, default=1.)
     parser.add_argument('--save-fleet-state', action='store_true')
@@ -34,13 +62,19 @@ def main():
         parser.error('At least three control steps required')
     if not math.isfinite(args.error_scale) or args.error_scale <= 0:
         parser.error('Positive finite error scale required')
+    if args.variant:
+        args.solver, settings = VARIANTS[args.variant]
+        settings = dict(settings)
+    else:
+        if args.solver is None:
+            args.solver = PRODUCTION_SOLVER
+        settings = (dict(max_step=.0025, min_step=.0000001, force_atol_n=1000.,
+                         velocity_atol=1e-5, position_atol=1e-6,
+                         tol=1e-9, max_iter=100, force_tol_n=.01)
+                    if args.solver == 'newton_analytic_time_error' else {})
+    experimental = args.solver != PRODUCTION_SOLVER
     args.output.mkdir(parents=True, exist_ok=False)
-    experimental = args.solver == 'newton_analytic_time_error'
-    settings = None
-    if experimental:
-        settings = dict(max_step=.0025, min_step=.0000001, force_atol_n=1000.,
-                        velocity_atol=1e-5, position_atol=1e-6,
-                        tol=1e-9, max_iter=100, force_tol_n=.01)
+    if experimental and args.solver == 'newton_analytic_time_error':
         for key in ('force_atol_n', 'velocity_atol', 'position_atol'):
             settings[key] *= args.error_scale
     hashes = {}
@@ -68,16 +102,26 @@ def main():
         TrainFleetEnv.close = close_with_checkpoint
     started, status, error = time.perf_counter(), 'completed', None
     try:
-        sys.argv = ['diagnose_low_level_control.py', '--config',
-                    'configs/experiments/formation_ed_ab_3train_1plus108.yaml',
-                    '--trains', '3', '--speed', '70', '--profile',
-                    'shuozhou_ningwuxi_beidaniu_49km', '--steps', str(args.steps),
-                    '--stop-on-coupler-kn', '1000', '--output', str(args.output/'run')]
+        sys.argv = ['diagnose_low_level_control.py', '--config', args.config,
+                    '--trains', str(args.trains), '--speed', str(args.speed),
+                    '--profile', args.profile, '--steps', str(args.steps),
+                    '--output', str(args.output/'run')]
+        if args.stop_on_coupler_kn:
+            sys.argv += ['--stop-on-coupler-kn', str(args.stop_on_coupler_kn)]
+        if args.finish_m is not None:
+            sys.argv += ['--finish-m', str(args.finish_m)]
+        if args.start_m:
+            sys.argv += ['--start-m', str(args.start_m)]
         guard = nullcontext()
         if args.release_budget_guard:
             from src.evaluation.release_budget_guard import candidate as release_candidate
             guard = release_candidate()
-        with solver_context(args.solver, samples, **(settings or {})), guard:
+        observe = nullcontext()
+        if args.solver == PRODUCTION_SOLVER:
+            # Read-only residual observation of the unmodified production step.
+            from src.evaluation.newmark_observer import observe_newmark
+            observe = observe_newmark(samples)
+        with solver_context(args.solver, samples, **(settings or {})), guard, observe:
             assert_active_solver(args.solver)
             active_label = active_solver_label()
             runpy.run_path('src/evaluation/diagnose_low_level_control.py', run_name='__main__')
@@ -87,22 +131,62 @@ def main():
     finally:
         sys.argv = argv
         TrainFleetEnv.close = original_close
-        summary = dict(status=status, error=error, settings=settings,
-                       solver=args.solver, source_sha256=hashes, elapsed_wall_s=time.perf_counter()-started,
+        dict_samples = [s for s in samples if isinstance(s, dict)]
+        observed = np.asarray([s for s in samples if not isinstance(s, dict)],
+                              dtype=float)
+        summary = dict(status=status, error=error, settings=settings or None,
+                       solver=args.solver, source_sha256=hashes,
+                       elapsed_wall_s=time.perf_counter()-started,
                        experimental=experimental, production_default_changed=False,
                        release_budget_guard=args.release_budget_guard,
-                       accepted_microsteps=sum(s['accepted'] for s in samples),
-                       newton_calls=sum(s.get('newton_calls', 0) for s in samples),
-                       rejected_trials=sum(s['rejected'] for s in samples),
-                       internal_peak_kn=max((s['peak_interface_n'] for s in samples), default=0)/1000,
-                       max_force_residual_n=max((s['max_force_residual_n'] for s in samples), default=0),
+                       accepted_microsteps=sum(s.get('accepted', 0) for s in dict_samples),
+                       newton_calls=sum(s.get('newton_calls', 0) for s in dict_samples),
+                       rejected_trials=sum(s.get('rejected', 0) for s in dict_samples),
+                       internal_peak_kn=max(
+                           (s.get('peak_interface_n', 0) for s in dict_samples), default=0)/1000,
+                       max_force_residual_n=max(
+                           (s.get('max_force_residual_n', 0) for s in dict_samples), default=0),
                        statistics_scope='Completed native mechanical intervals only; failed interval trials excluded',
                        scope='Local engineering error indicators; not route acceptance')
+        if observed.size:
+            summary.update(mechanical_substeps=int(len(observed)),
+                           unconverged_substeps=int(np.sum(observed[:, 5] == 0)),
+                           max_displacement_residual_m=float(observed[:, 3].max()),
+                           mean_iterations=float(observed[:, 2].mean()))
+        elif dict_samples:
+            accepted = sum(s.get('accepted', 0) for s in dict_samples)
+            if accepted:
+                # Error-controlled intervals accept two half steps each.
+                summary.update(
+                    mechanical_substeps=int(accepted),
+                    unconverged_substeps=int(sum(s.get('rejected', 0) for s in dict_samples)),
+                    mean_force_residual_n=float(np.mean(
+                        [s.get('max_force_residual_n', 0) for s in dict_samples])))
+            else:
+                summary.update(
+                    mechanical_substeps=int(sum(s.get('substeps', 1) for s in dict_samples)),
+                    unconverged_substeps=int(sum(
+                        s.get('substeps', 1) for s in dict_samples if not s.get('converged', True))),
+                    mean_iterations=float(np.mean([s.get('iterations', 0) for s in dict_samples])),
+                    mean_force_residual_n=float(np.mean(
+                        [s.get('force_residual_n', 0) for s in dict_samples])))
         (args.output/'numerical_summary.json').write_text(json.dumps(summary, indent=2), encoding='utf-8')
         (args.output/'intervals.json').write_text(json.dumps(samples), encoding='utf-8')
         result_file = args.output/'run/result.json'
         if result_file.exists():
             result = json.loads(result_file.read_text(encoding='utf-8'))
+            control_steps = result['summary'].get('steps')
+            summary['control_steps'] = control_steps
+            if control_steps:
+                summary['wall_per_control_step_s'] = summary['elapsed_wall_s'] / control_steps
+                summary['accepted_half_steps_per_control_step'] = (
+                    summary['accepted_microsteps'] / control_steps)
+                summary['newton_calls_per_control_step'] = (
+                    summary['newton_calls'] / control_steps)
+                summary['rejected_trials_per_control_step'] = (
+                    summary['rejected_trials'] / control_steps)
+            (args.output/'numerical_summary.json').write_text(
+                json.dumps(summary, indent=2), encoding='utf-8')
             result['metadata']['experimental_time_error_control'] = summary
             result['metadata']['solver'] = active_label
             result_file.write_text(json.dumps(result, indent=2), encoding='utf-8')
