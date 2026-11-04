@@ -35,6 +35,15 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 2. **引用任何历史结论前**：先确认该结论产出于当前建模集合之后；否则**不得直接引用**，须在当前物理上重跑确认后才可引用或引用时显式标注"旧建模下产物，待重跑"。
 3. **不得删除**含建模差异的历史记录；但若历史结论被当前建模推翻，在所引处**追加一条 superseded 标注**（不篡改旧文），并指向重跑结果。
 
+## 生产与诊断必须同一数值实现（2026-11-04 强制）
+
+> **背景**：诊断脚本曾用 monkeypatch 把 `TrainDynamics._step_newmark` 换成误差控制 Newton 求解器，导致诊断结论与训练/评估所用生产 Newmark 不同源（同一单列 70 km/h 冷起点，生产口径车钩峰值约为诊断口径的 2 倍）。
+
+1. **默认一律生产路径**：诊断入口（`diagnose_low_level_control.py` 及其 wrapper）默认使用未修改的 `TrainDynamics._step_newmark`（`newmark_max_iter=30`、`newmark_tol=1e-5`）。实验求解器只能通过显式开关（`--solver`）启用，默认关闭。
+2. **solver 字段必须写实**：metadata 的 `solver` / `solver_runtime` 由运行时实现身份观测得出（`src/evaluation/solver_registry.py`），不得手填常量；请求的实验求解器与实际安装实现不一致时，归档前必须失败（`assert_active_solver`）。
+3. **不得静默替换**：任何 patch 求解器的入口都必须带显式标签（`labelled(...)`）；无标签的替换会被记为 `unregistered_replacement` 而不是 production。
+4. **引用旧诊断结论前**：先核对 metadata 的 `solver`；`solver != production_newmark` 的结论只能作为数值实验，不得当作生产口径证据。
+
 ## 训练/评估入口必须落权威元数据 metadata（2026-09-08 强制）
 
 > **背景**：结论必须可复现——数值只认 metadata.json / 评估 JSON（禁止从代码注释抽数据），故把 metadata 落盘硬化为入门口令。
