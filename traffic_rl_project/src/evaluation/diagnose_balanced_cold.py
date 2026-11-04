@@ -13,7 +13,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.environments.train_fleet_env import TrainFleetEnv
-from src.evaluation.adaptive_newmark_candidate import coupled_candidate
+from src.evaluation.solver_registry import (
+    PRODUCTION_SOLVER, SOLVERS, active_solver_label, solver_context)
 from src.evaluation.fractional_air_timing import fractional_air_timing, fractional_advance_source
 from src.evaluation.refine_pneumatic_interval import refined_pneumatic_interval
 
@@ -35,7 +36,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--steps', type=int, default=36000)
     parser.add_argument('--controller-source', type=Path, required=True)
-    parser.add_argument('--solver', choices=['balanced', 'newton_analytic'], default='balanced')
+    parser.add_argument('--solver', choices=SOLVERS, default=PRODUCTION_SOLVER,
+                        help='production_newmark = unmodified production path')
     parser.add_argument('--force-tolerance-n', type=float, default=10)
     parser.add_argument('--air-step', type=float)
     parser.add_argument('--fractional-air-timing', action='store_true')
@@ -48,15 +50,18 @@ def main():
     if args.air_step is not None and (not np.isfinite(args.air_step) or not 0 < args.air_step <= .01):
         parser.error('Air step must lie in (0, .01]')
     args.output.mkdir(parents=True, exist_ok=False)
-    source = Path('src/evaluation/adaptive_newmark_candidate.py').read_bytes()
-    (args.output / 'candidate_source.py').write_bytes(source)
-    (args.output / 'wrapper_source.py').write_bytes(Path(__file__).read_bytes())
+    experimental = args.solver != PRODUCTION_SOLVER
+    source = None
     frozen_sources = {}
-    for name in ('newton_mechanics_candidate', 'native_force_tangent',
-                 'fractional_air_timing', 'refine_pneumatic_interval'):
-        payload = Path('src/evaluation', name + '.py').read_bytes()
-        (args.output / (name + '_source.py')).write_bytes(payload)
-        frozen_sources[name] = hashlib.sha256(payload).hexdigest()
+    if experimental:
+        source = Path('src/evaluation/adaptive_newmark_candidate.py').read_bytes()
+        (args.output / 'candidate_source.py').write_bytes(source)
+        for name in ('newton_mechanics_candidate', 'native_force_tangent',
+                     'fractional_air_timing', 'refine_pneumatic_interval'):
+            payload = Path('src/evaluation', name + '.py').read_bytes()
+            (args.output / (name + '_source.py')).write_bytes(payload)
+            frozen_sources[name] = hashlib.sha256(payload).hexdigest()
+    (args.output / 'wrapper_source.py').write_bytes(Path(__file__).read_bytes())
     (args.output / 'fractional_advance_source.py').write_text(fractional_advance_source(), encoding='utf-8')
     # The existing archive entry creates a fresh output directory itself.
     # Keep wrapper provenance at this parent and native data in run/.
@@ -76,7 +81,7 @@ def main():
 
     argv = sys.argv
     samples = []
-    status, error = 'completed', None
+    status, error, active_label = 'completed', None, args.solver
     TrainFleetEnv.reset = reset
     try:
         sys.argv = ['diagnose_low_level_control.py', '--output', str(target),
@@ -86,11 +91,12 @@ def main():
             '--finish-m', '49600', '--stop-on-coupler-kn', '1000',
             '--stop-on-infeasible-release', '--save-native-release-state',
             '--stop-file', str(args.output / 'STOP')]
+        solver = solver_context(
+            args.solver, samples, live_dynamics=live, max_step=0.000625,
+            force_tol_n=args.force_tolerance_n, ramp_air_force=args.ramp_air_force)
         with fractional_air_timing(args.fractional_air_timing), refined_pneumatic_interval(
-                args.air_step, hold_coarse_grade=args.air_step is not None), coupled_candidate(
-                samples, live_dynamics=live, max_step=0.000625,
-                force_tol_n=args.force_tolerance_n, numerical_solver=args.solver,
-                ramp_air_force=args.ramp_air_force):
+                args.air_step, hold_coarse_grade=args.air_step is not None), solver:
+            active_label = active_solver_label()
             runpy.run_path('src/evaluation/diagnose_low_level_control.py', run_name='__main__')
     except BaseException as exc:
         status, error = 'failed', repr(exc)
@@ -108,8 +114,9 @@ def main():
                 'internal_peak_kn': max((s['peak_interface_n'] for s in chosen), default=0) / 1000,
                 'max_force_residual_n': max((s['max_force_residual_n'] for s in chosen), default=0)}
         result = {'status': status, 'error': error, 'numerical': numerical,
-            'experimental_numerical_solver': True, 'production_default_changed': False,
-            'solver_sha256': hashlib.sha256(source).hexdigest(),
+            'solver': active_label, 'experimental_numerical_solver': experimental,
+            'production_default_changed': False,
+            'solver_sha256': hashlib.sha256(source).hexdigest() if source else None,
             'frozen_sources_sha256': frozen_sources,
             'original_controller_sha256': hashlib.sha256(controller_text.encode()).hexdigest(),
             'controller_change': 'forecast archive directory relocation only',
@@ -124,7 +131,9 @@ def main():
         if native.exists():
             archived = json.loads(native.read_text(encoding='utf-8'))
             archived['metadata']['experimental_numerical_solver'] = result
-            archived['metadata']['purpose'] += '; experimental solver; not native production numerics'
+            archived['metadata']['solver'] = active_label
+            if experimental:
+                archived['metadata']['purpose'] += '; experimental solver; not native production numerics'
             native.write_text(json.dumps(archived, indent=2), encoding='utf-8')
         state_manifest = target / 'native_release_state.json'
         if state_manifest.exists():

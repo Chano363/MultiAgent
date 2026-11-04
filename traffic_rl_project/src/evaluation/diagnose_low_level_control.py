@@ -19,6 +19,7 @@ from src.metadata import build_metadata
 from src.train_dynamics.grade_profile import GradeProfile, GradeSegment, PROFILES
 from src.train_dynamics.braking import notch_from_throttle
 from src.physics_governance import official_entry_guard, official_world_config
+from src.evaluation.solver_registry import runtime_solver_record
 
 
 def capture_admission_state(train_env, controller):
@@ -490,6 +491,11 @@ def main():
                                  'env_cfg': config,
                                  'tracked_diff': subprocess.check_output(['git', 'diff', '--stat'], encoding='utf-8'),
                                  'purpose': 'controller diagnostic; zero RL modulation, not a paper main-table evaluation'})
+    # The integrator that actually ran, observed rather than assumed. A replaced
+    # solver can never be reported as production Newmark.
+    solver_runtime = runtime_solver_record(env.trains[0].dynamics)
+    meta['solver'] = solver_runtime['solver']
+    meta['solver_runtime'] = solver_runtime
     if args.reuse and (args.output / 'result.json').exists():
         previous_record = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))
         previous = previous_record['metadata']
@@ -498,7 +504,7 @@ def main():
         # Recomputing statistics must not relabel the archived controller as
         # today's working tree (especially for intermediate diagnostic trials).
         for key in ('etcs_runtime', 'etcs_braking_sha256', 'train_dynamics_sha256', 'controller_sha256', 'controller_ref', 'controller_runtime', 'fleet_env_sha256', 'train_env_sha256',
-                    'numerical_runtime', 'tracked_diff', 'actuator_diagnostic'):
+                    'numerical_runtime', 'tracked_diff', 'actuator_diagnostic', 'solver', 'solver_runtime'):
             if key in previous:
                 meta[key] = previous[key]
         if 'actuator_diagnostic' not in previous:
