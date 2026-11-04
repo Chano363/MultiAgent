@@ -13,7 +13,8 @@ from contextlib import contextmanager, nullcontext
 from src.train_dynamics.train import TrainDynamics
 
 PRODUCTION_SOLVER = 'production_newmark'
-EXPERIMENTAL_SOLVERS = ('newton_analytic', 'newton_analytic_time_error', 'balanced')
+EXPERIMENTAL_SOLVERS = ('newton_analytic', 'newton_analytic_time_error', 'balanced',
+                        'native_newmark_fine')
 SOLVERS = (PRODUCTION_SOLVER,) + EXPERIMENTAL_SOLVERS
 
 # Captured at import time, before any diagnostic wrapper can patch the class.
@@ -77,6 +78,31 @@ def labelled(label: str):
 
 
 @contextmanager
+def fine_substep_context(max_step: float):
+    """Run the production integrator with a smaller internal substep.
+
+    The force is held constant over the control interval, exactly as
+    production does; only the mechanical substep is refined.
+    """
+    import numpy as np
+
+    original = TrainDynamics._step_newmark
+
+    def refined(self, force, dt, max_iter=None, tol=None):
+        count = max(1, int(np.ceil(dt / max_step)))
+        for _ in range(count):
+            original(self, force, dt / count,
+                     max_iter=30 if max_iter is None else max_iter,
+                     tol=1e-5 if tol is None else tol)
+
+    TrainDynamics._step_newmark = refined
+    try:
+        yield
+    finally:
+        TrainDynamics._step_newmark = original
+
+
+@contextmanager
 def solver_context(solver: str, samples=None, **settings):
     """Install the requested solver; production is the default and a no-op."""
     if solver == PRODUCTION_SOLVER:
@@ -88,6 +114,12 @@ def solver_context(solver: str, samples=None, **settings):
         with labelled(solver), coupled_candidate(
                 samples if samples is not None else [],
                 numerical_solver=solver, **settings):
+            yield
+        return
+    if solver == 'native_newmark_fine':
+        # Same production Picard-Newmark integrator, only a smaller internal
+        # substep; used to separate temporal resolution from iteration count.
+        with labelled(solver), fine_substep_context(settings.get('max_step', 0.0025)):
             yield
         return
     if solver == 'newton_analytic_time_error':
