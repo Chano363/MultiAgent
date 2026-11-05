@@ -72,6 +72,22 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 4. **长训启动时必须登记**：启动器路径、输出目录、日志路径、`metadata.json` 的 `git_commit`、恢复命令（`--resume latest`）与预期机时（见 `REPRODUCIBILITY.md` §十「重训里程碑」模板）。
 5. **判活不看日志**：日志为 `>` 重定向 ⇒ 块缓冲，分钟级无新行属正常；一律用 `pgrep -af run_training.py` + `ps -o etime,pcpu -p <pid>`（教训 `LEARNINGS.md` LRN-20261001-014）。
 
+## 长跑必须脱离 IDE/客户端进程树（2026-11-05 强制，反复被中断的根因）
+
+> **实测事实（2026-11-05）**：从 IDE 内置终端启动的 WSL python 长跑，在 TRAE 客户端关闭/重开时被**连带杀掉**。已发生 3 次：`fleet3_gap800_..._20261105`（step 6501）、`fleet3_c4_edboost2_strict800_full_20261105`（sim 已到 31195 步、`result.json`/`intervals.json` 未写），以及上一轮批次的半截中断。**不是仿真错误，也不是 OOM。**
+
+1. **长跑（预计 > 5 分钟）一律用 Windows 任务计划启动，不经 IDE 终端**：
+   ```powershell
+   # 1) 写一个 .cmd（内含完整 wsl -e bash -lc 命令行与重定向）
+   # 2) 注册一次性任务并立即运行
+   schtasks /create /tn "MultiAgent_<任务名>" /tr "C:\Users\<user>\AppData\Local\Temp\<name>.cmd" /sc once /st 23:59 /f
+   schtasks /run /tn "MultiAgent_<任务名>"
+   ```
+   任务在独立进程树中，**关闭客户端不影响**；收尾后 `schtasks /delete /tn ... /f` 清理。
+2. **判活仍按第 5 条**：`pgrep -af diagnose` + `ps -o etime,pcpu -p <pid>`，不看日志行（重定向块缓冲）。
+3. **完成判据 = 文件齐**：`run/result.json` + `run/trajectory.npz` + `run/intervals.json` 三件齐全才算完成；只有 `trajectory.npz` 而无 `result.json` ⇒ 判定**被中断**，目录写 `ABORTED_BY_INTERRUPTION.txt` 保留不覆盖、不作结果引用，**新目录重跑**。
+4. **禁止**把日志末尾当作进度依据——日志可能被后续命令覆盖（本次日志末行即为一条 git CRLF 警告）。
+
 ## claim 实验执行规范（2026-09-09 立；2026-10-19 ADR-042 覆盖——claim 改为"相对传统基线的编队指标收益"（无独立消融列），本节协议仍有效，主指标以 `RESEARCH_POSITIONING.md` §1.6 为准）
 
 > **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）→ 【2026-10-16，ADR-037 废止 Regime A 协议】**：本节旧协议（下方第 2 条）随 Regime B（ADR-016）与 Regime A（ADR-037）先后废止。**当前协议（ADR-037，2026-10-16）**：对比不设"逐线重喂 `grade_at`/在线标定 b0"协议——坡度是 MPC 固有输入（图纸天然先于运营存在），所有方法共用同一仿真器、环境与坡度数据、同档调参力度；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不作"免重辨识成本"叙事（ADR-032）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-037。下方旧协议文字原样保留，仅作历史。
