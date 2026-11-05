@@ -88,6 +88,26 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 3. **完成判据 = 文件齐**：`run/result.json` + `run/trajectory.npz` + `run/intervals.json` 三件齐全才算完成；只有 `trajectory.npz` 而无 `result.json` ⇒ 判定**被中断**，目录写 `ABORTED_BY_INTERRUPTION.txt` 保留不覆盖、不作结果引用，**新目录重跑**。
 4. **禁止**把日志末尾当作进度依据——日志可能被后续命令覆盖（本次日志末行即为一条 git CRLF 警告）。
 
+**实测补强（2026-11-05，第二次踩坑后）**：
+
+5. **任务动作直接写成 `.cmd` 时，任务被终止会连坐 WSL 子进程**：`MultiAgent_C6_ff80` 首轮在 step 9001 被杀，任务 `Last Result = -1073741510`（`0xC000013A` = `STATUS_CONTROL_C_EXIT`，控制台终止），非仿真错误。**改用 VBS 隐藏启动并让任务立即返回**：任务动作 = `wscript.exe <launcher>.vbs`，VBS 内 `WScript.Shell.Run "wsl.exe -e bash -lc ""<完整命令>""", 0, False`，任务在数秒内 `Ready`，仿真进程不再挂在任务的控制台进程树上。
+6. **WSL 发行版在"最后一个会话退出"时会终止全部分布进程**（与 `.wslconfig` 的 `vmIdleTimeout` 无关）：实测 `setsid bash -c "sleep 120" &` 启动后，会话退出约 40 s 内该进程即消失。故 `setsid`/`nohup` **不能**单独保证存活——**必须保留一个附着到进程结束的 `wsl.exe` 会话**（VBS 里 `Run ..., 0, False` 的 wsl.exe 自身即充当该会话）。
+7. 这两个补强同时成立才可靠：`wscript` 隐藏 + `wsl.exe` 长会话 + 任务立即返回。验证方式仍是 `pgrep -af` + `ps -o etime,pcpu -p`（而不看 `schtasks` 状态）。
+
+## 诊断通道最小集（2026-11-05 强制）
+
+> **背景**：多次归因（C4 单改、峰值车钩力分解）都要"回头翻归档"，若归档只有峰值与事件计数，就无法事后拆解，只能重跑或拿代理指标猜。
+
+1. **每次仿真归档的 `trajectory.npz` 必须至少包含**：
+   - 每钩断面力（`coupler_interface_force_n`）；
+   - **可分解的原始量**：逐车位置 / 速度 / 空气制动力、机车 ED（力或占比）；
+   - 每列 ED/AB 指令、循环制动相位（制动/保压/缓解）、充风计时与 `new_source_veto` **逐控制步**时序；
+   - 每列速度、列间净空（或可算净空的 `heads` / `tails`）；
+   - 安全层触发原因**分类计数**（`safety_rule_counts`）。
+2. **逐车控制力分量（牵引 / ED / AB）、坡度分力、运行阻力分力必须落盘**（或在归档里保留可精确重算的等价量）；不得只存峰值、均值与事件计数。
+3. **只存峰值与事件计数的归档不足以支撑因果结论，不得作为归因证据**（只允许作对比表的数值来源）。
+4. 覆盖度实测（通道 × 轮次）与最小改动清单见 `docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`「诊断通道覆盖度评估与最小改动清单」；新增字段后一律默认落盘，避免"下次再补"。
+
 ## claim 实验执行规范（2026-09-09 立；2026-10-19 ADR-042 覆盖——claim 改为"相对传统基线的编队指标收益"（无独立消融列），本节协议仍有效，主指标以 `RESEARCH_POSITIONING.md` §1.6 为准）
 
 > **【superseded（2026-09-16，ADR-016 覆盖 ADR-014 的 Regime B 相关部分）→ 【2026-10-16，ADR-037 废止 Regime A 协议】**：本节旧协议（下方第 2 条）随 Regime B（ADR-016）与 Regime A（ADR-037）先后废止。**当前协议（ADR-037，2026-10-16）**：对比不设"逐线重喂 `grade_at`/在线标定 b0"协议——坡度是 MPC 固有输入（图纸天然先于运营存在），所有方法共用同一仿真器、环境与坡度数据、同档调参力度；D-RL 跨线**严格零微调**（公开声明 "MARL no fine-tuning on target line"）；不作"免重辨识成本"叙事（ADR-032）。SSOT = `RESEARCH_POSITIONING.md` §1.5/§1.6 + `DECISIONS.md` ADR-037。下方旧协议文字原样保留，仅作历史。

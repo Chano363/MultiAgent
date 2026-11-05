@@ -115,6 +115,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 - **训练/评估必须落权威 metadata**（强制，见 `docs/rules/EXECUTION_RULES.md`）：训练走统一框架 `run_training.py`（`training_metadata_guard`）或 legacy 入口 `train_fleet` / `train_cyclic_braking`（`save_metadata`+`assert`）；评估用 `build_metadata` 内嵌结果 JSON 并时间戳归档。**不进此路径的结论不认可、不得引用。**
 - **`.codebuddy/mcp.json` 已 gitignore**（含 API key，勿提交）。
 - **产物目录（`outputs/`）规范**：按**产物类型**分组（checkpoints / results / figures / logs / sim_validation / smoke / deprecated），运行目录命名 = **语义前缀_时间戳**（禁裸 `run_<stamp>`）；**禁止脚本往 `outputs/` 根级或任意 cwd 落盘**。全文（含 R1–R6 与迁移表）见 `docs/rules/EXECUTION_RULES.md`「产物目录规范（outputs/ 布局）」。
+- **仿真归档必须含最小诊断通道**（逐车力分量、ED/AB 指令与相位、充风与 `new_source_veto` 时序、列间净空、安全层分类计数）；**只存峰值与事件计数的归档不得作为归因证据**。清单见 `traffic_rl_project/docs/rules/EXECUTION_RULES.md`「诊断通道最小集」。
 
 ## 生图规范（图表 / 曲线）
 
