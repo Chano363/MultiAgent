@@ -67,7 +67,7 @@
 | `VALIDATION_BASELINE.md`          | 验证基准对照（2026-09-01 已拆 V日志/诊断） | active |
 | `logs/decisions/DECISIONS.md`     | 决策记录（ADR，append-only）                                  | active |
 | `logs/progress/PROGRESS_2026-08.md` / `PROGRESS_2026-09.md` / `PROGRESS_2026-10.md` | 阶段二执行流水（按月拆分，append-only；2026-10-12 自 `PROJECT_PIPELINE.md` 迁出，内容零丢失） | active |
-| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` / `DIAGNOSTICS_2026-11.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
 | （ITSC_PAPER.md/.tex/.pdf 已删除） | 论文稿随目标会议更换移除（2026-10-19），重写时新建 | removed |
@@ -86,7 +86,7 @@
 | `rules/EXECUTION_RULES.md`     | 执行规范（原 PIPELINE 七）              |
 | `rules/SERVER_OPS.md`          | **云服务器操作规范**（凭据红线 / 计费铁律 / 规格选择 / s-ep 校准 / 已知坑） |
 | `logs/decisions/DECISIONS.md`  | 决策记录（ADR）                       |
-| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` | 实验/诊断数据（按月 / 体积拆分） |
+| `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` / `DIAGNOSTICS_2026-11.md` | 实验/诊断数据（按月 / 体积拆分） |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分） |
 | `logs/learnings/LEARNINGS.md`  | 踩坑 / 失败教训                        |
 | `logs/README.md`               | 工作日志入口（指向 `.codebuddy/memory/`） |

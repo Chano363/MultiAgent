@@ -64,6 +64,23 @@ class MultiLocoController:
         ed_native_force_conversion: bool = False,
         ed_upgrade_ramp_s: float = 0.0,
         ed_upgrade_ramp_scale: float = 1.0,
+        # C4 (ADR-052 diagnostic): multiply the ED recovery-rate ceiling while the
+        # safety layer vetoes new AB sources. 1.0 = original behaviour.
+        ed_veto_recovery_boost: float = 1.0,
+        # C1 (ADR-053 diagnostic): delay the cyclic release transition by this many
+        # seconds. 0.0 = original behaviour. Fleet may add a per-train stagger.
+        cyclic_release_stagger_s: float = 0.0,
+        # C3 (ADR-053 diagnostic): let the refill gate shorten with the clear gap.
+        gap_aware_refill: bool = False,
+        refill_gap_reference_m: float = 800.0,
+        refill_gap_relax_max_s: float = 0.0,
+        refill_gap_relax_span: float = 1.0,
+        # C5 (ADR-053 diagnostic): follower speed must stay within tollerance of
+        # the formation leader; excess is met by cutting traction then adding ED.
+        follower_speed_conformance: bool = False,
+        speed_conformance_tol_kmh: float = 1.8,
+        speed_conformance_gain: float = 0.20,
+        speed_conformance_max: float = 0.30,
     ):
         self.num_vehicles = num_vehicles
         self.ed_native_force_conversion = bool(ed_native_force_conversion)
@@ -80,6 +97,29 @@ class MultiLocoController:
         self.ed_recovery_rate_per_s = float(ed_recovery_rate_per_s)
         if not np.isfinite(self.ed_recovery_rate_per_s) or self.ed_recovery_rate_per_s < 0:
             raise ValueError('ed_recovery_rate_per_s must be finite and nonnegative')
+        self.ed_veto_recovery_boost = float(ed_veto_recovery_boost)
+        if not np.isfinite(self.ed_veto_recovery_boost) or self.ed_veto_recovery_boost < 1.0:
+            raise ValueError('ed_veto_recovery_boost must be finite and >= 1.0')
+        # C1 / C3 / C5 (ADR-053 diagnostic switches; default values are no-ops).
+        self.cyclic_release_stagger_s = float(cyclic_release_stagger_s)
+        if not np.isfinite(self.cyclic_release_stagger_s) or self.cyclic_release_stagger_s < 0:
+            raise ValueError('cyclic_release_stagger_s must be finite and nonnegative')
+        self.gap_aware_refill = bool(gap_aware_refill)
+        self.refill_gap_reference_m = float(refill_gap_reference_m)
+        self.refill_gap_relax_max_s = float(refill_gap_relax_max_s)
+        self.refill_gap_relax_span = float(refill_gap_relax_span)
+        if self.refill_gap_reference_m <= 0 or self.refill_gap_relax_max_s < 0:
+            raise ValueError('refill gap reference must be positive and relax must be nonnegative')
+        self.follower_speed_conformance = bool(follower_speed_conformance)
+        self.speed_conformance_tol_kmh = float(speed_conformance_tol_kmh)
+        self.speed_conformance_gain = float(speed_conformance_gain)
+        self.speed_conformance_max = float(speed_conformance_max)
+        if (self.speed_conformance_tol_kmh < 0 or self.speed_conformance_gain < 0
+                or self.speed_conformance_max < 0):
+            raise ValueError('speed conformance parameters must be nonnegative')
+        self._release_hold_steps = 0
+        self._last_clear_gap_m = None
+        self._last_leader_speed_kmh = None
         self._previous_ed = None
         if ed_recovery_scope not in ('all', 'coupler'):
             raise ValueError('ed_recovery_scope must be all or coupler')
@@ -299,6 +339,24 @@ class MultiLocoController:
             dyn._electric_braking_forces(nominal))))
         return grade_force - resistance > electric_capacity + 1e-6
 
+    def _refill_gate_s(self) -> float:
+        """C3 (ADR-053 diagnostic): refill gate that shortens with the clear gap.
+
+        The 222 s anchor (ab_min_refill_s) is **never** raised or removed; when the
+        switch is on and the fleet supplies ``formation_clear_gap_m``, the gate may
+        shorten by at most ``refill_gap_relax_max_s`` proportional to the gap excess
+        over ``refill_gap_reference_m`` (capped by ``refill_gap_relax_span``).
+        Defaults (switch off / relax 0 / gap unknown) return the anchor unchanged.
+        """
+        if not self.gap_aware_refill or self.refill_gap_relax_max_s <= 0:
+            return self.ab_min_refill_s
+        gap = self._last_clear_gap_m
+        if gap is None or not np.isfinite(gap):
+            return self.ab_min_refill_s
+        ratio = max(0.0, (gap - self.refill_gap_reference_m) / self.refill_gap_reference_m)
+        ratio = min(ratio, self.refill_gap_relax_span)
+        return max(0.0, self.ab_min_refill_s - self.refill_gap_relax_max_s * ratio)
+
     def _ab_gate(self, i: int, want_on: bool) -> bool:
         """【ADR-021 决策1】AB 充风/保持门控：返回「是否允许这次 AB 状态变更」。
 
@@ -313,7 +371,7 @@ class MultiLocoController:
         (Δstep*dt >= 0) 恒真 ⇒ 零回归（行为与改造前一致）。
         """
         if want_on and not self._ab_on[i]:
-            if (self._ab_step - self._ab_last_release_step[i]) * self.dt >= self.ab_min_refill_s:
+            if (self._ab_step - self._ab_last_release_step[i]) * self.dt >= self._refill_gate_s():
                 return True
             self.ab_refill_veto_count += 1
             return False
@@ -407,10 +465,26 @@ class MultiLocoController:
 
         formation_ceiling = min(v_max, v_max + v_max_adj)
         was_braking = self._cyclic_braking
+        # C1 (ADR-053 diagnostic, default 0 s = no-op): hold the release transition
+        # for the staggered delay so followers keep braking while the leader's
+        # release wave is still travelling backwards.
+        release_delay_s = self.cyclic_release_stagger_s + float(
+            getattr(train_env, 'formation_release_delay_s', 0.0) or 0.0)
+        release_delay_steps = (int(round(release_delay_s / self.dt))
+                               if release_delay_s > 0 else 0)
         if vel >= trigger_mps or max_vel >= formation_ceiling:
             self._cyclic_braking = True
+            self._release_hold_steps = 0
         elif vel <= release_mps and max_vel <= release_ceiling:
-            self._cyclic_braking = False
+            if release_delay_steps:
+                self._release_hold_steps += 1
+                if self._release_hold_steps >= release_delay_steps:
+                    self._cyclic_braking = False
+            else:
+                self._cyclic_braking = False
+        else:
+            self._release_hold_steps = 0
+        # 【ADR-053 C1】延迟期内保持原制动指令（cyclic 仍为 True），不额外放宽任何门限。
         # 【表3】制动→缓解转换时刻进入"抬 ED 保持"窗口（ed_release_coordination 开启才生效）
         if self.ed_release_coordination and was_braking and not self._cyclic_braking:
             self._ed_hold_steps = int(round(self.ed_release_hold_s / self.dt))
@@ -719,6 +793,29 @@ class MultiLocoController:
                 final[:, 0] = np.where(self._ed_recovery_pending, limited, final[:, 0])
             else:
                 final[:, 0] = limited
+        # C4 (ADR-052 diagnostic, default 1.0 = bit-identical): while the safety
+        # layer vetoes new AB sources, let ED rise toward its own ceiling (capped
+        # at 1.0). AB admission, refill gate and the coupler safety layer are
+        # untouched; ED is not an AB source, so no AB constraint is bypassed.
+        if self.ed_veto_recovery_boost > 1.0 and ab_add_vetoed:
+            final[:, 0] = np.minimum(final[:, 0] * self.ed_veto_recovery_boost, 1.0)
+        # C5 (ADR-053 diagnostic, default off): keep the follower within
+        # |v_self − v_leader| <= tol. Excess closes traction first, then adds ED,
+        # capped at the existing ED authority; AB admission / refill gate / coupler
+        # safety layer keep final authority (no bypass).
+        if self.follower_speed_conformance:
+            leader_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
+            if leader_kmh is not None and np.isfinite(leader_kmh):
+                excess_kmh = (float(train_env.dynamics.vel[0]) * 3.6
+                              - (float(leader_kmh) + self.speed_conformance_tol_kmh))
+                if excess_kmh > 0:
+                    final[:, 0] = np.minimum(final[:, 0], 0.0)   # 先收回牵引
+                    delta = min(self.speed_conformance_gain * excess_kmh,
+                                self.speed_conformance_max)
+                    final[:, 0] = np.maximum(final[:, 0] - delta, -1.0)
+        # 【ADR-053 C3】把本步的编队净空/领航速度缓存给门控与日志；缺失即 None（零回归）。
+        self._last_clear_gap_m = getattr(train_env, 'formation_clear_gap_m', None)
+        self._last_leader_speed_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
         self._previous_ed = final[:, 0].copy()
         # Do not move an established AB source across notch boundaries in
         # response to instantaneous coupler force. Keep the discrete request;

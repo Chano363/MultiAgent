@@ -204,6 +204,9 @@ class TrainFleetEnv:
         # ⚠️ 键须位于 env_cfg 下，否则 config.get 静默回退默认值（YAML .get 路径须严格匹配）。
         self.ab_min_refill_s = config.get('ab_min_refill_s', 222.0)
         self.ab_min_hold_s = config.get('ab_min_hold_s', 0.0)
+        # 【ADR-053 C1 诊断】按列序递增的缓解延迟（秒/列）；0 = 关闭（零回归）。
+        self.cyclic_release_stagger_per_train_s = float(
+            config.get('cyclic_release_stagger_per_train_s', 0.0))
         # 【2026-10-14 朔黄运营口径标定（表3）+ ADR-036 门限落地，全默认关/None=旧行为】
         self.cyclic_notch_50 = bool(config.get('cyclic_notch_50', False))
         self.cyclic_brake_trigger_kmh = config.get('cyclic_brake_trigger_kmh', None)
@@ -383,6 +386,20 @@ class TrainFleetEnv:
                     ab_min_hold_s=self.ab_min_hold_s,
                     ed_grade_feedforward=bool(config.get('ed_grade_feedforward', False)),
                     ed_prelimit=bool(config.get('ed_prelimit', False)),
+                    # C4 (ADR-052 diagnostic; 1.0 = default, zero regression)
+                    ed_veto_recovery_boost=float(config.get('ed_veto_recovery_boost', 1.0)),
+                    # C1 / C3 / C5 (ADR-053 diagnostic switches; defaults are no-ops)
+                    cyclic_release_stagger_s=float(config.get('cyclic_release_stagger_s', 0.0)),
+                    gap_aware_refill=bool(config.get('gap_aware_refill', False)),
+                    refill_gap_reference_m=float(config.get('refill_gap_reference_m', 800.0)),
+                    refill_gap_relax_max_s=float(config.get('refill_gap_relax_max_s', 0.0)),
+                    refill_gap_relax_span=float(config.get('refill_gap_relax_span', 1.0)),
+                    follower_speed_conformance=bool(
+                        config.get('follower_speed_conformance', False)),
+                    speed_conformance_tol_kmh=float(
+                        config.get('speed_conformance_tol_kmh', 1.8)),
+                    speed_conformance_gain=float(config.get('speed_conformance_gain', 0.20)),
+                    speed_conformance_max=float(config.get('speed_conformance_max', 0.30)),
                     # 【2026-10-14 朔黄表3 运营口径标定，全默认关=旧行为】
                     cyclic_notch_50=self.cyclic_notch_50,
                     cyclic_brake_trigger_kmh=self.cyclic_brake_trigger_kmh,
@@ -839,6 +856,11 @@ class TrainFleetEnv:
             if i > 0:
                 leading_tail = float(self.trains[i - 1].dynamics.pos[-1])
                 lead_speed = float(self.trains[i - 1].dynamics.vel[0])
+                # 【ADR-053 C3/C5 诊断】把编队净空与领航速度暴露给该列控制器；
+                # 开关关闭时控制器不读取（getattr 默认 None），零回归。
+                tr.formation_clear_gap_m = leading_tail - float(tr.dynamics.pos[0])
+                tr.formation_leader_speed_kmh = lead_speed * 3.6
+                tr.formation_release_delay_s = self.cyclic_release_stagger_per_train_s * i
                 tr.set_etcs_targets([EbdTarget(
                     position_m=leading_tail, speed_mps=lead_speed, kind='gap',
                 )])

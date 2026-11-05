@@ -965,3 +965,123 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
   - 三列 70 km/h 全程（本 ADR 工况）：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_production_subcycle_70kmh_full_20261104/run/result.json` —— 在 t=103.5 s、行进 1.77 km 处车钩峰值 **1005.11 kN** 越 1000 kN 触发诊断早停，`full_route_completed=false`；超速列车步进 0，`negative_gap_steps=0`，未收敛子步 0。数值侧健康（残差 6.78e-6 m、平均迭代 1.0），**越线属规则层策略/工况问题而非求解器数值问题**。
   - 对照旧 80 km/h 冷起点（未做起点规范）：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet_production_edramp02_80kmh_full_20261104/run/result.json` —— t=301.5 s、5.91 km 处峰值 1007.99 kN 早停，safety_events 329（含初始 3×109 辆超速判定）。
 - **相关**：ADR-039（三列 1+0 研究对象）、ADR-040（1000 kN 验收）、ADR-048（求解器口径）、ADR-017（训练/评估时域）。
+
+### ADR-049 补充（方案 2：加大初始列距）- 2026-11-05
+
+- **状态**：已实施（实验入口），不改运行期 `target_gap`。
+- **依据（事实）**：用环境同源 ETCS 曲线（`src/train_dynamics/etcs_braking.py`，减速度速度档 40/60/80 km/h = 0.426/0.401/0.382 m/s²、制动建立时间 = 车列长 1297 m ÷ 250 m/s ≈ 5.19 s、最陡下坡 −12‰）计算：70 km/h 在起点 km2.8 处的 EBD 制动距离 **693 m**（ADR-026 效率口径 1.1× = **763 m**）；80 km/h 为 912 m（1.1× = 1003 m）。旧的初始车头—车尾间距 100 m 仅为该值的 14%，故 `min_gap` 监督从第 1 秒起持续触发。
+- **改动**：初始列距由 100 m 加大到 **700 m**（每对 +600 m，`--gap-offset-m 600`），取"≥ d_safe 的最小整百值"；编队初始总长变为 2×(1297+700) = **3994 m**，起点整体前移量相应由 2800 m 改为 **4000 m**，保证尾列车头 ≥ km0。
+- **影响**：
+  1. 只改**初始条件**，运行期目标列距（`target_gap`/headway 动态间距）不变，编队控制目标与论文"安全列距"叙事不变。
+  2. 初始相位与旧归档不同，峰值与安全事件数不可与 100 m 初始间距的归档直接比；新结果另立目录。
+  3. 领航列起点随之前移到 km4.0，实际覆盖 km4.0→49.6（46.6 km），论文口径须注明。
+- **待验证**：新工况三列全程零 RL 的 `route_completed`、峰值、均速与安全事件分类计数（overspeed / etcs / min_gap）。
+- **全程基线（不早停，2026-11-05）**：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_production_subcycle_70kmh_full_unstopped_20261104/run/result.json` —— `full_route_completed=true`、均速 58.2 km/h、`max_vehicle_speed_kmh=80.86`、0 未收敛（378 万机械子步、残差 7.5e-6 m）。**有效路段（领航列 ≤ 49.6 km）峰值 1288.5 kN**（t=1846.7 s、km33.6、中列第 47 号车钩）；三列有效峰值 916.5 / 1288.5 / 1228.3 kN。全程记录峰值 1479.8 kN 出现在 km50.1，**已越出剖面终点、不作数**。安全事件分类（按车·步计）：overspeed 16634 / etcs_permitted 7339 / etcs_ebi 3695 / coupler_force_limit 14 / min_gap 0。⇒ 加大初始间距只解决起步段，**中后段循环制动压缩波才是主峰**。
+- **复现（规划）**：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_gap700_production_70kmh_full_20261105/`。
+
+### ADR-049 补充修订（初始净空口径 800 m，2026-11-05）
+
+- **口径定义（事实，代码依据）**：`--gap-offset-m X` 加在"动态基准间距"上（`src/environments/train_fleet_env.py` L142-147：`target_gap 100 m` + `headway_s 5.0 s × target_speed`；本工况实测基准 **185.27 m**）。该量是**前车最后一节车与后车第一节车之间的净空**；绝对净空 = 185.27 + X；车头—车头间距 = 列车计算长度 1294.06 m + 绝对净空。
+- **取值修订（推导链，事实）**：70 km/h 的 EBD 制动距离 **693 m** → 项目 1.1× 效率口径 **763 m** → 决策取整为**净空下限 800 m**（800/763 = 1.049，余量 37 m ≈ 4.9%）。700 m 仅为 763 m 的 91.7%，属"刚好刹住、无余量"。严格 800 m 对应 `X = 615`（800.3 m）；本轮取 `X = 700` ⇒ **绝对净空 885.27 m**（763 m 的 1.160 倍，较 800 m 下限多 85 m ≈ 11%）。
+- **自洽性（事实）**：编队总长 = 2 × (1294.06 + 885.27) = **4358.7 m**；`--start-m 4450` ⇒ 尾列车头 = 4450 − 4358.7 = **+91.3 m ≥ km0**；与重跑 `step=1` 的领航车头 4451.9 m 一致。
+- **裁定（用户选项 2：口径差异，不是参数取错）**：净空 885 m 同时满足 ≥763 m（1.1×）与 ≥800 m（决策下限），**本重跑可直接作为主结果**；引用时必须写"初始净空 885 m（`--gap-offset-m 700`）"，**不得写"800 m"**，也不得出现"800 目标 / 885 实测"式含混表述。
+
+- **状态**：已实施（实验入口）。700 m 轮**保留为对照记录**，不删除、不覆盖。
+- **700 m 轮结果（事实，对照）**：`traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_gap700_production_70kmh_full_20261105/run/result.json`
+  - `full_route_completed=true`、`elapsed_s=3137.0`、均速 57.78 km/h、`max_vehicle_speed_kmh=80.63`；0 未收敛（376 万机械子步、最大位移残差 7.60e-6 m、平均迭代 1.0）；墙钟 2456.5 s（0.0783 s/控制步）。
+  - 有效路段峰值 **1236.0 kN**（t=1778.4 s、33.01 km、中列第 44 号断面）；三列 922.0 / 1236.0 / 1147.4 kN；>1000 kN 记录 1100 行；记录峰值 1425.0 kN 在 km50.2 越出剖面终点，不作数。
+  - 安全事件（车·步计）：coupler_force_limit 1296 / min_gap 0 / overspeed 14185 / etcs_ebi 3457 / etcs_permitted 6403。
+  - **口径缺陷（事实，须更正上节措辞）**：`--gap-offset-m 600` 的实际初始车头—车尾净距为 **785 m**（基础间距 185 m + 偏移 600 m），而非上节所写的"700 m"；起点 4000 m 小于实际编队总长 ≈4165 m，尾列车头 t=0 位于 −158.7 m（越出 km0），与 ADR-049 决策 1 的"跟随列车车头 ≥ km0"硬约束不符。
+- **编号口径更正**：上节"中列第 47 号车钩"是数组下标（0-based），1-based 应为**第 48 个断面**；本轮溯源统一按 1-based 书写。
+- **影响**：只改初始条件；运行期 `target_gap` 不变；覆盖 km4.45→49.6（45.15 km），论文口径须注明；与 185 m / 785 m 初始净空归档不可直接比。
+- **有效范围（事实 + 推断）**：初始净空 185.3 m → 起步段峰值 1254.5 kN、主峰 1288.5 kN；净空 785.3 m → 主峰 1236.0 kN。**间距只影响起步段，主峰仅降 ~4%（1288.5→1236.0），不构成对主峰的修复**；主峰机制见 `docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`「主峰相位溯源-2026-11-05」。
+- **两轮角色（用户决定 2026-11-05）**：
+  - **主结果 = 净空 800.3 m**：`--gap-offset-m 615`，编队总长 2×(1294.06+800.3)=**4188.7 m**，`--start-m 4290`（尾列车头 +101.3 m ≥ km0），目录 `traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_gap800_strict_production_70kmh_full_20261105/`。
+  - **对照 = 净空 885.3 m**：`--gap-offset-m 700`，`--start-m 4450`，目录 `traffic_rl_project/outputs/sim_validation/phys_validation/fleet3_gap800_production_70kmh_full_rerun_20261105/`（已跑完/在跑）。
+  - 主结果引用写"初始净空 800 m（`--gap-offset-m 615`）"；对照写"初始净空 885 m（`--gap-offset-m 700`）"。被中断的首轮目录已标 `ABORTED_BY_INTERRUPTION.txt`，不作结果引用。
+- **885 m 对照轮结果（事实，2026-11-05）**：`full_route_completed`（31392 控制步、elapsed 3139.2 s）、均速 57.34 km/h、`max_vehicle_speed_kmh=80.28`、0 未收敛（376.7 万机械子步、残差 7.46e-6 m、平均迭代 1.0、0.0781 s/控制步）；**有效峰值 1255.2 kN**（t=1328.8 s、26.65 km、中列第 39 断面）；三列 1054.0 / 1255.2 / 1250.9 kN；>1000 kN 记录 820 行；安全事件（车·步）coupler 569 / min_gap 0 / overspeed 17257 / etcs_ebi 3742 / etcs_permitted 5477；`min_gap_m=78.8`、`negative_gap_steps=0`。
+  - 峰值时刻四元组：ED −725.3 / −557.8 / −276.5 kN；AB RELEASE / EMERGENCY / RELEASE；循环相位 False / True / False；速度 40.5 / 52.7 / 44.5 km/h（与 100 m 轮 t=1846.7 s 的机制不同，主峰仍 >1000 kN）。
+  - 病灶统计（与 100 m 轮基线同口径）：中列 veto 行占比 **36.57%**；被否决时段均值 **792.2 kN** / p95 **1053.1** / >1000 占比 **6.63%**（基线 792.8 / 1038.4 / 6.34%）。
+
+## ADR-050【草案·未生效】训练方案口径调整 - 2026-11-05
+
+> ⚠️ **状态：草案，未生效，待用户确认**。本 ADR 不修改 `configs/experiments/*.yaml`，不改变任何正在运行的配置。仅为把文献口径整理成可评审方案。
+
+- **提案（文献口径）**：
+  1. 决策步 = **1 s**（0.1 s 仿真步 × frame skip 10）。现行 `decision_interval: 10` 与 `dt: 0.1` 已等价，**此项无需改代码**，只是把"步"的计数单位统一到决策步。
+  2. 每集 = **3600 决策步**（= 3600 s 全剖面）。折合 env 步 = 36000，与现行 `max_steps: 36000` **数值相同**。
+  3. 课程：**600 s → 1800 s → 3600 s**（三档递进）。现行 `curriculum: 36000:0` = 从第 0 集起直接全剖面，**无课程**。
+  4. BC 热启动 **200–500 集，且必须为全长集（每集 3600 s）**；不采用"课程短集做 BC"的折中。现行 `bc_episodes: 1` / `bc_max_steps: 36000`。
+  5. 总环境步数目标 **1–3×10⁷**。现行 1400 集 × 36000 = **5.04×10⁷**，约为上限的 1.7–5 倍。
+  6. 并行 **8–32 环境**。现行 `n_env: 4`（`n_env_parallel: true`）。
+- **逐项对照**：
+
+  | 项 | 现行生效（`configs/experiments/formation_ed_ab_3train_1plus108.yaml`） | 草案提案 | 是否需改 YAML |
+  |---|---|---|---|
+  | 每集 horizon | `max_steps: 36000` env 步 = 3600 s | 3600 决策步 = 3600 s | 值不变，语义统一 |
+  | 课程 | `curriculum: 36000:0`（无课程） | 600→1800→3600 s 三档 | 需改 |
+  | 集数 | `episodes: 1400`（总 5.04×10⁷ env 步） | 按 1–3×10⁷ 反推 ≈ 278–833 集 | 需改 |
+  | BC | 1 集 × 36000 步 | 200–500 **全长集**（每集 3600 s） | 需改（且须等规则层验收） |
+  | 并行 | `n_env: 4` | 8–32 | 需改（受本机核数/显存约束） |
+  | 评估间隔 | `long_eval_interval: 0`（关闭） | 未提议变更；若恢复课程则须重新开启 | 待定 |
+- **影响清单（推断，须逐条验证）**：
+  1. **已有 checkpoint 全部不等价**：ADR-048 已改变源码哈希与数值口径，若再叠加课程与集数变化，`outputs/checkpoints/formation_10kt_1plus108/fullprof_20261021/` 只能作"链路跑通"证据，不能作效果基线。
+  2. **归档可比性**：集数从 1400 降到 ~280–830 后，"训练量"维度与旧归档不可比；任何论文中的"训练步数/样本量"叙述须重写。
+  3. **BC 合法性前置条件**：BC 教师来自规则基线零调制行为，规则层三列主工况尚未通过（见 ADR-049）→ BC 200–500 集在本 ADR 生效前**不具备合法性**，必须等 `route_completed` 达标。
+  4. **论文设定**：课程 600 s 起步会改变早期训练场景覆盖，若论文声称"全程 49.6 km 训练"须注明课程分档；并行 8–32 与"单机训练"叙述可能冲突。
+  5. **算力**：现行实测 ≈0.095 s/env 步（3 列）→ 1×10⁷ 步 ≈ 264 单核小时；8–32 并行需实机核数与内存评估。
+- **不改动项**：奖励 schema（v6）、动作空间、观测维度、求解器口径均不变。
+- **相关**：ADR-017（1400 集硬要求与短窗训练/独立评估）、ADR-048（求解器）、ADR-049（工况与起点）。
+
+## ADR-051【草案·未生效】奖励速度带规格（贴近允许速度） - 2026-11-05
+
+> ⚠️ **状态：草案，未生效**。**用户决定（2026-11-05）：暂不启用**；保持 `speed_band_mode: fixed`（项目当前无该字段，等价于 fixed），不改生效权重、不改观测。草案仅留档备查，后续不再主动建议启用。
+
+- **现状（事实）**：`src/environments/train_fleet_env.py` L1151-1152 令 `v_center = 0.5*(v_min+v_max)`（=60 km/h）、`band_half = 0.5*(v_max-v_min)`（=±20 km/h），中心与半宽来自 YAML 固定 `v_min/v_max`，**不随 ETCS 允许速度变化**；带内平顶 +5（L1159-1161，无梯度），带外 `-0.2*(norm_dev-1)*100`（L1163），越 `v_max` 另加硬罚（L1166-1167）。规则层循环制动门 65/50 km/h（YAML L60-61）把运行窗口压在 50–65，故实测稳在 60。
+- **规格（字段级 diff）**：
+
+  | 字段 | 现行 | 提案 | 说明 |
+  |---|---|---|---|
+  | `v_top` | `v_max`（固定 22.222 m/s） | `min(v_max, v_etcs_permitted(t) − 制动距离余量)` | 上缘随 ETCS 允许速度动态变化 |
+  | `v_bot` | `v_min`（固定 11.111 m/s） | 不变 | 下限仍按文献/规则 |
+  | 带内奖励 | 常数 `+5` | `+5 * clip((v - v_bot)/(v_top - v_bot), 0, 1)`（或指数形式） | 越接近上缘正奖越多；保留 Zhang2024 式22 的 +5 量级 |
+  | 带外（高于上缘） | `-0.2*(norm_dev-1)*100` + `-5*(v-v_max)` | `-c_lin*(v - v_top)` 连续负奖 + `-c_hard` 硬罚 | 连续项给梯度，硬罚抑制持续越线 |
+  | 观测 | 速度误差锚固定 `target_speed`（L141/L919） | 建议同步改为 `v - v_top` | 否则策略看不到上缘变化 |
+  | 开关 | 无 | 新增配置 `speed_band_mode: fixed \| etcs_top`，默认 `fixed`（零回归） | 可开关 |
+- **需标定参数**：`margin_brake_m`（制动距离余量，建议初值 100–200 m，按 70 km/h d_safe≈693 m 的 15–30%取）、带内增益形式与斜率、`c_lin`、`c_hard`、是否指数衰减及其尺度。
+- **风险（推断）**：上缘贴近允许速度会压缩速度裕度，在物理缺口工况（满 ED 547 kN < 80 km/h 需求 903 kN）下可能诱发更频繁的 AB 循环与更高车钩峰值；须与 ADR-049 的工况验收一起评估。
+- **相关**：ADR-043（v6 奖励槽位与 +5 依据）、ADR-026（间距效率与 ATP 同源）、ADR-049（工况）。
+
+## ADR-052 规则层诊断开关：否决期 ED 回升放大（C4）- 2026-11-05
+
+- **状态**：已实施（**诊断开关，默认关闭**；`ed_veto_recovery_boost=1.0` 与原行为逐位一致）。
+- **背景**：主峰溯源（`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`「主峰相位溯源-2026-11-05」）显示 t=1846.7 s 峰值时刻中列 `new_source_veto=True`、ED 仅输出约 72%（−393 kN / 额定 −547 kN），中列同时没有可用新增 AB 源，是主峰的直接放大器之一。
+- **选项与权衡**：
+  - A. 取消 ED 回升速率限制 → 可能生成新的纵向冲量（ADR-021 引入限制的初衷），风险高；
+  - B. **否决期内把 ED 回升上限放大到 2×，仍封顶 1.0 并受车钩安全层约束（选用）**；
+  - C. 不动 → 保留已定位病灶。
+- **结论**：选 B。ED 不是空气制动源，**不触发** `ab_new_source_veto` 与 222 s 充风门；AB 准入、充风门、`enforce_coupler` 全部不变。
+- **实现**：`src/controllers/multi_loco_controller.py` 新增构造参数 `ed_veto_recovery_boost`（默认 1.0，`>=1.0` 校验）；在 ED 回升限幅之后、`_previous_ed` 记录之前执行：`if boost>1.0 and ab_add_vetoed: final[:,0] = min(final[:,0]*boost, 1.0)`。`src/environments/train_fleet_env.py` 读取 env 键同名（默认 1.0）；诊断入口通过 `--override ed_veto_recovery_boost=2.0` 启用。
+- **后果 / 验证口径**：单改、全程（`route_completed` + 有效峰值 <1000 kN + 峰值前后 30 s 的相位差/速度离散改善）；**必须同时报**中列 `new_source_veto` 行占比、被否决时段车钩均值/p95，与 B 基线 **792.8 / 1038.4 / 6.34%** 对比；若峰值下降但峰位迁移，须报迁移到的列车与车钩号。
+- **风险（推断）**：① ED 抬升会改变中部机车前部压缩/后部拉伸，峰位可能迁移；② 逼近车钩硬限时安全层硬裁可能产生限幅抖动；③ 若无效则按"记录后放弃"处理。
+- **口径更正（2026-11-05，事实）**：上条"72% = −393/−547 kN"的**分母错**。885 m 对照轮峰值时刻领航列 ED 实测 **−725.3 kN**，说明单列 ED 权限上限高于 −547 kN；B 峰值时刻中列 −393 kN 应按实测权限表述（约 54%），**"否决期 ED 未打满"的机制判断不变**，C4 实现不受影响。
+- **相关**：ADR-021（ED 回升限制）、ADR-036（车钩档位）、ADR-049（工况）、`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`。
+
+## ADR-053 规则层诊断开关：C1 缓解错峰 / C3 充风判据纳入列距 / C5 速度协整 - 2026-11-05
+
+- **状态**：已实施（**三个诊断开关，默认全关 = 零回归**）；尚未跑验证。
+- **背景**：B 溯源给出主峰三因素（相位差 118.9 s、否决/充风差 0.5 s、速度离散 8.5 km/h）。C4 已落（ADR-052），C1/C3/C5 对应另外三环。
+- **实现位置与默认值**：
+
+| 项 | 开关键（env_cfg） | 默认 | 参数 | 作用点 |
+|---|---|---|---|---|
+| C1 缓解错峰 | `cyclic_release_stagger_per_train_s` / 控制器 `cyclic_release_stagger_s` | `0.0` | 每列递增延迟（s/列）+ 全局附加延迟（s） | `multi_loco_controller.py` 循环制动释放跃迁处：速度达缓解门后**保持制动** `delay/dt` 步 |
+| C3 充风判据纳入列距 | `gap_aware_refill` + `refill_gap_reference_m` / `refill_gap_relax_max_s` / `refill_gap_relax_span` | `False` / `800.0` / `0.0` / `1.0` | 净空超出参考值的比例 → 门限最多缩短 `refill_gap_relax_max_s` | `_refill_gate_s()`，`_ab_gate` 使用；**222 s 锚不动**（只会因净空富余而缩短，不会加长/取消） |
+| C5 速度协整 | `follower_speed_conformance` + `speed_conformance_tol_kmh` / `gain` / `max` | `False` / `1.8` / `0.20` / `0.30` | 容差、每 km/h 超差的 ED 增量、单步 ED 增量上限 | `_step_decomposed` 收尾：`|v_self−v_lead|>tol` 时先收牵引、再按增量加 ED，封顶 −1.0 |
+
+- **C5 容差依据（事实）**：`AB_SUPPRESS_MARGIN_MPS = 0.5 m/s = 1.8 km/h`（控制器现有缓解抑制裕度），故默认容差取 1.8 km/h，不另造数。
+- **编队接口（事实）**：`train_fleet_env.py` 在每步给跟随列设置 `formation_clear_gap_m`（前车尾−本车头）、`formation_leader_speed_kmh`、`formation_release_delay_s`；开关关闭时控制器不读取（`getattr` 缺省 None），行为逐位不变。
+- **不触碰的约束（事实）**：AB 禁新增源、222 s 充风基值、`enforce_coupler`、ETCS/ATP 全部保留最终裁量；C3 只允许"净空富余时提前缓解"，不放宽安全上限。
+- **验证口径**：单改、全程；`route_completed` + 有效峰值 <1000 kN + 峰值前后 30 s 相位/速度离散改善；每项都要报峰值时刻三列 ED/AB/相位/速度四元组，与 B 基线（t=1846.7 s：领航 ED −543/AB RELEASE、中列 ED −393/AB SERVICE/veto、尾列 62.6 km/h）对照。
+- **风险（推断）**：C1 延迟缓解可能抬高整体温度/车速（缓解滞后→制动更久→速度更低，需看是否触发 overspeed/低速）；C3 提前缓解可能增加低充风下的二次压缩；C5 强制速度跟随可能把压缩转移到尾列或前部。
+- **相关**：ADR-021、ADR-036、ADR-049、ADR-052、`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`。

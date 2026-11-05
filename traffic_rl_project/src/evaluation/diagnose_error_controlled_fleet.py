@@ -46,6 +46,8 @@ def main():
     parser.add_argument('--start-m', type=float, default=0.0,
                         help='Shift the whole formation forward along the route '
                              '(ADR-049: keep follower heads inside ETCS coverage)')
+    parser.add_argument('--gap-offset-m', type=float, default=0.0,
+                        help='Additional initial gap per adjacent train pair (ADR-049 addendum)')
     parser.add_argument('--stop-on-coupler-kn', type=float, default=1000.0,
                         help='Diagnostic early-stop threshold; 0 disables the stop '
                              'to observe the full-route peak')
@@ -57,6 +59,8 @@ def main():
     parser.add_argument('--error-scale', type=float, default=1.)
     parser.add_argument('--save-fleet-state', action='store_true')
     parser.add_argument('--release-budget-guard', action='store_true')
+    parser.add_argument('--override', action='append', default=[], metavar='KEY=VALUE',
+                        help='Env-config override forwarded to the diagnostic entry')
     args = parser.parse_args()
     if args.steps < 3:
         parser.error('At least three control steps required')
@@ -112,6 +116,10 @@ def main():
             sys.argv += ['--finish-m', str(args.finish_m)]
         if args.start_m:
             sys.argv += ['--start-m', str(args.start_m)]
+        if args.gap_offset_m:
+            sys.argv += ['--gap-offset-m', str(args.gap_offset_m)]
+        for item in args.override:
+            sys.argv += ['--override', item]
         guard = nullcontext()
         if args.release_budget_guard:
             from src.evaluation.release_budget_guard import candidate as release_candidate
