@@ -81,6 +81,14 @@ class MultiLocoController:
         speed_conformance_tol_kmh: float = 1.8,
         speed_conformance_gain: float = 0.20,
         speed_conformance_max: float = 0.30,
+        # C6 (ADR-054 diagnostic): when trains behind are braking (AB applied or
+        # ED near zero) hold a minimum ED floor on this (leading) train for a
+        # bounded window. Default off = no-op.
+        leader_brake_feedforward: bool = False,
+        leader_brake_ff_hold_s: float = 2.0,
+        leader_brake_ff_duration_s: float = 10.0,
+        leader_brake_ff_ed_low_frac: float = 0.20,
+        leader_brake_ff_ed_floor_frac: float = 0.25,
     ):
         self.num_vehicles = num_vehicles
         self.ed_native_force_conversion = bool(ed_native_force_conversion)
@@ -120,6 +128,17 @@ class MultiLocoController:
         self._release_hold_steps = 0
         self._last_clear_gap_m = None
         self._last_leader_speed_kmh = None
+        # C6 (ADR-054 diagnostic): bounded leading-train ED floor.
+        self.leader_brake_feedforward = bool(leader_brake_feedforward)
+        self.leader_brake_ff_hold_s = float(leader_brake_ff_hold_s)
+        self.leader_brake_ff_duration_s = float(leader_brake_ff_duration_s)
+        self.leader_brake_ff_ed_low_frac = float(leader_brake_ff_ed_low_frac)
+        self.leader_brake_ff_ed_floor_frac = float(leader_brake_ff_ed_floor_frac)
+        if (self.leader_brake_ff_hold_s < 0 or self.leader_brake_ff_duration_s < 0
+                or not 0 <= self.leader_brake_ff_ed_floor_frac <= 1.0):
+            raise ValueError('leader-brake feedforward parameters out of range')
+        self._ff_hold_steps = 0
+        self._ff_active_steps = 0
         self._previous_ed = None
         if ed_recovery_scope not in ('all', 'coupler'):
             raise ValueError('ed_recovery_scope must be all or coupler')
@@ -813,7 +832,25 @@ class MultiLocoController:
                     delta = min(self.speed_conformance_gain * excess_kmh,
                                 self.speed_conformance_max)
                     final[:, 0] = np.maximum(final[:, 0] - delta, -1.0)
-        # 【ADR-053 C3】把本步的编队净空/领航速度缓存给门控与日志；缺失即 None（零回归）。
+        # C6 (ADR-054 diagnostic, default off): while trains behind are braking
+        # (AB applied) or coasting with near-zero ED, hold a bounded minimum ED
+        # floor on this leading train so it does not free-wheel ahead of a
+        # braking rear formation. ED only; AB admission / refill gate / coupler
+        # safety layer keep final authority.
+        if self.leader_brake_feedforward:
+            rear_braking = bool(getattr(train_env, 'formation_rear_braking', False))
+            rear_ed = getattr(train_env, 'formation_rear_ed_frac', None)
+            trigger = rear_braking or (
+                rear_ed is not None and float(rear_ed) < self.leader_brake_ff_ed_low_frac)
+            self._ff_hold_steps = self._ff_hold_steps + 1 if trigger else 0
+            hold_steps = int(round(self.leader_brake_ff_hold_s / self.dt))
+            if hold_steps == 0 or self._ff_hold_steps >= hold_steps:
+                self._ff_active_steps = int(round(
+                    self.leader_brake_ff_duration_s / self.dt))
+            if self._ff_active_steps > 0:
+                final[:, 0] = np.maximum(
+                    np.minimum(final[:, 0], -self.leader_brake_ff_ed_floor_frac), -1.0)
+                self._ff_active_steps -= 1
         self._last_clear_gap_m = getattr(train_env, 'formation_clear_gap_m', None)
         self._last_leader_speed_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
         self._previous_ed = final[:, 0].copy()

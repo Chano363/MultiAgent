@@ -207,6 +207,9 @@ class TrainFleetEnv:
         # 【ADR-053 C1 诊断】按列序递增的缓解延迟（秒/列）；0 = 关闭（零回归）。
         self.cyclic_release_stagger_per_train_s = float(
             config.get('cyclic_release_stagger_per_train_s', 0.0))
+        # 【ADR-054 C6 诊断】生效列范围：immediate=仅紧邻前方一列；all=前方所有列。
+        self.leader_brake_feedforward = bool(config.get('leader_brake_feedforward', False))
+        self.leader_brake_ff_scope = str(config.get('leader_brake_ff_scope', 'immediate'))
         # 【2026-10-14 朔黄运营口径标定（表3）+ ADR-036 门限落地，全默认关/None=旧行为】
         self.cyclic_notch_50 = bool(config.get('cyclic_notch_50', False))
         self.cyclic_brake_trigger_kmh = config.get('cyclic_brake_trigger_kmh', None)
@@ -400,6 +403,16 @@ class TrainFleetEnv:
                         config.get('speed_conformance_tol_kmh', 1.8)),
                     speed_conformance_gain=float(config.get('speed_conformance_gain', 0.20)),
                     speed_conformance_max=float(config.get('speed_conformance_max', 0.30)),
+                    # C6 (ADR-054 diagnostic; defaults off = no-op)
+                    leader_brake_feedforward=bool(
+                        config.get('leader_brake_feedforward', False)),
+                    leader_brake_ff_hold_s=float(config.get('leader_brake_ff_hold_s', 2.0)),
+                    leader_brake_ff_duration_s=float(
+                        config.get('leader_brake_ff_duration_s', 10.0)),
+                    leader_brake_ff_ed_low_frac=float(
+                        config.get('leader_brake_ff_ed_low_frac', 0.20)),
+                    leader_brake_ff_ed_floor_frac=float(
+                        config.get('leader_brake_ff_ed_floor_frac', 0.25)),
                     # 【2026-10-14 朔黄表3 运营口径标定，全默认关=旧行为】
                     cyclic_notch_50=self.cyclic_notch_50,
                     cyclic_brake_trigger_kmh=self.cyclic_brake_trigger_kmh,
@@ -864,6 +877,25 @@ class TrainFleetEnv:
                 tr.set_etcs_targets([EbdTarget(
                     position_m=leading_tail, speed_mps=lead_speed, kind='gap',
                 )])
+            if (self.leader_brake_feedforward and self.multi_loco_controllers is not None
+                    and i + 1 < len(self.trains)):
+                js = (range(i + 1, len(self.trains)) if self.leader_brake_ff_scope == 'all'
+                      else (i + 1,))
+                rear_braking = False
+                rear_ed_frac = 1.0
+                for j in js:
+                    c = self.multi_loco_controllers[j]
+                    ab_on = getattr(c, '_ab_on', None)
+                    if ab_on is not None and np.any(np.asarray(ab_on)):
+                        rear_braking = True
+                    prev = getattr(c, '_previous_ed', None)
+                    if prev is not None:
+                        rear_ed_frac = min(
+                            rear_ed_frac, float(np.mean(np.abs(np.asarray(prev)))))
+                # 【ADR-054 C6 诊断】后部列制动/ED 近零 → 前部列需建立最小 ED；
+                # 开关关闭时不下发，控制器不读取（零回归）。
+                tr.formation_rear_braking = rear_braking
+                tr.formation_rear_ed_frac = rear_ed_frac
             tr.step(col_actions)
             self._train_heads[i] = float(tr.dynamics.pos[0])
             # 实际加速度 = (新速度 - 旧速度) / dt（舒适性奖励项，对齐 Hua2024 w3·u²）

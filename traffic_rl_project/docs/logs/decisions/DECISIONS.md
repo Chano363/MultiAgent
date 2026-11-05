@@ -1085,3 +1085,25 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **验证口径**：单改、全程；`route_completed` + 有效峰值 <1000 kN + 峰值前后 30 s 相位/速度离散改善；每项都要报峰值时刻三列 ED/AB/相位/速度四元组，与 B 基线（t=1846.7 s：领航 ED −543/AB RELEASE、中列 ED −393/AB SERVICE/veto、尾列 62.6 km/h）对照。
 - **风险（推断）**：C1 延迟缓解可能抬高整体温度/车速（缓解滞后→制动更久→速度更低，需看是否触发 overspeed/低速）；C3 提前缓解可能增加低充风下的二次压缩；C5 强制速度跟随可能把压缩转移到尾列或前部。
 - **相关**：ADR-021、ADR-036、ADR-049、ADR-052、`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`。
+
+## ADR-054 规则层诊断开关：前部列制动前馈（C6）- 2026-11-05
+
+- **状态**：已实施（**诊断开关，默认关闭 = 零回归**）；未跑验证。
+- **依据（事实）**：严格 800 m 主结果峰值四元组（t=1354.1 s）显示领航/中列 ED 仅 −23.6 / 0.0 kN、AB 均 RELEASE、循环相位仅尾列为 True、尾列速度最高（53.2 vs 41.2/43.7 km/h）→ "尾列单独制动、前两列空转滑行"的编队内拉伸/压缩。
+- **开关键与参数（env_cfg，全部默认关闭/中性）**：
+
+| 键 | 默认 | 含义 |
+|---|---|---|
+| `leader_brake_feedforward` | `False` | 总开关 |
+| `leader_brake_ff_hold_s` | `2.0` | 触发需持续秒数（0 = 立即） |
+| `leader_brake_ff_duration_s` | `10.0` | 每次触发的 ED 下限作用窗（秒） |
+| `leader_brake_ff_ed_low_frac` | `0.20` | 后部列 ED 低于该比例视为"近零滑行"（触发条件之一） |
+| `leader_brake_ff_ed_floor_frac` | `0.25` | 前部列必须建立的最小 ED（占 ED 归一化权限） |
+| `leader_brake_ff_scope` | `immediate` | 生效列范围：`immediate`=仅紧邻前方一列；`all`=前方所有列 |
+
+- **触发条件**：后部列 AB 已建立（任一 AB 源 `_ab_on`）**或** 后部列 ED 均值 < `ed_low_frac`，持续 `hold_s` 秒。
+- **实现位置**：控制器 `_step_decomposed` 收尾（C5 之后）执行 `final[:,0] = max(min(final[:,0], -floor_frac), -1.0)`；`train_fleet_env.py` 每步按 scope 写入 `formation_rear_braking` / `formation_rear_ed_frac`（来自 `multi_loco_controllers[j]._ab_on` / `._previous_ed`）。
+- **不触碰的约束（事实）**：只动 ED（非 AB 源），AB 禁新增源、222 s 充风门、`enforce_coupler`、ETCS/ATP 全部保留裁量。
+- **风险（推断）**：① 前部列被迫制动会拉低整体速度，可能增加 overspeed 的"低速侧"或 etcs 触发；② 前部 ED 下限会在领航列制造额外压缩，峰位可能前移；③ 持续触发会造成 ED 抖动（`_previous_ed` 已记录下限值，回升限制会跟上）。
+- **验证口径**：与其余 C 系列同一工况（净空 800.27 m、`--gap-offset-m 615`、`--start-m 4290`），对照 **1312.9 kN** 基线；单改全程；`route_completed` + 有效峰值 <1000 kN + 峰值四元组逐环归因 + 相位组合表更新。
+- **相关**：ADR-049、ADR-052、ADR-053、`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`。
