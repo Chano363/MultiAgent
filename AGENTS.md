@@ -33,6 +33,19 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 
 配套脚本（`traffic_rl_project/scripts/cloud/`）：`probe_aliyun_ecs.py` 查库存+单价 / `preflight_aliyun_ecs.py` 查下单依赖 / `provision_aliyun_ecs.py` 一键开通 / `instance_state_aliyun_ecs.py` 查状态与关机复核。
 
+## 长跑执行纪律（2026-11-05 强制）
+
+> **事实依据**：2026-11-05 已发生三次同类中断（`gap800` 首轮 step 6501、C4 首轮、上一批次），全部是**客户端关闭连带杀掉 WSL 子进程**，非仿真错误。
+
+- 预计运行时长 **>5 分钟**的任何仿真/训练/评测，**禁止在 IDE 内置终端直接启动**。
+- 必须用 Windows 任务计划（`schtasks /create` + `schtasks /run`）以**独立进程树**启动，任务名形如 `MultiAgent_<任务名>`。
+- 判活：`pgrep -af <pattern>` + `ps -o etime,pcpu -p <pid>`；**不得以日志末行判断进度或存活**（重定向块缓冲、日志可能被后续命令覆盖）。
+- 完成判据：`result.json` + `trajectory.npz` + `intervals.json` **三件齐**；**缺 `result.json` 即判定为中断**。
+- 被中断的目录**一律保留**并写 `ABORTED_BY_INTERRUPTION.txt` 标注，**不得删除或覆盖，不得作为结果引用**。
+- 同机多任务**一律串行排队**（等待前一个进程消失再启动），**不得并发抢核**。
+
+命令细节（`schtasks` 配方与复现口径）见 `traffic_rl_project/docs/rules/EXECUTION_RULES.md`「长跑必须脱离 IDE/客户端进程树」。
+
 ## Key commands
 
 ```sh
@@ -40,12 +53,12 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 python -m pytest tests/ -q
 
-# 阶段二主训练（49.6km，formation-aware 机车级 ED/AB；YAML 已按 ADR-017 达标：1400 ep / n_env 4 / BC 热启动 / long_eval）
+# 阶段二主训练（49.6km，formation-aware 机车级 ED/AB；训练时域口径以 ADR-017 为准，具体值见 YAML）
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
-python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed {0..4}
+python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus108.yaml --seed {0..4}
 
 # 调试/冒烟（勿改 YAML 主值；必须同时重定向三个输出目录，否则会覆写历史产物 → LRN-20261001-009）
-python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus1.yaml --seed 0 --episodes 2 \
+python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1plus108.yaml --seed 0 --episodes 2 \
   --checkpoint_dir outputs/smoke/_run/ckpt --results_dir outputs/smoke/_run/results --override dirs.figures_dir=outputs/smoke/_run/figures
 ```
 
@@ -72,7 +85,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-10-20** 最新为 **ADR-045**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
+> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-11-05** 最新为 **ADR-054**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/设计对比/加基线。
 > **文档规范出处**：文档治理/角色/三态/判断树 = `docs/README.md` + `docs/rules/README.md`（唯一规范）。
 
