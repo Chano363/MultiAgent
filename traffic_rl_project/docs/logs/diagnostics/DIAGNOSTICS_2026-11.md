@@ -222,3 +222,17 @@ owner: Owner
 - **推断**：峰值本质是**同一列后段"制动供给 vs 减速需求"的失配**（AB 波前到达 + 该段质量惯性），既不是坡度/阻力，也不是"单纯机车制动力"；ED 位于机车（index 0），对"机车之后"的断面恒在后方组**之外**，故**加强前部 ED（C6 路线）会加大前段减速度、放大前后段速度差（压缩）**，方向上不利；**C1（列内缓解/制动相位错峰）直接作用于 A/B 失配，更对症**。
 - **口径待核对（事实）**：100 m 基线归档的全局峰为 **1479.8 kN@2796.7 s**，与文档表「1288.5 kN@1846.7 s」不一致（后者为局部峰/过滤口径）。分解按全局峰做；两处口径需在后续轮次统一，不影响主导项结论（两者均为 A 主导）。
 
+### C6 首轮实际未生效（开关落空，decompose 路径缺编队外溢信息）- 2026-11-05
+
+**事实（轨迹层）**：`fleet3_c6_ff80_strict800_rerun3_20261105` 三件齐（`result.json` + `trajectory.npz` + `intervals.json`），31419 步、`elapsed_s=3141.9`、`route_completed=true`、峰值 **1312.88 kN**（t=1354.2 s、中列第 44 断面、相位 `R|R|B`、三列速度 41.2/43.7/53.2 km/h、三列 ED 比 0.033/0.000/1.000、牵引 0）。但 `trajectory.npz` 与 800 m 严格基线 `fleet3_gap800_strict_production_70kmh_full_20261105/run/trajectory.npz` **md5 完全相同**（`9cca82c9dd7ec4a591bd55c859f4728d`）——即该轮对物理**零影响**。**该目录不作 C6 结果引用**（既非"无效"，也非"有效"，是"未接入"）。
+
+**事实（代码层，根因）**：C6 的触发信息 `tr.formation_rear_braking` / `tr.formation_rear_ed_frac` 只在**非 decompose** 的 `TrainFleetEnv.step()` 里下发（`src/environments/train_fleet_env.py` :880-898），而本次诊断走 `decompose='loco_ed_ab'` 的 `_step_decomposed_fleet()`（:1049 起），该路径从未下发这些属性 ⇒ 控制器 `getattr(..., 'formation_rear_braking', False)` 恒取默认 False、`formation_rear_ed_frac` 恒取 None ⇒ `trigger` 恒 False ⇒ C6 分支永不进入。开关透传本身正确（构造期实测 `env.leader_brake_feedforward=True`、`ctrl0 hold=1.0 dur=80.0 floor=0.25 low=0.20 dt=0.1`）。**同一缺口同时使 C1（`formation_release_delay_s`）、C3/C5（`formation_clear_gap_m` / `formation_leader_speed_kmh`）在 decompose 路径下同样落空**——本轮之前没有任何一轮 C1/C3/C5 开过，故未暴露。C4 不受影响（`ed_veto_recovery_boost` 在控制器内部读取，与该路径无关），其 1411.0 kN 结论仍成立。
+
+**修复（最小改动，零回归）**：在 `_step_decomposed_fleet()` 的 `ctrl.get_action_decomposed(...)` 之前补齐与非 decompose 路径同源的三个属性 + 后部列制动/ED 快照（`train_fleet_env.py` :1124-1146，21 行）。开关关闭时不读取（`getattr` 默认 None/False），默认行为不变。
+
+**活性验证（实测，6000 步短跑 `fleet3_c6_ff80_strict800_live6000_20261105`，与同工况基线逐行比对前 6000 行）**：首次分叉在 **row 10（t=1.1 s）**，正好等于 `hold_s=1.0` 对应的 10 步（触发条件在起步即成立）；随后全程偏离：`heads` 最大差 **589.3 m**、`head_speed` 最大差 **6.66 km/h**、`loco_ed_force_n` 最大差 **633.0 kN**、`coupler_interface_force_n` 最大差 **1396.8 kN**。前列 `|ED| ≥ 0.25` 的行数：C6 轮 3657/5990、基线 5990/5990（分叉后前列制动决策被整体改写，非"局部抬到下限"）。结论：**修复后 C6 真实生效**，且在本工况下几乎全程保持前列 ED 下限（触发条件"后列 AB 开 或 后列 ED<0.20"长期成立）→ 该轮本身就是一次强干预，需以全程结果判断其是否越界。
+
+**后续**：按原参数（hold 1.0 / duration 80.0 / floor 0.25 / scope immediate、`--gap-offset-m 615 --start-m 4290`）重跑全程 `fleet3_c6_ff80_strict800_rerun4_20261105`，三件齐后按既定四项指标口径报数；在 rerun4 出结果前，C6 的"有效性"仍为**未知**。
+
+**执行侧事实（新增踩坑）**：本机在**电池供电**时，`schtasks` 创建的任务默认带"仅交流电启动/电池时停止"，任务状态停在 `Queued` 且 `Last Result=0`、无任何子进程——**不能据此判断"已启动"**。处置：`Get-ScheduledTask` 后把 `DisallowStartIfOnBatteries` / `StopIfGoingOnBatteries` 置 `$false` 再 `Start-ScheduledTask`，仍以 `pgrep -af` + `ps -o etime,pcpu` 判活。
+

@@ -1121,6 +1121,29 @@ class TrainFleetEnv:
                 tr.set_etcs_targets([EbdTarget(
                     position_m=leading_tail, speed_mps=lead_speed, kind='gap',
                 )])
+                # 【2026-11-05 修复】decompose 路径此前缺少 C1/C3/C5/C6 所需的编队外溢信息，
+                # 使这些开关在该路径下静默失效（C6 首轮实测轨迹与基线 md5 完全相同）。
+                # 三个开关关闭时控制器不读取（getattr 默认 None），零回归。
+                tr.formation_clear_gap_m = leading_tail - float(tr.dynamics.pos[0])
+                tr.formation_leader_speed_kmh = lead_speed * 3.6
+                tr.formation_release_delay_s = self.cyclic_release_stagger_per_train_s * ti
+            if (self.leader_brake_feedforward and self.multi_loco_controllers is not None
+                    and ti + 1 < len(self.trains)):
+                js = (range(ti + 1, len(self.trains)) if self.leader_brake_ff_scope == 'all'
+                      else (ti + 1,))
+                rear_braking = False
+                rear_ed_frac = 1.0
+                for j in js:
+                    c = self.multi_loco_controllers[j]
+                    ab_on = getattr(c, '_ab_on', None)
+                    if ab_on is not None and np.any(np.asarray(ab_on)):
+                        rear_braking = True
+                    prev = getattr(c, '_previous_ed', None)
+                    if prev is not None:
+                        rear_ed_frac = min(
+                            rear_ed_frac, float(np.mean(np.abs(np.asarray(prev)))))
+                tr.formation_rear_braking = rear_braking
+                tr.formation_rear_ed_frac = rear_ed_frac
             final_edab, _ = ctrl.get_action_decomposed(
                 tr, rl, v_max=self.v_max, v_min=self.v_min,
                 v_max_adj=v_bound_max, v_min_adj=v_bound_min,

@@ -93,6 +93,7 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 5. **任务动作直接写成 `.cmd` 时，任务被终止会连坐 WSL 子进程**：`MultiAgent_C6_ff80` 首轮在 step 9001 被杀，任务 `Last Result = -1073741510`（`0xC000013A` = `STATUS_CONTROL_C_EXIT`，控制台终止），非仿真错误。**改用 VBS 隐藏启动并让任务立即返回**：任务动作 = `wscript.exe <launcher>.vbs`，VBS 内 `WScript.Shell.Run "wsl.exe -e bash -lc ""<完整命令>""", 0, False`，任务在数秒内 `Ready`，仿真进程不再挂在任务的控制台进程树上。
 6. **WSL 发行版在"最后一个会话退出"时会终止全部分布进程**（与 `.wslconfig` 的 `vmIdleTimeout` 无关）：实测 `setsid bash -c "sleep 120" &` 启动后，会话退出约 40 s 内该进程即消失。故 `setsid`/`nohup` **不能**单独保证存活——**必须保留一个附着到进程结束的 `wsl.exe` 会话**（VBS 里 `Run ..., 0, False` 的 wsl.exe 自身即充当该会话）。
 7. 这两个补强同时成立才可靠：`wscript` 隐藏 + `wsl.exe` 长会话 + 任务立即返回。验证方式仍是 `pgrep -af` + `ps -o etime,pcpu -p`（而不看 `schtasks` 状态）。
+8. **电池供电时任务不会启动**（2026-11-05 第三次踩坑）：`schtasks /create` 默认带"仅交流电启动 / 电池时停止"，笔记本放电时任务停在 `Queued`、`Last Result=0`、无任何子进程——**`Last Result=0` + `Queued` 不等于"已启动"**。处置：`Get-ScheduledTask <名>` → 置 `DisallowStartIfOnBatteries=$false`、`StopIfGoingOnBatteries=$false` → `Start-ScheduledTask`，再按第 5 条判活。
 
 ## 诊断通道最小集（2026-11-05 强制）
 
