@@ -1106,4 +1106,10 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **不触碰的约束（事实）**：只动 ED（非 AB 源），AB 禁新增源、222 s 充风门、`enforce_coupler`、ETCS/ATP 全部保留裁量。
 - **风险（推断）**：① 前部列被迫制动会拉低整体速度，可能增加 overspeed 的"低速侧"或 etcs 触发；② 前部 ED 下限会在领航列制造额外压缩，峰位可能前移；③ 持续触发会造成 ED 抖动（`_previous_ed` 已记录下限值，回升限制会跟上）。
 - **验证口径**：与其余 C 系列同一工况（净空 800.27 m、`--gap-offset-m 615`、`--start-m 4290`），对照 **1312.9 kN** 基线；单改全程；`route_completed` + 有效峰值 <1000 kN + 峰值四元组逐环归因 + 相位组合表更新。
+- **参数标定依据（2026-11-05，实测）**——C6 首轮不采用初值，改用按提前量定标的一组：
+  - 四轮峰值处的"尾列制动起点 → 峰值"提前量：185 m 基线 **128.4 s**、785 m **80.7 s**、885 m **0.0 s**、800 m 主结果 **79.2 s**。
+  - 四轮全部 `>1200 kN` 局部峰（n=75）提前量分布：**p10 0.0 s / 中位 72.0 s / p90 146.8 s / 最大 149.1 s**（计算见 `docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`「尾列制动起点相对峰值的提前量」）。
+  - **首轮取值**：`hold_s=1.0`、`duration_s=80.0`、`floor_frac=0.25`、`scope=immediate`。理由：80 s 覆盖中位段（72 s），`hold` 只做去抖（1 s），下限与作用范围不动，保证"只调时间参数一组"。
+  - **历史初值（保留，不删）**：`hold_s=2.0`、`duration_s=10.0`；按上表，10 s 窗在峰值前约 60 s 即失效，故首轮直接跳过该组，不再单独跑。
+  - **第二轮预案（仅在首轮无效时启用）**：只把 `duration_s` 改 **146.0**（覆盖 p90），`hold_s=1.0`、`floor_frac`、`scope` 不变；每轮只动一组参数，不叠加。
 - **相关**：ADR-049、ADR-052、ADR-053、`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`。
