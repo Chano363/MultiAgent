@@ -85,7 +85,7 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
    ```
    任务在独立进程树中，**关闭客户端不影响**；收尾后 `schtasks /delete /tn ... /f` 清理。
 2. **判活仍按第 5 条**：`pgrep -af diagnose` + `ps -o etime,pcpu -p <pid>`，不看日志行（重定向块缓冲）。
-3. **完成判据 = 文件齐**：`run/result.json` + `run/trajectory.npz` + `run/intervals.json` 三件齐全才算完成；只有 `trajectory.npz` 而无 `result.json` ⇒ 判定**被中断**，目录写 `ABORTED_BY_INTERRUPTION.txt` 保留不覆盖、不作结果引用，**新目录重跑**。
+3. **完成判据 = 文件齐（按入口区分）**：`run/result.json` + `run/trajectory.npz` 是**所有入口的公共必需件**；`run/intervals.json` **只在产出它的入口**上作为第三件——`diagnose_error_controlled_fleet.py` / `diagnose_low_level_control.py` **不产出 `intervals.json`**（2026-11-06 实测，4 轮归档均无此文件），对该入口"三件齐" = `result.json` + `trajectory.npz` + 进程退出。只有 `trajectory.npz` 而无 `result.json` ⇒ 判定**被中断**，目录写 `ABORTED_BY_INTERRUPTION.txt` 保留不覆盖、不作结果引用，**新目录重跑**。
 4. **禁止**把日志末尾当作进度依据——日志可能被后续命令覆盖（本次日志末行即为一条 git CRLF 警告）。
 
 **实测补强（2026-11-05，第二次踩坑后）**：
