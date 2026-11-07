@@ -1223,3 +1223,12 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **未做（遵守边界）**：多波源编组、k3-CYCLIC 重试、档位分配变体穷举均未做；本轮未改任何默认值（`ab_zone_apply` 仍默认关）。
 - **相关**：ADR-055/056、ADR-014/021/036、`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`「C7-S 紧急优先（第 1 项）：前提核对、实现缺陷与撤销；ED/AB 交接分析；档位细分静态估算」。
 
+### ADR-057 补充-2026-11-08（六）· AB 全列到位时抬升 ED 下限（默认关）；400 kN 过窗口判据、450 kN 证伪；400 kN 已排全程
+
+- **决策**：新增诊断开关 `ed_floor_ab_ready`（默认 **false**，零回归），仅在 AB 全列到位率 ≥ `ed_floor_ab_ready_ratio`（默认 0.9）时把循环期 ED 恒持下限由 300 kN 抬到 `ed_floor_ab_ready_kn`（默认 400）；其余时段保持 300 kN。实现落 `src/controllers/multi_loco_controller.py`（`_ab_arrival_ratio` / `_cyclic_ed_floor_kn`）两处同源替换（循环基线分支 + decompose 最终 floor 恢复），`src/environments/train_fleet_env.py` 透传，`src/evaluation/diagnose_low_level_control.py` 归档 `controller_ed_floor_kn`。ED 不新增 AB 源、不触碰充风门，抬高后仍经车钩力安全层与粘着/功率饱和。
+- **依据（事实）**：17 个 ≥800 kN 窗口中 9 个峰时 ED 恰在 300.1–300.2 kN 下限且 AB 全列到位（上一节补充（五）第 2 项）；即制动需求被整体推给 AB，b 偏大。
+- **窗口实测（6000 步，同参）**：ED400 → 峰值 **1048.59 kN**（k3-MIN 1064.39，−1.5%）、超速 170（=k3-MIN）、净空 161.96（≥161.83）、`violations` 92→**26**；ED450 → 峰值 **1070.52 kN（+6.1，退化）**、`violations` 119。分支进入 **12 240 车·步**（train0/1/2 占 91.3% / 77.5% / 35.2%）。生效期 |ED| 均值 437–491 kN、中位 438–485 kN。
+- **判读**：**ED400 三项窗口判据同时满足 ⇒ 准予排全程**（已启动 `..._edfloor400_full_20261108`）；**ED450 不通过、不排全程**。400→450 有效 ED 分布几乎相同（400 已在多数高速步把分位顶到饱和），450 仅中列多约 50 kN 而峰值反而变大 ⇒ 该杠杆的有效自由度是"能否顶到饱和"，不是"限值再抬多少"（推断：ED 对峰值净效应非单调，中列继续加力加剧列间速度差）。
+- **边界**：窗口不是全程验收；默认值未改（`ed_floor_ab_ready=false`）；全程结果出来前不得写"降峰达成"或"进入 1000 kN"。
+- **相关**：`docs/logs/diagnostics/DIAGNOSTICS_2026-11.md`「小节-2026-11-08（三）」；ADR-014/021/036；`docs/logs/STATUS_2026-11-08.md`。
+

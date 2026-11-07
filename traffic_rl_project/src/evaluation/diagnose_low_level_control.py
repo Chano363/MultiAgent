@@ -234,7 +234,7 @@ def main():
               'vehicle_speeds_mps': [], 'brake_pressure_coefficient': [],
               'air_release_fraction': [], 'effective_pressure_coefficient': [],
               'air_releasing': [], 'controller_release_force_target_kn': [],
-              'controller_ed_hold_steps': []}
+              'controller_ed_hold_steps': [], 'controller_ed_floor_kn': []}
     admission_keys = tuple(capture_admission_state(env.trains[0], env.multi_loco_controllers[0]))
     detail.update({key: [] for key in admission_keys})
     # Observe the actual post-safety actuator inputs without modifying them.
@@ -311,6 +311,9 @@ def main():
             else np.nan for c in env.multi_loco_controllers])
         detail['controller_ed_hold_steps'].append([
             c._ed_hold_steps for c in env.multi_loco_controllers])
+        detail['controller_ed_floor_kn'].append([
+            float(getattr(c, '_active_ed_floor_kn', c.CYCLIC_ED_FLOOR_KN))
+            for c in env.multi_loco_controllers])
         detail['air_brake_segment'].append([tr.dynamics._brake_segment for tr in env.trains])
         detail['safety_rule_counts'].append([
             [sum(ev.get('rule') == rule for ev in tr.safety.last_events)

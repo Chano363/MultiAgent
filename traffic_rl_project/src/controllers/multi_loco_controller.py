@@ -61,6 +61,14 @@ class MultiLocoController:
         ed_release_coordination: bool = False,
         ed_release_hold_s: float = 50.0,
         ed_release_boost_kn: float = 900.0,
+        # 【2026-11-08 ED-AB 到位联动】循环制动期，当全列 AB 实际到位率
+        # ≥ ed_floor_ab_ready_ratio 时把 ED 恒持下限由 CYCLIC_ED_FLOOR_KN
+        # 抬到 ed_floor_ab_ready_kn；其余时段保持 CYCLIC_ED_FLOOR_KN。
+        # 默认关 = 零回归。ED 是电制动力矩，不新增 AB 源、不触碰充风门；
+        # 抬高后的请求仍受 downstream 车钩力安全层与动力学粘着/功率饱和约束。
+        ed_floor_ab_ready: bool = False,
+        ed_floor_ab_ready_ratio: float = 0.9,
+        ed_floor_ab_ready_kn: float = 400.0,
         ed_native_force_conversion: bool = False,
         ed_upgrade_ramp_s: float = 0.0,
         ed_upgrade_ramp_scale: float = 1.0,
@@ -244,6 +252,16 @@ class MultiLocoController:
         # 文献锚定可调低（Oxford TSE 运营标准缓解期 50%≈230 kN，
         # 部标《铁路机车操作规则》缓解后逐步退动力制动 → F 组试 300 kN）。
         self.ed_release_boost_kn = float(ed_release_boost_kn)
+        # 【2026-11-08】AB 到位后抬升 ED 下限（诊断开关；默认关 = 零回归）。
+        self.ed_floor_ab_ready = bool(ed_floor_ab_ready)
+        self.ed_floor_ab_ready_ratio = float(ed_floor_ab_ready_ratio)
+        self.ed_floor_ab_ready_kn = float(ed_floor_ab_ready_kn)
+        if not (0.0 <= self.ed_floor_ab_ready_ratio <= 1.0):
+            raise ValueError('ed_floor_ab_ready_ratio must be in [0,1]')
+        if self.ed_floor_ab_ready_kn <= 0.0:
+            raise ValueError('ed_floor_ab_ready_kn must be positive')
+        # 本步实际使用的循环期 ED 下限（kN），供诊断归档核对分支是否真进入。
+        self._active_ed_floor_kn = self.CYCLIC_ED_FLOOR_KN
         self._ed_hold_steps = 0
         self._ab_step = 0
         self._ab_on = [False] * self.num_locomotives
@@ -544,7 +562,8 @@ class MultiLocoController:
                 self._ed_ramp_steps_left -= 1
             scale = self._coupler_throttle_scale(train_env) if _scale_ed else 1.0
             # 【表3】循环期 ED 恒持 300–400 kN（取 300 kN 下限；仅协调开启时生效）
-            ed_floor = (self._ed_frac_for_total_kn(train_env, self.CYCLIC_ED_FLOOR_KN)
+            # 【2026-11-08】AB 全列到位（≥ 阈值）时可抬到 ed_floor_ab_ready_kn。
+            ed_floor = (self._ed_frac_for_total_kn(train_env, self._cyclic_ed_floor_kn(train_env))
                         if self.ed_release_coordination else 0.0)
             act = np.zeros((self.num_locomotives, 2), dtype=float)
             for i in range(self.num_locomotives):
@@ -618,6 +637,32 @@ class MultiLocoController:
         # 队首(0)=强，队尾=稍弱（纵向错峰，抑制同步前涌）
         frac = loco_i / max(self.num_locomotives - 1, 1)
         return 0.3 * frac  # 队尾 ED 为队首的 0.7 倍左右
+
+    def _ab_arrival_ratio(self, train_env) -> float:
+        """全列空气制动实际到位率：生效档位非 RELEASE 的车数 / 总车数。
+
+        只读动力学当前生效档位（波前已到达并激活的车辆才算到位），
+        不改任何 AB 状态、不推进波速传播。
+        """
+        state = train_env.dynamics.air_brake_state()
+        if state is None or len(state) == 0:
+            return 0.0
+        applied = sum(1 for notch in state if notch != AirBrakeNotch.RELEASE)
+        return float(applied) / float(len(state))
+
+    def _cyclic_ed_floor_kn(self, train_env) -> float:
+        """循环制动期的 ED 恒持下限（kN）。
+
+        默认返回 CYCLIC_ED_FLOOR_KN（300 kN）。仅当 ed_floor_ab_ready 开启
+        且 AB 到位率 ≥ 阈值时抬到 ed_floor_ab_ready_kn；本步实际取值写入
+        _active_ed_floor_kn 供诊断归档核对分支是否真进入。
+        """
+        floor_kn = self.CYCLIC_ED_FLOOR_KN
+        if self.ed_floor_ab_ready and self.ed_release_coordination:
+            if self._ab_arrival_ratio(train_env) >= self.ed_floor_ab_ready_ratio:
+                floor_kn = self.ed_floor_ab_ready_kn
+        self._active_ed_floor_kn = floor_kn
+        return floor_kn
 
     def _ed_frac_for_total_kn(self, train_env, target_kn: float) -> float:
         """Invert native ED physics for a total-force request; saturate if infeasible.
@@ -797,7 +842,7 @@ class MultiLocoController:
         # 是运营口径恒持下限，此处按同一口径兜底复原；仅 ed_release_coordination 开
         # 且处于循环制动分支时生效（默认关 = 旧行为零回归，编队线 YAML 不受影响）。
         if self.ed_release_coordination and self._cyclic_braking:
-            floor = self._ed_frac_for_total_kn(train_env, self.CYCLIC_ED_FLOOR_KN)
+            floor = self._ed_frac_for_total_kn(train_env, self._cyclic_ed_floor_kn(train_env))
             final[:, 0] = np.maximum(final[:, 0], floor)
         # Fast safety reductions, slow recovery: never exceed the currently
         # projected request, and never delay ED at the speed ceiling. ATP is
