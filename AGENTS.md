@@ -46,6 +46,16 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 
 命令细节（`schtasks` 配方与复现口径）见 `traffic_rl_project/docs/rules/EXECUTION_RULES.md`「长跑必须脱离 IDE/客户端进程树」。
 
+## 验证协议：默认整程（2026-11-08 强制）
+
+> **事实依据**：2026-11-06 至 2026-11-08 连续五轮"6000 步窗口通过、全程失败"；窗口只覆盖 t ≤ 600 s，主峰落在 t ≈ 1344–1846 s，**结构性看不到主峰**。
+
+- **默认判据 = 全程**（49.6 km / `--steps 45000`）；峰值、超速、净空、violations 一律以全程归档为准。
+- **短窗（≤6000 步）只作活性校验**：只证明开关进入目标分支（有诊断通道计数佐证），**不得作为峰值/安全判据**。
+- 必须短窗筛峰时，窗口须覆盖已知主峰 **±200 s** 并写明覆盖依据；未覆盖只能写"未覆盖"，不得写"通过"。
+
+细则见 `traffic_rl_project/docs/rules/EXECUTION_RULES.md`「验证协议：默认整程，短窗只作活性校验」。
+
 ## Key commands
 
 ```sh
