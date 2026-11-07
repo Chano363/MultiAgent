@@ -684,6 +684,7 @@ class TrainDynamics:
         ab_sources: list = None,
         eot: bool = False,
         reduction_kpa: float = None,
+        ab_zones: list = None,
     ):
         """按 电制动（连续）+ 空气制动（离散+波速传播）推进一个时间步。
 
@@ -702,6 +703,10 @@ class TrainDynamics:
                 提供时优先使用多源，忽略 ab_command/brake_origin 的单源逻辑。
             reduction_kpa: 【2026-09-02 P0-3】可选连续减压量（kPa），
                 覆盖档位默认减压量，对所有生效车辆施加（验证专用，向后兼容）。
+            ab_zones: 【2026-11-07 C7-S 空间分级】可选分段档位列表
+                [(start_idx, end_exclusive, AirBrakeNotch), ...]。每段自段首发波、
+                只在段内传播（不跨段），用于让同一时刻编组内存在不同制动等级。
+                提供时优先于 ab_sources / ab_command（EMERGENCY 仍走单源全列）。
         """
         n_sub = max(1, int(np.ceil(self.dt / 0.01)))
         h = self.dt / n_sub
@@ -710,7 +715,7 @@ class TrainDynamics:
             self._advance_control_once(
                 throttle, ed_throttle, ab_command, brake_origin, ab_sources,
                 eot, h, apply_command=(k == 0),
-                reduction_kpa=reduction_kpa,
+                reduction_kpa=reduction_kpa, ab_zones=ab_zones,
             )
         # 能耗追踪（控制步级）：牵引功率 = 牵引力 × 速度（仅牵引为正时累计）
         tractive = self._tractive_forces_per_vehicle(throttle)
@@ -729,6 +734,7 @@ class TrainDynamics:
         h: float,
         apply_command: bool,
         reduction_kpa: float = None,
+        ab_zones: list = None,
     ):
         """推进一个物理子步（步长 h，≤0.01s）。"""
         if apply_command:
@@ -736,8 +742,11 @@ class TrainDynamics:
             self._brake_reduction_override_kpa = reduction_kpa
             # 【2026-09-03 B3】段切换检测：上一步无制动 → 这一步有制动指令 → 段号+1。
             # 段号仅在有新制动段发出时递增（持续制动中不递增，缓解后再制动才 +1）。
-            cmd_now = (ab_sources[0][1] if ab_sources
-                       else (None if ab_command is None else ab_command))
+            if ab_zones:
+                cmd_now = ab_zones[0][2]
+            else:
+                cmd_now = (ab_sources[0][1] if ab_sources
+                           else (None if ab_command is None else ab_command))
             is_braking_cmd = (cmd_now is not None
                               and cmd_now != AirBrakeNotch.RELEASE)
             # None means HOLD, not RELEASE. Keep the same braking episode
@@ -746,7 +755,10 @@ class TrainDynamics:
                 if self.enable_cyclic_degrade and is_braking_cmd and not self._brake_was_active:
                     self._brake_segment += 1
                 self._brake_was_active = is_braking_cmd
-            if ab_sources:
+            if ab_zones:
+                # 【2026-11-07 C7-S 空间分级】各段自段首发波、只在段内传播
+                self.apply_air_brake_zones(ab_zones)
+            elif ab_sources:
                 # 多源制动：多个位置同时发出空气制动指令（分布式动力）
                 # 尾部/中部动力源需要双向传播以提升制动同步
                 cmd = ab_sources[0][1]
@@ -1042,6 +1054,7 @@ class TrainDynamics:
         cmd_notch: AirBrakeNotch,
         vehicle_idx: int,
         bidirectional: bool = False,
+        stop_idx: int = None,
     ):
         """对 vehicle_idx 施加空气制动指令，并初始化波速传播。
 
@@ -1050,6 +1063,8 @@ class TrainDynamics:
             vehicle_idx: 指令源车辆索引（0=队首，n-1=队尾）
             bidirectional: 是否双向传播（分布式动力，多源制动时用 True）。
                 True：从源向前车与后车同时传播；False：仅向后传播（单源队首，向后兼容）。
+            stop_idx: 【2026-11-07 C7-S 空间分级】向后传播的最后一个车辆索引（含）。
+                None = 传到列尾（旧行为）；给定值时段外的车辆不收该源指令。
         """
         n = self.num_vehicles
         is_emergency = cmd_notch == AirBrakeNotch.EMERGENCY
@@ -1108,12 +1123,38 @@ class TrainDynamics:
                     self._air_brake_delay_remaining[j] = delay
 
             # 向后传播（source -> 后方）：delay = 距源累计距离/波速，并行倒数
-            for j in range(vehicle_idx + 1, n):
+            j_end = n if stop_idx is None else min(n, int(stop_idx) + 1)
+            for j in range(vehicle_idx + 1, j_end):
                 _enqueue(j, cum_len[j] - cum_len[vehicle_idx])
             # 向前传播（source -> 前方），用于尾部/中部动力（分布式制动）
             if bidirectional:
                 for j in range(vehicle_idx - 1, -1, -1):
                     _enqueue(j, cum_len[vehicle_idx] - cum_len[j])
+
+    def apply_air_brake_zones(self, zones: list):
+        """【2026-11-07 C7-S 空间分级】按车辆段施加不同空气制动档位。
+
+        与"全体先低后高"的时间分级不同，本接口让**同一时刻编组内同时存在不同
+        制动等级**（例如前段 SERVICE / 后段 MIN），用于真正拆小纵向各段的
+        制动力密度，而不是把同一个 140 kPa 拆成两次跃变。
+
+        Args:
+            zones: [(start_idx, end_exclusive, AirBrakeNotch), ...]。
+                每段由段首车发波（单向向后）、并止于段末，不跨段污染相邻段。
+                RELEASE 段不在此处理（缓解由调用方走既有 _reset_air_brake_command）。
+        """
+        n = self.num_vehicles
+        for start, end, notch in zones:
+            if notch == AirBrakeNotch.RELEASE:
+                continue
+            start = int(start)
+            end = int(end)
+            if start < 0 or start >= n:
+                continue
+            end = min(n, max(start + 1, end))
+            self._apply_air_brake_command(
+                notch, start, bidirectional=False, stop_idx=end - 1,
+            )
 
     def _reset_air_brake_command(self, vehicle_idx: int = 0, eot: bool = False):
         """缓解空气制动。

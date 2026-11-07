@@ -326,6 +326,8 @@ class TrainFleetEnv:
                 'decompose': self.decompose,   # decompose 模式下单列 step 走 _step_decomposed
                 # 【C7 分级施加 2026-11-07】AB 整档 SERVICE 拆两级（默认关 = 零回归）
                 'ab_staged_apply': bool(config.get('ab_staged_apply', False)),
+                'ab_zone_apply': bool(config.get('ab_zone_apply', False)),
+                'ab_zone_count': int(config.get('ab_zone_count', 2)),
                 'ab_staged_gap_s': float(config.get('ab_staged_gap_s', 3.0)),
             }
             if self.hetero:

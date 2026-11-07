@@ -182,6 +182,13 @@ class TrainFormationEnv:
         self.ab_staged_apply = bool(config.get('ab_staged_apply', False))
         self.ab_staged_gap_s = float(config.get('ab_staged_gap_s', 3.0))
         self._ab_stage_t0 = None
+        # 【C7-S 空间分级 2026-11-07，默认关 = 零回归】按车号分 k 段，段 0（前段）
+        # 施 SERVICE(140 kPa)、其余段施 MIN(70 kPa)，使**同一时刻编组内同时存在
+        # 两种制动等级**（而不是全体先 70 后 140 —— 后者最终仍回到同一 b，只多一次
+        # 跃变，实测 600 s 峰值反升 176 kN）。只作用于 AB 指令生成，不碰 ED、222 s
+        # 充风门、安全层；EMERGENCY 一律不分区，保持一步到位。
+        self.ab_zone_apply = bool(config.get('ab_zone_apply', False))
+        self.ab_zone_count = max(1, int(config.get('ab_zone_count', 2)))
         self.target_speed = config.get('target_speed', 20.0)
         self.target_gap = config.get('target_gap', 1.0)
         self.max_steps = config.get('max_steps', 500)
@@ -441,6 +448,35 @@ class TrainFormationEnv:
         # 第二级：原样放行 SERVICE → 走 train.py 既有 notch 升级波（upgrade_pending）
         return ab_command, ab_sources
 
+    def _ab_zone_command(self, ab_command, ab_sources):
+        """【C7-S 空间分级】返回分段档位 [(start, end, notch), ...]；不适用返回 None。
+
+        与前段同批：段 0（前段）SERVICE、其余段 MIN，各段自段首发波、只在段内传播
+        （`TrainDynamics.apply_air_brake_zones`）。开关关闭 / 仅缓解 / EMERGENCY 时
+        返回 None，走原单源或多源路径（零回归）。
+        """
+        if not self.ab_zone_apply:
+            return None
+        srcs = list(ab_sources) if ab_sources else []
+        if (ab_command == AirBrakeNotch.EMERGENCY
+                or any(n == AirBrakeNotch.EMERGENCY for _, n in srcs)):
+            return None
+        wants_service = (ab_command == AirBrakeNotch.SERVICE
+                         or any(n == AirBrakeNotch.SERVICE for _, n in srcs))
+        if not wants_service:
+            return None
+        n = self.dynamics.num_vehicles
+        k = self.ab_zone_count
+        base, rem = divmod(n, k)
+        zones = []
+        start = 0
+        for g in range(k):
+            size = base + (1 if g < rem else 0)
+            notch = AirBrakeNotch.SERVICE if g == 0 else AirBrakeNotch.MIN
+            zones.append((start, start + size, notch))
+            start += size
+        return zones
+
     def step(self, actions: np.ndarray):
         if self.decompose:
             return self._step_decomposed(actions)
@@ -489,9 +525,10 @@ class TrainFormationEnv:
                 if v.is_locomotive
             ]
         ab_command, ab_sources = self._ab_staged_command(ab_command, ab_sources)
+        ab_zones = self._ab_zone_command(ab_command, ab_sources)
         self.dynamics.step_vehicles_ed_ab(
             throttle, ed_throttle, ab_command, eot=self.eot,
-            ab_sources=ab_sources,
+            ab_sources=ab_sources, ab_zones=ab_zones,
         )
 
         obs = self._get_obs()
@@ -673,9 +710,10 @@ class TrainFormationEnv:
                 ab_safety_vetoed = True
 
         ab_command, ab_sources = self._ab_staged_command(ab_command, ab_sources)
+        ab_zones = self._ab_zone_command(ab_command, ab_sources)
         self.dynamics.step_vehicles_ed_ab(
             throttle, ed_throttle, ab_command, eot=self.eot,
-            ab_sources=ab_sources if ab_sources else None,
+            ab_sources=ab_sources if ab_sources else None, ab_zones=ab_zones,
         )
 
         obs = self._get_obs()
