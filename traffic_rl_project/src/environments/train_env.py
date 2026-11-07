@@ -189,6 +189,13 @@ class TrainFormationEnv:
         # 充风门、安全层；EMERGENCY 一律不分区，保持一步到位。
         self.ab_zone_apply = bool(config.get('ab_zone_apply', False))
         self.ab_zone_count = max(1, int(config.get('ab_zone_count', 2)))
+        # 后段档位（段 0 固定 SERVICE）：'min'=70 kPa（默认）、'cyclic'=50 kPa。
+        # 用于区分"分段数收益"与"降低非制动段档位收益"两件事（2026-11-07 变体实验）。
+        self.ab_zone_rear_notch = str(config.get('ab_zone_rear_notch', 'min')).lower()
+        if self.ab_zone_rear_notch not in ('min', 'cyclic'):
+            raise ValueError(
+                f"未知 ab_zone_rear_notch: {self.ab_zone_rear_notch}，可选: ['min', 'cyclic']"
+            )
         self.target_speed = config.get('target_speed', 20.0)
         self.target_gap = config.get('target_gap', 1.0)
         self.max_steps = config.get('max_steps', 500)
@@ -467,12 +474,14 @@ class TrainFormationEnv:
             return None
         n = self.dynamics.num_vehicles
         k = self.ab_zone_count
+        rear_notch = (AirBrakeNotch.CYCLIC if self.ab_zone_rear_notch == 'cyclic'
+                      else AirBrakeNotch.MIN)
         base, rem = divmod(n, k)
         zones = []
         start = 0
         for g in range(k):
             size = base + (1 if g < rem else 0)
-            notch = AirBrakeNotch.SERVICE if g == 0 else AirBrakeNotch.MIN
+            notch = AirBrakeNotch.SERVICE if g == 0 else rear_notch
             zones.append((start, start + size, notch))
             start += size
         return zones

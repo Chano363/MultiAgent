@@ -328,6 +328,7 @@ class TrainFleetEnv:
                 'ab_staged_apply': bool(config.get('ab_staged_apply', False)),
                 'ab_zone_apply': bool(config.get('ab_zone_apply', False)),
                 'ab_zone_count': int(config.get('ab_zone_count', 2)),
+                'ab_zone_rear_notch': str(config.get('ab_zone_rear_notch', 'min')),
                 'ab_staged_gap_s': float(config.get('ab_staged_gap_s', 3.0)),
             }
             if self.hetero:
