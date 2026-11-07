@@ -133,6 +133,7 @@
 | **否定命题（空白/未见）的检索证据**                                                             | `logs/verification/NEGATIVE_SEARCH_YYYY-MM-DD.md`（检索式/通道/命中/排除理由；缺此文件不得写"空白"） |
 | **踩坑 / 经验**：引擎 gotcha、教训（学无可学/超长时域/止回）                              | `logs/learnings/LEARNINGS.md`（唯一 SSOT；原 `AGENTS.md` Gotchas 已迁入此处与 `VALIDATION_BASELINE.md`）                                                      |
 | **求解器口径 / 开训门槛状态**（2026-11-04）：时间线、同源铁律落地位置、规则层状态、链路证据、阻塞项、待决策 | `logs/SOLVER_AND_GATE_STATUS_2026-11-04.md`；`logs/decisions/DECISIONS.md` ADR-048 / ADR-049 |
+| **阶段状态小结**（2026-11-08，一页版，答辩/汇报用）：已完成、未达成、剩余两条杠杆与证据强度、距开训差什么（事实/推断分列） | `logs/STATUS_2026-11-08.md`；依据见 `DIAGNOSTICS_2026-11.md`「小节-2026-11-08（二）（三）」与 ADR-057 补充（六） |
 | **工作留痕 / 决策**：新诊断、新 ADR                                             | `logs/diagnostics/`、`logs/decisions/DECISIONS.md`                                                        |
 
 <!-- 该文档整理/压缩于 2026-10-01 -->
