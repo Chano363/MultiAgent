@@ -234,7 +234,9 @@ def main():
               'vehicle_speeds_mps': [], 'brake_pressure_coefficient': [],
               'air_release_fraction': [], 'effective_pressure_coefficient': [],
               'air_releasing': [], 'controller_release_force_target_kn': [],
-              'controller_ed_hold_steps': [], 'controller_ed_floor_kn': []}
+              'controller_ed_hold_steps': [], 'controller_ed_floor_kn': [],
+              # 【C 组 2026-11-08】ED 撤除时序保位窗 + 速度差协同未满足份额（逐列、逐步）
+              'controller_ed_guard_steps': [], 'controller_ed_conv_unmet': []}
     admission_keys = tuple(capture_admission_state(env.trains[0], env.multi_loco_controllers[0]))
     detail.update({key: [] for key in admission_keys})
     # Observe the actual post-safety actuator inputs without modifying them.
@@ -313,6 +315,12 @@ def main():
             c._ed_hold_steps for c in env.multi_loco_controllers])
         detail['controller_ed_floor_kn'].append([
             float(getattr(c, '_active_ed_floor_kn', c.CYCLIC_ED_FLOOR_KN))
+            for c in env.multi_loco_controllers])
+        detail['controller_ed_guard_steps'].append([
+            int(getattr(c, '_ed_guard_steps_left', 0))
+            for c in env.multi_loco_controllers])
+        detail['controller_ed_conv_unmet'].append([
+            int(getattr(c, 'ed_conv_unmet_count', 0))
             for c in env.multi_loco_controllers])
         detail['air_brake_segment'].append([tr.dynamics._brake_segment for tr in env.trains])
         detail['safety_rule_counts'].append([
@@ -423,6 +431,16 @@ def main():
     # The engine retains the last notch even after release. This is a stored
     # setting, not an assertion about active cylinder pressure/braking force.
     summary['stored_head_notch_switches'] = int(np.sum(head_notches[1:] != head_notches[:-1]))
+    # 【C 组 2026-11-08】两个新开关的**分支进入**计数（活性校验只认这些，不看峰值）
+    controllers = env.multi_loco_controllers or []
+    summary['ed_release_guard_veto_count'] = int(sum(
+        getattr(c, 'ed_release_guard_veto_count', 0) for c in controllers))
+    summary['ed_release_guard_hold_train_steps'] = int(sum(
+        getattr(c, 'ed_release_guard_hold_steps', 0) for c in controllers))
+    summary['ed_conv_active_train_steps'] = int(sum(
+        getattr(c, 'ed_conv_active_steps', 0) for c in controllers))
+    summary['ed_conv_unmet_count'] = int(sum(
+        getattr(c, 'ed_conv_unmet_count', 0) for c in controllers))
     if 'heads' in detail:
         summary.update(elapsed_s=float(rows[-1, 0]),
                        mean_speed_kmh=float(np.mean(velocity)*3.6),

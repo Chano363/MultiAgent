@@ -97,6 +97,20 @@ class MultiLocoController:
         leader_brake_ff_duration_s: float = 10.0,
         leader_brake_ff_ed_low_frac: float = 0.20,
         leader_brake_ff_ed_floor_frac: float = 0.25,
+        # ===== C 组 2026-11-08（列间速度收敛 + ED 撤除时序；默认关 = 零回归）=====
+        # (a) ed_release_timing_guard：ED 撤除时序**状态约束**（同 ab_gate 的否决标志做法）。
+        ed_release_timing_guard: bool = False,
+        ed_release_guard_trigger_frac: float = 0.30,
+        ed_release_guard_release_frac: float = 0.05,
+        ed_release_guard_neighbor_full_frac: float = 0.80,
+        ed_release_guard_level_frac: float = 0.50,
+        ed_release_guard_hold_s: float = 20.0,
+        # (b) speed_convergence_share：速度差协同收敛（前车减 ED + 后车加制动共同承担）。
+        speed_convergence_share: bool = False,
+        conv_share_tol_kmh: float = 1.8,
+        conv_share_gain: float = 0.20,
+        conv_share_max: float = 0.30,
+        conv_share_lead_share: float = 0.50,
     ):
         self.num_vehicles = num_vehicles
         self.ed_native_force_conversion = bool(ed_native_force_conversion)
@@ -148,6 +162,56 @@ class MultiLocoController:
         self._ff_hold_steps = 0
         self._ff_active_steps = 0
         self._previous_ed = None
+        # ===== C 组 2026-11-08 (a) ED 撤除时序状态约束 =====
+        # 实测坏局面（k3-MIN 全程 t≈1344–1443 s）：中列 ED=1.00、尾列 ED=0.00 且 AB=RELEASE
+        # 持续 ~30 s，列间速度差 4–6 km/h 不收敛、净空按 1.2 m/s 单调收缩 → EBI 触发、
+        # 上限放宽到 2250 kN，峰值被锁定。本开关做成**状态约束**（同 ab_gate 否决标志）：
+        # 本列发生"撤 ED"事件（上一步 ED 均值 ≥ trigger、本步 ≤ release）且相邻列 ED
+        # 仍 ≥ neighbor_full 时，否决这次全撤，按 level_frac 保住一档 ED，直到相邻列退出
+        # 满 ED 或持有窗（hold_s）到期（有界，不锁死；到期后须真正退出制动才重新解锁）。
+        # 只改本列 ED（电制动力矩，即时无延迟、不产生纵向冲动）：不新增 AB 源、
+        # 不触碰充风门 / new_source_veto / 车钩力安全层（它们仍保有最终权限）。
+        self.ed_release_timing_guard = bool(ed_release_timing_guard)
+        self.ed_release_guard_trigger_frac = float(ed_release_guard_trigger_frac)
+        self.ed_release_guard_release_frac = float(ed_release_guard_release_frac)
+        self.ed_release_guard_neighbor_full_frac = float(ed_release_guard_neighbor_full_frac)
+        self.ed_release_guard_level_frac = float(ed_release_guard_level_frac)
+        self.ed_release_guard_hold_s = float(ed_release_guard_hold_s)
+        if not 0.0 <= self.ed_release_guard_release_frac < self.ed_release_guard_trigger_frac <= 1.0:
+            raise ValueError('ED release guard needs 0 <= release_frac < trigger_frac <= 1')
+        if not 0.0 <= self.ed_release_guard_neighbor_full_frac <= 1.0:
+            raise ValueError('ed_release_guard_neighbor_full_frac must be in [0,1]')
+        if not 0.0 <= self.ed_release_guard_level_frac <= 1.0:
+            raise ValueError('ed_release_guard_level_frac must be in [0,1]')
+        if not np.isfinite(self.ed_release_guard_hold_s) or self.ed_release_guard_hold_s < 0:
+            raise ValueError('ed_release_guard_hold_s must be finite and nonnegative')
+        self._ed_guard_steps_left = 0
+        self._ed_guard_ref = None
+        self._ed_guard_armed = True
+        self.ed_release_guard_veto_count = 0
+        self.ed_release_guard_hold_steps = 0
+        # ===== C 组 2026-11-08 (b) 速度差协同收敛 =====
+        # C5 失败模式对照（ADR-053 C5）：C5 只动后车（先收牵引、再把 ED 拉成负值=牵引），
+        # 实测结果是"只压后车、编队越跑越松"。本开关禁止单侧加刹：速度差超出 tol 时，
+        # 校正量 u = min(gain·Δv, max) 按 conv_share_lead_share 显式分配——
+        #   前车侧承担 lead_share·u（**只减 ED**，绝不新增 AB、绝不转成牵引）；
+        #   后车侧承担 (1−lead_share)·u（加 ED 制动）。
+        # 分配比例依据：ED 无延迟、不产生纵向冲动（电制动），AB 沿列以 ~250 m/s 传播
+        # （1297 m 列约 5.2 s 才到尾部），故两端都只用 ED；等额 0.5 是最不任意的初值
+        # （每侧扰动幅度减半，任一侧都不单独承担全部制动需求），参数留给 0.3–0.7 扫描。
+        # 前车侧可减量受其当前 ED 限制，不足部分不转嫁给后车（防 C5 式过刹），只计数。
+        self.speed_convergence_share = bool(speed_convergence_share)
+        self.conv_share_tol_kmh = float(conv_share_tol_kmh)
+        self.conv_share_gain = float(conv_share_gain)
+        self.conv_share_max = float(conv_share_max)
+        self.conv_share_lead_share = float(conv_share_lead_share)
+        if (not np.isfinite(self.conv_share_tol_kmh) or self.conv_share_tol_kmh < 0
+                or not np.isfinite(self.conv_share_gain) or self.conv_share_gain < 0
+                or not np.isfinite(self.conv_share_max) or self.conv_share_max < 0
+                or not 0.0 <= self.conv_share_lead_share <= 1.0):
+            raise ValueError('speed convergence share parameters out of range')
+        self.ed_conv_unmet_count = 0
+        self.ed_conv_active_steps = 0
         if ed_recovery_scope not in ('all', 'coupler'):
             raise ValueError('ed_recovery_scope must be all or coupler')
         self.ed_recovery_scope = ed_recovery_scope
@@ -896,6 +960,73 @@ class MultiLocoController:
                 final[:, 0] = np.maximum(
                     np.minimum(final[:, 0], -self.leader_brake_ff_ed_floor_frac), -1.0)
                 self._ff_active_steps -= 1
+        # ===== C 组 2026-11-08 (a) ED 撤除时序状态约束（默认关 = 零回归）=====
+        # 只在本步"正在撤 ED"（上一步 ED 高、本步跌到近零）且相邻列仍满 ED 时否决，
+        # 保住 level_frac 档 ED；相邻列退出满 ED 或持有窗到期即解除。AB 侧一律不动。
+        if self.ed_release_timing_guard and self.num_locomotives:
+            prev_mean = (float(np.mean(self._previous_ed))
+                         if self._previous_ed is not None else 0.0)
+            cur_mean = float(np.mean(final[:, 0]))
+            # 真正退出制动（ED 已落在近零带）→ 解锁下一次撤除事件（防到期后原地重触发）
+            if prev_mean < self.ed_release_guard_trigger_frac:
+                self._ed_guard_armed = True
+            neighbor = getattr(train_env, 'formation_neighbor_ed_frac', None)
+            neighbor_full = (neighbor is not None and np.isfinite(neighbor)
+                             and float(neighbor) >= self.ed_release_guard_neighbor_full_frac)
+            if self._ed_guard_steps_left > 0:
+                if not neighbor_full:
+                    self._ed_guard_steps_left = 0      # 相邻列已退出满 ED → 立即放行
+                else:
+                    self._ed_guard_steps_left -= 1
+                    final[:, 0] = np.maximum(
+                        final[:, 0],
+                        self._ed_guard_ref * self.ed_release_guard_level_frac)
+                    self.ed_release_guard_hold_steps += 1
+            elif (self._ed_guard_armed and neighbor_full
+                    and prev_mean >= self.ed_release_guard_trigger_frac
+                    and cur_mean <= self.ed_release_guard_release_frac):
+                self._ed_guard_ref = np.asarray(self._previous_ed, dtype=float).copy()
+                self.ed_release_guard_veto_count += 1
+                self._ed_guard_steps_left = int(round(self.ed_release_guard_hold_s / self.dt))
+                if self._ed_guard_steps_left > 0:
+                    self._ed_guard_steps_left -= 1
+                    final[:, 0] = np.maximum(
+                        final[:, 0],
+                        self._ed_guard_ref * self.ed_release_guard_level_frac)
+                    self.ed_release_guard_hold_steps += 1
+                else:
+                    self._ed_guard_armed = False       # hold_s=0：只记录否决，不保持
+        # ===== C 组 2026-11-08 (b) 速度差协同收敛（默认关 = 零回归）=====
+        # 同一列可能同时扮演两个角色（夹在两列之间）：对后车它是前车（减 ED），
+        # 对前车它是后车（加 ED）。两端同时动作，杜绝 C4 式"只压一侧"。
+        # 只动 ED：不新增 AB 源、不改档位、不碰紧急（紧急是 EBI 的结果，不是控制手段）。
+        if self.speed_convergence_share and self.num_locomotives:
+            self_kmh = float(train_env.dynamics.vel[0]) * 3.6
+            front_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
+            rear_kmh = getattr(train_env, 'formation_rear_speed_kmh', None)
+            active = False
+            if front_kmh is not None and np.isfinite(front_kmh):
+                excess = self_kmh - float(front_kmh) - self.conv_share_tol_kmh
+                if excess > 0.0:
+                    add = ((1.0 - self.conv_share_lead_share)
+                           * min(self.conv_share_gain * excess, self.conv_share_max))
+                    room = float(np.mean(np.clip(1.0 - np.maximum(final[:, 0], 0.0), 0.0, 1.0)))
+                    if add > room:
+                        self.ed_conv_unmet_count += 1
+                    final[:, 0] = np.minimum(np.maximum(final[:, 0], 0.0) + add, 1.0)
+                    active = True
+            if rear_kmh is not None and np.isfinite(rear_kmh):
+                excess = float(rear_kmh) - self_kmh - self.conv_share_tol_kmh
+                if excess > 0.0:
+                    cut = (self.conv_share_lead_share
+                           * min(self.conv_share_gain * excess, self.conv_share_max))
+                    # 只减 ED，绝不把 ED 转成牵引（C5 的失败点之一）；减到 0 为止。
+                    if cut > float(np.mean(np.maximum(final[:, 0], 0.0))):
+                        self.ed_conv_unmet_count += 1
+                    final[:, 0] = np.maximum(np.maximum(final[:, 0], 0.0) - cut, 0.0)
+                    active = True
+            if active:
+                self.ed_conv_active_steps += 1
         self._last_clear_gap_m = getattr(train_env, 'formation_clear_gap_m', None)
         self._last_leader_speed_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
         self._previous_ed = final[:, 0].copy()
@@ -1002,6 +1133,13 @@ class MultiLocoController:
         self._previous_ed = None
         self._ed_recovery_pending[:] = False
         self._ed_hold_steps = 0
+        self._ed_guard_steps_left = 0
+        self._ed_guard_ref = None
+        self._ed_guard_armed = True
+        self.ed_release_guard_veto_count = 0
+        self.ed_release_guard_hold_steps = 0
+        self.ed_conv_unmet_count = 0
+        self.ed_conv_active_steps = 0
         self._ab_step = 0
         self._ab_on = [False] * self.num_locomotives
         self._ab_last_release_step = [-10 ** 9] * self.num_locomotives

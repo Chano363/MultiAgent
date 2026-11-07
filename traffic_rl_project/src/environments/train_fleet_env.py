@@ -225,6 +225,23 @@ class TrainFleetEnv:
         self.ed_floor_ab_ready = bool(config.get('ed_floor_ab_ready', False))
         self.ed_floor_ab_ready_ratio = float(config.get('ed_floor_ab_ready_ratio', 0.9))
         self.ed_floor_ab_ready_kn = float(config.get('ed_floor_ab_ready_kn', 400.0))
+        # 【C 组 2026-11-08】列间速度收敛 + ED 撤除时序（两个独立开关，默认关 = 零回归）。
+        # 二者只作用于 ED 份额（电制动力矩），不新增 AB 源、不改档位、不碰紧急制动。
+        self.ed_release_timing_guard = bool(config.get('ed_release_timing_guard', False))
+        self.ed_release_guard_trigger_frac = float(
+            config.get('ed_release_guard_trigger_frac', 0.30))
+        self.ed_release_guard_release_frac = float(
+            config.get('ed_release_guard_release_frac', 0.05))
+        self.ed_release_guard_neighbor_full_frac = float(
+            config.get('ed_release_guard_neighbor_full_frac', 0.80))
+        self.ed_release_guard_level_frac = float(
+            config.get('ed_release_guard_level_frac', 0.50))
+        self.ed_release_guard_hold_s = float(config.get('ed_release_guard_hold_s', 20.0))
+        self.speed_convergence_share = bool(config.get('speed_convergence_share', False))
+        self.conv_share_tol_kmh = float(config.get('conv_share_tol_kmh', 1.8))
+        self.conv_share_gain = float(config.get('conv_share_gain', 0.20))
+        self.conv_share_max = float(config.get('conv_share_max', 0.30))
+        self.conv_share_lead_share = float(config.get('conv_share_lead_share', 0.50))
         # 【X 组 2026-10-16】ED-AB 波到达协同窗（默认 0.0/1.0 = 关，零回归）：
         # 升级边沿后窗内 ED × scale，尾波到齐前头中不猛减速（消 R 峰值的速度反转）
         self.ed_upgrade_ramp_s = float(config.get('ed_upgrade_ramp_s', 0.0))
@@ -436,6 +453,19 @@ class TrainFleetEnv:
                     ed_floor_ab_ready=self.ed_floor_ab_ready,
                     ed_floor_ab_ready_ratio=self.ed_floor_ab_ready_ratio,
                     ed_floor_ab_ready_kn=self.ed_floor_ab_ready_kn,
+                    # 【C 组 2026-11-08】ED 撤除时序 + 速度差协同收敛（默认关 = 零回归）
+                    ed_release_timing_guard=self.ed_release_timing_guard,
+                    ed_release_guard_trigger_frac=self.ed_release_guard_trigger_frac,
+                    ed_release_guard_release_frac=self.ed_release_guard_release_frac,
+                    ed_release_guard_neighbor_full_frac=(
+                        self.ed_release_guard_neighbor_full_frac),
+                    ed_release_guard_level_frac=self.ed_release_guard_level_frac,
+                    ed_release_guard_hold_s=self.ed_release_guard_hold_s,
+                    speed_convergence_share=self.speed_convergence_share,
+                    conv_share_tol_kmh=self.conv_share_tol_kmh,
+                    conv_share_gain=self.conv_share_gain,
+                    conv_share_max=self.conv_share_max,
+                    conv_share_lead_share=self.conv_share_lead_share,
                     ed_native_force_conversion=bool(config.get(
                         'ed_native_force_conversion', False)),
                     # 【X 组】ED-AB 波到达协同窗透传（默认 0/1 = 关）
@@ -1075,6 +1105,29 @@ class TrainFleetEnv:
         ab_safety_vetoed_count = 0
         self._step_coupler_peak_n = 0.0  # 本步全列最大车钩力（跨列车取 max；奖励车钩力用真实峰值，非机车局部值）
         a = 0
+        # 【C 组 2026-11-08】编队级 ED/速度快照：本步决策前**一次采样**，供
+        # ed_release_timing_guard 与 speed_convergence_share 共用。
+        # 只用各列控制器上一步已提交的 ED 请求（_previous_ed）与本步起始队首速度，
+        # 不预支本步尚未计算的决策 → 无未来信息、无循环内先后顺序偏差（三列同时看到同一份快照）。
+        # 两个开关都关闭时不下发，控制器 getattr 默认 None（零回归）。
+        if self.speed_convergence_share or self.ed_release_timing_guard:
+            ed_last = []
+            for c in self.multi_loco_controllers:
+                prev = getattr(c, '_previous_ed', None)
+                ed_last.append(
+                    float(np.mean(np.abs(np.asarray(prev)))) if prev is not None else 0.0
+                )
+            speeds_kmh = [float(tr.dynamics.vel[0]) * 3.6 for tr in self.trains]
+            for ti, tr in enumerate(self.trains):
+                neighbors = []
+                if ti > 0:
+                    neighbors.append(ed_last[ti - 1])
+                if ti + 1 < len(self.trains):
+                    neighbors.append(ed_last[ti + 1])
+                tr.formation_neighbor_ed_frac = max(neighbors) if neighbors else None
+                tr.formation_rear_speed_kmh = (speeds_kmh[ti + 1]
+                                               if ti + 1 < len(self.trains) else None)
+                tr.formation_self_speed_kmh = speeds_kmh[ti]
         # 【列距收缩 v2 2026-09-09】放弃 A2"全场共同速度锁"（它会连 follower 一起压死，
         # 使"最慢列当 follower"时无追能力 → col1-col2 停在 ~2400m 缩不回）。
         # 现为：leader(ti==0) 沿用 A1-final 迁就尾列；follower(ti>0) 级联追自己前列，
