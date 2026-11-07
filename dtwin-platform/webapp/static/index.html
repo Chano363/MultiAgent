@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>重载列车群组运行数字孪生平台</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="bg"></div>
+
+<aside class="sidebar">
+  <div class="brand" data-action="view" data-view="home" role="button" tabindex="0" title="返回首页">
+    <div class="brand-mark">DT</div>
+    <div class="brand-text">
+      <h1>重载列车群组运行</h1>
+      <p>数字孪生平台</p>
+    </div>
+  </div>
+
+  <nav id="nav" class="nav"></nav>
+
+  <div class="side-foot">
+    <div class="side-row"><span>算法插件</span><b id="foot-algos">-</b></div>
+    <div class="side-row"><span>执行器</span><b id="foot-backends">-</b></div>
+    <div class="side-row"><span>运行任务</span><b id="foot-runs">-</b></div>
+    <p class="side-note">朔黄线真实区段 · 宁武西 → 北大牛 49.527 km</p>
+  </div>
+</aside>
+
+<main class="main">
+  <header id="topbar" class="topbar home">
+    <div class="titles">
+      <h2 id="view-title"></h2>
+      <p id="view-sub"></p>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-home" data-action="view" data-view="home">首页</button>
+      <div id="env-badge" class="badge">检查执行器</div>
+      <div id="clock" class="clock"></div>
+    </div>
+  </header>
+
+  <section id="view-home" class="view home active">
+    <div class="hero">
+      <h1><span>重载列车群组运行</span><span class="hero-line-2">数字孪生平台</span></h1>
+      <div class="hero-actions">
+        <button class="btn btn-hero" data-action="view" data-view="algorithms">算法管理</button>
+        <button class="btn btn-hero" data-action="view" data-view="runtime">仿真运行</button>
+        <button class="btn btn-hero" data-action="view" data-view="records">数据记录</button>
+        <button class="btn btn-hero" data-action="view" data-view="analysis">分析服务</button>
+      </div>
+      <button class="btn btn-demo" data-action="demo-start">演示模式</button>
+    </div>
+  </section>
+  <section id="view-algorithms" class="view"></section>
+  <section id="view-runtime" class="view"></section>
+  <section id="view-records" class="view"></section>
+  <section id="view-analysis" class="view"></section>
+</main>
+
+<div id="demo-bar" class="demo-bar" hidden></div>
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
+<div id="toast" class="toast"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

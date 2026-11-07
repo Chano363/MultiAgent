@@ -1,0 +1,1 @@
+shuohuang_49527: steps=6 dist=2.0km v_err_avg=0.053 s_err_avg=0.1 fc_peak=['61', '10', '3'] gap_min=2000 v_max=45.3 v_min=44.9
