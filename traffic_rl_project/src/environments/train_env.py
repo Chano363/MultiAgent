@@ -173,6 +173,15 @@ class TrainFormationEnv:
         self.num_vehicles = config.get('num_vehicles', 4)
         self.num_locomotives = config.get('num_locomotives', 1)
         self.dt = config.get('dt', 0.1)
+        # 【C7 分级施加 2026-11-07，默认关 = 零回归】把规则层/RL 层的整档 SERVICE
+        # （140 kPa，β=0.75）拆成两级：先 MIN（70 kPa，β=0.37），间隔 gap 秒后再升级
+        # 回 SERVICE。依据 DIAGNOSTICS_2026-11「分段施加的制动距离代价」：口径 B 下
+        # gap 3–5 s 可把准静态峰值 809/996 → 483/676 kN，代价是制动距离 +40~66 m。
+        # 只作用于送入本步的 AB 指令：不碰 ED、不碰充风门、不碰安全层；
+        # EMERGENCY（含安全层 EBI 提升）**永不拆分**，安全兜底必须一步到位。
+        self.ab_staged_apply = bool(config.get('ab_staged_apply', False))
+        self.ab_staged_gap_s = float(config.get('ab_staged_gap_s', 3.0))
+        self._ab_stage_t0 = None
         self.target_speed = config.get('target_speed', 20.0)
         self.target_gap = config.get('target_gap', 1.0)
         self.max_steps = config.get('max_steps', 500)
@@ -295,6 +304,7 @@ class TrainFormationEnv:
 
     def reset(self, seed=None, options=None):
         self.steps = 0
+        self._ab_stage_t0 = None
         self.safety.reset()
         self.dynamics.set_initial_speed(0.0)
         if options and 'speed' in options:
@@ -399,6 +409,38 @@ class TrainFormationEnv:
         if np.max(self.dynamics.vel) > self.line_speed_limit_mps:
             self._overspeed_violations += 1
 
+    def _ab_staged_command(self, ab_command, ab_sources):
+        """【C7 分级施加】整档 SERVICE(140 kPa) → 先 MIN(70 kPa)，gap 秒后再升级 SERVICE。
+
+        只改本步送入动力学的 AB 指令；EMERGENCY（含安全层 EBI 提升）原样放行。
+        返回 (ab_command, ab_sources)；开关关闭时原样返回（零回归）。
+        """
+        if not self.ab_staged_apply:
+            return ab_command, ab_sources
+        srcs = list(ab_sources) if ab_sources else []
+        if (ab_command == AirBrakeNotch.EMERGENCY
+                or any(n == AirBrakeNotch.EMERGENCY for _, n in srcs)):
+            self._ab_stage_t0 = None
+            return ab_command, ab_sources
+        wants_service = (ab_command == AirBrakeNotch.SERVICE
+                         or any(n == AirBrakeNotch.SERVICE for _, n in srcs))
+        if not wants_service:
+            if ab_command == AirBrakeNotch.RELEASE and not srcs:
+                self._ab_stage_t0 = None
+            return ab_command, ab_sources
+        t_now = self.steps * self.dt
+        if self._ab_stage_t0 is None:
+            self._ab_stage_t0 = t_now
+        if t_now - self._ab_stage_t0 < self.ab_staged_gap_s - 1e-9:
+            # 第一级：同批源整体降到 MIN（管压只减压 70 kPa）
+            if srcs:
+                srcs = [(idx, AirBrakeNotch.MIN) for idx, _ in srcs]
+            if ab_command == AirBrakeNotch.SERVICE:
+                ab_command = AirBrakeNotch.MIN
+            return ab_command, (srcs if srcs else None)
+        # 第二级：原样放行 SERVICE → 走 train.py 既有 notch 升级波（upgrade_pending）
+        return ab_command, ab_sources
+
     def step(self, actions: np.ndarray):
         if self.decompose:
             return self._step_decomposed(actions)
@@ -446,6 +488,7 @@ class TrainFormationEnv:
                 (i, ab_command) for i, v in enumerate(self.dynamics.consist.vehicles)
                 if v.is_locomotive
             ]
+        ab_command, ab_sources = self._ab_staged_command(ab_command, ab_sources)
         self.dynamics.step_vehicles_ed_ab(
             throttle, ed_throttle, ab_command, eot=self.eot,
             ab_sources=ab_sources,
@@ -629,6 +672,7 @@ class TrainFormationEnv:
                     ab_command = None
                 ab_safety_vetoed = True
 
+        ab_command, ab_sources = self._ab_staged_command(ab_command, ab_sources)
         self.dynamics.step_vehicles_ed_ab(
             throttle, ed_throttle, ab_command, eot=self.eot,
             ab_sources=ab_sources if ab_sources else None,
