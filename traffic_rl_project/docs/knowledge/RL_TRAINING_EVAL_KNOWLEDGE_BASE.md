@@ -119,7 +119,7 @@ graph TD
 ## §7 验证路径
 
 ```sh
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 python -m pytest tests/test_checkpoint_protocol.py tests/test_resume.py tests/test_mappo_train.py -q
 python -m pytest tests/test_logging_metrics.py tests/test_metric_accounting.py tests/test_outputs_layout.py -q
 

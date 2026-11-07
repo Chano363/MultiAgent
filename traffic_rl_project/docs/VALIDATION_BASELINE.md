@@ -342,7 +342,7 @@ section,start_km,start_speed_kmh,release_km,release_speed_kmh
 
 ### 4.1 目的：把"假 ATP"升级为"真 ATP"
 
-现状 [safety_layer.py](file:///d:/Code/MultiAgent/traffic_rl_project/src/safety_layer.py) 规则1 是**反应式软修正**——`vel >= 限速` 就把动作钳到 `-0.75`（full service），缺前方目标距离/坡度分量/制动建立延迟/前瞻监督层级。
+现状 `traffic_rl_project/src/safety_layer.py` 规则1 是**反应式软修正**——`vel >= 限速` 就把动作钳到 `-0.75`（full service），缺前方目标距离/坡度分量/制动建立延迟/前瞻监督层级。
 
 ETCS 目标距离超速防护曲线是**前瞻式抛物线监督限位**：对每个前方目标点（降速点 / EOA 停车 / 间距约束点），从目标反推「紧急制动减速曲线」（EBD），再叠加最不利假设得到介入点（EBI），按五级监督驱动制动——只要在 EBI 触发紧急制动，就保证不越过目标点。
 
@@ -686,7 +686,7 @@ python src/trainer/train_fleet.py --episodes 60 --num_trains 1 --preset 10kt_1pl
 **运行命令（可复现）**：
 ```bash
 # L1 单列循环制动 MAPPO 重训（MT-2，curriculum 300-1000-15000，seed0）
-cd /mnt/d/Code/MultiAgent/traffic_rl_project && \
+cd traffic_rl_project && \
 python src/trainer/train_cyclic_braking.py --episodes 300 --grade shuozhou_23800 \
   --warm_start --curriculum 300-1000-15000 \
   --checkpoint_dir outputs/mt2_l1/checkpoints --results_dir outputs/mt2_l1/results --seed 0
@@ -736,7 +736,7 @@ python src/evaluation/evaluate_l1_rule_baseline.py
 
 **复现命令**（`tmp_diag_s1_crash.py`，官方工况，加载 ep140/ep150 checkpoint 跑 rollout 逐 step 采集）：
 ```
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 python tmp_diag_s1_crash.py          # 输出 outputs/tmp_diag_ep150.json / tmp_diag_ep140.json
 ```
 

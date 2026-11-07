@@ -117,7 +117,7 @@ graph TD
 ## §7 验证路径
 
 ```sh
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 python -m pytest tests/test_train_dynamics.py tests/test_braking_propagation.py tests/test_coupler_model_refined.py tests/test_coupler_gap.py tests/test_grade_profile.py -q
 python -m pytest tests/test_physical_invariants.py tests/test_physics_governance.py tests/test_etcs_braking.py -q
 # 改车钩/制动触及物理基准时：

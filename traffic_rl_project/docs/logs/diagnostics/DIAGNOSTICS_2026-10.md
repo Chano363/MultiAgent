@@ -249,7 +249,7 @@ supersedes: —
 ```sh
 # 环境
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 
 # A: on/off 各 12000 步（同一 ckpt / 同 seed / 同剖面，仅 ab_min_refill_s 变）
 python tmp_task7_verify.py --scenes a --tag task7_a
@@ -295,7 +295,7 @@ python tmp_task7_verify.py --scenes c --tag task7_c
 
 ```sh
 source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 
 CKPT=outputs/checkpoints/formation/final_seed0/mappo_fleet_last_ep1623_dec_ad2_cp_seed0_seed0.pt
 
@@ -527,7 +527,7 @@ python run_training.py \
   - ⚠️ **tqdm 的 ETA 也不能直接用**：它按当前（500 步）速率线性外推并打印 `105~108 h`（≈4.5 天），**不随 curriculum 升到 1000/1200 步调整** ⇒ 同样低估约 2.5×。
   - ⚠️ **排期含义**：`1400 ep × 5 seed` 单机串行 ≈ **58 天**，须先裁决"减课时/减集数"还是"并行多机/多卡"。
 - 本轮由 IDE 后台作业承载 ⇒ 进程**随 IDE 会话存活**；**数天级无人值守须改用用户自己的 WSL 终端**重跑启动器（命令见 `REPRODUCIBILITY.md` §十：
-  `cd /mnt/d/Code/MultiAgent/traffic_rl_project && nohup setsid bash scripts/launchers/launch_retrain_adr021_seed0.sh > outputs/logs/diagnostics/log_retrain_adr021_seed0_20261001.txt 2>&1 < /dev/null &`）。
+  `cd traffic_rl_project && nohup setsid bash scripts/launchers/launch_retrain_adr021_seed0.sh > outputs/logs/diagnostics/log_retrain_adr021_seed0_20261001.txt 2>&1 < /dev/null &`）。
 - 中断恢复（ADR-019）：`--episodes 1400 --resume latest`（`--episodes` = **总目标集数**，非增量），完整命令见 `REPRODUCIBILITY.md` §十。
 
 **五、落地登记**
@@ -1534,7 +1534,7 @@ python run_training.py \
 
 **J 组根因（一手代码 + 归档时间线证实，H≡I 共同根因）**：
 - 归档时间线：t=6650 ratio 0.64 → t=6700 ratio **1.06**（scale=0）时 `physical_loco_ed=[0,0]` → t=6750 峰值 **2247 kN**（75 km/h）；t=6850 ratio 0.70 时 ED 恢复 [1.0,0.7] → 力回落。
-- 代码链：H 组已让 baseline 制动分支保住 300 kN floor（`max(ed, ed_floor)` 不乘 scale，[multi_loco_controller.py](file:///d:/Code/MultiAgent/traffic_rl_project/src/controllers/multi_loco_controller.py) 制动分支），但 decompose 主流程随后 **L591 `final[:, 0] *= scale` 把保住的 floor 二次清零**（ratio≥1 → scale=0 → ED=0）→ 前部无 ED 只剩 AB、后部全制动 → 压缩正反馈 → 主团簇。
+- 代码链：H 组已让 baseline 制动分支保住 300 kN floor（`max(ed, ed_floor)` 不乘 scale，[multi_loco_controller.py](traffic_rl_project/src/controllers/multi_loco_controller.py) 制动分支），但 decompose 主流程随后 **L591 `final[:, 0] *= scale` 把保住的 floor 二次清零**（ratio≥1 → scale=0 → ED=0）→ 前部无 ED 只剩 AB、后部全制动 → 压缩正反馈 → 主团簇。
 - **修复（J 组）**：L591 之后加兜底 `if ed_release_coordination and _cyclic_braking: final[:,0] = max(final[:,0], floor)`——与 baseline 同口径（表3 循环期 ED 恒持 300 kN），默认关（协调关/非制动段）= 旧行为零回归；3 条新单测（decompose floor 存活 / 协调关零回归 / 非制动段不抬）+ 相关 45 测试绿。
 - **验收状态：A–I 全部未达；J 组评估完成 = 负结果**（2530/1984/65.9，峰值反超 I 的 2247）。
 
@@ -1694,20 +1694,20 @@ python run_training.py \
 ### 接手后Y2触发语义恢复与制动力依据复核-2026-10-17
 
 - 合并34f08ae后核对Z施加沿负结果仍在主控制器；恢复Y2升级门沿逻辑，reset补清ramp倒计时/armed。原生控制、传播、安全权限、归档五文件81测试通过；全量与整线在运行，不宣称整线达标。前缀抽查与旧Y2一致，未开始AF/AG。物理和阈值未改。
-- 新静态核算提示第三段后50kPa在-12‰/76km/h即使充分建立也轻微加速；原文表5-5是特定三个长制动段的辨识值，当前按次数永久衰减的简化迁移尚需证据。不得用关闭基线衰减或修改安全阈值替代验证。详细条件、原文页码与核算结果见D:/Codex/Documents/Train/controller_takeover_20261017/底层控制修复与参数复核_20261017.md；源码指纹、静态JSON与整线输出同目录。
+- 新静态核算提示第三段后50kPa在-12‰/76km/h即使充分建立也轻微加速；原文表5-5是特定三个长制动段的辨识值，当前按次数永久衰减的简化迁移尚需证据。不得用关闭基线衰减或修改安全阈值替代验证。详细条件、原文页码与核算结果见traffic_rl_project/docs/reports/controller_takeover_20261017/底层控制修复与参数复核_20261017.md；源码指纹、静态JSON与整线输出同目录。
 
 ### 归档源码审计：AA至AE与Y2混杂对照更正-2026-10-17
 
 - 直接复核冻结controller_source.py及metadata哈希：Y2=65ba7d2213（升级门沿）；Z与AA/AB/AC/AD/AE=27bc986d59（普通施加沿）。因此此前AA至AE“仅改Y2一个参数”的归因及据此关闭参数轴的结论**被本次审计覆盖**；保留原数值，但不能证明这些参数在Y2逻辑下已无空间。AD/AE的fleet/train_env/train_dynamics源码还发生变化，须额外核对。
 - 同版本重算参照：Z=1932.8657kN/1234viol；AA=1964.5727/757（峰值更高、超限计数更低，不能简单宣称全负）；AB=2615.5842/2951；AC=1932.8657/1234（与Z相同，不能称相对Z退化）；AD=2249.5818/3387；AE=2023.6628/1889。后三组单源/时序/门位的Y2结论须重审，不直接推广Z结果。
-- 新增只读audit_control_archives.py核对冻结源码/声明哈希/env_cfg/协议及物理元数据；缺失证据标unknown并requires_review，不冒充完全物理验证。四项原始归档/缺失/篡改回归通过。结果D:/Codex/Documents/Train/controller_takeover_20261017/archive_comparability_y2_01.json与archive_comparability_z_01.json。
+- 新增只读audit_control_archives.py核对冻结源码/声明哈希/env_cfg/协议及物理元数据；缺失证据标unknown并requires_review，不冒充完全物理验证。四项原始归档/缺失/篡改回归通过。结果traffic_rl_project/docs/reports/controller_takeover_20261017/archive_comparability_y2_01.json与archive_comparability_z_01.json。
 - 启动真正Y2逻辑8秒窗单因素整线对照aa_upgrade_edge_8s_fullroute_01，与y2_restored_fullroute_01同物理/初态，控制器固定至D盘source_freeze；尚在运行，不报改进或达标。现有整线数据不覆盖，物理与安全阈值不变。
 
 ### 原始断面力与方向安全接口符号纠正-2026-10-17
 
 - 两车真实拉伸/压缩验证：free_length=12m，spacing12.04m时raw=-654.061kN（前车向后受拉）；spacing11.96m时raw=+654.061kN（前车被向前推压）。原物理回归也使用负拉钩。故本月旧“正=拉/负=压”“正超线全为拉钩”的标签被本条覆盖；原始峰值/绝对超限数字不改。
 - per_vehicle_signed接口曾直接保留raw符号，却被SafetyLayer.direction按拉正压负解释，存在确定性接口倒置。现仅在该视图反号，不动原始力/积分/幅值/阈值；新增5个原生拉压到安全层联动与非方向模式回归。当前84项相关测试通过，加上此前归档6项，共90项针对性测试；运行中的全量导入旧模块，不当新修复全量证据。
-- 旧U组使用倒置方向接口，不能据其失败关闭正确方向策略；待新接口下独立验证。Y2与8秒窗长评估均在修复前启动并归档启动源码，且采用min_brake，原始比较有效但不代表方向修复收益；旧source_freeze保留，新接口源码另存D盘direction_interface_fix。证据direction_interface_evidence.json与报告位于D:/Codex/Documents/Train/controller_takeover_20261017。
+- 旧U组使用倒置方向接口，不能据其失败关闭正确方向策略；待新接口下独立验证。Y2与8秒窗长评估均在修复前启动并归档启动源码，且采用min_brake，原始比较有效但不代表方向修复收益；旧source_freeze保留，新接口源码另存D盘direction_interface_fix。证据direction_interface_evidence.json与报告位于traffic_rl_project/docs/reports/controller_takeover_20261017。
 
 ### Y2整线逐元素复现与8秒窗负结果-2026-10-17
 
@@ -1752,12 +1752,12 @@ python run_training.py \
 
 - observation_clock_prefix5000_01已完成500秒：峰值1462.180476kN，均速58.180746km/h，最低列均速47.973683km/h，jerk RMS=0.010100153m/s³，>1500kN计数0。相同500秒旧Y2峰值1468.771kN、均速58.176060、最低48.801593、jerk RMS=0.010719232；保持时间从实际25秒纠正为50秒。平顺性有改善但最低速度下降，仍不能宣称整线达标。
 - 原工况仅将渐变窗6秒改为10秒，40秒峰值升至1500.120161kN、超限计数1，候选clock_start_ramp10_400_01不采用。
-- 新冻结候选ed_sufficient_upgrade_candidate.py只在升级门增加既有能力条件ed_avail<0.99：电制动足够时不额外请求SERVICE，物理/安全参数不变。40秒相同前缀：峰值1462.180476→1221.159765kN（约-16.5%），均速71.559762→75.988162km/h，最低64.986501→69.797275，jerk RMS 0.015643828→0.010300959（约-34.2%），两组>1500计数均0。四份环境/动力学/ETCS源码哈希及physics_version一致。数据在D:/Codex/Documents/Train/controller_takeover_20261017/，候选结果目录ed_sufficient_start400_01。
+- 新冻结候选ed_sufficient_upgrade_candidate.py只在升级门增加既有能力条件ed_avail<0.99：电制动足够时不额外请求SERVICE，物理/安全参数不变。40秒相同前缀：峰值1462.180476→1221.159765kN（约-16.5%），均速71.559762→75.988162km/h，最低64.986501→69.797275，jerk RMS 0.015643828→0.010300959（约-34.2%），两组>1500计数均0。四份环境/动力学/ETCS源码哈希及physics_version一致。数据在traffic_rl_project/docs/reports/controller_takeover_20261017/，候选结果目录ed_sufficient_start400_01。
 - 此候选仅有起步缓坡40秒证据，未进入生产控制器；既有能力估计和跨坡过渡尚须验证。500秒扩展ed_sufficient_prefix5000_01未启动：D盘写入的自动权限审核连续两次超时（非仿真失败，亦未给出风险拒绝理由）。不使用无元数据或不落盘的运行绕过归档要求。下一步恢复D盘写入后原协议跑5000步，若通过再评估完整线路，禁止用短窗替代整线验收。
 
 ### 随机冷初态：原文复核、匹配接续对照与显式速度上限（2026-10-17）
 
-- 结论和范围见HANDOFF_2026-10-17.md §10；完整新报告保存在D:/Codex/Documents/Train/controller_takeover_20261017/随机初态文献复核与方案验证_20261017.md。没有补搜MIS/知网或移用HXD1参数。
+- 结论和范围见HANDOFF_2026-10-17.md §10；完整新报告保存在traffic_rl_project/docs/reports/controller_takeover_20261017/随机初态文献复核与方案验证_20261017.md。没有补搜MIS/知网或移用HXD1参数。
 - 原20km/79.9992km/h、零空气力反例仍保留。当前控制器70/65/60km/h冷起点各200s：峰1276.603130/1327.692176/1312.570767kN，最高单车73.123130/68.173606/66.933861km/h，超速列时步和>1500断面时刻计数均0；相应均速63.122293/58.344129/59.215779km/h，仅窗口指标。70km/h从10/40km各120s峰1287.251200/1283.023007kN，最高单车72.531936/72.542548km/h，均无超速/超限。
 - 实际20km/65km/h运行60s形成接续状态：头21082.610935m、列均速62.668132km/h、空气力1488.588134kN。原实例完整接续120s峰1314.777426；另全新环境逐车匹配pos/vel但清空空气/积分/控制器历史，120s峰1235.793146；两者无超速/超限。原先1327.692176kN预运行峰和失败拒绝规则不丢弃。配对是全历史消融，不是只改初压，单例不能证明两训练分布等效或热启动更好。
 - compare_initial_state_history.py冻结执行源码、记录official metadata及初态+每步数组；同源前600和后1200步与诊断数组逐元素相等。79.9992km/h的3步拒绝冒烟产生3个超速列时步并保留，不生成通过分支。
@@ -1766,7 +1766,7 @@ python run_training.py \
 
 ### 冷启动速度上限扩大复验：两处真实车钩验收超限（2026-10-17）
 
-- SSOT快照见HANDOFF_2026-10-17.md §11；详细报告D:/Codex/Documents/Train/controller_takeover_20261017/随机初态边界复验与瓶颈_20261017.md。不是原固定起点整线退化，而是扩大初态覆盖。
+- SSOT快照见HANDOFF_2026-10-17.md §11；详细报告traffic_rl_project/docs/reports/controller_takeover_20261017/随机初态边界复验与瓶颈_20261017.md。不是原固定起点整线退化，而是扩大初态覆盖。
 - 六个边界和三种子预登记120s窗口7/9过1350目标。25.0135/26.6335km原目标早停1374.100/1357.230不能当完整窗口真峰；延伸至1500诊断早停实际1507.894438kN@70.9s、1539.288390kN@12.4s，各1个断面时刻超限、无超速。原1350前缀位置/速度/压力/力/统计行完全一致。已测区间未触2250，未改控制安全阈值。
 - 25.0135km的65/60kmh冷起点均目标早停；0.5/s恢复候选亦失败。两半列静态平衡依据已有马志强2023式(8)自研，静态请求总力误差<1N且AB/物理状态不变，但两动态失败点仍1352.969/1358.573，不采用；额外固定起点500s候选前缀主动取消，无完成数据可引用。
 - 从20km/65kmh真实运行309.5s至25.0135km的预运行通过（1327.692/无超速），但暖态接续74.1s/1357.827目标早停，匹配kinematics清历史对照74.2s/1363.208同样失败。热启动不是充分修复；该试验也不能否定从0km整线合格轨迹承接的可行性。
@@ -1775,7 +1775,7 @@ python run_training.py \
 
 ### 预测制动协调：短时动作与可行接续的差别（2026-10-17）
 
-- 本轮未采用任何控制候选，固定起点1321.486kN结果不扩张；快照和原始路径见HANDOFF_2026-10-17.md §12、D:/Codex/Documents/Train/controller_takeover_20261017/预测制动协调试验与原文复核_20261017.md。
+- 本轮未采用任何控制候选，固定起点1321.486kN结果不扩张；快照和原始路径见HANDOFF_2026-10-17.md §12、traffic_rl_project/docs/reports/controller_takeover_20261017/预测制动协调试验与原文复核_20261017.md。
 - 空气准入速度预看两失败窗仍1354.299@40.6s/1359.661@12.5s；再入坡无空气延伸1530.213@13.3s、2格>1500。与静态ED平衡组合、仅推迟头部新空气源也均目标早停。不是简单空气动作错误或已证明恒速预算足够就等于循环调速不需要空气。
 - 同200s控制窗局部效率63.122293→68.180789kmh，车钩1276.603130→1277.094977，jerk RMS0.008267223→0.008399058；原生train/dynamics/ETCS哈希及env_cfg相同。没有用该正例替代两个反例。
 - 同状态原生2秒ED敏感性给出10s时头机1297.341/中机1428.562kN，但后续多个固定动作无可行候选。原生2s闭环选优再入坡1354.195@12.3s、jerk RMS0.030195；4s/2s更新/0.5双向斜率方案1371.504@12.4s、jerk0.009253；均不采用。中途局部预测较好不代表后续可行。
@@ -1790,7 +1790,7 @@ python run_training.py \
 - 转缓坡最佳序列35—41s后平滑接回原规则，45.3s达到1353.168kN目标早停；保持第二段动作则完整120s峰1343.201、均速72.334kmh、最高车辆74.035，无超速/1500超限。前41s两运行逐元素一致。该定时诊断不能部署，且距离1350仅约6.8kN，尚无扰动和整线保证。
 - 再入坡最佳序列续持仍14.7s/1504.820kN验收线早停，1个超限断面时刻，无超速；不是完整120s真峰。两个反例仍未联合闭合，不能称底层修复完成。
 - 原生预测与真实执行6s窗峰值序列逐元素一致（0N差）、请求一致；相同第一段的9个后继分支前3s逐元素一致，指令斜率和空气保持检查通过。实际安全/气路未改；母控制器为空气预看冻结候选，不能冒充生产性能。
-- 原始归档outputs/sim_validation/phys_validation/ed_sequence_{flat,reentry}_20261017_review及ed_sequence_flat_{continuation,hold}_20261017_review、ed_sequence_reentry_hold_20261017_review，含官方metadata/源码快照/原始NPZ/审计JSON。报告D:/Codex/Documents/Train/controller_takeover_20261017/分段制动序列及接续验证_20261017.md。
+- 原始归档outputs/sim_validation/phys_validation/ed_sequence_{flat,reentry}_20261017_review及ed_sequence_flat_{continuation,hold}_20261017_review、ed_sequence_reentry_hold_20261017_review，含官方metadata/源码快照/原始NPZ/审计JSON。报告traffic_rl_project/docs/reports/controller_takeover_20261017/分段制动序列及接续验证_20261017.md。
 - 下一步：从定时分配提炼状态触发和退出/接续条件；再入坡研究更早介入及连续多段动作和未来可行性。未新读/新搜论文，未声称本轮有限网格为Lu2025 NMPC复现；未重跑上轮53项测试，使用原生仿真和逐元素一致性验证本轮诊断。
 
 
@@ -1802,7 +1802,7 @@ python run_training.py \
 - 原始失败首启是grade_profile字段名错误，在首步物理推进前失败；run_status明确无有效数值，独立v2修正_grade_profile后重跑。v2转缓坡32.9s介入、44.8s/1350.717余量早停，未声称越1500。v3提高前段触发后通过原点，但相邻位置仍失败。
 - 原始归档state_section_ed_{flat,reentry}_v3_20261017_review及四个state_section_*100_v3_20261017_review；state_section_holdouts_plan_20261017_review保存plan/matrix_summary/consistency_audit。六案例规范化源码哈希一致、预登记原始文件哈希一致；原再入坡v2/v3轨迹/请求逐元素相同，转缓坡干预前350步与母候选一致。未重跑旧53项测试，不计作本轮通过数。
 - 重读Zhang2026_JAS_CouplerCompensation.txt原文摘要/§II式(1)—(4)，其ECP逐车独立制动前提不适用于本项目两机车常规气路；本地仅部分正文，不称全篇复现或导入控制公式。现阶段应固定反例、加入逐钩变化/邻车速差/加载历史的动态预测与连续接续验证，不再为单个位置调阈值。未新搜论文/登录MIS。
-- 完整报告D:/Codex/Documents/Train/controller_takeover_20261017/状态触发分配与相邻起点验证_20261017.md。没有相邻工况母候选完整配对，因此不主张候选相对生产整体变好/变差；明确结论是候选稳健性验收失败。
+- 完整报告traffic_rl_project/docs/reports/controller_takeover_20261017/状态触发分配与相邻起点验证_20261017.md。没有相邻工况母候选完整配对，因此不主张候选相对生产整体变好/变差；明确结论是候选稳健性验收失败。
 
 
 ### 因果车钩趋势预警审计-2026-10-17
@@ -1811,18 +1811,18 @@ python run_training.py \
 - 对1350/1500kN、1/2/3秒时域，比较当前力、0.5秒变化率、加载方向邻车速度门、再加1秒因果均值滤波。相邻速度与符号门不冒充动态模型，所有滤波/时域只是信号处理试验设定。
 - 1500kN/2秒：已验收固定起点整线轨迹的原趋势+速度门误报率99.84%，滤波后66.67%；安全120秒原转缓坡/原再入坡滤波误报71.40%/49.28%。三个失败相邻起点虽覆盖20个已知未来正样本，但滤波精确率仅6.29%/6.08%/15.27%；不能把大量持续报警下的2秒提前量当有效突破。该简易预警未接入控制器。
 - v1仅完整未来窗；v2保留不完整未来中已观察到超限的已知正样本、排除未知负尾部；v3新增滤波，最终以v3为准。三个目录独立留存不覆盖。最终4项边界测试通过（末帧越线、未知尾部、因果输入、双符号加载方向）。8份原始NPZ与冻结源哈希、时间步均匀性已核对，原始档案只读。
-- 原始归档outputs/sim_validation/phys_validation/coupler_causal_warning_audit_v3_20261017_review含完整metadata、逐案例来源、所有设置结果、summary/integrity_audit。报告D:/Codex/Documents/Train/controller_takeover_20261017/车钩趋势预警有效性核对_20261017.md。
+- 原始归档outputs/sim_validation/phys_validation/coupler_causal_warning_audit_v3_20261017_review含完整metadata、逐案例来源、所有设置结果、summary/integrity_audit。报告traffic_rl_project/docs/reports/controller_takeover_20261017/车钩趋势预警有效性核对_20261017.md。
 - 当前待办转为验证可预测不同ED动作响应的动态模型及连续接续；不再将线性趋势线当安全边界或为单点反复调门。误报不能证明物理错误、所有预测无效或控制无解；本轮未新搜/新读论文、未导入外部参数。
 
 
 ### 动作响应预测核对-2026-10-17
 
-已验证动作插值与逐车状态插值的精度限制，均未推广。24.9135km定时诊断完整120s峰1266.293kN；26.5335km仍14.3s/1511.695早停。原生数据和误差审计见docs/HANDOFF_2026-10-17.md末节；完整报告D:/Codex/Documents/Train/controller_takeover_20261017/制动动作响应预测与续跑验证_20261017.md。生产版本不变，后续须保留非线性耦合并验证窗口终点接续；局部定时试验不是通用修复。
+已验证动作插值与逐车状态插值的精度限制，均未推广。24.9135km定时诊断完整120s峰1266.293kN；26.5335km仍14.3s/1511.695早停。原生数据和误差审计见docs/HANDOFF_2026-10-17.md末节；完整报告traffic_rl_project/docs/reports/controller_takeover_20261017/制动动作响应预测与续跑验证_20261017.md。生产版本不变，后续须保留非线性耦合并验证窗口终点接续；局部定时试验不是通用修复。
 
 
 ### 长窗口接续与按需ED-2026-10-17
 
-原生41条分支定位提前介入价值。按需ED冻结候选在三个相邻再入坡120s峰1404.506/1298.402/1263.969kN，无超速/1500超限；转缓坡76.1s/1511.059仍失败。未替换生产/接训练，详见docs/HANDOFF_2026-10-17.md末节及D:/Codex/Documents/Train/controller_takeover_20261017/长窗口接续与按需电制动验证_20261017.md；索引three_stage_native_plan_20261017_review/round_summary.json。
+原生41条分支定位提前介入价值。按需ED冻结候选在三个相邻再入坡120s峰1404.506/1298.402/1263.969kN，无超速/1500超限；转缓坡76.1s/1511.059仍失败。未替换生产/接训练，详见docs/HANDOFF_2026-10-17.md末节及traffic_rl_project/docs/reports/controller_takeover_20261017/长窗口接续与按需电制动验证_20261017.md；索引three_stage_native_plan_20261017_review/round_summary.json。
 
 
 ### 编队奖励重构 v6：按文献槽位收敛（改造-2026-10-20）

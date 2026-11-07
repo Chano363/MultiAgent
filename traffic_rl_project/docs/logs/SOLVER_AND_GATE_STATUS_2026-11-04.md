@@ -29,7 +29,8 @@
 **三列编队（3 × 1+0，3 智能体）**
 
 - 80 km/h 冷起点主工况：**未通过**（`route_completed` 未达成）。旧归档 `outputs/sim_validation/phys_validation/fleet_production_edramp02_80kmh_full_20261104/` 在 t=301.5 s、5.91 km 处峰值 1007.99 kN 触发诊断早停。
-- 70 km/h 冷起点 + 起点整体前移 2800 m（ADR-049）：t=103.5 s、1.77 km 处峰值 **1005.11 kN**，仍越 1000 kN 验收线，`full_route_completed=false`（`outputs/sim_validation/phys_validation/fleet3_production_subcycle_70kmh_full_20261104/`）。
+- 70 km/h 冷起点 + 起点整体前移 2800 m（ADR-049）的"不早停"全程：`outputs/sim_validation/phys_validation/fleet3_production_subcycle_70kmh_full_unstopped_20261104/` —— `route_completed` 达成（均速 58.2 km/h），但**有效路段峰值 1288.5 kN**（t=1846.7 s、km33.6、中列第 47 号车钩），远超 1000 kN；数值侧 0 未收敛（378 万子步、残差 7.5e-6 m）。
+- 70 km/h 冷起点 + 起点整体前移 2800 m 的早停版：t=103.5 s、1.77 km 处峰值 **1005.11 kN**（`outputs/sim_validation/phys_validation/fleet3_production_subcycle_70kmh_full_20261104/`）。
 - 数值侧健康：两轮均 0 未收敛子步、最大位移残差 ~7e-6 m、平均迭代 1.0 ⇒ **越线不是求解器数值问题**。
 - 已定位原因：
   1. **物理缺口**：满 ED 约 547 kN < 长大下坡维持 80 km/h 所需约 903 kN，循环制动周期内掉速不可避免；

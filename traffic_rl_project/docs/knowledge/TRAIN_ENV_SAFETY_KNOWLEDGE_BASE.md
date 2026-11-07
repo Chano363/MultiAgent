@@ -103,7 +103,7 @@ graph TD
 ## §7 验证路径
 
 ```sh
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 python -m pytest tests/test_train_env.py tests/test_train_fleet_env.py -q
 python -m pytest tests/test_safety_layer.py tests/test_ab_refill_and_safety_authority.py -q
 python -m pytest tests/test_coupler_reward_overlimit.py tests/test_per_agent_critic.py -q

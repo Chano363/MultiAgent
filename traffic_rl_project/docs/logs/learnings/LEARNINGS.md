@@ -447,7 +447,7 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 
 - **现象**：按 LRN-20261001-003 建了冻结副本 `/mnt/d/Code/_p0freeze`（`git worktree`，冻结 SHA `d6ba3540`，**已核实**该副本 `train_fleet_env.py` / `multi_loco_controller.py` / `train_env.py` / `mappo_agent.py` / `metadata.py` 里四处改造的标记**全部为 0 命中 = 确属改动前**），在副本里 `cd` 后跑评估，结果 JSON 的 `metadata` 却出现了**只有主树才有的**字段（`reward_schema: v2-bounded-overlimit-section-force`）。即：**副本代码是改动前，跑的却是改动后**。
 - **期望 vs 实际**：期望"副本里跑 = 用副本代码"；实际副本只是**磁盘上**的一份静态代码，`sys.path` 并没有指向它。
-- **根因**：conda env 装了 editable 安装 `site-packages/__editable__.traffic_rl-0.1.0.pth`，它把路径占位符 `__editable__.traffic_rl-0.1.0.finder.__path_hook__` 追加进 **sys.path**，对应一个**无条件**把 `src` 映射到 `/mnt/d/Code/MultiAgent/traffic_rl_project/src`（**主树**）的 path hook。而 `python <script>.py` 的 `sys.path[0]` 是**脚本所在目录**（`<root>/src/evaluation`），**cwd 不在 sys.path**，故 `import src` 走不到副本 → 落到占位符 → 主树。**结果看起来完全正常**（静默错误）。
+- **根因**：conda env 装了 editable 安装 `site-packages/__editable__.traffic_rl-0.1.0.pth`，它把路径占位符 `__editable__.traffic_rl-0.1.0.finder.__path_hook__` 追加进 **sys.path**，对应一个**无条件**把 `src` 映射到 `traffic_rl_project/src`（**主树**）的 path hook。而 `python <script>.py` 的 `sys.path[0]` 是**脚本所在目录**（`<root>/src/evaluation`），**cwd 不在 sys.path**，故 `import src` 走不到副本 → 落到占位符 → 主树。**结果看起来完全正常**（静默错误）。
 - **解决**：用 bootstrap harness 把**冻结树根插到 `sys.path[0]`**（先于占位符命中），再 `runpy` 执行目标脚本；并**断言** `src.metadata.__file__` 落在冻结树内（`tmp_p0_freeze_boot.py`）。
 - **止血与预防**
   - "冻结副本"只有在**显式把副本根放进 `sys.path` 且断言解析结果**之后才算真的冻结；**只 `cd` 不算**；
@@ -899,9 +899,9 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
   ⇒ **失败不留痕**；叠加截断管道 = 证据归零。
 - **结构性修复（已落地，取代纯纪律）**：
   1. `_long_eval` 每次评估**无条件**追加 `results_dir/long_eval_history.jsonl`
-     （含未达标与异常行）——失败也留痕，`grep` 即得全轨迹（[train_runner.py](file:///d:/Code/MultiAgent/traffic_rl_project/src/trainer/train_runner.py#L509-L514)）。
+     （含未达标与异常行）——失败也留痕，`grep` 即得全轨迹（[train_runner.py](traffic_rl_project/src/trainer/train_runner.py#L509-L514)）。
   2. `run_training.py` 启动即给 root logger 加 `FileHandler` 写 `results_dir/run.log`（`mode='a'` 追加、`python -u` 无缓冲）
-     ——调用方 shell 怎么写都丢不了（[run_training.py](file:///d:/Code/MultiAgent/traffic_rl_project/run_training.py#L55-L63)）。
+     ——调用方 shell 怎么写都丢不了（[run_training.py](traffic_rl_project/run_training.py#L55-L63)）。
   ⇒ 纪律（禁用 `| tail` / `| head`）仍是要求，但**即使有人再犯，证据也不会再丢**。
 
 ---

@@ -90,7 +90,7 @@ graph TD
 ## §7 验证路径
 
 ```sh
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+cd traffic_rl_project
 python -m pytest tests/test_nmpc_controller.py tests/test_metric_accounting.py -q
 ```
 

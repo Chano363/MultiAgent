@@ -70,9 +70,9 @@ supersedes: 无（本文件 = docs/PROJECT_PIPELINE.md 执行流水的原样迁�
 
   - reviewer=OpenRouter `minimax/minimax-m3:free`，executor=deepseek → `family_relation=different`
 
-  - **TRAE 密钥遮罩坑**：TRAE 注入 stdio env 时把"值像 API key"(`sk-...`) 的变量前缀替换成 `\u2026` → httpx 报 ascii 编码错。**解法**：server.py 新增 `LLM_CRED_FILE`（从本地 key 文件读，env 只传中性路径），[server.py L52-72](file:///D:/Code/MultiAgent/Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)；key 入 `C:\Users\chano\.trae-cn\memory\llm_chat_key.txt`（git 外）。
+  - **TRAE 密钥遮罩坑**：TRAE 注入 stdio env 时把"值像 API key"(`sk-...`) 的变量前缀替换成 `\u2026` → httpx 报 ascii 编码错。**解法**：server.py 新增 `LLM_CRED_FILE`（从本地 key 文件读，env 只传中性路径），[server.py L52-72](Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)；key 入 `C:\Users\chano\.trae-cn\memory\llm_chat_key.txt`（git 外）。
 
-- **跨模型评审结论**（minimax 独立审 [ITSC\_PAPER.md](file:///D:/Code/MultiAgent/traffic_rl_project/docs/ITSC_PAPER.md)）：**P1 still-unresolved**——"Model-Free MARL" 标题 vs §IV 规则循环制动内层失配 → 改名 "Hierarchical Hybrid MARL w/ Rule-Based Cyclic-Braking Inner Layer"；**P2 still-unresolved**——fair-MPC（3.2s SLSQP 无规则内层/无终端集）是 strawman → 补 "MPC+同规则内层" 公平基线重跑 5-seed；**P3 partially-fixed**——20km 剖面 + 5 列仅提及 → 升级独立小节补全量指标。
+- **跨模型评审结论**（minimax 独立审 [ITSC\_PAPER.md](traffic_rl_project/docs/ITSC_PAPER.md)）：**P1 still-unresolved**——"Model-Free MARL" 标题 vs §IV 规则循环制动内层失配 → 改名 "Hierarchical Hybrid MARL w/ Rule-Based Cyclic-Braking Inner Layer"；**P2 still-unresolved**——fair-MPC（3.2s SLSQP 无规则内层/无终端集）是 strawman → 补 "MPC+同规则内层" 公平基线重跑 5-seed；**P3 partially-fixed**——20km 剖面 + 5 列仅提及 → 升级独立小节补全量指标。
 
 - **留痕**：`docs/logs/diagnostics/DIAGNOSTICS_2026-09.md`（诊断-2026-09-02-ARIS 试点）+ `docs/logs/decisions/DECISIONS.md` ADR-008
 
@@ -272,7 +272,7 @@ supersedes: 无（本文件 = docs/PROJECT_PIPELINE.md 执行流水的原样迁�
   - 速度未受损（<40 km/h 比例 **42.8%→3.4%**，末速 35.9→39.2 km/h）
   - **诚实边界**：单权重（seed0）× 单 rollout seed（2000）× 单窗口（1200 步），**不得据此断言终态策略安全**
 - **产出文件**：
-  - 结果/日志：`computer://d:\Code\MultiAgent\traffic_rl_project\outputs\log_diag_regress_20260930.txt`、`.json`
+  - 结果/日志：`computer://traffic_rl_project\outputs\log_diag_regress_20260930.txt`、`.json`
   - 数据记录：`docs/logs/diagnostics/DIAGNOSTICS_2026-09B.md`「诊断-2026-09-30-治本改造回归验证」；教训 `LEARNINGS.md` LRN-20260930-001/002（转 resolved）/003（`env.reset` 残留）
 - **遗留（承接上一节 ⑧）**：① 抑制 AB 不均匀缓解（列尾拉力来源）；② **1400ep 全量 5-seed 重训** + 完整剖面评估；③ 全部代码改动**尚未 git 提交**（待用户确认）
 

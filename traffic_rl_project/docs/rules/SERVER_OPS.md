@@ -211,7 +211,7 @@ python run_training.py ... --episodes 1 --override n_env=1 --override n_env_para
 rsync -avz --progress \
   --exclude 'outputs/' --exclude '.git/' --exclude '__pycache__/' \
   --exclude '*.pyc' --exclude '.codebuddy/' \
-  /mnt/d/Code/MultiAgent/traffic_rl_project/ root@<IP>:/root/traffic_rl_project/
+  traffic_rl_project/ root@<IP>:/root/traffic_rl_project/
 ```
 
 - **禁止**整包上传 `outputs/`（历史产物可达数 GB，且会污染云端"最新=权威"的判断）。
@@ -255,7 +255,7 @@ wait
 ```sh
 # 1) 关键产物拉回本机（results / metadata / checkpoint / 日志）
 rsync -avz root@<IP>:/root/traffic_rl_project/outputs/checkpoints/<run>/ \
-  /mnt/d/Code/MultiAgent/traffic_rl_project/outputs/checkpoints/<run>_cloud/
+  traffic_rl_project/outputs/checkpoints/<run>_cloud/
 
 # 2) 确认没有后台任务
 tmux ls; pgrep -af run_training.py
