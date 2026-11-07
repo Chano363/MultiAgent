@@ -207,6 +207,9 @@ class TrainDynamics:
         self._air_brake_pending = np.full(n, None, dtype=object)
         self._air_brake_upgrade_pending = np.full(n, None, dtype=object)
         self._air_brake_upgrade_delay = np.zeros(n)
+        # 【C7-S 紧急优先】上一次控制步是否处于分段施加；用于在 EMERGENCY 出现时
+        # 一次性撤销仍在途的分段波（见 _advance_control_once）
+        self._zone_command_active = False
         # 缓解波状态：_air_brake_releasing[i]=True 表示该节"已接收缓解指令、等待传播解除制动"
         # 真实空气制动缓解是"缓解波"按波速从车头向后传播（车头先缓、车尾后缓），
         # 这种不同步正是"缓解后车钩力最大"（张二田/刘博阳/王宏宇/李蔚 一致）的物理根源。
@@ -305,6 +308,7 @@ class TrainDynamics:
         self._air_brake_pending = np.full(n, None, dtype=object)
         self._air_brake_upgrade_pending = np.full(n, None, dtype=object)
         self._air_brake_upgrade_delay = np.zeros(n)
+        self._zone_command_active = False
         self._air_brake_release_frac = np.ones(n)
         self._air_brake_exhaust_t = np.zeros(n)
         self._brake_segment = 0
@@ -755,6 +759,19 @@ class TrainDynamics:
                 if self.enable_cyclic_degrade and is_braking_cmd and not self._brake_was_active:
                     self._brake_segment += 1
                 self._brake_was_active = is_braking_cmd
+            if (not ab_zones and self._zone_command_active
+                    and cmd_now == AirBrakeNotch.EMERGENCY):
+                # 【C7-S 紧急优先 2026-11-07】EMERGENCY 一旦出现（含安全层强制），
+                # 分区立即失效：撤销仍在途的分段波（段内 MIN/SERVICE），整列改由
+                # 同一档位按原波速重新发波（`_apply_air_brake_command` 的
+                # EMERGENCY 波速）。只在"分区→紧急"的转换步清一次，避免每步
+                # 重置延迟导致波永不抵达。
+                # 恢复条件：紧急解除且 AB 指令回落为 SERVICE/MIN 后，env 重新
+                # 提供 ab_zones 才会再次分区（已制动车辆按档位秩只升不降）。
+                self._air_brake_pending[:] = None
+                self._air_brake_upgrade_pending[:] = None
+                self._air_brake_upgrade_delay[:] = 0.0
+                self._zone_command_active = False
             if ab_zones:
                 # 【2026-11-07 C7-S 空间分级】各段自段首发波、只在段内传播
                 self.apply_air_brake_zones(ab_zones)
@@ -1144,6 +1161,7 @@ class TrainDynamics:
                 RELEASE 段不在此处理（缓解由调用方走既有 _reset_air_brake_command）。
         """
         n = self.num_vehicles
+        self._zone_command_active = True
         for start, end, notch in zones:
             if notch == AirBrakeNotch.RELEASE:
                 continue
@@ -1171,6 +1189,8 @@ class TrainDynamics:
         本说明于2026-10-18更正设备语义；保留现有选项名及计算行为以便历史对照。
         """
         n = self.num_vehicles
+        # 【C7-S 紧急优先】缓解即退出分段施加状态
+        self._zone_command_active = False
         # 【配套修复 2026-08-30】缓解时撤销所有未达的制动波 pending：
         # 否则缓解波传播中，尚在倒计时的制动波会继续激活车辆 → 缓解后
         # 残留车辆被延迟激活满制动 → 列车永远刹住不缓解。
