@@ -96,8 +96,10 @@ def test_invalid_ranges_fail_without_silent_clipping(key, value, match):
 
 def test_initial_supervision_is_reported_not_silently_discarded():
     cfg = config()
+    # 【ADR-061】布置参考 = _formation_ref_gap()（本配置 138.5m）；偏移取 -120
+    # 保持"紧间距触发 EBI"的测试意图（列距 ~18.5m），且不触发重叠守卫。
     cfg['formation_start_randomization'].update(speed_offset_kmh=[-5, 5],
-                                               gap_offset_m=[-180, -180])
+                                               gap_offset_m=[-120, -120])
     env = TrainFleetEnv(cfg)
     try:
         _, info = env.reset(options={'speed': 65 / 3.6})
@@ -127,8 +129,9 @@ def test_normal_state_filter_is_paired_bounded_and_reports_rejections():
     finally:
         a.close()
         b.close()
+    # 【ADR-061】同上：-120 在新参考间距下触发 EBI 拒绝 ⇒ 'No clear-SBI'。
     cfg['formation_start_randomization'].update(max_attempts=1,
-                                               gap_offset_m=[-180, -180])
+                                               gap_offset_m=[-120, -120])
     env = TrainFleetEnv(cfg)
     try:
         with pytest.raises(ValueError, match='No clear-SBI'):

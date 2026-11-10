@@ -23,10 +23,9 @@ import sys
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-AK_FILE = os.environ.get(
-    "ALIYUN_AK_FILE",
-    os.path.join(os.path.expanduser("~"), ".aliyun_ak.txt"),
-)
+from ak_path import resolve_ak_file
+
+AK_FILE = os.environ.get("ALIYUN_AK_FILE") or resolve_ak_file()
 
 
 def load_ak(path: str):

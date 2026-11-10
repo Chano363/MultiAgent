@@ -38,6 +38,7 @@ class TrainLowLevelController:
         coupler_force_limit_n: float = COUPLER_FORCE_LIMIT_N,
         enforce_coupler: bool = True,
         coupler_override: str = 'release',
+        cyclic_trigger_margin_kmh: float = 5.0,
     ):
         self.num_vehicles = num_vehicles
         self.dt = dt
@@ -45,6 +46,12 @@ class TrainLowLevelController:
         self.coupler_force_limit_n = coupler_force_limit_n
         # 是否执行车钩力约束（消融实验：enforce_coupler=False 模拟"忽略车钩力"控制）
         self.enforce_coupler = enforce_coupler
+        # 【ADR-060】分段限速联动循环制动触发裕量（km/h）：触发上限 =
+        # min(联动限速, 既有 v_max) − margin，仅 env 暴露 line_limit_lookup_kmh
+        # （剖面带限速表）时生效；恒坡等无表剖面自动回退旧行为（零回归）。
+        # km/h 原名属性保留（frozen-controller 归档复原按参数名 getattr 回注）。
+        self.cyclic_trigger_margin_kmh = float(cyclic_trigger_margin_kmh)
+        self.cyclic_trigger_margin_mps = float(cyclic_trigger_margin_kmh) / 3.6
         # 【2026-10-11 分级制动】循环制动只在**深超速**时才用调用方给的深档，
         # 刚过上限一律用浅档（= 深档幅值 × shallow_ratio，-0.8 → -0.2 = MIN 档，
         # 对齐文献「最小常用制动」口径）。依据：开环/闭环档位扫描实测
@@ -139,6 +146,15 @@ class TrainLowLevelController:
         # v_min_adj>0 → 提前缓解（更高速度恢复牵引）；<0 → 延后缓解（更低速度缓解）。
         eff_v_max = v_max + v_max_adj
         eff_v_min = v_min + v_min_adj
+
+        # 【ADR-060 限速逐段联动】循环制动触发上限 = min(既有 eff_v_max,
+        # 分段限速 − cyclic_trigger_margin_kmh)。env 无限速表（lookup 缺失或
+        # 查表 None）时不联动 → 触发上限不变（恒坡/旧配置零回归）。
+        _lookup = getattr(train_env, 'line_limit_lookup_kmh', None)
+        if _lookup is not None:
+            _lv = _lookup(float(train_env.dynamics.pos[0]))
+            if _lv is not None:
+                eff_v_max = min(eff_v_max, _lv / 3.6 - self.cyclic_trigger_margin_mps)
 
         vel = float(train_env.dynamics.vel[0])  # 机车速度（列首）
         if vel >= eff_v_max:

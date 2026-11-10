@@ -15,12 +15,16 @@
 import os
 import csv
 import logging
-import time
 from pathlib import Path
 
 import numpy as np
 
 logger = logging.getLogger('TrainingLogger')
+
+# 奖励分量固定列序（与 TrainFleetEnv._calculate_reward 的 reward_term 键一致；
+# 固定列序而非动态表头，保证续训 append 与跨 run 合并可比）。
+TERM_KEYS = ('speed_band', 'rel_anchor', 'speed_over', 'gap_eff', 'gap_danger',
+             'coupler_peak', 'coupler_over', 'ab_cost', 'ed_cost')
 
 
 class TrainingLogger:
@@ -52,10 +56,15 @@ class TrainingLogger:
         # 使"训练后期 value 发散"可证伪。**独立文件**而非给 train_history 加列：
         # 后者会让既有 CSV（旧 8 列 schema）与续训 append 的行列数不一致。
         self._loss_csv_path = (self.log_dir / f"train_loss_{tag}.csv").as_posix()
+        # 【2026-11-10 判据③通道】奖励分量逐集落盘（独立文件，理由同上：既有 CSV 列数冻结）。
+        # 旧实现只在训练结束时把分量的全程累计打印一次日志 → 无法按 20 集窗口评估
+        # "车钩峰值项占比降而 rel_anchor/gap_eff 不塌陷"（判据③），也无法事后复算。
+        self._terms_csv_path = (self.log_dir / f"train_reward_terms_{tag}.csv").as_posix()
 
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self._init_csv()
         self._init_loss_csv()
+        self._init_terms_csv()
 
         # ---- tqdm 实时进度表（YOLO 风格的滚动行） ----
         self._tqdm = None
@@ -89,7 +98,9 @@ class TrainingLogger:
             with open(self._csv_path, 'w', newline='', encoding='utf-8') as f:
                 w = csv.writer(f)
                 w.writerow(['episode', 'reward', 'peak_coupler_kN', 'violations',
-                            'total_loss_k', 'time_s', 'gap_err_mean', 'gap_min_m'])
+                            'total_loss_k', 'time_s', 'gap_err_mean', 'gap_min_m',
+                            'overspeed_car_steps', 'speed_mean_kmh',
+                            'route_end_traj_hits'])
 
     def _init_loss_csv(self):
         """优化器诊断 CSV（X2）。续训保留旧行；首次训练覆写。"""
@@ -99,6 +110,14 @@ class TrainingLogger:
                     'episode', 'value_loss', 'policy_loss', 'entropy', 'approx_kl',
                     'grad_norm', 'value_norm_mean', 'value_norm_std', 'total_loss'])
 
+    def _init_terms_csv(self):
+        """奖励分量 CSV（2026-11-10）。续训保留旧行；首次训练覆写。"""
+        if not self.resume or not Path(self._terms_csv_path).exists():
+            with open(self._terms_csv_path, 'w', newline='', encoding='utf-8') as f:
+                csv.writer(f).writerow(['episode', 'n_steps']
+                                       + [f'{k}_sum' for k in TERM_KEYS]
+                                       + ['total_sum'])
+
     # ------------------------------------------------------------------ #
     def log_episode(self, ep: int, reward: float, peak_coupler_kN: float,
                     violations: int, total_loss: float = 0.0, elapsed: float = 0.0,
@@ -106,19 +125,31 @@ class TrainingLogger:
                     value_loss: float = 0.0, policy_loss: float = 0.0,
                     entropy: float = 0.0, approx_kl: float = 0.0,
                     grad_norm: float = 0.0, value_norm_mean: float = 0.0,
-                    value_norm_std: float = 0.0):
+                    value_norm_std: float = 0.0,
+                    overspeed_car_steps: int = 0, speed_mean_kmh: float = 0.0,
+                    route_end_traj_hits: int = -1):
         """逐集调用：写 CSV 行 + 刷终端行 + 写 TB 标量。
 
         value_loss/policy_loss/entropy/approx_kl/grad_norm/value_norm_* 为【X2 2026-09-30】
         新增的优化器诊断量，单独写 `train_loss_{tag}.csv` + TB（见 `_loss_csv_path`）。
+        overspeed_car_steps / speed_mean_kmh 为【2026-11-08】新增的两列（追加在 CSV 末尾）：
+        超速车·步（任一车 > 线路限速即计 1，逐集累计）+ 领航列平均速度，用于判定
+        "车钩力峰值下降是否以超速上升为代价"。
+        route_end_traj_hits 为【2026-11-08 截断判据】：本集 n_env 条轨迹中"跑到剖面末端"
+        （route_end_reached=True）的条数；== n_env 才算未被 max_steps 砍断，不足则该集
+        **不计入改善统计**。-1 = 本次运行未记录（旧归档向后兼容）。
         """
-        _ = elapsed
         # CSV（每集一行，实时）
+        # 【2026-11-08 修复】time_s = **本集墙钟耗时**（秒），由调用方传入 elapsed。
+        # 旧实现写 `time.time()`（绝对时间戳 ≈1.79e9），按集估时长会被彻底误导：
+        # 2026-11-08 的 200 集阶段门首集实测 44.9 min/集，CSV 却记成 1794149724.7。
         with open(self._csv_path, 'a', newline='', encoding='utf-8') as f:
             w = csv.writer(f)
             w.writerow([int(ep), f"{float(reward):.2f}", f"{float(peak_coupler_kN):.1f}",
-                        int(violations), f"{float(total_loss):.3f}", f"{time.time():.1f}",
-                        f"{float(gap_err_mean):.1f}", f"{float(gap_min_m):.1f}"])
+                        int(violations), f"{float(total_loss):.3f}", f"{float(elapsed):.1f}",
+                        f"{float(gap_err_mean):.1f}", f"{float(gap_min_m):.1f}",
+                        int(overspeed_car_steps), f"{float(speed_mean_kmh):.1f}",
+                        int(route_end_traj_hits)])
 
         # 优化器诊断 CSV（X2：value 发散可证伪）
         with open(self._loss_csv_path, 'a', newline='', encoding='utf-8') as f:
@@ -132,7 +163,9 @@ class TrainingLogger:
         msg = (f"Ep {ep}/{self.total} | R {reward:+.0f} | "
                f"pkCpl {peak_coupler_kN:.0f}kN | viol {violations} | loss {total_loss:.3f} | "
                f"vloss {value_loss:.3f} | KL {approx_kl:.3f} | vstd {value_norm_std:.2f} | "
-               f"gap_err {gap_err_mean:+.0f}m | gap_min {gap_min_m:.0f}m")
+               f"gap_err {gap_err_mean:+.0f}m | gap_min {gap_min_m:.0f}m | "
+               f"ovs {overspeed_car_steps} | vavg {speed_mean_kmh:.1f}km/h | "
+               f"end {route_end_traj_hits}")
         if self._use_tqdm and self._tqdm is not None:
             self._tqdm.set_postfix_str(msg)
             self._tqdm.update(1)
@@ -149,6 +182,10 @@ class TrainingLogger:
                 self._writer.add_scalar('total_loss', total_loss, t)
                 self._writer.add_scalar('gap_err_mean', gap_err_mean, t)
                 self._writer.add_scalar('gap_min_m', gap_min_m, t)
+                # 【2026-11-08 取舍判据】
+                self._writer.add_scalar('overspeed_car_steps', overspeed_car_steps, t)
+                self._writer.add_scalar('speed_mean_kmh', speed_mean_kmh, t)
+                self._writer.add_scalar('route_end_traj_hits', route_end_traj_hits, t)
                 # 【X2】优化器诊断标量
                 self._writer.add_scalar('value_loss', value_loss, t)
                 self._writer.add_scalar('policy_loss', policy_loss, t)
@@ -159,6 +196,21 @@ class TrainingLogger:
                 self._writer.add_scalar('value_norm_std', value_norm_std, t)
             except Exception as e:
                 logger.info(f"[log] TB write 跳过：{e}")
+
+    # ------------------------------------------------------------------ #
+    def log_reward_terms(self, ep: int, terms: dict, steps: int) -> None:
+        """逐集落盘奖励分量累计值（2026-11-10，判据③通道）。
+
+        `terms` = 本集各分量**累计值**（n_env 并行轨迹已在父进程合并；单位与 reward 同），
+        `steps` = 本集累计步数（含 n_env 各轨迹）。除以 steps 得每步均值；
+        各项绝对值占比即可按 20 集窗口统计"车钩峰值项占比是否下降"。
+        只写文件，不影响控制/学习路径。
+        """
+        with open(self._terms_csv_path, 'a', newline='', encoding='utf-8') as f:
+            row = [int(ep), int(steps)]
+            row += [f"{float(terms.get(k, 0.0)):.6g}" for k in TERM_KEYS]
+            row.append(f"{float(sum(terms.values())):.6g}")
+            csv.writer(f).writerow(row)
 
     # ------------------------------------------------------------------ #
     def save_last(self, global_ep: int, best_path_name: str) -> str:

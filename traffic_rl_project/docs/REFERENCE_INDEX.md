@@ -74,6 +74,9 @@
 | ETCS 制动曲线（EBI/SBI 单调表 + searchsorted） | ERA 2020 | `ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf` |
 | CBF/CLF + QP 安全控制 | Li2024 | `Safe_Optimal_Train_Formation_Control_in_Virtual_Coupling_Using_Control_Barrier_Functions.pdf` |
 | 虚拟耦合综述 | Wu2023 | —（无本地，IEEE TIV 2023） |
+| **VC 安全间距范式 = 制动距离内运行**（Shift2Rail TD2.8 冲突控制）——【ADR-061 间距锚】本项目 1.1×EBD 间距比其更保守 | Muniandi 2020, IET ITS 14(6):611-619, DOI 10.1049/iet-its.2019.0694（一手全文核实） | —（无本地） |
+| **VC headway 设计族 = 常数最小间距 + 速度比例动态分量；重载 distance headway 困难（误差 716 m/36%）、time headway 更优**——【ADR-061 间距锚】本项目 1.1×EBD 属"制动距离比例"族 | Wu Qing/Ge/Zhu/Cole/Spiryagin 2024, ASME JDSMC 146(4):041008, DOI 10.1115/1.4065401（Crossref 题录核实） | —（无本地） |
+| **3.5 万吨重载群组国家实测：重车追踪 1091 m / 空车 943 m @ 60 km/h**——【ADR-061 间距锚】本环境初始净空 885 m 同量级（非循环外部锚） | 包神铁路 2025-12-08 试验（科技日报 + 央视网独立报道；非同行文献，未编号） | —（新闻报道，无本地） |
 | RL 虚拟耦合路线图 | Basile2022 | —（无本地，DAI 2022） |
 | 分布式全局复合学习协同控制 | Chen2024 | —（无本地，IEEE TITS 2024） |
 | 虚拟耦合 LMPC | Vaquero2025 | —（无本地，CACIE 2025） |

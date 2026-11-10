@@ -907,3 +907,53 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 ---
 
 <!-- 该文档整理/压缩于 2026-10-01 -->
+
+### 峰值比较条件匹配纪律（三问） - 2026-11-09
+
+- **触发**：2026-11-09 对话中连续误用跨工况/跨配置车钩力峰值对比：①拿 1wt **紧急制动**实测（1074–1200 kN）当**常规循环制动**验收线；②以"我们常规 1313 > 人家紧急 1074–1200"推断策略问题；③把"1wt 仿真达到 2wt 实车均值 1021"标为"强结果"（实为偏 harsh 信号）。用户两次纠正（"这是很严重的问题""常规肯定小于紧急，这是常识"）。
+- **纪律**：任何车钩力峰值比较前先过三问——①**同工况**（常规/循环/紧急档位）？②**同编组级**（1wt/2wt，链长）？③**同装备代差**（钩缓/制动率/车辆自重）？任一为否 → 数值只可作"参照"标注，**不得作"达标/优劣/因果"推断**。
+- **框架**：软阶梯（同列车 duty ladder + 同工况编组缩放）给**期望带**；硬锚（同工况同编组实测）给**验收**；同仿真同工况对比给唯一**优劣**结论。软阶梯与硬锚缺一时，只报告、不宣称。
+- 锚定链现状与检索证据见 [POSITIVE_SEARCH_2026-11-09](../verification/POSITIVE_SEARCH_2026-11-09.md)；ADR-060 落稿时将该纪律制度化进 EXECUTION_RULES（待办）。
+
+### 云端长任务"自动收账+关机"的三层坑（pgrep 自匹配 / 保真防线 / 无自证） - 2026-11-09
+
+- **现象**：2026-11-09 云 GA 在 gen0 BC 保真自检处按设计中止（dev_peak 17.1% > 1% 阈值，拦截正确、没白跑 20 代）；但配套 watchdog（本地 bash 轮询"GA 进程消失→回传归档→调 API 关机停费"）在 GA 退出后 **1.5h 内毫无动作**，实例继续计费，直到人工手动收账（[instance_state_aliyun_ecs.py](traffic_rl_project/scripts/cloud/instance_state_aliyun_ecs.py) `--stop` + StopCharging 回执复核）。
+- **根因三层**：
+  1. **pgrep 自匹配（直接死因）**：watchdog 用 `ssh ... 'pgrep -f tmp_ga_rule_knobs >/dev/null' || break` 判活——ssh 远程执行时承载命令的 `bash -c` 进程命令行**本身就含被搜索字符串**，pgrep -f 匹配到它 → 永远返回 0（"进程还在"）→ 永不 break → 只能等 12h 超时放弃。**判活与被判活字符串同通道 = 自指**。
+  2. **watchdog 无自证**：轮询循环里没有任何"我活着且在推进"的落盘证据（日志只有 start 一行，1.5h 无新行既可能是正常 sleep 也可能是死循环——无法区分）；判活失败模式（自匹配）与"任务真的还在跑"**表现完全相同**。
+  3. **GA 复现路径参数错配（防线触发的上游）**：GA 脚本的 BC 保真复现没带全归档协议参数（rel54 的 `service_reduction_kpa=70`/`--start-m 4290`/`--gap-offset-m 615`），用脚本内默认跑 → peak 1331.0 vs 1605.6（−17%）、count1500 101→0。保真防线如实拦截（设计成功），但暴露"复现 = 基准协议逐字段一致"必须作为写脚本时的硬检查，不能靠事后防线兜底。
+- **解决（本次已做）**：手动收账 + 停费复核；无效归档打 `INVALID_FIDELITY_FAILED.txt`；本地 watchdog kill。
+- **预防（下次云端长任务收账配方，照抄）**：
+  1. **远程判活禁用 `pgrep -f <字符串>` 直查**——改用：任务启动时写 **pid 文件**，判活 `kill -0 $(cat pid)`；或 `pgrep -f pattern | grep -v $$`；或判**产物增长**（日志 mtime / tmux capture）而非进程名。
+  2. **watchdog 必须心跳自证**：每轮循环 append 一行（轮询序号 + 判活结果）到日志——"只有 start"即异常，可告警。
+  3. **收账前先做端到端演练**：上线 watchdog 前用"人为 kill 目标进程"预演一遍完整链（判活→回传→关机回执），不能只冒烟到"轮询启动"。
+  4. **关机永远 API 走 `--stop`（节省停机）+ 回执复核 `StoppedMode=StopCharging`**，服务器侧裸 `poweroff` = KeepCharging 白烧钱（SERVER_OPS 铁律 5 的具体死法）。
+  5. **保真复现 = 基准归档协议逐字段搬运**（override/seed/起点/偏移全部带齐），新基准换新 → 保真常量与复现参数**同步重生成**，禁止手抄。
+- **类型标签**：`pgrep自匹配` / `判活自指` / `自动收账` / `云端关机` / `保真防线` / `参数错配`
+
+### 上云前置门被跳过 + 自检失败后实例空转烧钱 - 2026-11-10
+
+- **现象**：2026-11-10 新口径 BC 归档（1315.6 kN）出来后，未在本地先跑 gen0 保真自检确认基线可复现，直接开机上云跑 GA（2.994 元/h）；云上自检拦截（dev_peak 5.08%）后，又让实例**保持开机**等本地对照（约 12 min），用户发现后怒停——两次合计白烧约 3~5 元。与 2026-11-09 的 12 元教训同根：**花钱动作跑在了免费验证前面**。
+- **纪律（硬约束，违反即错）**：
+  1. **上云前置门**：任何云端长任务启动前，必须在**本地**先把同款 gen0/自检/冒烟跑绿（免费）；本地绿灯是开机的**必要条件**，不是
+
+## LRN-20261110-001 IDE 代理 Shell 起 WSL 长跑必死：进程树杀 + WSL 会话清空（解法：WMI 起 wsl.exe）
+
+- **现象**：代理 Shell 工具用 `setsid`/`nohup`/VBS 起的 WSL 长跑任务全部静默死亡（日志停在启动行、无 traceback、无 exit code），1~4 min 内消失。
+- **根因（双重）**：① 代理 Shell 每条命令结束时杀整棵进程树（job object 级，VBS `sh.Run` 拉起的 wsl.exe 孙进程也逃不掉，`dangerouslyDisableSandbox` 不改变进程寿命管理）；② WSL 在最后一个 wsl.exe 会话退出后清空该发行版全部进程（见 EXECUTION_RULES 长跑纪律第 6 条）。
+- **解法（2026-11-10 实测通过）**：`Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = 'wsl.exe -d Ubuntu-24.04 -- bash -lc "bash <脚本>"' }`——wsl.exe 挂在 WMI 服务下，脱离代理进程树且零窗口（会话 0）；脚本内部 python 前台跑、重定向落盘，launcher 记 EXIT_CODE。
+- **验证纪律**：判活必须跨代理命令会话间隙（启动后 >1 min 再 pgrep），立刻查不算数；完成判据照旧看结果文件，不看进程。
+
+## LRN-20261110-002 Aliyun StopInstance 首次可能返回 StoppedMode=KeepCharging
+
+- **现象**：`instance_state_aliyun_ecs.py --stop IID --release` 执行完毕，API 返回 Status=Stopped 但 `StoppedMode=KeepCharging`（仍在收计算费），脚本等一轮后还在 KeepCharging；必须二次 `--stop` 才变为 `StopCharging`，随后 `--release` 成功。
+- **触发条件**：PostPaid + 停机后立即 stop+release 一键连打；或首次 StopInstance 未等 Status 完全 Stable 就 release。
+- **解法**：`instance_state_aliyun_ecs.py` 的 `verify_stopped` 应同时核对 `StoppedMode=StopCharging` 才放行 release；否则再发一次 StopInstance 并等待。当前脚本只核 Status=Stopped。
+- **本次实际损失**：首次 stop 到二次 stop 之间约 3 min，多烧 ≈ 2.994 / 60 × 3 ≈ 0.15 元，可忽略；但**下次若 grace 3600s 窗口内没二次核 StoppedMode，最坏多烧 3h ≈ 9 元**，需改脚本。
+
+## LRN-20261110-003 rsync 上云不传 outputs/ 下参考数据（refspeed 坑）
+
+- **现象**：首次 GA 云端引导 bc 阶段秒退 `FileNotFoundError: ref_speed_table 不存在：outputs/sim_validation/phys_validation/refspeed_baseline_20261108_205652/ref_speed_table.npz`。
+- **根因**：`tmp_fire_ga.sh` 只 rsync `src/ configs/ scripts/cloud/` + 引导脚本，未传 `outputs/` 下的参考速度表（503 KB）。
+- **解法**（落地）：补传 `refspeed_baseline_20261108_205652/` 目录后 md5 一致；引导脚本 md5 已在云端复核。
+- **治本**：参考速度表是**项目级依赖**（非运行产物），应进仓库 `outputs/sim_validation/phys_validation/` 或单独的 `data/` 目录；rsync 上云脚本改为 `--exclude outputs/sim_validation/phys_validation/ga_* --include outputs/sim_validation/phys_validation/ref* --include outputs/sim_validation/phys_validation/` 或把它收进 `configs/`。

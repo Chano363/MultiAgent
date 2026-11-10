@@ -22,6 +22,23 @@ from src.physics_governance import official_entry_guard, official_world_config
 from src.evaluation.solver_registry import runtime_solver_record
 
 
+def tracked_diff_summary(timeout_s: float = 90.0) -> str:
+    """采集工作区相对 HEAD 的 diff 摘要，**带硬超时**。
+
+    动机（2026-11-08）：本仓 `outputs/` 下有 6 665 个被跟踪文件且位于 `/mnt/d`（drvfs），
+    整程收尾的 `git diff --stat` 实测要 10–40 min，把 `result.json` 落盘整体推后同样的时长，
+    成为流水线吞吐瓶颈。超时/失败时**显式留痕**（`TIMEOUT:` / `UNAVAILABLE:` 前缀），
+    绝不静默丢字段，也不阻塞其余元数据。
+    """
+    try:
+        return subprocess.check_output(['git', 'diff', '--stat'], encoding='utf-8',
+                                       timeout=timeout_s, stderr=subprocess.DEVNULL)
+    except subprocess.TimeoutExpired:
+        return f'TIMEOUT: git diff --stat > {timeout_s:.0f} s 未返回，摘要未采集（其余字段完整）'
+    except (subprocess.CalledProcessError, OSError) as exc:
+        return f'UNAVAILABLE: git diff --stat 失败（{exc}）'
+
+
 def capture_admission_state(train_env, controller):
     """Observe the upcoming decision without advancing its clocks or veto history."""
     peak = float(np.abs(train_env.dynamics.coupler_interface_forces()).max())
@@ -236,7 +253,10 @@ def main():
               'air_releasing': [], 'controller_release_force_target_kn': [],
               'controller_ed_hold_steps': [], 'controller_ed_floor_kn': [],
               # 【C 组 2026-11-08】ED 撤除时序保位窗 + 速度差协同未满足份额（逐列、逐步）
-              'controller_ed_guard_steps': [], 'controller_ed_conv_unmet': []}
+              'controller_ed_guard_steps': [], 'controller_ed_conv_unmet': [],
+              # 【C7 活性 2026-11-08】分级施加实际生效步数 / 分级前要求 SERVICE 的步数
+              # （逐列累计值；分母必须用后者，因分级后物理指令已被改写为 MIN）
+              'ab_staged_applied_steps': [], 'ab_staged_service_requests': []}
     admission_keys = tuple(capture_admission_state(env.trains[0], env.multi_loco_controllers[0]))
     detail.update({key: [] for key in admission_keys})
     # Observe the actual post-safety actuator inputs without modifying them.
@@ -323,6 +343,8 @@ def main():
             int(getattr(c, 'ed_conv_unmet_count', 0))
             for c in env.multi_loco_controllers])
         detail['air_brake_segment'].append([tr.dynamics._brake_segment for tr in env.trains])
+        detail['ab_staged_applied_steps'].append([tr.ab_staged_applied_steps for tr in env.trains])
+        detail['ab_staged_service_requests'].append([tr.ab_staged_service_requests for tr in env.trains])
         detail['safety_rule_counts'].append([
             [sum(ev.get('rule') == rule for ev in tr.safety.last_events)
              for rule in safety_rules] for tr in env.trains])
@@ -441,6 +463,26 @@ def main():
         getattr(c, 'ed_conv_active_steps', 0) for c in controllers))
     summary['ed_conv_unmet_count'] = int(sum(
         getattr(c, 'ed_conv_unmet_count', 0) for c in controllers))
+    # 【C7 活性 2026-11-08】分级施加是否真在拆档：生效车·步 / 分级前 SERVICE 请求车·步
+    if 'ab_staged_applied_steps' in detail and len(detail['ab_staged_applied_steps']):
+        staged_applied = np.asarray(detail['ab_staged_applied_steps'])[-1]
+        staged_requests = np.asarray(detail['ab_staged_service_requests'])[-1]
+        summary['ab_staged_applied_train_steps'] = int(staged_applied.sum())
+        summary['ab_staged_service_request_train_steps'] = int(staged_requests.sum())
+        summary['ab_staged_applied_ratio'] = (
+            float(staged_applied.sum() / staged_requests.sum())
+            if staged_requests.sum() else 0.0)
+    # 【奖励标定 2026-11-08】逐槽位奖励分量占比（仅在 reward_term_log=true 时存在）
+    reward_sums = getattr(env, 'reward_term_sums', None)
+    if reward_sums:
+        n_steps = max(1, len(rows))
+        means = {k: v / n_steps for k, v in reward_sums.items() if k != 'total'}
+        share_base = sum(abs(v) for v in means.values())
+        summary['reward_term_mean_per_step'] = {k: float(v) for k, v in means.items()}
+        summary['reward_term_abs_share'] = {
+            k: (float(abs(v) / share_base) if share_base > 0 else 0.0)
+            for k, v in means.items()}
+        summary['reward_mean_per_step'] = float(reward_sums.get('total', 0.0) / n_steps)
     if 'heads' in detail:
         summary.update(elapsed_s=float(rows[-1, 0]),
                        mean_speed_kmh=float(np.mean(velocity)*3.6),
@@ -454,7 +496,7 @@ def main():
     world = official_world_config(env_cfg=config)
     world['physics'].update(grade_profile=args.profile or 'constant_grade', dt=env.dt,
                             v_max_mps=env.v_max, v_min_mps=env.v_min,
-                            target_speed_mps=env.target_speed, target_gap_m=env.target_gap,
+                            target_speed_mps=env.target_speed,
                             max_accel=env.max_accel, coupler_force_limit_n=env.coupler_force_limit_n)
     runtime_physics = [{'simcase': tr.dynamics.simcase,
                         'enable_cyclic_degrade': tr.dynamics.enable_cyclic_degrade,
@@ -510,7 +552,7 @@ def main():
                                      'thread_environment': {name: os.environ.get(name) for name in
                                          ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS')}},
                                  'env_cfg': config,
-                                 'tracked_diff': subprocess.check_output(['git', 'diff', '--stat'], encoding='utf-8'),
+                                 'tracked_diff': tracked_diff_summary(),
                                  'purpose': 'controller diagnostic; zero RL modulation, not a paper main-table evaluation'})
     # The integrator that actually ran, observed rather than assumed. A replaced
     # solver can never be reported as production Newmark.

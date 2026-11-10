@@ -24,7 +24,9 @@ import urllib.request
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-AK_FILE = os.path.join(os.path.expanduser("~"), ".aliyun_ak.txt")
+from ak_path import resolve_ak_file
+
+AK_FILE = resolve_ak_file()
 PUB_KEY = os.path.expanduser("~/.ssh/cloud_traffic.pub")
 KEY_NAME = "cloud_traffic"
 IMAGE_ID = "ubuntu_24_04_x64_20G_alibase_20260916.vhd"

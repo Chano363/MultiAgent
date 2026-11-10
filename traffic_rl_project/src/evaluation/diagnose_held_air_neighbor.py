@@ -20,7 +20,7 @@ def enable_neighbor(env, manifest):
     env.multi_loco_controllers[0].cyclic_release_kmh = 54.
     ctrl = env.multi_loco_controllers[2]
     ctrl._held_air_balance_enabled = True
-    ctrl._held_air_gap_reference_m = env._dynamic_gap()
+    ctrl._held_air_gap_reference_m = env._formation_ref_gap()
     ctrl._held_air_smooth_handoff_enabled = True
     result['experimental_alternate_state_override'] = dict(
         previous_leader_release_kmh=previous, leader_release_kmh=54., follower_release_kmh=50.,

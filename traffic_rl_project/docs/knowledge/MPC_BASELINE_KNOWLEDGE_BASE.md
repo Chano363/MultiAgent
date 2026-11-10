@@ -1,5 +1,7 @@
 # MPC 对比基线 Knowledge Base
 
+> **⚠️ 状态（2026-11-09，ADR-062）**：**NMPC 代码已全量删除**（`nmpc_controller.py` 及 evaluation 桥接；ADR-042 已使其退出主表）。本文 §2–§5 的 NMPC 求解/桥接/运维内容**降为历史参考，不再对应任何现存代码**。主表 MPC 基线 = **Tube MPC**（following Song2026），**代码侧尚未实现**——实现时本文档须按新架构重写。
+
 ## §0 Contents
 
 | § | Title | When |

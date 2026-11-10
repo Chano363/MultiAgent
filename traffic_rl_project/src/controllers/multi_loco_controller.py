@@ -56,6 +56,10 @@ class MultiLocoController:
         cyclic_notch_50: bool = False,
         cyclic_brake_trigger_kmh: float = None,
         cyclic_release_kmh: float = None,
+        # 【ADR-060 限速逐段联动】循环制动触发裕量（km/h）：触发上限 =
+        # min(既有触发门, 分段限速 − margin)。仅 env 暴露 line_limit_lookup_kmh
+        # （剖面带限速表）时生效；恒坡等无表剖面自动回退旧行为（零回归）。
+        cyclic_trigger_margin_kmh: float = 5.0,
         cyclic_ab_upgrade_kmh: float = None,
         cyclic_ab_upgrade_notch: str = 'service',
         ed_release_coordination: bool = False,
@@ -273,6 +277,12 @@ class MultiLocoController:
         self.cyclic_notch_50 = bool(cyclic_notch_50)
         self.cyclic_brake_trigger_kmh = (None if cyclic_brake_trigger_kmh is None
                                          else float(cyclic_brake_trigger_kmh))
+        # 【ADR-060】分段限速联动触发裕量：km/h 原名属性必须保留——
+        # diagnose_low_level_control 的 frozen-controller 复原按
+        # inspect.signature 参数名逐个 getattr(controller, name) 回注，
+        # 缺原名会让归档复现直接 AttributeError。
+        self.cyclic_trigger_margin_kmh = float(cyclic_trigger_margin_kmh)
+        self.cyclic_trigger_margin_mps = float(cyclic_trigger_margin_kmh) / 3.6
         self.cyclic_release_kmh = (None if cyclic_release_kmh is None
                                    else float(cyclic_release_kmh))
         # 【K 组 2026-10-16 规则层 AB 预升级（默认 None = 旧行为，零回归）】
@@ -488,6 +498,15 @@ class MultiLocoController:
     # ------------------------------------------------------------------ #
     def _operating_ceiling(self, train_env, v_max, v_max_adj):
         ceiling = min(v_max, v_max + v_max_adj)
+        # 【ADR-060 限速逐段联动】有分段限速表（env 暴露 line_limit_lookup_kmh）→
+        # 循环制动触发上限随头车位置联动（限速 − cyclic_trigger_margin_kmh）；
+        # 无表/查表 None → 不联动（恒坡等零回归）。
+        _lookup = getattr(train_env, 'line_limit_lookup_kmh', None)
+        if _lookup is not None:
+            _lv = _lookup(float(train_env.dynamics.pos[0]))
+            if _lv is not None:
+                ceiling = min(ceiling,
+                              max(0.0, _lv / 3.6 - self.cyclic_trigger_margin_mps))
         if self.anticipate_etcs:
             curve = getattr(train_env, 'etcs_curve', None)
             targets = getattr(train_env, 'etcs_targets', ())

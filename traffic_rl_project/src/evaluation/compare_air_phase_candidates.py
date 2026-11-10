@@ -36,7 +36,7 @@ def main():
     args = p.parse_args()
     env, origin = load_fleet_checkpoint(args.origin)
     lengths = np.asarray([t.dynamics.pos[0]-t.dynamics.pos[-1] for t in env.trains])
-    reference, dt = env._dynamic_gap(), env.dt
+    reference, dt = env._formation_ref_gap(), env.dt
     env.close()
     results = [json.loads((d/'result.json').read_text(encoding='utf-8'))
                for d in (args.baseline, args.candidate)]

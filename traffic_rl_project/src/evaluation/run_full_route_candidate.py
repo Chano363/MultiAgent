@@ -44,7 +44,7 @@ def main():
         c.cyclic_release_kmh = 54. if i == 0 else 50.
         if i > 0:
             c._held_air_balance_enabled = True
-            c._held_air_gap_reference_m = env._dynamic_gap()
+            c._held_air_gap_reference_m = env._formation_ref_gap()
             c._held_air_smooth_handoff_enabled = True
         if i == 2:
             c._gap_aware_air_enabled = True

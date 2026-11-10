@@ -21,7 +21,9 @@ import time
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-AK_FILE = os.path.join(os.path.expanduser("~"), ".aliyun_ak.txt")
+from ak_path import resolve_ak_file
+
+AK_FILE = resolve_ak_file()
 DEFAULT_REGION = "cn-heyuan"
 
 
@@ -95,12 +97,29 @@ def main():
     ap.add_argument("instance_id", nargs="?", default=None)
     ap.add_argument("--region", default=None)
     ap.add_argument("--stop", metavar="IID", default=None, help="停止实例（节省停机）并自动复核")
+    ap.add_argument("--start", metavar="IID", default=None, help="启动已停止的实例并等待 Running + 打印公网 IP")
     ap.add_argument("--release", action="store_true", help="配合 --stop 使用：停止后释放（不可逆）")
     args = ap.parse_args()
 
     ak_id, ak_secret, ak_region = load_ak()
     region = args.region or ak_region or DEFAULT_REGION
     client = AcsClient(ak_id, ak_secret, region_id=region)
+
+    if args.start:
+        iid = args.start
+        print(f"=== 启动 {iid} @ {region} ===")
+        call(client, "StartInstance", {"RegionId": region, "InstanceId": iid}, region)
+        for _ in range(40):
+            items = describe(client, region, iid)
+            if items and items[0].get("Status") == "Running":
+                ip = (items[0].get("PublicIpAddress") or {}).get("IpAddress")
+                print(f"  Status=Running  PublicIp={ip}")
+                break
+            time.sleep(5)
+        else:
+            print("  ❌ 启动等待超时，请到控制台检查")
+        show(describe(client, region, iid))
+        return
 
     if args.stop:
         iid = args.stop

@@ -13,7 +13,10 @@ from src.environments.train_fleet_env import TrainFleetEnv
 def make_fleet(**overrides):
     cfg = {
         'num_trains': 3, 'consist_preset': '20kt_1plus108_1plus108',
-        'grade_profile': 'shuozhou_ningwuxi_beidaniu_49km',
+        # 【ADR-060 联动解耦】shuozhou 剖面的分段限速联动会把循环制动触发门从
+        # 80 拉到 (70 段限速 − margin)=65，起步 65 km/h 恰好触发循环制动，污染
+        # 本组要验证的 ED 撤除时序契约；故用无限速表的 long_downhill 剖面。
+        'grade_profile': 'long_downhill',
         'decompose': 'loco_ed_ab', 'max_steps': 5,
     }
     cfg.update(overrides)

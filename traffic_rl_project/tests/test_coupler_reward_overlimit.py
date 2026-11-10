@@ -4,7 +4,7 @@ ADR-021/043 单测：车钩力"受控超限项"进 reward + 峰值改断面力�
 验证：
 - REWARD_SCHEMA / COUPLER_OVER_W / COUPLER_OVER_CAP 常量存在且取值正确；
 - peak_norm <= 1（未破线）时超限项恒为 0；
-- peak_norm = 1.5 → 约 -3.0；peak_norm = 5（>3× 上限）→ 限幅到 -12.0。
+- peak_norm = 1.5 → 约 -7.5；peak_norm = 5（>3× 上限）→ 限幅到 -30.0。
 """
 
 import numpy as np
@@ -29,6 +29,8 @@ def _reward_env():
     env.num_trains = 1
     env.num_agents = 2
     env.coupler_force_limit_n = COUPLER_FORCE_LIMIT_N
+    env.speed_band_shape = 'flat'      # 默认形态（v6 零回归），本测只验车钩项
+    env.reward_term_log = False        # 本测不采集逐槽位分量
     env.REL_ANCHOR_SPD_SCALE = 3.0
     env.REL_ANCHOR_SPD_W = 2.0
     env._prev_gap_err = None
@@ -53,10 +55,12 @@ def _over_term(env, peak_n):
 def test_reward_schema_constants_exist():
     # 【ADR-026】奖励口径变更为 v3（ATP 对齐间距）；【ADR-028】→ v4（穿透危险项有界化）；
     # 【ADR-036 2026-10-14】→ v5（限值成为 env 可配档，超限项分母随运行档位变）；
-    # 【ADR-043 2026-10-20】→ v6（13 项收敛为 6 个文献槽位，删车钩均值项）。
-    # 超限项常量本身沿用 ADR-021。
-    assert REWARD_SCHEMA == 'v6-literature-slots'
-    assert COUPLER_OVER_W == 6.0
+    # 【ADR-043 2026-10-20】→ v6（13 项收敛为 6 个文献槽位，删车钩均值项）；
+    # 【v7 2026-11-08】→ v7（领航列速度项改"跟踪规则基线参考速度"，车钩峰值项按实际占比重标定）。
+    # 【ADR-059 2026-11-09】→ v8（超限项权重 6.0 → 15.0：梯度交换比修正，支撑 1000 kN 目标）。
+    # 超限项形态/限幅沿用 ADR-021。
+    assert REWARD_SCHEMA == 'v8-overlimit-w15'
+    assert COUPLER_OVER_W == 15.0
     assert COUPLER_OVER_CAP == 2.0
 
 
@@ -70,9 +74,9 @@ def test_overlimit_term_zero_below_limit():
 def test_overlimit_term_linear_then_capped():
     env = _reward_env()
     limit = env.coupler_force_limit_n
-    # peak_norm=1.5 → -6.0*0.5 = -3.0
-    assert _over_term(env, 1.5 * limit) == pytest.approx(-3.0, abs=1e-9)
-    # peak_norm=5（over=4 → 限幅到 CAP=2）→ -12.0
-    assert _over_term(env, 5.0 * limit) == pytest.approx(-12.0, abs=1e-9)
-    # 更深也不超过 -12
-    assert _over_term(env, 10.0 * limit) == pytest.approx(-12.0, abs=1e-9)
+    # peak_norm=1.5 → -15.0*0.5 = -7.5
+    assert _over_term(env, 1.5 * limit) == pytest.approx(-7.5, abs=1e-9)
+    # peak_norm=5（over=4 → 限幅到 CAP=2）→ -30.0
+    assert _over_term(env, 5.0 * limit) == pytest.approx(-30.0, abs=1e-9)
+    # 更深也不超过 -30
+    assert _over_term(env, 10.0 * limit) == pytest.approx(-30.0, abs=1e-9)

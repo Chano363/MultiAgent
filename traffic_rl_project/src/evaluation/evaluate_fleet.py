@@ -90,10 +90,10 @@ def run_episode(env, policy_fn, record=True, init_speed=None):
                 peak_coupler_per_train[i] = max(peak_coupler_per_train[i], np.max(cf) / 1e3)
                 viol_per_train[i] += int(np.sum(cf > env.coupler_force_limit_n))
 
-        # 间距误差（所有列间）
+        # 间距误差（所有列间，参考 = d_eff，ATP 同源，ADR-061）
         for i in range(1, n):
             gap = (env.trains[i - 1].dynamics.pos[-1] - env._train_heads[i])
-            ge = abs(gap - env.target_gap)
+            ge = abs(gap - env._formation_ref_gap(i))
             gap_errors.append(ge)
             max_gap_err = max(max_gap_err, ge)
             if gap < 5.0:

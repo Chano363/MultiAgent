@@ -26,6 +26,7 @@
 | 文献 PDF / 信息卡         | `docs/papers/`（按主题分 5 个子目录：`01_coupler_physics/` 车钩与物理仿真 · `02_rl/` 强化学习 · `03_formation/` 列车编队 · `04_safety_mpc/` 安全层/MPC · `05_energy_other/` 节能/其他；重要文献配同名 `.md` 信息卡 + `_fulltext.txt` 全文检索件，信息卡为该文献数据 SSOT；例 `papers/01_coupler_physics/Zhao2022_AirBrakeRefinedModeling_Optimization.md`） |
 | 规范 / 模板 / checklist  | `docs/rules/`                                                            |
 | 汇报 / 交流材料（杂项）      | `docs/杂项/`（非研究 SSOT 的临时交流文档，如项目介绍 docx 及其提取版 md）                        |
+| 世界模型 / 数字孪生调研（2026-11-07） | `docs/杂项/世界模型与数字孪生_调研与答辩叙事_20261107.md`（事实、判断、2 页答辩草稿、短中期路线）              |
 | 阶段一历史成果              | `traffic_rl_project/history/`（原 `training_results_standardized.md` 已删，git 历史可查）      |
 
 ## 文责治理（强规范，写文档前必读）
@@ -69,6 +70,7 @@
 | `logs/progress/PROGRESS_2026-08.md` / `PROGRESS_2026-09.md` / `PROGRESS_2026-10.md` | 阶段二执行流水（按月拆分，append-only；2026-10-12 自 `PROJECT_PIPELINE.md` 迁出，内容零丢失） | active |
 | `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` / `DIAGNOSTICS_2026-11.md` | 实验/诊断数据（按月拆分 + 体积拆分，append-only）       | active |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分，append-only） | active |
+| `logs/verification/NEGATIVE_SEARCH_2026-11-08.md` | 车钩力峰值 <1000 kN 的反证检索台账（检索式/通道/召回/边界） | active |
 | `logs/learnings/LEARNINGS.md`     | 踩坑 / 失败教训（append-only）                               | active |
 | （ITSC_PAPER.md/.tex/.pdf 已删除） | 论文稿随目标会议更换移除（2026-10-19），重写时新建 | removed |
 | `REPRODUCIBILITY.md`              | 复现                           | active |
@@ -84,10 +86,11 @@
 | `rules/TEMPLATE_EXPERIENCE.md` | 沉淀可复用经验模板                       |
 | `rules/CHECKLIST_NEW_DOC.md`   | 新建/修改文档清单                       |
 | `rules/EXECUTION_RULES.md`     | 执行规范（原 PIPELINE 七）              |
-| `rules/SERVER_OPS.md`          | **云服务器操作规范**（凭据红线 / 计费铁律 / 规格选择 / s-ep 校准 / 已知坑） |
+| `rules/SERVER_OPS.md`          | **云服务器操作手册**（本机环境清单 / 资源台账 / 逐命令流程 / 凭据 / 计费模型 / 三种收尾与彻底清理 / 已知坑） |
 | `logs/decisions/DECISIONS.md`  | 决策记录（ADR）                       |
 | `logs/diagnostics/DIAGNOSTICS_2026-08.md` / `DIAGNOSTICS_2026-09.md` / `DIAGNOSTICS_2026-09B.md` / `DIAGNOSTICS_2026-10.md` / `DIAGNOSTICS_2026-11.md` | 实验/诊断数据（按月 / 体积拆分） |
 | `logs/verification/VERIFICATION_LOGS_V1.md` / `VERIFICATION_LOGS_V2.md` / `VERIFICATION_LOGS_V4.md` / `VERIFICATION_LOGS_V5.md` / `VERIFICATION_LOGS_V6.md` | V 系列验证执行日志（按 V 拆分） |
+| `logs/verification/NEGATIVE_SEARCH_2026-11-08.md` | 车钩力峰值 <1000 kN 反证检索台账 |
 | `logs/learnings/LEARNINGS.md`  | 踩坑 / 失败教训                        |
 | `logs/README.md`               | 工作日志入口（指向 `.codebuddy/memory/`） |
 

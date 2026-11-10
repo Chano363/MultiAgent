@@ -24,14 +24,33 @@ source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl
 
 涉及远程服务器、云主机（阿里云 / 腾讯云等）的操作——选型、询价、开通、装环境、传代码、跑训练、回收——请先读 `traffic_rl_project/docs/rules/SERVER_OPS.md`。
 
-其中两条最常被违反：
+其中三条最常被违反：
 
 1. **最省钱原则：能本地做的绝不上服务器。** 诊断、调参、冒烟、出图、评估一律本地跑；服务器只跑产出论文资产（metadata / checkpoint / 结果 JSON）的正式训练。
-2. **关机必须二次复核。** 单次 `StopInstance` 不算完成，必须回查 `Status=Stopped` 且 `StoppedMode=StopCharging` 并贴出回执。
+2. **开实例必须先过用户审批（2026-11-10 硬约束）。** 云服务器（阿里云或任何实例）**只在正式规模训练那一步**、且用户**明确批复规格与预算**之后才能开；开之前必须给出**实例规格 / 单价 / 预估总价 / 预计墙钟**。**询价、probe、试开实例一律算需审批范围**，禁止自行发起。
+3. **关机必须二次复核。** 单次 `StopInstance` 不算完成，必须回查 `Status=Stopped` 且 `StoppedMode=StopCharging` 并贴出回执。
 
 其余见该规范：凭据红线（AK 只写 `~/.aliyun_ak.txt`、不进对话/git）、按量 + 节省停机、**vCPU ÷ 2 = 物理核**、首跑 s/ep 实测校准、numba 编译缓存预热、三输出目录重定向、实测踩过的 API 坑。本文件不复述其内容（SSOT）。
 
-配套脚本（`traffic_rl_project/scripts/cloud/`）：`probe_aliyun_ecs.py` 查库存+单价 / `preflight_aliyun_ecs.py` 查下单依赖 / `provision_aliyun_ecs.py` 一键开通 / `instance_state_aliyun_ecs.py` 查状态与关机复核。
+### 云凭据（2026-11-10 用户硬约束）
+
+- **存放**：Windows 用户目录下的 `.aliyun_ak.txt`，两行——第 1 行 AccessKeyId、第 2 行 AccessKeySecret，**无字段名**（按行序解析）。
+- **Windows 读取**：`$env:USERPROFILE\.aliyun_ak.txt`（脚本用环境变量，不写死盘符）。
+- **WSL 读取**：经 Windows 用户目录的挂载点，即 `/mnt/<系统盘>/Users/<用户名>/.aliyun_ak.txt`；可用 `wslpath "$(powershell.exe -NoProfile -Command '$env:USERPROFILE')"` 换算。
+- **红线**：WSL 的 `~` 是 Linux home，**不是** Windows 用户目录——查凭据时不得只用 `~/` 路径就断言"文件不存在"。
+- 密钥明文**禁止**出现在回复、日志、诊断文档、commit 中；脚本只按上述路径只读，不复制副本、不写入产物。
+
+### 云实例纪律（2026-11-10，开机即跑、绝不容许空等计费）
+
+1. **预检全过才开机**：代码快照 / 配置键值 / 参考速度表 / BC 权重 / 续训 checkpoint / 依赖版本 / 启动脚本 / 退出码约定，任一不通过就不许创建实例。
+2. **启动即跑**：实例上第一条命令就是训练，环境依赖必须预装在镜像里，不得开机后调试。
+3. **三种结局都自动关机**：正常结束 / 异常退出 / 心跳超时，均自动关机**并释放**实例。
+4. **日志先回传再释放**：产物（`run.log`、CSV、checkpoint、metadata）回传并校验通过后才允许释放。
+5. **断点续训**：每集落 checkpoint，实例被回收后重开只补剩余集数。
+6. **成本可核对**：启动脚本在运行日志里记录开机/关机时刻；选型阶段给出实例规格、单价、预估总价与预计墙钟。
+7. **审批**：规格与预算须用户明确批复；**询价、probe、dry-run、试开实例前先说明**，不得自行发起。
+
+配套脚本（`traffic_rl_project/scripts/cloud/`）：`inventory_aliyun_ecs.py` 资源全景盘点+费用 / `probe_aliyun_ecs.py` 查库存+单价 / `preflight_aliyun_ecs.py` 查下单依赖 / `provision_aliyun_ecs.py` 一键开通（支持 `--image` 复用自定义镜像）/ `instance_state_aliyun_ecs.py` 查状态、关机复核与释放。
 
 ## 长跑执行纪律（2026-11-05 强制）
 
@@ -95,7 +114,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 
 ## 规范性问题（对比 / 立论铁律）
 
-> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-11-05** 最新为 **ADR-054**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
+> **权威出处（SSOT）**：立论细节只认 `traffic_rl_project/docs/RESEARCH_POSITIONING.md` §1.5/§1.6 + `docs/logs/decisions/DECISIONS.md`（ADR 为准，截至 **2026-11-09** 最新为 **ADR-062**；具体覆盖关系与编号清单以 `DECISIONS.md` 为准，勿从本文件推断）；**勿从本文件/旧版本妄猜规范**——本文件只放要点指针。
 > 原则：先想清楚"哪些不可让、哪些才叫卖点、MPC 怎么比才不失公允"，再写论文/设计对比/加基线。
 > **文档规范出处**：文档治理/角色/三态/判断树 = `docs/README.md` + `docs/rules/README.md`（唯一规范）。
 
@@ -104,7 +123,7 @@ RL 落位（唯一手段）: 机车级 ED/AB 分工，每台机车=智能体（E
 - **车钩异构（E4-H）【SUPERSEDED，不承担立论】**：主 claim = 相对传统基线的编队指标收益（ADR-042）；`--hetero` 仅作可选鲁棒性（默认齐次零回归），不进正文主表。
 - **不可主张清单 + 措辞纪律（ADR-034，Wang2026 撞车）**：**机车级 ED/AB 分工、车钩进状态/奖励、AB 最小充风均不可写为创新点**（Wang2026 已做同款）；可主张 delta 仅两条 = 多列群组 MARL + 硬保证通道。规则层措辞只许 **"literature-anchored rule baseline"**（禁 "industry standard"）；前人缺点只写"局限于单列场景"一条（多列车组层面的车钩力占位见 §1.2）；"软通道 vs 硬承诺"只用于解释自家架构，不作前人批评；贡献句式 = 机制 + 与具体基线对照 + 量化收益，**禁"首次/首创"**（写"据系统检索未见"）。H1–H3 预注册见 RESEARCH_POSITIONING §1.6。
 - **训练/评估时域**（ADR-017，铁律）：三条独立维度不可混——① 单条 rollout 时域（on-policy 窗口）② 评估时域（覆盖剖面）③ 总训练量（episodes 预算）。**训练 = 短窗口；评估 = 独立完整剖面单独跑（非"多段拼接"）**；跨线方向 = 长复杂剖面训 → 未见过剖面验。**具体数值见 ADR-017，勿在本文件复制以免随 SSOT 漂移。**
-- **车钩力定位**（ADR-014，**已由 ADR-021 决策 2 修订并落地执行**；**2026-10-14 ADR-036 档位化**：1000=正常运行目标 / 1500=制动工况验收 / 2250=安全硬顶，安全层 enforce 与 reward limit 代码门限调整 = 待执行项）：硬安全层 + 观测上下文 + 安全层；**不作均值最小化对象**。现允许**受控的"超限"非线性项**进目标（`-6.0·min(peak_norm−1, 2.0)`，上界 −12；仅在 `peak_norm>1` 生效；仍不作均值最小化、安全叙事不归功于 MARL）——落地与量级核对见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」四、。指标口径 SSOT = `coupler_interface_forces()`（断面力，ADR-018）。
+- **车钩力定位**（ADR-014，**已由 ADR-021 决策 2 修订并落地执行**；**2026-10-14 ADR-036 档位化**：1000=正常运行目标 / 1500=制动工况验收 / 2250=安全硬顶，安全层 enforce 与 reward limit 代码门限调整 = 待执行项）：硬安全层 + 观测上下文 + 安全层；**不作均值最小化对象**。现允许**受控的"超限"非线性项**进目标（`-15.0·min(peak_norm−1, 2.0)`，上界 −30，ADR-059 2026-11-09 起；仅在 `peak_norm>1` 生效；仍不作均值最小化、安全叙事不归功于 MARL）——落地与量级核对见 `docs/logs/diagnostics/DIAGNOSTICS_2026-10.md`「改造-2026-10-01」四、。指标口径 SSOT = `coupler_interface_forces()`（断面力，ADR-018）。
 
 ## 列车仿真设计（指针）
 

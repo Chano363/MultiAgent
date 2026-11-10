@@ -36,7 +36,10 @@ def physics_version(world_cfg: dict) -> str:
 # 传播（官方基线）。若耦合器型号 / 制动缓解模型 / 动力学实现发生替换，必须同步
 # 更新下面 _SIM_MODEL_FIXED（否则 physics_version 哈希不感知模型替换）。
 # 该串与 simcase + 配置派生项共同构成 metadata.simulator_model。
-_SIM_MODEL_FIXED = "NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave"
+# 【ADR-060 2026-11-09】新增曲线附加阻力 w_r=600/(R−55) N/kN（TB/T 1407 系，
+# 仅带曲线表的剖面生效），新旧口径可从 simulator_model 区分。
+_SIM_MODEL_FIXED = ("NeTrainSim-multibody|coupler=MT-2|braking=ED+AB-relief-wave"
+                    "|curve-resist=600/(R-55)")
 
 
 def simulator_model(simcase: str, world_cfg: dict) -> str:

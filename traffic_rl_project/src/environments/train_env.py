@@ -39,6 +39,24 @@ def notch_depth(notch: AirBrakeNotch) -> float:
     }.get(notch, 0.0)
 
 
+class LineLimitLookup:
+    """【ADR-060 限速逐段联动】分段限速动态查询代理（模块级可 pickle）。
+
+    每次调用从 env.dynamics 当前生效的 GradeProfile 取 limit_at（km/h），
+    保证 set_grade_profile 运行时换剖面后联动跟随新剖面；剖面无限速表
+    （恒坡/切片沙盒等）→ 返回 None（联动关闭，零回归）。
+    """
+
+    def __init__(self, env):
+        self._env = env
+
+    def __call__(self, position_m):
+        gp = getattr(self._env.dynamics, '_grade_profile', None)
+        if gp is not None and getattr(gp, 'limit_segments', None):
+            return gp.limit_at(position_m)
+        return None
+
+
 def default_consist(num_vehicles: int = 4, num_locomotives: int = 1):
     """默认重载列车编组：1 机车在前 + (num_vehicles-1) 节货车。"""
     loco = LocomotiveParams(
@@ -182,6 +200,12 @@ class TrainFormationEnv:
         self.ab_staged_apply = bool(config.get('ab_staged_apply', False))
         self.ab_staged_gap_s = float(config.get('ab_staged_gap_s', 3.0))
         self._ab_stage_t0 = None
+        # 活性计数（2026-11-08）：只用于诊断归档，不参与控制；开关关闭时恒为 0。
+        # - applied_steps：第一级（SERVICE→MIN）真正发生降档改写的步数
+        # - service_requests：分级前**要求 SERVICE** 的步数（作为"生效占比"的分母，
+        #   因为分级后物理指令已被改为 MIN，不能用归档里的 SERVICE 步数当分母）
+        self.ab_staged_applied_steps = 0
+        self.ab_staged_service_requests = 0
         # 【C7-S 空间分级 2026-11-07，默认关 = 零回归】按车号分 k 段，段 0（前段）
         # 施 SERVICE(140 kPa)、其余段施 MIN(70 kPa)，使**同一时刻编组内同时存在
         # 两种制动等级**（而不是全体先 70 后 140 —— 后者最终仍回到同一 b，只多一次
@@ -245,6 +269,27 @@ class TrainFormationEnv:
         elif self.grade:
             self.dynamics.set_grade(self.grade)
 
+        # 【ADR-060 限速逐段联动】分段限速查询（相对里程 m → km/h 或 None）。
+        # 动态代理：每次调用时从 dynamics 当前 _grade_profile 取 limit_at——
+        # 诊断/评测路径会用 set_grade_profile 运行时换剖面（如 diagnose 的恒坡
+        # 覆盖），静态捕获会指向已被替换的旧表；动态代理保证联动始终跟随
+        # dynamics 实际生效的剖面。无表（恒坡/切片沙盒等）→ 恒 None → 所有
+        # 联动自动关闭（零回归）。
+        # 用模块级可 pickle 的代理类（诊断脚本会 pickle env 导出原生状态，
+        # 闭包不可 pickle 会打断归档复现链路）。
+        self.line_limit_lookup_kmh = LineLimitLookup(self)
+
+        # 【循环制动减压量 2026-11-08，默认 None = 零回归】把非紧急的循环制动档
+        # （SERVICE）减压量改为给定 kPa（如 70）。None/140 = 保持旧行为。
+        # 只改制动力当量：档位选择、EMERGENCY、升压时间均不变（单变量）。
+        kpa = config.get('service_reduction_kpa', None)
+        if kpa is not None:
+            kpa = float(kpa)
+            if not np.isfinite(kpa) or kpa <= 0.0:
+                raise ValueError(f"service_reduction_kpa 必须为正数，得到 {kpa}")
+        self.service_reduction_kpa = kpa
+        self.dynamics.service_reduction_kpa = kpa
+
         # 车钩力范围估计（约束观察/奖励缩放）
         self._max_coupler_n = self.coupler_force_limit_n
 
@@ -280,6 +325,8 @@ class TrainFormationEnv:
             min_gap_m=self.target_gap * 0.1,
             # 【2026-09-30】车列总长（米）→ 安全层按"位置+波速"预测 AB 峰值到达时域
             train_length_m=float(sum(v.length_m for v in consist.vehicles)),
+            # 【ADR-060 限速逐段联动】有分段限速表 → 规则 C 按头车位置联动；无表 None → 零回归
+            speed_limit_lookup=self.line_limit_lookup_kmh,
             **_veto,
         )
 
@@ -420,7 +467,14 @@ class TrainFormationEnv:
                 np.sum(interface > self.coupler_force_limit_n))
         # 【bug修复 2026-08-20】超速指标按线路限速 line_speed_limit_mps 统计
         # （原实现按机车物理限速 max_speed_mps=108km/h，与论文"超80率"指标口径不符）
-        if np.max(self.dynamics.vel) > self.line_speed_limit_mps:
+        # 【ADR-060 限速逐段联动】有分段限速表 → 按头车位置联动线速门（保守口径）；
+        # 无表 → 恒用 line_speed_limit_mps（零回归）。
+        _v_line_mps = self.line_speed_limit_mps
+        if self.line_limit_lookup_kmh is not None:
+            _lv = self.line_limit_lookup_kmh(float(self.dynamics.pos[0]))
+            if _lv is not None:
+                _v_line_mps = min(_v_line_mps, _lv / 3.6)
+        if np.max(self.dynamics.vel) > _v_line_mps:
             self._overspeed_violations += 1
 
     def _ab_staged_command(self, ab_command, ab_sources):
@@ -442,15 +496,20 @@ class TrainFormationEnv:
             if ab_command == AirBrakeNotch.RELEASE and not srcs:
                 self._ab_stage_t0 = None
             return ab_command, ab_sources
+        self.ab_staged_service_requests += 1
         t_now = self.steps * self.dt
         if self._ab_stage_t0 is None:
             self._ab_stage_t0 = t_now
         if t_now - self._ab_stage_t0 < self.ab_staged_gap_s - 1e-9:
             # 第一级：同批源整体降到 MIN（管压只减压 70 kPa）
+            downgraded = any(n == AirBrakeNotch.SERVICE for _, n in srcs)
             if srcs:
                 srcs = [(idx, AirBrakeNotch.MIN) for idx, _ in srcs]
             if ab_command == AirBrakeNotch.SERVICE:
                 ab_command = AirBrakeNotch.MIN
+                downgraded = True
+            if downgraded:
+                self.ab_staged_applied_steps += 1
             return ab_command, (srcs if srcs else None)
         # 第二级：原样放行 SERVICE → 走 train.py 既有 notch 升级波（upgrade_pending）
         return ab_command, ab_sources

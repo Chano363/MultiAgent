@@ -24,9 +24,6 @@ import os
 import sys
 import json
 import argparse
-import inspect
-from copy import deepcopy
-
 
 import numpy as np
 import torch
@@ -36,9 +33,6 @@ from src.algorithms.mappo_agent import MAPPOAgent
 from src.physics_governance import official_entry_guard, official_world_config
 from src.physics_config import PhysicsConfig
 from src.metadata import build_metadata
-from src.controllers.nmpc_controller import NMPCController
-from src.controllers.multi_loco_controller import MultiLocoController
-from src.train_dynamics.params import CouplerParams
 
 # 【2026-10-08 日志可见性】强制 stdout/stderr 行缓冲。本脚本常以后台重定向方式运行
 # （`python ... > log 2>&1 &`），此时 stdout 非 TTY，Python 默认**块缓冲**（8KB）⇒
@@ -113,7 +107,7 @@ def resolve_decision_interval(args) -> int:
         except Exception as e:
             print(f"[decision-interval] 读 ckpt 失败（{type(e).__name__}: {e}），"
                   f"回退训练标准值 {TRAIN_DEFAULT_DECISION_INTERVAL}")
-    # m0/mpc/single 行不使用 RL（act_interval 恒 1），该值仅作 metadata 记录
+    # m0/single 行不使用 RL（act_interval 恒 1），该值仅作 metadata 记录
     return TRAIN_DEFAULT_DECISION_INTERVAL
 
 
@@ -142,6 +136,76 @@ def resolve_policy_environment(args):
                 raise ValueError('Requested consist differs from checkpoint metadata')
             args.consist_preset = recorded_consist
     args.formation_relative_speed_obs = bool(requested)
+
+
+# env 的默认初始速度（`train_fleet_env._reset_once`：options['speed'] 缺省 65 km/h）。
+# 仅在既无 `--experiment` 也读不到 ckpt metadata 时兜底 —— 不是"随便挑的默认值"。
+ENV_DEFAULT_INIT_SPEED_KMH = 65.0
+
+
+def resolve_start_conditions(args):
+    """解析并固化「起点条件」（初始速度 + 起点里程），禁止评估静默用另一套起点。
+
+    【2026-11-10 修复｜训练/评估/归档三套口径不同源】修复前本脚本
+    `--init_speed_kmh` 默认 **80 km/h**，而训练用 YAML `init_speed_kmh: 70.0`
+    （`train_runner` 取 `cfg.init_speed_kmh`）；起点里程在未给 `--experiment` 时
+    恒为 0（上游不构造 `start_randomization` ⇒ `_start_rand=None` ⇒ `route_offset=0`），
+    而训练是 `start_randomization: {min_m: 4300, max_m: 4300}`。三条链路起点不同源
+    ⇒ 同一策略在三个"基线"下分别给出 1072 / 1289 / 1302 kN 峰值，对比失效。
+
+    修法：`--init_speed_kmh` 缺省 None = 按「实验 YAML → ckpt metadata → env 默认」
+    逐级取值（与 `resolve_decision_interval` 同款"自描述优先"纪律），并把来源、
+    实际值打印出来；起点里程由 `_report_start_conditions` 在 `make_env` 内打印。
+    """
+    if args.random_init_speed and args.init_speed_kmh is not None:
+        raise SystemExit('--random_init_speed 与 --init_speed_kmh 互斥：前者已声明随机起点，'
+                         '后者是固定起点口径')
+    if args.init_speed_kmh is not None:
+        print(f"[起点口径] 初始速度 {float(args.init_speed_kmh):.1f} km/h（来源：命令行 --init_speed_kmh）")
+        return
+
+    kmh, source = None, None
+    exp = getattr(args, 'experiment', None)
+    if exp:
+        # 【训练-评估同参】YAML 的 init_speed_kmh 是顶层字段（不在 env_cfg 内），
+        # 与 train_runner 的取值优先级 `env_cfg.get(...) or cfg.init_speed_kmh` 一致。
+        from src.trainer.config_schema import parse_experiment_yaml
+        _cfg = parse_experiment_yaml(exp)
+        kmh = float(_cfg.env_cfg.get('init_speed_kmh', _cfg.init_speed_kmh))
+        source = f'实验 YAML {exp}'
+    if kmh is None and os.path.isfile(getattr(args, 'checkpoint', '') or ''):
+        try:
+            ck = torch.load(args.checkpoint, map_location='cpu', weights_only=False)
+            hp = (ck.get('metadata') or {}).get('hyperparameters') or {}
+            val = (hp.get('env_cfg') or {}).get('init_speed_kmh', hp.get('init_speed_kmh'))
+            if val is not None:
+                kmh, source = float(val), f'ckpt metadata {os.path.basename(args.checkpoint)}'
+        except Exception as e:
+            print(f"[起点口径] 读 ckpt 失败（{type(e).__name__}: {e}），继续按下一级取值")
+    if kmh is None:
+        kmh, source = ENV_DEFAULT_INIT_SPEED_KMH, 'env 默认（无实验 YAML / ckpt 可依）'
+        print("[起点口径][WARN] 未能从实验 YAML 或 ckpt 取得训练初始速度，回退 env 默认 "
+              f"{kmh:.1f} km/h；若非训练同源场景，请显式传 --init_speed_kmh")
+    args.init_speed_kmh = float(kmh)
+    print(f"[起点口径] 初始速度 {kmh:.1f} km/h（来源：{source}）")
+
+
+def _report_start_conditions(cfg):
+    """打印本次 env 实际生效的起点里程，起点随机段缺失时 WARN（不再静默从 0 起步）。
+
+    `eval_mode=True` 时路线偏移恒取 `start_randomization.min_m`（见
+    `train_fleet_env._reset_once`）；配置缺失 ⇒ `_start_rand=None` ⇒ 0 m，
+    此时 3 列编队队尾落在负里程，`grade_at` 对越界静默沿用首段坡度 ⇒ 虚构路况。
+    """
+    sr = cfg.get('start_randomization')
+    if isinstance(sr, dict) and sr.get('enabled'):
+        lo = float(sr.get('min_m', 0.0))
+        hi = float(sr.get('max_m', lo))
+        print(f"[起点口径] 起点里程 {lo:.0f}–{hi:.0f} m（eval_mode 取 min_m={lo:.0f} m）")
+        return
+    print("[起点口径][WARN] 未配置 start_randomization（起点里程 = 0 m）：编队队尾将落在负里程，"
+          "坡度按首段外推 ⇒ 与训练（固定 4300 m）不同源，本次结果不可与训练/基线归档直接比较；"
+          "如需同源请传 --experiment <训练 YAML>")
 
 
 def run_consist(mode, args=None):
@@ -204,44 +268,8 @@ def make_env(mode, args):
     else:
         cfg['hierarchical'] = True
         cfg['adj_coef'] = 0.3
-    env = TrainFleetEnv(cfg)
-    if mode == 'decompose' and getattr(args, 'enable_mpc', False):
-        _mount_mpc(env, args)
-    return env
-
-
-def _mount_mpc(env, args):
-    """把 MPC 控制器挂到 env 上（供 mpc_act 读取），复用 compute_actions_from_env 接口。
-
-    **唯一 MPC 基线 = `NMPCController`**（`--mpc_type nmpc`，casadi+IPOPT，列内集中质量
-    多体 + MT-2 符号化车钩约束，与 D-RL 同档对冲）。【ADR-022，2026-10-01】**已删除**
-    旧的 `FairMPCController`（单质点聚合 + SLSQP）与简化 `MPCController`——主表不再留
-    "粗糙 MPC" 作靶子（导师口径）；`--mpc_type` 保留为**单值枚举**，只为让既有文档命令
-    （显式带 `--mpc_type nmpc`）继续可复现，不再是"默认值静默决定协议"（LRN-20261001-011）。
-
-    `inner_rule_cyclic`（M3，2026-10-01）：MPC 是否在自身输出上**再叠一层**规则循环护盾。
-    注意 decompose 通道里 env 的 `get_action_decomposed` **本来就无条件施加**规则基线
-    ⇒ **默认 False 才是与 D-RL 的 like-for-like**（双方各有一层同样的规则护盾）；
-    置 True 等于 MPC 叠两层护盾（旧脚本 `mpc_rule` 的遗留语义，在非 decompose 通道下
-    曾是 like-for-like，在本通道已不对等），仅用于复现历史对照。
-    """
-    inner_cyclic = bool(getattr(args, 'mpc_inner_rule_cyclic', False))
-    # 成熟集中质量多体 NMPC：预测模型与评估物理同源（标准 MT-2 CouplerParams）。
-    # 【M3 2026-10-01】原硬编码 inner_rule_cyclic=True 并注释"与 D-RL 同构"——
-    # 在该通道下**不成立**（env 已无条件加规则基线 ⇒ True = 双层护盾），故改用
-    # 统一开关，默认 False（与 D-RL 各一层 = like-for-like）。
-    env._mpc_controller = NMPCController(
-        num_trains=env.num_trains, dt=0.1,
-        v_max=env.v_max, v_min=env.v_min,
-        target_speed=env.target_speed,
-        headway_s=getattr(env, 'headway_s', 5.0),
-        gap_min=getattr(args, 'mpc_gap_min', 20.0),
-        coupler_params=CouplerParams(),
-        inner_rule_cyclic=inner_cyclic,
-        ipopt_max_iter=300,
-    )
-    # grade_at 前瞻由 compute_actions_from_env 从 env.grade_profile 自动重建（坡度为 MPC 固有输入，ADR-037）
-    env._mpc_controller.reset()
+    _report_start_conditions(cfg)
+    return TrainFleetEnv(cfg)
 
 
 def rollout(env, act_fn, args, rng, act_interval=1):
@@ -250,6 +278,13 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     else:
         init = args.init_speed_kmh / 3.6
     obs, _ = env.reset(options={'speed': init})
+    # 【2026-11-10 起点留痕】打印**实际生效**的初速与各列车头位置，供归档核对
+    # "本行结果跑的是哪一段"。请求值与实际值不一致（如冷启动位移）时一并暴露。
+    _heads = getattr(env, '_train_heads', None)
+    _v0 = [round(float(tr.dynamics.vel[0]) * 3.6, 2) for tr in env.trains]
+    print(f"[起点] 请求初速 {init * 3.6:.1f} km/h → 实际 {_v0} km/h | 各列头位 "
+          f"{[round(float(h), 1) for h in _heads] if _heads is not None else 'n/a'} m",
+          flush=True)
     ep_r = peak = ab_steps = ed_sum = band = viol = safety = 0.0
     prev_viol = prev_safety = 0.0  # env episode 级累计计数器的上一轮快照，用于取增量
     n = 0
@@ -261,28 +296,12 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     gap_min_over_ep = float('inf')
     rear_end_steps = 0
     actions = None
-    # MPC 求解耗时/状态（同档对冲主指标）：快照本回合新增段，避免跨 seed 累计混淆
-    _mpc = getattr(env, '_mpc_controller', None)
-    # 【2026-10-01 修复｜跨回合状态残留】MPC 控制器持有**每回合**状态（NMPCController.reset
-    # 清 `_meas_accel` / `_last_vel` / `_last_cmd` / `_prev_sol` / solve_times / solve_statuses），
-    # 但它只在 `_mount_mpc` 时被 reset 一次；而 `eval_method` 用**同一条 env** 跑 n_seed 个回合
-    # ⇒ 不逐回合清零就会让 `--n_seed 3` 的"3 个回合"不独立（回合间继承速度/指令基准）。
-    # 此处按回合 reset；n_seed=1 时与"仅在挂载时 reset"等价 ⇒ 既有单 seed MPC 数值不受影响。
-    # 【ADR-022 补注】该缺陷最初是在已删除的 FairMPCController 上暴露的（它有 `_gap0_init`/
-    # `_gap_ref` 等更重的回合状态）；现存的 NMPCController 同样持有回合状态，故守卫继续有效。
-    if _mpc is not None and hasattr(_mpc, 'reset'):
-        _mpc.reset()
-    st0 = len(_mpc.solve_times) if (_mpc is not None and hasattr(_mpc, 'solve_times')) else 0
-    bridge_sat = 0     # MPC 桥接"请求超出 ±0.5 动作权限"的次数（可审计：见 mpc_act）
     # 【2026-10-08 日志可见性】约每 5% 打一条进度心跳。单回合可达 36000 步、静默数十分钟，
     # 一旦进程被 kill，"中间无输出"就无从判断跑到哪、指标是否正常。心跳给可观测的运行轨迹。
     prog_every = max(1, args.max_steps // 20)
     for i in range(args.max_steps):
         if actions is None or i % act_interval == 0:
             actions = act_fn(env)   # RL 决策间隔（semi-MDP 动作保持），rule 基线逐步执行
-            _bd = getattr(env, '_mpc_bridge_diag', None)   # 仅 MPC 行会设置
-            if _bd is not None:
-                bridge_sat += int(_bd.get('ed_saturated', 0))
         obs, r, term, trunc, info = env.step(actions)
         ep_r += r
         peak = max(peak, info['coupler_force_peak'])
@@ -341,21 +360,6 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     # 出现即判**该行评估无效并报错**；主表安全指标 = ATP 触发次数（safety_events）。
     assert rear_end_steps == 0, (
         f"评估无效：实际列距≤0（物理穿透）{rear_end_steps} 步，该行结果作废")
-    if _mpc is not None and getattr(_mpc, 'solve_times', None) and _mpc.solve_times[st0:]:
-        st = _mpc.solve_times[st0:]
-        out['mpc_solve_mean_ms'] = float(np.mean(st) * 1e3)
-        out['mpc_solve_max_ms'] = float(np.max(st) * 1e3)
-        # 【2026-10-01 修复】求解失败次数是主指标之一，但"控制器是否记录状态"属**附加诊断**——
-        # 缺失时绝不能让整轮评估崩掉（历史事故：某个不记录 `solve_statuses` 的 MPC 控制器
-        # 使本行 AttributeError ⇒ **已跑完的 M0/M1 两行也一起丢失、不落盘**）。
-        sts = getattr(_mpc, 'solve_statuses', None)
-        if sts is not None:
-            out['mpc_solve_fail'] = int(sum(1 for s in sts[st0:] if s != 'optimal'))
-    if _mpc is not None:
-        # 【2026-10-01】桥接权限饱和计数：MPC 的 ED 请求超出 ±0.5 调制权限的次数（步·机车）。
-        # 该计数是"MPC 与 D-RL 动作权限是否对等、请求是否被兑现"的**可量化审计信号**
-        # （口径见 mpc_act 的 n_sat）；仅 MPC 行产出，RL/规则行无此键。
-        out['mpc_bridge_ed_saturated'] = int(bridge_sat)
     return out
 
 
@@ -366,17 +370,7 @@ def eval_method(name, mode, act_fn, args, act_interval=1):
     env.close()
     agg = {k: float(np.mean([r[k] for r in rs])) for k in rs[0]}
     agg['per_seed'] = [{k: float(v) for k, v in r.items()} for r in rs]
-    # MPC 附加诊断：逐项 `in` 守卫 —— `mpc_solve_fail` 只在控制器**记录了**
-    # solve_statuses 时才产出（见 rollout），旧写法在 `mpc_solve_mean_ms` 命中时直接下标取它
-    # ⇒ 无该字段的控制器会 KeyError、连累整行不落盘（与 LRN-20261001-013 同族）。
     extra = ''
-    if 'mpc_solve_mean_ms' in agg:
-        extra += (f" | MPC求解 {agg['mpc_solve_mean_ms']:.0f}ms均值/"
-                  f"{agg['mpc_solve_max_ms']:.0f}ms峰值")
-        if 'mpc_solve_fail' in agg:
-            extra += f" | fail {agg['mpc_solve_fail']:.0f}"
-    if 'mpc_bridge_ed_saturated' in agg:
-        extra += f" | 桥接越权请求 {agg['mpc_bridge_ed_saturated']:.0f} 步·机车"
     # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距。逐项守卫，
     # 单列编组无该组键（不产出）时不打印，避免 KeyError 连累整行不落盘（LRN-20261001-013 同族）。
     # 追尾不打印（既定决策：移出主表，评估入口以 assert rear_end_steps == 0 守卫）。
@@ -401,122 +395,9 @@ def _gap_delta_str(a, b):
             f"Δ最小列距 {a['gap_min_m']-b['gap_min_m']:+.1f}m")
 
 
-# --------------------------------------------------------------------------- #
-# MPC → decompose 动作接口桥接（2026-10-01 修复 M1，甲方：反解加性关系）
-# --------------------------------------------------------------------------- #
-# decompose 模式下 env.step 的动作语义 = **规则基线的加性调制**（见
-# MultiLocoController.get_action_decomposed）：
-#     final_ed = clip(baseline_ed + ED_MOD_COEF · ed_mod, 0, 1)
-#     ab_mod > +0.15 → 抑制本机车 AB 源；ab_mod < -0.15 → 提前引入 MIN 档 AB 兜底
-# 故 MPC（原生输出 = 每列目标加速度）必须**反解**成 (ed_mod, ab_mod)；不能把
-# get_action_accel 产出的绝对 ED 深度直接当 ed_mod（旧实现的缺陷，见 mpc_act）。
-ED_MOD_COEF = float(inspect.signature(
-    MultiLocoController.get_action_decomposed).parameters['ed_mod_coef'].default)
-# 【ADR-023→024，2026-10-02】带宽**不在此手抄**：直接取 env 实际生效的
-# `get_action_decomposed` 默认值（ADR-024 回退为 0.5 半幅），杜绝"评估按 A、执行按 B"
-# 的静默失配（M1 桥接缺陷同族，见 LRN-20261001-017）。原为硬编码的镜像常量。
-AB_SUPPRESS_MOD = 0.4      # > +0.15 ⇒ 请求抑制该机车 AB 源
-AB_TRIGGER_MOD = -0.4      # < -0.15 ⇒ 请求提前引入 MIN 档 AB 兜底
-# MPC 请求 AB 兜底的 ED 需求阈值：MPC 自身加速度下界 accel_lo=-0.75 ⇒ 其期望 ED 上限
-# = 0.75。取 0.7 = "MPC 已用掉 ≥93% 自有权限仍在要制动" ⇒ 请求预触发兜底。
-# 【可达性】desired_ed 可到 0.75 ⇒ 阈值 0.7 **可达**（勿上调到 ≥0.75，否则分支变死代码，
-# 同 LRN-20261001-007 型）。单测 test_mpc_bridge_ab_trigger_reachable 守此不变式。
-MPC_AB_TRIGGER_ED = 0.7
-_MPC_BRIDGE_ANNOUNCED = False
-
-
-def _rule_baseline_edab(ctrl, tr, env):
-    """复算规则基线 (num_loco,2)，不改变控制器的闩锁或任何计时状态。
-
-    直接用权威实现 `get_action_cyclic_braking`（避免在评估侧复制一份规则逻辑而产生
-    漂移），在独立控制器副本上预演，避免消耗保持/渐变计时。
-
-    ⚠️ 已知近似：本函数以**未协调**带边（v_max_adj=v_min_adj=0）复算，而 env 内部对
-    follower 会叠加 `coordination_adj` 的抬带/压带（|adj| ≤ LEAN_MAX_ADJ=3 m/s）；
-    该 adj 依赖"前一列已 step 之后的位置"，在 env.step 之前无法复现 ⇒ follower 处于
-    带边附近时基线估计可能有偏差（有界，≤0.5 ED 深度）。偏差**不影响安全性**
-    （env 侧 clip + SafetyLayer + ETCS 全程仍生效），只影响 MPC 请求的 ED 交付精度；
-    这是在当前"闭包内 env 不可改"约束下能做到的最优近似（改 env 可精确，但那需停训）。
-
-    非 MultiLocoController（无该方法）时退化为全零调制，由调用方兜底。
-    """
-    if not hasattr(ctrl, 'get_action_cyclic_braking'):
-        return None
-    base = deepcopy(ctrl).get_action_cyclic_braking(
-        tr, v_max=env.v_max, v_min=env.v_min, v_max_adj=0.0, v_min_adj=0.0)
-    return np.asarray(base, dtype=float)
-
-
-def mpc_act(env):
-    """MPC 公平接入 decompose：每列目标加速度 → 每机车 (ed_mod, ab_mod) 调制。
-
-    【2026-10-01 修复 M1｜量纲错配（strawman）】旧实现把 `get_action_accel` 产出的
-    **绝对 ED 深度**直接当 `ed_mod` 传入，而 env 在 decompose 模式下把它解释为**规则基线的
-    加性调制** ⇒ `clip(baseline_ed + 0.5·ed_abs, 0, 1)` 恒 ≥ baseline 且 ≈1.0
-    （实测 `MPC meanED=1.000` vs `D-Rule 0.850`），且 AB 通道恒 0（`ab_mod=0` 落在 ±0.15
-    死区内）⇒ **MPC 只剩"单调加 ED"一根杠杆**，与 D-RL 权限不对称。根因：旧评估脚本
-    （`evaluate_m1_m3_long.py`，已按 ADR-022 删除，git 历史可查）的 MPC 走**非 decompose**
-    通道（动作 = 每列绝对目标加速度），桥接被搬进 decompose 通道时未随语义改写。
-
-    现改为**反解加性关系**（甲方）：
-        desired_ed = clip(-U / max_accel, 0, 1)        # MPC 期望的绝对 ED 深度
-        ed_mod     = clip((desired_ed - baseline_ed) / ED_MOD_COEF, -1, 1)
-    并按 MPC 意图给 `ab_mod`（想停/加速 → 抑制；制动需求顶满自有权限 → 预触发兜底）。
-    ⇒ MPC 与 D-RL 动作权限**完全一致**（同样 ±ED_MOD_COEF ED 调制、同样 AB 抑制/预触发阈值、
-    同样**无牵引通道**——牵引由 env 的 `coordination_adj` 规则注入，对 RL/MPC 一视同仁）；
-    唯一差异回到"决策来源"（NMPC 在线优化 vs MAPPO），符合 ADR-016 不失公允口径。
-
-    两处实现细节（有意为之，勿"顺手"改回）：
-    1. **不复用 `get_action_accel`**：它内部已乘 `_coupler_throttle_scale`，而 env 的
-       `get_action_decomposed` 末尾会**再乘一次** ⇒ 高车钩力时 ED 被双重缓和。此处直接
-       内联同一映射（`-U/max_accel`）只取期望深度，把车钩力缓和留给 env 侧统一施加。
-       （`get_action_accel` 的牵引分支另有"算而未返回"的死赋值，属闭包内文件缺陷，
-       本桥接不再消费该分支，待停训期清理。）
-    2. 正 `target_accel`（MPC 想加速）⇒ `desired_ed=0` + 请求抑制 AB，即"缓解到惰行"；
-       MPC 无法直接命令牵引（与 D-RL 权限一致，见上）。
-    """
-    global _MPC_BRIDGE_ANNOUNCED
-    U = env._mpc_controller.compute_actions_from_env(env)
-    acts = []
-    n_sat = n_ab_trigger = n_ab_suppress = 0
-    for ti, tr in enumerate(env.trains):
-        ctrl = env.multi_loco_controllers[ti]
-        max_a = max(float(getattr(ctrl, 'max_accel', 1.0)), 1e-6)
-        desired_ed = float(np.clip(-float(U[ti]) / max_a, 0.0, 1.0))
-        base = _rule_baseline_edab(ctrl, tr, env)
-        if base is None:                       # 兜底：非 MultiLocoController
-            acts.append(np.zeros((len(tr.loco_indices), 2), dtype=float))
-            continue
-        rows = np.zeros((base.shape[0], 2), dtype=float)
-        # AB 意图（全列一致：每机车同权，与 D-RL 的逐机车 ab_mod 通道同语义）
-        if desired_ed <= 1e-9:
-            ab_mod = AB_SUPPRESS_MOD
-            n_ab_suppress += 1
-        elif desired_ed >= MPC_AB_TRIGGER_ED:
-            ab_mod = AB_TRIGGER_MOD
-            n_ab_trigger += 1
-        else:
-            ab_mod = 0.0
-        for i in range(base.shape[0]):
-            raw = (desired_ed - base[i, 0]) / ED_MOD_COEF
-            rows[i, 0] = float(np.clip(raw, -1.0, 1.0))
-            rows[i, 1] = ab_mod
-            if abs(raw) > 1.0:
-                n_sat += 1                     # 请求超出 ±0.5 权限 ⇒ 交付深度受限（可审计）
-        acts.append(rows)
-    if not _MPC_BRIDGE_ANNOUNCED:
-        _MPC_BRIDGE_ANNOUNCED = True
-        print(f"[mpc-bridge] 反解加性调制（ED_MOD_COEF={ED_MOD_COEF}；AB 抑制/预触发 "
-              f"mod={AB_SUPPRESS_MOD:+.1f}/{AB_TRIGGER_MOD:+.1f}，预触发阈值 "
-              f"desired_ed≥{MPC_AB_TRIGGER_ED}）—— MPC 与 D-RL 动作权限一致")
-    env._mpc_bridge_diag = {'ed_saturated': n_sat, 'ab_trigger': n_ab_trigger,
-                            'ab_suppress': n_ab_suppress}
-    return np.concatenate(acts, axis=0).astype(np.float32)
-
-
 def main():
     p = argparse.ArgumentParser(description='decompose 换架构对比评估')
-    p.add_argument('--mode', choices=['all', 'decompose_m1', 'decompose_m0', 'mpc', 'single'],
+    p.add_argument('--mode', choices=['all', 'decompose_m1', 'decompose_m0', 'single'],
                    default='all')
     p.add_argument('--checkpoint', default=DEFAULT_CKPT)
     p.add_argument('--experiment', default=None,
@@ -532,21 +413,11 @@ def main():
                    help='评估时域（36000=完整 49.6km；15000=23.8km）')
     p.add_argument('--num_trains', type=int, default=3,
                    help='decompose 多列群组列数（主训练=3，6 机车智能体）')
-    p.add_argument('--enable_mpc', action='store_true',
-                   help='在 decompose env 上挂载 MPC 控制器（供 --mode mpc 使用）')
-    p.add_argument('--mpc_type', choices=['nmpc'], default='nmpc',
-                   help='MPC 基线类型。**只有 nmpc**：NMPCController（casadi+IPOPT，'
-                        '列内集中质量多体 + MT-2 符号化车钩约束）。'
-                        '【ADR-022】旧 fair / 简化 MPC 已删除；本参数保留为**单值枚举**，'
-                        '只为让既有文档命令按原样可复现（不再是"默认值静默决定协议"）。')
-    p.add_argument('--mpc_gap_min', type=float, default=20.0, help='MPC 最小列间距约束 (m)')
-    p.add_argument('--mpc_inner_rule_cyclic', action='store_true', default=False,
-                   help='【M3】MPC 自身再叠一层规则循环护盾。decompose 通道里 env 已无条件'
-                        '施加规则基线 ⇒ 默认 False 才是与 D-RL 的 like-for-like；'
-                        'True = MPC 双层护盾（仅复现历史 mpc_rule 对照用）。')
     p.add_argument('--n_seed', type=int, default=3)
     p.add_argument('--eval_seed', type=int, default=0)
-    p.add_argument('--init_speed_kmh', type=float, default=80.0)
+    p.add_argument('--init_speed_kmh', type=float, default=None,
+                   help='初始速度 (km/h)。默认 None = 自「实验 YAML → ckpt metadata → env 默认 65」'
+                        '逐级读取（2026-11-10 修复原默认 80 与训练 70 的静默失配）')
     p.add_argument('--target_speed', type=float, default=None,
                    help='巡航参考速度 (m/s)。默认 None = 不传该键，与训练一致地落 env 默认 '
                         '(v_min+v_max)/2；显式给值才覆盖（2026-10-07 修复原硬编码 20.0 的失配）')
@@ -565,17 +436,9 @@ def main():
                    help='输出文件名后缀（区分 seed/interval/场景，防覆盖），如 "_s0_iv5"')
     args = p.parse_args()
     resolve_policy_environment(args)
-
-    # 【2026-10-01 修复｜静默缺行】`--mode all` 语义 = 主对比全行（D-Rule / D-RL / MPC，对比口径见 ADR-037）。
-    # 旧写法在 MPC 块内用 `if getattr(args,'enable_mpc',False) or args.mode=='mpc'` 兜，
-    # 而 `--enable_mpc` 是 store_true（默认 False）⇒ **`--mode all` 静默只出 2 行、缺 MPC**，
-    # 且第 320 行 `len(results) >= 3` 的三行 Δ 摘要也随之静默跳过 —— 与 `REPRODUCIBILITY.md` §十
-    # 「主对比三行 D-RL / D-Rule / MPC @53km」的文档口径不符。此处**在 build_metadata 之前**归一，
-    # 保证 `metadata.eval_args.enable_mpc` 与实际行为一致（否则 metadata 记 False、实跑却挂了 MPC）。
-    # 注：`make_env` 里的挂载对 M0/M1 行无行为影响（`_mpc_controller` 只在评估脚本的动作函数中使用，
-    # env.step 从不读取它）。
-    if args.mode in ('all', 'mpc'):
-        args.enable_mpc = True
+    # 【2026-11-10】起点口径必须在 build_metadata 之前固化为实际值（同 decision_interval 纪律）：
+    # 否则 metadata.eval_args 记 None、实跑却用另一套速度，同族缺陷见 LRN-20261001-011。
+    resolve_start_conditions(args)
 
     # 【2026-10-01 修复】RL 决策间隔必须在 build_metadata **之前**解析为实际值，
     # 否则 metadata.eval_args 记的是 None、实跑却用了具体间隔（与「静默缺行」修复同一纪律）。
@@ -623,12 +486,6 @@ def main():
             f'decompose-M1 RL({os.path.basename(args.checkpoint)}, interval={args.decision_interval})',
             'decompose', policy_act, args, act_interval=args.decision_interval)
 
-    # `all` / `mpc` 均已在上方归一为 enable_mpc=True（见「静默缺行」修复注释）
-    if args.mode in ('all', 'mpc'):
-        results['mpc'] = eval_method(
-            f'MPC(NMPC 集中质量多体+MT-2+IPOPT) @ {args.grade}',
-            'decompose', mpc_act, args)
-
     # 单机单控(旧架构1+0)已从主对比中移除：它与 3列1+1 群组非同环境，无对比意义。
     # 仅 --mode single 时保留，供单独回测旧架构。
     if args.mode == 'single':
@@ -636,27 +493,13 @@ def main():
             '单机单控(旧架构1+0, coor=0)', 'single',
             lambda env: np.zeros(env.num_trains), args)
 
-    if len(results) >= 3 and 'decompose_M1_rl' in results:
-        m1, m0, mp = results['decompose_M1_rl'], results.get('decompose_M0_rule'), results.get('mpc')
-        if m0 is not None:
-            print('-' * 78)
-            print(f"Δ(D-RL - D-Rule): Δreward {m1['reward']-m0['reward']:+.0f} | "
-                  f"ΔpeakCoupler {m1['peak_coupler_kN']-m0['peak_coupler_kN']:+.0f}kN | "
-                  f"ΔATP触发次数 {m1['safety_events']-m0['safety_events']:+.0f}"
-                  + _gap_delta_str(m1, m0))
-        if mp is not None:
-            print(f"Δ(D-RL - MPC):    Δreward {m1['reward']-mp['reward']:+.0f} | "
-                  f"ΔpeakCoupler {m1['peak_coupler_kN']-mp['peak_coupler_kN']:+.0f}kN | "
-                  f"ΔATP触发次数 {m1['safety_events']-mp['safety_events']:+.0f}"
-                  + _gap_delta_str(m1, mp))
-    elif len(results) >= 2 and 'decompose_M1_rl' in results:
-        m1, m0 = results['decompose_M1_rl'], results.get('decompose_M0_rule')
-        if m0 is not None:
-            print('-' * 78)
-            print(f"Δ(D-RL - D-Rule): Δreward {m1['reward']-m0['reward']:+.0f} | "
-                  f"ΔpeakCoupler {m1['peak_coupler_kN']-m0['peak_coupler_kN']:+.0f}kN | "
-                  f"ΔATP触发次数 {m1['safety_events']-m0['safety_events']:+.0f}"
-                  + _gap_delta_str(m1, m0))
+    m1, m0 = results.get('decompose_M1_rl'), results.get('decompose_M0_rule')
+    if m1 is not None and m0 is not None:
+        print('-' * 78)
+        print(f"Δ(D-RL - D-Rule): Δreward {m1['reward']-m0['reward']:+.0f} | "
+              f"ΔpeakCoupler {m1['peak_coupler_kN']-m0['peak_coupler_kN']:+.0f}kN | "
+              f"ΔATP触发次数 {m1['safety_events']-m0['safety_events']:+.0f}"
+              + _gap_delta_str(m1, m0))
 
     os.makedirs(RESULTS_DIR, exist_ok=True)
     out = os.path.join(RESULTS_DIR, f"eval_decompose_{args.mode}_ms{args.max_steps}"

@@ -128,6 +128,8 @@
 | Yu2022 / Hessel2019（MAPPO + PopArt） | NeurIPS 2022 / AAAI 2019 | 算法依据 |
 | Liu2025 虚拟耦合 MARL | IEEE ITS Magazine 2025 | train=agent 分解 |
 | Wu2023 虚拟耦合综述 | IEEE TIV 2023 | 综述 |
+| Muniandi 2020 区块链虚拟耦合冲突控制 | IET ITS 14(6):611-619, DOI 10.1049/iet-its.2019.0694 | ADR-061 间距锚（VC 安全间距 = 制动距离内运行）；一手全文已核，无本地 PDF |
+| Wu Qing 2024 重载虚拟编组 time headway | ASME JDSMC 146(4):041008, DOI 10.1115/1.4065401 | ADR-061 间距锚（headway 设计族 + 重载 time headway 更优）；Crossref 题录核实，无本地 PDF |
 | Basile2022 RL 虚拟耦合路线图 | DAI 2022 | 路线图 |
 | Chen2024 分布式全局复合学习 | IEEE TITS 2024 | 协同控制 |
 | Vaquero2025 虚拟耦合 LMPC | CACIE 2025 | MPC 对照 |

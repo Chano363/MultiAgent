@@ -12,7 +12,8 @@ def state():
     dynamics = SimpleNamespace(pos=np.array([100., 90.]), vel=np.array([16., 16.]),
                                pressure=np.array([.3, .4]))
     return SimpleNamespace(num_trains=3, multi_loco_controllers=controls,
-        dynamics=dynamics, _dynamic_gap=lambda: 183.33), {'numerical': {'source_sha256': {}}}
+        dynamics=dynamics, _formation_ref_gap=lambda i=None: 183.33), \
+        {'numerical': {'source_sha256': {}}}
 
 
 def test_preserves_physical_state_and_history():

@@ -188,6 +188,9 @@ class TrainDynamics:
         self.pos = np.zeros(n)      # 每节车参考点位置（米）
         self.vel = np.zeros(n)      # 每节车速度（米/秒）
         self.grade = np.zeros(n)    # 每节车所在坡度
+        # 【ADR-060 曲线附加阻力】每节车所在曲线半径（米；+inf = 直线，无曲线阻力）。
+        # 剖面无曲线表（恒坡等）时恒为 +inf → 曲线阻力恒 0（零回归）。
+        self.curve_radius = np.full(n, np.inf)
         self.time = 0.0
 
         # 能耗追踪（kWh）：累计牵引能量（力×速度×dt 沿机车积分）
@@ -239,6 +242,11 @@ class TrainDynamics:
         # 仅用于"减压量连续"工况（张二田 S5、赵紫宁循环制动、L1 列尾压强），
         # 训练/评估流程不传此参数（向后兼容）。
         self._brake_reduction_override_kpa = None
+        # 【循环制动减压量 2026-11-08，默认 None = 零回归】把**非紧急的循环制动档
+        # （SERVICE）**的减压量从默认 140 kPa 改成给定值（如 70 kPa）。作用面 =
+        # 仅制动力当量（beta_c 查表），不改档位选择、不改 EMERGENCY、不改升压时间。
+        # 依据：长大下坡循环制动文献口径普遍 50–70 kPa，140 kPa 属"常用全制动"。
+        self.service_reduction_kpa = None
         self.brake_rise_time_s = 10.0        # 制动缸升压时间（秒，紧急制动 ~10s）
         # Newmark-β Picard 迭代参数（子步进后每控制步迭代 10×此值，是主要算力开销；
         # 设为可调属性，便于在精度/速度间权衡与实测调优）
@@ -288,9 +296,13 @@ class TrainDynamics:
         self._update_grade_from_profile()
 
     def _update_grade_from_profile(self) -> None:
-        """根据每节车当前位置从坡度剖面查询坡度（无量纲）。"""
+        """根据每节车当前位置从坡度剖面查询坡度（无量纲）。
+
+        【ADR-060】同步按位置刷新每车曲线半径（剖面无曲线表 → 全 +inf 直线）。
+        """
         if getattr(self, '_grade_profile', None) is not None:
             self.grade = self._grade_profile.grades_for_positions(self.pos)
+            self.curve_radius = self._grade_profile.curve_radii_for_positions(self.pos)
 
     def _reset_air_brake_state(self):
         """Start a fresh episode without old notches, waves or release state."""
@@ -548,6 +560,21 @@ class TrainDynamics:
         """坡度阻力（重力沿轨道分量），m*g*grade。"""
         return -self.masses_kg * G * self.grade
 
+    def _curve_resistance_forces(self) -> np.ndarray:
+        """曲线附加阻力（TB/T 1407 系）：w_r = 600/(R−55) N/kN，恒阻碍运行。
+
+        【ADR-060 线路数据全量入模】R = 该车所在曲线半径（米），直线（+inf）
+        无此项；方向与运行方向相反（下坡时为减速项）。返回带符号数组
+        （与 `_resistance_forces` 同型：运行方向为正时返回正值阻力，由
+        net_forces/_state_forces 取负合成）。静止时无阻力（同运行阻力口径）。
+
+        F_i = m_i·g·w_r/1000（N），w_r 无量纲系数 = 600/(R−55) N/kN。
+        """
+        r = self.curve_radius
+        w_r = np.where(r > 55.0, 600.0 / np.maximum(r - 55.0, 1e-9), 0.0)
+        forces = self.masses_kg * G * w_r / 1000.0
+        return np.where(np.abs(self.vel) > 1e-6, forces * np.sign(self.vel), 0.0)
+
     def _tractive_forces(self, throttle: float) -> np.ndarray:
         """机车牵引力。throttle 为全局手柄（0~1）。"""
         n = self.num_vehicles
@@ -577,6 +604,10 @@ class TrainDynamics:
         n = self.num_vehicles
         forces = np.zeros(n)
         override = self._brake_reduction_override_kpa
+        # 【循环制动减压量 2026-11-08】仅对非紧急的循环制动档（SERVICE）改用
+        # self.service_reduction_kpa 当量；None = 保持档位默认 140 kPa（零回归）。
+        # EMERGENCY 一律不参与该覆盖（安全兜底必须一步到位、按全制动 β=1.0）。
+        service_kpa = self.service_reduction_kpa
         # B3 段间衰减乘子（默认 1.0 = 不衰减，向后兼容）
         degrade = (cyclic_braking_degrade(self._brake_segment)
                    if self.enable_cyclic_degrade else 1.0)
@@ -591,7 +622,13 @@ class TrainDynamics:
                 continue
             f = air_brake_force_real(
                 abs(self.vel[i]), self._air_brake_notch[i], v.is_locomotive,
-                reduction_kpa=override,
+                reduction_kpa=(
+                    override if override is not None
+                    else (service_kpa
+                          if service_kpa is not None
+                          and self._air_brake_notch[i] == AirBrakeNotch.SERVICE
+                          else None)
+                ),
             )
             # E7：缓解制动力渐变衰减（真实缓解逐步排风，非瞬间释放），避免掉速
             f *= self._air_brake_release_frac[i]
@@ -635,6 +672,7 @@ class TrainDynamics:
             self._tractive_forces(throttle)
             + self._braking_forces(brake_notch)
             - self._resistance_forces()
+            - self._curve_resistance_forces()
             + self._grade_forces()
             + self._coupler_forces()
         )
@@ -865,7 +903,8 @@ class TrainDynamics:
         x_save, v_save = self.pos, self.vel
         self.pos, self.vel = x, v
         try:
-            f = -self._resistance_forces() + self._grade_forces() + self._coupler_forces()
+            f = -self._resistance_forces() - self._curve_resistance_forces() \
+                + self._grade_forces() + self._coupler_forces()
         finally:
             self.pos, self.vel = x_save, v_save
         return f

@@ -115,6 +115,9 @@ graph TD
 - 【outputs 规范】按产物类型 7 个一级分类（checkpoints/results/figures/logs/sim_validation/smoke/deprecated），运行目录 `语义前缀_时间戳`，禁止脚本往 `outputs/` 根级或任意 cwd 落盘。
 - 【resume】`--resume latest` 走 `ResumePlan`；checkpoint 有协议测试锁定，改保存格式须同步 test_checkpoint_protocol.py。
 - 【并行语义】`n_env` 是进程池并行（轨迹固定映射），不是向量化 env。
+- 【BC 热启动产物】`warm_start_decompose_bc` 落 `<checkpoint_dir>/bc_warmstart.pt`（**完整 agent，含 `value_state_dict`**——`--resume-weights-only` 走 `_restore_checkpoint` 必读它，只存 policy 会 KeyError）+ `bc_warmstart_judge.json`（pass 判据：文件非 0 ∧ 样本 > 0 ∧ loss 有限 ∧ `|mean| < BC_MEAN_ABS_TOL`）。接入方式 `--resume <bc_warmstart.pt> --resume-weights-only`。
+- 【续跑必须关 BC】分段续跑（第 2/3 段起）**必须关掉 BC 采集/训练**，否则会重复采集并覆盖 `bc_warmstart.pt`。
+- 【训练完成判据】训练**不产** `result.json`/`trajectory.npz`/`intervals.json`；判完成 = `run.log` 有 `训练完成` + `train_history_*.csv` 行数 == `--episodes` + `exit_code.txt == 0`（详见 `docs/rules/EXECUTION_RULES.md`）。
 
 ## §7 验证路径
 

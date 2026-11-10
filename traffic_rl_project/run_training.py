@@ -10,9 +10,19 @@
 """
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
+# 【2026-11-08 吞吐治本｜BLAS/OpenMP 线程必须钉成 1，且必须在 import numpy 之前】
+# 事实依据：2026-11-08 实测单进程 0.0632 s/步，4 worker 并发 0.0694 s/步（倍率仅 3.8×）。
+# 根因 = worker 只做了 torch.set_num_threads(1)，numpy 的 BLAS/OpenMP 线程池没钉，
+# 4 进程 × 满核线程池 ⇒ 严重超订。spawn 子进程在 bootstrap 阶段就 import numpy，
+# 而 OpenBLAS/OpenMP 在 import 时读环境变量 ⇒ 只能在父进程 import numpy **之前**设置，
+# 子进程才会继承。放在这里（而不是 train_runner 里）就是为了抢在 numpy import 之前。
+for _v in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS',
+           'NUMEXPR_NUM_THREADS', 'VECLIB_MAXIMUM_THREADS'):
+    os.environ[_v] = '1'
 
 from src.trainer.config_schema import parse_experiment_yaml
 from src.trainer.train_runner import TrainRunner

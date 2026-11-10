@@ -23,7 +23,6 @@ def _make_fleet(num_trains=3, max_steps=30):
         'consist_preset': '10kt_1plus0',
         'grade_profile': 'long_downhill',
         'target_speed': 20.0,
-        'target_gap': 100.0,
         'max_steps': max_steps,
     })
 
@@ -34,7 +33,6 @@ def _make_fleet_decompose(num_trains=3, max_steps=30):
         'consist_preset': '10kt_1plus0',
         'grade_profile': 'long_downhill',
         'target_speed': 20.0,
-        'target_gap': 100.0,
         'max_steps': max_steps,
         'decompose': 'loco_ed_ab',
     })
@@ -49,22 +47,21 @@ def test_fleet_env_agent_count_matches_num_trains():
 
 
 def test_fleet_env_initial_spacing():
-    """编队初始列间间距应等于动态目标间距（VCTS 时间间隔，E4 修正版）。
+    """编队初始列间间距应等于编队参考间距 d_eff（ATP 同源，ADR-061）。
 
-    目标间距 = target_gap + headway_s × 参考速度（固定 target_speed，非本列速度，
-    避免 RL 用速度操纵目标间距的漏洞）。
+    布置阶段用无列参考（fallback：d = v²/(2·1.5) + 2v，v=20 → d_eff≈190.67m），
+    因 d_safe 逐列计算依赖布置后的位置（循环依赖）；step 后逐列 d_eff 变化。
+    （旧 target_gap+headway_s×v=200m 参考线无文献锚，已删除）
     """
     env = _make_fleet(num_trains=3)
-    env.reset()
-    dyn_gap = env.target_gap + env.headway_s * env.target_speed
-    # 列间间距 = 前车尾部 - 本列队首，应等于动态目标间距
+    obs, _ = env.reset()
+    d_layout = env._formation_ref_gap()   # 布置参考（fallback，与逐列 d_eff 不同源但同族）
     for i in range(1, env.num_trains):
         prev_tail = env.trains[i - 1].dynamics.pos[-1]
         gap = prev_tail - env._train_heads[i]
-        assert gap == pytest.approx(dyn_gap, abs=1.0)
-    # 初始 obs 间距误差应为 0（恰好满足动态目标间距）
-    obs, _ = env.reset()
-    assert np.allclose(obs[:, 1], 0.0, atol=1.0)
+        assert gap == pytest.approx(d_layout, abs=1.0)
+        # obs[1] = 真实间距 - 逐列 d_eff（定义一致性）
+        assert obs[i, 1] == pytest.approx(gap - env._formation_ref_gap(i), abs=0.5)
 
 
 def test_fleet_env_step_closed_loop():
@@ -145,9 +142,9 @@ def test_fleet_env_disturbance_leader_slowdown():
     min_gap_seen = float('inf')
     for t in range(300):
         obs, reward, term, trunc, info = env.step(np.zeros(env.num_trains))
-        # 记录所有跟随列的最小间距
+        # 记录所有跟随列的最小间距（真实列间距 = 前列尾 - 本列头，ADR-061 后不再从 obs 反推）
         for i in range(1, env.num_trains):
-            gap = env.target_gap + obs[i, 1]
+            gap = env.trains[i - 1].dynamics.pos[-1] - env._train_heads[i]
             min_gap_seen = min(min_gap_seen, gap)
         if term or trunc:
             break

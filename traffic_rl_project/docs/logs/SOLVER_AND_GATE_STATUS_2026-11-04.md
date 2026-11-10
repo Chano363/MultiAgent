@@ -37,11 +37,12 @@
   2. **充风门**：`ab_min_refill_s = 222 s` 限制 AB 源复用节奏，与 80 km/h 目标速度带不匹配；
   3. **起点条件（非设备故障）**：`init_speed_kmh` 恰等于 `v_max` 时安全层按 `vel >= max_speed - 1e-6` 判 overspeed；跟随车起点位于 km<0（未进 ETCS 覆盖区）触发 `etcs_permitted`。这两类合计造成 329 次"安全事件"，须按起点条件规范消除，不得当成设备/仿真缺陷。
 
-## 4. 训练链路已验证证据（不再重跑）
+## 4. 训练链路已验证证据（部分作废，2026-11-08 核对）
 
-- 2026-10-21 全剖面 BC 冒烟：`outputs/checkpoints/formation_10kt_1plus108/fullprof_20261021/seed0/results/run.log`，1 集 36000 步、3421 s（≈0.095 s/步）、生产默认 Newmark。
+- 2026-10-21 全剖面 **BC 采集段**：`outputs/checkpoints/formation_10kt_1plus108/fullprof_20261021/seed0/results/run.log`，1 集 36000 步、3421 s（≈0.095 s/步）、生产默认 Newmark。
+  - ⚠️ **该板次只作计时证据**：`run.log` 停在 BC 预训练之后（BC loss −2.406），**RL 循环一次都未进入**，目录内无 `.pt`、无训练历史。死因 = `curriculum: 36000:0` 被 YAML 1.1 解析成六十进制整数 2 160 000，`_parse_curriculum` TypeError（2026-11-08 已修复）。详见 `DIAGNOSTICS_2026-11.md` 小节（十三）。
 - 2026-10-23 性能改动（numba 车钩核与缓存，`8e9c7a9`）parity 覆盖：`tests/test_coupler_numba_parity.py`，4 passed（两实现 200 步末态相对误差 < 1e-10）。
-- 结论：**训练链路接口与数值可跑通**，无需重复冒烟；正式训练门槛仍是三列零 RL 全程 `route_completed`。
+- 结论（2026-11-08 修订）：**仅"求解器与 BC 采集链路"可跑通，训练主循环未被验证**；"无需重复冒烟"一句作废，正式训练前须重新冒烟确认 RL 循环能进第 1 集。正式训练门槛仍是三列零 RL 全程 `route_completed`。
 
 ## 5. 当前开训门槛与阻塞项
 

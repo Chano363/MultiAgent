@@ -28,7 +28,7 @@ def test_snapshot_gap_matches_actual_tail_to_head_positions(fleet):
     for i in (1, 2):
         expected = fleet.trains[i - 1].dynamics.pos[-1] - fleet.trains[i].dynamics.pos[0]
         assert context[i]['gap_m'] == pytest.approx(expected)
-        assert context[i]['gap_error_m'] == pytest.approx(expected - fleet._dynamic_gap())
+        assert context[i]['gap_error_m'] == pytest.approx(expected - fleet._formation_ref_gap(i))
         assert expected > 0
     json.dumps(context, allow_nan=False)
 

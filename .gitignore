@@ -31,6 +31,8 @@ tmp_*.bat
 
 # 项目特定
 prompts.md
+# 上云预检放行标记（2026-11-10）：由 preflight_payload.sh 生成、随 rsync 上云，不进仓库
+traffic_rl_project/.preflight_ok
 
 # IDE MCP 配置（可能含 API key，不进仓库）
 .codebuddy/mcp.json

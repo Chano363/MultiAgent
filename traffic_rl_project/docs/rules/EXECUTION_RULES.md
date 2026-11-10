@@ -95,6 +95,30 @@ supersedes: partial（自 PROJECT\_PIPELINE.md 抽出，内容零丢失）
 7. 这两个补强同时成立才可靠：`wscript` 隐藏 + `wsl.exe` 长会话 + 任务立即返回。验证方式仍是 `pgrep -af` + `ps -o etime,pcpu -p`（而不看 `schtasks` 状态）。
 8. **电池供电时任务不会启动**（2026-11-05 第三次踩坑）：`schtasks /create` 默认带"仅交流电启动 / 电池时停止"，笔记本放电时任务停在 `Queued`、`Last Result=0`、无任何子进程——**`Last Result=0` + `Queued` 不等于"已启动"**。处置：`Get-ScheduledTask <名>` → 置 `DisallowStartIfOnBatteries=$false`、`StopIfGoingOnBatteries=$false` → `Start-ScheduledTask`，再按第 5 条判活。
 
+### 训练入口的"完成"判据 ≠ 三件套（2026-11-10 强制，纠错）
+
+第 3 条的三件套只适用于**评估/诊断入口**。**训练入口（`run_training.py` / `train_fleet` / `train_cyclic_braking`）从不产出 `result.json` / `trajectory.npz` / `intervals.json`**，用三件套判训练会把跑满的运行误标 `ABORTED`。
+
+- **训练完成判据（三者同时满足）**：`run.log` 出现 `训练完成` 行 **且** `train_history_*.csv` 行数 == `--episodes` **且** `exit_code.txt == 0`。
+- **只有上述三者不齐**才写 `ABORTED_BY_INTERRUPTION.txt`。
+- **误标处置**：已误标的目录不得删；在原标记文件内写勘误并把文件名改为 `COMPLETED_<n>of<N>_ABORTED_WITHDRAWN.txt`，使其不再被"ABORTED ⇒ 不可引用"规则误伤。
+- **事实依据**：`trial40_v7_20261109_010809` 40/40 跑满、`exit_code=0`、看护记 `FINISHED`，却被 launcher 用缺失的 `result.json` 误标 `ABORTED`（2026-11-09 已勘误、2026-11-10 改名收口）。判据全文另见 `docs/logs/decisions/DECISIONS.md` ADR-059 补充块。
+
+### explorer→VBS 无窗口启动（2026-11-09 实测通过，免管理员）
+
+第 5–7 条依赖 Windows 计划任务；若**拿不到管理员权限**（S4U 建任务报 `ERROR: Access is denied.`）或**禁止任何桌面窗口**，用这条：
+
+```text
+explorer.exe "<绝对路径>\launch.vbs"
+# launch.vbs: WScript.Shell.Run "wsl.exe -d <distro> -- bash -lc ""bash <脚本>""", 0, False
+```
+
+- 父进程变为 `explorer.exe`，**不在 IDE 进程树内**；实测挂满 5 min 未被回收，桌面**零窗口**（`0` = 隐藏，第三个参数 `False` = 不等待）。
+- `wsl.exe` 自身充当第 6 条要求的常驻会话；WSL 侧仍用 `setsid nohup ... &` 起任务。
+- **判活仍不看退出码**：WSL 侧每 60 s 原子写 `heartbeat.txt`（含 phase / ep / elapsed），看护脚本监控 pid——进程消失且无 `exit_code.txt` ⇒ 写 `DEAD_<stamp>.txt`（含最后心跳），启动 60 s 内无 `pid.txt` ⇒ 写 `STARTUP_FAIL`。
+- **不可用路径（实测排除）**：`schtasks` S4U/服务账户建任务无提权 ⇒ `Access is denied`；`setsid`/`nohup` 单独用无效（见第 6 条）。
+
+
 ## 诊断通道最小集（2026-11-05 强制）
 
 > **背景**：多次归因（C4 单改、峰值车钩力分解）都要"回头翻归档"，若归档只有峰值与事件计数，就无法事后拆解，只能重跑或拿代理指标猜。

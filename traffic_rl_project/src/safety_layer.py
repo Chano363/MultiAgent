@@ -70,9 +70,14 @@ class SafetyLayer:
         coupler_veto_ratio: float = 0.6,
         coupler_veto_margin: float = 0.9,
         coupler_veto_lag_s: float = 90.0,
+        speed_limit_lookup=None,
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
+        # 【ADR-060 限速逐段联动】分段限速查询（位置 m → km/h 或 None），可选。
+        # None（恒坡等无表剖面）→ 规则 C 恒用 max_speed_mps（零回归）；
+        # 有表 → 规则 C 线速门 = min(max_speed_mps, lookup(head_position)/3.6)。
+        self.speed_limit_lookup = speed_limit_lookup
         self.coupler_force_limit_n = coupler_force_limit_n
         self.min_gap_m = min_gap_m
         # 【2026-09-30 治本-根因②】AB "减权限" 所需物理量：
@@ -304,9 +309,19 @@ class SafetyLayer:
         # 原实现把>=0的动作钳为0（缓解），在长大下坡上缓解无法对抗重力→列车持续
         # 加速超速（实测-11.3‰坡上飙到117km/h）。实测 MIN 制动(-0.3)仍不足以对抗
         # -11.3‰坡（平衡速度>80），故用 full service 制动力 -0.75（接近 ATP 常用制动）。
+        # 【ADR-060 限速逐段联动】有分段限速表时按**头车位置**联动线速门
+        # （min(常数限速, 查表限速)；保守口径 = 整列车不得超头车所在区段限速）；
+        # 无表/查表 None → 恒用 max_speed_mps（零回归）。
         if True:
+            v_line_mps = self.max_speed_mps
+            if self.speed_limit_lookup is not None:
+                hp = obs_state.get('head_position_m', None)
+                if hp is not None:
+                    lv = self.speed_limit_lookup(float(hp))
+                    if lv is not None:
+                        v_line_mps = min(v_line_mps, lv / 3.6)
             for i in range(self.num_vehicles):
-                if vel[i] >= self.max_speed_mps - 1e-6:
+                if vel[i] >= v_line_mps - 1e-6:
                     self._log(i, 'overspeed', f'v={vel[i]:.2f}')
                     actions[i] = min(actions[i], FULL_SERVICE_BRAKE)
 

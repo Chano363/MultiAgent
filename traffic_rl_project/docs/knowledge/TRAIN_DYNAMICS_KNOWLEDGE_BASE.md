@@ -88,7 +88,7 @@ graph TD
 | v_min_mps | 40/3.6 | 最小缓解速度 | 安全层判断依据 |
 | dt | 0.1 | 积分步长 | 改动破坏与历史结果可比性 |
 | target_speed_mps | 20.0 | 巡航参考速度（限速带中值） | 编队速度带中心 |
-| target_gap_m | 100.0 | 目标列距 | 编队间距项 |
+| target_gap_m | 已删除（ADR-061） | 原 100 m 目标列距参考线无外部文献锚，2026-11-09 整体删除；编队间距统一 `_formation_ref_gap = 1.1×d_safe`（ATP 同源，与奖励 gap_eff 同口径；初始净空 885 m 对照包神实测 943–1091 m） | 勿再引用固定米数口径 |
 | consist_preset | '10kt_1plus0' | 论文编组 | 多列 1+1 时在此改 |
 | grade_profile | 'shuozhou_ningwuxi_beidaniu_49km' | 主训练剖面 | history 'shuozhou_23800' 仅 Zhang2024 复现 |
 | coupler_force_limit_n | 1.0e6 | 1000 kN 底线 | 不可逾越（主轴铁律） |

@@ -34,6 +34,10 @@ def test_bc_initial_speed_matches_config(tmp_path, monkeypatch, explicit_speed, 
         return original(agent, env, max_steps=2, **kwargs)
 
     monkeypatch.setattr(fleet_spec, 'warm_start_decompose_bc', short_native_bc)
+    # 【2026-11-08】本测试只验证"初速是否按配置传进 BC"，用的是 2 步 × 1 epoch 的
+    # 极简采集，均值必然达不到正式判据（BC_MEAN_ABS_TOL=0.02）⇒ 放宽该阈值，
+    # 不改变被测行为（初速捕获 + 训练链路跑通）。
+    monkeypatch.setattr(fleet_spec, 'BC_MEAN_ABS_TOL', 1.0)
     cfg = ExperimentConfig(
         env_cfg=env_cfg, episodes=1, curriculum='2:0', init_speed_kmh=65,
         warm_start=True, bc_episodes=1, bc_epochs=1, yolo_logging=False,

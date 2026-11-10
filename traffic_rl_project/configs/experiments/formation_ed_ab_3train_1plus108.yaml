@@ -30,16 +30,43 @@ env_cfg:
   grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 【主训练】朔黄线宁武西→北大牛真实纵断面 49.6km（50 实测坡段，统一线路表）；23.8km 仅作历史复现
   v_max: 22.22222222222222     # 准确80 km/h；达到上限仍按安全规则制动
   v_min: 11.111                # 40 km/h（编队目标速度带）
-  target_gap: 100.0            # 安全列距目标
-  max_steps: 36000             # env 截断上限 / 评估口径 =3600s，49.6km 全程（avg≥~13.8m/s 跑满 49.6km）。
-                               # 2026-10-21 起**训练时域 = 本值**（curriculum 36000:0），不再用 1200 步短窗。
+  # 【ADR-061】target_gap=100m 参考线已删除：无外部文献锚（"拍脑袋"默认值）。
+  # 列间距语义统一收敛到 d_safe 体系（d_eff = 1.1×d_safe，ATP 同源，奖励与诊断同口径）。
+  # 文献锚：Shift2Rail TD2.8 VC 制动距离范式（Muniandi 2020, DOI 10.1049/iet-its.2019.0694）、
+  # Wu 2024（ASME JDSMC 146(4):041008）、包神 3.5 万吨实测 943-1091m @ 60km/h。
+  # 【2026-11-08 截断口径｜为何不是 36 000】头车到达剖面**真实末端** (route_end_m) 即截断；
+  # max_steps 只作**时间上限**（策略过慢时的兜底）。
+  #   旧口径 36000 步 = 3600 s：基线归档实测 31 419 步已跑到 53 650.2 m，而源表总长只有
+  #   49 600 m（最后一段起点 48 561.4 m）⇒ 越界 4 050.2 m，且越界后 `GradeProfile.grade_at`
+  #   静默沿用末段 −1.5‰ ⇒ **坡度外推 = 虚构路况**，旧口径下约 20% 集步落在无真实坡度段上。
+  #   改后：正常策略约 28 800 步（即 2 880 s）到 49 600 m 自动结束；31500 留 ≈9% 余量，
+  #   避免慢策略被提前砍断。评估口径同步（long_eval_steps）。
+  max_steps: 31500
+  route_end_m: 49600           # 剖面真实末端（源表 49.6 km；最后一段起点 48 561.4 m 处的
+                               # -1.5‰ 只覆盖到 49 600 m，再往后是外推）
   max_accel: 1.0
   use_coupler_constraint: true
   coupler_force_limit_n: 1000000.0  # 当前研究统一验收指标1000kN（ADR-040）
+  # 【v7 奖励 2026-11-08】领航列速度项改"跟踪规则基线参考速度"（单峰有界二次，
+  # r = 5·(1 − min(((v−v_ref)/5km/h)², 4))，值域 [−15, +5]）。替代 v6 的 flat 平顶
+  # （40–80 km/h 内恒 +5、无速度梯度 ⇒ 白拿分）。参考速度表由
+  # scripts/gen_ref_speed_table.py 从基线全程归档派生（只读归档、零仿真）。
+  speed_band_shape: ref
+  # 【2026-11-10 判据③通道】逐集落盘 9 项奖励分量累计值 → train_reward_terms_{tag}.csv。
+  # 只读统计、不参与控制（env 侧 accumulate 一次 dict 加法）；默认 false = 零回归，
+  # 但阶段门/规模训练的判据③必须靠它按 20 集窗口算"车钩峰值项占比"，故主配置显式开。
+  reward_term_log: true
+  # 【2026-11-08 修订】参考表改**线路绝对里程**口径（表首 4 291.9 m = 基线归档起点、
+  # 表末 53 650.2 m = 基线归档终点）。查表按领航列车头位置插值，与编队起点摆放无关。
+  # 表末超出 route_end_m 的部分（49 600–53 650.2 m）不会被查到（到末端即截断）——
+  # 保留它们只为忠实保留归档原貌，不构成"继续在虚构段跑"的训练依据。
+  # 旧归档 refspeed_baseline_20261108_203904 是"归零"口径，已作废（不得再用）。
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261108_205652/ref_speed_table.npz
+  speed_over_w: 10.0            # 显式写出（ref 形态默认即 10.0）：越线 1 km/h 罚 10 > 跟踪满分 5
   # ATP/ETCS 真 ATP 为永久启用的安全底线，无 enable_etcs 开关（恒启）。历史 false 开关已移除。
   hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
   decompose: loco_ed_ab        # 机车级 ED/AB 分工：每机车行为 [ed_mod, ab_mod]∈[-1,1]²
-  ab_min_refill_s: 222.0       # 【ADR-021 方向 A，Zhang2024】新增 AB 源前的最小充风时间（s）：
+  ab_min_refill_s: 214.363      # v9 warm-start：GA 12×12 gen=6 best 2026-11-10；原 222.0
                                # 出处 = VALIDATION_BASELINE.md 张二田 S6 最短充风 222 s（范围 175~512 s）
   ab_min_hold_s: 0.0           # 【方向 A】已建立 AB 源的最小保持时间（s）：**已结案 = 无出处、不激活**（默认 0.0）。
                                # 2026-10-01 检索：Zhang2024 运行约束仅三条（无此项）；《铁路机车操作规则》
@@ -57,21 +84,31 @@ env_cfg:
   coupler_force_limit_emergency_n: 2250000.0  # 仅安全层紧急保护门限，**不是验收口径**
                                               # （验收统一 1000 kN，ADR-040；紧急保护 ≠ 验收）
   cyclic_notch_50: true
-  cyclic_brake_trigger_kmh: 65.0
-  cyclic_release_kmh: 50.0
+  service_reduction_kpa: 81.734      # v9 warm-start：GA 12×12 best 2026-11-10；控制器原默认 70.0
+  ab_staged_apply: true              # 显式锚定 staged 模式（GA 搜索前提；控制器默认 true 已生效）
+  ab_staged_gap_s: 8.704             # v9 warm-start：GA best 2026-11-10；控制器原默认 3.0
+  cyclic_brake_trigger_kmh: 62.665   # v9 warm-start：GA 12×12 best 2026-11-10；原 65.0
+  cyclic_release_kmh: 60.0           # v9 warm-start：GA best 上界；原 50.0
   ed_release_coordination: true
-  ed_release_hold_s: 50.0
-  ed_release_boost_kn: 900.0
-  cyclic_ab_upgrade_kmh: 76.0
-  ed_upgrade_ramp_s: 6.0
-  ed_upgrade_ramp_scale: 0.7
+  ed_release_hold_s: 21.408           # v9 warm-start：GA best 2026-11-10；原 50.0
+  ed_release_boost_kn: 220.218        # v9 warm-start：GA best 发现松闸 boost 应保守；原 900.0
+  cyclic_ab_upgrade_kmh: 75.397      # v9 warm-start：GA best 2026-11-10；原 76.0
+  ed_upgrade_ramp_s: 0.0             # v9 warm-start：GA best 瞬时升压；原 6.0
+  ed_upgrade_ramp_scale: 1.0         # v9 warm-start：GA best 满权重；原 0.7
   ed_grade_feedforward: true
   coupler_override: min_brake
   eot: true
-  # 【2026-10-21 关闭】训练改为全剖面后，每集本来就从 km0 跑满 49.6km，起点随机化不再有意义
-  # （它的原目的是让 ≤1200 步短窗在分布上覆盖全路，见 L2 A/B 结论）。
+  # 【2026-11-08 队尾负里程修复（必修）】旧值 `enabled: false` ⇒ 编队从 0 起步，
+  # 3 列 ×1.23 km + 2 段净空 ≈ 4 255 m 的编队队尾落在 **−4 254.7 m**；
+  # `GradeProfile.grade_at` 对越界位置静默沿用首段坡度 ⇒ 后两列跑**虚构路况**。
+  # 修法 = 用固定起点把整列编队推进真实剖面内（min_m=max_m=4300 ⇒ 队尾 ≈ 45 m）。
+  # 4300 与基线归档起点 4 291.9 m 同段（−10.2‰），参考表首点即该处 ⇒ 初速 70 km/h
+  # 与 v_ref(4300)=69.2 km/h 相差 0.8 km/h（在 5 km/h 带宽内）。
+  # `enabled: true` 同时让评估态走同一固定起点（见 train_fleet_env._reset_once）。
   start_randomization:
-    enabled: false
+    enabled: true
+    min_m: 4300
+    max_m: 4300
 
 obs: env                       # 逐机车 11 维观测（含编队上下文 obs[10]=列间间距误差）
 action: continuous
@@ -81,10 +118,17 @@ reward: env_default            # decompose 模式奖励口径 = _calculate_rewar
 num_trains: 3
 decision_interval: 10          # 半MDP 决策间隔（动作保持，剪短信用链）
 episodes: 1400                 # 【ADR-017 §4 硬要求：总训练量达标】用户 2026-10-21 明确：必须 1400 集，不接受减量。
-                               # 单集 36000 步（全剖面）× 实测 0.25 s/步 ≈ 2.5 h ⇒ 单机 1400 集 ≈ 146 天，
-                               # 本地单机无法跑完，只能靠多机/多卡分摊或延长挂机时间；本值不得擅自下调。
-curriculum: 36000:0            # 【2026-10-21】全剖面训练：全程 3600 s，不再用 500/1000/1200 步爬坡。
+                               # 【2026-11-08 实测更正】旧注释"0.25 s/步 ≈2.5 h/集、1400 集 ≈146 天"作废：
+                               # 实测 3000 步单集 84.8 s ⇒ ≈0.028 s/步（含 reset/日志开销）。
+                               # 截断到 route_end_m 后单集 ≈28 800 步 ≈13.4 min，n_env=4 并行 ⇒ ≈3.4 min/集；
+                               # 1400 集 ≈ 79 h（≈3.3 天）本地可跑。规模仍以本值为准，不改。
+curriculum: "31500:0"          # 【2026-11-08】随 max_steps 同步：单阶段上限 31500 步（≈3 150 s）。
+                               # 【2026-10-21】全剖面训练：不再用 500/1000/1200 步爬坡。
+                               # 【2026-11-08 修复】单阶段必须加引号：裸写在 YAML 1.1 里会被
+                               # 解析成六十进制整数（`36000:0` → 2 160 000），`_parse_curriculum` 的
+                               # `':' in curriculum` 随即 TypeError。多阶段写法带逗号不受影响。
                                # 旧 1200 步窗口会把工况截断（起步瞬态峰值 1009 kN 与全剖面 ≈600 kN 不是同一回事）。
+                               # ⚠️ 事件截断由 env 的 route_end_m 负责，curriculum 只是时间上限。
 n_env: 4                       # 【ADR-017 配套 + 诊断-2026-09-10】并行 rollout ≥4 条独立短轨迹：advantage 信噪比 ×n_env，
                                # 且 value 不被单条长轨迹绑架。
 n_env_parallel: true           # 【2026-10-21 用户裁定：并行默认打开】schema 默认已改 True，此处显式写出便于 metadata 追溯。
@@ -92,19 +136,43 @@ n_env_parallel: true           # 【2026-10-21 用户裁定：并行默认打开
 parallel_traj_len: 0           # 0 = 沿用 curriculum horizon
 warm_start: true               # 【必须采用】先用规则基线做行为克隆（BC）热启动，再 RL 微调 → 保安全探索
 bc_episodes: 1                 # 【2026-10-21】全剖面口径：1 集足够采满全程（旧 3 集是短窗口径）
-bc_epochs: 30                  # 与已验证配方一致（schema 默认 5 偏弱；30 为诊断验证值）
-bc_max_steps: 36000            # 【2026-10-21 新增可配置】BC 采集步数上限 = 全剖面；旧实现硬编码 1500 步
-                               # （≈1/24 剖面，只覆盖起步段）。⚠️ 1 集 36000 步 ≈ 1.9 h。
-long_eval_interval: 0          # 【2026-10-21 关闭】训练时域已 = 评估时域（都是 36000 步全剖面），
-                               # 再跑独立 long_eval 只是把同一剖面重算一遍（每次 ≈55 min×28 次）。
+bc_epochs: 3000                # 【2026-11-10 修订】BC 目标是确定性动作（全零调制），全批训练时
+                               # 1 epoch = 1 次参数更新。历史实测：30/200 epochs → |mean| 0.046/0.052
+                               # （不通过）。2026-11-08 曾记「400 epochs → |mean| 0.0027、std 0.1003、
+                               # pass」，但那是 BC_LOG_STD_TARGET=-2.3（std≈0.10）时代的数据；
+                               # 该常数后来改为 -3.0（std≈0.05），mean 与 log_std 共用主干，
+                               # std 整形梯度变大抢走均值收敛步数 ⇒ 2026-11-10 用 GA knob 口径
+                               # 实测 400 epochs 只有 |mean| 0.0299、std 0.0504，判据 FAIL。
+                               # 改 3000 epochs 后实测 |mean| 0.0010、std 0.0498、loss 0.00000、PASS。
+                               # 损失 = MSE(mean→0)+标准差整形，见
+                               # src/trainer/specs/fleet_spec.py::warm_start_decompose_bc
+bc_max_steps: 31500            # 【2026-11-08】随 max_steps 同步（31500）；实际采集到 route_end_m 即停，
+                               # 正常 ≈28 800 步。⚠️ 实测 ≈0.047 s/步（单进程采集）⇒ 1 集 ≈22 min。
+long_eval_interval: 0          # 【2026-10-21 关闭】训练时域已 = 评估时域（都跑到 route_end_m），
+                               # 再跑独立 long_eval 只是把同一剖面重算一遍（每次 ≈45 min×28 次）。
                                # 若将来训练时域再缩短，必须恢复本值（ADR-017 选优机制）。
-long_eval_steps: 36000         # 保留：供评估/选优脚本使用
-init_speed_kmh: 80.0
+long_eval_steps: 31500         # 【2026-11-08】36000 → 31500，与 max_steps 同步；保留供评估/选优脚本使用
+init_speed_kmh: 60.0            # 【2026-11-10】70.0 → 60.0：与起点列间距自洽（见下）
+                                # 初始净空 = d_eff = 1.1 × _fallback_d_safe()，后者按 **target_speed**
+                                # （= (v_min+v_max)/2 = 60 km/h）算得 138.5 m；若起步 70 km/h，
+                                # 同一公式需 181.4 m ⇒ 起步即欠 43 m 裕量，后列 ATP 立刻满制动。
+                                # 实测（60 s 短窗，起点 4300 m / d_eff）：70 km/h → 1288.9 kN 且与
+                                # cyclic_brake_trigger_kmh（62.665/65/74 三档）**逐位相同**（= ATP 介入，
+                                # 非循环制动触发）；60–62 km/h → 909.1 kN，回到 1000 kN 以内。
+                                # 旧 70 的注释"与基线归档起步条件对齐"已作废：那批归档用的是
+                                # 753.5 m 宽间距（队尾 −1105 m），与训练不同源，见
+                                # DIAGNOSTICS_2026-11「小节-2026-11-10（六）」。
+                                # 副作用：v7 参考速度表首点仍为 69.22 km/h，起步(-9.2 km/h)会吃速度项，
+                                # 参考表须按本口径重生成（待办）。
 simcase: official
 ckpt_policy: fleet
 log_interval: 1                # 【2026-10-21 静默治理】每集都落一行（全剖面 2.5h/集，若按 10 集会 25h 才见一行）
 
 dirs:
-  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/fullprof_20261021/seed0
-  results_dir: outputs/checkpoints/formation_10kt_1plus108/fullprof_20261021/seed0/results
-  figures_dir: outputs/checkpoints/formation_10kt_1plus108/fullprof_20261021/seed0/figures
+  # 【2026-11-08】旧值 `fullprof_20261021/seed0` 已作废（该轮死于 `curriculum` 六十进制解析缺陷，
+  # 无 .pt、无训练历史，已按 ABORTED 纪律原样保留，不得写回）。奖励 schema 升到 v7
+  # （ref 参考速度跟踪）后旧 ckpt 一律不可复用，故起用与新 schema 同名的目录。
+  # 正式训练前仍须按 EXECUTION_RULES 改成 `语义前缀_时间戳`。
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/fullprof_v7_refspeed/seed0
+  results_dir: outputs/checkpoints/formation_10kt_1plus108/fullprof_v7_refspeed/seed0/results
+  figures_dir: outputs/checkpoints/formation_10kt_1plus108/fullprof_v7_refspeed/seed0/figures

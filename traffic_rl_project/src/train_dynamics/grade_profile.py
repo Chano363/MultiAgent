@@ -12,7 +12,7 @@
 
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 import numpy as np
 
 
@@ -24,13 +24,31 @@ class GradeSegment:
 
 
 @dataclass
+class CurveSegment:
+    """一段曲线：[start_m, end_m) 内曲线半径 radius_m（米）。
+
+    【ADR-060 线路数据全量入模】来源 = 统一线路表曲线行（曲线起点/终点/半径）。
+    """
+    start_m: float
+    end_m: float
+    radius_m: float
+
+
+@dataclass
 class GradeProfile:
     """线路坡度剖面（分段线性）。
 
     Attributes:
         segments: 按起点位置升序排列的坡段列表
+        limit_segments: 分段限速表（可选，None = 无表 → limit_at 返回 None，
+            恒坡等其它剖面零回归）
+        curve_segments: 曲线分段表（可选，None = 无表 → curve_radius_at 返回
+            None，即全线直线）
     """
     segments: List[GradeSegment] = field(default_factory=list)
+    # SpeedLimitSegment 定义在本文件后部（限速表常量区），用字符串注解延迟求值。
+    limit_segments: Optional[List["SpeedLimitSegment"]] = None
+    curve_segments: Optional[List["CurveSegment"]] = None
 
     def grade_at(self, position_m: float) -> float:
         """查询位置 position_m 处的坡度（无量纲，= ‰ / 1000）。"""
@@ -67,6 +85,72 @@ class GradeProfile:
         idx = np.searchsorted(starts, pos, side='right') - 1
         np.clip(idx, 0, len(starts) - 1, out=idx)
         return grades[idx]
+
+    # ------------------------------------------------------------------
+    # 【ADR-060 线路数据全量入模】分段限速 / 曲线半径查询接口。
+    # 约定：无表（limit_segments / curve_segments 为 None）时返回 None，
+    # 调用方（env / 安全层 / 控制器 / 动力学）一律回退常数限速或直线（零回归）。
+    # ------------------------------------------------------------------
+
+    def limit_at(self, position_m: float) -> Optional[float]:
+        """查询 position_m 处的线路限速（km/h）。
+
+        无限速表 → None（调用方回退常数限速）；有表时取「最后一个
+        start_m <= position」的段（与 grade_at 同语义），首段之前沿用首段。
+        """
+        if not self.limit_segments:
+            return None
+        limit = self.limit_segments[0].limit_kmh
+        for seg in self.limit_segments:
+            if position_m >= seg.start_m:
+                limit = seg.limit_kmh
+            else:
+                break
+        return float(limit)
+
+    @cached_property
+    def _curve_arrays(self) -> Optional[Tuple[np.ndarray, np.ndarray, np.ndarray]]:
+        """曲线段 (起点, 终点, 半径) 数组；无表时 None。构造后不变 → 缓存。"""
+        if not self.curve_segments:
+            return None
+        starts = np.array([seg.start_m for seg in self.curve_segments], dtype=float)
+        ends = np.array([seg.end_m for seg in self.curve_segments], dtype=float)
+        radii = np.array([seg.radius_m for seg in self.curve_segments], dtype=float)
+        return starts, ends, radii
+
+    def curve_radius_at(self, position_m: float) -> Optional[float]:
+        """查询 position_m 处的曲线半径（米）；直线/无表 → None。
+
+        取「最后一个 start_m <= position」的候选段，且 position 落在
+        [start, end) 内才算曲线（源表曲线段存在少量过渡交叠，此语义下
+        交叠区取更晚起始段，与逐段扫描一致）。
+        """
+        arrays = self._curve_arrays
+        if arrays is None:
+            return None
+        starts, ends, radii = arrays
+        idx = int(np.searchsorted(starts, position_m, side='right')) - 1
+        if idx < 0 or position_m >= ends[idx]:
+            return None
+        return float(radii[idx])
+
+    def curve_radii_for_positions(self, positions: np.ndarray) -> np.ndarray:
+        """批量查询多节车位置的曲线半径（米；直线处 = +inf）。
+
+        与 `curve_radius_at` 逐点一致（searchsorted right − 1 + 终点检查），
+        供动力学每步按每车位置向量化查询曲线附加阻力。
+        """
+        arrays = self._curve_arrays
+        pos = np.asarray(positions, dtype=float)
+        if arrays is None:
+            return np.full(pos.shape, np.inf)
+        starts, ends, radii = arrays
+        idx = np.searchsorted(starts, pos, side='right') - 1
+        valid = idx >= 0
+        idx_clipped = np.clip(idx, 0, len(starts) - 1)
+        in_seg = valid & (pos < ends[idx_clipped])
+        r = np.where(in_seg, radii[idx_clipped], np.inf)
+        return r
 
 
 # ---------------------------------------------------------------------------
@@ -240,6 +324,58 @@ SHUOZHOU_REAL_SPEED_LIMIT = SpeedLimitProfile(segments=[
 ])
 
 
+# ---------------------------------------------------------------------------
+# 【ADR-060 线路数据全量入模】shuozhou_ningwuxi_beidaniu_49km 的分段限速与
+# 曲线半径常量表（与坡度段同源：统一线路表，K15.9–65.5，0.1km 粒度）。
+# 里程口径 = 相对里程 m（= (公里标 − 15.9) × 1000），与坡度段重基一致。
+# 限速段边界取相邻 0.1km 行中点（行中心粒度的自然分界）；曲线段直接取
+# 表中 曲线起点/终点/半径（0.1km 行重复行已去重，共 32 处，最小 R=400）。
+# 提取口径由 tests/test_grade_profile.py 从 xlsx 重新读取比对把关。
+
+SHUOZHOU_49KM_LIMIT_SEGMENTS = [
+    # (start_m, limit_kmh)   km 范围
+    SpeedLimitSegment(0.0, 70.0),        # K15.9–20.15  70 km/h
+    SpeedLimitSegment(4250.0, 75.0),     # K20.15–39.85 75 km/h
+    SpeedLimitSegment(23950.0, 70.0),    # K39.85–41.35 70 km/h
+    SpeedLimitSegment(25450.0, 75.0),    # K41.35–65.5+ 75 km/h
+]
+
+SHUOZHOU_49KM_CURVE_SEGMENTS = [
+    CurveSegment(980.0, 1949.0, 400.0),      # K16.880–17.849
+    CurveSegment(2050.0, 2404.0, 400.0),     # K17.950–18.304
+    CurveSegment(2430.0, 2772.0, 400.0),     # K18.330–18.672
+    CurveSegment(3350.0, 3860.0, 800.0),     # K19.250–19.760
+    CurveSegment(16620.0, 17179.0, 500.0),   # K32.520–33.079
+    CurveSegment(17590.0, 17983.0, 500.0),   # K33.490–33.883
+    CurveSegment(18920.0, 19785.0, 600.0),   # K34.820–35.685
+    CurveSegment(21230.0, 22428.0, 1000.0),  # K37.130–38.328
+    CurveSegment(22600.0, 24573.0, 500.0),   # K38.500–40.473
+    CurveSegment(25000.0, 25161.0, 800.0),   # K40.900–41.061
+    CurveSegment(27100.0, 27311.0, 500.0),   # K43.000–43.211
+    CurveSegment(27700.0, 28353.0, 600.0),   # K43.600–44.253
+    CurveSegment(28150.0, 28527.0, 1500.0),  # K44.050–44.427（与前段过渡交叠）
+    CurveSegment(28700.0, 29451.0, 800.0),   # K44.600–45.351
+    CurveSegment(32700.0, 33319.0, 500.0),   # K48.600–49.219
+    CurveSegment(33300.0, 33925.0, 500.0),   # K49.200–49.825
+    CurveSegment(34650.0, 35138.0, 600.0),   # K50.550–51.038
+    CurveSegment(35500.0, 36274.0, 1000.0),  # K51.400–52.174
+    CurveSegment(36500.0, 37087.0, 500.0),   # K52.400–52.987
+    CurveSegment(37900.0, 38266.0, 500.0),   # K53.800–54.166
+    CurveSegment(38450.0, 39119.0, 500.0),   # K54.350–55.019
+    CurveSegment(39350.0, 40200.0, 500.0),   # K55.250–56.100
+    CurveSegment(40150.0, 40386.0, 2000.0),  # K56.050–56.286（与前段过渡交叠）
+    CurveSegment(41400.0, 42152.0, 500.0),   # K57.300–58.052
+    CurveSegment(42450.0, 42793.0, 500.0),   # K58.350–58.693
+    CurveSegment(43320.0, 44814.0, 500.0),   # K59.220–60.714
+    CurveSegment(44800.0, 45251.0, 1000.0),  # K60.700–61.151（与前段过渡交叠）
+    CurveSegment(45500.0, 46229.0, 500.0),   # K61.400–62.129
+    CurveSegment(46300.0, 46883.0, 500.0),   # K62.200–62.783
+    CurveSegment(47460.0, 48492.0, 500.0),   # K63.360–64.392
+    CurveSegment(48420.0, 48708.0, 500.0),   # K64.320–64.608（与前段过渡交叠）
+    CurveSegment(48980.0, 49516.0, 1000.0),  # K64.880–65.416
+]
+
+
 def profile_shuozhou_ningwuxi_beidaniu_49km() -> GradeProfile:
     """朔黄线宁武西→北大牛真实长大下坡纵断面（49.6km，**真实线路数据**）。
 
@@ -252,59 +388,67 @@ def profile_shuozhou_ningwuxi_beidaniu_49km() -> GradeProfile:
 
     用途：主训练真实线路剖面（长坡多段变坡下循环制动 / 车钩力守 1000kN）。
     坡度 sign：负值=下坡（与全局一致）。总长 49600m（0–49.6km，重基到 0）。
+
+    【ADR-060】本剖面附带同源分段限速表（70/75 km/h 交替 4 段）与曲线半径表
+    （32 处，R=400~2000m），供限速逐段联动（env/安全层/循环制动触发）与曲线
+    附加阻力 w_r=600/(R−55) N/kN 入模；其它剖面无表 → 联动自动关闭（零回归）。
     """
-    return GradeProfile(segments=[
-        GradeSegment(0.000, -1.5),
-        GradeSegment(544.500, -5.0),
-        GradeSegment(1044.500, -1.3),
-        GradeSegment(1594.500, -9.0),
-        GradeSegment(2124.500, -10.0),
-        GradeSegment(2629.500, -6.2),
-        GradeSegment(3544.500, -10.2),
-        GradeSegment(9944.600, -10.2),
-        GradeSegment(16344.700, -10.8),
-        GradeSegment(16894.700, -12.0),
-        GradeSegment(17394.700, -10.7),
-        GradeSegment(17694.700, -12.0),
-        GradeSegment(18694.700, -9.6),
-        GradeSegment(19444.700, -10.8),
-        GradeSegment(20794.700, -11.3),
-        GradeSegment(21444.700, -10.1),
-        GradeSegment(21994.700, -10.8),
-        GradeSegment(22244.700, -9.4),
-        GradeSegment(24313.500, -11.3),
-        GradeSegment(24513.500, -8.9),
-        GradeSegment(25013.500, -1.5),
-        GradeSegment(26683.500, -8.0),
-        GradeSegment(27103.500, -10.9),
-        GradeSegment(27729.680, -11.2),
-        GradeSegment(28479.680, -10.8),
-        GradeSegment(31879.680, -9.0),
-        GradeSegment(32429.680, -10.9),
-        GradeSegment(33505.930, -12.0),
-        GradeSegment(34255.930, -10.6),
-        GradeSegment(34605.930, -11.0),
-        GradeSegment(34805.930, -11.4),
-        GradeSegment(35155.930, -11.2),
-        GradeSegment(36005.930, -11.0),
-        GradeSegment(36755.930, -12.0),
-        GradeSegment(37605.930, -11.0),
-        GradeSegment(38105.930, -10.5),
-        GradeSegment(39755.930, -11.5),
-        GradeSegment(40305.930, -12.0),
-        GradeSegment(41105.930, -11.0),
-        GradeSegment(42005.930, -10.0),
-        GradeSegment(43255.930, -10.5),
-        GradeSegment(44305.930, -11.5),
-        GradeSegment(44805.930, -12.0),
-        GradeSegment(45186.020, -10.6),
-        GradeSegment(46536.020, -12.0),
-        GradeSegment(46938.690, -10.5),
-        GradeSegment(47938.690, -8.3),
-        GradeSegment(48161.360, -6.5),
-        GradeSegment(48361.360, -2.5),
-        GradeSegment(48561.360, -1.5),
-    ])
+    return GradeProfile(
+        segments=[
+            GradeSegment(0.000, -1.5),
+            GradeSegment(544.500, -5.0),
+            GradeSegment(1044.500, -1.3),
+            GradeSegment(1594.500, -9.0),
+            GradeSegment(2124.500, -10.0),
+            GradeSegment(2629.500, -6.2),
+            GradeSegment(3544.500, -10.2),
+            GradeSegment(9944.600, -10.2),
+            GradeSegment(16344.700, -10.8),
+            GradeSegment(16894.700, -12.0),
+            GradeSegment(17394.700, -10.7),
+            GradeSegment(17694.700, -12.0),
+            GradeSegment(18694.700, -9.6),
+            GradeSegment(19444.700, -10.8),
+            GradeSegment(20794.700, -11.3),
+            GradeSegment(21444.700, -10.1),
+            GradeSegment(21994.700, -10.8),
+            GradeSegment(22244.700, -9.4),
+            GradeSegment(24313.500, -11.3),
+            GradeSegment(24513.500, -8.9),
+            GradeSegment(25013.500, -1.5),
+            GradeSegment(26683.500, -8.0),
+            GradeSegment(27103.500, -10.9),
+            GradeSegment(27729.680, -11.2),
+            GradeSegment(28479.680, -10.8),
+            GradeSegment(31879.680, -9.0),
+            GradeSegment(32429.680, -10.9),
+            GradeSegment(33505.930, -12.0),
+            GradeSegment(34255.930, -10.6),
+            GradeSegment(34605.930, -11.0),
+            GradeSegment(34805.930, -11.4),
+            GradeSegment(35155.930, -11.2),
+            GradeSegment(36005.930, -11.0),
+            GradeSegment(36755.930, -12.0),
+            GradeSegment(37605.930, -11.0),
+            GradeSegment(38105.930, -10.5),
+            GradeSegment(39755.930, -11.5),
+            GradeSegment(40305.930, -12.0),
+            GradeSegment(41105.930, -11.0),
+            GradeSegment(42005.930, -10.0),
+            GradeSegment(43255.930, -10.5),
+            GradeSegment(44305.930, -11.5),
+            GradeSegment(44805.930, -12.0),
+            GradeSegment(45186.020, -10.6),
+            GradeSegment(46536.020, -12.0),
+            GradeSegment(46938.690, -10.5),
+            GradeSegment(47938.690, -8.3),
+            GradeSegment(48161.360, -6.5),
+            GradeSegment(48361.360, -2.5),
+            GradeSegment(48561.360, -1.5),
+        ],
+        limit_segments=SHUOZHOU_49KM_LIMIT_SEGMENTS,
+        curve_segments=SHUOZHOU_49KM_CURVE_SEGMENTS,
+    )
 
 
 def _slice_profile(profile: GradeProfile, start_m: float, end_m: float) -> GradeProfile:
