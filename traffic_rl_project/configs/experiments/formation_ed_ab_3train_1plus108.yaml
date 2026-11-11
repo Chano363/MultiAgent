@@ -56,17 +56,18 @@ env_cfg:
   # 只读统计、不参与控制（env 侧 accumulate 一次 dict 加法）；默认 false = 零回归，
   # 但阶段门/规模训练的判据③必须靠它按 20 集窗口算"车钩峰值项占比"，故主配置显式开。
   reward_term_log: true
-  # 【2026-11-08 修订】参考表改**线路绝对里程**口径（表首 4 291.9 m = 基线归档起点、
-  # 表末 53 650.2 m = 基线归档终点）。查表按领航列车头位置插值，与编队起点摆放无关。
-  # 表末超出 route_end_m 的部分（49 600–53 650.2 m）不会被查到（到末端即截断）——
-  # 保留它们只为忠实保留归档原貌，不构成"继续在虚构段跑"的训练依据。
-  # 旧归档 refspeed_baseline_20261108_203904 是"归零"口径，已作废（不得再用）。
-  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261108_205652/ref_speed_table.npz
+  # 【2026-11-11 重生成（v60 口径）】参考表 = **线路绝对里程**口径（查表按领航列车头位置
+  # 插值，与编队起点摆放无关）。数据源 = fleet3_bc_baseline_v60_20261111_000534
+  # （speed 60 / start 4300 / gap 0，与训练同源）：覆盖 4 301.7–49 600.3 m、
+  # 52.35–75.80 km/h，首点 ≈60 km/h 与 init_speed_kmh 自洽。
+  # 旧表 refspeed_baseline_20261108_205652 派生自旧宽间距归档（队尾负里程、首点 69.2 km/h），
+  # 已作废不得再用；再往前 refspeed_baseline_20261108_203904 为"归零"口径，同样作废。
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261111_090221/ref_speed_table.npz
   speed_over_w: 10.0            # 显式写出（ref 形态默认即 10.0）：越线 1 km/h 罚 10 > 跟踪满分 5
   # ATP/ETCS 真 ATP 为永久启用的安全底线，无 enable_etcs 开关（恒启）。历史 false 开关已移除。
   hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
   decompose: loco_ed_ab        # 机车级 ED/AB 分工：每机车行为 [ed_mod, ab_mod]∈[-1,1]²
-  ab_min_refill_s: 214.363      # v9 warm-start：GA 12×12 gen=6 best 2026-11-10；原 222.0
+  ab_min_refill_s: 222.0       # v9 warm-start：v60 口径 GA best 选中物理锚原值（2026-11-11）
                                # 出处 = VALIDATION_BASELINE.md 张二田 S6 最短充风 222 s（范围 175~512 s）
   ab_min_hold_s: 0.0           # 【方向 A】已建立 AB 源的最小保持时间（s）：**已结案 = 无出处、不激活**（默认 0.0）。
                                # 2026-10-01 检索：Zhang2024 运行约束仅三条（无此项）；《铁路机车操作规则》
@@ -84,19 +85,25 @@ env_cfg:
   coupler_force_limit_emergency_n: 2250000.0  # 仅安全层紧急保护门限，**不是验收口径**
                                               # （验收统一 1000 kN，ADR-040；紧急保护 ≠ 验收）
   cyclic_notch_50: true
-  service_reduction_kpa: 81.734      # v9 warm-start：GA 12×12 best 2026-11-10；控制器原默认 70.0
+  # ── v9 warm-start 规则层旋钮（2026-11-11 方案 A：v60 口径 GA best）──────────
+  # 来源 = ga_rule_knobs_20261111_011040（gen1/eval19：窗内峰值 1117.9 kN，较 v60 BC
+  # 基线 1499.0 kN −25.4%）；全程复核 fleet3_bc_ga_best_v60_20261111_074024 =
+  # 1333.0 kN（−11.1%，仍超 1000 kN 验收线 ⇒ 即 D-Rule 最强调优基线口径）。
+  # 旧 2026-11-10 GA 旋钮（错起点口径 70 km/h / 4290 m / 615 m）作废，见 LRN-20261111-001；
+  # 控制器原默认值见同目录 .bak_20261110_160959 快照。
+  service_reduction_kpa: 74.12781799739679
   ab_staged_apply: true              # 显式锚定 staged 模式（GA 搜索前提；控制器默认 true 已生效）
-  ab_staged_gap_s: 8.704             # v9 warm-start：GA best 2026-11-10；控制器原默认 3.0
-  cyclic_brake_trigger_kmh: 62.665   # v9 warm-start：GA 12×12 best 2026-11-10；原 65.0
-  cyclic_release_kmh: 60.0           # v9 warm-start：GA best 上界；原 50.0
+  ab_staged_gap_s: 3.0
+  cyclic_brake_trigger_kmh: 65.95262385531505
+  cyclic_release_kmh: 54.956448104474134
   ed_release_coordination: true
-  ed_release_hold_s: 21.408           # v9 warm-start：GA best 2026-11-10；原 50.0
-  ed_release_boost_kn: 220.218        # v9 warm-start：GA best 发现松闸 boost 应保守；原 900.0
-  cyclic_ab_upgrade_kmh: 75.397      # v9 warm-start：GA best 2026-11-10；原 76.0
-  ed_upgrade_ramp_s: 0.0             # v9 warm-start：GA best 瞬时升压；原 6.0
-  ed_upgrade_ramp_scale: 1.0         # v9 warm-start：GA best 满权重；原 0.7
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
   ed_grade_feedforward: true
-  coupler_override: min_brake
+  coupler_override: release
   eot: true
   # 【2026-11-08 队尾负里程修复（必修）】旧值 `enabled: false` ⇒ 编队从 0 起步，
   # 3 列 ×1.23 km + 2 段净空 ≈ 4 255 m 的编队队尾落在 **−4 254.7 m**；
@@ -162,8 +169,8 @@ init_speed_kmh: 60.0            # 【2026-11-10】70.0 → 60.0：与起点列�
                                 # 旧 70 的注释"与基线归档起步条件对齐"已作废：那批归档用的是
                                 # 753.5 m 宽间距（队尾 −1105 m），与训练不同源，见
                                 # DIAGNOSTICS_2026-11「小节-2026-11-10（六）」。
-                                # 副作用：v7 参考速度表首点仍为 69.22 km/h，起步(-9.2 km/h)会吃速度项，
-                                # 参考表须按本口径重生成（待办）。
+                                # 副作用已消（2026-11-11）：参考表按本口径重生成
+                                # （refspeed_baseline_20261111_090221，首点 ≈60 km/h），起步不再吃速度项。
 simcase: official
 ckpt_policy: fleet
 log_interval: 1                # 【2026-10-21 静默治理】每集都落一行（全剖面 2.5h/集，若按 10 集会 25h 才见一行）
