@@ -118,6 +118,16 @@ explorer.exe "<绝对路径>\launch.vbs"
 - **判活仍不看退出码**：WSL 侧每 60 s 原子写 `heartbeat.txt`（含 phase / ep / elapsed），看护脚本监控 pid——进程消失且无 `exit_code.txt` ⇒ 写 `DEAD_<stamp>.txt`（含最后心跳），启动 60 s 内无 `pid.txt` ⇒ 写 `STARTUP_FAIL`。
 - **不可用路径（实测排除）**：`schtasks` S4U/服务账户建任务无提权 ⇒ `Access is denied`；`setsid`/`nohup` 单独用无效（见第 6 条）。
 
+### 长跑启动闸门：起点条件与实验配置对齐（2026-11-11 强制）
+
+> **事实依据（LEARNINGS LRN-20261111-001）**：训练/评估/基线三套起点口径不同源（初速 80/70/60、起点 0/4290/4300、净空 138.5/753.5 m），同一策略峰值 1072–1326 kN 不可比，云 GA 整轮产物作废。所有局部检查（三件齐/判活/保真自检）全绿，唯独"输入是否与训练同源"无人核对。
+
+1. **工具级强制**：`diagnose_low_level_control.py` 在 env 构建/落盘之前执行 `_check_start_alignment`：`--speed` ↔ `init_speed_kmh`（env_cfg 优先、YAML 顶层兜底）、`--start-m` ↔ `start_randomization.min_m`、`--gap-offset-m` 恒 0、`--train-speeds-kmh` 逐值核对。不一致 **SystemExit(2)**，不建归档目录、零算力浪费。
+2. **放行须显式**：确需偏离（敏感性探针等）传 `--allow-start-mismatch`；偏离写入 `metadata.diagnostic_protocol.start_alignment`，**该结论不得当作与训练同源的对比引用**。
+3. **配置快照落后时用 override 声明**：用 `.bak` 快照复现归档协议时，若快照的起点键与目标协议不一致（如 `init_speed_kmh` 仍为旧值），用 `--override init_speed_kmh=60` 显式声明——纯声明性核对项（物理初速只认 `--speed`），供闸门与 metadata 对齐留痕。
+4. **协议常量禁止手抄**：GA 类脚本（如 `tmp_ga_rule_knobs.py --bc-archive`）的起点/协议键必须从归档 `metadata.diagnostic_protocol` 自动同步并打印 diff；SSOT = 归档，非脚本内常量。新工具照此办理。
+5. **改参数先盘点排队任务**：修改任何启动脚本参数前，先 `schtasks /query` + `pgrep -af` 清点还在跑/还在排队的旧参数启动器，避免新旧口径并发（2026-11-11 凌晨实测踩坑）。
+
 
 ## 诊断通道最小集（2026-11-05 强制）
 

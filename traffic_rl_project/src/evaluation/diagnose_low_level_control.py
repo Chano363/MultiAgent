@@ -57,6 +57,81 @@ def capture_admission_state(train_env, controller):
     }
 
 
+def _check_start_alignment(args, config, yaml_doc) -> None:
+    """启动闸门（2026-11-11 强制）：诊断起点条件与实验配置逐项对齐，不一致拒绝启动。
+
+    背景：训练/评估/基线三套起点口径曾不同源（初速 80/70/60 km/h、起点 0/4290/4300 m、
+    净空 138.5/753.5 m、队尾 -1105 m 坡度外推），同一策略峰值 1072–1326 kN 不可比，
+    基线对比与云 GA 产物作废（LEARNINGS 2026-11-11）。闸门在 env 构建/落盘之前执行，
+    不一致零算力退出；显式 --allow-start-mismatch 放行（裁决随 metadata 留痕）。
+
+    四要素（SSOT = --config 的 env_cfg，含显式 --override 之后的生效值）：
+      初速     --speed            ↔ env_cfg.init_speed_kmh
+      起点里程 --start-m          ↔ env_cfg.start_randomization.min_m（评估态取 min）
+      列间偏移 --gap-offset-m     ↔ 恒 0（env 自带 d_eff = 1.1×d_safe 净空，偏移 = 额外
+                                   加宽净空 ⇒ 与训练起点布局不同源）
+      逐列初速 --train-speeds-kmh ↔ 逐值核对 init_speed_kmh（敏感性实验走放行开关）
+    """
+    issues = []
+    sr = config.get('start_randomization') or {}
+    if isinstance(sr, dict) and sr.get('enabled'):
+        min_m, max_m = sr.get('min_m'), sr.get('max_m')
+        if min_m is None or max_m is None:
+            issues.append('start_randomization.enabled 但缺 min_m/max_m（--config 不完整）')
+        else:
+            if min_m != max_m:
+                print(f'[start-gate] note: start_randomization min_m={min_m} != max_m={max_m}; '
+                      'evaluation-mode layout uses min_m', flush=True)
+            expect_start_m = float(min_m)
+            if abs(args.start_m - expect_start_m) > 0.05:
+                issues.append(
+                    f'start_m mismatch: --start-m {args.start_m} != '
+                    f'start_randomization.min_m {expect_start_m}')
+    else:
+        print('[start-gate] note: start_randomization disabled/absent in --config; '
+              'start-m check skipped', flush=True)
+    if args.gap_offset_m != 0.0:
+        issues.append(
+            f'gap offset nonzero: --gap-offset-m {args.gap_offset_m} (env already provides '
+            'd_eff = 1.1 x d_safe clearance; an offset widens clearance and breaks alignment '
+            'with the training start layout)')
+    expect_speed = config.get('init_speed_kmh')
+    if expect_speed is None:
+        # init_speed_kmh 位于 YAML 顶层（train_runner 同款解析顺序：env_cfg 优先、顶层兜底），
+        # 只查 env_cfg 会静默漏检——2026-11-11 闸门首轮实测踩到，勿回退。
+        expect_speed = yaml_doc.get('init_speed_kmh')
+    if expect_speed is not None:
+        if args.train_speeds_kmh is not None:
+            bad = [v for v in args.train_speeds_kmh if abs(v - float(expect_speed)) > 0.05]
+            if bad:
+                issues.append(
+                    f'per-train speeds deviate from init_speed_kmh {expect_speed}: {bad} '
+                    '(deliberate sensitivity probe => pass --allow-start-mismatch)')
+        elif abs(args.speed - float(expect_speed)) > 0.05:
+            issues.append(
+                f'initial speed mismatch: --speed {args.speed} km/h != '
+                f'init_speed_kmh {expect_speed} km/h')
+    else:
+        print('[start-gate] note: init_speed_kmh absent in --config; speed check skipped',
+              flush=True)
+    args.start_alignment = {'verdict': 'pass' if not issues else 'allowed-mismatch',
+                            'issues': issues}
+    if not issues:
+        print(f'[start-gate] aligned: speed={args.speed} km/h, start_m={args.start_m}, '
+              f'gap_offset_m={args.gap_offset_m}', flush=True)
+        return
+    print('[start-gate] start conditions disagree with the experiment config '
+          '(see LEARNINGS 2026-11-11):', flush=True)
+    for item in issues:
+        print(f'  x {item}', flush=True)
+    if args.allow_start_mismatch:
+        print('[start-gate] --allow-start-mismatch given: proceeding; deviation archived in '
+              'metadata.diagnostic_protocol.start_alignment; results must NOT be quoted as '
+              'training-aligned comparisons', flush=True)
+        return
+    raise SystemExit(2)
+
+
 def main():
     official_entry_guard(__file__)
     ap = argparse.ArgumentParser()
@@ -87,6 +162,9 @@ def main():
     ap.add_argument('--profile', choices=sorted(PROFILES), help='Use a registered route instead of constant grade')
     ap.add_argument('--start-m', type=float, default=0.0, help='Translate the whole formation along the route')
     ap.add_argument('--gap-offset-m', type=float, default=0.0, help='Additional initial gap per adjacent train pair')
+    ap.add_argument('--allow-start-mismatch', action='store_true',
+                    help='Start-gate override: run even when --speed/--start-m/--gap-offset-m '
+                         'differ from the experiment YAML (deviation archived in metadata)')
     ap.add_argument('--finish-m', type=float, help='Stop when the last vehicle of every train passes this route position')
     ap.add_argument('--ed-recovery-rate', type=float, help='Diagnostic override; zero disables ED recovery limiting')
     ap.add_argument('--ed-recovery-scope', choices=('all', 'coupler'), default='all')
@@ -116,7 +194,6 @@ def main():
             or not np.all(np.isfinite(args.train_speeds_kmh))
             or min(args.train_speeds_kmh) < 0):
         ap.error('train-speeds-kmh must contain one finite nonnegative speed per train')
-    args.output.mkdir(parents=True, exist_ok=args.reuse)
     if args.reuse and (args.output / 'result.json').exists():
         archived = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))['metadata']
         protocol = archived.get('diagnostic_protocol', {})
@@ -129,7 +206,8 @@ def main():
             if key in protocol or key in defaults:
                 if getattr(args, key) != protocol.get(key, defaults.get(key)):
                     raise ValueError(f'Cannot relabel saved trajectory: {key} differs from archived protocol')
-    config = yaml.safe_load(args.config.read_text(encoding='utf-8'))['env_cfg']
+    _yaml_doc = yaml.safe_load(args.config.read_text(encoding='utf-8'))
+    config = _yaml_doc['env_cfg']
     # 【2026-10-14 运营口径标定】env_cfg 键级覆盖（bool/int/float/str 类型推断），
     # 覆盖结果随 metadata.env_cfg 归档留痕。
     for item in args.override:
@@ -149,6 +227,10 @@ def main():
                 except ValueError:
                     value = raw
         config[key] = value
+    if not args.reuse:
+        # 启动闸门：在 env 构建/落盘之前核对起点四要素（不一致拒绝启动，零算力浪费）
+        _check_start_alignment(args, config, _yaml_doc)
+    args.output.mkdir(parents=True, exist_ok=args.reuse)
     config.update(num_trains=args.trains, max_steps=args.steps,
                   start_randomization={'enabled': False})
     if args.consist_preset:

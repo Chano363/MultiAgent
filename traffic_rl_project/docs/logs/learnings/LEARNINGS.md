@@ -957,3 +957,15 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 - **根因**：`tmp_fire_ga.sh` 只 rsync `src/ configs/ scripts/cloud/` + 引导脚本，未传 `outputs/` 下的参考速度表（503 KB）。
 - **解法**（落地）：补传 `refspeed_baseline_20261108_205652/` 目录后 md5 一致；引导脚本 md5 已在云端复核。
 - **治本**：参考速度表是**项目级依赖**（非运行产物），应进仓库 `outputs/sim_validation/phys_validation/` 或单独的 `data/` 目录；rsync 上云脚本改为 `--exclude outputs/sim_validation/phys_validation/ga_* --include outputs/sim_validation/phys_validation/ref* --include outputs/sim_validation/phys_validation/` 或把它收进 `configs/`。
+
+## LRN-20261111-001 起点口径三源不同源：全部基线对比与云 GA 作废（输入无 SSOT + 验证只查输出）
+
+- **事实（损失盘点）**：① 训练/评估/基线三套起点口径不同源（初速 80/70/60 km/h、起点 0/4290/4300 m、净空 138.5/753.5 m、旧口径队尾 −1105 m 坡度外推=虚构路况），同一策略峰值 1072/1163/1289/1302–1326 kN 不可比；② 云 GA `ga_cloud_20261110_134049` 跑在错误协议上，产物作废；③ 2026-11-11 00:05 发现旧启动器以 70 km/h 口径并发拉起 BC+GA，违反串行纪律（人工终止 + ABORTED 标注）；④ AGENTS.md 残留 ADR-036 的 1500 kN 档位表述被误引为现行验收口径（**ADR-040 才是 SSOT：统一 1000 kN**）。
+- **根因（四条，全部结构性）**：
+  1. **输入条件无 SSOT**：起点四要素（初速/起点里程/列间偏移/净空）散落在 CLI 默认值、YAML、诊断脚本硬编码、GA 脚本手抄、AGENTS.md 注释五处，改一处不联动，开跑前无断言。
+  2. **验证只查输出不查输入**：三件齐、判活、保真自检（工作区物理==归档物理）全过，但"归档协议==训练协议"无人核对。局部全绿 ≠ 全局一致。
+  3. **指针未回 SSOT**：引用了 AGENTS.md 的过时行，未回 DECISIONS.md 核对 ADR 覆盖关系。
+  4. **改参数不盘点已排队任务**：改了启动脚本却未清理还挂着旧参数的调度任务/进程。
+- **对策（已落地）**：① `evaluate_decompose.resolve_start_conditions`（初速 YAML→metadata→默认逐级取值，reset 后打印请求值 vs 实际值与头位）；② `diagnose_low_level_control._check_start_alignment` **启动闸门**（细则见 EXECUTION_RULES「长跑启动闸门」，不一致 SystemExit(2) 且不建归档目录）；③ GA 脚本 BC_PROTOCOL 协议键从归档 `metadata.diagnostic_protocol` 自动同步并打印 diff，废除手抄；④ AGENTS.md 两处 ADR-036 档位表述改为 ADR-040 单一口径；⑤ 错跑目录一律 `ABORTED_BY_INTERRUPTION.txt` 标注。
+- **类型标签**：`输入无SSOT` / `验证盲区` / `指针未回SSOT` / `排队卫生`
+- **一句话教训**：把"输入条件"当一等公民——像输出一样可观测（落盘）、可断言（闸门）、单一来源（SSOT）。凡引用规范先回 SSOT 原文；凡改参数先盘点所有已排队启动器。**闸门自身也要实测**：首轮实测即抓到 `init_speed_kmh` 位于 YAML 顶层而非 env_cfg 的静默漏检（train_runner 同款解析顺序：env_cfg 优先、顶层兜底）。
