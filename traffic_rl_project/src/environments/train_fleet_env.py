@@ -21,6 +21,7 @@
     - 输出该列实际车钩力反馈给层级一作状态/奖励
 """
 
+import json
 import logging
 from copy import deepcopy
 from pathlib import Path
@@ -54,7 +55,7 @@ from src.train_dynamics.etcs_braking import (
 # 属"恒定额白拿分"，既不区分快慢也无法引导"贴基线"。v6 与 v7 结果不可比。
 # v8 = v7 + 超限项权重 6.0 → 15.0（2026-11-09，ADR-059）：梯度交换比修正，支撑 ADR-058
 # "峰值优化移交 RL"的 1000 kN 目标。项集/形态与 v7 完全相同，仅常量变化；v7 与 v8 结果不可比。
-REWARD_SCHEMA = 'v8-overlimit-w15'
+REWARD_SCHEMA = 'v9-overlimit-w60'
 # 【ADR-043】领航列速度项权重（对齐 Zhang2024 式22 Rd=+5；v7 下为跟踪峰值）。
 SPEED_BAND_W = 5.0
 # 【速度带改形 2026-11-08】'ramp' 形态的凸指数：收益随接近上限**边际递增**（1 = 线性，>1 = 越靠上限挣得越快）。
@@ -78,10 +79,15 @@ COUPLER_PEAK_W = 4.7
 # 超限项权重。【ADR-059 2026-11-09】6.0 → 15.0：v7 权重下梯度交换比不利——压峰 1450→1000 kN
 # 每峰值步仅挣 ~3.3 分，而头车偏离 v_ref 5 km/h 即损失 5~20 分/步；trial40（v7）前 30 集实证
 # 峰值持平微升（1392→1458）。ADR-058 已把峰值优化移交 RL 并锁定 1000 kN，超限带梯度必须给足。
-# 线性有界形态不变，上界 -30 仍远小于已回滚的 -80·ov²（二次、无界趋势），且 speed_over
+# 【ADR-063 2026-11-11】15.0 → 60.0：v9_l1_cloud 全剖面实测（41.1 万步/集）定量——正项工资
+# ≈ +7.07/步（rel_anchor 3.62 + gap_eff 3.45），15.0 下超限步（p̂=1.43 → over=0.43）仅罚
+# -6.5/步 < 工资 ⇒ **车钩超限在经济上中性（冲高步净 +0.5）**，RL 理性选择忍罚不治峰。
+# 60.0 ⇒ 超限步 -25.8/步，净 -18.7/步（亏 2.6 秒工资），超限在经济上不可行。
+# 线性有界形态不变，上界 -120 仍小于已回滚的 -80·ov²（二次、无界趋势、每步爆炸）量级
+# （旧教训是平方+无界，此处线性+CAP 封顶且仅低频超限步出现），且 speed_over
 # （10/km/h、不封顶）日常即可达 -100 量级，value 尺度有先例。
-COUPLER_OVER_W = 15.0
-# 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -30。
+COUPLER_OVER_W = 60.0
+# 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -120。
 COUPLER_OVER_CAP = 2.0
 
 # 【ADR-026 编队间距：ATP 对齐两段式】
@@ -161,7 +167,7 @@ class TrainFleetEnv:
         #   Zhang2024取40保守值；为与其直接对标+物理可行）
         # 弃用 [45,65]：那是樊运新（3万吨）参数，与1万吨对象不一致，且物理上不可行
         # （1.2km万吨列车在窄区间制动频繁→车钩力爆炸+掉速）。
-        self.v_max = config.get('v_max', 80.0 / 3.6)   # 上限（80 km/h，线路限速）
+        self.v_max = config.get('v_max', 75.0 / 3.6)   # 全局上界（ADR-068：75 km/h；分段限速另由 _line_vmax_for 联动）
         self.v_min = config.get('v_min', 40.0 / 3.6)   # 下限（40 km/h，最小缓解速度）
         # 巡航参考速度 = 限速区间中值（作为 obs 速度误差参考，非硬目标）
         self.target_speed = config.get('target_speed', (self.v_min + self.v_max) / 2.0)
@@ -257,6 +263,21 @@ class TrainFleetEnv:
         # 默认 None 完全走旧路径（列=智能体），向后兼容。
         self.decompose = config.get('decompose', None)
         self.formation_relative_speed_obs = config.get('formation_relative_speed_obs', False)
+        # 【ADR-065 / S1 参数化探针 2026-11-11】rule_param_probe=True 时，RL 的
+        # [ed_mod, ab_mod] **不再当幅度调制使用**，而是重新解释为**循环制动相位门**：
+        #   ed_mod → cyclic_brake_trigger_kmh（何时开始制动）
+        #   ab_mod → cyclic_release_kmh     （何时缓解）
+        # 底层 get_action_decomposed 收到的调制量恒为 0（纯规则幅度 + RL 定的相位）。
+        # 目的：判定"峰值上限是 residual 的幅度 tube，还是规则层的相位排程"。
+        # 动作维度/网络结构不变（仍 (num_agents,2)）⇒ v10 ckpt 可直接加载做对照。
+        # 默认 False = 零回归。
+        self.rule_param_probe = bool(config.get('rule_param_probe', False))
+        # 【v2 动作尺度重标定 2026-11-12】实测（300 步 trace）：策略原始动作只有 ±0.13
+        # （std≈0.044，BC 全零目标 + entropy_coef=0.005 所致），原映射（±7/±8 km/h）实际只
+        # 覆盖 12%，S1 因此成了"微调探针"而非"相位探针"。
+        # scale 把策略实际幅度放大到设计区间：trig = 62 + 7·scale·ed_r（clamp [55,69]）。
+        # scale=1.0 为原语义（零回归）。
+        self.rule_param_scale = float(config.get('rule_param_scale', 1.0))
         if not isinstance(self.formation_relative_speed_obs, bool):
             raise ValueError('formation_relative_speed_obs must be a boolean')
         if self.formation_relative_speed_obs and self.decompose != 'loco_ed_ab':
@@ -553,6 +574,23 @@ class TrainFleetEnv:
                 )
                 for tr in self.trains
             ]
+            # 【S2-v2 2026-11-12】绝对档位模式（loco_notch）的两个可调参数，属性级覆盖，
+            # 不改 MultiLocoController 构造签名（旧路径零回归）：
+            #   ed_zero_point  : ED 零点，默认 0.77 = 规则层 meanED(0.769)，避免开局欠电制动
+            #   ab_notch_hold_s: 档位最短保持秒数，默认 90 = AB 波传播时延（张二田实测）
+            if self.decompose == 'loco_notch':
+                _zp = float(config.get('ed_zero_point', 0.77))
+                _hs = float(config.get('ab_notch_hold_s', 90.0))
+                # 【V17】低速强制缓解兜底（默认 off = 零回归）；margin 用 km/h 配置，内部转 m/s
+                _lsr = bool(config.get('ab_low_speed_release', False))
+                _lsm = float(config.get('ab_low_speed_margin_kmh', 2.0)) / 3.6
+                _eia = bool(config.get('ed_idle_action', False))
+                for _c in self.multi_loco_controllers:
+                    _c.ed_zero_point = _zp
+                    _c.ab_notch_hold_s = _hs
+                    _c.ab_low_speed_release = _lsr
+                    _c.ab_low_speed_margin_mps = _lsm
+                    _c.ed_idle_action = _eia
             self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
         else:
             self.num_agents = self.num_trains
@@ -650,6 +688,25 @@ class TrainFleetEnv:
         s, v = s[keep], v[keep]
         if s.size < 2:
             raise ValueError('speed_ref_table 去重后不足 2 点')
+        # 【2026-11-13 ADR-068 防白跑】表必须带口径元数据，且与当前 v_max 一致。
+        # 旧行为：v > self.v_max 的点被静默 clamp ⇒ 用 80 口径的表配 75 口径的配置，
+        # 训练目标仍指向旧口径速度曲线、全程无报错、结果不可比（与 V15 同类的静默失真）。
+        meta_path = p.with_name('ref_speed_meta.json')
+        if not meta_path.is_file():
+            raise FileNotFoundError(
+                f"参考速度表缺口径元数据 {meta_path.name}（应随表由 "
+                "scripts/gen_ref_speed_table.py 一并产出）；无元数据无法校验表与 v_max 同源")
+        with open(meta_path, encoding='utf-8') as f:
+            meta = json.load(f)
+        src_vmax = meta.get('clamp_upper_mps')
+        if src_vmax is None:
+            raise ValueError(
+                f"{meta_path.name} 缺 clamp_upper_mps 字段，无法校验口径；请重生成该表")
+        if abs(float(src_vmax) - float(self.v_max)) > 1e-9:
+            raise ValueError(
+                f"参考速度表口径不一致：{p.name} 由 v_max={float(src_vmax) * 3.6:.1f} km/h 生成，"
+                f"当前配置 v_max={self.v_max * 3.6:.1f} km/h。按 ADR-068「六量同批」纪律不得混用 —— "
+                "先用新口径基线跑产出 trajectory.npz，再跑 scripts/gen_ref_speed_table.py 重生成")
         self._ref_v_clamped = int(np.count_nonzero(v > self.v_max))
         v = np.minimum(v, self.v_max)
         self._ref_s_m = s
@@ -1440,10 +1497,37 @@ class TrainFleetEnv:
                             rear_ed_frac, float(np.mean(np.abs(np.asarray(prev)))))
                 tr.formation_rear_braking = rear_braking
                 tr.formation_rear_ed_frac = rear_ed_frac
-            final_edab, _ = ctrl.get_action_decomposed(
-                tr, rl, v_max=self.v_max, v_min=self.v_min,
-                v_max_adj=v_bound_max, v_min_adj=v_bound_min,
-            )
+            if self.decompose == 'loco_notch':
+                # 【S2 / ADR-065 绝对档位】RL 直接决定 ED 深度与 AB 减压档
+                # （0=缓解 / 50 kPa / 70 kPa / 140 kPa），**不经规则循环制动状态机**。
+                # 安全边界（充风 222 s 门控、超速强制 SERVICE）在 controller 内保留，
+                # 车钩力源头 veto 仍由子环境 safety 层执行。
+                final_edab = ctrl.get_action_notch(
+                    tr, rl, v_max=self.v_max, v_min=self.v_min,
+                    v_max_adj=v_bound_max, v_min_adj=v_bound_min,
+                )
+            else:
+                # 【ADR-065 / S1 参数化探针】2 维动作在此被**重新解释为循环制动相位门**：
+                #   ed_mod → cyclic_brake_trigger_kmh（何时开始制动，[55,69] km/h，基线 65.95）
+                #   ab_mod → cyclic_release_kmh     （何时缓解，    [48,64] km/h，基线 54.96）
+                # 幅度调制恒 0 ⇒ 传给控制器的是零向量（纯规则执行 + RL 定的相位）。
+                # 约束 trig − rel ≥ 4 km/h 防抖（基线差 10.99，范围内不会撞界）。
+                rl_eff = rl
+                if self.rule_param_probe:
+                    ed_r = float(np.clip(rl[0, 0], -1.0, 1.0))
+                    ab_r = float(np.clip(rl[0, 1], -1.0, 1.0))
+                    sc = float(self.rule_param_scale)
+                    trig = float(np.clip(62.0 + 7.0 * sc * ed_r, 55.0, 69.0))
+                    rel = float(np.clip(56.0 + 8.0 * sc * ab_r, 48.0, 64.0))
+                    if trig - rel < 4.0:
+                        trig = min(69.0, rel + 4.0)
+                    ctrl.cyclic_brake_trigger_kmh = float(trig)
+                    ctrl.cyclic_release_kmh = float(rel)
+                    rl_eff = np.zeros_like(rl)
+                final_edab, _ = ctrl.get_action_decomposed(
+                    tr, rl_eff, v_max=self.v_max, v_min=self.v_min,
+                    v_max_adj=v_bound_max, v_min_adj=v_bound_min,
+                )
             # 【A1b 带内追逐】协调偏置的正 traction 注入 decompose 的 ed 通道（负 ed=牵引）：
             # 仅当本步规则在"带内非制动段"（_cyclic_braking==False）且不在电梯制动中
             # 才注入——制动/ED 段仍以安全为准，避免"边追边制"冲突。

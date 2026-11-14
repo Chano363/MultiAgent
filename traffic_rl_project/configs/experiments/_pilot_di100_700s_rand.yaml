@@ -1,0 +1,102 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
+# ADR-064 pilot E1：decision_interval 10→100（1 s→10 s）+ 每集 700 s + 随机起点
+# 目的：检验"小集 × 多更新"能否让验收指标（peak_coupler/violations）出现下行斜率。
+# 派生自主配置 formation_ed_ab_3train_1plus108.yaml（2026-11-11），**仅改训练预算/间隔/起点**，
+# 物理、规则层旋钮、奖励形状、观测、安全层全部与主配置逐位一致（两侧物理同源）。
+# ⚠️ ADR-064 换算：dt 1 s→10 s 必须同步重算 γ/λ 保持物理视界 91 s（AB 波滞后）：
+#    1/(1-γλ) = 9.09 决策步 × 10 s = 90.9 s，取 γ=0.990 / λ=0.899。
+# ⚠️ pilot 结果**不得进正文主表**（ADR-017 沙盒纪律）。
+name: pilot_di100_700s_rand
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.990                # 【ADR-064】原 0.999（配 1 s 决策）→ 0.990（配 10 s 决策），保持 91 s 视界
+  gae_lambda: 0.899           # 【ADR-064】1/(1-0.990*0.899)=9.09 决策步 ×10 s = 90.9 s
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 22.22222222222222
+  v_min: 11.111
+  # 【pilot】700 s 时间上限（7000 原始步 × dt=0.1 s）；route_end_m 仍作事件截断兜底
+  max_steps: 7000
+  route_end_m: 49600
+  max_accel: 1.0
+  use_coupler_constraint: true
+  coupler_force_limit_n: 1000000.0
+  speed_band_shape: ref
+  reward_term_log: true
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261111_090221/ref_speed_table.npz
+  speed_over_w: 10.0
+  hierarchical: false
+  decompose: loco_ed_ab
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+  # ── 规则层旋钮：与主配置逐位一致（v60 口径 GA best），不得改动 ──
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  service_reduction_kpa: 74.12781799739679
+  ab_staged_apply: true
+  ab_staged_gap_s: 3.0
+  cyclic_brake_trigger_kmh: 65.95262385531505
+  cyclic_release_kmh: 54.956448104474134
+  ed_release_coordination: true
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
+  ed_grade_feedforward: true
+  coupler_override: release
+  eot: true
+  # 【E1 关键差异】**随机起点**：4300 → 6300 m。
+  # ⚠️ 上界被 `train_fleet_env._reset_once` 的参考表校验硬限制（2026-11-11 实测）：
+  #    `gap_m = head - ref_table[0]; if gap_m > 2000: raise ValueError(参考速度表与编队起点里程不匹配)`
+  #    表首 = 4301.7 m ⇒ 起点上限 ≈ 6301.7 m。原计划 37000 会直接抛错（云端首次启动即失败，
+  #    RC=1，日志 `表首 4301.7 m、领航列头位 25128.6 m（差 +20827.0 m）`）。
+  #    故 E1 的"随机幅度"仅 2 km —— 足以验证随机起点机制通不通，但**不足以覆盖全剖面坡度段**；
+  #    真正的全里程随机起点需先解耦该校验（另立 ADR，属闭包代码变更）。
+  start_randomization:
+    enabled: true
+    min_m: 4300
+    max_m: 6300
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 100         # 【pilot】10→100 原始步 = 10 s/决策 = frame-skip d=100
+episodes: 60                   # 【pilot】60 集 × 700 决策步 = 42k transition / 60 次更新
+                               # （对照 E0：30 集 × 10281 = 308k transition / 30 次更新）
+curriculum: "7000:0"           # 单阶段 7000 原始步（必须带引号，防 YAML1.1 六十进制解析）
+n_env: 4
+n_env_parallel: true
+parallel_traj_len: 0
+warm_start: false              # 【pilot】不跑 BC；统一从主训练的 bc_warmstart.pt 起（--resume-weights-only）
+bc_episodes: 1
+bc_epochs: 3000
+bc_max_steps: 7000
+long_eval_interval: 0
+long_eval_steps: 7000
+init_speed_kmh: 60.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 1
+
+dirs:
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/_pilot_di100_rand
+  results_dir: outputs/results/formation_10kt_1plus108/_pilot_di100_rand
+  figures_dir: outputs/figures/formation_10kt_1plus108/_pilot_di100_rand

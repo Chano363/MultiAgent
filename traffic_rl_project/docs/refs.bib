@@ -626,3 +626,130 @@
  doi = {10.1115/1.4065401},
  note = {ADR-061 间距锚：VC headway 主流设计族 = 常数最小间距 + 速度比例动态分量；重载场景 time headway 优于 distance headway（distance 方案误差 716 m/36%）。Crossref 题录核实 2026-11-09。}
 }
+
+@misc{kalyanakrishnan2021_frameskip,
+ author = {Kalyanakrishnan, Shivaram and Aravindan, Siddharth and Bagdawat, Vishwajeet and Bhatt, Varun and Goka, Harshith and Gupta, Archit and Krishna, Kalpesh and Piratla, Vihari},
+ title = {An Analysis of Frame-skipping in Reinforcement Learning},
+ year = {2021}, eprint = {2102.03718}, archivePrefix = {arXiv}, primaryClass = {cs.LG},
+ note = {ADR-064 核心证据：frame-skip d 与 gamma 必须联合调整（Acrobot: gamma=0.9 时 d=2 由 -123.1 恶化到 -346.6；gamma=0.999 时 d=3 最优 -72.7）；"price of inertia" Delta_M <= 4 R_max 与 gamma^d 型价值误差上界。无本地全文（用户 2026-11-11 指示不下载）。}
+}
+
+@article{tang2026_mappo_train_scheduling,
+ author = {Tang, Ziyue and Huang, Piao and Sun, Jianping},
+ title = {Optimization of train real-time dynamic scheduling under unexpected events in high-speed railway based on MAPPO},
+ journal = {Scientific Reports}, year = {2026}, volume = {16}, pages = {19300},
+ doi = {10.1038/s41598-026-50132-x},
+ note = {ADR-064：同领域 MAPPO，一集=12 列车跑完 12 站全线，10 000 集，状态含时空量。无本地全文。}
+}
+
+@inproceedings{karimi2022_ctco,
+ author = {Karimi, Amirmohammad and Jin, Jun and Luo, Jun and Mahmood, A. Rupam and Jagersand, Martin and Tosatto, Samuele},
+ title = {Dynamic Decision Frequency with Continuous Options},
+ booktitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, year = {2022},
+ eprint = {2212.04407}, archivePrefix = {arXiv},
+ note = {ADR-064：折扣随控制间隔换算 gamma=exp(-tau*dt)、tau=-log(gamma_base)/dt_base；SAC/DAC-PPO 性能随交互频率升高明显下降。无本地全文。}
+}
+
+@inproceedings{treven2024_tacos,
+ author = {Treven, Lenart and Sukhija, Bhavya and As, Yarden and D{\"o}rfler, Florian and Krause, Andreas},
+ title = {When to Sense and Control? A Time-adaptive Approach for Continuous-Time RL},
+ booktitle = {Advances in Neural Information Processing Systems (NeurIPS)}, year = {2024},
+ eprint = {2406.01163}, archivePrefix = {arXiv},
+ note = {ADR-064：控制时长可学后交互 200->24（-88%）、K=5 次完成摆起；标准 SAC 高频性能显著下降。无本地全文。}
+}
+
+@article{huang2025_eito_plos,
+ author = {Huang, Yunhu and Lai, Wenzhu and Chen, Dewang and Lin, Geng and Yin, Jiateng},
+ title = {Enhanced intelligent train operation algorithms for metro train based on expert system and deep reinforcement learning},
+ journal = {PLoS ONE}, year = {2025}, volume = {20}, number = {5}, pages = {e0323478},
+ doi = {10.1371/journal.pone.0323478},
+ note = {ADR-064：PPO 地铁 ATO，一集=一次站间运行（约 101 s），决策间隔 0.02 s ⇒ 约 5050 步/集，约 80 集收敛，状态含绝对位置。项目本地另有同组信息卡 Huang2025_EITO_ExpertSystemDRL.pdf。}
+}
+
+@article{jin2025_partial_gae,
+ author = {Jin, Yi-Fan and Song, Xiulei and Slabaugh, Gregory and Lucas, Simon},
+ title = {Partial Advantage Estimator for Proximal Policy Optimization},
+ journal = {IEEE Transactions on Games}, year = {2025},
+ doi = {10.1109/TG.2024.3408298}, eprint = {2301.10920}, archivePrefix = {arXiv},
+ note = {ADR-064：PPO 长 rollout 需截断；截断内部靠前步偏差显著更大。无本地全文。}
+}
+
+@inproceedings{patel2025_slow_decision,
+ author = {Patel, Devdhar and Siegelmann, Hava},
+ title = {Overcoming Slow Decision Frequencies in Continuous Control: Model-Based Sequence Reinforcement Learning for Model-Free Control},
+ booktitle = {International Conference on Learning Representations (ICLR)}, year = {2025},
+ eprint = {2410.08979}, archivePrefix = {arXiv},
+ note = {ADR-064：慢决策频率的难点=序列内每个 primitive action 都要有学习信号；提出 Frequency-Averaged Score。无本地全文。}
+}
+
+@misc{yoo2025_aela,
+ author = {Yoo, Byunghyun and Shin, Younghwan and Kim, Hyunwoo and Chung, Euisok and Yang, Jeongmin},
+ title = {Adaptive Episode Length Adjustment for Multi-agent Reinforcement Learning},
+ year = {2025}, eprint = {2505.19637}, archivePrefix = {arXiv}, primaryClass = {cs.MA},
+ note = {ADR-064：episode 先短后长 + 熵驱动；机理=同数据量下短集切出更多轨迹、探索多样、避免 dead-end 空转。无本地全文。}
+}
+
+@misc{sppo2026_sequence_ppo,
+ author = {Wang, Tianyi and Li, Yixia and Li, Long and Chen, Yibiao and Huang, Shaohan and Chen, Yun and Li, Peng and Liu, Yang and Chen, Guanhua},
+ title = {SPPO: Sequence-Level PPO for Long-Horizon Reasoning Tasks},
+ year = {2026}, eprint = {2604.08865}, archivePrefix = {arXiv},
+ note = {ADR-064：长视界 PPO 的 temporal credit assignment 不稳定 → 序列级 bandit + 单标量 baseline。无本地全文。}
+}
+
+@misc{wang2024_variable_timestep_rl,
+ author = {Wang, Dong and Beltrame, Giovanni},
+ title = {Variable Time Step Reinforcement Learning for Robotic Applications},
+ year = {2024}, eprint = {2407.00290}, archivePrefix = {arXiv},
+ note = {ADR-064：固定控制频率是刚性约束，最优频率任务相关。无本地全文。}
+}
+
+@misc{hashimoto2021_pseudo_actions,
+ author = {Hashimoto, Taisei and Tsuruoka, Yoshimasa},
+ title = {Utilizing Skipped Frames in Action Repeats via Pseudo-Actions},
+ year = {2021}, eprint = {2105.03041}, archivePrefix = {arXiv},
+ note = {ADR-064：动作重复帧（frame-skip）的再利用。无本地全文。}
+}
+
+@misc{wei2024_platoon_marl,
+ author = {Wei, Dixiao and Yi, Peng and Lei, Jinlong and Zhu, Xingyi},
+ title = {Multi-Agent Deep Reinforcement Learning for Distributed and Autonomous Platoon Coordination via Speed-regulation over Large-scale Transportation Networks},
+ year = {2024}, eprint = {2412.01075}, archivePrefix = {arXiv},
+ note = {ADR-064：大规模路网编队协调（同族问题）。无本地全文。}
+}
+
+@article{basile2024_ddpg_virtual_coupling,
+ author = {Basile, Giacomo and Giuseppe, Dario and others},
+ title = {Deep Deterministic Policy Gradient Virtual Coupling control for the coordination and manoeuvring of heterogeneous uncertain nonlinear High-Speed Trains},
+ journal = {Engineering Applications of Artificial Intelligence}, year = {2024},
+ doi = {10.1016/j.engappai.2024.108120},
+ note = {ADR-064：虚拟连挂 + DDPG（同族问题）。作者表待核。无本地全文。}
+}
+
+@misc{virtual_coupling_lmpc_2025,
+ title = {A learning model predictive control for virtual coupling in railroads},
+ year = {2025}, eprint = {2507.02383}, archivePrefix = {arXiv},
+ note = {ADR-064：虚拟连挂 LMPC 对照（非 RL 行）。作者待核。无本地全文。}
+}
+
+@article{jing2025_vcts_marl,
+ author = {Jing, Guanglin and Zou, Yifei and Zhang, Zuyuan and Yu, Jiguo and Yu, Dongxiao and Cheng, Xiuzhen},
+ title = {Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem in CBTC Systems},
+ journal = {Tsinghua Science and Technology}, year = {2025},
+ doi = {10.26599/TST.2025.9010067},
+ note = {ADR-064：VCTS/CBTC 三场景 MARL。项目本地另有全文（03_formation/Jing2025_VCTS_fulltext.txt）。}
+}
+
+@article{zhang2025_lookahead_regulation,
+ author = {Zhang, Yunfeng and Li, Shukai and others},
+ title = {Multi-step look ahead deep reinforcement learning approach for automatic train regulation of urban rail transit lines with energy-saving},
+ journal = {Engineering Applications of Artificial Intelligence}, year = {2025},
+ doi = {10.1016/j.engappai.2025.110181},
+ note = {ADR-064：多步前瞻 DRL 列车调整（节能）。作者表待核。无本地全文。}
+}
+
+@article{safe_drl_train_cooperative_energy_2025,
+ title = {Trajectory optimization of train cooperative energy-saving operation using a safe deep reinforcement learning approach},
+ journal = {Applied Intelligence}, year = {2025},
+ doi = {10.1007/s10489-025-06542-x},
+ note = {ADR-064：安全 DRL 列车协同节能（再生制动约束）。作者表待核。无本地全文。}
+}

@@ -1,3 +1,5 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
 # 公平 DQN baseline：分层架构下第2层用每列独立 CoorDQN 学协同阈值偏移
 # 与 M1(MAPPO) 完全同架构，只换第2层 RL 算法（回答审稿人 DQN vs MAPPO）
 name: fair_dqn

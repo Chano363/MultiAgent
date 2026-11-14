@@ -28,7 +28,9 @@ env_cfg:
   num_trains: 3
   consist_preset: 10kt_1plus108  # 每列1机车+108货车，10988t；3列=3智能体
   grade_profile: shuozhou_ningwuxi_beidaniu_49km  # 【主训练】朔黄线宁武西→北大牛真实纵断面 49.6km（50 实测坡段，统一线路表）；23.8km 仅作历史复现
-  v_max: 22.22222222222222     # 准确80 km/h；达到上限仍按安全规则制动
+  v_max: 20.833333333333332    # 【2026-11-13 ADR-068】75 km/h（原 80 无依据：宁武西—北大牛段限速表最高 75，见 V01；
+                               # 80 系 Zhang2024 龙宫—北大牛 23.8 km 段的限速被误挪）。连带：target_speed=57.5、
+                               # d_safe=117.0 m、d_eff=初始净空=128.7 m。初速 60 的起步裕量仅 2.1%，由 600 步冒烟守住。
   v_min: 11.111                # 40 km/h（编队目标速度带）
   # 【ADR-061】target_gap=100m 参考线已删除：无外部文献锚（"拍脑袋"默认值）。
   # 列间距语义统一收敛到 d_safe 体系（d_eff = 1.1×d_safe，ATP 同源，奖励与诊断同口径）。
@@ -62,7 +64,7 @@ env_cfg:
   # 52.35–75.80 km/h，首点 ≈60 km/h 与 init_speed_kmh 自洽。
   # 旧表 refspeed_baseline_20261108_205652 派生自旧宽间距归档（队尾负里程、首点 69.2 km/h），
   # 已作废不得再用；再往前 refspeed_baseline_20261108_203904 为"归零"口径，同样作废。
-  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261111_090221/ref_speed_table.npz
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261113_095953/ref_speed_table.npz   # 【2026-11-13 ADR-068】75 口径重生成（源：fleet3_baseline_vmax75_20261113）；旧表 refspeed_baseline_20261111_090221 为 80 口径，加载期会被口径校验拒绝
   speed_over_w: 10.0            # 显式写出（ref 形态默认即 10.0）：越线 1 km/h 罚 10 > 跟踪满分 5
   # ATP/ETCS 真 ATP 为永久启用的安全底线，无 enable_etcs 开关（恒启）。历史 false 开关已移除。
   hierarchical: false          # decompose 模式自带规则基线，不与阈值协同混用
@@ -91,11 +93,11 @@ env_cfg:
   # 1333.0 kN（−11.1%，仍超 1000 kN 验收线 ⇒ 即 D-Rule 最强调优基线口径）。
   # 旧 2026-11-10 GA 旋钮（错起点口径 70 km/h / 4290 m / 615 m）作废，见 LRN-20261111-001；
   # 控制器原默认值见同目录 .bak_20261110_160959 快照。
-  service_reduction_kpa: 74.12781799739679
+  # 【2026-11-13 W4-0】service_reduction_kpa 不设 = 控制器默认 140 kHz（原 74.13 来自已作废 GA，实测为负债）
   ab_staged_apply: true              # 显式锚定 staged 模式（GA 搜索前提；控制器默认 true 已生效）
   ab_staged_gap_s: 3.0
-  cyclic_brake_trigger_kmh: 65.95262385531505
-  cyclic_release_kmh: 54.956448104474134
+  cyclic_brake_trigger_kmh: 65.0
+  cyclic_release_kmh: 50.0
   ed_release_coordination: true
   ed_release_hold_s: 16.970343976123257
   ed_release_boost_kn: 835.5980537119971
@@ -109,8 +111,11 @@ env_cfg:
   # 3 列 ×1.23 km + 2 段净空 ≈ 4 255 m 的编队队尾落在 **−4 254.7 m**；
   # `GradeProfile.grade_at` 对越界位置静默沿用首段坡度 ⇒ 后两列跑**虚构路况**。
   # 修法 = 用固定起点把整列编队推进真实剖面内（min_m=max_m=4300 ⇒ 队尾 ≈ 45 m）。
-  # 4300 与基线归档起点 4 291.9 m 同段（−10.2‰），参考表首点即该处 ⇒ 初速 70 km/h
-  # 与 v_ref(4300)=69.2 km/h 相差 0.8 km/h（在 5 km/h 带宽内）。
+  # 4300 与基线归档起点 4 291.9 m 同段（−10.2‰）。
+  # 【2026-11-13 ADR-068】初速 60 km/h：60/75 = 0.80，对上 Zhang2024:824 的 0.81。
+  # ⛔ 旧注释"初速 70 与 v_ref(4300)=69.2 相差 0.8"已作废——69.2 是旧口径参考表的值。现行表
+  #    （refspeed_baseline_20261111，80 口径）首点 4 301.7 m = 59.1 km/h，与 60 差 0.9 km/h。
+  #    75 口径下该表须重生成（首点应 ≈57.5），见 ADR-068 验收项③。
   # `enabled: true` 同时让评估态走同一固定起点（见 train_fleet_env._reset_once）。
   start_randomization:
     enabled: true

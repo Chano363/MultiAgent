@@ -1,0 +1,104 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
+# ADR-065 / S2-v2 绝对档位（第 2 轮）：修 S2 第 1 轮的三处实现缺陷
+#
+# S2 第 1 轮结果（确定性全剖面）：peak 1394 kN / 越限 16316 —— 比纯规则（1311/15106）
+# 和 residual（1280/13487）都差。逐项核查后定位到三个实现缺陷，**不是"绝对档位架构不可行"**：
+#   ① 档位无变化率约束：每 1 s 重选档位，而 AB 波传播 ≈90 s ⇒ 波未传完即变档，
+#      压缩/拉伸波反复叠加 ⇒ 峰值反升。文献依据：Tang2020（DSQ）明确约束
+#      "locomotive notches and their change rates"。
+#      ⇒ 本版加 ab_notch_hold_s = 90（档位最短保持 90 s）。
+#   ② ED 零点取 0.5：规则层实际 meanED = 0.769（实测），起点欠 27% 电制动。
+#      ⇒ 本版 ed_zero_point = 0.77。
+#   ③ log_std_min = -1.5（std 0.22）探索过宽，训练窗 speed 73.6 / gap_err 479 m 崩掉。
+#      ⇒ 本版收到 -2.3（std ≈0.10）。
+#
+# 判据（不变）：确定性全剖面峰值 < 1280（residual 基线）；训练窗数字不作判据。
+name: probe_loco_notch_v2_20ep
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.05
+  log_std_min: -2.3           # -1.5 → -2.3：std ≈0.10，收窄探索（上轮 0.22 过噪）
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 22.22222222222222
+  v_min: 11.111
+  max_steps: 31500
+  route_end_m: 49600
+  max_accel: 1.0
+  use_coupler_constraint: true
+  coupler_force_limit_n: 1000000.0
+  speed_band_shape: ref
+  reward_term_log: true
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261111_090221/ref_speed_table.npz
+  speed_over_w: 10.0
+  hierarchical: false
+  decompose: loco_notch       # 绝对档位（不经规则循环制动状态机）
+  # 【v2 新增】绝对档位模式的两个参数
+  ed_zero_point: 0.77         # ① ED 零点对齐规则层 meanED
+  ab_notch_hold_s: 90.0       # ② 档位最短保持 = AB 波传播时延（Tang2020 notch change rate）
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  service_reduction_kpa: 74.12781799739679
+  ab_staged_apply: true
+  ab_staged_gap_s: 3.0
+  cyclic_brake_trigger_kmh: 65.95262385531505
+  cyclic_release_kmh: 54.956448104474134
+  ed_release_coordination: true
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
+  ed_grade_feedforward: true
+  coupler_override: release
+  eot: true
+  start_randomization:
+    enabled: true
+    min_m: 4300
+    max_m: 4300
+  rule_param_probe: false
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10
+episodes: 20
+curriculum: "31500:0"
+n_env: 4
+n_env_parallel: true
+parallel_traj_len: 0
+warm_start: false
+bc_episodes: 1
+bc_epochs: 3000
+bc_max_steps: 31500
+long_eval_interval: 0
+long_eval_steps: 31500
+init_speed_kmh: 60.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 1
+
+dirs:
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/_probe_loco_notch_v2
+  results_dir: outputs/results/formation_10kt_1plus108/_probe_loco_notch_v2
+  figures_dir: outputs/figures/formation_10kt_1plus108/_probe_loco_notch_v2

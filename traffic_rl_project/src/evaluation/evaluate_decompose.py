@@ -258,7 +258,20 @@ def make_env(mode, args):
     if getattr(args, 'target_speed', None) is not None:
         cfg['target_speed'] = float(args.target_speed)
     if mode == 'decompose':
-        cfg['decompose'] = 'loco_ed_ab'
+        # 【2026-11-12 修复｜训练-评估动作语义不同参（LRN-20261001-011 同族）】
+        # 原实现**无条件**覆盖 `cfg['decompose'] = 'loco_ed_ab'`，把 YAML 里的
+        # `decompose: loco_notch`（ADR-065 档位级）覆盖掉。两者动作语义完全不同：
+        #   loco_notch  : [:,0] = ED **绝对深度**（ed_zero_point±0.5，下限 >0），
+        #                 [:,1] = AB 施加程度 → 量化 4 档
+        #   loco_ed_ab  : [:,0] = ED **残差调制量**（±0.5 叠加到规则基线，可为负→判为牵引），
+        #                 [:,1] = AB 抑制/触发阈值（>+0.5 抑制、<-0.5 触发 SERVICE）
+        # ⇒ 用同一 ckpt 在另一语义下评估，等于"评的不是训的"。实证：阶段 1 的
+        #   S2-v3（训练 loco_notch）被按 loco_ed_ab 评估，得到 ed_zero_point=0.5、
+        #   ed_cmd 出现负值（-0.023）、AB 只落在 {0,-0.05}——全是另一条路径的特征。
+        # 修法：**尊重 YAML 已指定的 decompose**，仅在未指定时回退旧默认（零回归）：
+        #   base `formation_ed_ab_3train_1plus108.yaml` 仍显式 `loco_ed_ab` ⇒ M0/M1 历史口径不变。
+        if not cfg.get('decompose'):
+            cfg['decompose'] = 'loco_ed_ab'
         cfg['formation_relative_speed_obs'] = bool(getattr(args, 'formation_relative_speed_obs', False))
         if args.mask_lever and args.mask_lever != 'none':
             cfg['mask_lever'] = args.mask_lever   # 杠杆隔离消融：须与训练一致
@@ -286,6 +299,7 @@ def rollout(env, act_fn, args, rng, act_interval=1):
           f"{[round(float(h), 1) for h in _heads] if _heads is not None else 'n/a'} m",
           flush=True)
     ep_r = peak = ab_steps = ed_sum = band = viol = safety = 0.0
+    ab_agent = None   # 逐机车 AB 施加步数（V16：与并集口径 ab_steps 并列输出，不替代）
     prev_viol = prev_safety = 0.0  # env episode 级累计计数器的上一轮快照，用于取增量
     n = 0
     decompose = bool(env.decompose)
@@ -313,6 +327,15 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         prev_safety = info.get('safety_events', 0)
         if decompose:
             ab_steps += int(info['ab_source_count'] > 0)
+            # 【2026-11-12 V16】上述口径是"**任一**机车施加即计 1"（并集），单列常施加就报 100%。
+            # 并集量只能当"有无"用，不能当"强度"用 ⇒ 同步累计逐智能体（= 逐机车）施加步数，
+            # 输出 ab_steps_max_agent / ab_ratio_per_agent，供判"哪一列在长时间施加"。
+            _ea_on = np.asarray(info['executed_actions'], dtype=float)
+            if _ea_on.ndim == 2 and _ea_on.shape[1] >= 2:
+                _on = _ea_on[:, 1] < 0
+                if ab_agent is None or ab_agent.shape[0] != _on.shape[0]:
+                    ab_agent = np.zeros(_on.shape[0], dtype=np.int64)
+                ab_agent += _on.astype(np.int64)
             ed_sum += float(np.mean(info['executed_actions'][:, 0]))
         else:
             # 旧架构：负 throttle=制动，粗略计"空气制动参与步"（AB/ED 拆分在动力学内部）
@@ -344,6 +367,12 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         'viol': int(viol),
         'safety_events': int(safety),
         'ab_steps': int(ab_steps),
+        # 【V16 2026-11-12】并集口径（上格）只表示"至少一台机车在施加"，不能当强度。
+        # 逐机车施加步数 / 占比并列输出；主指标仍用 ab_steps 以保历史可比。
+        'ab_agent_steps': ([int(x) for x in ab_agent.tolist()] if ab_agent is not None else []),
+        'ab_agent_ratio': ([float(x) / max(n, 1) for x in ab_agent.tolist()]
+                           if ab_agent is not None else []),
+        'ab_steps_max_agent': (int(ab_agent.max()) if ab_agent is not None else 0),
         'mean_ed': ed_sum / max(n, 1),
         'band_rate': band / max(n, 1),
         'final_speed_kmh': final_v * 3.6,
@@ -368,8 +397,25 @@ def eval_method(name, mode, act_fn, args, act_interval=1):
     env = make_env(mode, args)
     rs = [rollout(env, act_fn, args, rng, act_interval=act_interval) for _ in range(args.n_seed)]
     env.close()
-    agg = {k: float(np.mean([r[k] for r in rs])) for k in rs[0]}
-    agg['per_seed'] = [{k: float(v) for k, v in r.items()} for r in rs]
+    agg = {}
+    for k in rs[0]:
+        vals = [r[k] for r in rs]
+        # 标量键取均值（历史格式不变）；列表型键（V16 的 ab_agent_steps/ratio）逐列取均值，
+        # 不能走 float(np.mean(...))——那会把 [0,30,20] 压成一个标量 16.67，维度就丢了。
+        if isinstance(vals[0], (list, tuple, np.ndarray)):
+            agg[k] = np.mean(np.asarray(vals, dtype=float), axis=0).tolist()
+        else:
+            agg[k] = float(np.mean(vals))
+    # per_seed：标量转 float（保持历史格式），非标量原样保留（不参与 float 强转）
+    agg['per_seed'] = []
+    for r in rs:
+        row = {}
+        for k, v in r.items():
+            try:
+                row[k] = float(v)
+            except (TypeError, ValueError):
+                row[k] = v
+        agg['per_seed'].append(row)
     extra = ''
     # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距。逐项守卫，
     # 单列编组无该组键（不产出）时不打印，避免 KeyError 连累整行不落盘（LRN-20261001-013 同族）。

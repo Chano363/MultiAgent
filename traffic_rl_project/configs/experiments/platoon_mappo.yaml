@@ -1,3 +1,5 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
 # 3 列 platoon 第2层 MAPPO（M1 协同 / M3 无协同 / M4 直接协同阈值）
 # M1:   adj_coef=0.1（默认）
 # M3:   --override env_cfg.adj_coef=0.0       （M3 退化为规则基线，验证协同增量）

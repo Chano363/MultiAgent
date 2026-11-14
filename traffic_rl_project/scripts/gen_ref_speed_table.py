@@ -23,10 +23,12 @@ from pathlib import Path
 import numpy as np
 
 V_MIN_MPS = 40.0 / 3.6   # 仅用于统计"基线有多少步低于下缘"，**不作 clamp 下界**
-V_MAX_MPS = 80.0 / 3.6
+# 【2026-11-13 ADR-068】clamp 上界不再硬编码 80：改为 `--v-max-kmh`（默认 75），
+# 且必须与生成该表的基线跑所用配置一致，否则 env 加载时会按口径不符直接报错。
+DEFAULT_V_MAX_KMH = 75.0
 
 
-def build_table(npz_path: Path, train_index: int = 0):
+def build_table(npz_path: Path, train_index: int = 0, v_max_mps: float = DEFAULT_V_MAX_KMH / 3.6):
     with np.load(npz_path) as z:
         pos = np.asarray(z['vehicle_positions_m'], dtype=np.float64)  # (T, n_train, n_veh)
         spd = np.asarray(z['head_speed'], dtype=np.float64)           # (T, n_train)
@@ -45,9 +47,9 @@ def build_table(npz_path: Path, train_index: int = 0):
     # 越界由 np.interp 自动 clamp 到首/末点。
     s_origin_m = float(s[0])
 
-    n_clamped = int(np.count_nonzero(v > V_MAX_MPS))
+    n_clamped = int(np.count_nonzero(v > v_max_mps))
     n_below_vmin = int(np.count_nonzero(v < V_MIN_MPS))
-    v = np.minimum(v, V_MAX_MPS)
+    v = np.minimum(v, v_max_mps)
     stats = {
         'n_points': int(s.size),
         's_basis': 'absolute_profile_m',
@@ -69,13 +71,16 @@ def main():
     ap.add_argument('--npz', required=True, help='基线归档 trajectory.npz 路径')
     ap.add_argument('--train-index', type=int, default=0, help='取哪一列作参考（默认 0=领航列）')
     ap.add_argument('--out-root', default='outputs/sim_validation/phys_validation')
+    ap.add_argument('--v-max-kmh', type=float, default=DEFAULT_V_MAX_KMH,
+                    help='生成该基线的配置所用 v_max（ADR-068 口径，默认 75）')
     args = ap.parse_args()
 
     npz_path = Path(args.npz)
     if not npz_path.is_file():
         raise FileNotFoundError(npz_path)
 
-    s, v, stats = build_table(npz_path, args.train_index)
+    v_max_mps = args.v_max_kmh / 3.6
+    s, v, stats = build_table(npz_path, args.train_index, v_max_mps)
 
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     out_dir = Path(args.out_root) / f'refspeed_baseline_{stamp}'
@@ -86,7 +91,8 @@ def main():
         'source_npz': str(npz_path),
         'train_index': args.train_index,
         'source_columns': 'vehicle_positions_m[:,train,0] + head_speed[:,train]',
-        'clamp_upper_mps': V_MAX_MPS,
+        'clamp_upper_mps': v_max_mps,
+        'source_v_max_kmh': args.v_max_kmh,
         'train_dt_s': 0.1,
         **stats,
     }

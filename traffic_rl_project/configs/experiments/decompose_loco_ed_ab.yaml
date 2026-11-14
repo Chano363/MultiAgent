@@ -1,3 +1,5 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
 # ⚠️ DEPRECATED（2026-09-08，ADR-013）：本配置 = 单列车 standalone decompose（num_trains:1，无编队上下文），
 # 已被判为【方向性偏差】，不承论文主线、不得当作主结果引用。仅保留作"列内分工机制"的历史实验记录。
 # 唯一 RL 落位 = formation-aware 机车级 ED/AB（以【编队】为上下文，num_trains≥3 × 每列机车=agent）。

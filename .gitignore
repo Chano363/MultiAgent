@@ -68,3 +68,10 @@ traffic_rl_project/outputs/**/events.out.tfevents*
 traffic_rl_project/outputs/**/*.ckpt
 traffic_rl_project/outputs/**/*.pt
 
+
+# 答辩 PPT 生成脚本的依赖（2026-11-14 迁移 defense_draft_work -> ppt_talk/midterm_20261114）
+node_modules/
+
+# 【2026-11-14】大体积实验产物不入库（intervals.json 每份 200+MB，npz 分片 40+MB）
+traffic_rl_project/outputs/sim_validation/phys_validation/*/intervals.json
+traffic_rl_project/outputs/sim_validation/phys_validation/*/trajectory.npz.part*

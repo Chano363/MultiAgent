@@ -261,6 +261,28 @@ class MultiLocoController:
         #   **不要**乘 decision_interval，也不要新增 decision_interval 参数（会引入 10× 偏差）。
         self.ab_min_refill_s = float(ab_min_refill_s)
         self.ab_min_hold_s = float(ab_min_hold_s)
+        # 【S2-v2 2026-11-12】绝对档位模式（get_action_notch）的两个新参数。
+        # 属性默认值 = 旧行为/无害，env 侧按需覆盖；**不影响 get_action_decomposed 路径**。
+        #   ed_zero_point：ED 映射 ed = clip(zero + 0.5·a, 0, 1) 的零点。0.5=中立；
+        #                  0.77 = 对齐规则层 meanED(0.769)，避免起点欠电制动导致一开局飙车。
+        #   ab_notch_hold_s：档位最短保持时间（秒）。AB 波传播 ≈90 s（张二田实测），
+        #                  若允许每 1 s 改档，波未传完即变档 → 压缩/拉伸波反复叠加 →
+        #                  峰值反升（S2 第 1 轮实测 1394 kN 的主因）。文献依据：
+        #                  Tang2020（DSQ）明确约束 "locomotive notches and their change rates"。
+        self.ed_zero_point = 0.5
+        self.ab_notch_hold_s = 0.0
+        self._ab_notch_state = [0.0] * self.num_locomotives
+        self._ab_notch_step = [-10 ** 9] * self.num_locomotives
+        # 【V17 / 2026-11-13 探针】低速强制缓解兜底（默认关 = 零回归）。
+        # 与"超速强制 SERVICE"对称的安全底线：速度逼近下限时不允许新增/保持 AB，
+        # 否则 AB 可被一次施加到停车，而 loco_notch 无牵引通道 ⇒ 停车是吸收态
+        # （V16 实测：列 1 单次施加 3133 s → 0 km/h → 列 0 追尾 2382 kN）。
+        # 依据：杨辉2020「空气制动需要有充足的缓解时间与较大的缓解速度」、
+        #       张二田2021「提高列车缓解速度…可降低纵向车钩力」⇒ 缓解由速度触发，不由时长触发。
+        self.ab_low_speed_release = False
+        self.ab_low_speed_margin_mps = 2.0 / 3.6
+        # 【V18】ED 惰行通道开关（默认关；开则 rl=−1 → ED=0，见 get_action_notch 注释）
+        self.ed_idle_action = False
         # AB 充风/保持门控状态（**仅在 get_action_decomposed 内维护**；
         # get_action_cyclic_braking 保持无状态）。
         # 【2026-10-14 朔黄运营口径标定（表3「制动缓解位置」，全默认关=旧行为，编队主线零回归）】
@@ -1079,6 +1101,105 @@ class MultiLocoController:
                 self._ab_last_release_step[i] = self._ab_step
             self._ab_on[i] = new_on
         return final, baseline
+
+    # ------------------------------------------------------------------ #
+    # 主接口 4【S2 / ADR-065 绝对档位】RL 直接给 ED 深度 + AB 减压档位
+    # ------------------------------------------------------------------ #
+    # 4 档编码（沿用 AirBrakeNotch 现有物理，不改 physics）：
+    #   0.0  → RELEASE   （缓解，0 kPa）
+    #   -0.05 → CYCLIC   （50 kPa，朔黄表3 循环档）
+    #   -0.20 → MIN      （70 kPa，最小常用）
+    #   -0.40 → SERVICE  （140 kPa，常用全制动）
+    # 与 get_action_decomposed 的本质区别：**不调用 get_action_cyclic_braking**，
+    # 即 RL 自己决定「何时施加 / 何时缓解 / 用哪一档」，规则层不再排程。
+    # 保留的安全边界（不可被 RL 关闭）：
+    #   ① _ab_gate 充风/保持门控（222 s 纪律）；② 超速兜底强制 SERVICE；
+    #   ③ 车钩力源头 veto 由子环境 train_env.safety 执行（本方法不绕过）。
+    AB_NOTCH_LEVELS = (0.0, -0.05, -0.20, -0.40)
+
+    def get_action_notch(
+        self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
+        v_min: float = 40.0 / 3.6, v_max_adj: float = 0.0, v_min_adj: float = 0.0,
+    ) -> np.ndarray:
+        """S2：RL 绝对档位控制 → (num_loco, 2) 的 [ed_cmd, ab_frac]。
+
+        Args:
+            rl_actions: (num_loco, 2) ∈[-1,1]²。
+                [:,0] ed_cmd  = 电制动深度（正=电制动，负=牵引），直接作为 ED 指令；
+                [:,1] ab_frac = 空气制动"施加程度"（0=缓解，-1=满制动），量化到 4 档。
+        Returns:
+            final (num_loco, 2)：第 0 列 ED、第 1 列 AB（负=施加，语义与现有通道一致）。
+        """
+        self._ab_step += 1
+        rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
+        n = self.num_locomotives
+        final = np.zeros((n, 2), dtype=float)
+        vel = float(train_env.dynamics.vel[0])
+        vmax_eff = float(v_max) + float(v_max_adj)
+
+        for k in range(n):
+            # ED：绝对深度，映射 ed = clip(zero + 0.5·rl, 0, 1)，default zero=0.5。
+            # zero 可被 env 覆盖（v2 用 0.77 对齐规则层 meanED，避免起点欠电制动）。
+            # 长大下坡无需牵引，故 ED 只取非负（不保留负=牵引语义）。
+            # 【V18 / 2026-11-13】ED 惰行通道（默认关 = 零回归）。
+            # 关：ed = zero + 0.5·rl ⇒ rl=−1 仍剩 0.27 电制动，**无惰行能力**。
+            #      V17 实测：崩溃时刻三列 AB 全关、速度 6.7/9.5 km/h，ED 仍 0.76
+            #      ⇒ 停车是电制动在低速段拖停的，不是 AB。
+            # 开：非对称映射 rl=−1→0（惰行）/ rl=0→zero（中性点不变）/ rl=+1→1.0，
+            #     使速度下限可恢复。依据：杨辉2020 循环制动 = 50 kPa 初制动 + 惰行；
+            #     Zhang2024 的 RL 动作同为"电制动档 + AB 档"，无牵引维度。
+            _r = float(rl[k, 0])
+            if self.ed_idle_action:
+                _ed = (self.ed_zero_point * (1.0 + _r) if _r < 0
+                       else self.ed_zero_point + (1.0 - self.ed_zero_point) * _r)
+            else:
+                _ed = self.ed_zero_point + 0.5 * _r
+            final[k, 0] = float(np.clip(_ed, 0.0, 1.0))
+            # AB：连续 → 4 档量化（x = 施加程度 0~1）
+            x = float(np.clip(-rl[k, 1], 0.0, 1.0))
+            if x < 0.025:
+                ab = self.AB_NOTCH_LEVELS[0]
+            elif x < 0.125:
+                ab = self.AB_NOTCH_LEVELS[1]
+            elif x < 0.30:
+                ab = self.AB_NOTCH_LEVELS[2]
+            else:
+                ab = self.AB_NOTCH_LEVELS[3]
+            # 超速兜底：贴近上限时强制 SERVICE（RL 无权关闭安全底线）
+            if vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS and ab > self.AB_NOTCH_LEVELS[3]:
+                ab = self.AB_NOTCH_LEVELS[3]
+            # 【v3 档位最短保持·修正语义】AB 波传播 ≈90 s，施加态下若每 1 s 改档，
+            # 波未传完即变档 → 压缩/拉伸波反复叠加 → 峰值反升。
+            # ⚠️ 只约束「施加态 → 施加态」的档位变化；「施加 → 缓解」不受保持约束
+            #    （缓解由 222 s 充风门控管，若也纳入保持会退化为"单次长制动"，
+            #     即 S2-v2 ep42 崩溃到 2351 kN / speed 23 km/h 的直接原因）。
+            if self.ab_notch_hold_s > 0 and ab < 0 and self._ab_notch_state[k] < 0:
+                elapsed = (self._ab_step - self._ab_notch_step[k]) * self.dt
+                if ab != self._ab_notch_state[k] and elapsed < self.ab_notch_hold_s:
+                    ab = self._ab_notch_state[k]
+            # 充风/保持门控：新增源被拒 → 本步不发（已建立的源沿用，不撤销）
+            if ab < 0 and not self._ab_gate(k, True):
+                ab = 0.0
+            # 【V17】低速强制缓解兜底：速度 ≤ v_min + margin 时强制缓解（RL 无权关闭）。
+            # 放在门控之后 —— 门控只拦"新增"，这里连"已建立的源"一起释放，
+            # 否则 AB 可以被一次施加拖到停车（V16 主因 ②③）。
+            if self.ab_low_speed_release and vel <= float(v_min) + self.ab_low_speed_margin_mps:
+                ab = 0.0
+            final[k, 1] = ab
+
+        # 提交 AB 状态（与 get_action_decomposed 同口径：记录施加/释放时刻）
+        for i in range(n):
+            new_on = bool(final[i, 1] < 0)
+            if new_on and not self._ab_on[i]:
+                self._ab_last_apply_step[i] = self._ab_step
+            elif (not new_on) and self._ab_on[i]:
+                self._ab_last_release_step[i] = self._ab_step
+            self._ab_on[i] = new_on
+            # v2：档位变化记账（用于最短保持约束）
+            if float(final[i, 1]) != float(self._ab_notch_state[i]):
+                self._ab_notch_state[i] = float(final[i, 1])
+                self._ab_notch_step[i] = self._ab_step
+        return final
 
     # ------------------------------------------------------------------ #
     # 主接口 2：目标加速度（fleet 非分层模式，与 TrainLowLevelController 同签名）

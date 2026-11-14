@@ -91,6 +91,9 @@
 | 电空协调 MPC：**AB 不进优化变量**、速度误差触发循环「减压-保压-缓解」，车钩力峰降 >8%（**摘要级**） | Zhao2026（IEEE CCDC 2026, DOI 10.1109/CCDC69976.2026.11559852） | `Zhao2026_CCDC_ElectroPneumaticCoordination.md` |
 | Shrinking-horizon **输入参数化** MPC（离散模式集化为 NLP） | Farooqi 2018（IFAC-PapersOnLine 51(20):203-208） | `Farooqi2018_ParametrizedMPC.pdf` |
 | FSMPC 有限控制集枚举 + **制动级位↔减速度静态映射** + PSO 逐级位辨识时滞 + HMM 预测电空转换（地铁精确停车） | 李蔚2025（铁道科学与工程学报 22(10):4424-4435） | `Li2025_FSMPC_BrakeNotch.txt` |
+| **虚拟编组协同巡航的目标速度 = 75 km/h（= 线路限速本身）**；6 列单元列车 50 km 内收敛；速度域 40–120 km/h 时运能 +18%~28% ——【参考速度锚】 | 基于多智能体的重载列车虚拟编组协同巡航控制（在线，未编号） | —（无本地，[国家科技期刊平台](https://opaj.napstic.cn/periodicalArticle/0120240100316778)） |
+| **VC consensus 参考速度序列 40→70（cruise velocity）→50→30→50→70** ——【参考速度锚】巡航 70 = 限速 −5 | W 2025, Int. J. Control, doi:10.1080/00207179.2025.2564448 | —（无本地） |
+| **MAPPO 重载组 vref(t) 五阶段：19.5 m/s（70.2 km/h）高速巡航 / 11.1 m/s（40）低速巡航** ——【参考速度锚】目标是时变剖面而非标量 | 宋宗莹2026 MAPPO（本地全文） | `03_formation/Song2026_MAPPO_fulltext.txt:684-702` |
 
 ## 节能 / 其他（Related Work）
 
@@ -274,3 +277,83 @@ Ma2023 PDF2式(1)、PDF3式(4)、PDF4式(7)及§3.3已看原页；报告中页�
 继承原生线路/动力学，独立诊断修复了当前SBI低于固定76km/h升级门的接口问题，并按现有模型服务波、剩余建压和ED过渡时间做趋势预览；不将其写成文献标定参数或硬安全证明。80秒原生局部通过（峰值895.452kN、0接管）后，后续62.1秒第三列在充风剩余140.9秒、ED已满时仍触SBI：所需ED约903.51kN>可用547.24kN。说明尚需在缓解前做完整充风窗口的联合可行性规划，不能短时通过就宣布规则层修完。领航车头已超出地图，模型延长段与真实线路结论分开。
 
 公开核实的待全文目标：DOI10.1080/00423114.2024.2393354（VSD63(1):121—139，卷期2025/在线2024），以及DOI10.3390/electronics15204606（Electronics2026,15(20):4606）。尚未取到全文，不作为本次控制器算法或参数的既有原文依据；现有Wang2026参考文献的第一篇作者表与出版社页面不一致，题录以DOI原刊核对。详细证据traffic_rl_project/docs/reports/controller_takeover_20261017/动态跟驰限速升级修复_20261101.md；精确检索任务同目录TraeWork_动态跟驰限速与气动响应提前量_20261101.md。未宣称使用MIS或完成全程/训练验收。
+
+## ADR-064 训练设置证据组（2026-11-11 在线检索；**无本地全文**，条目仅作口径证据，不作物理标定依据）
+
+> 用途：回答"训练 episode 怎么定义 / 决策间隔多大 / 集数多少 / 状态是否含绝对位置"。
+> 纪律：本组文献**不下载到本地**（用户 2026-11-11 指示），引用时给 DOI/arXiv ID；标 ★ 者为读到全文或详细设置，其余为摘要/元数据级。
+
+### A. 同领域（列车 / 重载）训练设置
+
+| 结论 / 技术点 | 来源 | 出处（无本地文件） |
+| :--- | :--- | :--- |
+| ★ 一集=整条线路到终点；`s_k=[P_k,V_k,T_k]`（含位置+累计时间）；**Δt=100 s**；Table「Maximum training episode M=100 000」，正文实验展示 10 000 集；收敛判据=累计奖励平台+波动收窄 | Zhang2024（DQN 循环制动；本项目本地另有 Algorithms 17(5):190 全文，同组工作） | TR-C 2021, doi:10.1016/j.trc.2021.103226（本地已有 Algorithms 版 `02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt`） |
+| ★ 环境交互 **1e6 次 / 1e5 集 ⇒ 每集仅 ≈10 步** | Zhang2024 Q-learning（同组） | `02_rl/Zhang2024_QLearning_fulltext.txt`（本地全文） |
+| ★ 一集=**固定 700 s 窗**；**ΔT=10 s**；Maximum training episode **2.5×10⁵**；状态含 `X_k`（位置矩阵） | Si2025 Dueling DQN | Information 2024, 15(5):271（本地 `02_rl/Si2025_DuelingDQN_fulltext.txt`） |
+| ★ 分层 RL，一集=一个 task segment；10/20/50 km 对应收敛 2500/3200/**>5000 不收敛**；"**决策步长故意设大以限制每集决策数**，物理积分在子步做"；状态含 `x, t_b, t_r, f_c` | Wang2026 | IET ITS 2026, doi:10.1049/itr2.70254（本地全文） |
+| ★ **MAPPO**，一集=12 列车跑完整条线路（12 站 11 区间）；**10 000 集**；训练≈4.8 h；状态含时空量；训练与测试同一固定场景 | Tang2026 | Sci Rep 2026, 16:19300, doi:10.1038/s41598-026-50132-x |
+| ★ 一集=一次站间运行（≈101 s）；**决策间隔 0.02 s ⇒ ≈5 050 步/集**；**约 80 集收敛**；状态含（位置，速度，剩余时间） | Huang2025（PPO，地铁 ATO） | PLoS ONE 2025, 20(5):e0323478, doi:10.1371/journal.pone.0323478 |
+| ★ `Experience horizon 1024 / 512`、`Clip 0.2`、`Entropy loss 0.01`（**ADR-017「1400 集」的原始出处**） | Guo2025 | 本地 `03_formation/Guo2025_MARL_PlatoonConsensus.txt` |
+| APF-MAPPO 训练 **2000 集**收敛（0–500 探索 / 500–1200 上升 / 1200+ 稳定） | Song2026 | 本地 `03_formation/Song2026_MAPPO_fulltext.txt` |
+| 每集 **T=20 步**、K=10 策略更新步、L=78–80 迭代 | Jing2025 VCTS | 本地 `03_formation/Jing2025_VCTS_fulltext.txt` |
+| "Hundreds of steps make up one training episode"；E=200 集；状态 `(δ_{n-1,n}, ν_{n-1,n})` **相对间距/相对速度，不含绝对位置** | Zhang2021 MADRL | 本地 `03_formation/Zhang2021_MADRL_TrainPlatoon.txt` |
+| 状态 `[v, v_diff, v_h, d, u]` **全相对量，不含绝对位置** | Hua2024 MARL-CACC | 本地 `03_formation/Hua2024_MARL_CACC_EnergyEfficiency.txt` |
+| 训练分三阶段（边界 ep350 / ep600） | Hu2026 PMMASAC | 本地 `03_formation/Hu2026_PMMASAC_fulltext.txt` |
+| 重载 RL 声称克服"仅限特定工况/缺前瞻" | rHHT（IEEE 2026, doc 11642769） | DOI 待核（仅元数据级） |
+| PER-DDQN 重载自动驾驶 | Xie et al. 2025, ICNSC 2025:261-266 | DOI 待核 |
+| DQN 重载纵向冲动抑制（长大下坡循环制动） | IEEE 2025, doc 11216684 | DOI 待核 |
+| 重载港口站双智能体 Actor-Critic（调度+资源） | MDPI Systems 2025, 13(9):762 | DOI 待核 |
+
+### B. 方法论（决策间隔 / episode 长度）
+
+| 结论 / 技术点 | 来源 | 出处 |
+| :--- | :--- | :--- |
+| ★★ **Frame-skip d 与 γ 必须联合调整**（Acrobot/Sarsa(λ)/8 000 集）：γ=0.9 时 d=1 −123.1 → **d=2 −346.6（恶化 2.8×）**；γ=0.999 时 d=1 −95.8、**d=3 −72.7（最优）**、d=5 −81.4。"惯性代价" `Δ_M ≤ 4R_max`，并给 `‖V*−V*_{M_d}‖_∞ ≤ Δ_M(1−γ^{d−1})/((1−γ)(1−γ^d))`；d>1 不影响渐近一致性 | Kalyanakrishnan et al. 2021 | arXiv:2102.03718（CC BY 4.0） |
+| ★ 折扣随控制间隔换算：`γ=exp(−τ·dt)`，`τ=−log(γ_base)/dt_base`（基准 dt=0.05 s、γ=0.98）；SAC/FiGAR-SAC/DAC-PPO **性能随交互频率升高明显下降**；30 seeds | Karimi et al. 2022（IROS, CTCO） | arXiv:2212.04407 |
+| ★ 控制时长改为可学变量后交互 **200→24（−88%）**、有界 `K=5` 次完成摆起；标准 SAC 高频性能显著下降，TaCoS 对 t_min 稳健 | Treven et al. 2024（NeurIPS, TaCoS） | arXiv:2406.01163 |
+| PPO 长 rollout 必须截断，且截断内部靠前步偏差显著更大（Partial GAE） | Jin et al. 2025 | IEEE ToG, doi:10.1109/TG.2024.3408298 |
+| 慢决策频率的难点=序列内每个 primitive action 都要有学习信号；提出 FAS 指标 | Patel & Siegelmann 2025（ICLR） | arXiv:2410.08979 |
+| **Episode 长度自适应（先短后长、熵驱动）**；机理=同数据量下短集切出更多轨迹、探索多样、避免 dead-end 空转 | Yoo et al. 2025（AELA） | arXiv:2505.19637 |
+| 长视界 PPO 的 temporal credit assignment 不稳定 → 序列级 bandit + 单标量 baseline | SPPO 2026 | arXiv:2604.08865 |
+| 固定控制频率是刚性约束；最优频率任务相关 | Wang & Beltrame 2024 | arXiv:2407.00290 |
+| 动作重复帧的再利用（pseudo-actions） | Hashimoto & Tsuruoka 2021 | arXiv:2105.03041 |
+| 大规模并行 on-policy 的 reset 策略与 horizon 显著影响训练 | Staggered Environment Resets | OpenReview（作者待核） |
+| 卡车编队 MARL 协调（大规模路网） | Wei et al. 2024 | arXiv:2412.01075 |
+| DDPG 虚拟连挂异质高铁；LMPC 虚拟连挂 | Basile et al. 2024 / arXiv:2507.02383 | doi:10.1016/j.engappai.2024.108120 |
+| VCTS 多智能体协同运行策略 | Liu et al. 2024 | IEEE ITSM 17(4) |
+| MARL 虚拟连挂 CBTC 三场景 | Jing et al. 2025 | Tsinghua Sci Tech, doi:10.26599/TST.2025.9010067 |
+| 多步前瞻 DRL 列车调整（节能） | Zhang et al. 2025 | Eng Appl AI, doi:10.1016/j.engappai.2025.110181 |
+| 安全 DRL 列车协同节能（再生制动约束） | Applied Intelligence 2025 | doi:10.1007/s10489-025-06542-x |
+
+## 车钩力阈值与实车基准组（2026-11-12 检索；**均无本地文件**，供 ADR-066 口径纪律与 VALIDATION_BASELINE 附录 C 引用）
+
+> 用途：确认「1000 kN 属于哪一档工况」「实车能做到多少」「朔黄人工优化达成水平」「文献 RL 用什么口径」。
+> 纪律：只在 `VALIDATION_BASELINE.md` 附录 C 记数据；本表只记**来源与出处**。
+
+| 结论 / 技术点 | 来源 | 出处 |
+| :--- | :--- | :--- |
+| ★ **阈值分级原文**：正常运行 ≤1000（建议性）、常用全制动 ≤1500（建议性）、从控机车 ≤2000、C70 货车 ≤2250（安全限） | C70A 单元万吨列车试验研究 | `zzcbjt.com/index.php/lbd-2-12-21687`（中卓出版，无本地文件） |
+| ★ **实车 >1000 占比**：2014/232 辆 34 次中 **73.5%**（>1500 占 20.6%，最大 2142）；2015/216 辆 19 次中 **58%**（最大压 1429、拉 1358） | 铁科院 2 万吨动态试验（经铁道职培转述） | `mlzp.cc/forum.php?mod=viewthread&tid=47901`；交叉：`chinacaj.net/SBMT/201805/408617.pdf`（朔黄 2 万 t 长大下坡车钩受力分析） |
+| ★★ **朔黄优化后达成**：平均最大车钩力 1021 → **806 kN**；超 1000 占比 42.1% → **10.7%**；11 版操纵提升卡、攻克 20 项难题 | 朔黄铁路官网（安全开行八周年，2024-03） | `shtl.shenhuagroup.com.cn/shshtl/1382684311310/202403/d2c0545147ab466fbf1b3abecef89373.shtml` |
+| ★ **制动次数 19 → 12 次**；「提前低速减速」改「后期精准高速制动」 | 河北新闻网（崔帅文，2026-06） | `hebei.hebnews.cn/2026-06/16/content_9525108.htm` |
+| 充风时间**精确到秒**、空气制动压力**卡控到 1 kPa**；130 km 下坡 12 次循环 | 河北新闻网（2024-02） | `m.hebnews.cn/jt/2024-02/21/content_9141282.htm` |
+| 4.0 智能操纵策略：**平均车钩力稳定在 1000 kN 以内**；主动停车缓风率 59% → 21% | 中国能源新闻网（2026-08） | `cpnn.com.cn/qiye/fadianPD2023/202608/t20260806_1906692.html` |
+| 4 万吨无线同步操控仿真：常用全制动最大压钩 **1390.3 kN**（近 1500 阈值）、紧急制动 **1473 kN**（<2250） | 中国高校科技期刊集群服务平台 | `cjournal.hep.com.cn/1001-4632/CN/10.3969/j.issn.1001-4632.2026.04.13` |
+| **文献 RL 口径**：Wang2026 *"the **maximum** tensile and compressive coupler forces are both constrained within 1100 kN, with **average** values of 72.82 and −105.91 kN"*；表 4 并列 Average(40.43/−90.32) 与 Maximum(315.67/−301.96) | Wang2026 IET ITS | 本地全文 `docs/papers/02_rl/Wang2026_hierRL_fulltext.txt` L1204-1207、表 4 |
+| 王建华等 2023：RL 优化「有效减小纵向冲动与最大车钩力」，**未给数值** | 机车电传动 2023(6):139-146 | doi:10.13890/j.issn.1000-128X.2023.06.017 |
+
+### 追加组（2026-11-12 二轮检索；阈值性质 + 循环次数杠杆，供 `LITERATURE_FINDINGS.md` §八 引用）
+
+> 纪律同上：本表只记**来源与出处**，数据解释在 §八。`[W]` = 在线原文/摘要，可复核 URL，**无本地全文**，不得写成本地逐行引用。
+
+| 结论 / 技术点 | 来源 | 出处 | 级 |
+| :--- | :--- | :--- | :--- |
+| ★ **建议性指标原文四条**：正常运行 ≤1000、常用全制动 ≤1500、从控机车偏转角 ≤6°、安全性评定 ≤2250 | 《朔黄铁路 2 万 t 重载组合列车在长大下坡道车钩受力分析与应用》，中国煤炭 | `chinacaj.net/SBMT/201805/408617.pdf` | W |
+| ★★ **「目前尚无相应的国家标准或铁道部标准」**，铁科院建议：紧急制动 ≤2250、正常运行（除紧急制动外）≤1000、纵向加速度 ≤1 g | 西南交大硕士论文《起伏坡道对两万吨重载列车制动工况影响分析》 | `renrendoc.com/p-31581722.html` §2.5 | W |
+| 1000（正常运行）/2250（紧急制动）；安全评价模型 `F_NUM=Σβi`（超限计数，γ∈0.75~1）、`F̄_MAX`（多次运行最大拉钩力均值）、加权 `f_s` | Fu2019《基于钩缓约束的重载列车驾驶过程优化》自动化学报 | `aas.net.cn/cn/article/pdf/preview/10.16383/j.aas.c190223.pdf`；本地 PDF `01_coupler_physics/Fu2019_CouplerConstraint_HeavyHaul.pdf` | W+本地 |
+| 2250 出自 *Standard on Strength Design and Accreditation Test of Railway Vehicles (1996)*；40 kt 在 13‰ 变坡差下最大压钩 **2091 kN**；同步控制延时每 +1 s 约 +200 kN | Chang2023, Railway Sciences 2(4):495-513 | doi:10.1108/RS-09-2023-0028 | W |
+| ★ **「车钩力峰值主要出现在制动缓解与拉压转换阶段，纵向力可达 1100~1300 kN」**；7 条典型长大下坡线型 | 《重载列车循环制动工况动态车钩力作用下的车钩强度校核分析》机械设计与研究 2026(4):378-385（国能朔黄 + 华东交大） | `mqikan.cqvip.com/article/ArticleDetail?id=7204413716` | W |
+| ★ 循环 **5→4 次：压钩 1161.5→849.7 kN（−27%）、拉钩 1483.0→1436.6 kN（基本不变）**；凸形变坡常用制动最大拉钩 **1933.4 / 2106.9 kN 超 1500**，调整制动位置或仅用电制动可回归 | 郭刚2026《无线同步操控下 4 万 t 重载组合列车纵向动力学仿真研究》中国铁道科学 47(4):171-182 | doi:10.3969/j.issn.1001-4632.2026.04.13（表 9/表 10） | W |
+| 四把闸 → 两把闸：最大拉钩 **−32.1%**、压钩 **−11.4%**（TABLDSS 仿真） | 《2 万吨重载组合列车操纵优化研究》铁道机车车辆 | `tdjc.cbpt.cnki.net`（篇名检索） | W |
+| 循环约 6 → 4 次：压钩 2057.3→1682.4、拉钩 2067.5→1295.7 kN | 专利 CN109969220B（双空气制动管循环制动方法） | `patents.google.com/patent/CN109969220B/zh` | W |
+| 空电联合的循环次数与最大车钩力均小于纯空气制动；缓解性能随编组 / 坡度 / **缓解速度**增加而变差 | 《应用空电联合制动的重载列车缓解性能》重庆理工大学学报 2017 | `search.napstic.cn`（010cqgxyxb201710014） | W |

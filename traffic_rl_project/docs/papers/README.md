@@ -181,3 +181,15 @@ Zhou/Shi/Hecht，Vehicle System Dynamics60(7):2436—2450，2022（在线2021）
 2026-10-19新增本地全文复核：常崇义等2026（DOI10.19818/j.cnki.1671-1637.2026.197，PDF9—10平衡迭代）与熊芯等2025（DOI10.16385/j.cnki.issn.1004-4523.202506045，PDF6式11）。Bib键chang2026_ltd_progress/xiong2025_realtime_ltd。来源和方法适用边界见traffic_rl_project/docs/reports/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md；三份PDF及哈希文本在D盘paper/数值积分收敛专项/原文复核_20261019。未复制车型参数，不将摘要或检索建议当已读全文。
 
 2026-10-19文献状态：Zhou2022（DOI10.1080/00423114.2021.1901943）已再次通过大学官方仓储网页读16页预印本相关正文，非只有摘要；本地PDF下载仍受站点验证拦截，未用MIS。原文切换/效率讨论不等于本项目tanh模型错误或其步长可直接移植。原刊入口https://www.tandfonline.com/doi/full/10.1080/00423114.2021.1901943 ，仓储https://flore.unifi.it/handle/2158/1258138 。待补的2006平衡迭代、1990预测校正全文与具体提取项见D盘最新TraeWork_MIS力时程精度与计算效率专项_20261019.md。
+
+### 2026-11-11 训练设置证据组（在线检索，**不下载到本地**）
+
+用户 2026-11-11 指示：本组文献只登记、不落盘。用途 = 回答"训练 episode 怎么定义 / 决策间隔多大 / 集数多少 / 状态是否含绝对位置"，支撑 **ADR-064**。逐条映射见 `docs/REFERENCE_INDEX.md`「ADR-064 训练设置证据组」，BibTeX 见 `docs/refs.bib`（键含 `frameskip` / `tang2026_mappo` / `karimi2022_ctco` / `treven2024_tacos` / `huang2025_eito` / `jin2025_partial_gae` / `patel2025_slow_decision` / `yoo2025_aela` / `sppo2026` / `wang2024_variable_timestep` / `hashimoto2021_pseudo_actions` / `wei2024_platoon` / `basile2024_ddpg_virtual_coupling` / `jing2025_vcts` / `zhang2025_lookahead` / `safe_drl_train_cooperative_energy_2025` / `virtual_coupling_lmpc_2025`）。
+
+| 组 | 来源（★=读到全文/详细设置；均无本地文件） |
+|---|---|
+| 同领域 | ★Tang2026 Sci Rep 16:19300（MAPPO 全集/1e4 集）· ★Huang2025 PLoS ONE 20(5):e0323478（PPO/0.02 s/≈5050 步/80 集）· rHHT IEEE 2026 (11642769) · Xie2025 ICNSC:261-266 · IEEE 2025 (11216684) · MDPI Systems 13(9):762 · Zhang2024 TR-C（doi:10.1016/j.trc.2021.103226，本地另有 Algorithms 版全文） |
+| 方法论 | ★Kalyanakrishnan2021 arXiv:2102.03718（**frame-skip d↔γ 联合调整**）· ★Karimi2022 IROS arXiv:2212.04407（γ=exp(−τdt)）· ★Treven2024 NeurIPS arXiv:2406.01163（交互 200→24）· Jin2025 IEEE ToG（Partial GAE）· Patel2025 ICLR arXiv:2410.08979 · Yoo2025 arXiv:2505.19637（AELA）· SPPO arXiv:2604.08865 · Wang2024 arXiv:2407.00290 · Hashimoto2021 arXiv:2105.03041 · Staggered Resets (OpenReview) · Wei2024 arXiv:2412.01075 |
+| 编队/连挂对照 | Basile2024 Eng Appl AI · Liu2024 IEEE ITSM 17(4) · Jing2025 Tsinghua Sci Tech · Zhang2025 Eng Appl AI · Applied Intelligence 2025 · LMPC arXiv:2507.02383 |
+
+**未核实 DOI 的条目不进 `refs.bib`**（rHHT / Xie2025 / IEEE 11216684 / MDPI Systems 13:762），仅在 `REFERENCE_INDEX.md` 以 venue+年份登记。

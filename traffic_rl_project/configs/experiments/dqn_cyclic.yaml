@@ -1,3 +1,5 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
 # 单列 DQN 循环制动（Zhang2024 式 baseline，M-DQN）
 name: dqn_cyclic
 algorithm: dqn

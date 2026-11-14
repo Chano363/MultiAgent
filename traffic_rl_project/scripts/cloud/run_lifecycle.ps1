@@ -84,23 +84,30 @@ while ($true) {
   }
 
   if ($pulled) {
+    # 2026-11-11 用户指令：异常情况先关机（StopCharging）但不释放，保留实例等人工裁决。
+    $man = Join-Path $LogDir "manifest_$RunId.txt"
+    $abnormal = (Select-String -Path $man -Pattern "abnormal=1" -Quiet -ErrorAction SilentlyContinue)
     $ok = Invoke-StopAndVerify
-    if ($ok -and $Release) {
+    if ($abnormal) {
+      Log-Event "abnormal_exit" "exit_code 非 0：已停费保留实例（未释放），等人工诊断/续训"
+    } elseif ($ok -and $Release) {
       $rel = & $Py (Join-Path $Root "scripts\cloud\instance_state_aliyun_ecs.py") --stop $InstanceId --release --region $Region 2>&1 | Out-String
       Log-Event "release" (($rel -replace "\r?\n", " ").Trim())
     }
-    Log-Event "guard_exit" ("released=" + [bool]$Release)
+    Log-Event "guard_exit" ("released=" + (-not $abnormal -and $ok -and [bool]$Release))
     break
   }
 
-  # 2) 已经停了（实例侧看护先关机）：停机即已止血，但产物未回传 → 不释放
+  # 2) 已经停了（实例侧看护先关机）：产物未回传 → 不释放；OS 普通停机仍计费，
+  #    立即补 API StopCharging 停费并保留实例（2026-11-11 用户指令）。
   if ($st.Status -in @("Stopped", "UNKNOWN")) {
     if ($st.Status -eq "Stopped") {
-      Log-Event "instance_stopped_before_pull" "实例侧已关机；产物仍在磁盘，未释放（需人工决定是否开机取回）"
+      Log-Event "instance_stopped_before_pull" "实例侧已关机；产物仍在磁盘；转 StopCharging 停费，保留实例不释放"
+      $null = Invoke-StopAndVerify
+      break
     } else {
       Log-Event "state_unknown" "API 查询失败，继续轮询"
     }
-    if ($st.Status -eq "Stopped") { break }
   }
 
   # 3) 超出预算上限：无条件止血

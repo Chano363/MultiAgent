@@ -150,6 +150,8 @@ def main():
                     help='Archive and stop after a release forecast fails at the existing speed floor')
     ap.add_argument('--save-native-release-state', action='store_true',
                     help='Save trusted local full single-train state for matched release sensitivity')
+    ap.add_argument('--trace-forces', action='store_true',
+                    help='【ADR-067 W1】记录 tractive/ED/AB 分项力、实际缸压、坡度（纯读，零行为变化）')
     ap.add_argument('--trains', type=int, default=1)
     ap.add_argument('--consist-preset', choices=sorted(CONSIST_PRESETS),
                     help='Explicit diagnostic consist; otherwise use main configuration')
@@ -308,6 +310,9 @@ def main():
             raise ValueError('Recovery scope override requires current controller')
         for ctrl in env.multi_loco_controllers:
             ctrl.ed_recovery_scope = args.ed_recovery_scope
+    if getattr(args, 'trace_forces', False):
+        for tr in env.trains:
+            tr.dynamics.trace_forces = True
     if args.anticipate_etcs:
         if args.controller_ref or args.controller_source:
             raise ValueError('ETCS anticipation override requires current controller')
@@ -339,6 +344,11 @@ def main():
               # 【C7 活性 2026-11-08】分级施加实际生效步数 / 分级前要求 SERVICE 的步数
               # （逐列累计值；分母必须用后者，因分级后物理指令已被改写为 MIN）
               'ab_staged_applied_steps': [], 'ab_staged_service_requests': []}
+    # 【2026-11-13 ADR-067 W1】分项力三路观测（仅 --trace-forces 时产出，避免空数组进 npz）
+    if getattr(args, 'trace_forces', False):
+        for _k in ('force_tractive_n', 'force_ed_n', 'force_air_n',
+                   'brake_pressure_mean', 'grade_head_permille'):
+            detail[_k] = []
     admission_keys = tuple(capture_admission_state(env.trains[0], env.multi_loco_controllers[0]))
     detail.update({key: [] for key in admission_keys})
     # Observe the actual post-safety actuator inputs without modifying them.
@@ -393,6 +403,17 @@ def main():
         detail['air_releasing'].append([tr.dynamics._air_brake_releasing.copy() for tr in env.trains])
         detail['subenv_safety_events'].append([tr._safety_events for tr in env.trains])
         detail['subenv_overspeed_steps'].append([tr._overspeed_violations for tr in env.trains])
+        # 【2026-11-13 ADR-067 W1】分项力三路观测：每列车求和/均值（标量，避免 109 车 × 26000 步爆体积）。
+        # 与 ab_active / brake_pressure_coefficient / vehicle_air_force_n 互补，用于定位低速段净力构成。
+        if getattr(args, 'trace_forces', False):
+            _fb = [tr.dynamics._force_breakdown for tr in env.trains]
+            if all(f is not None for f in _fb):
+                detail['force_tractive_n'].append([float(np.sum(f['tractive_n'])) for f in _fb])
+                detail['force_ed_n'].append([float(np.sum(f['ed_n'])) for f in _fb])
+                detail['force_air_n'].append([float(np.sum(f['air_n'])) for f in _fb])
+                detail['brake_pressure_mean'].append([float(np.mean(f['brake_pressure'])) for f in _fb])
+                detail['grade_head_permille'].append(
+                    [float(f['grade_permille'][0]) * 1000.0 for f in _fb])
         detail['physical_loco_ed'].append([actuator_inputs[i]['ed'] for i in range(env.num_trains)])
         detail['physical_loco_traction'].append([actuator_inputs[i]['traction'] for i in range(env.num_trains)])
         detail['coupler_interface_force_n'].append([

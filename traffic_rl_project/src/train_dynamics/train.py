@@ -252,6 +252,12 @@ class TrainDynamics:
         # 设为可调属性，便于在精度/速度间权衡与实测调优）
         self.newmark_max_iter = 30
         self.newmark_tol = 1e-5
+        # 【2026-11-13 ADR-067 W1】分项力留痕开关。默认 False ⇒ 零行为变化、零额外开销；
+        # 诊断时置 True，`step_vehicles_ed_ab` 每控制步把 tractive/ED/AB 分项、实际缸压、
+        # 坡度写进 `_force_breakdown`，供 telemetry 定位"低速段 −0.05 m/s² 减速来源"
+        # （HANDOFF_2026-11-13 §11.2 的未解项）。纯记录，不参与积分。
+        self.trace_forces = False
+        self._force_breakdown = None
         # 【2026-08-30 基线对齐】分档位制动缸升压时间（李蔚2023：常用制动
         # "充气时间长，呈发散式"；周占松2026升压曲线：常用明显慢于紧急）。
         # 常用全制动升压慢 → 头尾制动力差积累更缓 → 前堵后涌峰值更低。
@@ -760,6 +766,18 @@ class TrainDynamics:
         power_w = np.sum(np.maximum(tractive, 0.0) * self.vel)
         self._energy_delta_kwh = power_w * self.dt / 3.6e6
         self.energy_kwh += self._energy_delta_kwh
+        # 【2026-11-13 ADR-067 W1】分项力留痕（控制步级，用本步结束状态）。
+        # 三个力函数均为纯读（无副作用），复用上面已算的 tractive 免重复计算。
+        if self.trace_forces:
+            self._force_breakdown = {
+                'tractive_n': tractive,
+                'ed_n': self._electric_braking_forces(ed_throttle),
+                'air_n': self._air_braking_forces(),
+                'brake_pressure': self._brake_pressure.copy(),   # 实际缸压系数 0–1
+                'grade_permille': self.grade.copy(),             # 每节车坡度（‰）
+                'vel_mps': self.vel.copy(),
+                'air_active': self._air_brake_active.copy(),
+            }
 
     def _advance_control_once(
         self,
