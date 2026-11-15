@@ -324,6 +324,16 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     train_speed_sum_kmh = np.zeros(n_trains)
     train_overspeed_car_steps = np.zeros(n_trains, dtype=np.int64)
     train_safety_rule_counts = [dict() for _ in range(n_trains)]
+    # 【W4-v4 2026-11-15】逐列车钩峰值/超限：定位近上限 AB 旁路后的次要代价来源。
+    train_peak_coupler_n = np.zeros(n_trains)
+    train_coupler_viol = np.zeros(n_trains, dtype=np.int64)
+    # 【W4-v10 2026-11-16】逐列制动缸压梯度：把“前高/尾低”的陡梯度显式落到 JSON，
+    # 便于后续做压力梯度显式控制目标或奖励归因。
+    train_bp_front = np.zeros(n_trains)
+    train_bp_mid = np.zeros(n_trains)
+    train_bp_rear = np.zeros(n_trains)
+    train_bp_std = np.zeros(n_trains)
+    train_bp_gradient = np.zeros(n_trains)
     # 【2026-10-08 日志可见性】约每 5% 打一条进度心跳。单回合可达 36000 步、静默数十分钟，
     # 一旦进程被 kill，"中间无输出"就无从判断跑到哪、指标是否正常。心跳给可观测的运行轨迹。
     prog_every = max(1, args.max_steps // 20)
@@ -355,6 +365,20 @@ def rollout(env, act_fn, args, rng, act_interval=1):
                 _rule = str(_ev.get('rule', 'unknown'))
                 train_safety_rule_counts[ti][_rule] = (
                     train_safety_rule_counts[ti].get(_rule, 0) + 1)
+            _iface_n = np.abs(np.asarray(
+                tr.dynamics.coupler_interface_forces(), dtype=float))
+            if _iface_n.size:
+                train_peak_coupler_n[ti] = max(
+                    train_peak_coupler_n[ti], float(np.max(_iface_n)))
+                train_coupler_viol[ti] += int(np.count_nonzero(
+                    _iface_n > float(env.coupler_force_limit_n)))
+            _bp = np.asarray(tr.dynamics._brake_pressure, dtype=float)
+            if _bp.size:
+                train_bp_front[ti] = float(_bp[0])
+                train_bp_mid[ti] = float(_bp[_bp.size // 2])
+                train_bp_rear[ti] = float(_bp[-1])
+                train_bp_std[ti] = float(np.std(_bp))
+                train_bp_gradient[ti] = float(_bp[0] - _bp[-1])
         if decompose:
             ab_steps += int(info['ab_source_count'] > 0)
             # 【2026-11-12 V16】上述口径是"**任一**机车施加即计 1"（并集），单列常施加就报 100%。
@@ -439,6 +463,13 @@ def rollout(env, act_fn, args, rng, act_interval=1):
             int(c.get('etcs_permitted', 0)) for c in train_safety_rule_counts],
         'safety_total_by_train': [int(sum(c.values()))
                                   for c in train_safety_rule_counts],
+        'train_peak_coupler_kN': (train_peak_coupler_n / 1000.0).tolist(),
+        'train_coupler_viol': train_coupler_viol.tolist(),
+        'train_brake_pressure_front': train_bp_front.tolist(),
+        'train_brake_pressure_mid': train_bp_mid.tolist(),
+        'train_brake_pressure_rear': train_bp_rear.tolist(),
+        'train_brake_pressure_std': train_bp_std.tolist(),
+        'train_pressure_gradient_front_rear': train_bp_gradient.tolist(),
         'band_rate': band / max(n, 1),
         'final_speed_kmh': final_v * 3.6,
     }
@@ -493,6 +524,14 @@ def eval_method(name, mode, act_fn, args, act_interval=1):
                   f"{[round(float(x),1) for x in agg['train_speed_max_kmh']]}"
                   f" | 逐列越线车·步 "
                   f"{[int(x) for x in agg.get('train_overspeed_car_steps', [])]}")
+    if agg.get('train_peak_coupler_kN'):
+        extra += (f" | 逐列peak "
+                  f"{[round(float(x),1) for x in agg['train_peak_coupler_kN']]}"
+                  f" | 逐列超限 "
+                  f"{[int(x) for x in agg.get('train_coupler_viol', [])]}")
+    if agg.get('train_pressure_gradient_front_rear'):
+        extra += (f" | 逐列缸压梯度 "
+                  f"{[round(float(x),2) for x in agg['train_pressure_gradient_front_rear']]}")
     # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距。逐项守卫，
     # 单列编组无该组键（不产出）时不打印，避免 KeyError 连累整行不落盘（LRN-20261001-013 同族）。
     # 追尾不打印（既定决策：移出主表，评估入口以 assert rear_end_steps == 0 守卫）。
