@@ -300,6 +300,12 @@ def rollout(env, act_fn, args, rng, act_interval=1):
           flush=True)
     ep_r = peak = ab_steps = ed_sum = band = viol = safety = 0.0
     ab_agent = None   # 逐机车 AB 施加步数（V16：与并集口径 ab_steps 并列输出，不替代）
+    # 【W4-v3 2026-11-15】逐机车 ED 极值与非正步数：直接证明 ED 是否真正到 0。
+    # 旧映射只报 mean_ed 时，结构性下限（如 0.143）会被均值掩盖；这里补极值与非正占比。
+    # 注意：decompose 的 ED 通道可能被协同偏置注入为负（牵引），因此“非正”≠“ED 制动”。
+    ed_agent_min = None
+    ed_agent_max = None
+    ed_agent_nonpositive_steps = None
     prev_viol = prev_safety = 0.0  # env episode 级累计计数器的上一轮快照，用于取增量
     n = 0
     decompose = bool(env.decompose)
@@ -336,6 +342,17 @@ def rollout(env, act_fn, args, rng, act_interval=1):
                 if ab_agent is None or ab_agent.shape[0] != _on.shape[0]:
                     ab_agent = np.zeros(_on.shape[0], dtype=np.int64)
                 ab_agent += _on.astype(np.int64)
+                _ed_agent = _ea_on[:, 0]
+                if (ed_agent_min is None
+                        or ed_agent_min.shape[0] != _ed_agent.shape[0]):
+                    ed_agent_min = np.full(_ed_agent.shape[0], np.inf)
+                    ed_agent_max = np.full(_ed_agent.shape[0], -np.inf)
+                    ed_agent_nonpositive_steps = np.zeros(
+                        _ed_agent.shape[0], dtype=np.int64)
+                ed_agent_min = np.minimum(ed_agent_min, _ed_agent)
+                ed_agent_max = np.maximum(ed_agent_max, _ed_agent)
+                ed_agent_nonpositive_steps += (
+                    _ed_agent <= 1e-6).astype(np.int64)
             ed_sum += float(np.mean(info['executed_actions'][:, 0]))
         else:
             # 旧架构：负 throttle=制动，粗略计"空气制动参与步"（AB/ED 拆分在动力学内部）
@@ -374,6 +391,17 @@ def rollout(env, act_fn, args, rng, act_interval=1):
                            if ab_agent is not None else []),
         'ab_steps_max_agent': (int(ab_agent.max()) if ab_agent is not None else 0),
         'mean_ed': ed_sum / max(n, 1),
+        # 【W4-v3】ED 极值/非正步数：验证 ED 是否真正到 0，不只看 mean_ed。
+        'ed_agent_min': (ed_agent_min.tolist() if ed_agent_min is not None
+                         else []),
+        'ed_agent_max': (ed_agent_max.tolist() if ed_agent_max is not None
+                         else []),
+        'ed_agent_nonpositive_steps': (
+            ed_agent_nonpositive_steps.tolist()
+            if ed_agent_nonpositive_steps is not None else []),
+        'ed_agent_nonpositive_ratio': ([float(x) / max(n, 1)
+                                        for x in ed_agent_nonpositive_steps.tolist()]
+                                       if ed_agent_nonpositive_steps is not None else []),
         'band_rate': band / max(n, 1),
         'final_speed_kmh': final_v * 3.6,
     }
@@ -417,6 +445,12 @@ def eval_method(name, mode, act_fn, args, act_interval=1):
                 row[k] = v
         agg['per_seed'].append(row)
     extra = ''
+    # 【W4-v3】ED 极值/非正步数可视化：mean_ed 无法识别“名义惰行”结构性下限。
+    if agg.get('ed_agent_min'):
+        _ed_min = min(float(x) for x in agg['ed_agent_min'])
+        _ed_nonpositive_ratio = max(float(x)
+                                    for x in agg.get('ed_agent_nonpositive_ratio', []))
+        extra += f" | EDmin {_ed_min:.3f} | ED≤0率 {_ed_nonpositive_ratio:.1%}"
     # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距。逐项守卫，
     # 单列编组无该组键（不产出）时不打印，避免 KeyError 连累整行不落盘（LRN-20261001-013 同族）。
     # 追尾不打印（既定决策：移出主表，评估入口以 assert rear_end_steps == 0 守卫）。

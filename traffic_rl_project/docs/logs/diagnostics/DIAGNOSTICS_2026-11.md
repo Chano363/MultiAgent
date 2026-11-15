@@ -2486,3 +2486,11 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **根因升级（实现层新证据）**：`ed_idle` 映射为 `0.77·(1+r)`，只有 `r=-1` 才给 ED=0；而策略 `tanh` 原始动作最小值仅 **−0.814**，执行 ED 下限被结构性地卡在 **0.143**。⇒ **「ED 可达 0」只是名义可达，有限动作永远到不了 0**；W4-v2 的 `ed_idle` 并没有真正关闭 V16 缺口①，只是把下限从 0.27 降到 0.143。这解释了为何 band 仍崩、且不是"开关没打开"。
 - **当前判决**：预设分支"band 仍崩"成立；**W4-v2 失败，不追加集数、不换方向**。下一步实现层修复应让 ED=0 在有限动作内可达（重标定 ED 通道阈值/分段映射），并单独消除列 2 的 AB 长时施加；修复后必须重新训练验证，不能声称本轮通过。
 - **留痕**：训练日志 `outputs/logs/formation_10kt_1plus108/w4v2_edidle_20261114.log`；探针 `outputs/logs/diagnostics/w4v2_edidle_probe12k_20261114.log`、`outputs/results/diagnostics/w4v2_edidle_probe12k_20261114.json`。
+
+### 诊断-2026-11-15-W4-v3 零可达 12k 活性探针
+
+- **目的**：验证 `ed_idle_zero_action=-0.8` 是否让 ED 通道在有限动作内真正到 0；**只作活性校验，不作峰值/安全判据**。
+- **方法**：W4-v2 ep60 ckpt + `_probe_loco_notch_v8_edidle_zero_vmax75.yaml`，`evaluate_decompose.py --max_steps 12000 --n_seed 1`。
+- **结果**：`meanED 0.294`、`ED≤0率 93.1%`、`EDmin -0.500`（负值来自协同偏置注入牵引，不是 ED 制动）；末速 **51.3 km/h**、`gap_min 128.7 m`、band **78.76%**、peak **1 534 kN**、ATP 671 326。
+- **判读**：阈值机制生效，通道不再卡在 0.143；但策略尚未学会稳定使用惰行，band 仍低于 90%。**未开重训；是否从 ep40 重训 20 集需 Owner 确认**。
+- **留痕**：`outputs/logs/formation_10kt_1plus108/w4v3_zero12k_20261115.log`；`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_w4v3_zero12k.json`；配置 `configs/experiments/_probe_loco_notch_v8_edidle_zero_vmax75.yaml`。
