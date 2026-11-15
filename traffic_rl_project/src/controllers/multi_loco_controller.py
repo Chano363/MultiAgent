@@ -289,6 +289,11 @@ class MultiLocoController:
         # 依据：W4-v2 12k 探针 `raw_ed` 最小 −0.814 ⇒ 旧映射结构性下限 0.143。
         # 阈值必须由配置给出（如 −0.8），不得在代码里拍脑袋；默认关 = 零回归。
         self.ed_idle_zero_action = None
+        # 【W4-v4 / 2026-11-15】近上限 AB 充风门旁路（默认关 = 零回归）。
+        # 语义：速度贴近有效上限且 RL 想施加 AB 时，绕过 222 s 充风门控。
+        # 依据：W4-v3 12k 归因显示 ATP 过触发主体是规则 C 逐车超速；若门控
+        #       在近上限拒绝新增 AB，会让 RL 事后无制动可用。
+        self.ab_high_speed_bypass_gate = False
         # AB 充风/保持门控状态（**仅在 get_action_decomposed 内维护**；
         # get_action_cyclic_braking 保持无状态）。
         # 【2026-10-14 朔黄运营口径标定（表3「制动缓解位置」，全默认关=旧行为，编队主线零回归）】
@@ -1201,7 +1206,11 @@ class MultiLocoController:
                 if ab != self._ab_notch_state[k] and elapsed < self.ab_notch_hold_s:
                     ab = self._ab_notch_state[k]
             # 充风/保持门控：新增源被拒 → 本步不发（已建立的源沿用，不撤销）
-            if ab < 0 and not self._ab_gate(k, True):
+            # 【W4-v4】近上限旁路：贴近 vmax_eff 时不再让 222 s 充风门拦掉新 AB 源。
+            _near_upper_limit = (
+                self.ab_high_speed_bypass_gate
+                and vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS)
+            if ab < 0 and not _near_upper_limit and not self._ab_gate(k, True):
                 ab = 0.0
             # 【V17】低速强制缓解兜底：速度 ≤ v_min + margin 时强制缓解（RL 无权关闭）。
             # 放在门控之后 —— 门控只拦"新增"，这里连"已建立的源"一起释放，

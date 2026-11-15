@@ -594,6 +594,8 @@ class TrainFleetEnv:
                         raise ValueError(
                             'ed_idle_zero_action must lie in (-1, 0); '
                             f'got {_eiz}')
+                # 【W4-v4】近上限 AB 充风门旁路：默认关 = 零回归。
+                _ab_bypass = bool(config.get('ab_high_speed_bypass_gate', False))
                 for _c in self.multi_loco_controllers:
                     _c.ed_zero_point = _zp
                     _c.ab_notch_hold_s = _hs
@@ -601,6 +603,7 @@ class TrainFleetEnv:
                     _c.ab_low_speed_margin_mps = _lsm
                     _c.ed_idle_action = _eia
                     _c.ed_idle_zero_action = _eiz
+                    _c.ab_high_speed_bypass_gate = _ab_bypass
             self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
         else:
             self.num_agents = self.num_trains
