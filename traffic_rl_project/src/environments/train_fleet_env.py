@@ -90,6 +90,14 @@ COUPLER_OVER_W = 60.0
 # 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -120。
 COUPLER_OVER_CAP = 2.0
 
+# 【W4-v11 2026-11-16】纵向制动缸压梯度罚（默认关 = 零回归）。
+# 归因：v4 12k 显示陡梯度态只占 6–8% 步数却贡献约 2/3 车钩超限；
+#       前部缸压≈1、尾部≈0.2 时 peak 均值 790/808 kN。
+# 形态：grad = max(front, mid, rear?)? 先用 front−rear 的线性有界罚；
+#       threshold=0.6 起罚，CAP=2.0 限幅，避免无界爆炸（沿用 coupler_over 教训）。
+PRESSURE_GRAD_THRESHOLD = 0.6
+PRESSURE_GRAD_CAP = 2.0
+
 # 【ADR-026 编队间距：ATP 对齐两段式】
 # 目标：车钩力不破线的前提下，"贴近 ATP 制动安全底线"跑——间距尽量小（高效）但不触发 ATP。
 #   d_safe(t) = ETCS 制动距离（后列须在追上前列尾前降到前列当前速度）——**与 ATP 判据同源**
@@ -223,6 +231,10 @@ class TrainFleetEnv:
         # 长大下坡难免瞬时越线，罚太狠会诱导"宁可少制动"。
         over_w_default = 10.0 if self.speed_band_shape in ('ramp', 'ref') else 5.0
         self.speed_over_w = float(config.get('speed_over_w', over_w_default))
+        # 【W4-v11】纵向制动缸压梯度罚权重（默认 0 = 零回归）。
+        # 归因依据见 PRESSURE_GRAD_THRESHOLD；该罚只作用于梯度超阈值步。
+        self.pressure_gradient_penalty_w = float(
+            config.get('pressure_gradient_penalty_w', 0.0))
         # 【参考速度跟踪 2026-11-08】'ref' 形态参数（缺省 = 标定值；YAML 只写表路径即可）
         self.speed_ref_band_mps = float(
             config.get('speed_ref_band_kmh', SPEED_REF_BAND_KMH)) / 3.6
@@ -1753,6 +1765,20 @@ class TrainFleetEnv:
                 # 【ADR-043 删】追尾硬罚（-10, gap<5m）与趋势罚（-0.4·shrink）已删除：
                 # 危险项 -60·õ² 已不封顶、量级远大于二者；文献对碰撞的普遍处理 = 大罚 + 终止。
 
+        # 【W4-v11】纵向制动缸压梯度罚（默认关 = 零回归）。
+        # 归因：v4 12k 中陡梯度态占 6–8% 步数却贡献约 2/3 超限。此处给 RL 一个
+        # 可优化的压力梯度通道，避免只靠 AB 拓扑/减压量做全局扫调。
+        pressure_gradient_penalty = 0.0
+        if self.pressure_gradient_penalty_w > 0.0:
+            for tr in self.trains:
+                bp = np.asarray(tr.dynamics._brake_pressure, dtype=float)
+                if bp.size < 2:
+                    continue
+                grad = float(bp[0] - bp[-1])
+                over_grad = max(0.0, grad - PRESSURE_GRAD_THRESHOLD)
+                pressure_gradient_penalty -= self.pressure_gradient_penalty_w * min(
+                    over_grad, PRESSURE_GRAD_CAP)
+
         # 电空分工塑形（本架构核心）。诊断-2026-09-25：原 `ab_cost=0.0` 使 AB 在奖励上
         # 完全中性、且在触发舒适/车钩项时被隐式扣分 → seed0 退化成"纯 ED 蠕行"
         # （完整 53km 评估 ab_steps=0、pe41248kN 超限、band 6%、末速18km/h 失速）。
@@ -1786,6 +1812,7 @@ class TrainFleetEnv:
             + gap_danger_penalty
             + coupler_peak_term
             + coupler_over_term
+            + pressure_gradient_penalty
             + ab_cost
             + ed_cost
         )
@@ -1798,6 +1825,7 @@ class TrainFleetEnv:
                 'gap_danger': gap_danger_penalty,
                 'coupler_peak': coupler_peak_term,
                 'coupler_over': coupler_over_term,
+                'pressure_gradient': pressure_gradient_penalty,
                 'ab_cost': ab_cost,
                 'ed_cost': ed_cost,
                 'total': reward,

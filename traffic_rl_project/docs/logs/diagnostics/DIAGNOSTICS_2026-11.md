@@ -2612,6 +2612,13 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **结论**：降低 SERVICE 减压量不是压压力梯度的可行单变量；继续全局扫调减压量收益低。
 - **留痕**：`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_w4v10_svc50_12k.json`；配置 `configs/experiments/_probe_loco_notch_v15_svc50_vmax75.yaml`。
 
+### 诊断-2026-11-16-W4-v11：压力梯度奖励已实现并启动重训
+
+- **机制（v16 = v9 + `pressure_gradient_penalty_w=20`）**：对每列 `max(0, front_brake_pressure − rear_brake_pressure − 0.6)` 线性罚，CAP 2.0；权重 0 = 零回归。目的：把“前高/尾低”的陡梯度显式交给 RL 优化，而不是继续扫 AB 档位/间隔/拓扑/减压量。
+- **代码与配置**：`train_fleet_env.py` 新增 `PRESSURE_GRAD_THRESHOLD/CAP` 与 `pressure_gradient_penalty_w`；`reward_term_log` 增加 `pressure_gradient` 分量。配置 `_probe_loco_notch_v16_pressgrad_vmax75.yaml`。10 步冒烟通过。
+- **训练**：2026-11-16 01:35 从 W4 ep40 热启动 → 60 集；完成标记 `outputs/logs/formation_10kt_1plus108/W4V11.DONE`。ep60 出数后按三判据判读，不沿用 12k 探针结论。
+- **预期判读**：若 peak/超限下降且 ATP/band 不恶化，则压力梯度罚有效；若仅搬移代价，则停止该方向。
+
 ### 诊断-2026-11-15-W4-v4 12k 逐列车钩归因：列 1 为主因
 
 - **口径**：v9（近上限 AB 门旁路）+ W4-v3 ep60 ckpt，12k 步确定性诊断，**只作归因，不作判据**。
