@@ -2463,3 +2463,26 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **W4-v2 启动（09:19）**：`_probe_loco_notch_v7_edidle_vmax75.yaml` = v6（75 口径）+ `ed_idle_action: true`，从 ep40 resume-weights-only → 60 集（s2v5 先例：机制变更允许热启动）。20 集 ≈ 7.3 h，预计 16:40 训完、17:10 出 ep60 确定性评估。判据三条不变。
 - **MPC v2 数字仍不可用作基线**（01:35 完成 EXIT=0）：peak 1296.2、末速 70.9、min_gap_head 983（< 期望 1424.7）、**只跑 7395 步提前终止（终止原因未明）**、**gap_lead 前 ~1300 s 为 NaN**（安全包络早期失效嫌疑）、**fc_peak 1296 ≠ 0（车钩已置零却报非零力——fc 语义未核）**、后段 v=71.9 vs v_ref=56.7（满 ED 0.8 + 全 AB 仍压不住 ⇒ ED→力映射标度存疑）。四项实现层问题待修后再出正式 MPC 基线。v1 单位 bug（ref 表误乘 3.6）已修，v1 产物旁有 INVALID_V1_UNIT_BUG.txt。
 - **留痕**：W4-v1 `eval_decompose_..._w4_det_ep40.json`；s2v5 `eval_decompose_..._s2v5_det.json`；MPC v2 `outputs/results/mpc_baseline/tube_v2_20261114/`；W4-v2 日志 `outputs/logs/formation_10kt_1plus108/w4v2_edidle_20261114.log`。
+
+### 诊断-2026-11-14-MPC-v2 四项复核与 v3 实现修复（10:45）
+
+- **先核原始归档再改代码**：v2 `trajectory.npz` 的 7 395 行是 **2 465 决策步 × 3 列**交错展开，不是 7 395 决策步。领航列最后记录位置 49 591.3 m，下一控制步越过 `S_END=49 600 m` 后按主环境“领航列到剖面末端即截断”协议正常结束；第三列末位置 45 779.5 m 被旧报表误用于 `full_route`，才有“异常提前终止”的假象。已修正 `steps`、领航列末速与 `full_route` 口径，并新增三列末位置/末速度字段。
+- **`gap_lead` 没有跟随列 NaN 故障**：2 465 个 NaN 全部属于无前车的领航列；跟随列 1/2 各 2 465 个值从首步起全部有限。交接文档的“前 1 300 s 安全包络失效嫌疑”不成立，包络公式不改。
+- **车钩指标没有零阻抗矛盾**：v2 `result.json` 的 metadata 明写 `coupler=mt2`，所以 peak 1 296.2 kN 是 MT-2 物理诊断值，不是零车钩结果。新增零阻抗实际积分回归测试，`coupler_interface_forces()` 严格全零；结果新增 `coupler_reporting`，明确 zero/MT-2 均不得写成 MPC 车钩对比 claim（ADR-033）。
+- **真正导致制动异常的两处实现 bug**：① `cycle_brake` 读取不存在的 `dyn.t`，计时恒为 0，并把 zba 的“缓解后至少充风 45 s”误写成“施加超过 45 s 即缓解”；已改为显式传入控制时刻，恢复速度滞环、低速强制缓解和缓解后充风门控。② 主循环没有按 zba 在每步令 `xbar=x0`，导致 tube 反馈把完整状态误差额外叠加到最优输入（v2 出现 û=-5.39，超出求解器归一化输入下界）；已恢复每步重置。两处均只修适配层，不改求解器、物理或研究判据。
+- **首轮 600 步冒烟揭示剩余执行缺口**：循环状态机修复后，v3 短窗（`outputs/smoke/mpc_tube_v3cycle_zero600_20261114/`，285.8 s，三件齐）领航列末速仍达 **82.0 km/h**。轨迹显示 AB 已持续施加，但 ED 仅 0.03、牵引手柄非零：Tube MPC 的解在“机车-货车组速度差”耦合项下可返回近零/正输入，而式 11/13 前馈又抵消了 AB 与坡度分力，导致超速时反而补牵引。这不是 ED→力映射标度错误。
+- **修法（执行层保护）**：新增 `speed_guard`，速度高于 `v_ref+0.5 m/s` 时强制零牵引、ED=0.8，独立于 MPC 解；保留循环 AB。另把 `D_DES` 从旧口径 1 434.5 改为 **1 424.7 m**（车长 1 296 + 75 口径 `d_eff` 128.7），消除与主环境 reset 的 9.8 m 偏差。
+- **报表口径**：删除名不副实的 `overspeed_steps_atp`（原值实为循环 AB 施加列车·步）；新增 `band_rate`、`gap_err_mean_abs_m`、`gap_err_peak_abs_m`、`min_gap_m`、`ab_agent_ratio`、`mean_ed`、`cycle_brake_train_steps`。`--atp` 此前是无效开关，现显式拒绝，ATP 指标标为不可用而非伪造 0。
+- **验证状态**：v4 速度保护 600 步冒烟归档 `outputs/smoke/mpc_tube_v4guard_zero600_20261114/`：末速 **70.03 km/h**、band **100%**、min head gap **1 422.13 m**、min 尾端净空 **128.69 m（= d_eff）**、零车钩力严格 0，耗时 157.7 s。**短窗只作活性校验**。
+- **⛔ 求解器静默失败（全程跑前新增拦截）**：对 30 个典型 `(v_err, Δv_loco-group)` 网格抽样，SLSQP 零初值失败 **18/30（60%）**，主因 `Positive directional derivative for linesearch`；原 `TubeMPC.solve` 不检查 `res.success`，失败时仍返回 `res.x`，等于把数值失败当控制律。已加同一代价/约束下的确定性多起点（零、上一拍、±0.5、−1.5、+1.0），并暴露 `last_solve_success` / `last_solve_attempts`；但极端状态仍失败（抽样 30 态仅 12 成功），故中途终止 r3、先跑 600 步统计**实际轨迹**求解成功率。
+- **零车钩的物理冲突（Owner 已拍板改 MT-2）**：v4 短窗中 `Δv_loco-group` 最低达 **−23.6 m/s**——零阻抗后货车组不再受机车约束，列车在物理上解体；完整 600 步统计的 **SLSQP 成功率仅 2.89%**（平均 5.86 次多起点/步，`solve_ms_mean` 49 ms）。⇒ 零阻抗只能作"物理关闭不可行"诊断，不能进主表。**Owner 2026-11-14 17:37 选择 MT-2 被控对象**：三列保持车钩连接以维持编组与速度差语义，MPC 仍不建模/不约束车钩力，只在写作上关闭车钩主张；ADR-042 措辞需相应记为"控制器侧关闭车钩模型"。
+- **正式基线（MT-2，2 467 决策步跑满全程）**：**peak 1 384.6 kN / band 96.31% / 最小实际净空 −309.2 m（789 个穿透步）/ 头距误差均值 140.1 m、峰值 359.0 m / 末速 59.4 km/h / 求解成功率 100%（1.04 次/步，6.17 ms/步）**。归档 `outputs/results/mpc_baseline/tube_v3_mt2_20261114_r2/`。这是对照行、不是通过：peak 高于规则基线 1 294、band 低于 100%，且 MT-2 物理无列车碰撞模型，负净空只能读作编队几何失效，不能当物理碰撞仿真。前次 `tube_v3_mt2_20261114/` 数值相同但 `full_route` 因末子步记录时序误报 false，正式引用只用 `_r2`。
+
+### 诊断-2026-11-14-W4-v2 ep60 失败：ed_idle 生效但策略仍崩
+
+- **训练完成**：60/60，332.2 min，exit 0；训练末段 peak 1 600.7 kN、loss 0.019、gap_min 129 m、vavg 72.1 km/h。
+- **ep60 确定性评估（31500 步，`eval_decompose_decompose_m1_ms31500_w4v2_det_ep60.json`）**：peak **2 207 kN**、车钩超限 398 109、ATP **942 402**、band **25.37%**、末速 **0.0**、gap_min **4.2 m**、gap_err 均值 2 625.2 m。**三判据全崩，比 W4-v1 ep40 更差**。
+- **分支检查（ed_idle 是否生效）**：checkpoint `hyperparameters.env_cfg.ed_idle_action=True`、`ed_zero_point=0.77`；评估构造的控制器运行时 `ed_idle_flags=[True, True, True]`。12k 步探针：执行 ED 三列均值 **[0.778, 0.496, 0.176]**、最小值 **[0.424, 0.154, 0.143]**；跟随列 2 在 9 000 步降至 23.2 km/h、10 500 步降至 0.2 km/h，全程 ED 从未到 0。
+- **根因升级（实现层新证据）**：`ed_idle` 映射为 `0.77·(1+r)`，只有 `r=-1` 才给 ED=0；而策略 `tanh` 原始动作最小值仅 **−0.814**，执行 ED 下限被结构性地卡在 **0.143**。⇒ **「ED 可达 0」只是名义可达，有限动作永远到不了 0**；W4-v2 的 `ed_idle` 并没有真正关闭 V16 缺口①，只是把下限从 0.27 降到 0.143。这解释了为何 band 仍崩、且不是"开关没打开"。
+- **当前判决**：预设分支"band 仍崩"成立；**W4-v2 失败，不追加集数、不换方向**。下一步实现层修复应让 ED=0 在有限动作内可达（重标定 ED 通道阈值/分段映射），并单独消除列 2 的 AB 长时施加；修复后必须重新训练验证，不能声称本轮通过。
+- **留痕**：训练日志 `outputs/logs/formation_10kt_1plus108/w4v2_edidle_20261114.log`；探针 `outputs/logs/diagnostics/w4v2_edidle_probe12k_20261114.log`、`outputs/results/diagnostics/w4v2_edidle_probe12k_20261114.json`。
