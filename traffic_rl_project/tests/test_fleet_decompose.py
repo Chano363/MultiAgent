@@ -10,6 +10,7 @@ decompose='loco_ed_ab' 逐机车 RL 智能体模式验证测试（ADR-009.1 换�
 
 import os
 import sys
+from types import SimpleNamespace
 
 import pytest
 import numpy as np
@@ -113,10 +114,74 @@ def test_decompose_default_mode_unchanged():
     obs, _ = env.reset()
     assert env.num_agents == 2 and env.act_dim == 1
     assert obs.shape == (2, 11)
+    obs = None
     actions = np.zeros(2)
     obs2, r, term, trunc, info = env.step(actions)
     assert obs2.shape == (2, 11)
     assert 'ab_source_count' not in info  # 旧模式无电空分工指标
+
+
+def _notch_controller(threshold=None):
+    """构造最小 `loco_notch` 控制器，专注 ED 映射验证。"""
+    ctrl = MultiLocoController(num_vehicles=1, loco_indices=[0])
+    ctrl.ed_zero_point = 0.77
+    ctrl.ed_idle_action = True
+    ctrl.ed_idle_zero_action = threshold
+    return ctrl
+
+
+def _notch_train_env():
+    return SimpleNamespace(
+        dynamics=SimpleNamespace(vel=np.array([60.0 / 3.6])))
+
+
+def test_ed_idle_without_threshold_keeps_v18_floor():
+    """默认（阈值 None）沿用 V18 旧映射，保证旧行为零回归。"""
+    ctrl = _notch_controller(None)
+    out = ctrl.get_action_notch(
+        _notch_train_env(), np.array([[-0.814, 0.0]]))
+    assert out[0, 0] == pytest.approx(0.77 * (1.0 - 0.814))
+
+
+def test_ed_idle_zero_threshold_reaches_zero_at_finite_action():
+    """W4-v3：r=-0.814/-0.8 都必须给 ED=0，避免 tanh 到不了 -1 的结构性下限。"""
+    ctrl = _notch_controller(-0.8)
+    for raw in (-0.814, -0.8):
+        out = ctrl.get_action_notch(
+            _notch_train_env(), np.array([[raw, 0.0]]))
+        assert out[0, 0] == pytest.approx(0.0, abs=1e-12)
+    # 阈值到零点之间保持线性、单调；零点与正半轴语义不变。
+    out_mid = ctrl.get_action_notch(
+        _notch_train_env(), np.array([[-0.4, 0.0]]))
+    assert out_mid[0, 0] == pytest.approx(0.77 * (-0.4 / -0.8))
+    out_zero = ctrl.get_action_notch(
+        _notch_train_env(), np.array([[0.0, 0.0]]))
+    assert out_zero[0, 0] == pytest.approx(0.77)
+    out_pos = ctrl.get_action_notch(
+        _notch_train_env(), np.array([[0.5, 0.0]]))
+    assert out_pos[0, 0] == pytest.approx(0.77 + 0.23 * 0.5)
+
+
+def test_loco_notch_reads_ed_idle_zero_threshold_from_env_cfg():
+    """env 必须把 W4-v3 新阈值透传到控制器，否则映射修复不可复现。"""
+    env = TrainFleetEnv({
+        'num_trains': 1,
+        'consist_preset': '10kt_1plus0',
+        'grade_profile': 'long_downhill',
+        'max_steps': 1,
+        'decompose': 'loco_notch',
+        'ed_idle_action': True,
+        'ed_idle_zero_action': -0.8,
+    })
+    try:
+        env.reset(options={'speed': 65.0 / 3.6})
+        assert env.multi_loco_controllers
+        assert all(c.ed_idle_action for c in env.multi_loco_controllers)
+        assert all(c.ed_idle_zero_action == -0.8
+                   for c in env.multi_loco_controllers)
+    finally:
+        env.close()
+
 
 
 def test_decompose_step_shapes_and_metrics():

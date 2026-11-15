@@ -585,12 +585,22 @@ class TrainFleetEnv:
                 _lsr = bool(config.get('ab_low_speed_release', False))
                 _lsm = float(config.get('ab_low_speed_margin_kmh', 2.0)) / 3.6
                 _eia = bool(config.get('ed_idle_action', False))
+                # 【W4-v3】ED 零可达阈值：None = 沿用 V18 旧映射；(-1,0) 才允许。
+                # W4-v2 实测 tanh 原始动作最小 −0.814，旧映射 ED 下限 0.143。
+                _eiz = config.get('ed_idle_zero_action', None)
+                if _eiz is not None:
+                    _eiz = float(_eiz)
+                    if not (-1.0 < _eiz < 0.0):
+                        raise ValueError(
+                            'ed_idle_zero_action must lie in (-1, 0); '
+                            f'got {_eiz}')
                 for _c in self.multi_loco_controllers:
                     _c.ed_zero_point = _zp
                     _c.ab_notch_hold_s = _hs
                     _c.ab_low_speed_release = _lsr
                     _c.ab_low_speed_margin_mps = _lsm
                     _c.ed_idle_action = _eia
+                    _c.ed_idle_zero_action = _eiz
             self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
         else:
             self.num_agents = self.num_trains

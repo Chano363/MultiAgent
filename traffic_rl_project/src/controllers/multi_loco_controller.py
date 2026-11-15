@@ -283,6 +283,12 @@ class MultiLocoController:
         self.ab_low_speed_margin_mps = 2.0 / 3.6
         # 【V18】ED 惰行通道开关（默认关；开则 rl=−1 → ED=0，见 get_action_notch 注释）
         self.ed_idle_action = False
+        # 【W4-v3 / 2026-11-15】ED 零可达阈值（默认 None = 沿用 V18 旧映射）。
+        # 语义：`ed_idle_action=True` 且该值为 (-1,0) 时，r ≤ 阈值 ⇒ ED=0；
+        #       阈值 < r < 0 线性映射到 [0, zero]；r ≥ 0 不变。
+        # 依据：W4-v2 12k 探针 `raw_ed` 最小 −0.814 ⇒ 旧映射结构性下限 0.143。
+        # 阈值必须由配置给出（如 −0.8），不得在代码里拍脑袋；默认关 = 零回归。
+        self.ed_idle_zero_action = None
         # AB 充风/保持门控状态（**仅在 get_action_decomposed 内维护**；
         # get_action_cyclic_braking 保持无状态）。
         # 【2026-10-14 朔黄运营口径标定（表3「制动缓解位置」，全默认关=旧行为，编队主线零回归）】
@@ -1148,10 +1154,27 @@ class MultiLocoController:
             # 开：非对称映射 rl=−1→0（惰行）/ rl=0→zero（中性点不变）/ rl=+1→1.0，
             #     使速度下限可恢复。依据：杨辉2020 循环制动 = 50 kPa 初制动 + 惰行；
             #     Zhang2024 的 RL 动作同为"电制动档 + AB 档"，无牵引维度。
+            # 【W4-v3 / 2026-11-15】`ed_idle_zero_action` 修"名义惰行"缺口：
+            #     V18 的 `zero·(1+r)` 只有 r=−1 才到 0，而 tanh 有限动作到不了 −1；
+            #     W4-v2 实测 ED 下限 0.143。此阈值让 r ≤ 阈值时真正给 ED=0。
             _r = float(rl[k, 0])
             if self.ed_idle_action:
-                _ed = (self.ed_zero_point * (1.0 + _r) if _r < 0
-                       else self.ed_zero_point + (1.0 - self.ed_zero_point) * _r)
+                if self.ed_idle_zero_action is not None:
+                    _zr = float(self.ed_idle_zero_action)
+                    if not (-1.0 < _zr < 0.0):
+                        raise ValueError(
+                            "ed_idle_zero_action must lie in (-1, 0); "
+                            f"got {_zr}")
+                    if _r <= _zr:
+                        _ed = 0.0
+                    elif _r < 0.0:
+                        _ed = self.ed_zero_point * (_r / _zr)
+                    else:
+                        _ed = (self.ed_zero_point
+                               + (1.0 - self.ed_zero_point) * _r)
+                else:
+                    _ed = (self.ed_zero_point * (1.0 + _r) if _r < 0
+                           else self.ed_zero_point + (1.0 - self.ed_zero_point) * _r)
             else:
                 _ed = self.ed_zero_point + 0.5 * _r
             final[k, 0] = float(np.clip(_ed, 0.0, 1.0))
