@@ -183,6 +183,37 @@ def test_loco_notch_reads_ed_idle_zero_threshold_from_env_cfg():
         env.close()
 
 
+def _near_limit_notch_controller(bypass_gate: bool):
+    """构造贴近上限、充风门未就绪的最小 W4-v4 测试环境。"""
+    ctrl = _notch_controller(-0.8)
+    ctrl.ab_high_speed_bypass_gate = bypass_gate
+    ctrl._ab_step = 1
+    ctrl._ab_last_release_step = [0]      # 充风时间仅 0.1s < 222s ⇒ 默认门拒
+    return ctrl
+
+
+def test_near_limit_ab_gate_blocks_new_source_by_default():
+    """默认关闭时，近上限的新增 AB 源仍被 222s 充风门拒绝（零回归）。"""
+    ctrl = _near_limit_notch_controller(False)
+    env = SimpleNamespace(dynamics=SimpleNamespace(vel=np.array([20.8])))
+    out = ctrl.get_action_notch(
+        env, np.array([[0.0, 0.0]]), v_max=75.0 / 3.6)
+    assert out[0, 0] >= 0.0
+    assert out[0, 1] == 0.0
+    assert ctrl.ab_refill_veto_count == 1
+
+
+def test_near_limit_ab_gate_bypass_allows_service_brake():
+    """W4-v4：速度贴近上限时允许绕过充风门发 SERVICE，压规则 C 超速。"""
+    ctrl = _near_limit_notch_controller(True)
+    env = SimpleNamespace(dynamics=SimpleNamespace(vel=np.array([20.8])))
+    out = ctrl.get_action_notch(
+        env, np.array([[0.0, 0.0]]), v_max=75.0 / 3.6)
+    assert out[0, 0] >= 0.0
+    assert out[0, 1] == pytest.approx(-0.4)
+    assert ctrl.ab_refill_veto_count == 0
+
+
 
 def test_decompose_step_shapes_and_metrics():
     """decompose step：(2,2) 动作推进，info 携带电空分工诊断指标。"""
