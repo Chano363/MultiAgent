@@ -316,6 +316,14 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     gap_min_over_ep = float('inf')
     rear_end_steps = 0
     actions = None
+    # 【W4-v3 2026-11-15】逐列超速/安全事件拆解：定位 ATP 过触发来自哪一列。
+    # `safety_events` 只报总数，无法区分“哪一列超速”“是规则 C 还是 ETCS”。
+    n_trains = int(getattr(env, 'num_trains', 1))
+    train_speed_min_kmh = np.full(n_trains, np.inf)
+    train_speed_max_kmh = np.full(n_trains, -np.inf)
+    train_speed_sum_kmh = np.zeros(n_trains)
+    train_overspeed_car_steps = np.zeros(n_trains, dtype=np.int64)
+    train_safety_rule_counts = [dict() for _ in range(n_trains)]
     # 【2026-10-08 日志可见性】约每 5% 打一条进度心跳。单回合可达 36000 步、静默数十分钟，
     # 一旦进程被 kill，"中间无输出"就无从判断跑到哪、指标是否正常。心跳给可观测的运行轨迹。
     prog_every = max(1, args.max_steps // 20)
@@ -331,6 +339,22 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         prev_viol = info['coupler_limit_violations']
         safety += info.get('safety_events', 0) - prev_safety
         prev_safety = info.get('safety_events', 0)
+        # 【W4-v3】逐列采集速度极值、越线车·步、安全事件规则分布。
+        # 这里的 `overspeed` 是安全层规则 C 的逐车事件；`etcs_*` 是前瞻 ATP 事件。
+        for ti, tr in enumerate(getattr(env, 'trains', [])):
+            _vel_kmh = np.asarray(tr.dynamics.vel, dtype=float) * 3.6
+            train_speed_min_kmh[ti] = min(train_speed_min_kmh[ti],
+                                           float(np.min(_vel_kmh)))
+            train_speed_max_kmh[ti] = max(train_speed_max_kmh[ti],
+                                          float(np.max(_vel_kmh)))
+            train_speed_sum_kmh[ti] += float(np.mean(_vel_kmh))
+            _v_line_mps = float(env._line_vmax_for(ti))
+            train_overspeed_car_steps[ti] += int(
+                np.count_nonzero(tr.dynamics.vel > _v_line_mps))
+            for _ev in getattr(tr.safety, 'last_events', []):
+                _rule = str(_ev.get('rule', 'unknown'))
+                train_safety_rule_counts[ti][_rule] = (
+                    train_safety_rule_counts[ti].get(_rule, 0) + 1)
         if decompose:
             ab_steps += int(info['ab_source_count'] > 0)
             # 【2026-11-12 V16】上述口径是"**任一**机车施加即计 1"（并集），单列常施加就报 100%。
@@ -402,6 +426,19 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         'ed_agent_nonpositive_ratio': ([float(x) / max(n, 1)
                                         for x in ed_agent_nonpositive_steps.tolist()]
                                        if ed_agent_nonpositive_steps is not None else []),
+        # 【W4-v3】逐列速度/越线/安全事件拆解：定位 ATP 过触发的来源列与规则。
+        'train_speed_min_kmh': train_speed_min_kmh.tolist(),
+        'train_speed_max_kmh': train_speed_max_kmh.tolist(),
+        'train_speed_mean_kmh': (train_speed_sum_kmh / max(n, 1)).tolist(),
+        'train_overspeed_car_steps': train_overspeed_car_steps.tolist(),
+        'safety_overspeed_by_train': [
+            int(c.get('overspeed', 0)) for c in train_safety_rule_counts],
+        'safety_etcs_ebi_by_train': [
+            int(c.get('etcs_ebi', 0)) for c in train_safety_rule_counts],
+        'safety_etcs_permitted_by_train': [
+            int(c.get('etcs_permitted', 0)) for c in train_safety_rule_counts],
+        'safety_total_by_train': [int(sum(c.values()))
+                                  for c in train_safety_rule_counts],
         'band_rate': band / max(n, 1),
         'final_speed_kmh': final_v * 3.6,
     }
@@ -451,6 +488,11 @@ def eval_method(name, mode, act_fn, args, act_interval=1):
         _ed_nonpositive_ratio = max(float(x)
                                     for x in agg.get('ed_agent_nonpositive_ratio', []))
         extra += f" | EDmin {_ed_min:.3f} | ED≤0率 {_ed_nonpositive_ratio:.1%}"
+    if agg.get('train_speed_max_kmh'):
+        extra += (f" | 逐列vmax "
+                  f"{[round(float(x),1) for x in agg['train_speed_max_kmh']]}"
+                  f" | 逐列越线车·步 "
+                  f"{[int(x) for x in agg.get('train_overspeed_car_steps', [])]}")
     # 【2026-10-02】列距（编队底线）：均值/峰值绝对误差 + 最小实际列距。逐项守卫，
     # 单列编组无该组键（不产出）时不打印，避免 KeyError 连累整行不落盘（LRN-20261001-013 同族）。
     # 追尾不打印（既定决策：移出主表，评估入口以 assert rear_end_steps == 0 守卫）。

@@ -2502,3 +2502,14 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **ED 证据**：`meanED 0.325`；逐列 ED≤0 占比 **[0%, 39.1%, 72.2%]**，列 2 已大量进入零/牵引注入区；列 0 始终 >0。说明阈值机制生效，但策略把惰行/牵引注入和 AB 协同还没学成低 ATP 策略。
 - **判决**：W4-v3 **三判据未达**（peak>1200、ATP>31 094、band<90%）；相比 W4-v2 是**方向性改善**，不是通过。下一步按结果趋势修 ED/AB 协同与 ATP 过触发，不改判据、不转方向。
 - **留痕**：`outputs/logs/formation_10kt_1plus108/w4v3_edidlezero_20261115_resume58.log`；`outputs/results/decompose/eval_decompose_decompose_m1_ms31500_w4v3_det_ep60.json`；`outputs/logs/formation_10kt_1plus108/W4V3.DONE`。
+
+### 诊断-2026-11-15-W4-v3 12k 逐列归因：ATP 过触发 = 全列规则 C 超速
+
+- **口径**：W4-v3 ep60 ckpt + v8 映射，12k 步确定性诊断，**只作归因，不作判据**。
+- **总体**：peak 1327 kN、band 80.73%、ATP 856 510、车钩超限 11 163、末速 61.6。
+- **逐列速度**：max **[76.19, 77.22, 77.93] km/h**；mean [70.54, 70.32, 70.16]；min [58.63, 55.42, 52.34]。
+- **逐列越线车·步**：**[290 745, 274 302, 287 891]**，几乎等于 `safety_overspeed_by_train` [290 745, 274 303, 287 892]。
+- **安全事件分解**：规则 C `overspeed` 合计 **852 940**；ETCS SBI/EBI 合计 **2 664**（列 0 为 0）。⇒ **ATP 过触发的主体不是前瞻 ETCS，而是三列全列轻微越 75 km/h 的规则 C 事件**。
+- **ED/AB**：meanED 0.420；ED≤0 占比 [0%, 29.7%, 62.2%]；AB 逐列占比 [18.25%, 3.32%, 2.74%]。列 2 惰行/牵引注入最多，但三列越线量接近 ⇒ 不能只归因 follower 惰行。
+- **下一步方向**：先做“近上限防惰行/强制可用制动”的单变量探针，而不是提高 ATP 计数口径或改判据。
+- **留痕**：`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_traindiag12k.json`。
