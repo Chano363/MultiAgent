@@ -123,6 +123,9 @@ class TrainFleetEnv:
     # 【等速冻结消除 2026-09-09】三列等速时 coordination_adj 追的偏置无累积 → 间距冻结在
     # ~1300m。chase：follower 落后超前区时把缓解线抬到"仅比 lead 快一点"持续缩距。
     LEAN_CHASE_DELTA_MPS = 0.8
+    # 【W4-v6 / 2026-11-15】近上限牵引注入守卫：与 AB 抑制裕量同口径（0.5 m/s）。
+    # 目的：列 1/2 近上限不再注入牵引，避免“追距”直接推高规则 C 越线车·步。
+    TRACTION_NEAR_LIMIT_MARGIN_MPS = 0.5
     LEAN_CHASE_DEADBAND_M = 25.0
 
     # 【相对列距锚定 2026-09-10，ADR-014 方向1】绝对速度带一致在 53km 多坡段物理不可达
@@ -335,6 +338,9 @@ class TrainFleetEnv:
         self.conv_share_gain = float(config.get('conv_share_gain', 0.20))
         self.conv_share_max = float(config.get('conv_share_max', 0.30))
         self.conv_share_lead_share = float(config.get('conv_share_lead_share', 0.50))
+        # 【W4-v6】近上限牵引注入守卫（默认关 = 零回归）：列 1/2 近上限不再注入牵引。
+        self.traction_near_limit_guard = bool(
+            config.get('traction_near_limit_guard', False))
         # 【X 组 2026-10-16】ED-AB 波到达协同窗（默认 0.0/1.0 = 关，零回归）：
         # 升级边沿后窗内 ED × scale，尾波到齐前头中不猛减速（消 R 峰值的速度反转）
         self.ed_upgrade_ramp_s = float(config.get('ed_upgrade_ramp_s', 0.0))
@@ -1547,7 +1553,13 @@ class TrainFleetEnv:
             # 【A1b 带内追逐】协调偏置的正 traction 注入 decompose 的 ed 通道（负 ed=牵引）：
             # 仅当本步规则在"带内非制动段"（_cyclic_braking==False）且不在电梯制动中
             # 才注入——制动/ED 段仍以安全为准，避免"边追边制"冲突。
-            if ti > 0 and coordination_traction > 0 and not ctrl._cyclic_braking:
+            # 【W4-v6】近上限守卫：本列任一车贴近/越过线路限速时不再注入牵引。
+            _traction_allowed = (
+                not self.traction_near_limit_guard
+                or float(np.max(tr.dynamics.vel))
+                < self._line_vmax_for(ti) - self.TRACTION_NEAR_LIMIT_MARGIN_MPS)
+            if (ti > 0 and coordination_traction > 0 and _traction_allowed
+                    and not ctrl._cyclic_braking):
                 for k in range(final_edab.shape[0]):
                     if final_edab[k, 0] <= 1e-9:  # 本机车未在 ED 制动
                         final_edab[k, 0] = -float(coordination_traction)
