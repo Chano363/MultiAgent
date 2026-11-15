@@ -294,6 +294,11 @@ class MultiLocoController:
         # 依据：W4-v3 12k 归因显示 ATP 过触发主体是规则 C 逐车超速；若门控
         #       在近上限拒绝新增 AB，会让 RL 事后无制动可用。
         self.ab_high_speed_bypass_gate = False
+        # 【W4-v5 / 2026-11-15】近上限分级制动（默认关 = 零回归）。
+        # 语义：仅当 `ab_high_speed_bypass_gate=True` 且速度贴近但未越过有效上限时，
+        #       把兜底档从 SERVICE 降到 MIN；已越过有效上限仍强制 SERVICE。
+        # 依据：W4-v4 12k 归因显示列 1/2 的近上限 SERVICE 与惰行叠加是车钩超限主因。
+        self.ab_near_limit_min_brake = False
         # AB 充风/保持门控状态（**仅在 get_action_decomposed 内维护**；
         # get_action_cyclic_braking 保持无状态）。
         # 【2026-10-14 朔黄运营口径标定（表3「制动缓解位置」，全默认关=旧行为，编队主线零回归）】
@@ -1193,9 +1198,18 @@ class MultiLocoController:
                 ab = self.AB_NOTCH_LEVELS[2]
             else:
                 ab = self.AB_NOTCH_LEVELS[3]
-            # 超速兜底：贴近上限时强制 SERVICE（RL 无权关闭安全底线）
-            if vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS and ab > self.AB_NOTCH_LEVELS[3]:
-                ab = self.AB_NOTCH_LEVELS[3]
+            # 超速兜底：已越线强制 SERVICE（RL 无权关闭安全底线）。
+            # 【W4-v5】贴近但未越线时可用 MIN，缓解近上限 SERVICE 与惰行叠加的车钩冲击；
+            #          开关关闭时保持旧行为（近上限一律 SERVICE）。
+            if vel >= vmax_eff:
+                if ab > self.AB_NOTCH_LEVELS[3]:
+                    ab = self.AB_NOTCH_LEVELS[3]
+            elif vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS:
+                _soft_limit = (self.AB_NOTCH_LEVELS[2]
+                               if self.ab_near_limit_min_brake
+                               else self.AB_NOTCH_LEVELS[3])
+                if ab > _soft_limit:
+                    ab = _soft_limit
             # 【v3 档位最短保持·修正语义】AB 波传播 ≈90 s，施加态下若每 1 s 改档，
             # 波未传完即变档 → 压缩/拉伸波反复叠加 → 峰值反升。
             # ⚠️ 只约束「施加态 → 施加态」的档位变化；「施加 → 缓解」不受保持约束

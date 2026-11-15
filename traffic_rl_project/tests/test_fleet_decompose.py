@@ -214,6 +214,27 @@ def test_near_limit_ab_gate_bypass_allows_service_brake():
     assert ctrl.ab_refill_veto_count == 0
 
 
+def test_near_limit_min_brake_downgrades_below_line_only():
+    """W4-v5：贴近但未越线用 MIN；已越线仍强制 SERVICE。"""
+    env = SimpleNamespace(dynamics=SimpleNamespace(vel=np.array([20.8])))
+    ctrl = _near_limit_notch_controller(True)
+    ctrl.ab_near_limit_min_brake = True
+    out = ctrl.get_action_notch(
+        env, np.array([[0.0, 0.0]]), v_max=75.0 / 3.6)
+    assert out[0, 1] == pytest.approx(-0.2)
+
+    env = SimpleNamespace(dynamics=SimpleNamespace(vel=np.array([20.85])))
+    out = ctrl.get_action_notch(
+        env, np.array([[0.0, 0.0]]), v_max=75.0 / 3.6)
+    assert out[0, 1] == pytest.approx(-0.4)
+
+    ctrl.ab_near_limit_min_brake = False
+    env = SimpleNamespace(dynamics=SimpleNamespace(vel=np.array([20.8])))
+    out = ctrl.get_action_notch(
+        env, np.array([[0.0, 0.0]]), v_max=75.0 / 3.6)
+    assert out[0, 1] == pytest.approx(-0.4)
+
+
 
 def test_decompose_step_shapes_and_metrics():
     """decompose step：(2,2) 动作推进，info 携带电空分工诊断指标。"""
