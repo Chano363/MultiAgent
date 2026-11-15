@@ -2494,3 +2494,11 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **结果**：`meanED 0.294`、`ED≤0率 93.1%`、`EDmin -0.500`（负值来自协同偏置注入牵引，不是 ED 制动）；末速 **51.3 km/h**、`gap_min 128.7 m`、band **78.76%**、peak **1 534 kN**、ATP 671 326。
 - **判读**：阈值机制生效，通道不再卡在 0.143；但策略尚未学会稳定使用惰行，band 仍低于 90%。**未开重训；是否从 ep40 重训 20 集需 Owner 确认**。
 - **留痕**：`outputs/logs/formation_10kt_1plus108/w4v3_zero12k_20261115.log`；`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_w4v3_zero12k.json`；配置 `configs/experiments/_probe_loco_notch_v8_edidle_zero_vmax75.yaml`。
+
+### 诊断-2026-11-15-W4-v3 ep60 收口：零可达生效，三判据未达
+
+- **结果（W4-v2 ep60 ckpt + v8 映射，从 ep58 续训至 ep60 后确定性评估）**：peak **1 327.0 kN**、车钩超限 16 906、ATP **2 122 896**、band **75.60%**、末速 **64.7 km/h**、`gap_min 128.69 m = d_eff`、gap 误差均值 131.8 m。
+- **对照 W4-v2 ep60**：peak 2 207 → 1 327（**−39.9%**）、band 25.37% → 75.60%（**+50.2 pp**）、末速 0 → 64.7（**停车消失**）、gap_min 4.2 → 128.7（**编队几何恢复**）。但 ATP 942 402 → 2 122 896（**×2.25**）。
+- **ED 证据**：`meanED 0.325`；逐列 ED≤0 占比 **[0%, 39.1%, 72.2%]**，列 2 已大量进入零/牵引注入区；列 0 始终 >0。说明阈值机制生效，但策略把惰行/牵引注入和 AB 协同还没学成低 ATP 策略。
+- **判决**：W4-v3 **三判据未达**（peak>1200、ATP>31 094、band<90%）；相比 W4-v2 是**方向性改善**，不是通过。下一步按结果趋势修 ED/AB 协同与 ATP 过触发，不改判据、不转方向。
+- **留痕**：`outputs/logs/formation_10kt_1plus108/w4v3_edidlezero_20261115_resume58.log`；`outputs/results/decompose/eval_decompose_decompose_m1_ms31500_w4v3_det_ep60.json`；`outputs/logs/formation_10kt_1plus108/W4V3.DONE`。
