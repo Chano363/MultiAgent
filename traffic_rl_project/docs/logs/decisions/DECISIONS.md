@@ -1553,3 +1553,22 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **相关**：ADR-067（六量同批的授权来源）
 - **⛔ 更正（2026-11-13 23:35，决策四②撤回重述）**：决策四②「Tube MPC 同源化重跑终止（改为单列一节引用）」**表述错误，予以撤回**。`ADR-042`（2026-10-19 用户拍板）明确**基线 = 规则层 D-Rule 与 Tube MPC 两类**，H1/H2 均要求"优于两基线"——**Tube MPC 行是主表必需对照，从未被任何 ADR 删除**。正确表述：`zba` 分支复现的 plant 与主仓不同源 ⇒ **同源化改造（约 2 天，把 tube MPC 控制器接入主仓 NeTrainSim 物理 + 桥接口径）是必做前置**，完成前任何 MPC 数字不得进主表；**终止的是"绕过同源化直接引用 zba 数字"这条捷径**，不是 Tube MPC 对比本身。同源化时机 = W4/W5 出数后、W6 写作前，本地代码工作可与训练并行。
 、ADR-049（决策 2 的 70 由此正式废止）、ADR-060（循环触发按段限速已实现）、`papers/verification/10_限速与速度带.md`（V01 / V08 / V12）、`papers/02_rl/Zhang2024_DQN_CyclicBraking_Downhill.txt:798,824`、`papers/01_coupler_physics/yanghui2020.txt:440`。
+
+## ADR-069 虚拟穿透"停车蠕行极限环"根因定案与 EBI 停车保持修复（`ebi_stop_hold_mps`） - 2026-11-16
+
+- **状态**：决策（代码已落地 + 单元回归通过 + 配置透传冒烟通过 + **W4-v17 行为探针通过（2026-11-16 09:33）**；v4 ckpt 12k 零回归对照待跑；默认**关**，未设默认开）
+- **背景**：W4-v11 ep60 确定性评估触发守卫 `rear_end_steps=11168`（HANDOFF_2026-11-16 §0），无有效 JSON。ADR-027/028/029 修的是旧奖励版本的穿透；本轮是压力梯度罚重训后的新行为分支，归因任务由 handoff 明确（"先做奖励分量与行为轨迹的因果归因"）。
+- **归因（6000 步定向复现，`tmp_w4v11_pendiag.py`，`outputs/results/diagnostics/w4v11_pendiag6k_20261116.npz`）**：
+  - **行为链**：0–1500 步三列全缓解（relFrac≈0、ED≈0.85 扛坡）沿 −10‰ 主坡加速贴 75 上限、列距拉开至 200+ m → ~1614 步列车 1 **骑上 EBI 边界**（v=74.2 vs EBI 限 74.6 km/h）被扰动越线 → 全列 EMERGENCY（安全层动作正确，ADR-029 生效）→ 90 s 内 74→0 km/h 停死（−10‰ 上净减速仅 ≈0.23 m/s²）→ 列车 2 被 EBI 连锁制动（499 步 EMERGENCY），在 gap=16 m 处停住。
+  - **穿透机制（本 ADR 定案）**：列车 2 停稳后 `v_head=0` 低于 EBI 触发线（ebi≈0.36 km/h），规则 D 停判 ⇒ RL 每拍命令 AB 缓解把已建立的 EMERGENCY 放掉（emg 109→0、缸压→0.000、relf→0），ED 仅 ≈0.08 扛不住 −10‰ ⇒ 以 <0.1 km/h **蠕行**逼近前列尾部；蠕速超 EBI 线后 EMERGENCY 再触发、再被放掉，形成"蠕行—触发—放掉"极限环，每循环前移一小段（gap 16→2.3 m / 3400 步）；全程 31500 步中最终越过列车 1 尾部 → 实际列距 ≤0 持续 11168 步（越过后 EBI 目标 = 前列速度 ≈0，蠕行极限环维持重叠）。
+  - **附带**：列车 2 制停瞬间内部压钩 **2504 kN**（> 2250 kN 紧急顶），列车 1 2058 kN。
+  - **历史对照**：ADR-029 的"牵引进安全层"修复在位生效（EMERGENCY 期间牵引被压住，executed ed 全程 ≥0）；其收口时明确延后的"**EBI 迟滞 latch、EBI 强制 ED 打满**"（本文件 ADR-029 验证节"仍延后未做"）即本次穿透的制度性缺口——当时"80 集 0 穿透故暂不追加"的前提被 v11 的骑线行为分支打破。
+- **决策（最小改动，默认关零回归）**：
+  1. 安全层规则 D 新增 **EBI 停车保持**（构造参 `ebi_stop_hold_mps`，默认 None）：EBI 允许速度 ≤ 阈值（探针取 0.5 m/s）时**无条件保持 EMERGENCY**（不等 v_head > ebi 才触发），直至 ebi 抬升（前列驶离/间距重建）。事件规则名 `etcs_ebi_stop_hold`；在 `train_env.py` 接入 EMERGENCY AB 提升与 ED 强制深度（后者即 ADR-029 延后项"EBI 强制 ED 打满"在停车态的落地）。
+  2. **非穿透路径零回归**：hold 分支置于 EBI/SBI 触发之后（最低优先级），超 EBI/SBI 的行为逐位不变；flag 默认关。
+- **验证**：
+  - 单元回归：`tests/test_etcs_braking.py` 新增 3 项（hold 强制 EMERGENCY / 默认关零回归 / 优先级不变）。
+  - 行为探针：`tmp_w4v17_hold_diag.py` + `_probe_loco_notch_v17_ebihold_vmax75.yaml`（= v16 + flag），同 v11 ep60 ckpt 8000 步。**结果（2026-11-16 09:33，通过）**：全程 **gap>0**（`first_penetration_step=-1`）；列车 2 蠕行止于保持线并**冻结在 6.33 m 净空**（未修复对照同窗口收窄到 2.3 m 且持续收缩）；`etcs_ebi_stop_hold` 事件 4824 步；EMERGENCY 全列保持、缸压 1.00 满值不放掉（未修复时 0.000 与 0–2 节震荡）。对照判据三项全过。留痕 `outputs/results/diagnostics/w4v17_ebihold8k_20261116.{npz,json}`、日志 `outputs/logs/diagnostics/w4v17_hold_diag_20261116.log`。注意：v11 策略本身的行为（三列塌缩/低速）不变——本修复只封物理盲区，不救 v11；v11 维持拒绝。
+  - **待办**：v4 ckpt（当前最好机制）同口径 12k 对照，确认 hold 对其 EBI 事件（全程 10 350 步）无劣化；此后是否把 flag 设默认开须 Owner 确认。
+- **明确不做（本轮）**：训练侧"列距 ≤0 即 terminate"（大罚+终止属文献惯例，但为 MDP 改动须重训，须 Owner 拍板另案）；评估前兆指标（停车蠕行报警）另案。
+- **相关**：ADR-027/028/029（旧穿透三连修复）、ADR-029 验证节延后项、HANDOFF_2026-11-16、DIAGNOSTICS_2026-11「W4-v11 穿透根因复现与归因」。

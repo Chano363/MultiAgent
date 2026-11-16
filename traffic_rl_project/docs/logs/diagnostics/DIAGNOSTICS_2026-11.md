@@ -2619,6 +2619,16 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **训练**：2026-11-16 01:35 从 W4 ep40 热启动 → 60 集；完成标记 `outputs/logs/formation_10kt_1plus108/W4V11.DONE`。ep60 出数后按三判据判读，不沿用 12k 探针结论。
 - **预期判读**：若 peak/超限下降且 ATP/band 不恶化，则压力梯度罚有效；若仅搬移代价，则停止该方向。
 
+### 诊断-2026-11-16-W4-v11 穿透根因复现与归因：停车蠕行极限环（ADR-069 定案）
+
+- **口径**：W4-v11 ep60 ckpt + v16 配置，6000 步定向复现（`tmp_w4v11_pendiag.py`），逐步记录 gap / d_safe / EBI 允许速度 / 执行 ED·AB / 充风就绪度 / 缓解剩余比例 / 缸压 / EMERGENCY 激活节数。**只作归因，不作峰值/安全判据**。留痕 `outputs/results/diagnostics/w4v11_pendiag6k_20261116.npz`。
+- **复现结果**：塌缩时序与原评估心跳完全吻合——0–1500 步三列正常（72–74 km/h、band 100%、peak 1105 kN）；~1614 步列车 1 骑上 EBI 边界（v=74.2 vs EBI 限 74.6 km/h）触发全列 EMERGENCY，90 s 内 74→0 km/h 停死；列车 2 被 EBI 连锁制动，在 gap1=16 m 处停住；6000 步末 gap1 收窄到 **2.3 m 且仍在收缩**（原评估 31500 步中最终穿透，rear_end_steps=11168）。列车 2 制停瞬间内部压钩 2504 kN（> 2250 kN 紧急顶）。
+- **穿透机制（定案，ADR-069）**：列车 2 停稳后 v_head=0 低于 EBI 触发线（ebi≈0.36 km/h），规则 D 停判 ⇒ RL 每拍命令 AB 缓解把已建立的 EMERGENCY 放掉（emg 109→0、缸压→0.000、relf→0），ED 仅 ≈0.08 扛不住 −10‰ ⇒ 以 <0.1 km/h 蠕行逼近前列；蠕速超 EBI 线后 EMERGENCY 再触发、再被放掉——"蠕行—触发—放掉"极限环，每循环前移一小段直至穿透。
+- **排除项**：① ADR-029"牵引进安全层"在位生效（EMERGENCY 期间牵引被压住，executed ed 全程 ≥0），不是 10 月那次穿透的复发；② ETCS"越过后豁免"漏洞 2026-09-09 已修，越过瞬间不失保护；③ 充风门旁路（v4 机制）不是直接成因（蠕行段 executed ab=0，无新增源申请）。
+- **修复（ADR-069，默认关）**：安全层规则 D 新增 EBI 停车保持 `ebi_stop_hold_mps`——EBI 限速 ≤ 阈值（0.5 m/s）时无条件保持 EMERGENCY，封住停车盲区。这是 ADR-029 收口时延后的"EBI 迟滞 latch"停车态特例。**行为验证（8000 步，09:33 通过）**：全程 gap>0、列车 2 冻结在 6.33 m 净空（对照未修复同窗口收窄至 2.3 m 且持续收缩）、hold 事件 4824 步、EMERGENCY 保持 + 缸压 1.00 满值；v11 策略行为本身不变（塌缩/低速仍在），v11 维持拒绝。待办：v4 ckpt 12k 零回归对照（构造性论证：hold 分支只在 ebi≤0.5 m/s 时可达，v4 全程 gap≥128.7 m、无停车态，分支不可达；跑通对照后方可考虑默认开，须 Owner 拍板）。
+- **训练侧遗留**：`gap_min<0` 不终止 episode、ADR-028 有界化后穿透路径代价有限（≈−60·over²/步）——策略在训练分布内未进入该分支（训练期 gap_danger 占比 0.00%），但确定性评估分支可自由进入。"列距≤0 即 terminate"是否加入须 Owner 拍板（MDP 改动，须重训）。
+- **留痕**：复现脚本 `tmp_w4v11_pendiag.py` / 分析 `tmp_w4v11_pendiag_analyze.py`；验证探针 `tmp_w4v17_hold_diag.py` + 配置 `_probe_loco_notch_v17_ebihold_vmax75.yaml`（v16 + flag，后台会话执行——schtasks /Run 在本会话无法拉起 wsl.exe，已留痕 HANDOFF §0；日志 `outputs/logs/diagnostics/w4v17_hold_diag_20261116.log`）。
+
 ### 诊断-2026-11-16-W4-v11 收口：压力梯度罚被拒绝
 
 - **训练**：60/60 完成，耗时 299.6 min；`pressure_gradient` 项每步均值 **−0.9837**，占绝对奖励 **6.15%**。ep60 训练窗 `peak 1 428 kN / viol 79 841 / ovs 3 822 279 / vavg 71.6`，未体现可引用改善。

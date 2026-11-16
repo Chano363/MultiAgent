@@ -71,6 +71,7 @@ class SafetyLayer:
         coupler_veto_margin: float = 0.9,
         coupler_veto_lag_s: float = 90.0,
         speed_limit_lookup=None,
+        ebi_stop_hold_mps: float = None,
     ):
         self.num_vehicles = num_vehicles
         self.max_speed_mps = max_speed_mps
@@ -115,6 +116,20 @@ class SafetyLayer:
             coupler_force_limit_emergency_n
             if coupler_force_limit_emergency_n is not None
             else 2.25 * coupler_force_limit_n
+        )
+        # 【ADR-069 / W4-v11 穿透归因修复 2026-11-16】EBI 停车保持阈值（m/s）。
+        # None = 关（旧行为，零回归）。背景：W4-v11 ep60 确定性评估穿透 11168 步，
+        # 复现（w4v11_pendiag6k_20261116.npz）证明穿透 = "停车蠕行极限环"：跟随列
+        # 被 EBI 制停在前列尾 16 m 处后，v_head=0 低于 EBI 触发线（ebi≈0.36 km/h），
+        # 规则 D 停判 ⇒ RL 每拍命令 AB 缓解把已建立的 EMERGENCY 放掉（emg 109→0、
+        # 缸压→0），−10‰ 坡上仅剩 ED≈0.08 扛坡 ⇒ 以 <0.1 km/h 蠕行逼近前列尾部；
+        # 蠕速超 EBI 线后 EMERGENCY 再触发、再被放掉，每循环前移一小段 ⇒ 最终穿透。
+        # 本参数封住该盲区：EBI 允许速度已压到 ≤ 阈值（监督极限 ≈ 停车）时，
+        # 无条件保持 EMERGENCY（不等 v_head > ebi 才触发）——在监督极限上
+        # 不允许"无制动溜行"。前列驶离 → ebi 抬升 → 自动解除。ADR-029 收口时
+        # 延后的"EBI 迟滞 latch"即本项的停车态特例（见 DECISIONS.md ADR-029 验证节）。
+        self.ebi_stop_hold_mps = (
+            float(ebi_stop_hold_mps) if ebi_stop_hold_mps is not None else None
         )
         self.last_events = []
 
@@ -345,5 +360,16 @@ class SafetyLayer:
                     self._log(0, 'etcs_permitted',
                               f'v={v_head:.2f} > SBI={sbi:.2f} -> service brake')
                     actions[:] = np.minimum(actions, FULL_SERVICE_BRAKE)
+                elif (self.ebi_stop_hold_mps is not None
+                      and ebi <= self.ebi_stop_hold_mps):
+                    # 【ADR-069】EBI 停车保持：监督限速已压到 ≈0（贴死前列尾/信号）
+                    # 时，"低于 EBI 线即自由"的口径在停车态留出盲区——列车可无制动
+                    # 溜行逼近前列（W4-v11 穿透的物理成因）。此处无条件保持 EMERGENCY，
+                    # 直至 ebi 抬升（前列驶离/间距重建）。置于最低优先级：v_head 已超
+                    # EBI/SBI 的分支行为不变（非穿透路径零回归）。
+                    self._log(0, 'etcs_ebi_stop_hold',
+                              f'ebi={ebi:.2f} <= hold={self.ebi_stop_hold_mps:.2f} '
+                              f'-> hold emergency (creep dead-zone closed)')
+                    actions[:] = np.minimum(actions, EMERGENCY_BRAKE)
 
         return actions

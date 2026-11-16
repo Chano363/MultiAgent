@@ -316,6 +316,10 @@ class TrainFormationEnv:
             _v = config.get(_k, None)
             if _v is not None:
                 _veto[_k] = float(_v)
+        # 【ADR-069 / W4-v11 穿透归因修复】EBI 停车保持阈值透传（None = 关，零回归）
+        _ebi_hold = config.get('ebi_stop_hold_mps', None)
+        if _ebi_hold is not None:
+            _veto['ebi_stop_hold_mps'] = float(_ebi_hold)
         self.safety = SafetyLayer(
             num_vehicles=self.num_vehicles,
             max_speed_mps=self.line_speed_limit_mps,
@@ -708,7 +712,8 @@ class TrainFormationEnv:
             # ATP may increase braking even when the controller requested
             # coasting/traction or coupler protection removed its ED request.
             for ev in self.safety.last_events:
-                if ev.get('rule') in ('etcs_ebi', 'etcs_permitted'):
+                if ev.get('rule') in ('etcs_ebi', 'etcs_ebi_stop_hold',
+                                      'etcs_permitted'):
                     atp_ed_vehicles.update(self.loco_indices)
                 elif ev.get('rule') == 'overspeed' and ev.get('vehicle') in self.loco_indices:
                     # Rule C is a per-vehicle projection. Do not turn a wagon
@@ -720,7 +725,7 @@ class TrainFormationEnv:
             # 安全层 EBI 必须真正施加空气紧急制动：把 ab_command 提升为 EMERGENCY，
             # 空气制动沿波速传播到全列，才能对抗下坡重力拖住列车。
             for ev in self.safety.last_events:
-                if ev.get('rule') == 'etcs_ebi':
+                if ev.get('rule') in ('etcs_ebi', 'etcs_ebi_stop_hold'):
                     ab_command = AirBrakeNotch.EMERGENCY
                     # 【修复 2026-10-04 ADR-029】`step_vehicles_ed_ab` 中 ab_sources
                     # **优先级高于 ab_command**（train.py:556-559）⇒ 若保留动作发的源，

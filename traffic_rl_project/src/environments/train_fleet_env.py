@@ -465,6 +465,9 @@ class TrainFleetEnv:
                 # 【循环制动减压量 2026-11-08】非紧急循环制动档(SERVICE)减压量当量
                 # （None = 140 kPa 零回归；70 = 长大下坡运营口径）
                 'service_reduction_kpa': config.get('service_reduction_kpa', None),
+                # 【ADR-069 / W4-v11 穿透归因修复】EBI 停车保持阈值透传内层安全层
+                # （None = 关，零回归；开 = EBI 限速≤阈值时无条件保持 EMERGENCY）
+                'ebi_stop_hold_mps': config.get('ebi_stop_hold_mps', None),
             }
             if self.hetero:
                 # 逐车钩异构：先用该列一致性预设得到车辆数，再按 (n-1) 个耦合逐钩抽样

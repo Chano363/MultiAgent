@@ -291,6 +291,55 @@ def test_safety_etcs_slope_earlier_intervention():
 
 
 # ---------------------------------------------------------------------------
+# 【ADR-069 / W4-v11 穿透归因修复】EBI 停车保持（etcs_ebi_stop_hold）
+# 背景：W4-v11 ep60 确定性评估穿透 11168 步 = "停车蠕行极限环"——跟随列被 EBI
+# 制停在前列尾 16 m 后，v_head=0 低于 EBI 触发线，RL 每拍缓解把 EMERGENCY 放掉，
+# 坡上无制动蠕行逼近前列。修复 = EBI 限速 ≤ 阈值时无条件保持 EMERGENCY（默认关）。
+# ---------------------------------------------------------------------------
+def _sl_obs_creep(v_head=0.01):
+    """停车蠕行态观测：距停车目标 5 m、v_head≈0（低于 EBI 触发线）。"""
+    return {
+        'vel': np.full(4, v_head),
+        'coupler_forces': np.zeros(4),
+        'gaps': np.array([0.0, 1.0, 1.0, 1.0]),
+        'head_position_m': 0.0,
+        'etcs_targets': [EbdTarget(position_m=5.0, speed_mps=0.0, kind='gap')],
+        'etcs_curve': object(),   # _etcs_check 被替换，占位即可
+    }
+
+
+def test_safety_ebi_stop_hold_forces_emergency_at_standstill():
+    """开：EBI 限速≈0 + 蠕行速度低于触发线 → 仍强制 EMERGENCY（盲区封住）。"""
+    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0, ebi_stop_hold_mps=0.5)
+    sl._etcs_check = lambda *a: (0.3, 0.2)   # EBI 限速 0.3 m/s（≈停车监督极限）
+    # RL 全缓解（蠕行极限环里策略每拍发的就是缓解）
+    corrected = sl.protect(np.zeros(4), _sl_obs_creep())
+    assert all(corrected <= EMERGENCY_BRAKE + 1e-9)
+    assert any(e['rule'] == 'etcs_ebi_stop_hold' for e in sl.last_events)
+
+
+def test_safety_ebi_stop_hold_off_keeps_legacy_free_running():
+    """关（默认）：低速低于 EBI 线不触发任何监督——旧行为逐位不变（零回归）。"""
+    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0)   # ebi_stop_hold_mps=None
+    sl._etcs_check = lambda *a: (0.3, 0.2)
+    corrected = sl.protect(np.zeros(4), _sl_obs_creep())
+    assert np.allclose(corrected, 0.0)
+    assert not any(e['rule'].startswith('etcs_ebi')
+                   or e['rule'].startswith('etcs_permitted')
+                   for e in sl.last_events)
+
+
+def test_safety_ebi_stop_hold_priority_unchanged_above_ebi():
+    """超 EBI 时仍走原 etcs_ebi 分支（停车保持只在低于 EBI 线时兜底）。"""
+    sl = SafetyLayer(num_vehicles=4, max_speed_mps=30.0, ebi_stop_hold_mps=0.5)
+    sl._etcs_check = lambda *a: (0.3, 0.2)
+    corrected = sl.protect(np.full(4, 0.4), _sl_obs_creep(v_head=0.4))
+    assert all(corrected <= EMERGENCY_BRAKE + 1e-9)
+    assert any(e['rule'] == 'etcs_ebi' for e in sl.last_events)
+    assert not any(e['rule'] == 'etcs_ebi_stop_hold' for e in sl.last_events)
+
+
+# ---------------------------------------------------------------------------
 # 制动建立时间来源：空气波传播延迟（对齐 braking.py）
 # ---------------------------------------------------------------------------
 def test_build_up_from_air_propagation():
