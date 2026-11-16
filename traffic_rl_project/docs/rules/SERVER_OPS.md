@@ -101,6 +101,7 @@ Windows 侧 `ssh` 直接读 `C:\Users\chano\.ssh\cloud_traffic` 没问题，不�
 | **交换机** | `vsw-f8zdnovt921s93f70o9us`（`traffic-rl-vsw`，10.0.1.0/24 @ `cn-heyuan-c`） | 可用 | 免费 |
 | **安全组** | `sg-f8z5ncw5tu8zqy0cz4iy`（`traffic-rl-sg`，仅放行 22/22） | 可用 | 免费 |
 | **密钥对** | `cloud_traffic`（指纹 `a46e525f880ca7321ad39dbd1a38c0d6`） | 可用 | 免费 |
+| **ECS 实例（W4-v19 云训）** | `i-f8zcp6vvis4rnztw0p9y`（`ecs.c9i.2xlarge`，IP `47.113.149.221`） | **Running**（2026-11-16 14:12 开机，跑 ADR-069 ③ 重训；跑完回收产物后 API stop + StopCharging 复核） | ~1.52 元/h 含盘 |
 | **ECS 实例（v9 L1 云训）** | `i-f8z4osnmev5xubrmdxwv`（`ecs.c9i.8xlarge` 32vCPU/64GiB） | **已释放**（2026-11-11 10:12 开机 → 14:13 提前收口停费，回执 Stopped+StopCharging 复核通过）。总耗 ~4.0h ≈ **23 元**；根因诊断见 DIAGNOSTICS_2026-11 当日条目 | 已归零 |
 | **ECS 实例（历史）** | `i-f8z3gn50g75e532qiqz9`（10-23 已释放）；`i-f8z25pnhwkdrkg2tmru6`（11-10 GA 已释放） | 已释放 | 0 |
 | **地域 / 可用区** | `cn-heyuan` / `cn-heyuan-c`（华南2 河源） | — | — |
@@ -193,12 +194,15 @@ cd d:\Code\MultiAgent\traffic_rl_project
 D:\Anaconda\python.exe scripts\cloud\inventory_aliyun_ecs.py
 
 # 2) 用自定义镜像开一台（开始计费）
+#    ⚠ 镜像 traffic_rl_env_20261111 为 60 GiB，**必须 --disk 60**，
+#    否则 RunInstances 报 InvalidSystemDiskSize.LessThanImageSize（2026-11-16 实测）
 D:\Anaconda\python.exe scripts\cloud\provision_aliyun_ecs.py `
-  --image m-f8z1kh9ph7am18g02bra `
-  --type ecs.c9i.2xlarge
+  --image m-f8z7fi6wa8zfm1ayerbq `
+  --type ecs.c9i.2xlarge `
+  --disk 60
 ```
 
-输出末尾会给出公网 IP 与 SSH 命令。**镜像内已带**：Ubuntu 24.04.5、miniconda、conda 环境 `traffic_rl`（Python 3.10）、CPU 版 torch 2.14.1、numba 0.68、全部依赖、`/root/traffic_rl_project` 代码、numba 编译缓存。
+输出末尾会给出公网 IP 与 SSH 命令。**镜像内已带**：Ubuntu 24.04.5、miniconda、conda 环境 `traffic_rl`（Python 3.10）、CPU 版 torch 2.5.1、numba 0.68、全部依赖、`/root/traffic_rl_project` 代码、numba 编译缓存（对应镜像构建时的代码基线；代码更新后首集会重编译，偏慢数分钟属正常）。
 
 开机后直接跳到 **§九（传代码）** 或 **§十（校准）**，**不需要装环境**。
 
@@ -496,8 +500,8 @@ D:\Anaconda\python.exe scripts\cloud\probe_aliyun_ecs.py cn-heyuan --min-cpu 8 -
 # —— 下单前检查（免费）——
 D:\Anaconda\python.exe scripts\cloud\preflight_aliyun_ecs.py cn-heyuan
 
-# —— 开通（开始计费）——
-D:\Anaconda\python.exe scripts\cloud\provision_aliyun_ecs.py --image m-f8z1kh9ph7am18g02bra --type ecs.c9i.2xlarge
+# —— 开通（开始计费；60 GiB 镜像必须 --disk 60）——
+D:\Anaconda\python.exe scripts\cloud\provision_aliyun_ecs.py --image m-f8z7fi6wa8zfm1ayerbq --type ecs.c9i.2xlarge --disk 60
 
 # —— 查状态 ——
 D:\Anaconda\python.exe scripts\cloud\instance_state_aliyun_ecs.py <InstanceId>
@@ -538,6 +542,7 @@ wsl -d Ubuntu-24.04 -e bash -lc "rsync -avz --exclude 'outputs/' --exclude '.git
 | 首集特别慢（数十秒） | numba 首次编译 + 多 worker 抢缓存锁 | 先单进程预热（§8.1） |
 | 单步耗时忽快忽慢（3 倍波动） | 笔记本热降频 / 云主机噪声 | 只看 cProfile 相对比值；绝对耗时多次取最小值 |
 | 排除 `outputs/` 后测试报 `FileNotFoundError` | 归档一致性测试缺历史数据 | 预期行为，这类测试在本地跑 |
+| 参考速度表加载报 `FileNotFoundError: 缺口径元数据 ref_speed_meta.json` | `speed_ref_table` 的 npz 必须与同目录 `ref_speed_meta.json` 成对（校验表与 v_max 同源），单传 npz 不够 | scp 时把 `refspeed_baseline_*/` 目录**两个文件一起传**（2026-11-16 实测） |
 
 > **诊断脚本陷阱**：`TrainFleetEnv` 的 `info` 里**没有** `speed` 键（只有单列 env 有）。
 > 写 `info.get('speed', 0.0)` 会恒得 0，误判"列车停住"；应读 `env.trains[i].dynamics.vel[0]`。
