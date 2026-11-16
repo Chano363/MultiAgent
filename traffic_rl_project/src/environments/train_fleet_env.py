@@ -90,6 +90,11 @@ COUPLER_OVER_W = 60.0
 # 限幅：peak_norm 超过 3× 上限（over>=2）后不再加深 ⇒ 该项上界 = -COUPLER_OVER_W*CAP = -120。
 COUPLER_OVER_CAP = 2.0
 
+# 【ADR-069 ③ 2026-11-16】列距≤0（实际接触）终止罚，固定常量不进调参面。
+# 依据 = 文献惯例"碰撞 = 大罚 + 终止"（ADR-043 决策 6 自记，13 篇精读）；量级先例 =
+# speed_over 日常可达 -100/步（ADR-059），终止罚须显著盖过单步尺度。
+REAR_END_TERMINAL_PENALTY = 200.0
+
 # 【W4-v11 2026-11-16】纵向制动缸压梯度罚（默认关 = 零回归）。
 # 归因：v4 12k 显示陡梯度态只占 6–8% 步数却贡献约 2/3 车钩超限；
 #       前部缸压≈1、尾部≈0.2 时 peak 均值 790/808 kN。
@@ -194,6 +199,9 @@ class TrainFleetEnv:
         # 【I 组 2026-10-16】安全层车钩超限干预策略（规则 A）透传内层单列 env；
         # 默认 'release' = 旧行为（编队主线零回归），'min_brake' 供单列标定试验。
         self.coupler_override = config.get('coupler_override', 'release')
+        # 【ADR-069 ③ 2026-11-16】列距≤0（实际接触）即 terminate + 终止罚。
+        # 默认关 = 历史配置零回归；重训窗口配置显式开（MDP 改动，须重训）。
+        self.rear_end_terminate = bool(config.get('rear_end_terminate', False))
         # 【V 组 2026-10-16】安全层 AB 新增源 veto 三参数透传内层单列 env
         # （None = 安全层默认，零回归）
         self.veto_cfg = {k: config[k] for k in (
@@ -1268,6 +1276,13 @@ class TrainFleetEnv:
         route_end = (self.route_end_m is not None
                      and float(self._train_heads[0]) >= self.route_end_m)
         truncated = bool(route_end or self.steps >= self.max_steps)
+        # 【ADR-069 ③】列距≤0（实际接触）= MDP 终止态 + 终止罚（文献惯例"大罚+终止"，
+        # ADR-043 决策 6）。默认关零回归；重训配置显式开。
+        _gap_err, _gap_min = self._gap_metrics()
+        _rear_end = bool(_gap_min <= 0.0)
+        if _rear_end and self.rear_end_terminate:
+            terminated = True
+            reward = float(reward) - REAR_END_TERMINAL_PENALTY
 
         info = {
             'reward': reward,
@@ -1283,7 +1298,11 @@ class TrainFleetEnv:
             'head_speed_mean_kmh': (
                 float(self._ep_head_speed_sum_kmh) / max(int(self._ep_head_steps), 1)),
             # 列间间距监控（2026-09-23 新增，训练日志 CSV/TB 用）
-            **dict(zip(('gap_err_mean', 'gap_min_m'), self._gap_metrics())),
+            'gap_err_mean': _gap_err,
+            'gap_min_m': _gap_min,
+            # 【ADR-069 ③】本步是否发生实际列距≤0；terminated 是否由其触发
+            'rear_end': _rear_end,
+            'rear_end_terminated': bool(_rear_end and self.rear_end_terminate),
             # 实际执行 throttle（列级，供诊断/评估）
             'executed_actions': self._executed_actions.copy(),
             # 恒 False：RL 输出动作（δ 协同 / 目标加速度）经确定性映射才执行，
@@ -1618,6 +1637,13 @@ class TrainFleetEnv:
         route_end = (self.route_end_m is not None
                      and float(self._train_heads[0]) >= self.route_end_m)
         truncated = bool(route_end or self.steps >= self.max_steps)
+        # 【ADR-069 ③】列距≤0（实际接触）= MDP 终止态 + 终止罚（文献惯例"大罚+终止"，
+        # ADR-043 决策 6）。默认关零回归；重训配置显式开。
+        _gap_err, _gap_min = self._gap_metrics()
+        _rear_end = bool(_gap_min <= 0.0)
+        if _rear_end and self.rear_end_terminate:
+            terminated = True
+            reward = float(reward) - REAR_END_TERMINAL_PENALTY
         info = {
             'reward': reward,
             'coupler_force_peak': float(self._peak_coupler_n),
@@ -1632,7 +1658,11 @@ class TrainFleetEnv:
             'head_speed_mean_kmh': (
                 float(self._ep_head_speed_sum_kmh) / max(int(self._ep_head_steps), 1)),
             # 列间间距监控（2026-09-23 新增，训练日志 CSV/TB 用）
-            **dict(zip(('gap_err_mean', 'gap_min_m'), self._gap_metrics())),
+            'gap_err_mean': _gap_err,
+            'gap_min_m': _gap_min,
+            # 【ADR-069 ③】本步是否发生实际列距≤0；terminated 是否由其触发
+            'rear_end': _rear_end,
+            'rear_end_terminated': bool(_rear_end and self.rear_end_terminate),
             'executed_actions': self._executed_actions.copy(),
             'actions_modified': False,
             'ab_source_count': ab_count,          # 本步 AB 源数（ED 优先/AB 兜底 分配诊断）

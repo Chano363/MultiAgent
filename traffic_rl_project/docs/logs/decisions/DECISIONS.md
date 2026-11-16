@@ -1556,7 +1556,7 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 
 ## ADR-069 虚拟穿透"停车蠕行极限环"根因定案与 EBI 停车保持修复（`ebi_stop_hold_mps`） - 2026-11-16
 
-- **状态**：决策 + **已落地（2026-11-16 13:25）**：代码 + 单元回归 + 透传冒烟 + W4-v17 行为探针（09:33 通过）+ 文献/工程惯例依据（13:05）+ v4 ckpt 12k 零回归对照（12:59 启动 / 13:12 完成通过）+ **`ebi_stop_hold_mps: 0.5` 已写入主配置 `formation_ed_ab_3train_1plus108.yaml`（默认开）**；蠕行前兆报警已在 `evaluate_decompose.py` 落地。
+- **状态**：决策 + **已落地（2026-11-16 13:45）**：代码 + 单元回归 + 透传冒烟 + W4-v17 行为探针（09:33 通过）+ 文献/工程惯例依据（13:05）+ v4 ckpt 12k 零回归对照（13:12 通过）+ **`ebi_stop_hold_mps: 0.5` 已写入主配置（默认开）** + 蠕行前兆报警已实现 + **③ terminate 已实现（默认关）且重训已获批启动（W4-v19，60 集进行中）**。
 - **背景**：W4-v11 ep60 确定性评估触发守卫 `rear_end_steps=11168`（HANDOFF_2026-11-16 §0），无有效 JSON。ADR-027/028/029 修的是旧奖励版本的穿透；本轮是压力梯度罚重训后的新行为分支，归因任务由 handoff 明确（"先做奖励分量与行为轨迹的因果归因"）。
 - **归因（6000 步定向复现，`tmp_w4v11_pendiag.py`，`outputs/results/diagnostics/w4v11_pendiag6k_20261116.npz`）**：
   - **行为链**：0–1500 步三列全缓解（relFrac≈0、ED≈0.85 扛坡）沿 −10‰ 主坡加速贴 75 上限、列距拉开至 200+ m → ~1614 步列车 1 **骑上 EBI 边界**（v=74.2 vs EBI 限 74.6 km/h）被扰动越线 → 全列 EMERGENCY（安全层动作正确，ADR-029 生效）→ 90 s 内 74→0 km/h 停死（−10‰ 上净减速仅 ≈0.23 m/s²）→ 列车 2 被 EBI 连锁制动（499 步 EMERGENCY），在 gap=16 m 处停住。
@@ -1574,6 +1574,6 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **明确不做（本轮）**：训练侧"列距 ≤0 即 terminate"（大罚+终止属文献惯例，但为 MDP 改动须重训，须 Owner 拍板另案）；评估前兆指标（停车蠕行报警）另案。
 - **文献/工程惯例依据（2026-11-16 13:05 增补；回应 owner"查文献，或按工程最佳实践"）**：
   - **EBI 停车保持（flag 默认开依据）**：三个独立来源一致指向"紧急制动施加后必须保持到停稳、且满足缓解条件方可缓解；停稳后应施加空气制动并防溜"——① 团体标准《重载铁路列车运行控制系统 总体技术要求》（2025，ttbz.org.cn 在线文本，编号待回验原文，grade B）：§6.11.2 车载 ATP 输出紧急制动后"**当列车停车且满足缓解条件时**"方提示允许缓解；§6.11.3 重载 <20 km/h 取消紧急制动输出仅限"站内停车、**防溜控制**、退行防护"三例外——本工况（坡上短停 + 停后防蠕）属防护例外，hold 与之相容；§6.11.4 "<30 km/h 停车过程中**不应缓解空气制动**"；§6.11.5 "检测列车已停稳，**应施加空气制动**"；§6.12 "停车防护应防止列车移动"。② LKJ2000 运用惯例（铁道职培知识库，grade B）："紧急制动**必须停车才可缓解**……没有中途缓解条件""先停稳、不缓解、查原因、报调度"。③ ERA ETCS 制动曲线（仓内全文 grade A，`papers/04_safety_mpc/ERA_2020_Introduction_to_ETCS_Braking_Curves.pdf`）：EBI 属预防型"parachute"介入，停车监督（stopping supervision）曲线可越过 EoA 延至 SvL——**监督不因停稳而终止**。结论：现行规则 D"v=0 即停判"与 ATP 工程惯例相悖，**flag 默认开的依据成立**；程序前置 = ① 对照通过 + 按红线 5（同 ckpt 同 seed 复跑 20 集）完成安全层行为改动验收。
-  - **列距≤0 terminate（补回依据）**：ADR-043 决策 6 自记（基于 13 篇精读）："**文献对碰撞的普遍处理 = 大罚 + 终止**"。当前 MDP 对实际接触既无终止也无硬罚（ADR-028 将穿透代价有界化），与文献惯例**背离**。**决议：补回"列距 ≤0 → terminate + 终止大罚"，随下一次重训窗口实施**（不为它单独重训；重训资源届时须 Owner 批——这是本 ADR 唯一待批项）。
+  - **列距≤0 terminate（补回依据）**：ADR-043 决策 6 自记（基于 13 篇精读）："**文献对碰撞的普遍处理 = 大罚 + 终止**"。当前 MDP 对实际接触既无终止也无硬罚（ADR-028 将穿透代价有界化），与文献惯例**背离**。**决议：补回"列距 ≤0 → terminate + 终止大罚"——已实现（13:40）**：`train_fleet_env.py` 两条 step 路径新增 `rear_end_terminate`（构造开关，**默认关零回归**）+ 固定常量 `REAR_END_TERMINAL_PENALTY=200`（不进调参面；量级先例 = speed_over 日常 -100/步）；info 新增 `rear_end` / `rear_end_terminated`。回归 `tests/test_fleet_decompose.py::test_rear_end_terminate_on_and_off` + `::test_rear_end_no_false_positive_normal_gap`。**重训已获批并启动（13:45）**：W4-v19（v4 机制 + hold + terminate，从 v4 ep60 权重热启动 60 集 + 自动 31500 步全程评估，本地后台；配置 `_probe_loco_notch_v19_terminate_vmax75.yaml`，tag `w4v19_terminate_20261116`）。注意：评估入口 `assert rear_end_steps == 0` 守卫不变——terminate 只改训练 MDP，评估仍以穿透即作废。
   - **停车蠕行前兆报警**：评估诊断留痕属工程惯例，成本极低，建议随下一次 `evaluate_decompose.py` 改动一并实现。**（已于 13:20 实现，见上）**
 - **相关**：ADR-027/028/029（旧穿透三连修复）、ADR-029 验证节延后项、HANDOFF_2026-11-16、DIAGNOSTICS_2026-11「W4-v11 穿透根因复现与归因」。

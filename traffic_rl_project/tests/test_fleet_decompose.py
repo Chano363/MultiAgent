@@ -598,3 +598,51 @@ def test_start_randomization_enabled_covers_profile_and_eval_fixed():
     e2 = float(env_e.trains[0].dynamics.pos[0])
     assert e1 == e2, "eval 态起点必须固定（评估可复现）"
     env_e.close()
+
+
+# =========================================================================== #
+# 【ADR-069 ③ 2026-11-16】列距≤0（实际接触）= terminate + 终止罚；默认关零回归
+# =========================================================================== #
+def test_rear_end_terminate_on_and_off():
+    """flag 开：列距≤0 步 terminated=True、奖励减终止罚、info 记 rear_end；
+    flag 关（历史默认）：同状态只记 rear_end，不终止、奖励不变（零回归）。"""
+    from unittest.mock import patch
+    from src.environments.train_fleet_env import REAR_END_TERMINAL_PENALTY
+
+    def _roll(flag_on):
+        env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                             'grade_profile': 'long_downhill', 'max_steps': 10,
+                             'decompose': 'loco_ed_ab', 'eval_mode': True,
+                             'rear_end_terminate': flag_on})
+        env.reset(options={'speed': 65.0 / 3.6})
+        # 用 monkeypatch 伪造穿透态（真实碰撞物理难以在单测稳定构造）
+        with patch.object(env, '_gap_metrics', return_value=(0.0, -5.0)):
+            obs, r, term, trunc, info = env.step(np.zeros((env.num_agents, 2)))
+        env.close()
+        return r, term, trunc, info
+
+    r_on, term_on, trunc_on, info_on = _roll(True)
+    r_off, term_off, trunc_off, info_off = _roll(False)
+    # 开：终止 + 罚
+    assert term_on is True and trunc_on is False
+    assert info_on['rear_end'] is True and info_on['rear_end_terminated'] is True
+    assert info_on['gap_min_m'] == pytest.approx(-5.0)
+    assert r_on == pytest.approx(r_off - REAR_END_TERMINAL_PENALTY)
+    # 关（默认）：行为与历史一致
+    assert term_off is False
+    assert info_off['rear_end'] is True and info_off['rear_end_terminated'] is False
+    assert info_off['gap_min_m'] == pytest.approx(-5.0)
+
+
+def test_rear_end_no_false_positive_normal_gap():
+    """正常列距（>0）不触发终止与 rear_end 标记。"""
+    env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                         'grade_profile': 'long_downhill', 'max_steps': 10,
+                         'decompose': 'loco_ed_ab', 'eval_mode': True,
+                         'rear_end_terminate': True})
+    env.reset(options={'speed': 65.0 / 3.6})
+    obs, r, term, trunc, info = env.step(np.zeros((env.num_agents, 2)))
+    assert term is False
+    assert info['rear_end'] is False and info['rear_end_terminated'] is False
+    assert info['gap_min_m'] > 0.0
+    env.close()
