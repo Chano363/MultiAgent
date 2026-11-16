@@ -1,0 +1,7 @@
+{
+  "source": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\fleet_cold_65kmh_literature_followup_20261110_18",
+  "source_sha256": "5240831a29fb9f2168cdf5af8d1e2cb4adebb6c9c6673b40b9e0fb2461b1a8ae",
+  "migrated_sha256": "7c1b0de9f3190a49ec6aa7b1b6342d8b66f5ee2bcd3e1a25d5bb5215687d94d7",
+  "changes": [],
+  "scope": "No dynamics/history/configuration advancement; added fields are disabled defaults. A later replay must record any non-default rule configuration separately."
+}

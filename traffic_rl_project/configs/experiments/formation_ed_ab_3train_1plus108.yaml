@@ -62,6 +62,21 @@ env_cfg:
   ed_release_coordination: true
   ed_release_hold_s: 50.0
   ed_release_boost_kn: 900.0
+  # 缓解后的残余空气力仍在消退时，短时降低 ED 请求，避免前部 ED 与后部
+  # 残余空气制动叠加而形成压缩波。10 s / -0.5 已在三列正式规则局部续算中验证；
+  # 仍须完成冷启动全程验收后，才可作为训练基线的最终结论。
+  ed_release_transition_s: 10.0
+  ed_release_transition_ed_mod: -0.5
+  # 列间 ETCS 仍由安全层最终裁决；规则层改用既有 P 级预告曲线，
+  # 给空气制动传播留出时间，避免到 SBI/EBI 才被动强制接管。
+  anticipate_etcs: true
+  etcs_anticipation_level: p
+  etcs_service_preemption: true
+  etcs_refill_release_guard: true
+  # 跟随列接近 40 km/h 下限且列距仍有正余量时，给有限牵引维持速度；
+  # 不在循环制动或列距不足时介入。
+  low_speed_traction_floor: 0.5
+  low_speed_traction_margin_mps: 0.7
   cyclic_ab_upgrade_kmh: 76.0
   ed_upgrade_ramp_s: 6.0
   ed_upgrade_ramp_scale: 0.7

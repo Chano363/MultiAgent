@@ -1,0 +1,2313 @@
+{
+  "initial_cumulative_count": 0,
+  "event_count_from_counter_delta": 329,
+  "recorded_rule_counts": {
+    "overspeed": 327,
+    "etcs_permitted": 2
+  },
+  "records": [
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 0,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 1,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 2,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 3,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 4,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 5,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 6,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 7,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 8,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 9,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 10,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 11,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 12,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 13,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 14,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 15,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 16,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 17,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 18,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 19,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 20,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 21,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 22,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 23,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 24,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 25,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 26,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 27,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 28,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 29,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 30,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 31,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 32,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 33,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 34,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 35,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 36,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 37,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 38,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 39,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 40,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 41,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 42,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 43,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 44,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 45,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 46,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 47,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 48,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 49,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 50,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 51,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 52,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 53,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 54,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 55,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 56,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 57,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 58,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 59,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 60,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 61,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 62,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 63,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 64,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 65,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 66,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 67,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 68,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 69,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 70,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 71,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 72,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 73,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 74,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 75,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 76,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 77,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 78,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 79,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 80,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 81,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 82,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 83,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 84,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 85,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 86,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 87,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 88,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 89,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 90,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 91,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 92,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 93,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 94,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 95,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 96,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 97,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 98,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 99,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 100,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 101,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 102,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 103,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 104,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 105,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 106,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 107,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 1,
+      "vehicle": 108,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 1,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 2,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 3,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 4,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 5,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 6,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 7,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 8,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 9,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 10,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 11,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 12,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 13,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 14,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 15,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 16,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 17,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 18,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 19,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 20,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 21,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 22,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 23,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 24,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 25,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 26,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 27,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 28,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 29,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 30,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 31,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 32,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 33,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 34,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 35,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 36,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 37,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 38,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 39,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 40,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 41,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 42,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 43,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 44,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 45,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 46,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 47,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 48,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 49,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 50,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 51,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 52,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 53,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 54,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 55,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 56,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 57,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 58,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 59,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 60,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 61,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 62,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 63,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 64,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 65,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 66,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 67,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 68,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 69,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 70,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 71,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 72,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 73,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 74,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 75,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 76,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 77,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 78,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 79,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 80,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 81,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 82,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 83,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 84,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 85,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 86,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 87,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 88,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 89,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 90,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 91,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 92,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 93,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 94,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 95,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 96,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 97,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 98,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 99,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 100,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 101,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 102,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 103,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 104,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 105,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 106,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 107,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 108,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=22.22 > SBI=22.12 -> service brake"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 1,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 2,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 3,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 4,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 5,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 6,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 7,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 8,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 9,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 10,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 11,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 12,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 13,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 14,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 15,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 16,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 17,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 18,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 19,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 20,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 21,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 22,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 23,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 24,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 25,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 26,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 27,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 28,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 29,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 30,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 31,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 32,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 33,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 34,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 35,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 36,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 37,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 38,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 39,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 40,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 41,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 42,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 43,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 44,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 45,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 46,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 47,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 48,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 49,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 50,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 51,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 52,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 53,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 54,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 55,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 56,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 57,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 58,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 59,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 60,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 61,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 62,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 63,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 64,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 65,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 66,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 67,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 68,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 69,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 70,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 71,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 72,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 73,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 74,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 75,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 76,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 77,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 78,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 79,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 80,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 81,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 82,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 83,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 84,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 85,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 86,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 87,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 88,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 89,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 90,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 91,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 92,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 93,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 94,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 95,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 96,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 97,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 98,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 99,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 100,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 101,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 102,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 103,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 104,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 105,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 106,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 107,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 108,
+      "rule": "overspeed",
+      "detail": "v=22.22"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=22.22 > SBI=22.12 -> service brake"
+    }
+  ]
+}

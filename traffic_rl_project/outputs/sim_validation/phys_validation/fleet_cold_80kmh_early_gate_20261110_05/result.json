@@ -1,0 +1,37 @@
+{
+  "status": "new_safety_event",
+  "stages": [
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_cold_80kmh_early_gate_20261110_05\\stage_0001",
+      "summary": {
+        "stop_reason": "new_safety_event",
+        "error": null,
+        "steps": 1,
+        "full_route_completed": false,
+        "finish_m": 49600.0,
+        "final_tail_positions_m": [
+          -1293.7779000405167,
+          -2773.1109555960747,
+          -4252.444011151633
+        ],
+        "last_time_s": 0.10000000000000006,
+        "internal_peak_kn": 0.0,
+        "max_force_residual_n": 0.007141404811591201,
+        "accepted_microsteps": 282,
+        "min_train_mean_kmh": 79.98473205723297,
+        "min_gap_m": 183.3428273984182,
+        "safety_event_count": 329,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 161.00438348759198,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 79.28652014628307,
+        "max_vehicle_kmh": 79.99119698233433,
+        "min_in_route_vehicle_kmh": 79.28652014628307,
+        "max_in_route_vehicle_kmh": 79.28652014628307
+      }
+    }
+  ],
+  "steps": 1,
+  "full_route_completed": false,
+  "last_time_s": 0.10000000000000006
+}

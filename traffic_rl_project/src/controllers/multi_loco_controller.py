@@ -49,6 +49,9 @@ class MultiLocoController:
         ed_recovery_rate_per_s: float = 0.0,
         ed_baseline_projection: str = 'legacy',
         anticipate_etcs: bool = False,
+        etcs_anticipation_level: str = 'sbi',
+        etcs_service_preemption: bool = False,
+        etcs_refill_release_guard: bool = False,
         ed_recovery_scope: str = 'all',
         ed_grade_feedforward: bool = False,
         ed_physics_availability: bool = False,
@@ -61,6 +64,8 @@ class MultiLocoController:
         ed_release_coordination: bool = False,
         ed_release_hold_s: float = 50.0,
         ed_release_boost_kn: float = 900.0,
+        ed_release_transition_s: float = 0.0,
+        ed_release_transition_ed_mod: float = 0.0,
         ed_native_force_conversion: bool = False,
         ed_upgrade_ramp_s: float = 0.0,
         ed_upgrade_ramp_scale: float = 1.0,
@@ -99,6 +104,11 @@ class MultiLocoController:
         # Experimental: use the existing service supervision ceiling earlier
         # in normal control. No ETCS/vehicle constants are changed.
         self.anticipate_etcs = bool(anticipate_etcs)
+        if etcs_anticipation_level not in ('sbi', 'p'):
+            raise ValueError("etcs_anticipation_level must be 'sbi' or 'p'")
+        self.etcs_anticipation_level = etcs_anticipation_level
+        self.etcs_service_preemption = bool(etcs_service_preemption)
+        self.etcs_refill_release_guard = bool(etcs_refill_release_guard)
         # 【2026-09-05 杠杆隔离消融】mask_lever∈{'none','ed','ab'}：
         #   - 'none'：两根杠杆（ed_mod/ab_mod）都生效（默认，一致性不变）
         #   - 'ed'  ：禁用 ed_mod（仅 ab_mod 生效）→ 验证"AB 错峰杠杆"的独立贡献
@@ -185,7 +195,17 @@ class MultiLocoController:
         # 文献锚定可调低（Oxford TSE 运营标准缓解期 50%≈230 kN，
         # 部标《铁路机车操作规则》缓解后逐步退动力制动 → F 组试 300 kN）。
         self.ed_release_boost_kn = float(ed_release_boost_kn)
+        # A brief, bounded ED reduction may be requested after a *normal* AB
+        # source release.  It is disabled by default: its duration and depth
+        # are control-policy parameters, not air-brake constants.
+        if ed_release_transition_s < 0.0:
+            raise ValueError('ed_release_transition_s must be nonnegative')
+        if not -1.0 <= ed_release_transition_ed_mod <= 0.0:
+            raise ValueError('ed_release_transition_ed_mod must be in [-1, 0]')
+        self.ed_release_transition_s = float(ed_release_transition_s)
+        self.ed_release_transition_ed_mod = float(ed_release_transition_ed_mod)
         self._ed_hold_steps = 0
+        self._ed_release_transition_steps = 0
         self._ab_step = 0
         self._ab_on = [False] * self.num_locomotives
         # 初值 -1e9 保证首次允许（充风/保持门不会拦第一个源/第一次释放）
@@ -333,12 +353,79 @@ class MultiLocoController:
             curve = getattr(train_env, 'etcs_curve', None)
             targets = getattr(train_env, 'etcs_targets', ())
             if curve is not None and targets:
-                _, service_ceiling = train_env.safety._etcs_check(
-                    float(train_env.dynamics.pos[0]), float(train_env.dynamics.vel[0]),
-                    curve, targets)
+                position = float(train_env.dynamics.pos[0])
+                velocity = float(train_env.dynamics.vel[0])
+                if getattr(self, 'etcs_anticipation_level', 'sbi') == 'sbi':
+                    _, service_ceiling = train_env.safety._etcs_check(
+                        position, velocity, curve, targets)
+                else:
+                    # P is the existing ETCS pre-service supervision level.
+                    # It gives the pneumatic source time to propagate before
+                    # SBI/EBI would need to take over; it does not change any
+                    # ETCS curve, target, or safety-layer threshold.
+                    service_ceiling = curve.supervise_targets(
+                        targets, velocity, position)['P']
                 if service_ceiling is not None and np.isfinite(service_ceiling):
                     ceiling = min(ceiling, max(0.0, service_ceiling))
         return ceiling
+
+    def _etcs_preemptive_service_due(self, train_env) -> bool:
+        """Whether existing ETCS P supervision calls for a service-brake upgrade.
+
+        This is a controller-side early action only.  It reads the same target
+        and curve as the permanent safety layer; it does not modify EBI/SBI,
+        target geometry, air propagation, or any safety threshold.
+        """
+        if not (getattr(self, 'anticipate_etcs', False)
+                and getattr(self, 'etcs_service_preemption', False)):
+            return False
+        curve = getattr(train_env, 'etcs_curve', None)
+        targets = getattr(train_env, 'etcs_targets', ())
+        if curve is None or not targets:
+            return False
+        position = float(train_env.dynamics.pos[0])
+        velocity = float(train_env.dynamics.vel[0])
+        p_ceiling = curve.supervise_targets(targets, velocity, position)['P']
+        return bool(np.isfinite(p_ceiling) and velocity >= p_ceiling)
+
+    def _etcs_release_must_wait_for_refill(self, train_env) -> bool:
+        """Keep an established AB source if closing would consume its refill horizon.
+
+        A normal low-speed release is unsafe for a following train when it will
+        reach its ETCS target before that same source is eligible to reapply.
+        This is a release permission guard, not a new brake or safety override.
+        """
+        self._etcs_release_guard_snapshot = dict(enabled=bool(
+            getattr(self, 'etcs_refill_release_guard', False)),
+            established_source=bool(any(self._ab_on)), gap_m=None,
+            closing_mps=None, time_to_closure_s=None,
+            latched=bool(getattr(self, '_etcs_refill_release_latched', False)), blocked=False)
+        if not (self._etcs_release_guard_snapshot['enabled']
+                and self._etcs_release_guard_snapshot['established_source']):
+            return False
+        targets = getattr(train_env, 'etcs_targets', ())
+        if not targets:
+            return False
+        target = min(targets, key=lambda value: float(value.position_m))
+        gap = float(target.position_m) - float(train_env.dynamics.pos[0])
+        closing_speed = float(train_env.dynamics.vel[0]) - float(target.speed_mps)
+        self._etcs_release_guard_snapshot.update(
+            gap_m=gap, closing_mps=closing_speed)
+        if getattr(self, '_etcs_refill_release_latched', False):
+            if gap > 0.0 and closing_speed > 1e-6:
+                self._etcs_release_guard_snapshot['blocked'] = True
+                return True
+            self._etcs_refill_release_latched = False
+        if gap <= 0.0 or closing_speed <= 1e-6:
+            blocked = gap <= 0.0
+        else:
+            self._etcs_release_guard_snapshot['time_to_closure_s'] = gap / closing_speed
+            blocked = self._etcs_release_guard_snapshot['time_to_closure_s'] <= self.ab_min_refill_s
+        self._etcs_release_guard_snapshot['blocked'] = bool(blocked)
+        if blocked:
+            self._etcs_refill_release_latched = True
+            self._etcs_release_guard_snapshot['latched'] = True
+        return bool(blocked)
 
     def _grade_feedforward_actions(self, train_env):
         """Invert existing ED physics to offset net downhill force, read-only."""
@@ -409,11 +496,14 @@ class MultiLocoController:
         was_braking = self._cyclic_braking
         if vel >= trigger_mps or max_vel >= formation_ceiling:
             self._cyclic_braking = True
-        elif vel <= release_mps and max_vel <= release_ceiling:
+        elif (vel <= release_mps and max_vel <= release_ceiling
+              and not self._etcs_release_must_wait_for_refill(train_env)):
             self._cyclic_braking = False
         # 【表3】制动→缓解转换时刻进入"抬 ED 保持"窗口（ed_release_coordination 开启才生效）
         if self.ed_release_coordination and was_braking and not self._cyclic_braking:
             self._ed_hold_steps = int(round(self.ed_release_hold_s / self.dt))
+            self._ed_release_transition_steps = int(round(
+                getattr(self, 'ed_release_transition_s', 0.0) / self.dt))
 
         if self._cyclic_braking:
             if self.ed_release_coordination:
@@ -425,6 +515,12 @@ class MultiLocoController:
             # 【表3】cyclic_notch_50 开启时兜底档 = CYCLIC（50 kPa）替代 SERVICE（140 kPa）
             ab_nominal = 0.0 if ed_avail >= 0.99 else (
                 self.CYCLIC_AB_SENTINEL if self.cyclic_notch_50 else float(brake_notch))
+            # At the P supervision line the cyclic 50 kPa source can be too
+            # weak to meet SBI/EBI after the pneumatic propagation delay.
+            # Upgrade through the normal established-source path; refill and
+            # source gates still govern any new source.
+            if self._etcs_preemptive_service_due(train_env):
+                ab_nominal = float(brake_notch)
             # 高速预升级仍覆盖 CYCLIC 和 ED-only 两种状态；先按整列各车
             # 坡度、Davis 阻力及真实 ED 能力筛选，避免把一辆车进入陡坡
             # 当成整列都需要强空气制动。原 AB 兜底、源准入和 ATP 不变。
@@ -611,6 +707,10 @@ class MultiLocoController:
             才生效——远离超速才允许关兜底，"ED 优先"可学且安全）；
           * ab_mod < -0.5：提前触发本机车 SERVICE 档 AB 兜底（错峰/预判性引入）。
         """
+        # Snapshot before the baseline is evaluated.  A just-detected release
+        # arms the transition for the *next* raw control step, matching the
+        # causal order in which an air-source release is observed.
+        release_transition_active = getattr(self, '_ed_release_transition_steps', 0) > 0
         baseline = self.get_action_cyclic_braking(
             train_env, v_max=v_max, v_min=v_min,
             v_max_adj=v_max_adj, v_min_adj=v_min_adj,
@@ -677,6 +777,10 @@ class MultiLocoController:
                     final[i, 1] = self.AB_FALLBACK_NOTCH
                     added_ab_sources += 1
                 # 否则高力下/已限并发时禁止新增源（final[i,1] 保持 baseline 的 0 → 不引入新 AB）
+        if release_transition_active:
+            final[:, 0] = np.clip(
+                final[:, 0] + getattr(self, 'ed_release_transition_ed_mod', 0.0), 0.0, 1.0)
+            self._ed_release_transition_steps -= 1
         # Single mode uses a nominal baseline and one final ED projection.
         # Legacy mode retains the original baseline protection as well, for
         # isolated replay of its effect on coupler forces.

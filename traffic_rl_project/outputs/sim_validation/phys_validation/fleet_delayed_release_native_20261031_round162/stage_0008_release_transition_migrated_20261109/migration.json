@@ -1,0 +1,53 @@
+{
+  "source": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\fleet_delayed_release_native_20261031_round162\\stage_0008",
+  "source_sha256": "4f56939c190760fbd9dec5d5fb5a5ca34054171bd18345b9b6e968a4784334ed",
+  "migrated_sha256": "71e62693387f02e8649fac42cb454115f3c5fa8773f7fff23e34669bc0db867d",
+  "changes": [
+    {
+      "train_one_based": 1,
+      "attribute": "ed_release_transition_s",
+      "value": 0.0
+    },
+    {
+      "train_one_based": 1,
+      "attribute": "ed_release_transition_ed_mod",
+      "value": 0.0
+    },
+    {
+      "train_one_based": 1,
+      "attribute": "_ed_release_transition_steps",
+      "value": 0
+    },
+    {
+      "train_one_based": 2,
+      "attribute": "ed_release_transition_s",
+      "value": 0.0
+    },
+    {
+      "train_one_based": 2,
+      "attribute": "ed_release_transition_ed_mod",
+      "value": 0.0
+    },
+    {
+      "train_one_based": 2,
+      "attribute": "_ed_release_transition_steps",
+      "value": 0
+    },
+    {
+      "train_one_based": 3,
+      "attribute": "ed_release_transition_s",
+      "value": 0.0
+    },
+    {
+      "train_one_based": 3,
+      "attribute": "ed_release_transition_ed_mod",
+      "value": 0.0
+    },
+    {
+      "train_one_based": 3,
+      "attribute": "_ed_release_transition_steps",
+      "value": 0
+    }
+  ],
+  "scope": "No dynamics/history/configuration advancement; added fields are disabled defaults. A later replay must record any non-default rule configuration separately."
+}

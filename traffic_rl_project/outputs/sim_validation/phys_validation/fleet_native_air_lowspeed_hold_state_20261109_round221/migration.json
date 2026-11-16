@@ -1,0 +1,7 @@
+{
+  "source": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\fleet_native_air_formal_release_transition10s_guardlatch_followup_20261109_round217_floorprobe",
+  "source_sha256": "02c8f722ee6e2d57f07fce5ea68e1146357b7ae54a37e4bd792b8dc918653804",
+  "migrated_sha256": "ed3cc3de8293b74897738eb0a2b548b54f3bcc1747668ffa8d7c79f053b3aefd",
+  "changes": [],
+  "scope": "No dynamics/history/configuration advancement; added fields are disabled defaults. A later replay must record any non-default rule configuration separately."
+}

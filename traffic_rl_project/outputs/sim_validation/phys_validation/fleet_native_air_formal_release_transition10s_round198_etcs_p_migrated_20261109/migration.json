@@ -1,0 +1,23 @@
+{
+  "source": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\fleet_native_air_formal_release_transition10s_followup6_20261109_round198",
+  "source_sha256": "6042d2093db1b967c3d1f9a2c6e6b036974ed6a62fb8fb24225c0de552aa9a45",
+  "migrated_sha256": "7740ef601e7eec92f7111792973098fda960712f0e3d128239fce5b8152b7d29",
+  "changes": [
+    {
+      "train_one_based": 1,
+      "attribute": "etcs_anticipation_level",
+      "value": "sbi"
+    },
+    {
+      "train_one_based": 2,
+      "attribute": "etcs_anticipation_level",
+      "value": "sbi"
+    },
+    {
+      "train_one_based": 3,
+      "attribute": "etcs_anticipation_level",
+      "value": "sbi"
+    }
+  ],
+  "scope": "No dynamics/history/configuration advancement; added fields are disabled defaults. A later replay must record any non-default rule configuration separately."
+}

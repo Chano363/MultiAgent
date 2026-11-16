@@ -1,0 +1,23 @@
+{
+  "initial_cumulative_count": 0,
+  "event_count_from_counter_delta": 2,
+  "recorded_rule_counts": {
+    "etcs_permitted": 2
+  },
+  "records": [
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 2,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=22.19 > SBI=22.10 -> service brake"
+    },
+    {
+      "time_s": 0.10000000000000006,
+      "train_one_based": 3,
+      "vehicle": 0,
+      "rule": "etcs_permitted",
+      "detail": "v=22.19 > SBI=22.10 -> service brake"
+    }
+  ]
+}

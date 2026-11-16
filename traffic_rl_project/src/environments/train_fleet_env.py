@@ -215,6 +215,18 @@ class TrainFleetEnv:
         self.ed_release_coordination = bool(config.get('ed_release_coordination', False))
         self.ed_release_hold_s = float(config.get('ed_release_hold_s', 50.0))
         self.ed_release_boost_kn = float(config.get('ed_release_boost_kn', 900.0))
+        self.ed_release_transition_s = float(config.get('ed_release_transition_s', 0.0))
+        self.ed_release_transition_ed_mod = float(
+            config.get('ed_release_transition_ed_mod', 0.0))
+        self.etcs_anticipation_level = str(config.get('etcs_anticipation_level', 'sbi'))
+        self.etcs_service_preemption = bool(config.get('etcs_service_preemption', False))
+        self.etcs_refill_release_guard = bool(config.get('etcs_refill_release_guard', False))
+        # 低速保速只给列距仍有余量的跟随列一个有限牵引下限；默认 0 保持旧行为。
+        # 它不是安全层替代：ETCS/车钩约束仍在动作提交后拥有最终裁决权。
+        self.low_speed_traction_floor = float(
+            config.get('low_speed_traction_floor', 0.0))
+        self.low_speed_traction_margin_mps = float(
+            config.get('low_speed_traction_margin_mps', 0.0))
         # 【X 组 2026-10-16】ED-AB 波到达协同窗（默认 0.0/1.0 = 关，零回归）：
         # 升级边沿后窗内 ED × scale，尾波到齐前头中不猛减速（消 R 峰值的速度反转）
         self.ed_upgrade_ramp_s = float(config.get('ed_upgrade_ramp_s', 0.0))
@@ -392,6 +404,12 @@ class TrainFleetEnv:
                     ed_release_coordination=self.ed_release_coordination,
                     ed_release_hold_s=self.ed_release_hold_s,
                     ed_release_boost_kn=self.ed_release_boost_kn,
+                    ed_release_transition_s=self.ed_release_transition_s,
+                    ed_release_transition_ed_mod=self.ed_release_transition_ed_mod,
+                    anticipate_etcs=bool(config.get('anticipate_etcs', False)),
+                    etcs_anticipation_level=self.etcs_anticipation_level,
+                    etcs_service_preemption=self.etcs_service_preemption,
+                    etcs_refill_release_guard=self.etcs_refill_release_guard,
                     ed_native_force_conversion=bool(config.get(
                         'ed_native_force_conversion', False)),
                     # 【X 组】ED-AB 波到达协同窗透传（默认 0/1 = 关）
@@ -1059,6 +1077,15 @@ class TrainFleetEnv:
                     chase_v = float(np.clip(
                         lead_speed + self.LEAN_CHASE_DELTA_MPS, self.v_min, self.v_max))
                     v_bound_min = max(v_bound_min, chase_v - self.v_min)
+                # 末段可能出现“已解除空气制动、协调牵引仍不足、速度缓慢跌破
+                # v_min”的情形。只要列距误差仍为正（不压迫前列），允许配置的
+                # 小牵引下限接管保速；循环制动和列距不足时绝不注入。
+                if (gap_err > 0.0
+                        and v_before <= self.v_min + getattr(
+                            self, 'low_speed_traction_margin_mps', 0.0)):
+                    coordination_traction = max(
+                        coordination_traction, getattr(
+                            self, 'low_speed_traction_floor', 0.0))
             # Refresh the same target used by the safety layer before the
             # rule controller decides; never anticipate from last-step data.
             if ti > 0:

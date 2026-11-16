@@ -1,0 +1,7 @@
+{
+  "source": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\fleet_route_scoped_early_hold_20261110_round227",
+  "source_sha256": "eb812bd3e1ea632b908138a99c3a5e21272a0255ce980a585a769d21e647e589",
+  "migrated_sha256": "426f15356ac406c2a0ef9e6ab5407b789cdd64390f0f6cd17bf0b46ab5853209",
+  "changes": [],
+  "scope": "No dynamics/history/configuration advancement; added fields are disabled defaults. A later replay must record any non-default rule configuration separately."
+}

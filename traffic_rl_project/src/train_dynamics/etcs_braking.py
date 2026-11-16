@@ -367,14 +367,16 @@ class EtcsBrakingCurve:
         return float(vs[idx])
 
     def supervise_targets(self, targets, v_cur: float, position_m: float) -> dict:
-        """对前方所有目标求 EBI / SBI 最小允许速度（安全层热路径用）。
+        """对前方所有目标求 P / EBI / SBI 最小允许速度（安全层热路径用）。
 
-        一次计算所有目标的制动距离表，返回 {'EBI': min, 'SBI': min}；
-        无前方有效目标时返回 {'EBI': None, 'SBI': None}。
-        EBI 无反应提前量（只扣速度误差）；SBI 提前 lead_sbi 反应距离。
+        一次计算所有目标的制动距离表；P 供控制器预告，EBI/SBI 仍供安全层。
+        无前方有效目标时三个值均为 None。EBI 无反应提前量；P/SBI
+        分别扣除既有 ETCS P 与 SBI 反应距离。
         """
         ebi = float('inf')
         sbi = float('inf')
+        p_level = float('inf')
+        lead_p = self.driver_time_p_to_ebi
         lead_sbi = 0.25 * self.driver_time_p_to_ebi
         any_target = False
         for tgt in targets:
@@ -394,6 +396,8 @@ class EtcsBrakingCurve:
                     ebi = V_past
                 if V_past < sbi:
                     sbi = V_past
+                if V_past < p_level:
+                    p_level = V_past
                 continue
             vs, fs = self._distance_table(tgt, position_m)
             # EBI：无额外反应提前量
@@ -401,15 +405,19 @@ class EtcsBrakingCurve:
             # SBI：扣反应距离，取更严
             d_react = v_cur * lead_sbi + 0.5 * self.assumed_accel_during_buildup * lead_sbi * lead_sbi
             v_sbi = self._allowed_at_budget(vs, fs, max(0.0, avail - d_react), v_cur)
+            d_react_p = v_cur * lead_p + 0.5 * self.assumed_accel_during_buildup * lead_p * lead_p
+            v_p = self._allowed_at_budget(vs, fs, max(0.0, avail - d_react_p), v_cur)
             # 保证 EBI 不严于（低过）SBI（与 supervision_levels 中 EBI>=SBI 一致）
             v_ebi = max(v_ebi, v_sbi)
             if v_ebi < ebi:
                 ebi = v_ebi
             if v_sbi < sbi:
                 sbi = v_sbi
+            if v_p < p_level:
+                p_level = v_p
         if not any_target:
-            return {'EBI': None, 'SBI': None}
-        return {'EBI': float(ebi), 'SBI': float(sbi)}
+            return {'P': None, 'EBI': None, 'SBI': None}
+        return {'P': float(p_level), 'EBI': float(ebi), 'SBI': float(sbi)}
 
 
 def braking_build_up_from_train(

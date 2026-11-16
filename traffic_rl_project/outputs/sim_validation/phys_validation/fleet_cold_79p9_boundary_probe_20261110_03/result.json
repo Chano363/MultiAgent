@@ -1,0 +1,37 @@
+{
+  "status": "max_step_budget",
+  "stages": [
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_cold_79p9_boundary_probe_20261110_03\\stage_0001",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 1,
+        "full_route_completed": false,
+        "finish_m": 49600.0,
+        "final_tail_positions_m": [
+          -1293.7806775066147,
+          -2773.1137330621705,
+          -4252.446788617723
+        ],
+        "last_time_s": 0.10000000000000006,
+        "internal_peak_kn": 0.0,
+        "max_force_residual_n": 0.00714260542372358,
+        "accepted_microsteps": 282,
+        "min_train_mean_kmh": 79.88474630343396,
+        "min_gap_m": 183.3428397493749,
+        "safety_event_count": 2,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 161.0388376638381,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 79.18564936499696,
+        "max_vehicle_kmh": 79.89121942323433,
+        "min_in_route_vehicle_kmh": 79.185817559813,
+        "max_in_route_vehicle_kmh": 79.185817559813
+      }
+    }
+  ],
+  "steps": 1,
+  "full_route_completed": false,
+  "last_time_s": 0.10000000000000006
+}

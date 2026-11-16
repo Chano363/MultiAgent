@@ -1,0 +1,7 @@
+{
+  "source": "F:\\\u5217\u8f66\u5927\u521bxmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\fleet_native_air_formal_release_transition10s_etcs_service_fast_20261109_round202",
+  "source_sha256": "fccfde8ed30649b7cedff0ead694856009bb41b346ad7358d3e17fb0f2d9a07d",
+  "migrated_sha256": "c7bf9d6c08e3e31944b8f53a4775c48f905a65cc7f9fbe98021601fbefb564d8",
+  "changes": [],
+  "scope": "No dynamics/history/configuration advancement; added fields are disabled defaults. A later replay must record any non-default rule configuration separately."
+}

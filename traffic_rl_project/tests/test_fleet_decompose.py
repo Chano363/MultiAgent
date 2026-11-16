@@ -43,6 +43,20 @@ def test_explicit_grade_feedforward_configuration_reaches_controllers():
         env.close()
 
 
+@pytest.mark.parametrize('enabled', [False, True])
+def test_etcs_anticipation_configuration_reaches_controllers(enabled):
+    env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus0',
+                         'grade_profile': 'long_downhill', 'decompose': 'loco_ed_ab',
+                         'anticipate_etcs': enabled, 'etcs_anticipation_level': 'p',
+                         'etcs_service_preemption': True, 'max_steps': 1})
+    try:
+        assert all(c.anticipate_etcs is enabled for c in env.multi_loco_controllers)
+        assert all(c.etcs_anticipation_level == 'p' for c in env.multi_loco_controllers)
+        assert all(c.etcs_service_preemption for c in env.multi_loco_controllers)
+    finally:
+        env.close()
+
+
 def test_follower_speed_cap_is_passed_as_an_offset(monkeypatch):
     """The real control chain must honor the preceding train's absolute cap."""
     env = _make_decompose_fleet(num_trains=3)

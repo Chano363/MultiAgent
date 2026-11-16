@@ -1,0 +1,37 @@
+{
+  "status": "max_step_budget",
+  "stages": [
+    {
+      "directory": "outputs\\sim_validation\\phys_validation\\fleet_cold_65kmh_etcs_wired_start_20261110_24\\stage_0001",
+      "summary": {
+        "stop_reason": "step_budget",
+        "error": null,
+        "steps": 250,
+        "full_route_completed": false,
+        "finish_m": 49600.0,
+        "final_tail_positions_m": [
+          -861.5411026625435,
+          -2340.911256460982,
+          -3820.361187999179
+        ],
+        "last_time_s": 24.999999999995197,
+        "internal_peak_kn": 762.1466605987971,
+        "max_force_residual_n": 0.009999073219660204,
+        "accepted_microsteps": 74710,
+        "min_train_mean_kmh": 59.79851100189331,
+        "min_gap_m": 183.34510600089288,
+        "safety_event_count": 0,
+        "safety_count_semantics": "Difference of cumulative train counters, not sum over time",
+        "actual_air_force_peak_n": 1669.6691121785032,
+        "vehicle_speed_floor_stop_enabled": true,
+        "min_vehicle_kmh": 59.78107504830229,
+        "max_vehicle_kmh": 64.99429533717432,
+        "min_in_route_vehicle_kmh": 59.83268889512056,
+        "max_in_route_vehicle_kmh": 64.12688653902208
+      }
+    }
+  ],
+  "steps": 250,
+  "full_route_completed": false,
+  "last_time_s": 24.999999999995197
+}
