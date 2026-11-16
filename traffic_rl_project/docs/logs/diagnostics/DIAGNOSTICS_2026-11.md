@@ -2646,3 +2646,13 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 - **ED/AB**：meanED 0.484；ED≤0 占比 [0%, 21.5%, 36.6%]；AB 逐列占比 **[41.0%, 14.4%, 14.9%]**。列 0 用 AB 最多但车钩最安全；列 1/2 是近上限 AB 旁路 + 惰行/牵引注入的主要作用列。
 - **判读**：不是“旁路本身无差别地压坏所有列”，而是**列 1/2 的近上限 SERVICE 制动与 ED 惰行叠加**造成车钩超限。下一步做“近上限分级制动”单变量探针：贴近但未超线时先用 MIN，越线才 SERVICE。
 - **留痕**：`outputs/results/decompose/eval_decompose_decompose_m1_ms12000_train_coupler12k.json`。
+
+### 诊断-2026-11-17 W4-v19 终验：stop-hold 实证成立，v19 三判据拒绝
+
+- **目的**：ADR-069 ③ 重训窗口终验——v4 机制 + `ebi_stop_hold_mps`(默认开) + `rear_end_terminate`，从 v4 ep60 权重热启动 60 新集（云端 c9i.2xlarge，ep61–120，621 s/集，训练期零穿透、terminate 零触发），接 31500 步全程确定性评估。
+- **执行波折（已收口）**：云端自动评估接力崩（`ModuleNotFoundError: No module named 'src'`——本地 editable 包 pth 注入、云镜像没有，`python src/…` 直跑时项目根不在 sys.path），造成 **31.5 分钟实例空转（≈0.8 元，owner 点名批评）**。修复 = `PYTHONPATH=` 前缀重启；后 owner 指令改本地评估（ep120 ckpt 拉回），云端实例 `i-f8zcp6vvis4rnztw0p9y` 已停费复核（`Stopped+StopCharging`）。教训入 SERVER_OPS：接力链子步骤先冒烟 + 空转即停机。
+- **结果（`outputs/results/decompose/eval_decompose_decompose_m1_ms31500_w4v19_det_ep120.json`，本地复跑 EXIT=0）**：
+  - **修复面（通过）**：全程 `gap>0`（min **5.8 m**）、`rear_end` 断言通过 = **零穿透**；蠕行前兆报警 pair1 首步 29097、仅 9 步、累计收缩 **0.082 m** 即被 stop-hold 摁住（对照 v11：穿透 11168 步）。ADR-069 四项全收口。
+  - **判据面（拒绝）**：peak **2382 kN**（判 ≤1200）、ATP **195 351**（判 ≤31 094，超 12.6×）、band **13.56%**（判 ≥90%）、末速 0、越限 464 918、gap_err 峰值 19 008 m。塌缩形态与 v11 同构（~4000–6300 步崩、中列 peak 顶 2382）。
+- **归因模式（最有价值的发现）**：v11（压力梯度罚）塌、v19（terminate+hold）塌、v4（裸 v9）band 99.78% 不塌；且 terminate 罚全程零触发 ⇒ **塌缩根因不在奖励项**；两次"从 v4 ep60 热启动续训 60 集"均塌 ⇒ 主嫌疑 = **resume 热启动训练本身**（`--resume-weights-only` 优化器重置后策略漂移 / ep60→ep120 过拟合）。归因另案，不在本节展开。
+- **留痕**：本地评估日志 `outputs/logs/diagnostics/w4v19_eval_local_20261117.log`；云端训练日志 `outputs/logs/cloud/w4v19_terminate_20261116.log`（服务器，实例已停费）；训练 CSV 云端段已拉回 `outputs/results/diagnostics/w4v19_cloud_history_partial.csv`。
