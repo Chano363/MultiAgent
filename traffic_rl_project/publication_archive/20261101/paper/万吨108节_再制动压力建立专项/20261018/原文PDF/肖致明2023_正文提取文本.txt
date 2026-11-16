@@ -1,0 +1,532 @@
+===== PDF页1 (印刷页推断见页码标记) =====
+第1期 No.1
+2023年1月 Electric Drive for Locomotives Jan. 2023
+DOI: 10.13890/j.issn.1000-128X.2023.01.004 文章编号：1000-128X(2023)01-0024-09
+考虑制动性能差异的重载列车
+模式化操纵方法
+肖致明1，王大龙1，王青元2，刘强强2，魏 咪2
+（ 1.国家能源投资集团 朔黄铁路发展有限责任公司，河北 肃宁 062350；
+2.西南交通大学 电气工程学院，四川 成都 610031 ）
+摘 要：重载列车在长大下坡道循环制动时，空气制动的性能差异较大、列车纵向冲动较大，偶发断钩
+事故，给机车乘务员操作造成极大困难。以LKJ2000机车运行监控装置记录的朔黄铁路数据和相关线路条件
+为基础，建立重载列车牵引计算模型，对不同制动性能的列车提出相应的优化操作方案。采用理论分析与现
+场运用需求相结合的研究方法，分析重载列车长大下坡线路操作规程，并基于重载列车空气制动线路的试验
+数据模型，以50 kPa减压量下的空气制动性能为基准，计算不同制动速度下的空气制动等效效率；以具体案
+例为对象，分析不同操作方案对列车运行速度曲线变化的影响规律，并在此基础上，以列车安全运行、避免
+停缓为目标，根据制动时的速度变化判断空气制动效率，对列车操作控制策略进行优化。经过大量仿真计算
+和数据分析，提出“北大牛—原平南”区间不同空气制动操作方案的判断条件，并制定相应的优化操作示意
+图，为重载列车安全高效地运行提供理论支撑。
+关键词：重载列车；长大下坡；空气制动等效效率；优化操作；减压量
+中图分类号：U292.92+1 文献标识码：A
+Pattered manipulation method for heavy-haul trains considering air brake
+performance diversity
+XIAO Zhiming1, WANG Dalong1, WANG Qingyuan2, LIU Qiangqiang2, WEI Mi2
+( 1. Shuohuang Railway Development Co., Ltd., CHN ENERGY Investment Group Co., Ltd., Suning, Hebei 062350, China;
+2. School of Electrical Engineering, Southwest Jiaotong University, Chengdu, Sichuan 610031, China )
+Abstract: The heavy-haul trains under cyclic braking in the long steep downhill sections suffer from large difference in air braking
+performance and heavy longitudinal impulse, occasionally causing coupler breaking accidents and bringing great difficulties to drivers’
+operation. In the current study, a traction calculation model was established for heavy-haul trains based on the data of Shuozhou-Huang‐
+hua railway recorded by the LKJ2000 locomotive operation monitoring equipment and the relevant track conditions, and optimized oper‐
+ation strategies were proposed for trains with different braking performances. Following the research approach of combining theoretical
+analysis with field application requirements, analysis was made on the operating procedures of heavy-haul trains in long steep downhill
+sections, and the air braking efficiency was calculated at different braking speeds, taking the air braking performance at 50 kPa pressure
+reduction as the benchmark and based on the model established from test data of the air brake line on heavy-haul trains. Analysis was al‐
+so made on the influence law of different operation strategies on the speed curve change in the specific cases; furthermore, according to
+the air braking efficiency estimated on the basis of speed change during braking, such train operation strategies were optimized to avoid
+基金项目：国家重点研发计划项目（2021TFB2601504）
+通信作者：王青元（1984—），男，博士，高级工程师，主要从事控制理论与控制工程、列车运行优化控制理论与方法、轨道交通电气化与自
+动化、列车智能驾驶技术、列车运行仿真技术与工程应用等方面的研究；E-mail：wangqy@swjtu.edu.cn
+引用格式：肖致明, 王大龙, 王青元, 等. 考虑制动性能差异的重载列车模式化操纵方法[J]. 机车电传动, 2023(1): 24-32.
+Citation：XIAO Zhiming, WANG Dalong, WANG Qingyuan, et al. Pattered manipulation method for heavy-haul trains considering air brake performance
+diversity[J]. Electric Drive for Locomotives, 2023(1): 24-32.
+
+===== PDF页2 (印刷页推断见页码标记) =====
+第1 期 肖致明，王大龙，王青元，刘强强，魏 咪：考虑制动性能差异的重载列车模式化操纵方法 25
+delayed stopping and ensure operation safety. Based on extensive simulation calculation and data analysis, the boundary conditions
+among air braking operation strategies were raised for the Beidaniu to Yuanpingnan section, and the corresponding optimized operation
+diagrams were formulated, providing theoretical support for safe and efficient operation of heavy-haul trains.
+Keywords: heavy-haul trains; long steep downhill sections; air braking efficiency; operation optimization; pressure reduction
+验结果证明了该方法具有较高预测精度。目前，空气
+0 引言 制动性能评估研究主要基于优秀司机的操作经验和操
+作规则的总结，文献[15]探讨了列车在长大下坡的制动
+朔黄铁路是我国“西煤东送”的重要通道，线路 操作问题，提出了改善列车制动性能下降的措施；文
+呈西高东低走势，海拔落差接近2 000 m，在重车方向 献[16]对朔黄铁路2万t重载列车区间停车原因进行分
+下坡道的最大坡度为 12‰。当重载列车在连续长大下 析，并制定了相关改进措施；文献[17]经过试验研究和
+-
+坡区段运行时，需进行周期性的空气制动和缓解[1]，操 对大量现场数据分析，制定出适合朔黄铁路2万t列车
+作难度大，并且列车运行安全受线路条件、天气状况、 的制动力判断标准。
+列车编组、通信、司机操作、空气制动性能等多种因 本文考虑了重载列车在长大下坡道现场操作的需
+素影响。 求，基于空气制动精细化模型计算空气制动等效效率，
+目前，重载列车长大下坡的操作研究已取得一些 分析不同操作方案对列车运行速度曲线的影响，在此
+成果[2-3]。文献[4]针对重载列车在长大下坡道区间进行 基础上，从速度和空气制动效率角度出发，分析“原
+周期制动时列车制动机充风时间和低速慢行等安全问 平南—北大牛”区间1次循环制动与2次循环制动操作
+题，提出了相应的评价方法和机车制动故障时如何保 的判断条件，最终整理出相应的优化操作示意图，为
+证安全运行的应急措施；文献[5]通过分析朔黄铁路重 司机平稳驾驶提供理论指导与模式化优化操作。
+载列车操作模式，开发了一套基于车载智能副驾和地
+面专家系统的重载列车模式化操作系统，可实现操作 1 重载列车长大下坡优化操作原则
+关键节点的语音提示指导；文献[6]采用列车空气制动
+与纵向动力联合仿真系统，通过减少循环制动次数， 2万t重载货运列车操作难度大，对司机的操作水
+有效地避开了缓解过程中易产生较大车钩力的地点； 平要求高。本文基于理论分析与现场运用需求相结合，
+文献[7]通过分析总结重载列车在长大下坡道时的实际 展开试验与研究，以列车的安全和平稳操作为主要的
+操作情况，针对列车制动初速度、电制动力大小和空 优化目标，考虑列车纵向冲动，对状态量和控制量进
+气制动施加时机进行优化，为司机操作提供便利；文 行划分，按照优先级从高到低，提出了2万t重载货运
+献[8]研究了重载列车在长大下坡区段空气制动的运用 列车的优化操作原则：
+情况与节能策略，可在保证行车安全的前提下，通过 速度：避免列车在超速和低速条件下实施缓解。
+①
+增加空气制动次数实现节能；文献[9]考虑长大下坡区 缓解再充风时间：满足列车最低充风需要。
+②
+段的循环制动情况，结合专家知识和机器学习方法， 缓解地点：避免小半径曲线/道岔区段缓解。
+③
+解决了重载列车的智能驾驶问题。为保证优化控制策 电制动力：不宜过大，波动要小。
+④
+略具备可操作性，空气制动过程建模这一步骤不可忽 列车运行效率：提高线路通过性，避免列车
+⑤
+略。美国铁路协会针对ABDW控制阀的空气制动特性 停缓。
+进行了数值仿真研究[10]，日本铁道技术研究所也采用 工况切换便于机车乘务员操作。
+⑥
+数值计算方法研究了列车管减压特性，得到了优化的
+特性参数[11]。针对列车牵引计算规程[12]空气制动模型 2 重载列车空气制动效率评估
+的局限性，文献[13]考虑长编组列车空气制动传播带来
+的制动力由弱变强，并呈现时变缓慢的特点，以及因 2.1 重载列车牵引计算模型
+制动时间间隔短、晾闸不充分，导致车轮与钢轨受热， 重载列车运行过程中主要受力为机车牵引力、电制
+并引发本次制动性能整体变弱的问题，将空气制动全 动力、空气制动力、基本运行阻力和线路附加阻力，由
+过程分为系统空走、制动力缓慢建立的暂态阶段和制 牛顿第二定律可得到列车动力学方程，动力学方程为
+动力稳定发挥的稳态阶段，并据此建立了空气制动精
+m
+dv
+=F (v)-W (v)-F (v)-F (v)-W (x)
+üïï
+dx t 0 b m j ïï
+细化模型。文献[14]提出了一种基于模糊神经网络的重 ý (1)
+dt 1 ïï
+载列车空气制动力预测方法，通过训练空气制动离线 = ïï
+dx v þ
+数据，得到模糊逻辑形式的空气制动力离线预测规则，
+式中：x为列车运行位置距离；v为列车运行速度；
+避免了充、排风时间与减压过程之间的耦合分析，试
+
+===== PDF页3 (印刷页推断见页码标记) =====
+26 2023 年1月
+F (v)为列车牵引力；F (v)为列车电制动力；F (v)为 使同一列车不同循环制动位置的空气制动性能也存在
+t b m
+列车空气制动力；W (v)为列车基本运行阻力；W (x) 明显差异，为控制列车运行带来极大的困难。以牵规
+0 j
+为线路附加阻力。 中50 kPa减压量下的空气制动性能为基准，不同制动
+效率、不同速度条件下的空气制动力如表1所示。在此
+2.2 空气制动模型
+基础上，根据实际列车运行数据分析列车空气制动性
+为表征空气制动系统动态行为和历史操作行为对
+能，仿真计算不同电制动力、空气制动效率下列车运
+当前空气制动性能发挥的影响，文献[13]基于《列车牵
+行速度曲线，为制订重载列车长大下坡优化操作方案
+引计算规程》（以下简称“牵规”）提出一种空气制动
+提供支撑。
+精细化模型，模型的数学表达为
+( ) 表1 不同制动效率和不同速度条件下空气制动力统计表
+F t =
+m
+Table 1 Statistical table of air braking force under different
+ì0 t t
+ïï ( ) ≤ d braking efficiency and speed kN
+ïï N
+( ) ( )
+í
+ïïC
+β
+β
+c
+ϕ
+h
+(
+P
+N
+K
+h
++
+∑i=1
+G
+N
+K
+zi
+t
+⋅
+P
+s
+t
+)
+ t
+d
+<t
+≤
+t
+m 制动效率/% 不同速度下的空气制动力
+ïï 45 km/h 50 km/h 60 km/h 65 km/h
+ï
+ï ïC β ϕ P K + N G K ( t ) ×P ( t )  t>t 50 1 153 1 135 1 104 1 089
+ïïï β c h N h N h s m
+î ∑i=1 62 1 430 1 408 1 368 1 351
+(2)
+66 1 522 1 498 1 457 1 438
+式中：t d 为空走时间；t m 为列车开始有效制动时间； 70 1 614 1 589 1 545 1 525
+P (t)为历史操作对制动性能的修正函数；K (t)为暂态 74 1 706 1 680 1 633 1 612
+s zi
+过程中第i辆车实时闸瓦压力函数；C 为常用制动对应 82 1 891 1 862 1 810 1 787
+β
+90 2 075 2 043 1 986 1 961
+减压量制动性能修正系数，取常数。
+100 2 306 2 342 2 207 2 179
+2.3 空气制动等效效率计算
+列车在长大下坡道实际运行中，经过了多次循环
+3 案例分析
+制动和缓解的操作，导致机车闸片与货车闸瓦升温，
+再次抱闸制动时空气制动力发挥会受到限制，即空气
+根据相关列车的LKJ2000记录数据，显示在“北
+制动性能衰减。同一列车每一次空气制动时空气制动
+大牛—原平南”区间内存在2种操作方案，分别是“1
+力的发挥都有所变化，并且不同列车间空气制动力发
+次制动操作方案”与“2次制动操作方案”。由于列车
+挥也会有差异。因此，本文提出1个列车空气制动效率
+在进入“北大牛”之前由于多次、长时间使用空气制
+的参数指标进行评估，参数指标为
+B B 动，使得司机对“北大牛—原平南”区间内空气制动
+η= real ´100%» cj ´100% (3)
+B B 的使用把控难度增大，司机需要提前判断列车的空气
+cq cq
+式中：η为表征列车空气制动等效效率的系数（以下简 制动性能，从而选择列车通过该区间的操作方式。一
+称空气制动效率）；B 为实际列车空气制动力；B 为 方面，列车2次制动操作方式限制了第2次制动的缓解
+real cj
+精细化模型计算的空气制动力；B 为减压量下牵规模 地点，缓解地点需要控制在公里标73~75 km的缓坡区
+cq
+型计算的空气制动力。 段；另一方面，“1次制动”与“2次制动”操作方式对
+从大量实车运行数据中随机抽取部分数据，进行 列车电制动力的使用情况不同，司机需要充分合理地
+运行状况复现，并按照制动先后次序统计制动效率分 使用列车电制动力。因此，一旦司机对列车的把控能
+布，分布如图1所示。 力不足，就会使得列车出现超速或者停缓的风险。以
+在“北大牛—原平南”区间运行的7129次列车为例，
+7129次列车在原平南进站前由于追加减压量，列车出
+现停缓，同时司机在追加减压量后调整了列车电制动
+力，这些操作使得整体电制动力波动较大，一定程度
+上增大了列车的纵向冲动。为探究追加减压的必要性
+和电制动力的使用范围，本节将基于重载列车牵引计
+算模型分析电制动力、减压量等参数对7129次列车运
+行速度的影响。
+图1 制动性能分布图
+Fig. 1 Distribution diagram of brake performance 以LKJ2000记录的实车运行数据作为仿真模型的
+由图1可知，实际列车的制动性能存在较大的离散 输入，通过式(1)，以仿真的方式复现了7129次列车的
+性，不同列车之间的空气制动性能存在较大差异，即 运行速度曲线，具体如图2所示。7129次列车在北大
+
+===== PDF页4 (印刷页推断见页码标记) =====
+第1 期 肖致明，王大龙，王青元，刘强强，魏 咪：考虑制动性能差异的重载列车模式化操纵方法 27
+牛站内停车后再起动，进行2次循环制动后通过该区 在列车电制动力为0 kN情况下，列车仍然能够减速，
+间。从记录数据可以获得以下信息：当中部机车在公 最高车速为71.57 km/h。这表明7129次列车在追加减
+里标72.513 km处，并且速度为49 km/h时，列车开始 压量后，在保证列车安全的情况下应该尽量保持列车
+缓解；当中部机车在公里标75.515 km处，并且速度达 的电制动力恒定，减小列车纵向冲动。
+到60 km/h时，列车开始制动，列车缓解再充风时间为
+3.2 不追加减压量对列车速度的影响
+216 s；当中部机车在公里标77.659 km处时，列车追加
+由于根据记录数据无法判断实际列车在追加减压
+减压量并减小电制动力，在公里标81.161 km处停缓。
+量前其空气制动力是否已经处于稳态，因此选取合理
+基于以上信息，仿真分析追加减压量后电制动力调整
+的空气制动力进行仿真计算。提取7129次列车在该区
+的必要性和追加减压量的必要性，即追加减压量后不
+段（公里标20~23 km和公里标69~73 km）之前施加的
+同电制动力、不追加减压量、不追加减压量时不同电
+空气制动稳定区段的数据，进行空气制动特性拟合分
+制动力3种情况下7129次列车运行速度曲线的变化
+析，以获取空气制动力的稳定情况，分析结果如图4
+情况。
+所示。
+图4 7129次列车空气制动力与速度关系折线图
+Fig. 4 Line chart of relationship between air braking force
+图2 牵引模型与7129次列车速度曲线对比 and speed of No.7129 train
+Fig. 2 Speed curve comparison between traction model
+通过图4的2段区间拟合函数，计算得到在列车速
+and No.7129 train
+度为70 km/h时，其空气制动力稳定值分别为1 500 kN
+3.1 追加减压量后电制动力大小对列车速度的影响 和1 700 kN左右；而在当前区段（公里标76~82 km）
+由实车数据可知，当7129次列车在公里标77.600 列车追加减压量前，其空气制动力已逐渐增加至1 486
+km处追加减压量后，电制动力由390 kN降至130 kN， kN，与拟合结果数值范围接近且小于拟合数值范围。
+并且当中部机车位于公里标80.872 km处时，又将电制 因此，考虑最恶劣的运行环境，假设该列车在公里标
+动力上调至340 kN。列车在追加减压量后又以较大幅 77.6 km处之后的空气制动力稳定在1 486 kN，此时空
+度调整电制动力的操作会增大列车的纵向冲动。因此， 气制动力最小，研究在此条件下列车速度的变化，仿
+当中部机车处于公里标77.600 km后，以恒定电制动力 真结果如图5所示。
+作为输入，通过调整电制动力的大小，得到相应的运
+行速度曲线，如图 3所示。
+图5 不追加减压条件下列车运行速度曲线
+Fig. 5 Train operation speed curve without additional
+图 3 追加减压后不同电制动力条件下列车速度曲线 pressure reduction
+Fig.3 Train speed curve under different electric braking force
+由图5可知，在不追加减压量条件下，列车最高速
+with additional pressure reduction
+度达到了71.62 km/h，并且中部机车在公里标80.83 km
+由图3可知，当追加减压量后，列车整体制动能力
+处列车速度能够明显下降，这表明列车速度处于安全
+增强，电制动力大小对列车速度影响相对较小，即使
+
+===== PDF页5 (印刷页推断见页码标记) =====
+28 2023 年1月
+水平。 “1次制动”与“2次制动”后续操作方案及相应的电制
+动力使用情况，最后总结整理出该区间内列车“1次制
+3.3 不追加减压量电制动力大小对列车速度的影响
+动”与“2次制动”操作示意图。
+上节的仿真结果表明在不追加减压量，并以列车
+实际的电制动力作为仿真输入，列车的运行速度处于 4.1 循环制动次数判断条件
+安全的水平。因此，有必要进一步研究不追加减压量 假设前述北大牛出站的缓解地点、缓解速度、第
+条件下不同大小的电制动力对车速的影响。在公里标 一次制动的制动地点和制动速度以及相应制动力的操
+77.6 km后以恒定电制动力作为输入，调整电制动力大 作方案均一致，分析“1次制动”与“2次制动”操作
+小，得到相应的运行速度曲线，仿真结果如图6所示。 的判断条件。
+4.1.1 制动次数的判断方案
+1）决策区间的选择
+以最低速度为临界条件，仿真计算得到“1次循环
+制动”操作的制动效率上限为70%（此时区间内最低
+速度为30 km/h）；在此基础上，仿真“1次循环制动”
+操作，当速度开始稳定降低时，降低电制动力至150
+kN，测试速度稳定降低点位置与速度关系，结果如表
+2和表3所示。
+表2 速度稳定降低点位置与速度统计表（公里标69 km，
+制动速度60 km/h）
+图6 不追加减压时不同电制动力条件下列车速度曲线
+Table 2 Statistics of stable speed reduction point positions and
+Fig. 6 Train speed curve under different electric braking force
+corresponding speeds(60 km/h upon braking speed at 69 km)
+without pressure reduction
+公里标位置/km 速度/(km×h-1) 制动效率/%
+由图6可知，在不追加减压量和不使用电制动的工
+75.00 61.90 50
+况下，列车速度将超过75 km/h，当电制动保持在200
+73.82 66.87 57
+kN及其以上时，列车速度均能明显下降。同时应保持
+72.52 67.71 62
+电制动力恒定，以达到减速效果，并且能够减小列车
+71.98 66.40 66
+冲动。 71.76 65.79 68
+通过对7129次列车在“北大牛—原平南”区间进 71.66 65.50 70
+行2次循环制动操作情况的仿真分析可得： 列车在追 71.40 64.60 74
+①
+加减压量后制动效果明显，此时调整电制动对列车运 71.00 63.00 82
+行速度的影响不明显，应保持电制动稳定以减小列车
+表3 速度稳定降低点位置与速度统计表
+产生的冲动； 列车在不追加减压量情况下，可以通 （公里标69 km，制动速度55 km/h）
+②
+过调整电制动力来控制列车速度使列车速度处于较安 Table 3 Statistics of stable speed reduction positions and
+全水平，电制动力至少保持在200 kN。 corresponding speeds (55 km/h upon braking speed at 69 km)
+公里标位置/km 速度/(km×h-1) 制动效率/%
+4 优化操作控制策略 74.00 66.87 50
+72.11 62.50 62
+列车在“北大牛—原平南”区间采取“1次循环制 71.45 61.12 66
+71.05 60.14 70
+动”和“2次循环制动”操作方案的最大的区别在于是
+70.85 59.27 74
+否需要在公里标73~75 km处进行缓解操作，因此在公
+70.81 57.26 82
+里标73 km之前，司机需要根据列车的运行状态判断在
+该区间内应采取的操作方案。 由表2和表3可知，数据整体呈现制动效率越高，
+结合列车实际运行情况，对该区间内的操作进行 速度稳定点位置越靠前和转折点速度越低的特点。需要
+优化时应考虑大部分列车所能达到的控制水平，并且 注意，对于50%左右的制动效率且在速度开始降低时，
+需要考虑列车实际存在的极端条件。为此，本节先研 由于列车处于坡度较小位置，速度降低较快，不满足上
+究列车在“北大牛—原平南”区间内第一次循环制动 述效率与速度的变化规律。当制动效率低于70%时，
+的制动初速度和制动点的位置，然后根据第一次制动 速度稳定点的位置均位于公里标71 km以后。因此，综
+时速度的变化判断空气制动的效率，并得到“1次制 合制动初速度（55~60 km/h），并且给予司机足够长的
+动”与“2次制动”操作的判断条件，进而分别给出 区间进行判断，选取公里标72~73 km为决策区间。
+
+===== PDF页6 (印刷页推断见页码标记) =====
+第1 期 肖致明，王大龙，王青元，刘强强，魏 咪：考虑制动性能差异的重载列车模式化操纵方法 29
+2）决策区间内速度的判断条件 动”操作策略通过。对于列车速度为63~65 km/h时，
+以该区间最低速度作为判断的临界条件，仿真计 需要根据制动初速度进行判断：对于制动初速度为55
+算条件为当列车到达公里标73 km后电制动力降低至 km/h，列车需要使用“1次制动”操作策略通过；对于
+150 kN，计算得到“1次循环制动”的制动效率上限； 制动初速度为60 km/h，列车需要使用“2次制动”操
+以在公里标74~77 km区间的第二次循环制动缓解时间 作策略通过。操作仿真数据如表6和表7。
+为临界条件，仿真计算条件为电制动力保持为400 kN， 表4 公里标72~73 km处速度与操作方案的关系表
+当列车到达公里标80.3 km后电制动力降低至150 kN， Table 4 Relation between speed and
+计算得到“2次循环制动”的制动效率下限。由数值仿 operation scheme at 72~73 km km/h
+真可得到以下结果： 速度范围
+制动初速度
+当制动初速度为60 km/h时，“2次循环制动”方 只能2次制动 1次制动/2次制动 只能1次制动
+①
+案的制动效率下限为66%，速度上限为64.80 km/h；“1 60 48~65 65 65~72
+次循环制动”方案的制动效率上限为68%，速度下限 55 40~60 60~63 63~68
+为65.44 km/h。 表5 公里标72~73 km处制动效率与操作方案关系表
+当制动初速度为55 km/h时，“2次循环制动”方 Table 5 Relation between braking efficiency and operation
+②
+案的制动效率下限为59%，速度上限为63.49 km/h；取 strategies at 72~73 km
+“1次循环制动”方案的制动效率上限为66%，速度下 制动初速度/ 制动效率/%
+限为60.51 km/h。 (km×h-1) 只能2次制动 1次制动/2次制动 只能1次制动
+图7给出了“1次制动”和“2次制动”操作与速 60 ＞68 66~68 ＜66
+度关系的示意图。在图7中沿坐标轴右侧覆盖的速度范 55 ＞66 59~66 ＜59
+围可以采用“1次制动”操作，沿坐标轴左侧覆盖的速
+考虑实际情况与仿真存在的误差，以及实际速度
+度范围可以采用“2次制动”操作；以“红色”指示制
+为整数计数和操作示意图规则便于记忆等多个条件，
+动初速度为60 km/h的仿真结果，以“蓝色”指示制动
+选择列车速度65 km/h为临界判断条件。当列车在公里
+初速度为55 km/h的仿真结果，同一方向的2个箭头共
+标72~73 km处，若列车速度处于63~65 km/h，司机结
+同覆盖的速度范围为适用于制动初速度55~60 km/h的
+合实际情况，可以通过提前降低手柄级位使速度提高，
+操作方案。图8为“1次制动”和“2次制动”操作与
+“1次制动”通过，或者提前提高手柄级位使速度降低，
+制动效率关系的示意图，其解释同上。 “2次制动”通过。
+4.1.2 操作方案
+将公里标72~73 km区间作为操作方案选择决策区
+间，可以从速度和效率2个角度进行判断：
+1）从速度的角度进行判断
+方案1：若列车速度处于65~72 km/h，使用“1次制
+图7 1次制动/2次制动操作与速度关系示意图
+动”操作策略通过；方案2：若列车速度处于65 km/h以
+Fig. 7 Schematic diagram of the relationship between one
+下，使用“2次制动”操作策略通过。
+braking application/two braking application and speed
+2）从效率的角度进行判断
+方案1：当空气制动效率为66%以上时，使用“2
+次制动”操作策略通过；方案2：当空气制动效率小于
+66%时，使用“1次制动”操作策略通过。
+由于在实际运行中司机只能观测速度数据，因此
+对于司机可实施的“1次制动”与“2次制动”方案选
+图8 1次制动/2次制动操作与制动效率关系示意图
+择的判断依据为：在公里标72~73 km区间内，若速度
+Fig. 8 Schematic diagram of the relationship between one
+处于65~72 km/h，使用“1次制动”操作策略通过；若
+braking application/two braking application and
+速度小于65 km/h，使用“2次制动”操作策略通过。
+braking efficiencies
+在公里标72~73 km区间选择操作方案后，需要根据“1
+考虑实际速度为整数计数，将统计结果整理为表
+次制动”操作和“2次制动”操作分别制定公里标72~
+格形式，如表4和表5所示。
+83 km区间的后续操作方案。
+由表4和表5可知，在公里标72~73 km处，若列车
+速度处于65~72 km/h，可以使用“1次制动”操作策略 4.2 “1次制动”操作方案后续操作
+通过；若列车速度处于40~63 km/h，可以使用“2次制
+由于“1次制动”的空气制动力相对较小，故在公
+
+===== PDF页7 (印刷页推断见页码标记) =====
+30 2023 年1月
+表6 不同空气制动效率和电制动力条件“1次循环制动”操作仿真数据
+Table 6 Simulation data of one cycle braking application under different air braking efficiencies and electric braking force
+制动效率50%（第一段最高速度为 制动效率62%（第一段最高速度为 制动效率70%（第一段最高速度为
+电制 73.40 km/h） 67.90~68.93 km/h） 67.58~68.52 km/h）
+动力/ 第二段最 第二段最 主控过道 从控过道 第二段最 第二段最 主控过道 从控过道 第二段最 第二段最 主控过道 从控过道
+kN 高速度/ 高速度位 岔速度/ 岔速度/ 高速度/ 高速度位 岔速度/ 岔速度/ 高速度/ 高速度位 岔速度/ 岔速度/
+(km×h-1) 置/km (km×h-1) (km×h-1) (km×h-1) 置/km (km×h-1) (km×h-1) (km×h-1) 置/km (km×h-1) (km×h-1)
+100 86.46 81.97 86.32 83.56 75.75 81.43 75.66 70.01 63.75 81.05 63.03 53.80
+150 82.20 81.76 82.19 78.42 69.16 81.21 68.81 61.40 54.58 80.75 52.88 39.33
+200 77.78 81.76 77.76 72.83 61.82 80.98 60.93 50.98
+250 73.16 81.33 72.98 66.68 53.39 80.69 51.43 36.94
+300 68.30 81.11 67.77 59.75 43.08 80.35 38.75 0
+350 63.15 80.87 62.00 51.73
+400 57.65 80.59 55.48 41.92
+里标72~73 km处，当列车速度在65 km/h以上时，电 择为公里标74.0~74.5 km处。
+制动力可逐步降低。表6给出了不同制动效率和电制动 缓解速度选取应尽量与上一次缓解速度保持一致，
+力条件下关键点的数据信息。其中，电制动力在判断 取缓解速度为50 km/h及以下，便于司机记忆和操作，
+出“1次制动”操作通过后，由400 kN开始降低，并且 减少劳动强度，并且根据统计数据，大多数司机可以
+保持恒定。由表6可知，制动效率最低（50%）时，电 实现列车速度50 km/h以下的缓解。若缓解速度更低，
+制动力由400 kN降低为200 kN，这会使得列车有超速 一方面造成司机操作难度大，另一方面冲动也会相对
+风险，因此电制动力至少应为250 kN；当制动效率较高 增大。缓解后电制动力应保持400 kN，以增大后程的
+时（70%），电制动力由400 kN降低为150 kN，这会使 操作裕量和保持操作惯性。因此，选择公里标74.0~
+得列车速度较低，此时电制动力宜为100 kN。因此，在 74.5 km处，速度50 km/h及以下缓解，电制动力保持
+公里标73~83 km区间，电制动力保持在100~250 kN。 400 kN。
+缓解操作后满足充风时间的第二次制动的制动地
+4.3 “2次制动”操作方案后续操作
+点在公里标77 km附近。统计的“2次制动”操作所有
+由于使用“2次制动”操作方案通过时需要进行2 效率的制动地点范围为公里标76.9~77.3 km。制动速度
+次缓解、2次制动操作，因此还需给出第一次制动的缓 的选取也应尽量与上一次缓解速度保持一致，因此缓
+解地点和缓解速度、第二次制动的制动地点和制动速度 解速度取60 km/h及以下。根据仿真计算，该数据可以
+及相应的电制动力的使用。其中，第一次制动空气制动 满足缓解再充风时间要求，并且与实际司机制动速度
+力相对较大，故在公里标72~73 km处，当列车速度在 范围吻合。因此，选择公里标76.9~77.3 km处，速度
+65 km/h以下时，电制动力保持为400 kN；当第一次制 60 km/h以下减压50 kPa，电制动力保持400 kN。
+动带闸运行到公里标74 km附近时，然后进行缓解。 考虑原平南进站时道岔的影响，电制动力应适当
+缓解操作需在缓坡进行，以减小列车冲动和延长 减小，以减小列车冲动，因此需要确定在进原平南站
+充风时间。结合线路数据，公里标73.3~74.0 km区间为 道岔前的适当位置减小电制动力。考虑在极端工况
+平直道，可以执行缓解操作，参考现有的操作办法， （制动效率最低为50%）下，满足列车不超速、经过进
+缓解地点为公里标74.0~74.5 km处，最终将缓解地点选 站信号机（公里标81.553 km）前的电制动力开始降低
+表7 不同空气制动效率和电制动力条件下“2次制动”操作仿真数据
+Table 7 Simulation data of two cycle braking application under different air braking efficiency and electric braking force
+制动效率：第一段70%（最高速度为66.27 km/h，位置位于公 制动效率：第一段82%（最高速度64.98 km/h，位置位于公里标
+电制动力/ 里标70.73 km）；第二段50%（缓解时间211.0 s） 70.27 km）；第二段50%（缓解时间242.6 s）
+kN 第二段最高速 第二段最高 主控过道岔速 从控过道岔速 第二段最高速 第二段最高速 主控过道岔速 从控过道岔速
+度/(km×h-1) 速度位置/km 度/(km×h-1) 度/(km×h-1) 度/(km×h-1) 度位置/km 度/(km×h-1) 度/(km×h-1)
+200 75.02 81.57 75.01 69.98 75.13 81.56 75.11 70.08
+250 74.68 81.32 74.50 68.29 74.79 81.32 74.61 68.41
+300 74.36 81.09 73.82 66.38 74.48 81.09 73.93 66.51
+350 74.08 80.81 72.98 64.25 74.21 80.80 73.09 64.37
+400 73.87 80.52 71.95 61.83 74.00 80.51 72.06 61.96
+
+===== PDF页8 (印刷页推断见页码标记) =====
+第1 期 肖致明，王大龙，王青元，刘强强，魏 咪：考虑制动性能差异的重载列车模式化操纵方法 31
+且稳定这2个条件，仿真得到的允许降低电制动力位置 操作相同；在公里标72~73 km处，根据列车速度进行
+为公里标80.3 km处。 判断，选择为使用“1次制动”操作通过或使用“2次
+以上述结果作为仿真条件，表7 给出了公里标 制动”操作通过；原平南站内公里标83 km处操作办法
+80.3 km后不同电制动力、不同制动效率条件下关键点 再次统一。
+数据的统计表，同时考虑为减小冲动，以低电制动力
+通过原平南道岔位置，因此选择公里标80.3 km后电制 5 结论
+动力为200 kN，这与“1次制动”操作方案的电制动力
+范围一致，方便司机操作，即在公里标80.30 km处， 本文以列车实际运行数据为基础，通过制定空气
+电制动力缓慢降低到200 kN。 制动性能指标分析列车运行速度的影响因素，提出操
+作方法，降低司机操作难度，实现列车安全高效运行，
+4.4 优化操作示意图
+主要有以下结论：
+将操作方案绘制为操作示意图，得到“1次制动”
+列车在追加减压量的情况下，调整电制力大小
+与“2次制动”操作示意图，分别如图9和图10所示。 ①
+对速度影响较小，应尽可能保持电制力稳定；列车在
+“1次制动”与“2次制动”的操作办法在公里标72 km
+不追加减压量的情况下，可通过调整电制力控制列车
+之前均相同，即北大牛出站缓解和第一次制动的制动
+速度，保障列车运行安全。
+图9 “1次制动”操作示意图
+Fig. 9 Schematic diagram of one braking application
+图10 “2次制动”操作示意图
+Fig. 10 Schematic diagram of two braking application
+
+===== PDF页9 (印刷页推断见页码标记) =====
+32 2023 年1月
+根据列车当前运行状态判断空气制动效率，从 [9] WANG Xi, LI Shukai, TANG Tao, et al. Intelligent opera‐
+②
+运行速度和制动效率角度确定采用“1次制动”与“2 tion of heavy haul train with data imbalance: a machine
+次制动”操作的判断条件，对驾驶操作方案设计、司 learning method[J]. Knowledge-Based Systems, 2019, 163:
+36-50.
+机记忆和平稳操作，具有合理可行的现实意义。
+[10] JOHNSON M R, BOOTH G F, MATTOON D W. Develop‐
+参考文献： ment of practical techniques for the simulation of train air
+[1] WANG Xi, TANG Tao, HE Hui. Optimal control of heavy brake operation[C]//ASME. ASME Annual Meeting Paper.
+haul train based on approximate dynamic programming[J]. Anaheim: ASME, 1986.
+Advances in Mechanical Engineering, 2017, 9(4): 1-15. [11] TANAKA H, HASEGAWA I, KAGE, K, et al. A study on
+[2] LIU Wentao, SU Shuai, TANG Tao, et al. A DQN-based in‐ characteristic of pressure reduction of compressed air in a
+telligent control method for heavy haul trains on long steep long pipe: 2nd report, a numerical analysis[J]. Transactions
+downhill section[J]. Transportation Research Part C: Emerg‐ of the Japan Society of Mechanical Engineers Series B,
+ing Technologies, 2021, 129: 103249. 1986, 52(481): 3181-3185.
+[3] 高胜利. 2万t重载组合列车循环制动工况下再生力差异 [12] 中国铁道科学研究院标准计量研究所. 列车牵引计算 第1
+化控制方案研究[J]. 中国铁路, 2021(8): 104-108. 部分: 机车牵引式列车: TB/T 1407.1—2018[S]. 北京: 中
+GAO Shengli. Research on differential control scheme of re‐ 国铁道出版社, 2018.
+generative capacity of 20 000 t heavy haul combined train Institute of Standards and Metrology, China Academy of
+under cyclic braking working condition[J]. China Railway, Railway Sciences. Railway train traction calculation Part 1:
+2021(8): 104-108. Trains with locomotives: TB/T 1407.1—2018[S]. Beijing:
+[4] 孙中央, 王长明. 长大下坡道区段开行重载列车的安全问 China Railway Publishing House, 2018.
+题[J]. 铁道机车车辆, 2009, 29(1): 4-7. [13] 王青元, 赵紫宁, 刘强强, 等. 两万t重载列车空气制动过
+SUN Zhongyang, WANG Changming. Security problems of 程建模[J]. 机车电传动, 2022(4): 70-76.
+operation heavy haul trains on the long heavy down grade WANG Qingyuan, ZHAO Zining, LIU Qiangqiang, et al.
+[J]. Railway Locomotive & Car, 2009, 29(1): 4-7. Modeling of air braking process of 20 000 ton heavy haul
+[5] 苏明亮. 朔黄铁路重载列车模式化操纵系统的研究及运 train[J]. Electric Drive for Locomotives, 2022(4): 70-76.
+用[J]. 电力机车与城轨车辆, 2018, 41(2): 81-84. [14] 史可, 张征方, 白金磊, 等. 基于模糊神经网络的重载列车
+SU Mingliang. Research and application of model control 空气制动力预测方法[J]. 控制与信息技术, 2022(1): 1-6.
+system for heavy haul train in Shuohuang railway[J]. Elec‐ SHI Ke, ZHANG Zhengfang, BAI Jinlei, et al. Prediction
+tric Locomotives & Mass Transit Vehicles, 2018, 41(2): 81- method of air braking force of heavy load train based on
+84. fuzzy logic-based neural network[J]. Control and Informa‐
+[6] 魏伟, 张益铭. 2万吨重载组合列车操纵优化研究[J]. 铁道 tion Technology, 2022(1): 1-6.
+机车车辆, 2021, 41(4): 35-40. [15] 安中正.“ 和谐号”机车牵引2万t重载列车的制动操纵技
+WEI Wei, ZHANG Yiming. Operating optimization study of 术探讨[J]. 机车电传动, 2010(1): 70-72.
+20,000-Ton heavy haul combined train[J]. Railway Locomo‐ AN Zhongzheng. Discussion on the braking control technol‐
+tive & Car, 2021, 41(4): 35-40. ogy of "Hexie" locomotive pulling 20,000 t heavy-haul train
+[7] 董克毓, 魏伟. 万吨重载列车在神朔段长大下坡道循环制 [J]. Electric Drive for Locomotives, 2010(1): 70-72.
+动优化[J]. 大连交通大学学报, 2017, 38(1): 17-20. [16] 靳新元. 朔黄铁路2万t重载列车区间停车原因分析及对
+DONG Keyu, WEI Wei. Optimizing of cycle braking of 策[J]. 中国铁路, 2018(3): 59-64.
+10 000 t train on long heavy down grade of Shenshuo[J]. JIN Xinyuan. The analysis and countermeasures to the sec‐
+Journal of Dalian Jiaotong University, 2017, 38(1): 17-20. tion stop of 20 000 t heavy-haul train on Shuohuang railway
+[8] 张晓凤, 林宏泉, 郑木火, 等. 30 t轴重下朔黄铁路长大下 [J]. China Railway, 2018(3): 59-64.
+坡段空气制动运用与节能策略研究[J]. 铁道学报, 2018, [17] 白建凌. 朔黄铁路2万t列车制动力判断与调整[J]. 科技资
+40(5): 59-65. 讯, 2019, 17(19): 59-61.
+ZHANG Xiaofeng, LIN Hongquan, ZHENG Muhuo, et al. BAI Jianling. Judgment and adjustment of braking force of
+Study on air brake application and energy-saving strategy 20,000-ton train on Shuohuang railway[J]. Science & Tech‐
+for 30 t axle load in long heavy down grade of Shenchi- nology Information, 2019, 17(19): 59-61.
+Huanghua railway[J]. Journal of the China Railway Society,
+2018, 40(5): 59-65. 收稿日期：2022-10-27

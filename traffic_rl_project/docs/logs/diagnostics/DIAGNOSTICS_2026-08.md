@@ -1051,7 +1051,7 @@ python src/evaluation/stat_analyze_collision.py
 
 **方法重命名映射（消重）**：M1→M-MARL；M3→No-C；M-DQN-fair→DQN-fair；MPC 由简化参考线升级为公平版；M4 与 M-DQN 分别降级至附录 / 安全层消融对照。
 
-**数据状态**：论文当前数值来自旧版仿真器（MT-2 重建前），公平版 MPC 与层次解耦消融均为新仿真器重训后的新实验，数据待产出，结构已锁定（详见 `PROJECT_PIPELINE.md` 4.3.3）。
+**数据状态**：论文当前数值来自旧版仿真器（MT-2 重建前），公平版 MPC 与层次解耦消融均为新仿真器重训后的新实验，数据待产出，结构已锁定（详见 `PROJECT_PIPELINE.md` 4.3.3）。（**2026-11-12 注**：该节已按月经迁至 `docs/logs/progress/PROGRESS_2026-08.md`。）
 
 ***
 

@@ -1,0 +1,1041 @@
+
+===== [PDF PAGE 1] =====
+Hindawi
+Shock and Vibration
+Volume 2019, Article ID 2547318, 11 pages
+https://doi.org/10.1155/2019/2547318
+
+
+
+
+Research Article
+Influence of Draft Gear Modeling on Dynamics Simulation for
+Heavy-Haul Train
+
+          Cheng Lei ,1,2,3 Jia Liu,2 Lisheng Dong,1 and Weihua Ma                                  2
+
+          1
+            Henan Engineering Research Center of Rail Transit Intelligent Security, Zhengzhou Railway Vocational & Technical College,
+            Zhengzhou, China
+          2
+            Traction Power State Key Laboratory, Southwest Jiaotong University, Chengdu, China
+          3
+            CRRC Qishuyan Co.Ltd., Changzhou, China
+
+          Correspondence should be addressed to Weihua Ma; mwh@swjtu.edu.cn
+
+          Received 26 March 2019; Accepted 3 July 2019; Published 28 July 2019
+
+          Academic Editor: Gabriele Cazzulani
+
+          Copyright © 2019 Cheng Lei et al. This is an open access article distributed under the Creative Commons Attribution License,
+          which permits unrestricted use, distribution, and reproduction in any medium, provided the original work is properly cited.
+
+          In order to study the impedance characteristics of the frictional draft gear, MT-2 draft gear is studied, and its mechanical
+          properties are analyzed ﬁrstly. Then, the mathematical models of two common draft gears are established based on the data
+          collected from the vehicle impact test, and the eﬀects of the two modeling methods on the simulation results are compared
+          through the shunting impact test and the bench test simulation. Researches show that, under various experimental conditions, the
+          simulated draft gear characteristic curve of the lookup table model moves along a ﬁxed trajectory regardless of the change rate of
+          the draft gear stroke, while simulation results of the wedge-spring model depend on the change rate of the draft gear stroke and are
+          more consistent with the experimental results, reﬂecting the dynamic characteristics of the draft gear and suggesting better
+          adaptability and wider application. Finally, the “1 + 1” grouped 20,000-ton heavy-haul combined train model is established, with
+          its draft gear characteristics under the full-braking condition on ﬂat straight track analyzed. Calculation results and test results of
+          the lookup table model and the wedge-spring model are compared, indicating that using the wedge-spring model to calculate the
+          longitudinal dynamics performance is more accurate. The inﬂuence of the modeling on the longitudinal impulse simulation of the
+          train after air braking is also studied, revealing that the variation trends of the coupler force curves of two models are basically the
+          same, but the amplitude and frequency of the longitudinal impulse are diﬀerent.
+
+
+
+
+1. Introduction                                                            between the rolling stocks increases accordingly, and the
+                                                                           running behavior of the coupler and draft gear devices
+The motion state of draft gear during the actual operation of              becomes more and more complicated.
+train is complex and variable, and some models cannot                          Massa et al. applied the linear draft gear model with
+describe the dynamic characteristics of draft gear. Most of                coupler clearance to the coupler model of multibody dy-
+the current researches on longitudinal dynamics only focus                 namics system [1]. Cole carried out simulations and pointed
+on the result of the impedance of draft gear. In this paper, by            out the diﬀerence in draft gear performance characteristics
+the simulation of relevant draft gear tests, the characteristics           between train conditions and drop weight tests [2]. The
+of impedance force-stroke for draft gears are studied, and the             model of Cheli consists of a linear spring that simulates the
+detailed analysis is carried out in combination with the                   initial pressure, a fourth-order nonlinear spring that sim-
+various stages of the characteristic curve. The model is                   ulates the quasistatic response of the elastomer, two Maxwell
+veriﬁed by tests, which can provide the basis for the dynamic              components, and the friction components that simulates the
+characteristics of draft gear and the accurate model of vi-                eﬀects of dynamic loads and high-frequency excitation as
+bration characteristics of coupler force.                                  well as the eﬀects of internal friction [3]. Geike and Melzi
+    With the increase of its running speed and the increase of             used the lookup table method and the ﬁxed stiﬀness
+axle weight and group length, the longitudinal impact force                transition method to establish a draft gear model [4]. Hu
+
+===== [PDF PAGE 2] =====
+2                                                                                                                 Shock and Vibration
+
+proposed an intelligent system model of friction-type draft            2. Draft Gear Modeling
+gear which uses neural network technology to derive the
+coupler force by measurement data [5]. Jin and Luo                     2.1. Working Principle of Frictional Draft Gear. Draft gear
+established a draft gear model containing the peak eﬀect               combining MT-2 steel spring and dry friction absorbs the
+measured in the shunting condition [6].                                impact mainly by the friction wedge, the damper spring, and
+    Longitudinal impulses can have diﬀerent eﬀects on the              the return spring. According to the assembly and motion
+dynamics behavior of the coupler and draft gear devices as             relationship of each component of the draft gear, its working
+well as the dynamics performance of the train. Due to the              process can be simpliﬁed into four stages [17], namely,
+long grouping of heavy-haul trains, the covered road section           loading phase I, loading phase II, unloading phase I, and
+is much more complicated and the forces acting on each                 unloading phase II, as shown in Figure 1.
+rolling stock are also much more complicated than those of                  During the loading phase I, the slave plate and the center
+ordinary trains. Therefore, many countries with heavy-haul             wedge move under compression, but the moving plate is not
+transport have carried out extensive and in-depth researches           yet in motion. At this phase, the energy consumption of draft
+on its longitudinal dynamics.                                          gear is mainly caused by the friction between the wedge and
+    Zhai studied the calculation method of train dynamics              the center wedge, the ﬁxed inclined plate as well as the
+and proposed a prediction-correction integration method and            centering spring seat. During the loading phase II, the slave
+Newmark fast explicit integration method [7]; Zhang et al.             plate, the center wedge, and the moving plate will move to-
+proposed a new method for dynamics modeling based on the               gether, and the friction consists of the relative friction between
+cyclic variable method, which considered the dynamics                  the moving plate and the ﬁxed outer plate as well as the ﬁxed
+coupling relationship in longitudinal, lateral, and vertical           inclined plate in addition to the abovementioned wedge
+directions, and used this model to analyze the dynamics                friction. During the unloading phases, the working mecha-
+performance of the heavy-haul trains under traction, idle              nism of the draft gear is similar to that of the loading phases.
+running, and braking conditions, respectively [8, 9]; Sun et al.
+realized the numerical simulation of vehicle impact by
+                                                                       2.2. Analysis of Mechanical Properties of the Draft Gear.
+cosimulation method [10]; Wei and Lin carried out studies on
+                                                                       Analysis is conducted on the relative motion of and applied
+the longitudinal dynamics of the train by using air-braking
+                                                                       force on the friction surfaces of the wedge. When the center
+characteristics simulation based on gas ﬂow theory and using
+                                                                       wedge moves in the longitudinal direction relative to the
+longitudinal dynamics simulation based on rigid body dy-
+                                                                       box, the wedge has relative displacement to the center
+namics and proposed a series of measures to improve the
+                                                                       wedge, the ﬁxed inclined plate as well as the centering spring
+longitudinal impulse of the train [11]; Belforte et al. estab-
+                                                                       seat. If the center wedge moves x1 in the longitudinal di-
+lished a more simpliﬁed air-braking model in order to better
+                                                                       rection, the wedge moves x2 in the longitudinal direction,
+combine the ﬂuid system model and the longitudinal dy-
+                                                                       and the centering spring seat moves x3 in the longitudinal
+namics model of the train [12]; Wu et al. optimized the
+                                                                       direction, while the relative displacement between the wedge
+modeling of the draft gear and studied the inﬂuence of
+                                                                       and the ﬁxed inclined plate is δ1, the relative displacement
+longitudinal impulse on heavy-haul trains from the per-
+                                                                       between the center wedge and the wedge is δ2, and the
+spective of coupler fatigue based on the characteristics of the
+                                                                       relative displacement between the wedge and the centering
+draft gear [13, 14]; and Sun et al. studied the energy con-
+                                                                       spring seat is δ3. The relationship between the angle and
+sumption of trains on a typical heavy-haul line [15].
+                                                                       displacement of each friction surface is shown in Figure 2.
+    Recently, the international benchmarking of longitudinal
+                                                                           According to the displacement vector triangle of each
+train dynamics simulators evaluated nine longitudinal dy-
+                                                                       friction surface shown in Figure 2(b), the displacement
+namics simulation software from six countries [16]. Results
+                                                                       relationship between the center wedge, the wedge, and the
+show that all software simulations of locomotive traction/
+                                                                       centering spring seat can be obtained:
+braking force, train resistance, and track gradient are basically
+the same, while the main diﬀerence lies in the use of the draft                          ⎪
+                                                                                         ⎧               1
+                                                                                         ⎪
+                                                                                         ⎪ x2 �                  x,
+gear model, which leads to subtle diﬀerences in the simulation                           ⎪
+                                                                                         ⎪
+                                                                                         ⎪        1 − tan α tan c 1
+                                                                                         ⎪
+                                                                                         ⎪
+results of the longitudinal forces, but in general, similar lon-                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+gitudinal force results can be obtained. The simulation of both                          ⎪
+                                                                                         ⎪        1 + tan β tan c
+the dynamic and static characteristics of the draft gear is of great                     ⎪
+                                                                                         ⎪ x3 � 1 − tan α tan c x1 ,
+                                                                                         ⎪
+                                                                                         ⎪
+signiﬁcance, and it also has a great inﬂuence on the reliability of                      ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+the longitudinal dynamics model. Therefore, attention should                             ⎪
+                                                                                         ⎪
+                                                                                         ⎨           cos α
+be paid to the response accuracy of the impedance characteristic                            δ1 �             x,                   (1)
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪       cos(α + c) 1
+of the draft gear during modeling. Traditionally, it is believed                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+that diﬀerent draft gear modeling has a signiﬁcant impact on                             ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪           sin c
+the longitudinal dynamics simulation of trains. However, only                            ⎪
+                                                                                         ⎪  δ2 �             x,
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪       cos(α + c) 1
+the longitudinal forces are examined in the evaluation, and the                          ⎪
+                                                                                         ⎪
+performances of the draft gear model in shunting impact test                             ⎪
+                                                                                         ⎪
+                                                                                         ⎪
+                                                                                         ⎪          cos α sin c
+and bench tests are not considered. Thus, it is necessary to do a                        ⎪
+                                                                                         ⎪
+                                                                                         ⎩ δ3 �                   x,
+more in-depth comparative analysis on this basis.                                                cos(α + c)cos β 1
+
+===== [PDF PAGE 3] =====
+Shock and Vibration                                                                                                                       3
+
+
+                                5
+
+                                                       1
+
+
+
+
+                                4                      2
+
+
+
+                                                       3
+
+
+
+
+                                           (a)                   (b)              (c)                  (d)
+
+Figure 1: Working principle of MT-2 draft gear. (a) Loading phase I. (b) Loading phase II. (c) Unloading phase I. (d) Unloading phase II. 1,
+center wedge; 2, wedge; 3, centering spring seat; 4, moving plate; 5, slave plate.
+
+
+                                                                                              δ3
+
+                                                                                                   β
+                                                       α                 γ
+                                                                                 δ1
+                                                            x2
+
+                                                                 x1
+
+
+
+
+                                                                                                             x3
+                                                                                           δ1
+
+
+
+                                                                             α
+
+
+                                                                       δ2                                γ
+                                                 β
+
+
+                                γ
+                                           (a)                         (b)                         (c)
+
+                                    Figure 2: (a) Angle and (b) displacement of each friction surface.
+
+where α is the angle between the friction surface of the center         centering spring seat relative to the box, and xsr is the tensile
+wedge and the cross section of the draft gear; β is the angle           or compressive displacement of the return spring, namely,
+between the friction surface of the wedge and the centering             the longitudinal displacement of the central wedge and the
+spring seat and the cross section of the draft gear; and c is the       centering spring seat.
+angle between the friction surface of the wedge and ﬁxed                    Assuming that the relative motion of the friction surfaces
+inclined plate and the longitudinal section of the draft gear.          inside the draft gear is always in a slow and stable dynamic
+    It can be seen that the displacement of each component              friction state, the quasistatic analysis of the four typical
+of the draft gear and the relative displacement of the friction         working phases of the draft gear can be conducted by the
+surfaces can be expressed by x1, and the tensile or com-                force balance condition. When the draft gear is under static
+pressive displacement of the main spring and the return                 pressure, the relationship between forces acting on it and
+spring can also be expressed as                                         displacement is shown in Figure 3, where α, β, and c are 37°,
+                        1 + tan β tan c                                 26°, and 4°, respectively, and the friction coeﬃcient of each
+               ⎧
+               ⎪
+               ⎪  xsm �                 x,
+               ⎪
+               ⎪                                                        friction surface is 0.3.
+               ⎪
+               ⎨        1 − tan α tan c 1
+               ⎪                                              (2)
+               ⎪
+               ⎪             1 + tan β tan c                            2.3. Model of the Coupler and Draft Gear. In actual train
+               ⎪
+               ⎪
+               ⎩ xsr � 􏼠1 −                  􏼡x ,                       shunting or working conditions, the draft gear often has a
+                             1 − tan α tan c 1
+                                                                        spike eﬀect at the end of loading and at the beginning of
+where xsm is the tensile or compressive displacement of the             unloading, which is caused by the change of friction co-
+main spring, namely, the longitudinal displacement of the               eﬃcient with speed. In these two phases, the relative sliding
+
+===== [PDF PAGE 4] =====
+4                                                                                                                                                    Shock and Vibration
+
+speed of each friction surface is low, that is, the frictional                             1200
+motion is in a weakly locked state, and the friction coeﬃcient
+after locking is signiﬁcantly larger than that at the time of                              1000
+sliding, thereby causing an abrupt change in the resistance
+force of the draft gear, which makes its modeling more
+
+
+
+
+                                                                      Coupler force (KN)
+                                                                                            800
+diﬃcult.
+    For the sake of longitudinal dynamics simulation, the
+vehicle connection system is usually simpliﬁed to a unit                                    600
+model, so the draft gears of two adjacent vehicles are
+modeled in series as one unit. In addition, a complete model                                400
+should also include the gap element, the initial pressure, and
+the transition characteristics of the loading and unloading
+                                                                                            200
+curves.
+
+                                                                                               0
+2.3.1. Lookup Table Model. The lookup table method is the                                          0                20                40                60                 80
+most widely used method to establish the impedance of the                                                              Stroke of draft gear (mm)
+draft gear stroke characteristics. The loading and the
+unloading characteristic curves can be obtained according                                                 Curve for loading                         Curve for unloading
+                                                                                                          phase I                                   phase II
+to the ﬁtting results of the draft gear-related experiment
+                                                                                                          Curve for loading                         Transition curve
+(drop hammer or shunting impact), while the gap element,
+                                                                                                          phase II
+the initial pressure, and the rigid contact are simulta-
+                                                                                                          Curve for unloading
+neously taken into account. The gap between loading and                                                   phase I
+unloading is handled by a ﬁxed stiﬀness. The mathematical
+expression of the model is given by the following equations           Figure 3: Draft gear characteristic curve under static pressure.
+[18]:
+                                                                                                                        cos θ 0 −sin θ 0 0                   F         0
+                             fl xt 􏼁xt vt ≥ 0,                                                           ⎢⎢⎢⎡                                    ⎥⎥⎥⎤⎢⎢⎢⎡       ⎥⎤ ⎢ ⎡ ⎥⎥⎥⎤
+          F x t , vt 􏼁 � 􏼨                                     (3)                                          ⎢⎢⎢ sin θ −1 cos θ 0 0 ⎥⎥⎥⎢⎢⎢ F ⎥⎥⎥⎥⎥ ⎢                  ⎢
+                                                                                                                                                                     ⎢ 0 ⎥⎥⎥⎥
+                             fu xt 􏼁xt vt ≤ 0,                                                                ⎢⎢⎢⎢                                  ⎥⎥⎥⎢⎢⎢ N1 ⎥⎥⎥ ⎢  ⎢
+                                                                                                                                                                     ⎢
+                                                                                                                                                                     ⎢
+                                                                                                                                                                     ⎢      ⎥⎥⎥
+                                                                                                                                                      ⎥    ⎢     ⎥   ⎢
+                                                                                           loading : ⎢⎢⎢⎢⎢ 0 sin θ                0     0 −1 ⎥⎥⎥⎥⎥⎢⎢⎢⎢⎢ FN2 ⎥⎥⎥⎥⎥ � ⎢⎢
+                                                                                                                                                                     ⎢
+                                                                                                                                                                     ⎢ F      ⎥⎥⎥,
+                                                                                                                                                                                ⎥⎥⎥
+                                                                                                                 ⎢⎢⎢                                  ⎥⎥⎥⎢⎢⎢     ⎥⎥⎥ ⎢
+                                                                                                                                                                     ⎢
+                                                                                                                                                                     ⎢
+                                                                                                                                                                     ⎢
+                                                                                                                                                                         s
+                                                                                                                                                                                  ⎥⎥⎥
+          F xt , vt 􏼁 � F xt−Δt , vt−Δt 􏼁 + k xt − xt−Δt 􏼁,    (4)                                                 ⎢⎢⎢ 0 cos θ                          ⎥
+                                                                                                                                                        ⎥  ⎢
+                                                                                                                                                           ⎢
+                                                                                                                                       −1 0 ⎥⎥⎦⎢⎢⎣ FN3 ⎥⎥⎦ ⎢       ⎥
+                                                                                                                                                                   ⎥ ⎢
+                                                                                                                                                                     ⎢              ⎥
+                                                                                                                     ⎢⎣           0                                  ⎣ 0 ⎥⎥⎦
+                                                                                                                                                                     ⎢
+          􏼌􏼌          􏼌 􏼌                 􏼌 􏼌             􏼌                                                     0         0          0         μ −1             f               0
+           􏼌􏼌fu xt 􏼁􏼌􏼌􏼌 ≤ 􏼌􏼌􏼌F xt , vt 􏼁􏼌􏼌􏼌 ≤ 􏼌􏼌􏼌f1 xt 􏼁􏼌􏼌􏼌,   (5)
+                                                                                                       cos θ 0 −sin θ 0 0                F           0
+                                                                                         ⎡⎢⎢⎢                                  ⎤⎥⎡⎢           ⎤⎥ ⎡ ⎢       ⎤⎥⎥
+where F is the impedance force of the draft gear; θ and θ are                               ⎢⎢⎢ sin θ −1 cos θ 0 0 ⎥⎥⎥⎥⎥⎢⎢⎢⎢⎢ F ⎥⎥⎥⎥⎥ ⎢            ⎢
+                                                                                                                                                   ⎢ 0 ⎥⎥⎥⎥⎥
+the stroke of the current step and the previous step of the                                   ⎢⎢⎢                               ⎥⎥⎥⎢⎢⎢ N1 ⎥⎥⎥ ⎢    ⎢
+                                                                                                                                                   ⎢
+                                                                                                                                                   ⎢         ⎥⎥⎥
+                                                                                                ⎢                                 ⎥⎢           ⎥ ⎢ ⎢
+draft gear, respectively; θ and θ are the deformation speed of           unloading : ⎢⎢⎢⎢⎢ 0 sin θ               0     0 1 ⎥⎥⎥⎥⎥⎢⎢⎢⎢⎢ FN2 ⎥⎥⎥⎥⎥ � ⎢⎢
+                                                                                                                                                   ⎢
+                                                                                                                                                   ⎢ F s⎥
+                                                                                                                                                               ⎥⎥,
+                                                                                                                                                                ⎥⎥⎥
+                                                                                                ⎢⎢⎢                               ⎥⎥⎥⎢⎢⎢       ⎥⎥⎥ ⎢
+                                                                                                                                                   ⎢
+                                                                                                                                                   ⎢
+                                                                                                                                                   ⎢              ⎥⎥⎥
+the current step and the previous step of the draft gear,                                         ⎢⎢⎢ 0 cos θ                       ⎥  ⎢
+                                                                                                                      −1 0 ⎥⎥⎥⎦⎢⎢⎢⎣ FN3 ⎥⎥⎥⎦ ⎢   ⎥ ⎢                ⎥
+respectively; fl and fu are the loading and unloading char-
+                                                                                                    ⎢⎣           0                                 ⎣ 0 ⎥⎥⎦
+                                                                                                                                                   ⎢
+                                                                                                                                                   ⎢
+acteristic functions of the draft gear; and k is the transitional                                        0   0   0    μ −1               f           0
+characteristic stiﬀness.                                                                                                                                (6)
+    Equation (3) is obtained by directly interpolating from
+the loading or unloading curve according to diﬀerent                 where FN1 is the pressure between the two wedges, FN2 and
+conditions, and equation (4) is used to calculate the restoring      FN3 are the pressures of the box to the wedge, f is the friction
+force of the draft gear on the transition curve. The value           of the wedge, θ is the angle of the wedge, μ is the friction
+obtained from the transition curve must be corrected by the          coeﬃcient, Δx is the stroke change of the draft gear, and Fs is
+loading and unloading curves of the draft gear as a boundary         the spring force.
+condition according to equation (5) in order to obtain the               The draft gear impedance force-stroke characteristics
+correct impedance of the draft gear.                                 including the coupler gap, initial pressure, and rigid contact
+                                                                     can be ﬁtted by the nonlinear spring force Fs to establish the
+                                                                     wedge-spring model, and the expression of its impedance
+2.3.2. Wedge-Spring Model. The frictional draft gear can be          can be obtained by
+simpliﬁed into a system consisting of a spring and a wedge as
+shown in Figure 4, wherein the wedge angle θ acts to convert the                                                  ⎧
+                                                                                                                  ⎪
+                                                                                                                  ⎪             tan θ
+                                                                                                                  ⎪
+                                                                                                                  ⎪ Fs (Δx)                Δx ≥ 0,
+longitudinal force of the draft gear into a normal force on the                                                   ⎪
+                                                                                                                  ⎪         tan θ − μ vt 􏼁
+                                                                                                                  ⎨
+friction surface, thereby introducing friction into the model [2].                                 F xt , v t 􏼁 � ⎪                                                                 (7)
+     According to the analysis of forces acting on the draft                                                      ⎪
+                                                                                                                  ⎪
+                                                                                                                  ⎪
+                                                                                                                  ⎪             tan θ
+gear during operation, the matrix equations for loading and                                                       ⎪
+                                                                                                                  ⎩ Fs (Δx)                Δx < 0.
+unloading can be obtained:                                                                                                  tan θ + μ vt 􏼁
+
+===== [PDF PAGE 5] =====
+Shock and Vibration                                                                                                                                             5
+
+
+
+
+                                                       Wedge
+                                                                                                     Spring
+                                               Friction face
+                                                               θ
+
+
+                                           FN2                               Loading                                   Unloading
+
+                                                                     FN1                                        FN1
+                               F                                                                       FS                         FS
+                                                      FN1
+                                                      θ              θ                                          θ
+                                                                         f                    FN3               f           FN3
+
+                         Figure 4: Simpliﬁed model of frictional draft gear and analysis of forces applied.
+
+
+    Based on the abovementioned, impact test data are                                               2200
+collected and a lookup table model is established by having a                                       2000
+93 t wagon impacting another stationary wagon of the same
+                                                                                                    1800
+quality at an initial speed of 8 km/h, and then the main
+spring force of the wedge-spring model is corrected. The                                            1600
+                                                                               Coupler force (kN)
+comparison between the simulation results of the two                                                1400
+models and the experimental results is shown in Figure 5.                                           1200
+    According to the expression of the wedge-spring model,                                          1000
+the friction angle of the draft gear, θ, and the friction pa-
+                                                                                                     800
+rameter, etc., are input in the TDEAS software before the
+simulation. The friction coeﬃcient can be expressed as                                               600
+                                                                                                     400
+                μ � h1 + h2 exp􏼂−h3 abs(v)􏼃.                   (8)
+                                                                                                     200
+    In the expression, h1 determines the dynamic friction                                              0
+coeﬃcient; h1 + h2 determines the static friction coeﬃcient;                                               0           20               40            60   80
+and h3 determines the conversion process from static fric-                                                                  Stroke of draft gear (mm)
+tion to dynamic friction. The diﬀerence between calculating                                                    Look-up table model
+speeds of the two models is not signiﬁcant.                                                                    Wedge-spring model
+                                                                                                               Experimental results
+
+3. Simulation of the Draft Gear Characteristics                              Figure 5: Simulation results of the two models and comparison of
+                                                                             experimental results.
+3.1. Shunting Impact Test. The vehicle impact test can
+simulate the working conditions of the vehicles impacting at
+diﬀerent relative coupling speeds. Through this test, the                                                             ⎨ m1 €δ1 � −F1 − F1r ,
+                                                                                                                      ⎧
+                                                                                                                      ⎩ €                                  (9)
+cushioning and energy absorption limits of the draft gear                                                               m2 δ2 � −F2 − F2r ,
+and the longitudinal bearing capacity of the vehicle body
+structure can be evaluated. Both the impact vehicle and the                  where m1 and m2 are the mass of the impact vehicle and the
+impacted vehicle are wagons with a weight of 93 t, equipped                  impacted vehicle, €δ1 and €δ2 are the acceleration of the impact
+with MT-2 frictional draft gear. The impact vehicle slides                   vehicle and the impacted vehicle, F1 and F2 are the im-
+down from a certain slope and height to obtain the required                  pedance force of draft gears of the impact vehicle and the
+initial speed and impacts the other vehicle parked on a ﬂat                  impacted vehicle, and F1r and F2r are running resistance of
+straight road.                                                               the impact vehicle and the impacted vehicle, respectively.
+    The simulation of the shunting impact is based on the
+establishment of the dynamics diﬀerential equations of
+both vehicles. Since the wagon has no traction and electric                  3.1.1. Shunting Impact Simulation with Lookup Table Model.
+braking force, air braking is excluded from consideration                    The draft gears of the two impact wagons are all based on the
+and only the basic resistance of the vehicle and the draft                   lookup table models, which are simulated with diﬀerent
+gear at the impact end needs modeling. The longitudinal                      initial velocities. The comparison of simulation and test data
+dynamic diﬀerential equations of the two vehicles are as                     from the ﬁrst complete loading and unloading cycle is shown
+follows:                                                                     in Figures 6(a)–6(c).
+
+===== [PDF PAGE 6] =====
+6                                                                                                           Shock and Vibration
+
+     It can be seen from the experimental data that as the         where y is the displacement of the draft gear, y_ is the change
+impact velocity increases, the coupler force and the draft         rate of the draft gear stroke, A is the amplitude, and f is the
+gear stroke of the impacted vehicle increase; the loading          frequency.
+process of the draft gear is obviously divided into two phases,         Diﬀerent draft gear models are used to simulate bench
+with diﬀerent stiﬀness at diﬀerent phases and a spike eﬀect at     tests with ﬁxed frequency of 10 Hz and diﬀerent amplitudes,
+the end of the loading curve, all of which are consistent with     and with ﬁxed amplitude of 20 mm and diﬀerent frequen-
+the results obtained by theoretical analysis. The simulations      cies, respectively. The experimental parameters are shown in
+agree well with the experimental curves at diﬀerent initial        Table 1. At the same frequency, the larger the amplitude is,
+velocities, and the strokes of the draft gears are basically the   the larger the maximum change rate of the draft gear stroke
+same, but the simulation curves at three impact velocities of      is, and at the same amplitude, the larger the frequency is, the
+4 km/h, 6 km/h, and 7 km/h do not show spikes at the end of        larger the maximum change rate of the draft gear stroke is.
+the loading process, with the maximum coupler force
+smaller than the actual value. The 8 km/h shunting impact is       3.2.1. Bench Test Simulation with Lookup Table Model.
+ﬁtted to the experimental data according to the impact             The lookup table model is adopted. The initial displacement
+velocity, and the curve can better reﬂect all the character-       is set at 40 mm and frequency at 10 Hz, and the simulation
+istics of the draft gear. The analysis shows that the lookup       results of diﬀerent amplitudes are shown in Figure 8(a). It
+table model can reﬂect the behavior of the frictional draft        can be seen from the ﬁgure that the characteristic curves of
+gear within a certain range, despite some limitations.             the draft gear at diﬀerent amplitudes in one cycle all form a
+     Figure 6(d) shows a comparison of the simulation results      closed loop. The larger the amplitude is, the larger the loop
+of lookup table models at the diﬀerent initial velocities under    is, and the characteristic curves at diﬀerent amplitudes
+the shunting impact conditions. It can be seen that the            follow the same trajectory while loading and unloading.
+loading and unloading of the draft gear are developed along            Adjust the simulation parameters: the initial displace-
+the same trajectory at each speed, the impact velocity only        ment is also 40 mm, yet the amplitude is 20 mm, and the
+aﬀects the stroke of the draft gear, and there is a spike eﬀect    simulation results of diﬀerent frequencies are shown in
+only at an impact velocity of 8 km/h.                              Figure 8(b). As shown in the ﬁgure, the characteristic curves
+                                                                   of the four frequencies coincide, indicating that the simu-
+                                                                   lation results of the bench test using lookup table model are
+3.1.2. Shunting Impact Simulation with the Wedge-Spring
+                                                                   independent of the vibration frequency, and the simulation
+Model. The draft gear model is changed into the wedge-
+                                                                   results are basically in line with the curve of the 8 km/h
+spring model, and the same wagon with a mass of 93 t is
+                                                                   shunting impact test.
+simulated and conducted to impact the other stationary
+wagon of the same mass at diﬀerent initial velocities. The
+comparison between the simulation results of the models            3.2.2. Bench Test Simulation with the Wedge-Spring Model.
+and the experimental results from the ﬁrst complete loading        Simulation parameters are set as follows: the initial dis-
+and unloading cycle is shown in Figures 7(a)–7(c).                 placement is 40 mm and the frequency is 10 Hz, and the
+    Comparing the simulation results of the wedge-spring           simulation results of diﬀerent amplitudes are shown in
+model with the experimental values, we can see that both the       Figure 9(a). As we can see from the ﬁgure, as the amplitude
+draft gear stroke and the maximum coupler force are close          increases, the coupler force of the draft gear characteristic
+other at diﬀerent initial impact velocities, and the curves are    curve decreases in the same displacement interval. This is
+in good agreement, indicating that the wedge-spring model          because the larger the amplitude is, the larger the maximum
+can well reﬂect the behavior of frictional draft gear.             change rate of the draft gear stroke is, and the characteristic
+Figure 7(d) shows a comparison of the simulation results at        curve of the draft gear changes.
+diﬀerent initial velocities under the shunting impact con-             Adjust the simulation parameters: the ﬁxed amplitude is
+dition, indicating that the trajectories are diﬀerent at dif-      20 mm, and the simulation results of diﬀerent frequencies
+ferent velocities, suggesting the relationship between the         are shown in Figure 9(b). It can be seen from the ﬁgure that
+draft gear impedance force-stroke characteristics and the          in the stroke interval (20 mm and 60 mm), the coupler force
+relative speed of the vehicle. The simulation results of this      of the draft gear characteristic curve decreases with the
+model are more in line with the dynamic nature of the draft        increase of frequency; the smaller the frequency is, the
+gear, with spikes all reﬂected at the end of the loading           smoother the curve is; but the simulation results of diﬀerent
+process.                                                           frequencies reveal the same maximum coupler force at
+                                                                   stroke of 60 mm. The draft gear characteristic curve at the
+                                                                   frequency of 15 Hz is closest to the curve of the 8 km/h
+3.2. Bench Test Simulation. Bench test is conducted by ﬁxing       impact test because the dynamic behaviors of the draft gears
+the draft gear on the experimental bench, with sinusoidal          are the closest in the simulated stroke interval.
+excitation of a certain amplitude and frequency applied to
+the draft gear. The expression is as follows:                      4. Analysis of Train Braking Conditions
+                      y � A sin(2πf · t),
+                  􏼨                                        (10)    This paper establishes a longitudinal dynamics model based
+                      y_ � 2πfA cos(2πf · t),                      on the HXD1“1 + 1” grouped 20,000-ton heavy-haul
+
+===== [PDF PAGE 7] =====
+Shock and Vibration                                                                                                                                                               7
+
+                        1200                                                                              1600
+
+                                                                                                          1400
+                        1000
+                                                                                                          1200
+
+
+
+
+                                                                                     Coupler force (kN)
+   Coupler force (kN)
+
+
+
+
+                         800
+                                                                                                          1000
+
+                         600                                                                               800
+
+                                                                                                           600
+                         400
+                                                                                                           400
+                         200
+                                                                                                           200
+
+                           0                                                                                 0
+                               0              10                 20        30                                    0        10             20          30            40        50
+                                           Stroke of draft gear (mm)                                                                Stroke of draft gear (mm)
+                                   Simulation results                                                                Simulation results
+                                   Experimental results                                                              Experimental results
+                                                     (a)                                                                                  (b)
+                        1600                                                                              2200
+                                                                                                          2000
+                        1400
+                                                                                                          1800
+                        1200                                                                              1600
+                                                                                     Coupler force (kN)
+   Coupler force (kN)
+
+
+
+
+                                                                                                          1400
+                        1000
+                                                                                                          1200
+                         800                                                                              1000
+
+                         600                                                                               800
+                                                                                                           600
+                         400
+                                                                                                           400
+                         200                                                                               200
+                                                                                                             0
+                           0
+                               0      10       20         30         40   50    60                               0   10        20       30     40       50    60        70   80
+                                              Stroke of draft gear (mm)                                                             Stroke of draft gear (mm)
+
+                                   Simulation results                                                                4 km/h                           7 km/h
+                                   Experimental results                                                              6 km/h                           8 km/h
+
+                                                     (c)                                                                                  (d)
+
+Figure 6: Shunting impact simulation with the lookup table model and comparisons of simulation results. (a) 4 km/h shunting impact
+simulation and test results. (b) 6 km/h shunting impact simulation and test results. (c) 7 km/h shunting impact simulation and test results.
+(d) Comparison of the simulation results at diﬀerent initial velocities.
+
+
+combined train of Shuohuang Railway, namely, 1 main                                           time and the distance. The braking time and distance calcu-
+control locomotive +105 C80 wagons +1 slave locomotive                                        lated from the wedge-spring model are smaller, although it is
++105 C80 trucks + controllable train tail, with the wagon                                     not a signiﬁcant diﬀerence. It can be seen from Figure 10(b)
+equipped with MT-2-type draft gear, and the locomotive                                        that calculation results of the two models both show a large
+adopting QKX-100 draft gear. The main parameters are                                          coupler force in the middle-rear part of the train and a
+shown in Table 2.                                                                             consistency in the number of wagon where the maximum
+                                                                                              coupler force is generated, but for the lookup table model, the
+                                                                                              coupler force acting on the train is relatively smaller.
+4.1. Full Braking on Flat Straight Track. 170 kPa is applied to                                   Table 3 shows a comparison of the 170 kPa full-braking
+20,000-ton heavy-haul train to have full-braking stop on ﬂat                                  simulation results and the test results. It can be seen from the
+straight track. Simulation results are shown in Figure 10. It can                             data in the table that the calculation results of the train
+be seen from Figure 10(a) that the two models share similarity                                braking time, the maximum coupler force, and the number
+in that the calculated train speed is changing with the braking                               of wagon where the maximum coupler force is generated
+
+===== [PDF PAGE 8] =====
+8                                                                                                                                                          Shock and Vibration
+
+                         1400                                                                              1600
+
+                         1200                                                                              1400
+
+                                                                                                           1200
+                         1000
+
+
+
+
+                                                                                      Coupler force (kN)
+    Coupler force (kN)
+
+
+
+
+                                                                                                           1000
+                          800
+                                                                                                           800
+                          600
+                                                                                                           600
+                          400
+                                                                                                           400
+
+                          200                                                                              200
+
+                            0                                                                                 0
+                                0              10                 20        30                                    0        10             20          30            40        50
+                                            Stroke of draft gear (mm)                                                                Stroke of draft gear (mm)
+                                    Simulation results                                                                Simulation results
+                                    Experimental results                                                              Experimental results
+                                                      (a)                                                                                  (b)
+                         1600                                                                              2000
+
+                         1400                                                                              1800
+                                                                                                           1600
+                         1200
+                                                                                                           1400
+                                                                                      Coupler force (kN)
+    Coupler force (kN)
+
+
+
+
+                         1000                                                                              1200
+                          800                                                                              1000
+                                                                                                            800
+                          600
+                                                                                                            600
+                          400
+                                                                                                            400
+                          200                                                                               200
+
+                            0                                                                                 0
+                                0      10       20         30         40   50    60                               0   10        20       30     40       50    60        70   80
+                                               Stroke of draft gear (mm)                                                             Stroke of draft gear (mm)
+
+                                    Simulation results                                                                4 km/h                           7 km/h
+                                    Experimental results                                                              6 km/h                           8 km/h
+
+                                                      (c)                                                                                  (d)
+
+Figure 7: Shunting impact simulation with the wedge-spring model and comparisons of simulation results. (a) 4 km/h shunting impact
+simulation and test results. (b) 6 km/h shunting impact simulation and test results. (c) 7 km/h shunting impact simulation and test results.
+(d) Comparison of the simulation results at diﬀerent initial velocities.
+
+
+                                                                   Table 1: Experimental parameters.
+                                                           Amplitude (mm)                          5                                        10                15               20
+Frequency, 10 Hz
+                                                   Maximum velocity of draft gear (km/h)         1.13                                      2.26              3.29             4.52
+                                                            Frequency (Hz)                         1                                         5                10               15
+Amplitude, 20 mm
+                                                   Maximum velocity of draft gear (km/h)         0.45                                      2.26              4.52             6.79
+
+
+from the wedge-spring model are closer to the test values,                                     4.2. Downhill Cycle Braking. The time course of the coupler
+while the braking distance of the lookup table model is closer                                 force within the 250 s before and after the air brake is ini-
+to the test value, although the two models are not much                                        tiated is analyzed to study the vibration characteristics of
+diﬀerent. It follows that for the simulation of full-braking                                   coupler force during the longitudinal impulse of the train.
+conditions, using the wedge-spring model is more accurate                                      Figure 11 shows the time course of the coupler force of the
+to calculate the longitudinal dynamics performance.                                            108th wagon after a 50 kPa decompression air brake. When
+
+===== [PDF PAGE 9] =====
+Shock and Vibration                                                                                                                                                           9
+
+                                                               Table 2: Main parameters of the model.
+Main parameters
+Wagon weight                                                                                                                                                            100 t
+Locomotive weight                                                                                                                                                     2 × 100 t
+Wagon number                                                                                                                                                             210
+Lag time of slave locomotive                                                                                                                                            3.5 s
+Coupler gap                                                                                                                                                            10 mm
+Locomotive dynamic braking force                                                                                                                                      461 kN
+Locomotive starting traction force                                                                                                                                    760 kN
+Track adhesion coeﬃcient                                                                                                                                                0.35
+
+
+                         1600
+                                                                                                        2000
+                         1400                                                                           1800
+
+                         1200                                                                           1600
+                                                                                                        1400
+    Coupler force (kN)
+
+
+
+
+                                                                                   Coupler force (kN)
+                         1000
+                                                                                                        1200
+                          800                                                                           1000
+                                                                                                         800
+                          600
+                                                                                                         600
+                          400                                                                            400
+                          200                                                                            200
+                                                                                                           0
+                            0
+                                20       30           40          50       60                                  0   10     20       30      40      50    60    70       80
+                                          Stroke of draft gear (mm)                                                            Stroke of draft gear (mm)
+                                Amplitude at 5mm            Amplitude at 15 mm                                     Frequency at 1Hz              Frequency at 15 Hz
+                                Amplitude at 10mm           Amplitude at 20 mm                                     Frequency at 5Hz              8 km/h shunting
+                                                                                                                   Frequency at 10 Hz            impact test
+                                               (a)                                                                                   (b)
+
+Figure 8: Bench test simulation with the lookup table model. (a) Bench test simulation at diﬀerent amplitudes. (b) Bench test simulation at
+diﬀerent frequencies.
+
+                         2000                                                                           2000
+                         1800                                                                           1800
+                         1600                                                                           1600
+                                                                                   Coupler force (kN)
+
+
+
+
+                         1400                                                                           1400
+    Coupler force (kN)
+
+
+
+
+                         1200                                                                           1200
+                         1000                                                                           1000
+                          800                                                                            800
+
+                          600                                                                            600
+
+                          400                                                                            400
+
+                          200                                                                            200
+                                                                                                           0
+                            0
+                                                                                                               0   10     20       30      40      50    60    70       80
+                                20       30          40         50         60
+                                                                                                                               Stroke of draft gear (mm)
+                                         Stroke of draft gear (mm)
+                                                                                                                   Frequency at 1Hz              Frequency at 15 Hz
+                                Amplitude at 5mm            Amplitude at 15 mm
+                                                                                                                   Frequency at 5Hz              8km/h shutting
+                                Amplitude at 10mm           Amplitude at 20 mm
+                                                                                                                   Frequency at 10 Hz            impact test
+                                               (a)                                                                                   (b)
+
+Figure 9: Bench test simulation with the wedge-spring model. (a) Bench test simulation at diﬀerent amplitudes. (b) Bench test simulation at
+diﬀerent frequencies.
+
+===== [PDF PAGE 10] =====
+10                                                                                                                                                                                          Shock and Vibration
+
+                                                                Braking distance (m)
+                                              0       200         400         600       800       1000
+                                         80                                                          80                                            1800
+
+                                                                                                                                                   1600
+
+                                         60                                                         60                                             1400
+
+
+
+
+                                                                                                                              Coupler force (kN)
+                                                                                                            Velocity (km/h)
+                       Velocity (km/h)
+
+
+
+
+                                                                                                                                                   1200
+
+                                         40                                                         40                                             1000
+
+                                                                                                                                                    800
+
+                                         20                                                         20                                              600
+
+                                                                                                                                                    400
+
+                                          0                                                             0                                           200
+                                              0            20           40             60          80                                                     0          50       100          150       200
+                                                                  Braking time (s)                                                                                        Number of wagon (no.)
+
+                                                  Velocity-time curve (lookup table model)                                                                     Lookup table model
+                                                  Velocity-time curve (wedge-spring model)                                                                     Wedge-spring model
+                                                  Velocity-distance curve (lookup table model)
+                                                  Velocity-distance curve (wedge-spring model)
+                                                                        (a)                                                                                                   (b)
+
+Figure 10: Simulation results of 170 kPa applied full-braking condition. (a) Velocity variation curve. (b) Number of wagon with maximum
+coupler force.
+
+
+
+
+                                                                     Table 3: 170 kPa applied full-braking experiment and simulation results.
+                                                                                                  Experiment                                                  Lookup table model             Wedge-spring model
+Initial braking velocity (km/h)                                                                      79.6                                                            79.6                           79.6
+Braking distance (m)                                                                                 1083                                                            939                            922
+Braking time (s)                                                                                     72.4                                                            79.6                           73.1
+Maximum coupler force (kN)                                                                           1631                                                           1482                           1592
+Wagon number with maximum coupler force                                                              157                                                             147                            156
+
+
+
+                                                                                                                              the longitudinal impulse occurs, the coupler force decreases
+                                                                                                                              ﬁrst and then increases rapidly to the maximum value. The
+                              700                                                                                             maximum coupler force calculated from the lookup table
+                                                                                                                              model is 670.3 kN, while that from the wedge-spring model
+                              600                                                                                             is smaller, with the maximum value at 580.6 kN. However,
+                                                                                                                              the coupler force of the lookup table model decreases rapidly
+  Coupler force (kN)
+
+
+
+
+                              500                                                                                             after the maximum value appears, and then the small vi-
+                                                                                                                              bration occurs and gradually converges, whereas after the
+                                                                                                                              coupler force of the wedge-spring model reaches the max-
+                              400
+                                                                                                                              imum value, the amplitude of the vibration becomes larger
+                                                                                                                              and the convergence velocity becomes slower. This feature is
+                              300
+                                                                                                                              mainly caused by the friction characteristics of the draft gear
+                                                                                                                              model.
+                              200
+
+
+                              100
+                                                                                                                              5. Conclusions
+                                              0       50          100        150            200    250
+                                                                                                                                                   (1) The draft gear is divided into four phases during the
+                                                                     Time (s)
+                                                                                                                                                       loading and unloading processes. The quasistatic
+                                                  Lookup table model
+                                                                                                                                                       analysis can be conducted by the force balance
+                                                  Wedge-spring model
+                                                                                                                                                       condition. The force-displacement curves in the four
+Figure 11: Time course of the coupler force of the 108th wagon.                                                                                        working phases are linear and continuous, but there
+
+===== [PDF PAGE 11] =====
+Shock and Vibration                                                                                                                       11
+
+       is discontinuity from one working phase to another.               [4] T. Geike, “Understanding high coupler forces at metro ve-
+       In actual shunting or working conditions, the draft                   hicles,” Vehicle System Dynamics, vol. 45, no. 4, pp. 389–396,
+       gear often has a spike eﬀect at the end of loading and                2007.
+       at the beginning of unloading process. The draft gear             [5] Y. Hu, W. Wei, and X. Qi-Wen, “Study of heavy haul freight
+       model can be established by the lookup table method                   wagon buﬀer model based on BP neural network,” Journal of
+                                                                             Dalian Jiaotong University, vol. 33, no. 6, pp. 1–5, 2012, in
+       and the simpliﬁed wedge-spring method.
+                                                                             Chinese.
+   (2) For the lookup table model, the simulated draft gear              [6] X. Jin and Y. Luo, “The mathematic description of features of
+       characteristic curve develops along a ﬁxed trajectory                 the friction type draft gears,” Rolling Stock, vol. 49, no. 6,
+       under various experimental conditions, regardless of                  pp. 1–4, 2011, in Chinese.
+       the change rate of the draft gear stroke, while for the           [7] W.-M. Zhai, “Two simple fast integration methods for large-
+       wedge-spring model, simulation results depend on                      scale dynamic problems in engineering,” International Journal
+       the change rate of the draft gear stroke, reﬂecting the               for Numerical Methods in Engineering, vol. 39, no. 24,
+                                                                             pp. 4199–4214, 1996.
+       dynamic characteristics of the draft gear and con-
+                                                                         [8] W.-H. Zhang, M. R. Chi, and J. Zeng, “A new simulation
+       forming to the law that the friction coeﬃcient is                     method for the train dynamics,” in Proceedings of the 8th
+       aﬀected by the velocity. Researches show that sim-                    International Heave Haul Conference, pp. 773–778, Rio de
+       ulation results of the wedge-spring model in each                     Janeiro, Brazil, June 2005.
+       working condition are more consistent with the                    [9] M. R. Chi, Y.-P. Jiang, W.-H. Zhang, and Y. Wang, “System
+       experimental results, and thus, this model has better                 dynamics of long and heavy haul train,” Journal of Traﬃc and
+       adaptability and wider application.                                   Transportation Engineering, vol. 11, no. 3, pp. 34–40, 2011.
+   (3) For the simulation of the full-braking condition on              [10] S.-L. Sun, L. Fu, Y.-H. Huang et al., “Numerical simulation of
+                                                                             railway vehicle impacts,” Journal of Southwest Jiaotong Uni-
+       ﬂat straight road, the longitudinal dynamics per-
+                                                                             versity, vol. 48, no. 3, pp. 507–512, 2013.
+       formance calculated from the wedge-spring model is               [11] W. Wei and Y. Lin, “Simulation of a freight train brake system
+       more accurate. As for the simulation of the longi-                    with 120 valves,” Proceedings of the Institution of Mechanical
+       tudinal impulse generated after the air brake of the                  Engineers, Part F: Journal of Rail and Rapid Transit, vol. 223,
+       train, the variation trends of the coupler force curve                no. 1, pp. 85–92, 2009.
+       calculated from diﬀerent models are basically the                [12] P. Belforte, F. Cheli, G. Diana, and S. Melzi, “Numerical and
+       same, but the amplitude and frequency of the lon-                     experimental approach for the evaluation of severe longitu-
+       gitudinal impulse are diﬀerent.                                       dinal dynamics of heavy freight trains,” Vehicle System Dy-
+                                                                             namics, vol. 46, pp. 937–955, 2008.
+                                                                        [13] Q. Wu, M. Spiryagin, and C. Cole, “Advanced dynamic
+Data Availability                                                            modelling for friction draft gears,” Vehicle System Dynamics,
+                                                                             vol. 53, no. 4, pp. 475–492, 2015.
+The data used to support the ﬁndings of this study are                  [14] Q. Wu, S. Luo, T. Qu, and X. Yang, “Comparisons of draft gear
+available from the corresponding author upon request.                        damping mechanisms,” Vehicle System Dynamics, vol. 55,
+                                                                             no. 4, pp. 501–516, 2017.
+                                                                        [15] Y. Sun, C. Cole, M. Spiryagin, T. Godber, S. Hames, and
+Conflicts of Interest                                                        M. Rasul, “Longitudinal heavy haul train simulations and
+                                                                             energy analysis for typical Australian track routes,” Pro-
+The authors declare that they have no conﬂicts of interest.
+                                                                             ceedings of the Institution of Mechanical Engineers, Part F:
+                                                                             Journal of Rail and Rapid Transit, vol. 228, no. 4, pp. 355–366,
+Acknowledgments                                                              2013.
+                                                                        [16] Q. Wu, M. Spiryagin, C. Cole et al., “International bench-
+The authors thank the National Natural Science Foundation                    marking of longitudinal train dynamics simulators: results,”
+of China (grant no. 51575458) for their aid and support.                     Vehicle System Dynamics, vol. 56, no. 3, pp. 343–365, 2018.
+                                                                        [17] Q.-T. Qi, Analysis and Application of Frictional Draft Gear
+                                                                             Dynamic characteristics, Southwest Jiaotong University,
+References                                                                   Chengdu, China, 1994.
+                                                                        [18] X. Sun, Principle and Explanation for Accurate Calculation
+[1] A. Massa, L. Stronati, A. K. Aboubakr, A. A. Shabana, and                Program of Train dynamics, Locomotive and Car Research
+    N. Bosso, “Numerical study of the noninertial systems: ap-               Institute of Southwest Jiaotong University, Chengdu, China,
+    plication to train coupler systems,” Nonlinear Dynamics,                 1989.
+    vol. 68, no. 1-2, pp. 215–233, 2012.
+[2] C. Cole, “Improvements to wagon connection modelling for
+    longitudinal train simulation,” in Proceedings of the Confer-
+    ence on Railway Engineering Proceedings: Engineering In-
+    novation for a Competitive Edge, pp. 187–194, Central
+    Queensland University, Rockhampton, Australia, September
+    1998.
+[3] F. Cheli and S. Melzi, “Experimental characterization and
+    modelling of a side buﬀer for freight trains,” Proceedings of the
+    Institution of Mechanical Engineers, Part F: Journal of Rail and
+    Rapid Transit, vol. 224, no. 6, pp. 535–546, 2010.
+
+===== [PDF PAGE 12] =====
+                                                                                                    International Journal of
+
+
+                                                                                                    Rotating                                                                   Advances in
+                                                                                                    Machinery                                                                 Multimedia
+
+
+                                           The Scientific
+Engineering
+           Journal of
+                                                                                                                                              Journal of
+
+Hindawi
+                                           World Journal
+                                           Hindawi Publishing Corporation                           Hindawi
+                                                                                                                                              Sensors
+                                                                                                                                              Hindawi                         Hindawi
+www.hindawi.com              Volume 2018   www.hindawi.com
+                                           http://www.hindawi.com                     Volume 2018
+                                                                                             2013   www.hindawi.com            Volume 2018    www.hindawi.com   Volume 2018   www.hindawi.com             Volume 2018
+
+
+
+
+                                                                                                                                                                              Journal of
+
+                                                                                                                                                                              Control Science
+                                                                                                                                                                              and Engineering
+
+
+
+
+Advances in
+Civil Engineering
+Hindawi                                                                                                                                                                       Hindawi
+www.hindawi.com              Volume 2018                                                                                                                                      www.hindawi.com            Volume 2018
+
+
+
+
+                                                                                      Submit your manuscripts at
+                                                                                         www.hindawi.com
+
+                                                                                                                                                                              Journal of
+Journal of                                                                                                                                                                    Electrical and Computer
+Robotics
+Hindawi
+                                                                                                                                                                              Engineering
+                                                                                                                                                                              Hindawi
+www.hindawi.com              Volume 2018                                                                                                                                      www.hindawi.com             Volume 2018
+
+
+
+
+                                                                     VLSI Design
+Advances in
+OptoElectronics
+                                                                                                                                                                              International Journal of
+
+                                                                                                    International Journal of
+                                                                                                                                              Modelling &
+                                                                                                                                              Simulation
+                                                                                                                                                                              Aerospace
+Hindawi                    Volume 2018
+                                                                                                    Navigation and
+                                                                                                    Observation
+                                                                                                    Hindawi
+                                                                                                    www.hindawi.com             Volume 2018
+                                                                                                                                              in Engineering
+                                                                                                                                              Hindawi
+                                                                                                                                              www.hindawi.com   Volume 2018
+                                                                                                                                                                              Engineering
+                                                                                                                                                                              Hindawi
+                                                                                                                                                                              www.hindawi.com            Volume 2018
+                                                                    Hindawi
+www.hindawi.com                                                     www.hindawi.com   Volume 2018
+
+
+
+
+                                           International Journal of
+International Journal of                   Antennas and                                             Active and Passive                                                        Advances in
+Chemical Engineering                       Propagation                                              Electronic Components                     Shock and Vibration             Acoustics and Vibration
+Hindawi                                    Hindawi                                                  Hindawi                                   Hindawi                         Hindawi
+www.hindawi.com              Volume 2018   www.hindawi.com                            Volume 2018   www.hindawi.com             Volume 2018   www.hindawi.com   Volume 2018   www.hindawi.com            Volume 2018
+
+===== [PDF PAGE 13] =====

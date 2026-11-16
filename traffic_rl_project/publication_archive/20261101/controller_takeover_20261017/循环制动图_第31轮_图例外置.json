@@ -1,0 +1,14 @@
+{
+  "source_sha256": {
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_cold70_cycle_20261019_round29\\run\\trajectory.npz": "e76964a2d08415a0b4bc550c6be9fb223a14bd7305363c7184375c3e4d0e5720",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_cold70_cycle_20261019_round29\\run\\native_release_state.json": "dd2874a3fe62d46107f3613a0eeb26dc145a3827f0cc3e4cde4dfc94b5b41cd4",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_route_20261019_round31\\trajectory.npz": "1203ad2f1cb844461eefb8bc84a44e77216353639c4c2dcc2910b1465b431fcc",
+    "outputs\\sim_validation\\phys_validation\\single108_pressure_ready_route_20261019_round31\\result.json": "bcd7df064ab0b5bee28adf9c3388b67fe345b1cd97b1c681faf95cf4e3bfef70"
+  },
+  "full_route_completed": false,
+  "stop_reason": "speed_floor",
+  "head_km": 50.228169714398,
+  "tail_km": 48.93473538240799,
+  "continuation_boundary_s": 1000.0000000000001,
+  "scope": "same complete online history; not fleet or physical calibration"
+}

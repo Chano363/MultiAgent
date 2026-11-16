@@ -57,11 +57,16 @@ def observe_newmark(samples, after_s=0.0, capture=None):
 
     TrainDynamics._step_newmark = observed_step
     TrainDynamics._state_forces = observed_force
+    # Declared to the solver registry as a pure observer: it delegates every
+    # step to production and must not relabel production numerics.
+    from src.evaluation import solver_registry
+    solver_registry.PURE_OBSERVERS.add(observed_step)
     try:
         yield
     finally:
         TrainDynamics._step_newmark = original_step
         TrainDynamics._state_forces = original_force
+        solver_registry.PURE_OBSERVERS.discard(observed_step)
 
 
 def replay_fixed_mechanics(capture, subdivisions=(1, 2, 4), *, tol=None, max_iter=None):

@@ -1,0 +1,44 @@
+2 期 林佳 伟 林 又 纳 标 标 林 吊 气
+
+参 考 文 献
+[ 1 ] 翟 娆 明 , 结 构 动 力 分 析 的 Newmark 蚯 式 积 分 方 法 , 四 川 省 力 学 学 会 学 术 论 文 集
+
+1989 年 。
+
+[ 2 ] Newmark,N。M,, 友 method of compatation for structural dynamics,Journal
+of ihe Bngineering Mechamics 刃 ioision,AdSCE,85(1959),No。2,67 一 94。
+
+[ 3 ] Park,K。C,,An improved stiffly stable “method for direet integration of
+nonlinear structural dynamic eqduations, 4SM 万 Journal of 4pplied Mechanics,
+42(1975),No。2,464 一 470。
+
+[ 4 ] 蔡 承 文 、 黄 纯 明 、 刘 明 杰 , 结 构 动 力 学 方 程 直 接 积 分 的 一 个 无 条 件 稳 定 方 法 , 浙 江 大
+学 学 报 ,1982 年 ,No。2,1 一 14。
+
+[ 5 J Chan,S. P,,Cox,H。L。& Benfield, 旭 。A.,Transient analysis of foreed
+vibrations of complex structural mechanical systems, 了 。Royhal hero。Soc.,
+66(1962),457 一 460。
+
+〔 6 ] 李 庆 扬 、 王 能 超 、 易 大 义 , 数 值 分 析 , 华 中 工 学 院 出 版 社 ,1982
+
+[ 7 ] Bathe, 长 。J,& Wilson,E。L.,Namerical _Method in Finite 万 lement hna-
+Jysis,Prentice 一 Hall,1976。
+
+[ 8 ] Belytschko 少 ,& Schoeberle,D。F.,,Oa the unconditional stability of an
+implicit algorithm for nonlinear structural dynamicsA4SM 万 Tournal of
+Applied Mechanics,42(1975),No, 一 865 一 869。
+
+[ 9 ] Belytschko, 个 .,Transiemt knalysis,Sirueiural Mecjanics Computer Progr-
+ams (ed.,Pikey, 明 ,,et 吴 ),University Press of Virginia,1974,255 一 276。
+
+〔 10 ] 翟 娆 明 、 黄 志 辉 , 列 车 动 力 学 方 程 的 非 线 性 数 值 积 分 , 西 南 交 通 大 学 科 学 报 告 会 , 论
+文 编 号 ,J:CK2l,1988 年 12 月 ; 西 南 交 通 大 学 学 报 , 待 发 表 。
+
+[ 11 ] 郑 兆 昌 、 丁 奎 元 编 , 机 械 振 动 ( 中 册 ) , 机 械 工 业 出 版 社 ,1986 年 。
+
+〔 12 ] 铁 道 科 学 研 究 院 机 车 车 辆 研 究 所 , 牵 引 总 重 5000 吖 C61 型 散 车 专 列 列 车 纵 呐 动 力
+学 试 验 报 告 , 北 京 ,1984 年 。
+
+[13 ] Gogineni, ,R。& Garg,W &.。A dynamic method for longitudinal train
+action,Report No。 R 一 297,AAR Technical Center,Chicago,Ilinois,Feb.,
+1978。 「

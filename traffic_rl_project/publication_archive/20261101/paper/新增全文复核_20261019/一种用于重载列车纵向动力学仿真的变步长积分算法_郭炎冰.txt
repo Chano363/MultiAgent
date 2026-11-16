@@ -1,0 +1,422 @@
+===== PDF page 1 =====
+文章编号:1002-7602(2023)03-0147-06
+一种用于重载列车纵向动力学仿真的
+变步长积分算法
+郭炎冰1,杨诗卫2,杨 璨2,倪文波1
+(1.西南交通大学 机械工程学院,四川 成都 610031;
+2.中车眉山车辆有限公司,四川 眉山 620032)
+摘 要:目前列车纵向动力学仿真的积分 算 法 多 以 Newmark-β法 为 基 础 的 固 定 步 长 算 法 为 主,但
+随着列车编组数量增加以及工况变化,固定步长算法难以获得最佳的计算效率。基于此,文章采用显式
+预测-隐式迭代校正的方法,在 Newmark-β法 的 基 础 上,通 过 限 制 迭 代 次 数 的 方 法 变 化 步 长,将 其 演 变
+为一种变步长的积分算法。通过算例验证了变步长算法在动力学方程解变化剧烈的时候具有更高的计
+算精度,将该算法应用至1万t单编列车的全制 动 停 车 工 况 的 纵 向 动 力 学 仿 真,结 果 表 明,相 较 于 其 他
+算法,变步长的积分算法在保证精度的同时计算效率更高。
+关键词:变步长;Newmark-β法;重载列车;纵向动力学;车钩力
+中图分类号:U270.2  文献标志码:B  doi:10.3969/j.issn.1002-7602.2023.03.026
+收稿日期:2022-04-29
+基金项 目:中 国 中 车 股 份 有 限 公 司 重 点 科 技 项 目 (2019CHB
+087)
+第一作者:郭炎冰(1997—),男,硕士研究生。
+AVariableStepIntegrationAlgorithmforLongitudinal
+DynamicsSimulationofHeavy-haulTrain
+GUO Yanbing
+1,YANGShiwei
+2,YANG Can
+2,NIWenbo
+1
+(1.SchoolofMechanicalEngineeringofSouthwestJiaotongUniversity,Chengdu610031,China;
+2.CRRC MeishanRollingStockCo.,Ltd.,Meishan620032,China)
+Abstract:Atpresent,theintegrationalgorithmcommonlyusedintrainlongitudinaldynamicssimulationis
+fixedstep algorithm mostly based on Newmark-β method,but withtheincrease ofthe numberoftrain
+formationandthechange of working conditions,thefixed step algorithm is difficultto obtain the best
+calculationefficiency.Inthispaper,theexplicitprediction-implicititerativecorrectionmethodisadopted.Based
+ontheNewmark-βmethod,thestepsizeischangedbylimitingthenumberofiterations,whichisevolvedintoa
+variablestepintegrationalgorithm.Itisverifiedbyarithmeticexamplesthatthevariablestepsizealgorithmhas
+highercomputationalaccuracywhenthesolutionofthedynamicalequationschangesdrastically.Thealgorithm
+isappliedtothelongitudinaldynamicsimulationof10000tsingletrainunderfullbrakingparkingcondition.
+Theresultsshow thatcompared with otheralgorithms,theintegrationinthispapernotonlyensuresthe
+accuracy,butalsohashighercalculationefficiency.
+Keywords:variable-step;Newmark-βmethod;heavyhaultrain;longitudinaldynamics;couplerforce
+  重载运输是铁路 货 运 现 代 化 的 一 个 重 要 标 志,大 秦线已于2006年正式开行2万t重载列车,并于2014
+年顺利完成3 万t重 载 组 合 列 车 的 运 行 试 验,神 华 铁
+路常年开行牵引重量为1万t的重载组合列车 [1]。列
+车运行时的纵向安全 是 制 约 牵 引 重 量 的 重 要 因 素,研
+究表明,纵向力和纵向冲动过大,有可能造成列车发生
+脱钩、断钩和脱 轨 [2]。 列 车 纵 向 动 力 学 仿 真 是 研 究 长
+·741·
+ 重 载 列 车 铁道车辆 第61卷第3期2023年6月 
+
+===== PDF page 2 =====
+大列车纵向动力学的 一 种 重 要 手 段,随 着 编 组 的 不 断
+扩大,研究更高性能、更高精度的动力学算法具有重要
+意义。
+列车纵向动力学 方 程 是 一 组 复 杂 的 非 线 性 方 程,
+目前,求解列车纵向 动 力 学 方 程 主 要 采 用 直 接 数 值 积
+分的方法,常用的隐 式 方 法 有 Newmark-β法、Wilson-
+θ法、Houbolt法等,显式方法有中心差分法、具有梯形
+法则的二循环迭代法等 [3]。隐式算法在计算线性问题
+时精度较高,应用于列车纵向动力学分析时,由于计算
+时需要提前获得下一时刻的外力响应而必须进行线性
+假设,从而产生计算误差;在列车纵向动力学仿真分析
+中常用显式积分算法,显式算法通常条件稳定,计算步
+长对计算精度影 响 较 大。翟 婉 明 在 传 统 的 隐 式 New-
+mark-β法的基 础 上,提 出 一 种 显 式 的 Newmark-β 积
+分格式,并在此 基 础 上,提 出 采 用 基 于 Newmark-β显
+式预测-隐式校正的 积 分 方 法,进 行 了 5000t编 组 列
+车纵向动力 学 仿 真 [4-5]。常 崇 义 等 提 出 一 种 高 精 度 平
+衡迭代数值解法并用 于 列 车 纵 向 动 力 学 分 析,通 过 在
+一个时间步长内反复迭代消除不平衡力来保证计算精
+度,但迭代过程 复 杂 耗 时 较 多 [6]。 刘 广 等 针 对 隐 式 算
+法在应用于强非线性 系 统 失 效 的 问 题,提 出 一 种 基 于
+Newmark-β猜测-校 正 的 积 分 算 法,跳 过 将 非 线 性 方
+程线性化的步骤,提升了算法稳定性 [7],武承龙应用该
+方法计算了2万t组合列车纵向力 [8]。王璐科对列车
+钩缓系统描述为分段 线 性 化 模 型,并 根 据 分 段 线 性 化
+特点,将 Newmark-β法 改 进 为 分 段 线 性 计 算,旨 在 改
+善由于非线性 钩 缓 系 统 应 用 Newmark-β法 带 来 的 较
+大误差,用于列车连挂仿真计算 [9]。
+综上所述,目前应 用 于 列 车 纵 向 动 力 学 计 算 的 积
+分算法多为固定步长 算 法,由 于 列 车 纵 向 动 力 学 仿 真
+具有时间长、工况多 的 特 点,在 不 同 工 况 下,达 到 同 样
+精度所需要的最大步 长 也 有 所 不 同,采 用 变 步 长 算 法
+能够显著提 升 计 算 效 率 [10]。 因 此,本 文 拟 基 于 New-
+mark-β法提出一种变步长的改进型积分 算 法,采 用 显
+式法产生迭代初值,接着通过隐式法迭代不断校正,通
+过限制达 到 预 设 精 度 要 求 的 迭 代 次 数 来 改 变 计 算 步
+长,使其达到相应精 度 而 不 至 于 造 成 单 步 迭 代 次 数 过
+多,通过算例对比分析说明算法的计算精度,最后通过
+列车纵向动力学算例说明算法的准确性和计算效率。
+1 变步长的改进型积分算法
+对于系统的动力 学 方 程,通 常 可 写 为 以 下 微 分 方
+程的形式:
+M ̈Xt +ĊXt +KXt =Ft (1)
+式中:M 、C、K 分 别 为 系 统 的 质 量 矩 阵、阻 尼 矩 阵、刚
+度矩阵;Ft 为t 时 刻 受 力; ̈X 、̇X 、Xt 分 别 为 系 统 内 各
+个计算质量在t 时刻的加速度、速度、位移响应向量。
+传统的隐式 Newmark-β法 的 基 本 思 想 是 假 定 加
+速度 ̈x 在计算步 长 [t+Δt]内 是 介 于 ̈xt 和 ̈xt+Δt之 间
+的一个常数,并分别由控制参数γ 和β 控制,即:
+ ̈X = ̈Xt +γ( ̈Xt+Δt - ̈Xt) (2)
+ ̈X = ̈Xt +2β( ̈Xt+Δt - ̈Xt) (3)
+若利用泰勒公式,将̇xt+Δt和xt+Δt在t 时刻分别进
+行一阶和二阶展开可得:
+̇Xt+Δt =̇Xt + ̈XtΔt (4)
+Xt+Δt =Xt +̇XtΔt+ 1
+2
+ ̈XtΔt
+2 (5)
+将式(2)、式(3)分别代入式(4)和式(5)得:
+Xt+Δt =Xt +̇XtΔt+ (1
+2 -β) ̈XtΔt
+2
++β ̈Xt+ΔtΔt
+2
+(6)
+̇Xt+Δt =̇Xt + (1-γ) ̈XtΔt+γ ̈Xt+ΔtΔt (7)
+由于当t+Δt时仍需满足动力学方程,于是有:
+M ̈Xt+Δt +ĊXt+Δt +KXt+Δt =Ft+Δt (8)
+结合式(6)和式(7)可得到的表达式:
+ ̈Xt+Δt =M
+-1(Ft+Δt -ĊXt+Δt -KXt+Δt) (9)
+选取合适的计 算 参 数γ 和β,即 可 通 过 式 (6)、式
+(7)和式(9)的迭代计算出t+Δt 时刻的加速度、速度、
+位移 响 应。 当γ=0.5,β=0.25 时,Newmark-β 法 无
+条件稳定,并具有二阶精度,满足工程计算的需要。但
+是,对于非线性系统,在t+Δt 时的Ft+Δt通常与t+Δt
+的速度和位移响应有关,在求解̇Xt+Δt、Xt+Δt时又必须
+需要Ft+Δt,导 致 隐 式 Newmark-β法 无 法 计 算。 于 是
+本文拟采用迭代校正的方法来求解̇Xt+Δt、Xt+Δt。
+该方法在一个计算步长内,首先由 Newmark-β显
+式法得到每个计算步长迭代的初始值,即:
+X
+(0)
+t+Δt =Xt +̇XtΔt+ (1
+2
++ψ) ̈XtΔt
+2
+-ψ ̈Xt+ΔtΔt
+2
+(10)
+̇X
+(0)
+t+Δt =̇Xt + (1+φ) ̈XtΔt-φ ̈Xt+ΔtΔt (11)
+在计算开始时,令ψ=φ=0,得到第一个计算步长
+第一次迭代的初始值 X
+(0)
+t+Δt和̇X
+(0)
+t+Δt,然后代入式(9)得
+到 ̈X
+(1)
+t+Δt,接着将 ̈X
+(1)
+t+Δt代入式(6)、式(7)得 到 X
+(1)
+t+Δt和
+̇X
+(1)
+t+Δt,然后 再 将 X
+(1)
+t+Δt 和̇X
+(1)
+t+Δt 得 到 ̈X
+(2)
+t+Δt 从 而 完 成 一
+次迭代过程,直到满足 式(12)时 终 止 当 前 计 算 步 长 的
+迭代,进入下一步长的计算。
+X
+(i)
+t+Δt -X
+(i-1)
+t+Δt ≤e (12)
+式中:i 为当前步长迭代次数;e为设定的误差限。
+对于定步长的积 分 算 法 而 言,选 择 较 大 的 计 算 步
+·841·
+铁道车辆 第61卷第3期2023年6月 
+
+===== PDF page 3 =====
+长,在缩短计算时间 的 同 时 可 能 会 造 成 迭 代 的 不 收 敛
+或者累计误差增加,选择较小的计算步长,精度有所提
+高但是会增加计算 耗 时。 通 常 的 情 况 是,当 动 力 学 方
+程解的变化剧烈时,采用小步长可以提高计算精度,在
+解变化平缓的区间 采 用 大 步 长 则 可 以 提 升 计 算 效 率。
+在本文方法中,设置 每 个 时 间 步 长 内 的 迭 代 次 数 不 能
+超过允许的最大迭代 次 数,当 迭 代 次 数 超 过 最 大 迭 代
+次数,则减小步长,若迭代小于最低迭代次数就满足式
+(12),则增加步长。该 改 进 算 法 计 算 流 程 图 如 图 1 所
+示,图1中,i 为每个步长内的迭代次数,H 和L 分 别
+表示设定的允许迭代 的 最 大 次 数 和 最 小 次 数,本 文 计
+算中取 H 和L 分别为3和1。
+图1 算法计算流程图
+2 算例分析
+算例1取自文献[11],线性微分方程为:
+ ̈x -̇x +e
+2t
+x =0
+̇x(0)=cos(1)
+x(0)=-sin(1)
+ì
+î
+í
+ïï
+ïï
+(13)
+分别采用本文方法、隐式 Newmark-β法和高精度
+平衡迭代法对方程(13)进 行 计 算,并 与 解 析 解 结 果 进
+行对比。本文变步长方法的初始步长为0.01s,New-
+mark-β法计算步长取本文方法计算步长 的 平 均 值,取
+γ=0.5,β=0.25,仿真时间为4s,仿真结果如图2、图
+3所示。
+经过计 算,变 步 长 算 法 的 平 均 步 长 为 0.0033s,
+所以另 外 2 种 算 法 同 样 取 步 长 为 0.0033s。 从 图 2
+可以看出,采用3种方法所得到的位移响应基本一致,
+由于固定步长 的 Newmark-β法 和 高 精 度 平 衡 迭 代 法
+采用的是变步长仿真 所 得 到 的 平 均 步 长,所 以 仿 真 时
+间基本相同。图3为图2最后一个波峰处的局部放大
+图,从图3可以看出,当 解 变 化 剧 烈 时,采 用 变 步 长 算
+法得到结果更加接 近 于 解 析 解。 本 文 变 步 长 算 法、隐
+式 Newmark-β法和高 精 度 平 衡 迭 代 算 法 与 解 析 解 的
+平均相对误差分 别 为 2.46%、2.50%、4.73%,说 明 本
+文方法具有较高的精度。
+图2 算例1位移响应
+图3 算例1位移响应局部放大图
+3 缓冲器模型介绍
+缓冲器特性是影响列车纵向冲动水平的一个重要
+·941·
+ 一种用于重载列车纵向动力学仿真的变步长积分算法 郭炎冰,杨诗卫,杨 璨,倪文波
+
+===== PDF page 4 =====
+因素,也是纵向动力学仿真中重要的非线性元素,缓冲
+器模型选择的合理 与 否 直 接 影 响 仿 真 结 果 的 准 确 性。
+干摩擦弹簧缓冲器在 我 国 货 车 上 应 用 广 泛,主 要 类 型
+有 MT-2、MT-3等。当 缓 冲 器 受 到 冲 击 时,能 量 一 方
+面转化为弹簧的弹性 势 能,另 一 方 面 通 过 楔 块 与 动 板
+之间的摩擦转化为热能 消 耗。MT-2 缓 冲 器 落 锤 试 验
+的动态特性曲线如图4所示。
+图4 MT-2缓冲器落锤试验的动态特性曲线
+MT-2缓冲器在加载末端由于速度无限接近于0,
+摩擦力大大增加而出 现 阻 抗 力 尖 峰,并 且 随 着 加 载 速
+度的不同,缓冲器能 达 到 的 最 大 位 移 以 及 最 大 阻 抗 力
+也不一样。本文将缓 冲 器 数 学 模 型 分 为 过 渡 段、稳 定
+加载段以及卸载段3个部分 [12],稳定加载 段 为 缓 冲 器
+吸收能量的主要阶段,根 据 试 验 数 据 将 该 加 载 阶 段 阻
+抗力 Fl(ε)拟合为式(14):
+Fl(ε)=kl·x+bl,ε≤x,x·v>0 (14)
+式中:x 为 缓 冲 器 压 缩 量;v 为 压 缩 速 变;kl,bl 为 参
+数;ε 为缓冲器从开始加载到稳定加载段的位移。
+根据缓冲器落锤试验数据拟合得到缓冲器加载模
+型,如式(15)所示:
+F =
+ax
+3
++bx
+2
++cx +d,0≤x <ε,x·v >0
+(klx +bl)+Fe, x ≥ε,x·v >0
+kux,       x·v <0
+ì
+î
+í
+ïï
+ïï
+(15)
+式 中 :Fe 为 附 加 力 ;F0 为 缓 冲 器 初 压 力 ;a、b、c、d
+分 别 为 与kl、bl、F0、Fl (ε)有 关 的 系 数 ;ku 为 卸 载
+刚 力 。
+在计算时,车钩力从0加载到F0 的过程使用一段
+较小的位移过渡;缓冲器尾部尖峰采用附加力Fe 的方
+式给予补偿,利用指 数 函 数 的 衰 减 特 性 可 以 很 好 地 描
+述这种特性 [13],如式(16):
+Fe =λ·e
+- v
+ve
+1+e
+- v
+ve
+,x·v >0,v ≤ve (16)
+式中:ve 为临界速度;λ =λ(v)为控制阻抗力大小的
+系数。
+由于缓冲器是吸 能 结 构,在 加 载 和 卸 载 曲 线 之 间
+存在间断点,必须进行加载卸载之间的过渡处理,本文
+采用速度法对加载和卸载之间的间断进行过渡 [14]。
+使用以上 MT-2模 型 进 行 落 锤 试 验 仿 真,结 果 如
+图5所示。仿真结果 表 明,使 用 该 缓 冲 器 模 型 进 行 落
+锤试验仿真与落锤试 验 数 据 比 较 接 近,并 且 能 够 很 好
+地描述缓冲器在加载末端的阻抗力尖峰。
+图5 MT-2缓冲器特性仿真曲线
+4 单编万t重载列车纵向动力学计算案例
+为了分析本文算法在计算重载列车纵向动力学问
+题时的性能,本节分别使用基于 Newmark-β法的高精
+度平衡 迭 代 算 法 和 本 文 方 法,分 析 由 108 辆 C70E组 成
+的 单编1万t重载列车在平道上以初速度80km/h进
+行全制动停 车 时 的 纵 向 动 力 学 性 能。 其 中,C70E 使 用
+MT-2缓冲器,满载自重为 94.1t,采用 120 型空 气 制
+动机,制动倍率为7.8,制动缸直径为305 mm,车钩间
+隙取15 mm。
+列车的空气制动特性对列车制动时的纵向力影响
+很大,机车采取制动 时,制 动 波 从 前 向 后 传 递,并 且 越
+靠近机车,制动波 速 越 慢。 由 于 前 部 车 辆 距 离 机 车 较
+近,首先产生制动作用,而此时距离机车较远的车辆仍
+未受到制动作用,导致前部车辆减速,后方车辆仍然保
+持原速度,从而前后产生较大相对速度,挤压车钩与缓
+冲器,产生较大的 车 钩 力。 为 了 更 好 地 模 拟 列 车 全 制
+动时的制动缸升压过 程,本 文 采 用 文 献 [15]的 方 法 对
+列车制动缸压力进行 仿 真,并 作 为 纵 向 动 力 学 计 算 的
+制动力输入,如图6所示。
+·051·
+铁道车辆 第61卷第3期2023年6月 
+
+===== PDF page 5 =====
+图6 1万t列车全制动制动缸升压曲线仿真
+对于 高 精 度 平 衡 迭 代 法,分 别 在 步 长 为 0.005s、
+0.004s和0.0001s进 行 仿 真,变 步 长 算 法 初 始 步 长
+为0.008s,分别记为 算 法 1、2、3、4。计 算 时 均 取γ=
+0.5,β=0.25,仿真时间 为 74s,与 采 用 小 步 长 的 算 法
+3计 算 结 果 作 为 对 照,仿 真 结 果 如 图 7 所 示。 从 仿 真
+结果可以看出,算法1 最 大 车 钩 力 与 其 他 3 条 曲 线 偏
+差较大,可 见 高 精 度 平 衡 算 法 在 步 长 为 0.005s时 的
+计算稳定性明显降低,算 法 2、3、4 压 钩 力 曲 线 基 本 重
+合,最大压钩力发生在列车的中后部,与列车采用常用
+制动停 车 时 的 车 钩 力 规 律 一 致。 算 法 2、算 法 3 计 算
+的最大 压 钩 力 分 别 为 694.69kN、694.68kN,均 发 生
+在第75钩位,而 算 法 4 得 到 的 最 大 压 钩 力 为 695.43
+kN,发生在74钩位,二者仅相差0.74kN。
+图8显示了算法 4 在 计 算 过 程 中 的 步 长 变 化,仿
+真中最小步长为0.004s,仿 真 时 间 阶 梯 上 升,可 见 变
+步长的算法可以通过改变步长,快速逼近收敛解,从而
+减少迭代次数。由计算结果可以得到算法4的平均步
+长为0.0073s,而这个步长对于高精度平衡迭代法而
+言显然过大,选取算法 2 和 算 法 3 进 行 仿 真 时 间 的 对
+比,算法2完成74s的仿真用时61.45s,而 变 步 长 算
+法仅用时37.64s,对 于 1 万t列 车 全 制 动 停 车 工 况,
+算法3较算法2耗时减少约38.75%。
+图7 算法1~算法4各车位压钩力
+图8 算法4计算步长与仿真时间变化关系
+5 结论
+(1)将 Newmark-β法演化为变步长的 积 分 算 法,
+通过限制逼近收敛 解 所 需 要 的 迭 代 次 数 来 调 整 步 长,
+自动达到计算精度要求,并通过算例与其他算法对比,
+说明了本文的变步长算法在动力学方程解变化剧烈时
+具有较高的精度。
+(2)将改进的变步长算法应用于重载列车纵向动
+力学分析,计算 了 1 万t单 编 列 车 在 常 用 全 制 动 停 车
+工况下的纵向力,并 与 不 同 步 长 的 高 精 度 平 衡 算 法 对
+比,表明了在没有明显精度损失的情况下,计算效率提
+升38.75%。
+参考文献:
+[1] 王定举.朔黄铁路公司 发 展 战 略 研 究 [D].成 都:西 南 交 通
+大学,2007.
+[2] TransportationsafetyboardofCanada.Railwayinvestiga-
+tionreport:crossingaccidentandderailment[R].2001.
+[3] 耿志修.大秦铁路重载运输技术[M].北 京:中 国 铁 道 出 版
+社,2009.
+[4] 翟婉明.大型 结 构 动 力 分 析 的 Newmark 显 式 算 法 [J].重
+庆交通学院学报,1991,10(2):33-41.
+ZHAIWanming.TheexplicitschemeofNewmark’sinte-
+grationmethodforlargestructuraldynamicanalyses[J].
+JournalofChongqingJiaotong University,1991,10(2):
+33-41.
+[5] 翟婉明.非线性结构动力分析的 Newmark预测-校正积 分
+模式[J].计算力学学报,1990,7(2):51-58.
+ZHAIWanming.Thepredictor-correctorschemebasedon
+theNewmarksintegrationalgorithmfornonlinearstruc-
+turaldynamicanalyses[J].Chinesejournalofcomputa-
+tionalmechanics,1990,7(2):51-58.
+[6] 常崇义,王 成 国,马 大 炜,等.2 万t组 合 列 车 纵 向 力 计 算
+研究[J].铁道学报,2006,28(2):89-94.
+CHANG Chongyi,WANG Chengguo,MA Dawei,etal.
+Studyonnumericalauclysisoflongitudinalforcesofthe
+·151·
+ 一种用于重载列车纵向动力学仿真的变步长积分算法 郭炎冰,杨诗卫,杨 璨,倪文波
+
+===== PDF page 6 =====
+20000theavyhaul[J].JournaloftheChinarailwayso-
+ciety,2006,28(2):89-94.
+[7] 刘广,刘 济 科,陈 衍 茂.基 于 Wilson-θ和 Newmark-β法 的
+非线性动力学方 程 改 进 算 法 [J].计 算 力 学 学 报,2017,34
+(4):433-439.
+LIU Guang,LIUJike,CHEN Yanmao.Animprovedalgo-
+rithmfornonineardynamicsystemsbasedon Wilson-θ
+andNewmark-βmethod [J].Chinesejournalofcomputa-
+tionalmechanics,2017,34(4):433-439.
+[8] 武承龙,董昱.基于改进的 Newmark-β法重载列 车 车 钩 纵
+向力仿 真 研 究 [J].铁 道 科 学 与 工 程 学 报,2021,18(1):
+211-219.
+WU Chenglong,DONG Yu.Simulationresearchonthe
+longitudinalforceofheavyhaultraincouplerbasedonthe
+improvedNewmark-βmethod [J].Journalofrailwaysci-
+enceandengineering,2021,18(1):211-219.
+[9] 王璐科,闵阳春,刘晓 波.针 对 列 车 连 挂 计 算 的 Newmark-
+β方法的改进[J].机车电传动,2008(3):34-37.
+WANGLuke,MIN Yangchun,LIU Xiaobo.Improvement
+onNewmark-β methodforcalculationoftrainscoupling
+[J].Electricdriveforlocomotive,2008(3):34-37.
+[10] 翟婉明,黄志辉.列车动力学的非 线 性 数 值 分 析 方 法 [J].
+西南交通大学学报,1991(1):82-90.
+ZHAI Wanming,HUANG Zhihui.Nonlinearnumerical
+methodsfor train dynamic analysis [J].Journal of
+SouthwestJiaotongUniversity,1991(1):82-90.
+[11] 谢国伟,黄亚 宇.一 种 自 适 应 步 长 的 Newmark-β预 测 校
+正积分法[J].新技术新工艺,2013(5):6-8.
+XIE Guowei,HUANG Yayu.Methodofpredictor-cor-
+rector Newmark-β with adaptive step size [J].New
+technology & newprocess,2013(5):6-8.
+[12] 刘嘉.缓 冲 器 建 模 对 列 车 纵 向 动 力 学 仿 真 的 影 响 研 究
+[D].成都:西南交通大学,2019.
+[13] 杨 辉,原 俊 荣,付 雅 婷,等.重 载 列 车 QKX100 与 MT-2
+缓冲器动 态 特 性 [J].北 京 工 业 大 学 学 报,2020,46(9):
+1018-1026.
+YANG Hui,YUANJunrong,FU Yating,etal.Dynamic
+characteristicsofQKX100and MT-2buffersforheavy
+haultrains[J].JournalofBeijingUniversityofTechnolo-
+gy,2020,46(9):1018-1026.
+[14] 吴庆,罗 世 辉,马 卫 华,等.重 载 电 力 机 车 钩 缓 系 统 建 模
+研究[J].铁道机车车辆,2012,32(4):15-19.
+WU Qing,LUOShihui,MA Weihua,etal.Modellingof
+couplersystem forheavy-dutyelectriclocomotive [J].
+Railwaylocomotive & car,2012,32(4):15-19.
+[15] 孙树磊.重载 列 车 纵 向 冲 动 动 力 学 研 究 [D].成 都:西 南
+交通大学,2014.
+(编辑:张庆娟)
+·251·
+铁道车辆 第61卷第3期2023年6月 

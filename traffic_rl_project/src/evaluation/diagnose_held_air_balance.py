@@ -27,10 +27,10 @@ def main():
         if not any(ctrl._ab_on):
             raise ValueError('Start with an established air source')
         ctrl._held_air_balance_enabled = True
-        ctrl._held_air_gap_reference_m = env._dynamic_gap()
+        ctrl._held_air_gap_reference_m = env._formation_ref_gap()
         manifest = copy.deepcopy(manifest)
         manifest['experimental_held_air_override'] = dict(
-            train_one_based=args.train_one_based, gap_reference_m=env._dynamic_gap(),
+            train_one_based=args.train_one_based, gap_reference_m=env._formation_ref_gap(),
             scope='ED-only engineering trial; source pressure, refill and ATP unchanged')
         for name in ('held_air_speed_balance', 'diagnose_held_air_balance'):
             manifest['numerical']['source_sha256'][name] = hashlib.sha256(

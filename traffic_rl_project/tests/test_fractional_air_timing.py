@@ -15,6 +15,9 @@ from src.train_dynamics.train import TrainDynamics
 def state():
     return SimpleNamespace(num_vehicles=1, release_exhaust_tau_s=2.,
         brake_rise_time_s=20., brake_rise_time_by_notch={Notch.CYCLIC:20.,Notch.SERVICE:10.},
+        # 【ADR-048 对齐】_advance_control_once 按力学细分步长推进，mock 须携带
+        # TrainDynamics 的同名类属性（2026-11-09 修复 pre-existing mock 漂移）。
+        mechanical_max_step=TrainDynamics.mechanical_max_step,
         _air_brake_active=np.array([False]), _air_brake_releasing=np.array([False]),
         _brake_pressure=np.array([0.]), _air_brake_release_frac=np.array([1.]),
         _air_brake_exhaust_t=np.array([0.]), _air_brake_delay_remaining=np.array([.003]),

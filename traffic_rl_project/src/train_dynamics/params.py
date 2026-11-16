@@ -58,7 +58,7 @@ class CouplerParams:
       （准静态 0.01 m/s 加载即达 99.99% 分支分离）；
     - preload_n / friction_n / friction_static_n / friction_v_er /
       unload_stiffness_ratio → plant 侧已被 fl/fu 查表取代（保留字段：
-      NMPC 符号代理与历史标定追溯仍引用）。
+      仅历史标定追溯保留，NMPC 已移除（ADR-062）。
     动机与量化见 docs/logs/diagnostics/DIAGNOSTICS_2026-10.md「诊断-2026-10-11-外部反馈两问」。
 
     【2026-08-30 基线对齐重建】三篇文献（杨敏2023/李蔚2023/于宗泽2025）一致：
@@ -80,7 +80,7 @@ class CouplerParams:
       friction_n = 动摩擦 μd·FN（保留历史标定值 500 kN = 迟滞环锚），
       friction_static_n = 静摩擦 μs·FN（默认 1.5× 动摩擦）。
       【2026-10-11 superseded】A/B 已由容嘉欣速度法取代（见本类头部说明），
-      保留字段仅为向后兼容与 NMPC 代理/历史追溯。
+      保留字段仅为向后兼容与历史标定追溯（NMPC 已移除，ADR-062）。
     - C 机车缓冲器分区：buffer_type='qkx100'（弹性胶泥，于宗泽式(3)(4)），
       月牙形两段刚度 + 速度幂律阻尼 C|v|^n（n<1，速度越快阻尼越大）。
       【2026-09-07 superseded】经 ADR（docs/records/DECISIONS.md）统一回 MT-2
@@ -95,19 +95,19 @@ class CouplerParams:
     preload_n: float = 2.0e5
     """缓冲器预压力 F0（牛顿）。MT-2 实测约 200 kN（于宗泽2025）。
     【2026-10-11 起 plant 侧由 fl/fu 表承担（预压效果已含在 fl 曲线形态内），
-    本字段仅 NMPC 符号代理与历史标定追溯仍引用，不参与 coupler_force 计算。】"""
+    本字段仅历史标定追溯保留，NMPC 已移除（ADR-062），不参与 coupler_force 计算。】"""
     friction_n: float = 5.0e5
     """动摩擦项 μd·FN（牛顿）。历史标定值 500 kN = 迟滞环宽度锚。
     【2026-10-11 起 plant 侧由 fl/fu 表承担（半宽随行程变化，非恒定），
-    本字段仅 NMPC 符号代理与历史标定追溯仍引用。】"""
+    本字段仅历史标定追溯保留，NMPC 已移除（ADR-062）。】"""
     friction_static_n: float = 7.5e5
     """（【R0-B Stribeck】已废止，2026-10-11 由容嘉欣速度法取代）静摩擦 μs·FN
     （牛顿）。Stribeck 幅值调制与方向因子相乘造成准静态双重削减，是装载缓释
-    曲线失真根因之一；plant 侧不再使用，保留字段仅为向后兼容/NMPC 代理。"""
+    曲线失真根因之一；plant 侧不再使用，保留字段仅为向后兼容/历史追溯（NMPC 已移除，ADR-062）。"""
     friction_v_er: float = 0.2
     """（【R0-B Stribeck】已废止，2026-10-11 由容嘉欣速度法取代）动、静摩擦
     转换速度阈值（米/秒，于宗泽式(2)=杨亮亮2017式(3)）。plant 侧不再使用，
-    保留字段仅为向后兼容/NMPC 代理。"""
+    保留字段仅为向后兼容/历史追溯（NMPC 已移除，ADR-062）。"""
     friction_v_eps: float = 0.002
     """速度法方向切换的 tanh 平滑带宽（米/秒）。tanh(s_e·dv/ε) 平滑近似
     sign(Δv)（容嘉欣式(2) 速度法），避免 dv=0 附近硬切换抖振。
@@ -186,7 +186,7 @@ def sample_coupler_params(rng, base: CouplerParams = None,
 
     【2026-10-11 fl/fu 查表后】plant 侧实际生效的扰动 = stiffness（文献表全局
     增益）/coupler_gap_m/stroke_m/rigid_stiffness_nm；preload_n/friction_n/
-    friction_static_n 扰动不改变 plant 阻抗（仅 NMPC 符号代理仍引用）。
+    friction_static_n 扰动不改变 plant 阻抗（仅历史标定追溯保留，NMPC 已移除，ADR-062）。
 
     rng：numpy random Generator（调用方须传已 seed 的 rng，如 np.random.default_rng(seed)，
     保证评估可复现；held-out 用不同 seed 即可得到训练未见参数）。

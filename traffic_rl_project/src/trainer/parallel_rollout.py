@@ -90,6 +90,11 @@ def _rollout_once(payload, init, max_steps, rand_seed):
         env._start_rand['rng'] = np.random.default_rng(rand_seed)
 
     env.max_steps = int(max_steps)
+    # 【奖励标定 2026-11-08】逐槽位累计量按"单集"回传（清零后采本集），父进程按集累加，
+    # 否则 worker 的累计值跨集会重复计数
+    if getattr(env, 'reward_term_log', False):
+        env.reward_term_sums = {}
+        env._reward_term_steps = 0
     obs = env.reset(options={'speed': float(init)})
     if isinstance(obs, tuple):
         obs = obs[0]
@@ -128,6 +133,16 @@ def _rollout_once(payload, init, max_steps, rand_seed):
         'viol': int(ep_viol),
         'gap_err': (gap_err_sum / gap_steps) if gap_steps else 0.0,
         'gap_min': (gap_min if gap_steps else 0.0),
+        # 【2026-11-08 取舍判据】env 侧逐集累计，故取末步即全轨迹值
+        'overspeed': int(info.get('overspeed_car_steps', 0)) if info else 0,
+        'speed_mean': float(info.get('head_speed_mean_kmh', 0.0)) if info else 0.0,
+        # 【2026-11-08 截断判据】本轨迹是否跑到剖面末端（False = 被 max_steps 砍断，
+        # 该集不计入改善统计）。info 取末步，故即全轨迹值。
+        'route_end': bool(info.get('route_end_reached', False)) if info else False,
+        # 【奖励标定 2026-11-08】逐槽位累计量回传父进程（并行路径下父进程不 step，
+        # 不聚合则 run() 末尾的"奖励分量占比"永远为空）
+        'term_sums': dict(getattr(env, 'reward_term_sums', {})),
+        'term_steps': int(getattr(env, '_reward_term_steps', 0)),
     }
 
 

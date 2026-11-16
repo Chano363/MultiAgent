@@ -59,6 +59,10 @@ class MultiLocoController:
         cyclic_notch_50: bool = False,
         cyclic_brake_trigger_kmh: float = None,
         cyclic_release_kmh: float = None,
+        # 【ADR-060 限速逐段联动】循环制动触发裕量（km/h）：触发上限 =
+        # min(既有触发门, 分段限速 − margin)。仅 env 暴露 line_limit_lookup_kmh
+        # （剖面带限速表）时生效；恒坡等无表剖面自动回退旧行为（零回归）。
+        cyclic_trigger_margin_kmh: float = 5.0,
         cyclic_ab_upgrade_kmh: float = None,
         cyclic_ab_upgrade_notch: str = 'service',
         ed_release_coordination: bool = False,
@@ -66,9 +70,56 @@ class MultiLocoController:
         ed_release_boost_kn: float = 900.0,
         ed_release_transition_s: float = 0.0,
         ed_release_transition_ed_mod: float = 0.0,
+        # 【2026-11-08 ED-AB 到位联动】循环制动期，当全列 AB 实际到位率
+        # ≥ ed_floor_ab_ready_ratio 时把 ED 恒持下限由 CYCLIC_ED_FLOOR_KN
+        # 抬到 ed_floor_ab_ready_kn；其余时段保持 CYCLIC_ED_FLOOR_KN。
+        # 默认关 = 零回归。ED 是电制动力矩，不新增 AB 源、不触碰充风门；
+        # 抬高后的请求仍受 downstream 车钩力安全层与动力学粘着/功率饱和约束。
+        ed_floor_ab_ready: bool = False,
+        ed_floor_ab_ready_ratio: float = 0.9,
+        ed_floor_ab_ready_kn: float = 400.0,
         ed_native_force_conversion: bool = False,
         ed_upgrade_ramp_s: float = 0.0,
         ed_upgrade_ramp_scale: float = 1.0,
+        # C4 (ADR-052 diagnostic): multiply the ED recovery-rate ceiling while the
+        # safety layer vetoes new AB sources. 1.0 = original behaviour.
+        ed_veto_recovery_boost: float = 1.0,
+        # C1 (ADR-053 diagnostic): delay the cyclic release transition by this many
+        # seconds. 0.0 = original behaviour. Fleet may add a per-train stagger.
+        cyclic_release_stagger_s: float = 0.0,
+        # C3 (ADR-053 diagnostic): let the refill gate shorten with the clear gap.
+        gap_aware_refill: bool = False,
+        refill_gap_reference_m: float = 800.0,
+        refill_gap_relax_max_s: float = 0.0,
+        refill_gap_relax_span: float = 1.0,
+        # C5 (ADR-053 diagnostic): follower speed must stay within tollerance of
+        # the formation leader; excess is met by cutting traction then adding ED.
+        follower_speed_conformance: bool = False,
+        speed_conformance_tol_kmh: float = 1.8,
+        speed_conformance_gain: float = 0.20,
+        speed_conformance_max: float = 0.30,
+        # C6 (ADR-054 diagnostic): when trains behind are braking (AB applied or
+        # ED near zero) hold a minimum ED floor on this (leading) train for a
+        # bounded window. Default off = no-op.
+        leader_brake_feedforward: bool = False,
+        leader_brake_ff_hold_s: float = 2.0,
+        leader_brake_ff_duration_s: float = 10.0,
+        leader_brake_ff_ed_low_frac: float = 0.20,
+        leader_brake_ff_ed_floor_frac: float = 0.25,
+        # ===== C 组 2026-11-08（列间速度收敛 + ED 撤除时序；默认关 = 零回归）=====
+        # (a) ed_release_timing_guard：ED 撤除时序**状态约束**（同 ab_gate 的否决标志做法）。
+        ed_release_timing_guard: bool = False,
+        ed_release_guard_trigger_frac: float = 0.30,
+        ed_release_guard_release_frac: float = 0.05,
+        ed_release_guard_neighbor_full_frac: float = 0.80,
+        ed_release_guard_level_frac: float = 0.50,
+        ed_release_guard_hold_s: float = 20.0,
+        # (b) speed_convergence_share：速度差协同收敛（前车减 ED + 后车加制动共同承担）。
+        speed_convergence_share: bool = False,
+        conv_share_tol_kmh: float = 1.8,
+        conv_share_gain: float = 0.20,
+        conv_share_max: float = 0.30,
+        conv_share_lead_share: float = 0.50,
     ):
         self.num_vehicles = num_vehicles
         self.ed_native_force_conversion = bool(ed_native_force_conversion)
@@ -85,7 +136,91 @@ class MultiLocoController:
         self.ed_recovery_rate_per_s = float(ed_recovery_rate_per_s)
         if not np.isfinite(self.ed_recovery_rate_per_s) or self.ed_recovery_rate_per_s < 0:
             raise ValueError('ed_recovery_rate_per_s must be finite and nonnegative')
+        self.ed_veto_recovery_boost = float(ed_veto_recovery_boost)
+        if not np.isfinite(self.ed_veto_recovery_boost) or self.ed_veto_recovery_boost < 1.0:
+            raise ValueError('ed_veto_recovery_boost must be finite and >= 1.0')
+        # C1 / C3 / C5 (ADR-053 diagnostic switches; default values are no-ops).
+        self.cyclic_release_stagger_s = float(cyclic_release_stagger_s)
+        if not np.isfinite(self.cyclic_release_stagger_s) or self.cyclic_release_stagger_s < 0:
+            raise ValueError('cyclic_release_stagger_s must be finite and nonnegative')
+        self.gap_aware_refill = bool(gap_aware_refill)
+        self.refill_gap_reference_m = float(refill_gap_reference_m)
+        self.refill_gap_relax_max_s = float(refill_gap_relax_max_s)
+        self.refill_gap_relax_span = float(refill_gap_relax_span)
+        if self.refill_gap_reference_m <= 0 or self.refill_gap_relax_max_s < 0:
+            raise ValueError('refill gap reference must be positive and relax must be nonnegative')
+        self.follower_speed_conformance = bool(follower_speed_conformance)
+        self.speed_conformance_tol_kmh = float(speed_conformance_tol_kmh)
+        self.speed_conformance_gain = float(speed_conformance_gain)
+        self.speed_conformance_max = float(speed_conformance_max)
+        if (self.speed_conformance_tol_kmh < 0 or self.speed_conformance_gain < 0
+                or self.speed_conformance_max < 0):
+            raise ValueError('speed conformance parameters must be nonnegative')
+        self._release_hold_steps = 0
+        self._last_clear_gap_m = None
+        self._last_leader_speed_kmh = None
+        # C6 (ADR-054 diagnostic): bounded leading-train ED floor.
+        self.leader_brake_feedforward = bool(leader_brake_feedforward)
+        self.leader_brake_ff_hold_s = float(leader_brake_ff_hold_s)
+        self.leader_brake_ff_duration_s = float(leader_brake_ff_duration_s)
+        self.leader_brake_ff_ed_low_frac = float(leader_brake_ff_ed_low_frac)
+        self.leader_brake_ff_ed_floor_frac = float(leader_brake_ff_ed_floor_frac)
+        if (self.leader_brake_ff_hold_s < 0 or self.leader_brake_ff_duration_s < 0
+                or not 0 <= self.leader_brake_ff_ed_floor_frac <= 1.0):
+            raise ValueError('leader-brake feedforward parameters out of range')
+        self._ff_hold_steps = 0
+        self._ff_active_steps = 0
         self._previous_ed = None
+        # ===== C 组 2026-11-08 (a) ED 撤除时序状态约束 =====
+        # 实测坏局面（k3-MIN 全程 t≈1344–1443 s）：中列 ED=1.00、尾列 ED=0.00 且 AB=RELEASE
+        # 持续 ~30 s，列间速度差 4–6 km/h 不收敛、净空按 1.2 m/s 单调收缩 → EBI 触发、
+        # 上限放宽到 2250 kN，峰值被锁定。本开关做成**状态约束**（同 ab_gate 否决标志）：
+        # 本列发生"撤 ED"事件（上一步 ED 均值 ≥ trigger、本步 ≤ release）且相邻列 ED
+        # 仍 ≥ neighbor_full 时，否决这次全撤，按 level_frac 保住一档 ED，直到相邻列退出
+        # 满 ED 或持有窗（hold_s）到期（有界，不锁死；到期后须真正退出制动才重新解锁）。
+        # 只改本列 ED（电制动力矩，即时无延迟、不产生纵向冲动）：不新增 AB 源、
+        # 不触碰充风门 / new_source_veto / 车钩力安全层（它们仍保有最终权限）。
+        self.ed_release_timing_guard = bool(ed_release_timing_guard)
+        self.ed_release_guard_trigger_frac = float(ed_release_guard_trigger_frac)
+        self.ed_release_guard_release_frac = float(ed_release_guard_release_frac)
+        self.ed_release_guard_neighbor_full_frac = float(ed_release_guard_neighbor_full_frac)
+        self.ed_release_guard_level_frac = float(ed_release_guard_level_frac)
+        self.ed_release_guard_hold_s = float(ed_release_guard_hold_s)
+        if not 0.0 <= self.ed_release_guard_release_frac < self.ed_release_guard_trigger_frac <= 1.0:
+            raise ValueError('ED release guard needs 0 <= release_frac < trigger_frac <= 1')
+        if not 0.0 <= self.ed_release_guard_neighbor_full_frac <= 1.0:
+            raise ValueError('ed_release_guard_neighbor_full_frac must be in [0,1]')
+        if not 0.0 <= self.ed_release_guard_level_frac <= 1.0:
+            raise ValueError('ed_release_guard_level_frac must be in [0,1]')
+        if not np.isfinite(self.ed_release_guard_hold_s) or self.ed_release_guard_hold_s < 0:
+            raise ValueError('ed_release_guard_hold_s must be finite and nonnegative')
+        self._ed_guard_steps_left = 0
+        self._ed_guard_ref = None
+        self._ed_guard_armed = True
+        self.ed_release_guard_veto_count = 0
+        self.ed_release_guard_hold_steps = 0
+        # ===== C 组 2026-11-08 (b) 速度差协同收敛 =====
+        # C5 失败模式对照（ADR-053 C5）：C5 只动后车（先收牵引、再把 ED 拉成负值=牵引），
+        # 实测结果是"只压后车、编队越跑越松"。本开关禁止单侧加刹：速度差超出 tol 时，
+        # 校正量 u = min(gain·Δv, max) 按 conv_share_lead_share 显式分配——
+        #   前车侧承担 lead_share·u（**只减 ED**，绝不新增 AB、绝不转成牵引）；
+        #   后车侧承担 (1−lead_share)·u（加 ED 制动）。
+        # 分配比例依据：ED 无延迟、不产生纵向冲动（电制动），AB 沿列以 ~250 m/s 传播
+        # （1297 m 列约 5.2 s 才到尾部），故两端都只用 ED；等额 0.5 是最不任意的初值
+        # （每侧扰动幅度减半，任一侧都不单独承担全部制动需求），参数留给 0.3–0.7 扫描。
+        # 前车侧可减量受其当前 ED 限制，不足部分不转嫁给后车（防 C5 式过刹），只计数。
+        self.speed_convergence_share = bool(speed_convergence_share)
+        self.conv_share_tol_kmh = float(conv_share_tol_kmh)
+        self.conv_share_gain = float(conv_share_gain)
+        self.conv_share_max = float(conv_share_max)
+        self.conv_share_lead_share = float(conv_share_lead_share)
+        if (not np.isfinite(self.conv_share_tol_kmh) or self.conv_share_tol_kmh < 0
+                or not np.isfinite(self.conv_share_gain) or self.conv_share_gain < 0
+                or not np.isfinite(self.conv_share_max) or self.conv_share_max < 0
+                or not 0.0 <= self.conv_share_lead_share <= 1.0):
+            raise ValueError('speed convergence share parameters out of range')
+        self.ed_conv_unmet_count = 0
+        self.ed_conv_active_steps = 0
         if ed_recovery_scope not in ('all', 'coupler'):
             raise ValueError('ed_recovery_scope must be all or coupler')
         self.ed_recovery_scope = ed_recovery_scope
@@ -136,6 +271,28 @@ class MultiLocoController:
         #   **不要**乘 decision_interval，也不要新增 decision_interval 参数（会引入 10× 偏差）。
         self.ab_min_refill_s = float(ab_min_refill_s)
         self.ab_min_hold_s = float(ab_min_hold_s)
+        # 【S2-v2 2026-11-12】绝对档位模式（get_action_notch）的两个新参数。
+        # 属性默认值 = 旧行为/无害，env 侧按需覆盖；**不影响 get_action_decomposed 路径**。
+        #   ed_zero_point：ED 映射 ed = clip(zero + 0.5·a, 0, 1) 的零点。0.5=中立；
+        #                  0.77 = 对齐规则层 meanED(0.769)，避免起点欠电制动导致一开局飙车。
+        #   ab_notch_hold_s：档位最短保持时间（秒）。AB 波传播 ≈90 s（张二田实测），
+        #                  若允许每 1 s 改档，波未传完即变档 → 压缩/拉伸波反复叠加 →
+        #                  峰值反升（S2 第 1 轮实测 1394 kN 的主因）。文献依据：
+        #                  Tang2020（DSQ）明确约束 "locomotive notches and their change rates"。
+        self.ed_zero_point = 0.5
+        self.ab_notch_hold_s = 0.0
+        self._ab_notch_state = [0.0] * self.num_locomotives
+        self._ab_notch_step = [-10 ** 9] * self.num_locomotives
+        # 【V17 / 2026-11-13 探针】低速强制缓解兜底（默认关 = 零回归）。
+        # 与"超速强制 SERVICE"对称的安全底线：速度逼近下限时不允许新增/保持 AB，
+        # 否则 AB 可被一次施加到停车，而 loco_notch 无牵引通道 ⇒ 停车是吸收态
+        # （V16 实测：列 1 单次施加 3133 s → 0 km/h → 列 0 追尾 2382 kN）。
+        # 依据：杨辉2020「空气制动需要有充足的缓解时间与较大的缓解速度」、
+        #       张二田2021「提高列车缓解速度…可降低纵向车钩力」⇒ 缓解由速度触发，不由时长触发。
+        self.ab_low_speed_release = False
+        self.ab_low_speed_margin_mps = 2.0 / 3.6
+        # 【V18】ED 惰行通道开关（默认关；开则 rl=−1 → ED=0，见 get_action_notch 注释）
+        self.ed_idle_action = False
         # AB 充风/保持门控状态（**仅在 get_action_decomposed 内维护**；
         # get_action_cyclic_braking 保持无状态）。
         # 【2026-10-14 朔黄运营口径标定（表3「制动缓解位置」，全默认关=旧行为，编队主线零回归）】
@@ -152,6 +309,12 @@ class MultiLocoController:
         self.cyclic_notch_50 = bool(cyclic_notch_50)
         self.cyclic_brake_trigger_kmh = (None if cyclic_brake_trigger_kmh is None
                                          else float(cyclic_brake_trigger_kmh))
+        # 【ADR-060】分段限速联动触发裕量：km/h 原名属性必须保留——
+        # diagnose_low_level_control 的 frozen-controller 复原按
+        # inspect.signature 参数名逐个 getattr(controller, name) 回注，
+        # 缺原名会让归档复现直接 AttributeError。
+        self.cyclic_trigger_margin_kmh = float(cyclic_trigger_margin_kmh)
+        self.cyclic_trigger_margin_mps = float(cyclic_trigger_margin_kmh) / 3.6
         self.cyclic_release_kmh = (None if cyclic_release_kmh is None
                                    else float(cyclic_release_kmh))
         # 【K 组 2026-10-16 规则层 AB 预升级（默认 None = 旧行为，零回归）】
@@ -204,6 +367,16 @@ class MultiLocoController:
             raise ValueError('ed_release_transition_ed_mod must be in [-1, 0]')
         self.ed_release_transition_s = float(ed_release_transition_s)
         self.ed_release_transition_ed_mod = float(ed_release_transition_ed_mod)
+        # 【2026-11-08】AB 到位后抬升 ED 下限（诊断开关；默认关 = 零回归）。
+        self.ed_floor_ab_ready = bool(ed_floor_ab_ready)
+        self.ed_floor_ab_ready_ratio = float(ed_floor_ab_ready_ratio)
+        self.ed_floor_ab_ready_kn = float(ed_floor_ab_ready_kn)
+        if not (0.0 <= self.ed_floor_ab_ready_ratio <= 1.0):
+            raise ValueError('ed_floor_ab_ready_ratio must be in [0,1]')
+        if self.ed_floor_ab_ready_kn <= 0.0:
+            raise ValueError('ed_floor_ab_ready_kn must be positive')
+        # 本步实际使用的循环期 ED 下限（kN），供诊断归档核对分支是否真进入。
+        self._active_ed_floor_kn = self.CYCLIC_ED_FLOOR_KN
         self._ed_hold_steps = 0
         self._ed_release_transition_steps = 0
         self._ab_step = 0
@@ -319,6 +492,24 @@ class MultiLocoController:
             dyn._electric_braking_forces(nominal))))
         return grade_force - resistance > electric_capacity + 1e-6
 
+    def _refill_gate_s(self) -> float:
+        """C3 (ADR-053 diagnostic): refill gate that shortens with the clear gap.
+
+        The 222 s anchor (ab_min_refill_s) is **never** raised or removed; when the
+        switch is on and the fleet supplies ``formation_clear_gap_m``, the gate may
+        shorten by at most ``refill_gap_relax_max_s`` proportional to the gap excess
+        over ``refill_gap_reference_m`` (capped by ``refill_gap_relax_span``).
+        Defaults (switch off / relax 0 / gap unknown) return the anchor unchanged.
+        """
+        if not self.gap_aware_refill or self.refill_gap_relax_max_s <= 0:
+            return self.ab_min_refill_s
+        gap = self._last_clear_gap_m
+        if gap is None or not np.isfinite(gap):
+            return self.ab_min_refill_s
+        ratio = max(0.0, (gap - self.refill_gap_reference_m) / self.refill_gap_reference_m)
+        ratio = min(ratio, self.refill_gap_relax_span)
+        return max(0.0, self.ab_min_refill_s - self.refill_gap_relax_max_s * ratio)
+
     def _ab_gate(self, i: int, want_on: bool) -> bool:
         """【ADR-021 决策1】AB 充风/保持门控：返回「是否允许这次 AB 状态变更」。
 
@@ -333,7 +524,7 @@ class MultiLocoController:
         (Δstep*dt >= 0) 恒真 ⇒ 零回归（行为与改造前一致）。
         """
         if want_on and not self._ab_on[i]:
-            if (self._ab_step - self._ab_last_release_step[i]) * self.dt >= self.ab_min_refill_s:
+            if (self._ab_step - self._ab_last_release_step[i]) * self.dt >= self._refill_gate_s():
                 return True
             self.ab_refill_veto_count += 1
             return False
@@ -349,6 +540,15 @@ class MultiLocoController:
     # ------------------------------------------------------------------ #
     def _operating_ceiling(self, train_env, v_max, v_max_adj):
         ceiling = min(v_max, v_max + v_max_adj)
+        # 【ADR-060 限速逐段联动】有分段限速表（env 暴露 line_limit_lookup_kmh）→
+        # 循环制动触发上限随头车位置联动（限速 − cyclic_trigger_margin_kmh）；
+        # 无表/查表 None → 不联动（恒坡等零回归）。
+        _lookup = getattr(train_env, 'line_limit_lookup_kmh', None)
+        if _lookup is not None:
+            _lv = _lookup(float(train_env.dynamics.pos[0]))
+            if _lv is not None:
+                ceiling = min(ceiling,
+                              max(0.0, _lv / 3.6 - self.cyclic_trigger_margin_mps))
         if self.anticipate_etcs:
             curve = getattr(train_env, 'etcs_curve', None)
             targets = getattr(train_env, 'etcs_targets', ())
@@ -494,11 +694,28 @@ class MultiLocoController:
 
         formation_ceiling = min(v_max, v_max + v_max_adj)
         was_braking = self._cyclic_braking
+        # C1 (ADR-053 diagnostic, default 0 s = no-op): hold the release transition
+        # for the staggered delay so followers keep braking while the leader's
+        # release wave is still travelling backwards.
+        release_delay_s = self.cyclic_release_stagger_s + float(
+            getattr(train_env, 'formation_release_delay_s', 0.0) or 0.0)
+        release_delay_steps = (int(round(release_delay_s / self.dt))
+                               if release_delay_s > 0 else 0)
         if vel >= trigger_mps or max_vel >= formation_ceiling:
             self._cyclic_braking = True
-        elif (vel <= release_mps and max_vel <= release_ceiling
-              and not self._etcs_release_must_wait_for_refill(train_env)):
-            self._cyclic_braking = False
+            self._release_hold_steps = 0
+        elif vel <= release_mps and max_vel <= release_ceiling:
+            if self._etcs_release_must_wait_for_refill(train_env):
+                self._release_hold_steps = 0
+            elif release_delay_steps:
+                self._release_hold_steps += 1
+                if self._release_hold_steps >= release_delay_steps:
+                    self._cyclic_braking = False
+            else:
+                self._cyclic_braking = False
+        else:
+            self._release_hold_steps = 0
+        # 【ADR-053 C1】延迟期内保持原制动指令（cyclic 仍为 True），不额外放宽任何门限。
         # 【表3】制动→缓解转换时刻进入"抬 ED 保持"窗口（ed_release_coordination 开启才生效）
         if self.ed_release_coordination and was_braking and not self._cyclic_braking:
             self._ed_hold_steps = int(round(self.ed_release_hold_s / self.dt))
@@ -547,7 +764,8 @@ class MultiLocoController:
                 self._ed_ramp_steps_left -= 1
             scale = self._coupler_throttle_scale(train_env) if _scale_ed else 1.0
             # 【表3】循环期 ED 恒持 300–400 kN（取 300 kN 下限；仅协调开启时生效）
-            ed_floor = (self._ed_frac_for_total_kn(train_env, self.CYCLIC_ED_FLOOR_KN)
+            # 【2026-11-08】AB 全列到位（≥ 阈值）时可抬到 ed_floor_ab_ready_kn。
+            ed_floor = (self._ed_frac_for_total_kn(train_env, self._cyclic_ed_floor_kn(train_env))
                         if self.ed_release_coordination else 0.0)
             act = np.zeros((self.num_locomotives, 2), dtype=float)
             for i in range(self.num_locomotives):
@@ -621,6 +839,32 @@ class MultiLocoController:
         # 队首(0)=强，队尾=稍弱（纵向错峰，抑制同步前涌）
         frac = loco_i / max(self.num_locomotives - 1, 1)
         return 0.3 * frac  # 队尾 ED 为队首的 0.7 倍左右
+
+    def _ab_arrival_ratio(self, train_env) -> float:
+        """全列空气制动实际到位率：生效档位非 RELEASE 的车数 / 总车数。
+
+        只读动力学当前生效档位（波前已到达并激活的车辆才算到位），
+        不改任何 AB 状态、不推进波速传播。
+        """
+        state = train_env.dynamics.air_brake_state()
+        if state is None or len(state) == 0:
+            return 0.0
+        applied = sum(1 for notch in state if notch != AirBrakeNotch.RELEASE)
+        return float(applied) / float(len(state))
+
+    def _cyclic_ed_floor_kn(self, train_env) -> float:
+        """循环制动期的 ED 恒持下限（kN）。
+
+        默认返回 CYCLIC_ED_FLOOR_KN（300 kN）。仅当 ed_floor_ab_ready 开启
+        且 AB 到位率 ≥ 阈值时抬到 ed_floor_ab_ready_kn；本步实际取值写入
+        _active_ed_floor_kn 供诊断归档核对分支是否真进入。
+        """
+        floor_kn = self.CYCLIC_ED_FLOOR_KN
+        if self.ed_floor_ab_ready and self.ed_release_coordination:
+            if self._ab_arrival_ratio(train_env) >= self.ed_floor_ab_ready_ratio:
+                floor_kn = self.ed_floor_ab_ready_kn
+        self._active_ed_floor_kn = floor_kn
+        return floor_kn
 
     def _ed_frac_for_total_kn(self, train_env, target_kn: float) -> float:
         """Invert native ED physics for a total-force request; saturate if infeasible.
@@ -808,7 +1052,7 @@ class MultiLocoController:
         # 是运营口径恒持下限，此处按同一口径兜底复原；仅 ed_release_coordination 开
         # 且处于循环制动分支时生效（默认关 = 旧行为零回归，编队线 YAML 不受影响）。
         if self.ed_release_coordination and self._cyclic_braking:
-            floor = self._ed_frac_for_total_kn(train_env, self.CYCLIC_ED_FLOOR_KN)
+            floor = self._ed_frac_for_total_kn(train_env, self._cyclic_ed_floor_kn(train_env))
             final[:, 0] = np.maximum(final[:, 0], floor)
         # Fast safety reductions, slow recovery: never exceed the currently
         # projected request, and never delay ED at the speed ceiling. ATP is
@@ -823,6 +1067,114 @@ class MultiLocoController:
                 final[:, 0] = np.where(self._ed_recovery_pending, limited, final[:, 0])
             else:
                 final[:, 0] = limited
+        # C4 (ADR-052 diagnostic, default 1.0 = bit-identical): while the safety
+        # layer vetoes new AB sources, let ED rise toward its own ceiling (capped
+        # at 1.0). AB admission, refill gate and the coupler safety layer are
+        # untouched; ED is not an AB source, so no AB constraint is bypassed.
+        if self.ed_veto_recovery_boost > 1.0 and ab_add_vetoed:
+            final[:, 0] = np.minimum(final[:, 0] * self.ed_veto_recovery_boost, 1.0)
+        # C5 (ADR-053 diagnostic, default off): keep the follower within
+        # |v_self − v_leader| <= tol. Excess closes traction first, then adds ED,
+        # capped at the existing ED authority; AB admission / refill gate / coupler
+        # safety layer keep final authority (no bypass).
+        if self.follower_speed_conformance:
+            leader_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
+            if leader_kmh is not None and np.isfinite(leader_kmh):
+                excess_kmh = (float(train_env.dynamics.vel[0]) * 3.6
+                              - (float(leader_kmh) + self.speed_conformance_tol_kmh))
+                if excess_kmh > 0:
+                    final[:, 0] = np.minimum(final[:, 0], 0.0)   # 先收回牵引
+                    delta = min(self.speed_conformance_gain * excess_kmh,
+                                self.speed_conformance_max)
+                    final[:, 0] = np.maximum(final[:, 0] - delta, -1.0)
+        # C6 (ADR-054 diagnostic, default off): while trains behind are braking
+        # (AB applied) or coasting with near-zero ED, hold a bounded minimum ED
+        # floor on this leading train so it does not free-wheel ahead of a
+        # braking rear formation. ED only; AB admission / refill gate / coupler
+        # safety layer keep final authority.
+        if self.leader_brake_feedforward:
+            rear_braking = bool(getattr(train_env, 'formation_rear_braking', False))
+            rear_ed = getattr(train_env, 'formation_rear_ed_frac', None)
+            trigger = rear_braking or (
+                rear_ed is not None and float(rear_ed) < self.leader_brake_ff_ed_low_frac)
+            self._ff_hold_steps = self._ff_hold_steps + 1 if trigger else 0
+            hold_steps = int(round(self.leader_brake_ff_hold_s / self.dt))
+            if hold_steps == 0 or self._ff_hold_steps >= hold_steps:
+                self._ff_active_steps = int(round(
+                    self.leader_brake_ff_duration_s / self.dt))
+            if self._ff_active_steps > 0:
+                final[:, 0] = np.maximum(
+                    np.minimum(final[:, 0], -self.leader_brake_ff_ed_floor_frac), -1.0)
+                self._ff_active_steps -= 1
+        # ===== C 组 2026-11-08 (a) ED 撤除时序状态约束（默认关 = 零回归）=====
+        # 只在本步"正在撤 ED"（上一步 ED 高、本步跌到近零）且相邻列仍满 ED 时否决，
+        # 保住 level_frac 档 ED；相邻列退出满 ED 或持有窗到期即解除。AB 侧一律不动。
+        if self.ed_release_timing_guard and self.num_locomotives:
+            prev_mean = (float(np.mean(self._previous_ed))
+                         if self._previous_ed is not None else 0.0)
+            cur_mean = float(np.mean(final[:, 0]))
+            # 真正退出制动（ED 已落在近零带）→ 解锁下一次撤除事件（防到期后原地重触发）
+            if prev_mean < self.ed_release_guard_trigger_frac:
+                self._ed_guard_armed = True
+            neighbor = getattr(train_env, 'formation_neighbor_ed_frac', None)
+            neighbor_full = (neighbor is not None and np.isfinite(neighbor)
+                             and float(neighbor) >= self.ed_release_guard_neighbor_full_frac)
+            if self._ed_guard_steps_left > 0:
+                if not neighbor_full:
+                    self._ed_guard_steps_left = 0      # 相邻列已退出满 ED → 立即放行
+                else:
+                    self._ed_guard_steps_left -= 1
+                    final[:, 0] = np.maximum(
+                        final[:, 0],
+                        self._ed_guard_ref * self.ed_release_guard_level_frac)
+                    self.ed_release_guard_hold_steps += 1
+            elif (self._ed_guard_armed and neighbor_full
+                    and prev_mean >= self.ed_release_guard_trigger_frac
+                    and cur_mean <= self.ed_release_guard_release_frac):
+                self._ed_guard_ref = np.asarray(self._previous_ed, dtype=float).copy()
+                self.ed_release_guard_veto_count += 1
+                self._ed_guard_steps_left = int(round(self.ed_release_guard_hold_s / self.dt))
+                if self._ed_guard_steps_left > 0:
+                    self._ed_guard_steps_left -= 1
+                    final[:, 0] = np.maximum(
+                        final[:, 0],
+                        self._ed_guard_ref * self.ed_release_guard_level_frac)
+                    self.ed_release_guard_hold_steps += 1
+                else:
+                    self._ed_guard_armed = False       # hold_s=0：只记录否决，不保持
+        # ===== C 组 2026-11-08 (b) 速度差协同收敛（默认关 = 零回归）=====
+        # 同一列可能同时扮演两个角色（夹在两列之间）：对后车它是前车（减 ED），
+        # 对前车它是后车（加 ED）。两端同时动作，杜绝 C4 式"只压一侧"。
+        # 只动 ED：不新增 AB 源、不改档位、不碰紧急（紧急是 EBI 的结果，不是控制手段）。
+        if self.speed_convergence_share and self.num_locomotives:
+            self_kmh = float(train_env.dynamics.vel[0]) * 3.6
+            front_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
+            rear_kmh = getattr(train_env, 'formation_rear_speed_kmh', None)
+            active = False
+            if front_kmh is not None and np.isfinite(front_kmh):
+                excess = self_kmh - float(front_kmh) - self.conv_share_tol_kmh
+                if excess > 0.0:
+                    add = ((1.0 - self.conv_share_lead_share)
+                           * min(self.conv_share_gain * excess, self.conv_share_max))
+                    room = float(np.mean(np.clip(1.0 - np.maximum(final[:, 0], 0.0), 0.0, 1.0)))
+                    if add > room:
+                        self.ed_conv_unmet_count += 1
+                    final[:, 0] = np.minimum(np.maximum(final[:, 0], 0.0) + add, 1.0)
+                    active = True
+            if rear_kmh is not None and np.isfinite(rear_kmh):
+                excess = float(rear_kmh) - self_kmh - self.conv_share_tol_kmh
+                if excess > 0.0:
+                    cut = (self.conv_share_lead_share
+                           * min(self.conv_share_gain * excess, self.conv_share_max))
+                    # 只减 ED，绝不把 ED 转成牵引（C5 的失败点之一）；减到 0 为止。
+                    if cut > float(np.mean(np.maximum(final[:, 0], 0.0))):
+                        self.ed_conv_unmet_count += 1
+                    final[:, 0] = np.maximum(np.maximum(final[:, 0], 0.0) - cut, 0.0)
+                    active = True
+            if active:
+                self.ed_conv_active_steps += 1
+        self._last_clear_gap_m = getattr(train_env, 'formation_clear_gap_m', None)
+        self._last_leader_speed_kmh = getattr(train_env, 'formation_leader_speed_kmh', None)
         self._previous_ed = final[:, 0].copy()
         # Do not move an established AB source across notch boundaries in
         # response to instantaneous coupler force. Keep the discrete request;
@@ -854,6 +1206,105 @@ class MultiLocoController:
                 self._ab_last_release_step[i] = self._ab_step
             self._ab_on[i] = new_on
         return final, baseline
+
+    # ------------------------------------------------------------------ #
+    # 主接口 4【S2 / ADR-065 绝对档位】RL 直接给 ED 深度 + AB 减压档位
+    # ------------------------------------------------------------------ #
+    # 4 档编码（沿用 AirBrakeNotch 现有物理，不改 physics）：
+    #   0.0  → RELEASE   （缓解，0 kPa）
+    #   -0.05 → CYCLIC   （50 kPa，朔黄表3 循环档）
+    #   -0.20 → MIN      （70 kPa，最小常用）
+    #   -0.40 → SERVICE  （140 kPa，常用全制动）
+    # 与 get_action_decomposed 的本质区别：**不调用 get_action_cyclic_braking**，
+    # 即 RL 自己决定「何时施加 / 何时缓解 / 用哪一档」，规则层不再排程。
+    # 保留的安全边界（不可被 RL 关闭）：
+    #   ① _ab_gate 充风/保持门控（222 s 纪律）；② 超速兜底强制 SERVICE；
+    #   ③ 车钩力源头 veto 由子环境 train_env.safety 执行（本方法不绕过）。
+    AB_NOTCH_LEVELS = (0.0, -0.05, -0.20, -0.40)
+
+    def get_action_notch(
+        self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
+        v_min: float = 40.0 / 3.6, v_max_adj: float = 0.0, v_min_adj: float = 0.0,
+    ) -> np.ndarray:
+        """S2：RL 绝对档位控制 → (num_loco, 2) 的 [ed_cmd, ab_frac]。
+
+        Args:
+            rl_actions: (num_loco, 2) ∈[-1,1]²。
+                [:,0] ed_cmd  = 电制动深度（正=电制动，负=牵引），直接作为 ED 指令；
+                [:,1] ab_frac = 空气制动"施加程度"（0=缓解，-1=满制动），量化到 4 档。
+        Returns:
+            final (num_loco, 2)：第 0 列 ED、第 1 列 AB（负=施加，语义与现有通道一致）。
+        """
+        self._ab_step += 1
+        rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, 2)
+        n = self.num_locomotives
+        final = np.zeros((n, 2), dtype=float)
+        vel = float(train_env.dynamics.vel[0])
+        vmax_eff = float(v_max) + float(v_max_adj)
+
+        for k in range(n):
+            # ED：绝对深度，映射 ed = clip(zero + 0.5·rl, 0, 1)，default zero=0.5。
+            # zero 可被 env 覆盖（v2 用 0.77 对齐规则层 meanED，避免起点欠电制动）。
+            # 长大下坡无需牵引，故 ED 只取非负（不保留负=牵引语义）。
+            # 【V18 / 2026-11-13】ED 惰行通道（默认关 = 零回归）。
+            # 关：ed = zero + 0.5·rl ⇒ rl=−1 仍剩 0.27 电制动，**无惰行能力**。
+            #      V17 实测：崩溃时刻三列 AB 全关、速度 6.7/9.5 km/h，ED 仍 0.76
+            #      ⇒ 停车是电制动在低速段拖停的，不是 AB。
+            # 开：非对称映射 rl=−1→0（惰行）/ rl=0→zero（中性点不变）/ rl=+1→1.0，
+            #     使速度下限可恢复。依据：杨辉2020 循环制动 = 50 kPa 初制动 + 惰行；
+            #     Zhang2024 的 RL 动作同为"电制动档 + AB 档"，无牵引维度。
+            _r = float(rl[k, 0])
+            if self.ed_idle_action:
+                _ed = (self.ed_zero_point * (1.0 + _r) if _r < 0
+                       else self.ed_zero_point + (1.0 - self.ed_zero_point) * _r)
+            else:
+                _ed = self.ed_zero_point + 0.5 * _r
+            final[k, 0] = float(np.clip(_ed, 0.0, 1.0))
+            # AB：连续 → 4 档量化（x = 施加程度 0~1）
+            x = float(np.clip(-rl[k, 1], 0.0, 1.0))
+            if x < 0.025:
+                ab = self.AB_NOTCH_LEVELS[0]
+            elif x < 0.125:
+                ab = self.AB_NOTCH_LEVELS[1]
+            elif x < 0.30:
+                ab = self.AB_NOTCH_LEVELS[2]
+            else:
+                ab = self.AB_NOTCH_LEVELS[3]
+            # 超速兜底：贴近上限时强制 SERVICE（RL 无权关闭安全底线）
+            if vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS and ab > self.AB_NOTCH_LEVELS[3]:
+                ab = self.AB_NOTCH_LEVELS[3]
+            # 【v3 档位最短保持·修正语义】AB 波传播 ≈90 s，施加态下若每 1 s 改档，
+            # 波未传完即变档 → 压缩/拉伸波反复叠加 → 峰值反升。
+            # ⚠️ 只约束「施加态 → 施加态」的档位变化；「施加 → 缓解」不受保持约束
+            #    （缓解由 222 s 充风门控管，若也纳入保持会退化为"单次长制动"，
+            #     即 S2-v2 ep42 崩溃到 2351 kN / speed 23 km/h 的直接原因）。
+            if self.ab_notch_hold_s > 0 and ab < 0 and self._ab_notch_state[k] < 0:
+                elapsed = (self._ab_step - self._ab_notch_step[k]) * self.dt
+                if ab != self._ab_notch_state[k] and elapsed < self.ab_notch_hold_s:
+                    ab = self._ab_notch_state[k]
+            # 充风/保持门控：新增源被拒 → 本步不发（已建立的源沿用，不撤销）
+            if ab < 0 and not self._ab_gate(k, True):
+                ab = 0.0
+            # 【V17】低速强制缓解兜底：速度 ≤ v_min + margin 时强制缓解（RL 无权关闭）。
+            # 放在门控之后 —— 门控只拦"新增"，这里连"已建立的源"一起释放，
+            # 否则 AB 可以被一次施加拖到停车（V16 主因 ②③）。
+            if self.ab_low_speed_release and vel <= float(v_min) + self.ab_low_speed_margin_mps:
+                ab = 0.0
+            final[k, 1] = ab
+
+        # 提交 AB 状态（与 get_action_decomposed 同口径：记录施加/释放时刻）
+        for i in range(n):
+            new_on = bool(final[i, 1] < 0)
+            if new_on and not self._ab_on[i]:
+                self._ab_last_apply_step[i] = self._ab_step
+            elif (not new_on) and self._ab_on[i]:
+                self._ab_last_release_step[i] = self._ab_step
+            self._ab_on[i] = new_on
+            # v2：档位变化记账（用于最短保持约束）
+            if float(final[i, 1]) != float(self._ab_notch_state[i]):
+                self._ab_notch_state[i] = float(final[i, 1])
+                self._ab_notch_step[i] = self._ab_step
+        return final
 
     # ------------------------------------------------------------------ #
     # 主接口 2：目标加速度（fleet 非分层模式，与 TrainLowLevelController 同签名）
@@ -927,6 +1378,13 @@ class MultiLocoController:
         self._previous_ed = None
         self._ed_recovery_pending[:] = False
         self._ed_hold_steps = 0
+        self._ed_guard_steps_left = 0
+        self._ed_guard_ref = None
+        self._ed_guard_armed = True
+        self.ed_release_guard_veto_count = 0
+        self.ed_release_guard_hold_steps = 0
+        self.ed_conv_unmet_count = 0
+        self.ed_conv_active_steps = 0
         self._ab_step = 0
         self._ab_on = [False] * self.num_locomotives
         self._ab_last_release_step = [-10 ** 9] * self.num_locomotives

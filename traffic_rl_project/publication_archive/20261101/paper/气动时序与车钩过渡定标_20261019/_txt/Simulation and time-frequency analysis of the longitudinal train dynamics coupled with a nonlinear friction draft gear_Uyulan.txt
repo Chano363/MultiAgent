@@ -1,0 +1,1222 @@
+ Nonlinear Engineering 2020; 9: 124–144
+
+
+ Caglar Uyulan* and Ersen Arslan
+
+ Simulation and time-frequency analysis of the
+ longitudinal train dynamics coupled with a
+ nonlinear friction draft gear
+ https://doi.org/10.1515/nleng-2020-0003
+ Received Jul 11, 2019; accepted Nov 12, 2019.
+                                                                           1 Introduction
+ Abstract: Train safety and operational efficiency can be                  The study of longitudinal train dynamics (LTD) is one of
+ improved by investigating the dynamics of the train un-                   the principal analysis performed in the design of all kinds
+ der varying conditions. Longitudinal train dynamics (LTD)                 of railway vehicles (freight car, high-speed train, locomo-
+ simulations performed for such purposes, usually by util-                 tive, EMU, DEMU, rolling stock, heavy-haul or passenger
+ ising a nonlinear time-domain model. This paper covers                    train etc.) [1]. The investigation of the wagon’s motion in
+ two modes of LTD results corresponding to the time do-                    the direction of the railroad is the main subject in LTD
+ main and frequency domain analysis. Time-domain so-                       simulation covering the overall movement of the train and
+ lutions are essential to evaluate the full response used                  the relative movements resulting from the looseness of the
+ for parameter optimisation and controller design stud-                    connections between the rolling stocks. Reducing longi-
+ ies while frequency domain solutions can provide signif-                  tudinal vibrations is indispensable to enhance comfort,
+ icant but straightforward clues regarding system dynam-                   sustain stability and avoid derailment. Thus, LTD calcu-
+ ics. An advanced draft gear model, which works under a                    lations have often been made by engineers for such pur-
+ four-stage process is constructed considering all structural              poses. Also, LTD analysis needed with the aim of designing
+ components, geometric relationships, friction modelling                   useful simulation models where locomotive performance
+ and dynamic characteristics such as hysteresis, stiffening,               can assess. Such kind of models primarily includes loco-
+ state transition, locked unloading, softening. Then, this                 motive and wagon parameters, track characteristics, and
+ model is parametrically reduced and implemented into                      train handlings (throttle, brake, dynamic, etc.) as input pa-
+ an LTD simulation. The simulation in the time domain is                   rameters.
+ conducted assuming a locomotive connected with a nine                          The response of nonlinear draft gear and end-of-car
+ wagon via “ode3” fixed-step solver. The transfer function                 cushioning units in impact are also critical issues, which
+ among the first wagon acceleration (output) and the lo-                   should be considered in the LTD simulations. Draft gears
+ comotive force (input) estimated through system identifi-                 are highly nonlinear spring-damper sub-systems in which
+ cation methodology. Then, the identification results inter-               include Coulomb damping. Moreover; if two wagons are
+ preted by investigating step-response characteristic and                  coupled, their nonlinearities increase due to a dead band
+ best response giving parameter set is selected. Next, the                 existing among couplers. As such nonlinearities make
+ modal and spectral analysis performed to reveal the be-                   mathematical models comparatively complicated, there-
+ haviour of the in-train forces and the effects of vibration.              fore solutions in the time domain are preferred. However;
+ This paper discusses a reliable methodology for the longi-                frequency domain analysis, which can provide quick and
+ tudinal dynamic analysis of the multi-bodied train in time                understandable results, can also be feasible under some
+ and frequency domain and clarifies in-train vibration be-                 simplifications and assumptions.
+ haviour under the existence of sophisticated draft gear.                       The main characteristics of the LTD classified as prob-
+                                                                           lem genre (single degree of freedom per vehicle, nonlinear
+ Keywords: Longitudinal train dynamics, traction curve,
+ numerical analysis, friction draft gear, frequency analysis,
+ system identification
+                                                                           *Corresponding Author: Caglar Uyulan, Bulent Ecevit University,
+                                                                           Department of Mechatronics Engineering, Zonguldak, Turkey,
+                                                                           E-mail: caglaruyulan@beun.edu.tr
+                                                                           Ersen Arslan, Middle East Technical University, Department of Me-
+                                                                           chanical Engineering, Ankara, Turkey,
+                                                                           E-mail: arslanersen@gmail.com
+
+
+  Open Access. © 2020 Caglar Uyulan and Ersen Arslan, published by De Gruyter.               This work is licensed under the Creative
+Commons Attribution alone 4.0 License.
+                 Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics   | 125
+
+
+rigid multi-body system dynamics, etc.), force inputs (cou-         mechanisms serve a better solution with the aid of paral-
+pler force, traction force, dynamic brake force, air brake          lel computing.
+force, curving resistance, propulsion resistance, and grav-              Advanced friction draft gear dynamics should be mod-
+itational component etc.) and main applications (evalu-             elled due to the occurrence of larger in-train forces and
+ation of coupler forces, train speed, and train position,           more complex force patterns to assess the LTD for longer,
+traction and adhesion control, coupler system and brake             more substantial and faster heavy haul trains. An auto-
+system design etc.). The effects related to LTD comprise            coupler having friction draft gear is a mechanism which
+the following elements: steady forces (traction or brak-            connects wagons and locomotive. Drawbars can be re-
+ing, coupler forces and curving, propulsion, gravitational          placed with auto-couplers to reduce the coupling slack
+resistances), impact forces and low-frequency vibration             and to lower the dynamic in-train forces. Friction draft
+forces [2]. The locomotive produces traction and brake              gears consist of springs, wedges and plates enclosed by
+forces and represents the primary inputs, which cause the           a housing. Their functions are transmitting the longitudi-
+dynamic behaviour of the train. It is necessary to perform          nal forces and damping longitudinal in-train forces like
+LTD analysis to prove that the train operating parameters,          friction dampers, respectively. A review for dynamic mod-
+load distributions, connection elements are selected opti-          elling of friction draft gear has been written by the au-
+mally and that the train guarantees excellent dynamic per-          thors [6, 7].
+formance.                                                                If a railway vehicle is accelerated or decelerated along
+     While the trains are getting more prolonged and                the curved track, a coupling effect occurs between the LTD
+more massive, the computational complexity increases,               and the lateral train dynamic. Due to the excessive lateral
+therefore, advanced simulations with more efficient cal-            force acting on the wheels, the derailment is expected with
+culation methods and massive hardware should be con-                the increase of the derailment index. The breaking wave
+ducted [3]. Numerical solver methods and their step size            propagation time increases proportionally to the train’s
+also discussed in the LTD simulations. Runge-Kutta, Euler,          length. When a free rotation angle of coupler occurs, the
+Adams-Bashforth methods have been widely implemented                coupler system deflects from the centre line, and the vehi-
+to solve LTD problem. In LTD simulations, wagon-wagon               cle body is subjected to a horizontal force at the coupler
+or wagon-locomotive connections are usually provided in-            position. The pressing force of the coupler may grow large
+tegrating pair coupled draft gear or buffer models. The             enough leading to locomotive derailment [8].
+draft gears have a nonlinear and complex nature, which is                A sequential, parallel and hybrid schemes were pro-
+generalised as look-up tables with various patterns. They           posed to simulate the LTD and compared concerning
+can be classified as friction, rubber, hydraulic and types of       their features of the computing scheme in a distributed
+their combinations.                                                 power train (2 locomotives+ 105 wagons+ 2 locomotives
+     Forces in draft gears are related to draft gear deflec-        + 105 wagons). A parallel computing scheme, which exe-
+tions. Angles at the connections determine how the wagon            cutes multiple processes simultaneously, outperforms the
+body and running gear react to these forces. Therefore, a           others regarding improving computational efficiency [9].
+detailed mathematical model becomes essential for exam-             In [10], the feasibility of the parallel computing scheme
+ining the force-deflection characteristics of the draft gears.      has represented by a simulation of a long heavy haul train
+Such a model should contain a force-displacement hys-               having 214 vehicles (2 locomotives + 105 wagons + 2 loco-
+teresis loop to realise Coloumb energy absorption [4]. The          motives + 105 wagons). The draft gear types are friction
+transition from kinetic to static friction included in a dy-        draft gear between wagon and locomotives, polymer draft
+namic model, which is developed to simulate the draft gear          gear between locomotive and locomotive, respectively. A
+behaviour in rail-car impacts during the impact. The com-           3-hour train trip simulated with 216 cores, whose accumu-
+plexity of the draft gear model can be chosen according to          lated computing time of all cores was about 253 days, while
+the accuracy required for the simulation. However, there            the wall-clock time was about 29 hour.
+exists a trade-off between efficiency and computational ef-              A computer program to simulate the LTD has de-
+fort or consumed time.                                              signed including distributed/remote power, electronically
+     The advanced models allow modelling a broader spec-            controlled pneumatic brakes, new brake valves, M-901G
+trum of dynamic behaviour and include significant fea-              draft gears and cushion units with an active draft stroke,
+tures in designing a draft gear [5]. LTD simulations perform        etc. [11]. By utilising a measured functional relationship
+high accuracy with developing computing availabilities.             for draft gear characteristics, a nonlinear LTD model was
+Advanced component modelling and vehicle connection                 developed to estimate the coupler forces [12]. The reliabil-
+                                                                    ity of a coupled train/track model verified through a com-
+126 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+mercial multi-body analysis software “SIMPACK” and dy-            insight while choosing appropriate time step values and
+namical performance, the vibration frequency of the com-          analysing time-domain results.
+ponents, ride comfort and curving behaviour of the model               As a summary, LTD has been studied by many re-
+were discussed [13]. A map for all types of in-train forces in    searchers, most of whom have dealt with the solution
+long trains (steady, impact, sustained longitudinal oscil-        methodology for various design needs and objectives.
+lation, etc.) was created by using a wireless measurement         However, there is still a need for a robust and com-
+system in real-time [14]. A simulation model, which cov-          pact method, including system identification approaches
+ers power generation (internal combustion engine, elec-           which can provide sufficiently accurate results in a short
+tric motors and generator) and transmission in the diesel-        time to enhance the controller design performance.
+electric locomotive components in detail, was built to cal-            In this study, the dynamic simulation of a locomotive
+culate the fuel consumption. The locomotive performance           connected to nine wagons through a nonlinear draft gear
+and operational conditions in each throttle position were         was performed in “Matlab&Simulink”. A speed input tra-
+tested experimentally in dynamometer from the viewpoint           jectory pattern fed into the system and the acceleration
+of efficiency maps [15]. In [16], a non-inertial longitudinal     of the locomotive was controlled via a discrete-PID con-
+train force model with a nonlinear coupler developed.             troller to minimise the error between the reference speed
+     This model allows three-dimensional motions of the           and actual speed of the train. The simulation scenario
+vehicle body and captures kinematic degrees of freedom            includes traction and braking phases while turning in a
+that are not caught using existing simpler models.                sharply curved track and climbing a slope with a full load
+     In this part of the introduction, studies conducted in       condition. After the simulation phase, which uses full-
+the frequency domain examined. The longitudinal vibra-            length track information (curvatures, gradients and speed
+tion of the train consists of the lower frequency, which          limits), train information and control information, the re-
+expands and contract of an overall railroad and the               sults were analysed both in a time and frequency domain.
+higher frequency part, which causes shock impact. Low-            The time-domain analysis comprises the system identifica-
+frequency oscillations were classified into two different         tion process, which derives the discrete transfer functions
+modes, namely cyclic vibration and sustained longitudi-           among the first wagon acceleration as output and traction
+nal wave [17]. Continued longitudinal wave, which was un-         force as input under the conditions of the various coupler
+derdamped, is arisen if the whole railway vehicle remains         parameter space and the step response characteristics of
+in a single stress state (tensile or compression). Cyclic         each parameter set. The simulation results of the coupling
+fluctuations correspond to the square wave oscillations           parameter set, which demonstrates the best time response
+originated from run-in/run-out behaviour. Draft gear’s in-        behaviour in terms of the system dynamics, were exam-
+train characteristics affect the vibrational behaviour of the     ined and the wagon couplers, which are subjected to the
+train. The LTD simulations and frequency response sim-            most critical transitions were determined by considering
+ulations conducted in [18] revealed that three types of           the forces exerted on the wagon couplers in four different
+draft gears gave similar coupler forces but different draft       track/train phases (acceleration, curving, slope climbing,
+gear deflections and impact characteristics at different fre-     deceleration).
+quencies. The mode shapes and rates for an individual                  The frequency analysis starts with collecting natural
+draft gear were found utilising the finite element approach       frequencies in the longitudinal direction for two different
+in [19]. Which draft pad should be checked for fatigue re-        coupler behaviour. Then, the previously obtained time-
+sponse under the cyclic loading of 10 Hz, was clarified           domain results transformed into the frequency domain,
+within a range of frequency values. This work supplies            and the meaningful inferences about spectral effects for
+a tool for detecting new frequencies of draft gear, whose         each track phases are interpreted.
+modal frequencies are influenced by the crack due to pa-               Thanks to the reduced model built in the paper, an
+rameters like aspect ratio, crack width, and break orienta-       equally complex system can be simulated with a small
+tion [20].                                                        computational load, high computational efficiency and ac-
+     Although the frequency domain solutions are not              curacy. The other contribution related to the article is that
+practical due to nonlinear system parameters, this does           the results of the LTD simulation were interpreted from the
+not necessarily mean that frequency domain investiga-             frequency domain perspective.
+tions are useless. Indeed, they can quickly provide the sys-           The rest of the paper organised as follows. Section 2
+tem response parameters such as natural frequencies in            provides a mathematical modelling of the LTD. The model
+the lower and upper limits so that engineers have more            reduction process and the information about the traction
+                                                                  curve are described in Section 3 and Section 4, respec-
+                           Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics             | 127
+
+
+tively. Results obtained from the LTD simulation presented                                   load and translational characteristics should be consid-
+in Section 5. Section 6 represents the limitation and discus-                                ered in a draft gear dynamics model. A wedge-spring ap-
+sion section. Lastly, the outcomes of work were discussed                                    proach can be used to model the force-displacement char-
+and concluded in Section 7.                                                                  acteristics of friction draft gears. The friction draft gears,
+                                                                                             which are utilised in LTD simulation and depicted in Fig-
+                                                                                             ure 2, share the same structure as in [5].
+
+2 Mathematical modelling of the
+  LTD
+2.1 General description of the LTD model
+
+This section reveals the equations of motion related to the
+LTD. The LTD takes account of the movement of all rail-
+way vehicles along the way including locomotives and car-
+riages. The longitudinal behaviour of the trains is a func-
+tion of the characteristics of the train control inputs com-
+ing from the locomotive, train brake inputs, track topogra-
+phy, track curvature and wagon connections. The longitu-
+dinal dynamic behaviour of the train is defined as a sys-
+tem of differential equations. For this purpose, mathemat-
+                                                                                             Figure 2: Frction draft gear model [5]
+ical equations are established, and simulations are con-
+ducted under the assumption that wagons do not exhibit
+any movement in the lateral and vertical directions [21].                                         The working procedure of this kind of draft gear can be
+     In Figure 1, the schematic representation of the gener-                                 separated into four different stages, which express differ-
+alised train model is given.                                                                 ent force-displacement behaviour. These stages are named
+                                                                                             as loading stage 1, loading stage 2, unloading stage 1, un-
+                                                                                             loading stage 2, respectively. The term “loading stage” cor-
+                                                                                             responds to the compression of the draft gear, while “un-
+                                                                                             loading stage” means that the draft gear is being released.
+                                                                                             When the draft gear is entirely compressed, a noticeable
+                                                                                             clearance among the spring seat and the bottoms of move-
+                                                                                             able plates remains. Such kind of clearance also exists in
+Figure 1: The schematic representation of the generalised train                              a wholly released condition among the follower and the
+model                                                                                        tops of movable plates. The values of these clearances can
+                                                                                             be predicted by the structural design and pre-load charac-
+                                                                                             teristic of the draft gear.
+   The stiffness and damping coefficients of the wagon
+                                                                                                  In loading stage 1, the loading process is initialised,
+couplings (draft gear) are expressed regarding complex dy-
+                                                                                             but the follower is not in contact with the movable plates.
+namical characteristic functions
+                                                                                             During this stage, the elements, which are related to the
+   
+       f cw,i (x i , x i−1 , x . i , x . i−1 ) , f cw,n (x n , x n−1 , x . n , x . n−1 ) .
+                                                                                            friction draft gear forces, are the central wedge, wedge
+                                                                                             shoes, the spring seat and springs, respectively. The wedge
+                                                                                             group is responsible for the energy-dissipation mecha-
+2.2 Friction draft gear model                                                                nism. In loading stage 2, the central wedge and movable
+                                                                                             plates are pushed by the follower. The forces exerted on
+Friction draft gears have friction and velocity-dependent                                    the movable plates, and a central wedge is the components
+stiffness nature. Nonlinear hysteresis, which leads to                                       of the draft gear force. Both friction elements are respon-
+discontinuities among loading and unloading force-                                           sible for the draft gear force and energy dissipation. In
+displacement curves, occurs due to the friction damping.                                     the unloading stage 1, the unloading process begins, but
+Velocity-dependent friction, slack, limiting stiffness, pre-                                 the spring seat remains untouched by the movable plates.
+128 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+The plate group does not affect the draft gear force. In the          is dependent on the velocity. At the same time, parame-
+unloading stage 2, both the spring seat and the movable               ters such as displacement, acceleration, roughness, hard-
+plates forced by the mainspring. All friction elements are            ness and normal stress can also be included in the friction
+dissipating energy and contributing the draft gear force              models to obtain more accurate results. A lubrication effect
+having an advanced model which contains the geometrical               must also be added to the friction model to prevent detri-
+and dynamical characteristics of all draft gear sub-systems           mental stick of the wedge shoes. The friction model used
+(friction mechanisms, springs, and housing).                          for the lubricated contact surfaces of each wedge shoe de-
+     This model was constructed by conducting quasi-                  scribed as in Eq. (2).
+static force analyses and kinematic relationships for all                                    
+                                                                        µ1 v1 , v f 0 , x fdg = [h1 + h2 . exp (−h3 .v1 )] * S(v f 0 , x fdg )
+internal components. The force-displacement character-
+                                                                                                                                            (2)
+istics of the draft gear model separated into four stages,
+                                                                      where v1 is the relative velocity between the wedge shoe
+which are represented in [5] and given as in Eq. (1).
+                                                                      and stationary inner plate, v f 0 is the initial impact veloc-
+                                                                      ity of the two adjacent vehicles; S(.) is the modification
+                                  
+     F fdg,i = ψ i .F sm − ψ i − 1 .F sr        (i = 1, ?, 4)   (1)
+                                                                      factor given by utilising a two-dimensional look-up table,
+where                                                                 which is the function of impact velocity and deflection;
+                            
+       1 + tan β + arctan µ3 . tan γ + arctan µ1
+                                                                    h1 , h2 and h3 are specific model parameters, which re-
+  ψ1 =                                                            flect kinetic friction, part of static friction; the transition
+       1 − tan α + arctan µ2 . tan γ + arctan µ1
+                                                                      from static to kinetic friction, respectively.
+                                                                           The friction model corresponding to the all non-
+                                                     
+                   2 1 − µ1 tan (γ) .µ4 . ψ1 − 1
+       ψ2 = ψ1 +
+                              µ1 + tan (γ)                            lubricated coefficients of friction can be calculated as in
+                                                                  Eq. (3).
+       1 + tan β − arctan µ3 . tan γ − arctan µ1
+  ψ3 =                                                                                                      
+       1 − tan α − arctan µ2 . tan γ − arctan µ1                               µ j v j = h1 + h2 . exp −h3 v j         (j = 2, 4)           (3)
+                                        
+                         tan (γ) − µ1 .ψ3                             where v j are the relative velocity components between the
+ψ4 =                                      
+     tan (γ) . 1 − 2µ1 µ4 + 2µ1 µ4 ψ3 + 2µ4 ψ3 − 2µ4 − µ1             central wedge and wedge shoe, spring seat and wedge
+                 
+                          cos (α) . cos (γ − β)
+                                                                     shoe, movable plate and a stationary inner plate, respec-
+       F sm = k m x m0 +                        .x fdg                tively.
+                          cos (α + γ) . cos (β)
+                                                                          The relative velocities among various elements must
+                   F sr = k r x r0 + x rdg
+                                                                      be known to calculate the friction model. The interactions
+where                                                                 between the component velocities obtained by evaluating
+                           (i = 1, ?, 4)                              the kinematic equations originated from the geometrical
+                                                                      relationship as in Eq. (4).
+corresponds to the four different stages (loading_1, load-
+ing_2, unloading_1, unloading_2) as explained above;                                                  cos(α)
+                                                                                             v1 =             .v
+F fdg,i is the external force applied on the central wedge;                                         cos(α + γ) fdg
+F sm and F sr are the mainspring force and release spring                                             sin(γ)
+                                                                                             v2 =             .v
+force, respectively; α, β and γ are wedge shoe angles as                                            cos(α + γ) fdg
+shown in Figure 2; µ1 , µ2 and µ3 are the coefficients of                                        cos (α). sin(γ)
+friction, as shown in Figure 2; µ4 refers to the friction co-                           v3 =                       .v
+                                                                                               cos (α + γ). cos (β) fdg
+efficient of the moveable plates; k m and k r are mainspring                       
+stiffness and release spring stiffness, respectively; x m0 and                      cos (α). cos(γ − β) .v    , i=4
+x r0 are the pre-deflection of the mainspring and the release                 v4 =   cos (α + γ). cos(β) fdg                               (4)
+                                                                                     v fdg     ,             i=2
+                                                                                   
+spring, respectively; x fdg is the friction draft gear deflec-
+tion; x rdg is the release spring deflection.                         where v fdg is the friction draft gear working velocity.
+                                                                       The advanced model presented in this paper utilises
+                               cos (α) . cos (γ − β)                  a transitional characteristic named as “locked stiffness”,
+        x rdg = − x fdg.                             −1
+                               cos (α + γ) . cos (β)                  which first recorded in [22]. The forces leading longitudi-
+                                                                      nal vibrations of the train discovered as a third type of in-
+     The exponential friction model integrated into the
+                                                                      train force. The locked stiffness is defined as the longitu-
+force-displacement characteristic presented in this study.
+                                                                      dinal stiffness of the whole train when train oscillates lon-
+In the exponential friction model, the coefficient of friction
+                                                                      gitudinally. The locked stiffness cannot be captured from
+                      Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics                          | 129
+
+
+the impact tests or drop-hammer tests. The locked stiffness
+can be stated mathematically as in Eq. (5)-(7).
+                                                                                        3 Model reduction
+                         (
+                           f l (x t , v t ) , |x t | ≥ |x t−∆t |                        Traction motor model used in the simulations is 3-phase
+  F fdg,i (x t , v t ) =                                          (5)
+                           f u (x t , v t ) ,  |x t | < |x t−∆t |                       squirrel-cage induction motor (2180 V DC bus voltage,
+                                                                                        850 kW, 270/310 A, 1283/2484 rpm. The motors are con-
+  F fdg,i (x t , v t ) = F fdg,i (x t−∆t , v t−∆t ) + k locked (x t − x t−∆t (6)        trolled using field-oriented control with the indirect vec-
+                                                                                        tor control scheme. The details in the traction motor mod-
+                                                                                        elling are given in our previous paper [24].
+           |f u (x t , v t )| ≤ F fdg,i (x t , v t ) ≤ |f l (x t , v t )|         (7)        Air brake has a brake cylinder force which is converted
+where x t , x t−∆t , v t , v t−∆t are draft gear deflections and                        employing rigging factors and shoe friction coefficients
+relative velocities of adjacent vehicles of the current                                 into a retardation force. Pneumatic control is utilised in
+and previous time-step, respectively. f l and f u are force-                            the electronically controlled brake system. The brake de-
+displacement characteristics for loading and unloading                                  signs vary pipe exhausts systems. The pneumatic control
+processes, respectively. k locked is the locked stiffness. In                           regulations done to the brakes via the brake pipe take time
+every time-step, the values in Eq. (5) and (6) must be eval-                            to propagate along the train. As the control is via a pres-
+uated, then, Eq. (7) determines which result will be pro-                               sure wave, the system is constrained to sonic speed. The
+duced as the final draft gear force.                                                    main problem in LTD simulation is to determine the brak-
+                                                                                        ing force and the operation timing. The solution meth-
+                                                                                        ods include a look-up table of brake forces against time,
+2.3 Train modelling                                                                     empirical models and fluid dynamics-based models [25].
+                                                                                        The train air brake system model used in the simulation is
+The dynamic equations of the generalised nonlinear lon-                                 adapted from [26].
+gitudinal train model with nonlinear friction draft gear                                     The traction/dynamic brake force term F tr ,loco must
+                                                                                                                                                      db
+wagon coupling are stated as in Eq. 8 [23].                                             be repetitively updated according to the changes in loco-
+                                                                                        motive speed and driver control demands. Due to the com-
+        m dyn,loco .ẍ1 + F fdg,(1−2),1 = F t dr b,loco − F r,loco
+                                                                                        plexities occurred in controlling the complex locomotive-
+                             ∆x . 1 < 0, ∆x1 < ϵ                                        wagon system with nonlinear friction draft gear, the model
+        m dyn,loco .ẍ1 + F fdg,(3−4),1 = F t dr b,loco − F r,loco                      must be simplified, and parameters must be reduced to
+                                                                                        make it control by a proper PID controller.
+                             ∆x . 1 > 0, ∆x1 > ϵ
+                                                                                             The highly nonlinear coupler dynamics can be ana-
+                  m wagon,i .ẍ i + F fdg,(1−2),i = −F r,i                              lytically transformed into a simplified but also nonlinear
+                             ∆x . i < 0, ∆x i < ϵ                                       model given in Eq. (9) [27].
+                                                                                         
+                  m wagon,i .ẍ i + F fdg,(3−4),i = −F r,i                               
+                                                                                                      f cw,i = P i + k i1 . (∆x i ) + b i .(∆x . i )
+                                                                                                                       ∆x . i < 0, ∆xi < ϵ 
+                                                                                         
+                             ∆x . i > 0, ∆x i > ϵ
+                                                                                         
+                                                                                         
+                                                                                                                                           ∆x . i
+                                                                                                                                           −
+                 m wagon,n .ẍ n − F fdg,(1−2),n = −F r,n
+                                                                                        
+                                                                                        
+                                                                                         f cw,i = P i + k i3 . (∆x i ) + k i2 . (∆x i ) .e ν       + b i .(∆x . i )
+                                                                                                                         ∆x . > 0, ∆x > ϵ
+                                                                                        
+                                                                                        
+                                                                                                                            i          i
+                             ∆x . n < 0, ∆x n < ϵ
+                                                                                                                                                                   (9)
+                 m wagon,n .ẍ n − F fdg,(3−4),n = −F r,n
+                             ∆x . n > 0, ∆x n > ϵ                                       where P i is the preload, b i is the damping ratio ( Ns            is
+                                                                                                                                                 m ), k i3 
+                                                                                                               N                                         N
+                                                                                                                 
+                                                                                        the linear stiffness m     , k i2 is the nonlinear stiffness m       ,
+                             (i = 2, ..., n − 1)                                  (8)   ν is the critical velocity constant, k i1 is the recoil stiffness
+                                                                                          N                 .
+                                                                                            
+                                                                            m
+                                                                                         m , and ∆x i , ∆x i are relative displacement and velocity
+where ẍ i , ẋ i , x i correspond to the acceleration s2 , the
+                                                                                        of the wagons, ϵ is the coupling clearance.
+velocity sm , is the displacement (m) of each element, re-
+                
+                                                                                             The terms k i1 and k i3 are the main cause of hystere-
+spectively; m wagon,i is the mass (kg ); F r,i is the resultant
+                                                                                        sis behaviour. k i2 moreover, ν are responsible for the force
+resistance force (kN ) of the i. element; b i is the i. damp-
+                       Ns
+                                                                                       peaking that can be derived both from experimental and
+ing coefficient m           ; m dyn,loco is the dynamic mass of the
+                                                                                        theoretical analysis of draft gears [28].
+locomotive at zero slip state (kg ); F tr ,loco is the traction or
+                                              db
+dynamic brake force of the locomotive (kN ) ; F r,loco is the
+resultant resistance force of the locomotive (kN ).
+130 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+     The dynamic equations of the generalised nonlinear longitudinal train model with simplified wagon coupling stated
+as in Eq. (10).
+
+       m dyn,loco .ẍ1 + b1 .(x . 1 − x . 2 ) + k11 .(x1 − x2 ) = F t dr b,loco − F r,loco                                                                         ∆x . 1 < 0, ∆x1 < ϵ
+                                                                                                   (ẋ1 −ẋ2 )
+ m dyn,loco .ẍ1 + b1 .(x . 1 − x . 2 ) + k13 .(x1 − x2 ) + k12 .(x1 − x2 ).e(−                         ν      )
+                                                                                                                   = F t dr b,loco − F r,loco                            ∆x . 1 > 0, ∆x1 > ϵ
+ m wagon,i .ẍ i + b i .(x . i − x . i+1 ) + b i−1 .(x . i − x . i−1 ) + k i1 .(x i − x i+1 ) + k(i−1)1 .(x i − x i−1 ) = −F r,i                                           ∆x . i < 0, ∆x i < ϵ
+
+                                                                                                                                           (ẋ i −ẋ i+1 )
+       m wagon,i .ẍ i + b i .(x . i − x . i+1 ) + b i−1 .(x . i − x . i−1 ) + k i3 .(x i − x i+1 ) + k i2 .(x i − x i+1 ).e(−                    ν        )
+
+                                                                    (ẋ i −ẋ i−1 )
+        + k(i−1)3 .(x i − x i−1 ) + k(i−1)2 .(x i − x i−1 ).e(−            ν        )
+                                                                                        = −F r,i                                                                   ∆x . i > 0, ∆x i > ϵ
+
+     m wagon,n .ẍ n + b n−1 .(x . n − x . n−1 ) + k(n−1)1 .(x n − x n−1 ) = −F r,n                                                                               4∆x . n < 0, ∆x n < ϵ
+
+                                                                                                                                                   (ẋ n −ẋ n−1 )
+                   m wagon,n .ẍ n + b n−1 .(x . n − x . n−1 ) + k(n−1)3 .(x n − x n−1 ) + k(n−1)2 .(x n − x n−1 ).e(−                                    ν        )
+                                                                                                                                                                       = −F r,n            (10)
+    The resultant resistance forces depend on the braking regulations, speed, track curvature and wagon/locomotive
+design parameters. The resultant resistance force of the locomotive and wagons defined as in Eq. (11).
+
+                                                  F r,loco = F p,loco + F crv,loco + F grv,loco + F brake,loco
+
+
+                                                            F r,i = F p,i + F crv,i + F grv,i + F brake,i                                                                                  (11)
+where F p,loco and F p,i are the propulsion resistances which are represented as the sum of the aerodynamic and rolling
+resistances (kN ); F crv,loco and F crv,i are the resistance force elements originating from the track curvature (kN ) ; F grv,loco
+and F grv,i are the gravitational force elements due to the track gradient (kN ); F brake,loco and F brake,i are the braking
+resistance forces caused by pneumatic braking (kN ), respectively.
+     A quadratic formula has been utilised to approximate the propulsion resistance in Eq. (12) [29].
+
+                                                                       F p,i = A + Bx . i + Cx .2i                                                                                         (12)
+                                         2
+                                            
+where A(N), B Ns             Ns
+                   
+                 m and C m2       are regression coefficients obtained by fitting test data to the Davis equation.
+     A and B are related to the mass, and mechanical resistance and Caccount for air resistance.
+     Gradient force can be given as in Eq. (13).
+                                                                 m dyn g
+                                                      F grv,i =                                                       (13)
+                                                                    κ
+where m dyn is the dynamic mass of the vehicle system (kg); g is the acceleration due to gravity sm2 and κ is the gradient
+                                                                                                     
+                                                                                 1
+in the form scaled as ”1 : κ” (for example a grade of 5% is calculated as κ = 0.05   = 20 in the formula)
+     Curving resistance obtained as in Eq. (14).
+                                                                 0.1h
+                                                       F crv,i =                                                      (14)
+                                                                  Ry
+where h is the dimensionless parameter, which changes from 500 to 1200 depending upon the railway vehicle; R y is the
+radius of the curved track (m).
+     The complex model has seven-dimensional parameter space such as [h1 , h2 , h3 , k locked , k m , k r , S] and four different
+stages. The simplified model has five-dimensional parameter space such as [b, k1 , k2 , k3 , ν] moreover, two different
+stages.
+     To validate the reducibility of the complex dynamical model into a simplified analytical model, the parameters of
+the complex model and simplified model matched by conducting a simulation. “Simulink Design Optimization Toolbox”
+was utilised in this experiment. Single friction draft gear corresponding to the sophisticated and simplified model was
+excited during 14.6 sec., with a sinusoidal input having various amplitude and frequency patterns. The frequency and
+amplitude components of the excitation signal given as; 106 N, 2π rad/sec along 8 seconds, 106 N, π rad/sec along 4
+seconds, 106 N, 2 * π rad/sec along 2 seconds, 107 N, 10 * π rad/sec along 0.4 seconds, 107 N, 20 * π rad/sec along 0.2
+seconds, respectively.
+                         Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics        | 131
+
+
+        First of all, the friction draft gear forces of the complex
+   model were evaluated as the target outputs of the simpli-
+   fied model w.r.t to the parameters given above. Then the
+   parameters of the simplified model were sought during the
+   optimisation process. The optimisation options selected
+   as, a genetic algorithm using a robust cost with 0.0001
+   parameter tolerance and 0.0001 function tolerance, sum
+   squared error cost function, 1000 max.iteration. The sim-
+   ulation runs on parallel pools for practical computing.
+        The lowest and the highest values in the parameter
+   space of the complex model and simplified model after the                 (a)
+   optimisation process are listed in Table 1.
+
+
+   Table 1: The parameter space corresponding to the complex and
+   simplified models
+
+
+                             Complex model
+
+                 h1 (low − L, 0.05; high − H, 0.0525)
+
+                 h2 (low − L, 0.01; high − H, 0.0105)
+
+                     h3 (low − L, 0.4; high − H, 0.42)
+                                                                        
+                                    6 N                          6 N         (b)
+      k locked low − L, 4 * 10              ; high − H, 8 * 10
+                                        m                            m
+                                                                           Figure 3: Friction draft gear forces a) for the low parameter set; b)
+                                  6 N                        6 N             for the high parameter set
+        k m low − L, 1 * 10             ; high − H, 9 * 10
+                                    m                            m
+                                                                        
+                                  6 N                          6 N
+      k r low − L, 1.5 * 10
+                                    m
+                                        ; high − H, 7.5 * 10
+                                                                   m         4 Traction curve
+                 S(low − L, 0.03; high − H, 0.0315)
+                                                                             The traction curve defines the evolution of the traction
+                                                                             forces, which should be supplied for each speed value of
+                            Simplified model
+                                                                             each vehicle (tram, subway, EMU, DEMU, etc.) that pro-
+                                      Ns                  Ns                 duces the traction. Two fundamental values determine the
+        b i (low − L, 999.8706           ; high − H, 2512    )
+                                      m                   m                  traction curve;
+                              N                         N                    1. Maximum adhesion force
+   k i1 (low − L, 3.6086*106    ; high − H, 8.265776*106 )
+                              m                         m                    2. Maximum traction force
+                              N                         N
+    k i2 (low − L, 1.0079*105 ; high − H, 1.856364*106 )
+                              m                         m    These two constraints limit the traction force for different
+                                                          
+                              N                          N   speed values of the vehicle. The limiting factor for the trac-
+k i3 low − L, 3.4748 * 106 ; high − H, 7.998176 * 106
+                              m                          m tion force is the maximum adhesion force. The maximum
+               ν(low − L, 0.1018; high − H, 0.7974)          adhesion force defined as in Eq. (15).
+                                                                                                                        7.5
+                                                                                         F a,max (ẋ1 ) = m stc .g.(0.161 +   )    (15)
+                                                                                                                     ẋ1 + 44
+       The output of the simplified model and sophisticated                                                            
+   model for low and high parameter set are represented in                   where ẋ1 is the locomotive speed km        h ; m stc   =
+   Figure 3a and 3b, respectively.                                           n.m wagon,i + m stc,loco is the static mass of the loco-
+                                                                             motive&wagon system (kg ).
+                                                                                 The coefficient of adhesion is determined by several
+                                                                             parameters; namely the material properties, rail surface,
+                                                                             wheel profile, axle pressures and vertical movements. Ac-
+132 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+cording to UIC standards, the maximum value of the coef-            transient behaviour become 1.02 second, 0.75, respectively.
+ficient of adhesion is 0.33. It is also shown by experimen-         The integrator and filter methods are selected as forward
+tal methods that the ratio of adhesion is dependent on the          and backward Euler, respectively. The filter coefficient (N)
+speed. For this reason, the “Curtius-Kniffler” formulation,         is selected as 100 and the sample time is T s = 1e − 4.
+which varies with speed, is chosen to be utilised for de-           The parameters of the PID controller and the root mean
+termining the adhesion coefficient. The maximum traction            square (RMS) values of the controller error for all 16 cases
+power (P τ, max in kW)is defined by using a maximum trac-           are given in Table 2.
+tion force (F τ,max = m dyn .a max + F r ), without considering          The trajectories of the reference and actual locomotive
+the curving and gravitational resistances except for accel-         speed in the simulation for the case (HHLL), which the low-
+eration and braking, and the speed at which the vehicle             est controller error was obtained, represented in Figure 4a.
+reaches its maximum power v P max in ms [30].
+                                                
+                                                                    The entire trajectory of the error signal between the refer-
+     Maximum traction power calculated as in Eq. (16).              ence and actual locomotive speed conducted in the simu-
+                                                                    lation depicted in Figure 4b.
+                      P τ,max = F τ,max v P max      (16)
+
+where a max is the maximum available acceleration sm2 .
+                                                      
+
+
+
+
+5 LTD Simulation
+LTD simulations were conducted for a locomotive with
+nine wagons. “ode3” (Bogacki-Shampine) with a fixed-
+step size (fundamental sample time) 0.0001 s (0.1 ms) was           (a)
+selected to evaluate the equations of motion-related with
+LTD via “Matlab&Simulink”. Transient responses of the
+LTD were analysed between 0-270 sec.
+       The computing time for all simulation cases lasts ap-
+proximately averaged 854.7 seconds. The data precision
+was selected as double to maintain accuracy, and the trun-
+cation errors are prevented.
+       The locomotive-wagon system operates in a sharply
+curved track (R y = 300 m) from t = 75 s. to = 185 s.               (b)
+At t = 155 − 225 s, the system is climbing %ffl 5 slope
+                                                                    Figure 4: a) Trajectories of the reference and actual locomotive
+with a full load. The operational speed at maximum mo-
+                                                                    speed in the simulation; b) Error signal
+tor power v P max was considered as 16.72 ms . Maximum
+                       
+
+allowable operational acceleration (a max ) moreover, de-
+celeration are 0.976 sm2 moreover, −0.976 sm2 , respectively.       As can be seen from Figure 4, the controller performance
+The coupler force is the most critical variable in the LTD.         is satisfactory.
+       The simulations performed for 16 cases in the param-
+eter space including the permutations of the damping ra-
+tio, recoil stiffness, nonlinear stiffness and linear stiffness,    5.1 Time-domain analysis
+respectively to understand the effects of the stiffness and
+damping parameters concerning the time and frequency                After completing the simulation of all cases, data which
+response of the locomotive-wagon system. The settings               are related to the force, speed, acceleration information
+and the numerical values used in the simulation repre-              of each element recorded. The system identification pro-
+sented in APPENDIX-I.                                               cess [31] was made to evaluate the transfer function be-
+       The desired acceleration of the locomotive controlled        tween the acceleration of the first wagon (output) and the
+via a parallel form of discrete-time PID controller (P +            locomotive force (input) for examining the step response
+    Ts          N
+I. z−1  + D. N.T  s .z
+                       ) to track the reference locomotive speed.   of each case via “System Identification Toolbox”.
+           1+   z−1
+The parameters of the PID controller was tuned by consid-               Identification conditions is set as discrete-time feed
+ering the reference tracking which its response time and            through, estimated number of poles and zeros are selected
+                    Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics     | 133
+
+
+Table 2: The parameters of the PID controller and RMS values of the controller error for all cases in the stiffness and damping parameter
+space
+
+Stiffness and damping
+                                                        PID Controller parameters                                    Control results
+   parameter space
+      Permutation                    Proportional                      Derivative            Integral            Controller Error (RMS)
+         LLLL                          12,292                           0,0146               24,5850                    0,0634
+         LLLH                          34,300                           0,0147               16,8600                    0,0870
+         LLHL                          33,080                           0,0125               16,6151                    0,0819
+         LLHH                          29,230                           0,0146               15,8453                    0,1002
+         LHLL                          31,220                           0,0162               16,2440                    0,0624
+         LHLH                          47,720                           0,0175               19,5436                    0,0633
+         LHHL                          31,220                           0,0175               16,2440                    0,0709
+         LHHH                          22,730                           0,0160               14,5466                    0,0841
+         HLLL                          25,790                           0,0128               15,1579                    0,0716
+         HLLH                          19,170                           0,0200               13,8335                    0,0851
+         HLHL                          25,790                           0,0220               16,1579                    0,0798
+         HLHH                          35,420                           0,0350               17,0842                    0,0851
+         HHLL                          41,240                           0,0250               18,2471                    0,0574
+         HHLH                          53,520                           0,0450               20,7045                    0,0589
+         HHHL                          55,930                           0,0250               21,1859                    0,0591
+         HHHH                          57,080                           0,0125               21,4153                    0,0628
+
+
+
+4 and 3, respectively, the estimation method is the nonlin-                by considering the critical changes in the force and
+ear least squares with a line search method, fit frequency                 acceleration responses at the simulation.
+range is [0-0.01571 rad/s], initial conditions are selected                     The locomotive input (traction) force is shown in Fig-
+automatically, the initialization method is IV, termination                ure 6a. The forces applied on wagon couplers are cal-
+tolerance is 1e-7, maximum number of iterations is 1000.                   culated during simulation, and the results are demon-
+Half partitioned data set, which belong to the acceleration                strated for acceleration, curving, slope climbing, deceler-
+of the second wagon and locomotive traction force as train                 ation phase in Figure 6b, respectively.
+data and validation data, respectively. The system identi-                      The Euclidean norm (2-norm) and maximum absolute
+fication results presented in Table 3.                                     sum (infinite-norm) of the coupler forces, wagon accelera-
+     The list of the estimated transfer function is proposed               tions, locomotive force and controller error were evaluated
+in APPENDIX-II. After obtaining the estimated transfer                     for all phases and tabulated in Table 5, respectively.
+function, the unit step response time characteristics (rise                     The first coupler element is subjected to more force
+time, settling time, overshoot, peak time, peak, settling                  from the viewpoint of the Euclidean norm approach in the
+minimum, settling maximum) and steady-state error in                       acceleration phase, while the last coupler element is ex-
+unit ramp response, which correlated with the integral                     posed to more strength in the curving, slope climbing and
+of error in step response, were evaluated and the results                  deceleration phases. The maximum coupling force applied
+demonstrated in Table 4.                                                   to the eight-coupler component in the acceleration phase,
+     If the spring stiffness increases, results in higher over-            and the maximum force applied to the final coupler ele-
+shoot with more rigid values are obtained. The case (LHHL)                 ment in all other steps. The same correlation pattern ob-
+performs better due to the fast response (lowest rise time,                served for the wagon acceleration trajectories. Euclidean
+settling time) and minimum overshoot for safety and reli-                  norm of the locomotive force, which applied in decelera-
+able operation.                                                            tion phase is much more than involved in all other stages,
+     After       running         the         (LHHL)         case      in   and infinite norm of the locomotive force, which applied in
+the       simulation,           the          position         difference   acceleration phase is much more than used in all different
+(∆x i = x1 − x i+1 , for i = 1, ..., 9) moreover, the veloc-               stages.
+ity difference (∆x . i = x . 1 − x . i+1 , for i = 1, ..., 9) of wagons         From the control point of view, it can be inferred that
+concerning the locomotive were visualised for acceler-                     the tracking speed reference in the acceleration phase is
+ation (0-10 sec.), curving (75-85 sec.), slope climbing                    more laborious than all other phases. Generally, it can
+(185-195 sec.) and deceleration (120-130 sec.) phase in                    be concluded that the nearer couplers to the locomotive
+Figure 5a, 5b, respectively. These phases were chosen                      are subjected to the higher coupler forces at acceleration
+134 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+Table 3: System identification results
+
+ Stiffness & damping
+                                                             System identification results (Ts=1e-4)
+   parameter space
+                                                           Fit to
+                                                                              Function                       Norm of         First-order
+     Permutation                FPE          MSE        estimation                                Cost
+                                                                            evaluation #                      step           optimality
+                                                            (%)
+         LLLL               9.95e-7        8.15e-16       99.5%                 172            8.15e-16      3.63e-12          0,4580
+         LLLH              6.43e-17        2.94e-21       99.2%                 532            8.05e-22      2.61e-20          0,0691
+         LLHL               3.87e-7        3.09e-16       99.3%                 260            3.09e-16      1.24e-17          0,8690
+         LLHH              9.20e-16        7.23e-21       99.6%                 463            2.01e-21      6.54e-18          0,4670
+         LHLL              1.23e-15        5.62e-21       99.7%                 677            1.60e-21      1.03e-21          0,0238
+         LHLH              1.37e-18        3.85e-21       99.5%                 961            8.66e-22      1.51e-21          0.0525
+         LHHL              1.24e-17        2.52e-21       99.9%                 659            6.19e-22      1.67e-21          0,0750
+         LHHH              4.91e-16        6.98e-21       99.2%                 451            1.96e-21      2.09e-21          0,1690
+         HLLL              3.57e-18        5.41e-21       99.3%                 567            1.46e-21      1.05e-21          0,0516
+         HLLH               8.12e-7        2.87e-16       99.5%                 204            2.87e-16      6.28e-16          0,5700
+         HLHL               6.63e-7        3.28e-16       99.3%                 182            3.28e-16      7.22e-12          0,7100
+         HLHH              7.26e-17        4.38e-21       99.6%                 394            1.04e-21      6.22e-14          0,0437
+         HHLL              3.87e-20        3.88e-21       99.2%                1028            8.53e-22      2.50e-21          0,0199
+         HHLH               3.93e-7        3.97e-16       99.4%                299             3.96e-16      5.13e-17          0,7170
+         HHHL              5.12e-18        5.95e-21       99.7%                 755            1.60e-21      4.11e-21          0,0962
+         HHHH              2.17e-15        4.93e-20       99.3%                 556            9.28e-21      1.32e-21          0,1970
+
+
+Table 4: Time-domain characteristics of the estimated transfer functions
+
+   Stiffness &
+                                      Time-domain characteristics (input: locomotive force, output:
+     damping                                                                                                             Ramp response
+                                        acceleration of first wagon) (Ts=1e-4) (unit step response)
+ parameter space
+                                                                                                                          Integral of error
+                         Rise         Settling      Overshoot        Peak                  Settling      Settling
+   Permutation                                                                 Peak                                     (ramp steady-state
+                         time          time            (%)           time                   min.          max.
+                                                                                                                               error)
+       LLLL            0,0984         16,0424         10,0458      0,8856      1,10        0,8924         1,1005              0,0241
+       LLLH            0,0630          9,6578         8.65e-5      0,8985      1,00        1,0000         1,0000              0,0000
+       LLHL            0,0908         14,1356          6,9475      0,8993      1,07        0,9337         1,0695              0,0233
+       LLHH            0,0717         16,0063         2.89e-4      0,8996      1,00        1,0000         1,0000              0,0895
+       LHLL            0,0622         12,9081         3.45e-4      0,8866      1,00        1,0000         1,0000              0,0000
+       LHLH            0,0629         11,9214         1.24e-5      0,8962      1,00        1,0000         1,0000              0,0889
+       LHHL            0,0562          9,3024         3.85e-5      0,8959      1,00        1,0000         1,0000              0,0000
+       LHHH            0,0724         16,0856         2.08e-4      0,9029      1,00        1,0000         1,0000              0,0895
+       HLLL            0,0646         13,3827         1.94e-5      0,8873      1,00        1,0000         1,0000              0,0890
+       HLLH            0,0990         18,1009          9,4985      0,8846      1,10        0,0990         1,0950              0,0240
+       HLHL            0,0880         13,4079          8,7312      0,9025      1,09        0,9094         1,0873              0,0261
+       HLHH            0,0648         12,0161         8.73e-5      0,9011      1,00        1,0000         1,0000              0,0000
+       HHLL            0,0571          9,3533         2.10e-6      0,8840      1,00        1,0000         1,0000              0,1595
+       HHLH            0,0838         11,6350          6,8591      0,8860      1,07        0,9303         1,0686              0,0241
+       HHHL            0,0714         16,2612         2.27e-5      0,8977      1,00        1,0000         1,0000              0,0893
+       HHHH            0,0856         54,2275         3.87e-4      1,9809      1,00        1,0000         1,0000              0,0899
+
+
+
+phase and farthest coupler to the train is subjected to the                 quency domain analysis. The traction curve for locomotive
+higher coupler forces at deceleration phase, curving phase                  and wagon system drawn for all phases in Figure 7.
+and slope climbing phase. If the speed of the system in-                        The traction force remains under the curve of the ad-
+creases, the most pressing of coupler forces also increases.                hesion force in all phases, which means that the excessive
+     In conclusion, the situation of the 1.,8., and 9. coupler              wheel slip or skid is prevented during train operation.
+is quite critical than the other couplers; therefore it should
+be focused on these couplers through the help of the fre-
+                   Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics   | 135
+
+
+Table 5: The norms of the coupler forces, wagon accelerations, locomotive force and controller error for each phase
+
+
+      Coupler number                               Euclidean norm of coupler force (sum(abs(X). ^2) ^ (1/2))
+                                  Acceleration phase        Curving phase        Slope climbing phase       Deceleration phase
+              1                       1,0881 e7                6,5859 e6               3,3520 e6                1,7959 e7
+              2                       8,1790 e6                6,5733 e6               3,3167 e6                1,8004 e7
+              3                       7,6021 e6                6,5628 e6               3,2948 e6                1,8046 e7
+              4                       7,5245 e6                6,5538 e6               3,2699 e6                1,8085 e7
+              5                       7,2580 e6                6,5479 e6               3,2549 e6                1,8123 e7
+              6                       7,1546 e6                6,5472 e6               3,2426 e6                1,8158 e7
+              7                       8,4859 e6                6,5412 e6               3,2293 e6                1,8191 e7
+              8                       1,0050 e7                6,5153 e6               3,2854 e6                1,8222 e7
+              9                       8,5480 e6                6,7601 e6               3,6738 e6                1,8252 e7
+Coupler Number                                             Infinite Norm of Coupler Force (max(abs(X)))
+                                  Acceleration Phase        Curving Phase       Slope Climbing Phase        Deceleration Phase
+              1                       2,0407 e5                8,1541 e4               6,4030 e4                6,6105 e4
+              2                       1,1723 e5                7,4836 e4               5,5003 e4                6,6070 e4
+              3                       1,0271 e5                7,0911 e4               4,9925 e4                6,6724 e4
+              4                       1,0200 e5                6,8055 e4               4,6354 e4                6,6999 e4
+              5                       9,5294 e4                6,5795 e4               4,3614 e4                6,7428 e4
+              6                       9,5384 e4                6,3923 e4               4,1412 e4                6,8059 e4
+              7                       2,0198 e5                6,2410 e4               4,5772 e4                6,8313 e4
+              8                       2,2348 e5                6,3988 e4               4,4586 e4                7,0401 e4
+              9                       1,4802 e5                8,7190 e4               6,6110 e4                7,1669 e4
+       Wagon number                              Euclidean norm of wagon acceleration ( sum(abs(X).^2)^(1/2))
+                                  Acceleration phase        Curving phase        Slope climbing phase       Deceleration phase
+              1                       103,6771                  73,1766                 37,2448                 199,5401
+              2                        87,7673                  73,0369                 36,8519                 200,0473
+              3                        83,2560                  72,9204                 36,6084                 200,5109
+              4                        82,5249                  72,8202                 36,3326                 200,9500
+              5                        80,1823                  72,7540                 36,1655                 201,3623
+              6                        79,0968                  72,7463                 36,0284                 201,7515
+              7                        80,4709                  72,6796                 35,8807                 202,1201
+              8                        78,9832                  72,3927                 36,5045                 202,4688
+              9                        80,0325                  75,1122                 40,8194                 202,8003
+       Wagon number                                    Infinite norm of wagon acceleration ((max(abs(X))))
+                                  Acceleration phase        Curving phase        Slope climbing phase       Deceleration phase
+              1                         0,9759                   0,9060                  0,7114                  0,7345
+              2                         0,9511                   0,8315                  0,6111                  0,7341
+              3                         0,9448                   0,7879                  0,5547                  0,7414
+              4                         0,9445                   0,7562                  0,5150                  0,7444
+              5                         0,9416                   0,7311                  0,4846                  0,7492
+              6                         0,9414                   0,7103                  0,4601                  0,7562
+              7                         0,9748                   0,6934                  0,5086                  0,7590
+              8                         0,9760                  0,7110                  0,4954                   0,7822
+              9                         0,9646                   0,9688                  0,7346                  0,7963
+
+                                    Euclidean norm of locomotive force ( sum(abs(X).^2)^(1/2))
+      Acceleration phase               Curving phase                 Slope climbing phase                 Deceleration phase
+          1,2907 e8                      6,2586 e7                          4,3145 e7                         1,7524 e8
+                                          Infinite norm of locomotive force ((max(abs(X))))
+      Acceleration phase               Curving phase                 Slope climbing phase                 Deceleration phase
+          7,3159 e5                      3,5971 e5                          1,6093 e5                         6,1303 e5
+                                     Euclidean norm of controller error ( sum(abs(X).^2)^(1/2))
+      Acceleration phase               Curving phase                 Slope climbing phase                 Deceleration phase
+           88,1869                        30,1110                            29,4740                           43,0090
+                                           Infinite norm of controller error ((max(abs(X))))
+      Acceleration phase               Curving phase                 Slope climbing phase                 Deceleration phase
+            1,1752                         0,7748                             0,9014                           0,6665
+136 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+
+
+(a)
+
+
+
+
+(b)
+
+Figure 5: a) Position difference of wagons, b) Velocity difference of carriages relative to the locomotive
+
+
+
+5.2 Frequency-domain analysis                                             damping with the system response. However, frequency
+                                                                          analysis is a linear method meaning the system properties
+Frequency domain analysis is sometimes implemented as                     are assumed to be constant through time, and the contact
+an alternative method to solve and to investigate engineer-               conditions, as well as the boundary conditions, needs to
+ing problems. It is generally quicker than time-domain                    be settled and unchanging. Consequently, nonlinear sys-
+analysis as the time dependency of the terms are converted                tems are not categorically suitable for implementing fre-
+into harmonic counterparts by assuming the dynamics re-                   quency analysis directly. One can either include iterative
+sponse of the system is the superposition of the eigen-                   schemes to calculate the response (in rare problems) as ac-
+vectors (mode shapes) of the system with distinct oscilla-                curately as time domain analysis or simply use frequency
+tion periods (natural frequencies). Also, while analysing                 analysis to investigate the problem for fixed (e.g. lowest
+the dynamic systems, investigating the problems through                   and highest values) system properties to understand the
+frequency domain makes it more practical to relate the                    problem boundaries.
+system parameters, namely stiffness, inertia (mass) and
+                   Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics   | 137
+
+
+
+
+(a)
+
+
+
+
+(b)
+
+Figure 6: a) The tractive force; b) pressing forces exerted on couplers changing with time
+
+
+
+     Dynamic response of the system was further investi-                equal to k i1 to check the lower frequency range, whereas
+gated in the frequency domain to understand the effect of               it is taken as k i2 + k i3 to consider the upper limits for the
+resonances clearly. As the crucial stage of spectrum anal-              second case (∆x . i > 0).
+ysis is first to check out the natural frequencies of the sig-                The natural frequency results are shown below in Fig-
+nificant mode shapes, modal analysis of the system per-                 ure 8.
+formed in “ANSYS Mechanical” which is an engineering                          For low stiffness behaviour (first case), the natural
+software based on finite element methodology. The pri-                  frequency range (related with couplers) starts at 0.23 Hz
+mary question herein is how to handle the nonlinear stiff-              and ends at 1.45 Hz, while the corresponding values are
+ness behaviour of the couplers since the modal analysis in              at 0.65 Hz and 4.06 Hz, respectively for high stiffness be-
+the frequency domain is a linear theory.                                haviour. In other words, the resonance modes in a longi-
+     In this study, the stiffness behaviour was considered              tudinal direction can be excited in the broader frequency
+for two situations as given in Eq. (1). For the first modal             range between 0.23 Hz and 4.06 Hz.
+case (∆x . i < 0), the stiffness parameter of the couplers is
+138 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+
+
+(a)
+
+
+
+                                                                   Figure 8: Natural frequencies of the system in the longitudinal di-
+                                                                   rection
+
+
+
+                                                                       According to the results, the spectral content of the
+                                                                   coupler forces is in the frequency range between 0 and 4
+                                                                   Hz. This outcome is expected since the previously made
+(b)                                                                modal analysis has shown that the significant resonant
+                                                                   modes are up to 4 Hz.
+
+
+
+
+(c)
+
+
+
+
+(d)
+                                                                   Figure 9: Coupler forces in the frequency domain; blue colour: cou-
+                                                                   pler no:1, redcolour: coupler no:8 and orange colour: coupler no:9
+Figure 7: Traction curve for locomotive and wagon system; a) Ac-
+celeration phase; b) Curving phase; c) Slope climbing phase; d)
+Deceleration phase
+                                                                        The results may further be investigated either per
+                                                                   phase or per coupler number. In the acceleration phase,
+     In the next step, the coupler forces in the time do-          there are two significant peaks (valid for 1. and 8. couplers)
+main corresponding to the 1., 8. and 9. couplers were trans-       which appears at around 0.2 Hz and 3.3 Hz. This means
+formed into spectral components in a frequency domain.             that the dynamic response of the coupler force is mostly
+The sampling frequency is 10 kHz, and the number of data           dominated by the modes at (or near) these frequency val-
+is equal to 100,000, which means the spectral resolution           ues. Moreover, according to the frequency values in Fig-
+is 0.1 Hz. The corresponding results are shown in Figure 9.        ure 8, the peaks are supposed to be related to low stiffness
+As the dynamic response of this system exists in the lower         k i1 moreover, high stiffness k i2 + k i3 cases, respectively.
+frequency range, the upper limit of abscissa is fixed to 10        In other words, the dynamic response of the acceleration
+Hz.                                                                phase includes both low and high stiffness behaviour. Sim-
+                 Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics   | 139
+
+
+ilar deductions for the other phases can also be made. Ta-          and by two trailing rods embedded anti-symmetrically to
+ble 6 summarises these significant inferences.                      the bogie centre [35].
+     Finally, the couplers and phases can be compared in                 The authors were also not investigated the
+terms of maximum and average (RMS between 0-10 Hz)                  longitudinal-lateral interaction dynamics of the rail-
+coupler force values. Corresponding results are given in            way vehicle originated from the coupler rotation in this
+Table 7.                                                            paper; therefore, they limited the study within the con-
+                                                                    straints of the decoupled longitudinal dynamic mode.
+                                                                    The structural characteristics and compressed stability
+                                                                    of coupler affect the dynamic performance and running
+6 Limitations and discussion                                        safety. For a long distributed power train, the longitudinal
+                                                                    motions of the front and rear sides are not synchronised.
+This paper suggests a computer-oriented mathematical
+                                                                    However, couplers are necessitated to transmit the oc-
+model obtain the transient response and coupling force
+                                                                    curred longitudinal forces along the train centre line.
+of a long train subject to the various train operating con-
+                                                                    Otherwise, significant lateral components of the longitu-
+ditions. The experimental approaches based on the field
+                                                                    dinal compressive forces, which cause rail overturning,
+data is not included. However, the design steps were han-
+                                                                    gauge widening, track lateral motion, or derailment, are
+dled carefully by comparing the models build in the exper-
+                                                                    produced and are exerted to the wheelsets [36]. The cou-
+imentally validated numerical results [32-34]
+                                                                    pler rotation angle decreases in a stepped pattern with an
+     Moreover, the results obtained in [35] exhibit high
+                                                                    increased friction coefficient of the coupler-tail surfaces.
+consistency with the simplified model built in this paper
+                                                                    If the train is modelled as in [36], the rotation angle is
+from the viewpoint of the coupler force patterns. This train                   ◦                          ◦
+                                                                    around 7 when µ ≤ 0.2, around 3 when 0.25 ≤ µ ≤ 0.45,
+model developed using Simpack consists of a group of 50                                  ◦
+                                                                    and is less than 1 when µ = 0.5. The maximum values
+freight cars with two locomotives, including all suspen-
+                                                                    of the derailment coefficients and wheelset lateral forces
+sion stages. The model is capable of investigating the influ-
+                                                                    vary similarly with the changes that occurred for the
+ence of the lateral vehicle dynamics on the coupler forces.
+                                                                    rotation angle. When µ ≤ 0.2, large coupler deflection and
+The vehicle has three rigid bodies, two representing bogies
+                                                                    significant lateral components of the longitudinal coupler
+and one the car body. The two bogies were constrained to
+                                                                    compressive forces are generated and transferred to the
+the track centre line using a rigid joint permitting the mo-
+                                                                    wheelsets via the locomotive secondary and primary
+tion along the track longitudinal direction. The car body
+                                                                    suspensions leading to large derailment coefficients
+was constrained using spherical joints granting all the ro-
+                                                                    and wheelset lateral forces. When µ ≥ 0.25, the lateral
+tations, which were modelled using a high stiffness bush-
+                                                                    components of the coupler reduce dramatically as the
+ing element. The force element has three translational and                                                  ◦
+                                                                    coupler rotation angle keep below 3 , and the derailment
+three rotational. The roll motion of the car body was also
+                                                                    coefficients and wheelset lateral forces stay at a low
+included applying two anti-roll stiffnesses modelled with
+                                                                    level. Coupler destabilisation takes place as the friction
+two bushing elements among each bogie frame and car
+                                                                    coefficient increases. Long trains may induce instability,
+body. The anti-roll stiffnesses allow a roll angle less than
+  ◦                                                                 derailment, structural failures to the coupling system.
+6 with a lateral acceleration of 1 sm2 . The cars were cou-
+                                                                    The couplers among two wagons once connected allow
+pled in groups of two employing a steel bar, which con-
+                                                                    a certain rotation along the vertical axis providing the
+nects the draft gears without slack. Couplers include point-
+                                                                    train runs on a curve. Couplers exhibit high stiffness and
+to-point nonlinear spring-damper element with hysteresis.
+                                                                    small inertia as compared to the train inertia, therefore,
+Due to the assumptions stated in the simplified model, the
+                                                                    including the effect of the coupler inertia in the dynamic
+adopted elements do not react with torque in case of rel-
+                                                                    model cause high-frequency oscillations which lowers the
+ative rotations among couplers. The locomotive model is
+                                                                    computational efficiency. Longitudinal train forces during
+consists of 27 rigid bodies:6 wheelsets each one connected
+                                                                    braking, traction, and curving rely on the coupler design
+to two axle-boxes using revolute joints, six motors and
+                                                                    (degrees of freedom (DOF), impact force absorption,
+gearboxes, two bogie frames and a car body, respectively.
+                                                                    energy dissipation, i.e.). A tangent track was utilised in
+Each axle-box was connected to the bogie frame utilising
+                                                                    [37] to investigate the effect of the geometric nonlinearities
+two springs and a traction rod with a point-to-point spring
+                                                                    resulting from the coupler rotational kinematic DOF. The
+damper. The secondary suspension is composed of four
+                                                                    investigation was performed to reveal the effect of angle
+rubber springs connecting the bogie frame to the coach
+                                                                    among the coupler that can affect the lateral forces on the
+                                                                    track and the vehicle derailment safety.
+140 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+Table 6: The significant inferences about spectral results of three couplers for each phase
+
+         Phase type                       Coupler 1                        Coupler 8                   Coupler 9
+                                 Two distinct peaks, both low     Two distinct peaks, both low    One single peak, low
+        Acceleration
+                                  and high stiffness modes         and high stiffness modes         stiffness mode
+                                  Several distinct peaks, both    Two distinct peaks, both low    One single peak, low
+          Curving
+                                 low and high stiffness modes      and high stiffness modes         stiffness mode
+                                     One single peak, low             One single peak, low        One single peak, low
+        Deceleration
+                                       stiffness mode                   stiffness mode              stiffness mode
+                                  Several distinct peaks, both    Two distinct peaks, both low    One single peak, low
+       Slope climbing
+                                 low and high stiffness modes      and high stiffness modes         stiffness mode
+
+
+Table 7: The significant inferences about spectral results of three couplers for each phase
+
+         Phase type                        Coupler 1                        Coupler 8                  Coupler 9
+
+                                         Max: 9691 N                      Max: 9481 N                Max: 8337 N
+        Acceleration
+                                         RMS: 4066 N                      RMS: 3519 N                RMS: 2792 N
+                                         Max: 2190 N                      Max: 2544 N                Max: 2700 N
+          Curving
+                                         RMS: 1010 N                      RMS: 965 N                 RMS: 1261 N
+                                         Max: 6490 N                      Max: 8617 N                Max: 8617 N
+        Deceleration
+                                         RMS: 1408 N                      RMS: 1957 N                RMS: 2000 N
+                                         Max: 2090 N                      Max: 2785 N                Max: 2860 N
+       Slope climbing
+                                         RMS: 913 N                       RMS: 898 N                 RMS: 1162 N
+
+
+
+     The performances of couplers with small and large ro-              The non-linear train system is simulated with a full non-
+tation angle on a model consisting of four locomotives and              linear hysteresis, and the trajectory tracking control was
+single mass were compared in [38]. The results implied                  performed.
+that couplers with low rotation angle demonstrate better                     The effects of the system parameters, namely the stiff-
+performance in terms of derailment safety when running                  ness and damping of the couplers revealed regarding the
+on curves. The behaviour of a train, which is composed of               time-frequency responses after conducting full simulation
+five detailed locomotives and wagons and additional sim-                for all possible cases. By comparing the value of the con-
+plified vehicles, on S-shaped curve with a narrow curve ra-             troller error, which is the difference between the reference
+dius was also represented. It was deduced that small cou-               and actual locomotive speed, the best-combined value
+                       ◦
+pler angle less than 2 induces higher lateral forces reduc-             of the system parameters proposed. On the other hand,
+ing the safety against derailment.                                      the transfer function between the acceleration of the first
+     The wheel-rail contact condition (e.g., dry, wet, and              wagon and the locomotive force estimated via system iden-
+slippery rail conditions) affecting the traction dynamics               tification procedure and the unit step response time char-
+was addressed in detail with numerical results characteris-             acteristics for each parameterised case was determined. It
+ing the general and structural characteristics of electrome-            can be concluded that one specific case for system param-
+chanical systems in our previous papers [39, 24].                       eters (LHHL) demonstrates better performance concerning
+                                                                        fast response and minimum overshoot for safety and reli-
+                                                                        able operation. By considering two different norm criteria;
+                                                                        namely the most pressing and cumulative force exposure,
+7 Conclusive summary and                                                the coupler forces, wagon accelerations, locomotive force
+  comments                                                              and controller error have been evaluated under the condi-
+                                                                        tion of four different phases (acceleration, curving, slope
+As a result, the equivalence of the proposed simplified                 climbing and deceleration). The results were utilised to se-
+model with a more realistic and sophisticated model was                 lect the first three critical couplers.
+established. A model simplification method explanation                       In the second section, the natural frequencies of the
+from an advanced friction draft gear model and the pro-                 system were calculated by assuming the dynamic be-
+cess by which simplification is achieved was introduced.                haviour can be separated into low and high stiffness re-
+                     Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics      |      141
+
+
+gions. By this means the significant longitudinal modes                  [14] Davydov Y., Keyno M., Longitudinal Dynamics in Connected
+which are responsible for overshoots in the dynamic re-                       Trains, Proc. Eng., 2016, 165, 1490-1495.
+                                                                         [15] Saadat M., et al., Longitudinal Dynamics and Energy Flow
+sponse of the system are determined together with the cor-
+                                                                              Modelling for Diesel-Electric Locomotives, Int. J. Heavy Vehic.
+responding frequency range. Subsequently, spectral con-
+                                                                              Syst., 2016, 23(2), 155.
+tents of the critical coupler forces in time domain were                 [16] Shabana A.A., et al., Use of the Non-Inertial Coordinates in the
+analysed for specified track sections by checking peak am-                    Analysis of Train Longitudinal Forces, J. Comput. Nonlin. Dyn.,
+plitudes and corresponding frequency values which are                         2011, 7(1), 011001.
+closely related with the low and high stiffness character-               [17] Duncan I.B., Webb P.A., The Longitudinal Behaviour of Heavy
+                                                                              Haul Trains Using Remote Locomotives, 4th Int. Heavy Haul
+istics of the nonlinear couplers. Consequently, it can be
+                                                                              Conf., Brisbane, 1989, 587-590.
+deduced that modal and spectral analysis provides vital                  [18] Wu Q., et al., Advanced Dynamic Modelling for Friction Draft
+information about the dynamic response of such systems                        Gears, Vehic. Syst. Dynam., 2015, 53(4), 475-492.
+and its relationship with the coupler parameters.                        [19] Harak S.S., et al., Dynamic Analysis of Draft Gear and Draft
+     This paper has new consideration for extended train                      Pad of Freight Wagon Due to Localized Defects Using FEM, Int.
+                                                                              J. Acoust. Vibrat., 2016, 21, 3, 3422.
+dynamics analysis by using not only the time domain sim-
+                                                                         [20] Harak S.S., et al., Effect of Multiple Location Defects on the
+ulation but also from the viewpoint of the frequency do-
+                                                                              Dynamics of Draft Gear Used in Freight Railway Wagon, Int. J.
+main, which is helpful for better understanding the in-                       Vehic. Struct. Syst., 2015, 7(3), 107-113.
+train vibration behaviour.                                               [21] Ansari M., et al., Longitudinal Dynamics of Freight Trains., Int.
+                                                                              J. Heavy Vehic. Syst., 2009, 16(1/2), 102.
+                                                                         [22] Wu Q., et al., Longitudinal Dynamics and Energy Analysis for
+                                                                              Heavy Haul Trains., J. Modern Transport., 2014, 22(3), 127-136.
+References                                                               [23] Garg V.K., Dukkipati R.V., Dynamics of Railway Vehicle Sys-
+                                                                              tems, 1984, Toronto, Acad. Press.
+[1]    Cole C., Longitudinal Train Dynamics, Handbook of Railway         [24] Uyulan Ç., Metin G., Modeling, Simulation and Re-Adhesion
+       Vehicle Dynamics, 2006, 239-277, Taylor & Francis Group, LLC.          Control of an Induction Motor-Based Railway Electric Traction
+[2]    Belforte P., et al. , Numerical and Experimental Approach for          System., Proc. Instit. Mech. Eng. Part I: J. Syst. Control Eng.,
+       the Evaluation of Severe Longitudinal Dynamics of Heavy                2017, 232(1), 3-11.
+       Freight Trains, Vehic. Syst. Dynam., 2008, 46(1), 937-955.        [25] Cole C., et al., Modelling, Simulation and Applications of Lon-
+[3]    Wu Q. et al., Longitudinal Train Dynamics: an Overview, Vehic.         gitudinal Train Dynamics, Vehic. Syst. Dynam., 2017, 55(10),
+       Syst. Dynam., 2016, 54(12), 1688-1714.                                 1498-1571.
+[4]    Hsu, T.-K., and D. A. Peters., A Simple Dynamic Model For Sim-    [26] Wei W., et al., An Air Brake Model for Longitudinal Train Dy-
+       ulating Draft-Gear Behavior In Rail-Car Impacts, J. Eng. Indus-        namics Studies, Vehic. Syst. Dynam., 2016, 55(4), 517-533.
+       try, 1978, 100(4), 492.                                           [27] Spiryagin M., et al. , Design and Simulation of Rail Vehicles,
+[5]    Wu Q., et al., Advanced Dynamic Modelling for Friction Draft           2017, CRC Press, Taylor & Francis Group.
+       Gears, Vehic. Syst. Dynam., 2015, 53(4), 475-492.                 [28] Spiryagin M., Design and Simulation of Heavy Haul Locomo-
+[6]    Wu Q., et al., A Review of Dynamics Modelling of Friction Draft        tives and Trains, 2017, CRC Press, Taylor & Francis Group.
+       Gear, Vehic. Syst. Dynam., 2014, 52(6), 733-758.                  [29] Rochard B.P., Schmid F., A Review of Methods to Measure and
+[7]    Wu Q., Spiryagin M., Cole C., A Dynamic Model of Friction Draft        Calculate Train Resistances, Proc. Instit. Mech. Eng. Part F: J.
+       Gear, Volume 6: 10th Int. Conf. Multibody Systems, Nonlin.             Rail Rapid Transit, 2000, 214(4), 185-199.
+       Dyn. Contr., 2015, DETC2014-34159, V006T10A020.                   [30] Iwnicki S., et al., Handbook of Railway Vehicle Dynamics,
+[8]    Ma W., et al., Coupler Dynamic Performance Analysis of Heavy           2020, CRC Press, Taylor & Francis Group.
+       Haul Locomotives, Vehic. Syst. Dynam., 2012, 50(9), 1435-         [31] Ljung L., System Identification: Theory for the User, 2012,
+       1452.                                                                  Prentice Hall PTR.
+[9]    Wu Q., Cole C., Computing Schemes for Longitudinal Train          [32] Giorgio D., et al., Numerical and Experimental Investigation
+       Dynamics: Sequential, Parallel and Hybrid, J. Comput. Nonlin.          of Heavy Freight Train Dynamics, ASME 2007 Int. Mech. Eng.
+       Dyn., 2015, 10(6), 064502.                                             Congr. Expo. Vol. 16: Transport. Syst., IMECE2007-42693, 439-
+[10]   Wu Q., et al., Parallel Computing Scheme for Three-                    448.
+       Dimensional Long Train System Dynamics, J. Comput. Nonlin.        [33] Liu P., et al., Establishment and Verification of Three-
+       Dyn., 2017, 12(4), 044502.                                             Dimensional Dynamic Model for Heavy-Haul Train-Track Cou-
+[11]   Andersen D.R., et al., Train Energy and Dynamics Simulator             pled System, Vehic. Syst. Dynam., 2016, 54(11), 1511-1537.
+       (TEDS): A State-of-the-Art Longitudinal Train Dynamics Simula-    [34] Qi Z., et al., Simulation of Longitudinal Dynamics of Long
+       tor, ASME 2012 Rail Transport. Div. Fall Techn. Conf., 2012.           Freight Trains in Positioning Operations, Vehic. Syst. Dynam.,
+[12]   Genin J., et al., Longitudinal Track-Train Dynamics: A New Ap-         2012, 50(9), 1409-1433.
+       proach, J. Dyn. Syst., Meas. Contr., 1974, 96(4), 466-469.        [35] Bosso N., Zampieri N., Long Train Simulation Using a Multi-
+[13]   Ling L., et al., A 3D Model for Coupling Dynamics Analysis of          body Code, Vehic. Syst. Dynam., 2016, 55(4), 552-570.
+       High-Speed Train/Track System, J. Zhejiang Univ. Sci. A, 2014,    [36] Zhang Z„ et al., Compressed Stability Analysis of the Coupler
+       15(12), 964-983.                                                       and Buffer System of Heavy-Haul Locomotives, Vehic. Syst.
+                                                                              Dynam., 2015, 53(6), 833-855.
+142 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+[37] Massa A., et al., Numerical Study of the Noninertial Systems:
+     Application to Train Coupler Systems, Nonlin. Dyn., 2011, 68(1-
+     2), 215-233.
+[38] Ma W., et al., Coupler Dynamic Performance Analysis of Heavy
+     Haul Locomotives, Vehic. Syst. Dyn., 2012, 50(9), 1435-1452.
+[39] Uyulan C., et al., Modeling, Simulation and Slip Control of a
+     Railway Vehicle Integrated with Traction Power Supply, Cogent
+     Eng., 2017, 4(1), 1312680.
+[40] Ansari M., et al., Effects of Coupler Specifications and Opera-
+     tional Conditions on the Longitudinal Freight Train Dynamics.,
+     Volume 3: 19th Int. Conf. Design Theory and Methodology;
+     1st Int. Conf. Micro- and Nanosystems; and 9th Int. Conf.
+     Advanced Vehicle Tire Technologies, Parts A and B, 2007,
+     DETC2007-35809, 1279-1286.
+                  Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics   |   143
+
+
+              APPENDIX-I: Parameters and their numerical values used in the LTD simulation [40, 35, 15, 21].
+
+Parameter                                                                                                          Numerical value
+b i (low)                                                                                                              999.8706 Ns m
+b i (high)                                                                                                                 2512 Ns m
+k i1 (low)                                                                                                           3.6086 * 106 mN
+                                                                                                                                 6 N
+k i1 (high)                                                                                                       8.265776 * 10 m
+k i2 (low)                                                                                                           1.0079 * 105 mN
+                                                                                                                                 6 N
+k i2 (high)                                                                                                       1.856364 * 10 m
+k i3 (low)                                                                                                           3.4748 * 106 mN
+                                                                                                                                 6 N
+k i3 (high)                                                                                                       7.998176 * 10 m
+m dyn,loco                                                                                                                74151 kg
+m wagon,i                                                                                                                 90000 kg
+ϵ                                                                                                                          0.025 m
+A                                                                                                                     8.202 * 103 N
+B                                                                                                                  0.10656 * 103 Nsm
+                                                                                                                                    2
+C                                                                                                              0.0119322 * 103 Ns m2
+κ                                                                                                                                200
+Ry                                                                                                                            300 m
+h                                                                                                                                540
+n                                                                                                                                   9
+g                                                                                                                           9.81 sm2
+m stc                                                                                                               8.7663 * 105 kg
+m dyn                                                                                                               8.8405 * 105 kg
+ν                                                                                                                              0.6 ms
+
+                                    APPENDIX-II: List of the estimated transfer functions.
+
+                                                 0.972 + 0.5093z−1 + 0.3467z−2 + 0.5368z−3
+                             H LLLL (z) =
+                                            1 + 0.3974z−1 + 0.5325z−2 + 0.4519z−3 + 0.02797z−4
+                                                   1 + 0.1871z−1 + 0.2661z−2 + 0.3232z−3
+                          H LLLH (z) =
+                                          1 + 0.1871z−1 + 0.2661z−2 + 0.3232z−3 + 2.571 * 10−7 z−4
+                                                0.9799 + 0.3041z−1 + 0.3391z−2 + 0.4271z−3
+                            H LLHL (z) =
+                                            1 + 0.2239z−1 + 0.4595z−2 + 0.3469z−3 + 0.02006z−4
+                                                     1 + 0.4581z−1 + 0.471z−2 + 0.48z−3
+                            H LLHH (z) =
+                                            1 + 0.4581z−1 + 0.471z−2 + 0.48z−3 + 7.962 * 10−7 z−4
+                                                   1 + 0.4798z−1 + 0.4286z−2 + 0.3648z−3
+                          H LHLL (z) =
+                                          1 + 0.4798z−1 + 0.4286z−2 + 0.3648z−3 + 9.275 * 10−7 z−4
+                                                   1 + 0.2387z−1 + 0.294z−2 + 0.3344z−3
+                           H LHLH (z) =
+                                          1 + 0.2387z−1 + 0.294z−2 + 0.3344z−3 + 3.647 * 10−8 z−4
+                                                   1 + 0.1734z−1 + 0.2141z−2 + 0.2498z−3
+                          H LHHL (z) =
+                                          1 + 0.1734z−1 + 0.2141z−2 + 0.2498z−3 + 1.142 * 10−7 z−4
+                                                   1 + 0.4723z−1 + 0.4739z−2 + 0.4933z−3
+                          H LHHH (z) =
+                                          1 + 0.4723z−1 + 0.4739z−2 + 0.4933z−3 + 5.715 * 10−7 z−4
+                                                   1 + 0.3813z−1 + 0.4262z−2 + 0.383z−3
+                           H HLLL (z) =
+                                          1 + 0.3813z−1 + 0.4262z−2 + 0.383z−3 + 5.382 * 10−8 z−4
+                                                0.9734 + 0.4587z−1 + 0.3876z−2 + 0.5393z−3
+                            H HLLH (z) =
+                                            1 + 0.3525z−1 + 0.5469z−2 + 0.4331z−3 + 0.02655z−4
+                                                0.9755 + 0.4287z−1 + 0.3183z−2 + 0.4468z−3
+                            H HLHL (z) =
+                                            1 + 0.3307z−1 + 0.4562z−2 + 0.3489z−3 + 0.02449z−4
+144 | Caglar Uyulan and Ersen Arslan, Simulation and time-frequency analysis of the longitudinal train dynamics
+
+
+                                                 1 + 0.3256z−1 + 0.3438z−2 + 0.3678z−3
+                         H HLHH (z) =
+                                        1 + 0.3256z−1 + 0.3438z−2 + 0.3678z−3 + 2.487 * 10−7 z−4
+                                                   1 + 0.328z−1 + 0.341z−2 + 0.2834z−3
+                           H HHLL (z) =
+                                          1 + 0.328z−1 + 0.341z−2 + 0.2834z−3 + 5.754 * 10−9 z−4
+                                              0.9805 + 0.3583z−1 + 0.2993z−2 + 0.3961z−3
+                           H HHLH (z) =
+                                          1 + 0.2802z−1 + 0.4164z−2 + 0.3181z−3 + 0.01951z−4
+                                                 1 + 0.3671z−1 + 0.4512z−2 + 0.4662z−3
+                         H HHHL (z) =
+                                        1 + 0.3671z−1 + 0.4512z−2 + 0.4662z−3 + 6.404 * 10−8 z−4
+                                                 1 + 0.9142z−1 + 0.8917z−2 + 0.8144z−3
+                         H HHHH (z) =
+                                        1 + 0.9142z−1 + 0.8917z−2 + 0.8144z−3 − 6.806 * 10−7 z−4
+

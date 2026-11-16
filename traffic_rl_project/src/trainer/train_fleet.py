@@ -56,7 +56,6 @@ def train(
     consist_preset: str = '10kt_1plus0',
     grade_profile: str = 'shuozhou_23800',
     target_speed: float = None,
-    target_gap: float = 100.0,
     max_steps: int = 300,
     v_max: float = PhysicsConfig.v_max_mps,      # 参数中心化：统一取 physics_config
     v_min: float = PhysicsConfig.v_min_mps,
@@ -108,7 +107,6 @@ def train(
         'grade_profile': grade_profile,
         'v_max': v_max,
         'v_min': v_min,
-        'target_gap': target_gap,
         'max_steps': max_steps,
         'max_accel': max_accel,
         'enable_disturbance': enable_disturbance,
@@ -139,7 +137,7 @@ def train(
         "algorithm": "mappo",
         "episodes": episodes, "num_trains": num_trains,
         "consist_preset": consist_preset, "grade_profile": grade_profile,
-        "target_speed": target_speed, "target_gap": target_gap, "max_steps": max_steps,
+        "target_speed": target_speed, "max_steps": max_steps,
         "lr": lr, "entropy": entropy, "batch_size": batch_size, "epochs": epochs,
         "decision_interval": decision_interval, "mask_lever": mask_lever,
         "decompose": decompose, "action_dim": action_dim, "group_obs": group_obs,
@@ -177,7 +175,7 @@ def train(
     logger.info(f"单列编组: {consist_preset}")
     logger.info(f"坡度剖面: {grade_profile}")
     logger.info(f"限速区间: [{v_min*3.6:.0f}, {v_max*3.6:.0f}] km/h (循环制动)")
-    logger.info(f"巡航参考速度: {(env.target_speed):.1f} m/s | 列间目标间距: {target_gap} m")
+    logger.info(f"巡航参考速度: {(env.target_speed):.1f} m/s | 间距参考: d_eff=1.1×d_safe (ATP 同源)")
     logger.info(f"每列 obs={obs_dim}维, act={act_dim}维")
     logger.info(f"设备: {device}")
 
@@ -369,7 +367,7 @@ def train(
                     'decompose': decompose,     # 【ADR-009.1】逐机车电空分工模式
                     'coupler_constraint': use_coupler_constraint,
                     'best_reward': float(best_reward),
-                    'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β',
+                    'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β + 曲线阻力600/(R-55)(2026-11-09 ADR-060)',
                 },
                 results_dir=results_dir,
                 figures_dir='outputs/figures',
@@ -407,7 +405,9 @@ if __name__ == '__main__':
                         help='坡度剖面（默认朔黄宁武西→北大牛真实纵断面 49.6km，循环制动）')
     parser.add_argument('--target_speed', type=float, default=None,
                         help='巡航参考速度（默认取限速区间中值）')
-    parser.add_argument('--target_gap', type=float, default=100.0)
+    parser.add_argument('--target_gap', type=float, default=None,
+                        help='【ADR-061 已废止】100m/5s 间距参考线无文献锚已删除；'
+                             '参数仅保留向后兼容 CLI，传入即报错提示迁移')
     parser.add_argument('--max_steps', type=int, default=300)
     parser.add_argument('--v_max', type=float, default=80.0 / 3.6,
                         help='限速上限 m/s（默认 80 km/h，朔黄线线路限速，Zhang2024）')
@@ -472,13 +472,15 @@ if __name__ == '__main__':
                         help='起始全局回合号（-1=从 resume 历史推断；分块续训时传入已完成回合数）')
 
     args = parser.parse_args()
+    if args.target_gap is not None:
+        parser.error('--target_gap 已废止（ADR-061：100m/5s 参考线无文献锚已删除）；'
+                     '间距参考统一为 d_eff=1.1×d_safe，无需任何参数')
     train(
         episodes=args.episodes,
         num_trains=args.num_trains,
         consist_preset=args.preset,
         grade_profile=args.grade,
         target_speed=args.target_speed,
-        target_gap=args.target_gap,
         max_steps=args.max_steps,
         v_max=args.v_max,
         v_min=args.v_min,

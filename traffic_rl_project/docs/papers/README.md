@@ -4,6 +4,7 @@
 > 与 `docs/REFERENCE_INDEX.md`（**技术/公式 → 论文**，写作速查）互补：本页按「文献」组织，RefIndex 按「技术点」组织。
 > 索引入口：本页由 `docs/README.md` 登记。
 > **文献讨论成果（逐篇证据 / 指标术语对照 / 防追尾机制分级 / ATP 诚实边界）**：[`LITERATURE_FINDINGS.md`](LITERATURE_FINDINGS.md) —— 写 Related Work、指标表、图表标签前先读它；本页只管"有哪些文献"，不管"讨论出了什么"。
+> **核心文献"结论处的不足"原文摘录（英文原文 + 中译 + 行号）**：同上文件 **§七** —— 写 GAP 段、回应"前人不足"时按行引用。
 
 ## 目录结构（分主题子目录）
 
@@ -127,6 +128,8 @@
 | Yu2022 / Hessel2019（MAPPO + PopArt） | NeurIPS 2022 / AAAI 2019 | 算法依据 |
 | Liu2025 虚拟耦合 MARL | IEEE ITS Magazine 2025 | train=agent 分解 |
 | Wu2023 虚拟耦合综述 | IEEE TIV 2023 | 综述 |
+| Muniandi 2020 区块链虚拟耦合冲突控制 | IET ITS 14(6):611-619, DOI 10.1049/iet-its.2019.0694 | ADR-061 间距锚（VC 安全间距 = 制动距离内运行）；一手全文已核，无本地 PDF |
+| Wu Qing 2024 重载虚拟编组 time headway | ASME JDSMC 146(4):041008, DOI 10.1115/1.4065401 | ADR-061 间距锚（headway 设计族 + 重载 time headway 更优）；Crossref 题录核实，无本地 PDF |
 | Basile2022 RL 虚拟耦合路线图 | DAI 2022 | 路线图 |
 | Chen2024 分布式全局复合学习 | IEEE TITS 2024 | 协同控制 |
 | Vaquero2025 虚拟耦合 LMPC | CACIE 2025 | MPC 对照 |
@@ -152,29 +155,41 @@
 - 林轩等2017：HXD2牵引货运列车长大下坡区间周期性制动研究，DOI10.3969/j.issn.0258-2724.2017.05.004；HXD2+100辆C80，全文待获取。
 - 肖致明等2023：考虑制动性能差异的重载列车模式化操纵方法，DOI10.13890/j.issn.1000-128X.2023.01.004；北大牛—原平南，编组/公式待全文。
 
-技术适用范围见REFERENCE_INDEX同日条目，BibTeX见docs/refs.bib。MIS检索指令保存在D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_MIS再制动专项检索指令_20261018.md。
+技术适用范围见REFERENCE_INDEX同日条目，BibTeX见docs/refs.bib。MIS检索指令保存在traffic_rl_project/docs/reports/controller_takeover_20261017/TraeWork_MIS再制动专项检索指令_20261018.md。
 
 
 ### 新增中文全文实物与关键章节复核-2026-10-18
 
-此前待全文条目为当时库存状态。现已取得林轩中文10页、董克毓4页、黄宇澄119页、肖博懿95页、李彬卓100页，权威原件位于D:/Codex/Documents/Train/paper/万吨108节_再制动压力建立专项/20261018/原文PDF/；来源SHA与带PDF页码文本见同目录原文复核_补充全文_20261018/source_manifest.json。重点核对而非逐页精读：林轩PDF3式(9)充风时间及PDF4缓解速度上界（130秒为本文取值）；黄宇澄PDF34—35/42—43的最低缓解速度、最小缓解时间、转换点条件；董文三机116辆、580kPa判据的68—76秒不用于单机108辆。李文基础模型双机50辆C70E，肖文主对象两万吨，均只筛读适用范围、不迁移数值。题录见docs/refs.bib。
+此前待全文条目为当时库存状态。现已取得林轩中文10页、董克毓4页、黄宇澄119页、肖博懿95页、李彬卓100页，权威原件位于external_archive/paper/万吨108节_再制动压力建立专项/20261018/原文PDF/；来源SHA与带PDF页码文本见同目录原文复核_补充全文_20261018/source_manifest.json。重点核对而非逐页精读：林轩PDF3式(9)充风时间及PDF4缓解速度上界（130秒为本文取值）；黄宇澄PDF34—35/42—43的最低缓解速度、最小缓解时间、转换点条件；董文三机116辆、580kPa判据的68—76秒不用于单机108辆。李文基础模型双机50辆C70E，肖文主对象两万吨，均只筛读适用范围、不迁移数值。题录见docs/refs.bib。
 
-209.5秒为候选缓解到超速窗口，非充风完成时间；当前模型未显式实现完整副风缸再充气动态，不能用制动缸系数反推580kPa时间。修复先查允许缓解速度上下界及充风/下次压力建立余量，保留222秒和1000kN。原文页图与详细解释见D:/Codex/Documents/Train/controller_takeover_20261017/新增全文复核与缓解可行性修复依据_20261018.md。
+209.5秒为候选缓解到超速窗口，非充风完成时间；当前模型未显式实现完整副风缸再充气动态，不能用制动缸系数反推580kPa时间。修复先查允许缓解速度上下界及充风/下次压力建立余量，保留222秒和1000kN。原文页图与详细解释见traffic_rl_project/docs/reports/controller_takeover_20261017/新增全文复核与缓解可行性修复依据_20261018.md。
 
 
 ### 缓解预测误差与数值收敛定向检索-2026-10-18
 
 Zhou/Shi/Hecht，Vehicle System Dynamics60(7):2436—2450，2022（在线2021），DOI10.1080/00423114.2021.1901943：已通过佛罗伦萨大学作者仓储网页读取16页含封面的预印本，讨论不同摩擦迟滞过渡与积分收敛；直接下载受站点验证拦截，未存本地PDF。不能把文中0.1/0.2ms或1ms直接规定为本项目步长，更不能据此断言当前模型错误。[作者仓储](https://flore.unifi.it/retrieve/b71cbe68-acf7-4b44-87f4-fdb45a5f1c56/Comparison%20of%20friction%20draft%20gear%20models%20for%20simulation%20in%20longitudinal%20train%20dynamics_V2025.pdf)。
 
-下一步需原文的方法线索：郭炎冰等《一种用于重载列车纵向动力学仿真的变步长积分算法》，铁道车辆2023,61(3):147—152，题录已由肖博懿PDF92—93参考文献50核实；Wu等国际LTD基准结果，DOI10.1080/00423114.2017.1377840，全文待取。题录见refs.bib；现有lei2019_gooa.pdf不重复下载。MIS检索任务D:/Codex/Documents/Train/controller_takeover_20261017/TraeWork_缓解预测与数值收敛定向检索_20261018.md。用途为验证与误差评估，不是算法创新或当前车钩模型改动依据。
+下一步需原文的方法线索：郭炎冰等《一种用于重载列车纵向动力学仿真的变步长积分算法》，铁道车辆2023,61(3):147—152，题录已由肖博懿PDF92—93参考文献50核实；Wu等国际LTD基准结果，DOI10.1080/00423114.2017.1377840，全文待取。题录见refs.bib；现有lei2019_gooa.pdf不重复下载。MIS检索任务traffic_rl_project/docs/reports/controller_takeover_20261017/TraeWork_缓解预测与数值收敛定向检索_20261018.md。用途为验证与误差评估，不是算法创新或当前车钩模型改动依据。
 ### 2026-10-19 既有全文再核对：恒持的是电制动力
 
 马志强等2023《重载列车平稳运行的空电联合制动匹配控制》，DOI10.13890/j.issn.1000-128X.2023.02.103；用户D盘原PDF与提取文本已存在，不重复下载。PDF4式7/§3.3及PDF5二万吨背景再核实；“缓解后恒持ED50秒”不自动支持本轮30秒或25%力目标。来源与口径见 REFERENCE_INDEX.md 同日条目，bib为ma2023_braking_matching。局部改进仍须动态和全线验收。
 
 ### 2026-10-19 新增全文：缓解恒持力与充风时间定义
 
-于岩/魏伟2023 DOI10.13711/j.cnki.cn32-1836/u.2023.04.001，原PDF3已看图，二万吨双机加列尾；支撑坡段筛选加动态验证及缓解后ED不变，不搬公里标/18—50秒峰值时窗。孙中央/王长明2009《铁道机车车辆》29(1):4—7，PDF1式1与PDF2增速验算已核，双机5000吨/约60辆，不搬充风秒数或30km/h缓解速度。郭炎冰等2023 DOI10.3969/j.issn.1002-7602.2023.03.026已获全文，PDF5已看图，108辆C70E平道全制动及特定算法步长对照，不代表当前模型已验证或必须改用其步长。以上取代旧“郭文全文待取”的当前状态；bib为yu2023_daqin_release_location/sun2009_long_downhill_safety/guo2023_variable_step_ltd。原PDF均在D:/Codex/Documents/Train/paper；带页码提取、关键页图和SHA清单在D:/Codex/Documents/Train/paper/新增全文复核_20261019。8份全文已提取不等于全部逐页读完；当前重点复核上述控制/数值章节，陈清扫描文关键数字有识别缺失，未采用其参数。保持力的25%/50%/75%比例均为本地诊断，原文没有规定这些比例。
+于岩/魏伟2023 DOI10.13711/j.cnki.cn32-1836/u.2023.04.001，原PDF3已看图，二万吨双机加列尾；支撑坡段筛选加动态验证及缓解后ED不变，不搬公里标/18—50秒峰值时窗。孙中央/王长明2009《铁道机车车辆》29(1):4—7，PDF1式1与PDF2增速验算已核，双机5000吨/约60辆，不搬充风秒数或30km/h缓解速度。郭炎冰等2023 DOI10.3969/j.issn.1002-7602.2023.03.026已获全文，PDF5已看图，108辆C70E平道全制动及特定算法步长对照，不代表当前模型已验证或必须改用其步长。以上取代旧“郭文全文待取”的当前状态；bib为yu2023_daqin_release_location/sun2009_long_downhill_safety/guo2023_variable_step_ltd。原PDF均在external_archive/paper；带页码提取、关键页图和SHA清单在external_archive/paper/新增全文复核_20261019。8份全文已提取不等于全部逐页读完；当前重点复核上述控制/数值章节，陈清扫描文关键数字有识别缺失，未采用其参数。保持力的25%/50%/75%比例均为本地诊断，原文没有规定这些比例。
 
-2026-10-19新增本地全文复核：常崇义等2026（DOI10.19818/j.cnki.1671-1637.2026.197，PDF9—10平衡迭代）与熊芯等2025（DOI10.16385/j.cnki.issn.1004-4523.202506045，PDF6式11）。Bib键chang2026_ltd_progress/xiong2025_realtime_ltd。来源和方法适用边界见D:/Codex/Documents/Train/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md；三份PDF及哈希文本在D盘paper/数值积分收敛专项/原文复核_20261019。未复制车型参数，不将摘要或检索建议当已读全文。
+2026-10-19新增本地全文复核：常崇义等2026（DOI10.19818/j.cnki.1671-1637.2026.197，PDF9—10平衡迭代）与熊芯等2025（DOI10.16385/j.cnki.issn.1004-4523.202506045，PDF6式11）。Bib键chang2026_ltd_progress/xiong2025_realtime_ltd。来源和方法适用边界见traffic_rl_project/docs/reports/controller_takeover_20261017/新增论文与联合容差收敛复核_20261019.md；三份PDF及哈希文本在D盘paper/数值积分收敛专项/原文复核_20261019。未复制车型参数，不将摘要或检索建议当已读全文。
 
 2026-10-19文献状态：Zhou2022（DOI10.1080/00423114.2021.1901943）已再次通过大学官方仓储网页读16页预印本相关正文，非只有摘要；本地PDF下载仍受站点验证拦截，未用MIS。原文切换/效率讨论不等于本项目tanh模型错误或其步长可直接移植。原刊入口https://www.tandfonline.com/doi/full/10.1080/00423114.2021.1901943 ，仓储https://flore.unifi.it/handle/2158/1258138 。待补的2006平衡迭代、1990预测校正全文与具体提取项见D盘最新TraeWork_MIS力时程精度与计算效率专项_20261019.md。
+
+### 2026-11-11 训练设置证据组（在线检索，**不下载到本地**）
+
+用户 2026-11-11 指示：本组文献只登记、不落盘。用途 = 回答"训练 episode 怎么定义 / 决策间隔多大 / 集数多少 / 状态是否含绝对位置"，支撑 **ADR-064**。逐条映射见 `docs/REFERENCE_INDEX.md`「ADR-064 训练设置证据组」，BibTeX 见 `docs/refs.bib`（键含 `frameskip` / `tang2026_mappo` / `karimi2022_ctco` / `treven2024_tacos` / `huang2025_eito` / `jin2025_partial_gae` / `patel2025_slow_decision` / `yoo2025_aela` / `sppo2026` / `wang2024_variable_timestep` / `hashimoto2021_pseudo_actions` / `wei2024_platoon` / `basile2024_ddpg_virtual_coupling` / `jing2025_vcts` / `zhang2025_lookahead` / `safe_drl_train_cooperative_energy_2025` / `virtual_coupling_lmpc_2025`）。
+
+| 组 | 来源（★=读到全文/详细设置；均无本地文件） |
+|---|---|
+| 同领域 | ★Tang2026 Sci Rep 16:19300（MAPPO 全集/1e4 集）· ★Huang2025 PLoS ONE 20(5):e0323478（PPO/0.02 s/≈5050 步/80 集）· rHHT IEEE 2026 (11642769) · Xie2025 ICNSC:261-266 · IEEE 2025 (11216684) · MDPI Systems 13(9):762 · Zhang2024 TR-C（doi:10.1016/j.trc.2021.103226，本地另有 Algorithms 版全文） |
+| 方法论 | ★Kalyanakrishnan2021 arXiv:2102.03718（**frame-skip d↔γ 联合调整**）· ★Karimi2022 IROS arXiv:2212.04407（γ=exp(−τdt)）· ★Treven2024 NeurIPS arXiv:2406.01163（交互 200→24）· Jin2025 IEEE ToG（Partial GAE）· Patel2025 ICLR arXiv:2410.08979 · Yoo2025 arXiv:2505.19637（AELA）· SPPO arXiv:2604.08865 · Wang2024 arXiv:2407.00290 · Hashimoto2021 arXiv:2105.03041 · Staggered Resets (OpenReview) · Wei2024 arXiv:2412.01075 |
+| 编队/连挂对照 | Basile2024 Eng Appl AI · Liu2024 IEEE ITSM 17(4) · Jing2025 Tsinghua Sci Tech · Zhang2025 Eng Appl AI · Applied Intelligence 2025 · LMPC arXiv:2507.02383 |
+
+**未核实 DOI 的条目不进 `refs.bib`**（rHHT / Xie2025 / IEEE 11216684 / MDPI Systems 13:762），仅在 `REFERENCE_INDEX.md` 以 venue+年份登记。

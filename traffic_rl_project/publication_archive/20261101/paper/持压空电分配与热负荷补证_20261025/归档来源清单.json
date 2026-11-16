@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-25",
+  "scope": "Copied for independent review; source files preserved. MIS browser activity is reported by TraeWork, not independently replayed here.",
+  "files": [
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\持续空气制动与热负荷判定_20261025.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\持续空气制动与热负荷判定_20261025.md",
+      "source_sha256": "e3be3615a5348d9241d90be06783efdbafaee77f5758ee3cb24122d8d074b568",
+      "archive_sha256": "e3be3615a5348d9241d90be06783efdbafaee77f5758ee3cb24122d8d074b568"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\检索记录_20261025.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\检索记录_20261025.md",
+      "source_sha256": "1882b99c3f36e3f0c00505a72eaaccff32e971b62daa6ba19ae5fc984bd29a09",
+      "archive_sha256": "1882b99c3f36e3f0c00505a72eaaccff32e971b62daa6ba19ae5fc984bd29a09"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\缺失清单_20261025.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\缺失清单_20261025.md",
+      "source_sha256": "6fb4c8ce5b5c863951cd0935d2080ae3ad80e20a5cf3a2a65e394680c0e7bb84",
+      "archive_sha256": "6fb4c8ce5b5c863951cd0935d2080ae3ad80e20a5cf3a2a65e394680c0e7bb84"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\证据卡_专利CN113696866A.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\证据卡_专利CN113696866A.md",
+      "source_sha256": "997e6130d902bc8bc9e714829e359eef5a5522d1bcb86ac7e1a96debd95bc9a8",
+      "archive_sha256": "997e6130d902bc8bc9e714829e359eef5a5522d1bcb86ac7e1a96debd95bc9a8"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\证据卡_周高伟2026_踏面持续制动台架.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\证据卡_周高伟2026_踏面持续制动台架.md",
+      "source_sha256": "87abb49a94de7065c0b0264f4ba6da78ca6687fa070fcbb52fec2787ba2379f3",
+      "archive_sha256": "87abb49a94de7065c0b0264f4ba6da78ca6687fa070fcbb52fec2787ba2379f3"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\证据卡_毛保华2020_周期性制动车轮温升.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\证据卡_毛保华2020_周期性制动车轮温升.md",
+      "source_sha256": "048ad55d8b4aea00e2602b3bc5c6ec43722a7e41b940d8fe08e626ccdb297e1b",
+      "archive_sha256": "048ad55d8b4aea00e2602b3bc5c6ec43722a7e41b940d8fe08e626ccdb297e1b"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\证据卡_赵紫宁2022_温度历史修正.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\证据卡_赵紫宁2022_温度历史修正.md",
+      "source_sha256": "a179ff037c7e7b3328d47126f0a01db12694421b3cf4267e377cb895ee3bda4e",
+      "archive_sha256": "a179ff037c7e7b3328d47126f0a01db12694421b3cf4267e377cb895ee3bda4e"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\证据卡_陈旭2014_闸瓦热负荷.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\证据卡_陈旭2014_闸瓦热负荷.md",
+      "source_sha256": "7d3ebe8973f6787c2d7f75d583931d460a3d5c9657fe0672aa68841937c416d7",
+      "archive_sha256": "7d3ebe8973f6787c2d7f75d583931d460a3d5c9657fe0672aa68841937c416d7"
+    },
+    {
+      "source": "F:\\TRAEWORK_SPACE\\持压空电分配与热负荷补证_导出\\证据卡_马志强2023_空电匹配控制.md",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\证据卡_马志强2023_空电匹配控制.md",
+      "source_sha256": "27c111953ccc83ce534d95e253d17bc081a8a3004ffb78d8470fe2ae9179adeb",
+      "archive_sha256": "27c111953ccc83ce534d95e253d17bc081a8a3004ffb78d8470fe2ae9179adeb"
+    },
+    {
+      "source": "E:\\Users\\XMC\\Downloads\\高摩擦系数合成闸瓦热负荷研究_陈旭.pdf",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\原文PDF\\高摩擦系数合成闸瓦热负荷研究_陈旭.pdf",
+      "source_sha256": "f6364434bfdd25aaf5467c5805f3ac700f818fcb43d0814cfdb44962cbaa334c",
+      "archive_sha256": "f6364434bfdd25aaf5467c5805f3ac700f818fcb43d0814cfdb44962cbaa334c"
+    },
+    {
+      "source": "E:\\Users\\XMC\\Downloads\\超长大坡道持续制动条件下列车车轮踏面温度分布的试验研究.pdf",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\原文PDF\\超长大坡道持续制动条件下列车车轮踏面温度分布的试验研究_周高伟.pdf",
+      "source_sha256": "98f9cef2ee5ebde33d6a6a85e295ec7e7c329c4b06bc93218aa948f2a77eb7a4",
+      "archive_sha256": "98f9cef2ee5ebde33d6a6a85e295ec7e7c329c4b06bc93218aa948f2a77eb7a4"
+    },
+    {
+      "source": "E:\\Users\\XMC\\Downloads\\长大坡道货运列车周期性制动下车轮温升分析_毛保华.pdf",
+      "archive": "D:\\Codex\\Documents\\Train\\paper\\持压空电分配与热负荷补证_20261025\\原文PDF\\长大坡道货运列车周期性制动下车轮温升分析_毛保华.pdf",
+      "source_sha256": "78c8c626a64eb992ac6aa4f0fa75564f28c36704292f85313bb5bc5608009504",
+      "archive_sha256": "78c8c626a64eb992ac6aa4f0fa75564f28c36704292f85313bb5bc5608009504"
+    }
+  ]
+}

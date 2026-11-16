@@ -1,0 +1,28 @@
+3
+
+The Predictor-Corrector Scheme Based on the
+Newmarks Integration Algorithm for
+Nonlinear Structural Dynamic Analyses
+
+Zhai 伟 amming
+
+(Researeh Institate of Rail Vehicle Soutiwsest Jiaotong Uaiversitbn)
+
+Abstract
+
+Based on the Newmark「s tmplicit integration algorithm which is well known
+and wide ased in the domain 。of structural dynamie analyses,an “explicit
+algorithm 识 constructed to form a predictor-eorrector intcgration scheme。,This
+scheme is not only simple bat also with bigher aceuracy,By means of this
+predictor-corrector scheme, 让 is conyenient to analyse complex nonlinear dynamie
+systems disercted “by fintte element methods becanse of the needlessness of
+solying high order algcbraic linear eduations in each integration step。
+
+In this paper,the nonlinear ntmerical stability and aceuraey of this scheme
+诊 diseussed by asing numerieal experiment methods。 it 英 shown that 。 圭
+predictor-eorreetor integration scheme “may “have higher accuracy “than the
+Newmark (B 二 1/49,Park and Houholt methods as long as its stable condition
+is kept。 A criterion 诊 also presented in this paper “to examine whether the
+calculation result s believable for eomplex nonlinear problem。At the end of
+
+this paper,an applied cxample of engincering problems i given,

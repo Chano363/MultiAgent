@@ -1,0 +1,106 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
+# ADR-065 / S2 机制改动：RL 直接给「绝对档位」，不经规则循环制动状态机
+#
+# 与 S1/residual 的本质区别（机制层面）：
+#   旧：final = clip(baseline_ed + 0.5·ed_mod)，AB 只能"抑制/提前触发 baseline 的 SERVICE"
+#       ⇒ RL 对 AB 实际只有 3 个离散动作，且减压量与缓解时机全由规则层定。
+#   新：RL 直接输出
+#        ed_cmd ∈[-1,1] → ED 深度 = 0.5 + 0.5·ed_cmd ∈[0,1]（零点=半深度，安全起点）
+#        ab_cmd ∈[-1,0] → 4 档量化：0(缓解) / -0.05(CYCLIC 50kPa) / -0.2(MIN 70kPa) / -0.4(SERVICE 140kPa)
+#       ⇒ RL 自己决定「何时施加 / 何时缓解 / 用哪一档」，规则层降为安全 veto。
+#
+# 保留的安全边界（RL 不可关闭）：
+#   ① 充风/保持门控 _ab_gate（222 s 纪律，来自张二田 S6）
+#   ② 超速兜底：vel ≥ v_max − 0.5 m/s 时强制 SERVICE
+#   ③ 车钩力源头 veto（子环境 safety.ab_new_source_veto，比 0.6 比值）
+#   ④ ATP/ETCS 全程生效
+#
+# 判据：确定性全剖面峰值 < 1280（M1 residual 基线）；若 ≤1000 则门槛达成。
+# ⚠️ 训练窗 peak 不作判据（探索态）。
+name: probe_loco_notch_20ep
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.05          # 与 v2 同：治"策略不敢动"（BC 后 std≈0.05）
+  log_std_min: -1.5           # std 下限 0.22，保证 AB 档位真的会被探索到
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 22.22222222222222
+  v_min: 11.111
+  max_steps: 31500
+  route_end_m: 49600
+  max_accel: 1.0
+  use_coupler_constraint: true
+  coupler_force_limit_n: 1000000.0
+  speed_band_shape: ref
+  reward_term_log: true
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261111_090221/ref_speed_table.npz
+  speed_over_w: 10.0
+  hierarchical: false
+  # 【S2 核心】绝对档位模式：不再走 get_action_decomposed（规则基线 + 调制）
+  decompose: loco_notch
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  service_reduction_kpa: 74.12781799739679
+  ab_staged_apply: true
+  ab_staged_gap_s: 3.0
+  cyclic_brake_trigger_kmh: 65.95262385531505
+  cyclic_release_kmh: 54.956448104474134
+  ed_release_coordination: true
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
+  ed_grade_feedforward: true
+  coupler_override: release
+  eot: true
+  start_randomization:
+    enabled: true
+    min_m: 4300
+    max_m: 4300
+  rule_param_probe: false    # S1 的参数化探针在 S2 下停用
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10
+episodes: 20
+curriculum: "31500:0"
+n_env: 4
+n_env_parallel: true
+parallel_traj_len: 0
+warm_start: false
+bc_episodes: 1
+bc_epochs: 3000
+bc_max_steps: 31500
+long_eval_interval: 0
+long_eval_steps: 31500
+init_speed_kmh: 60.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 1
+
+dirs:
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/_probe_loco_notch
+  results_dir: outputs/results/formation_10kt_1plus108/_probe_loco_notch
+  figures_dir: outputs/figures/formation_10kt_1plus108/_probe_loco_notch

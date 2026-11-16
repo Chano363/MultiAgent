@@ -411,7 +411,7 @@ def train(
                     'init_speed_kmh': init_speed * 3.6,
                     'v_range_kmh': [V_MIN_MPS * 3.6, V_MAX_MPS * 3.6],
                     'best_reward': float(best_reward),
-                    'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β',
+                    'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β + 曲线阻力600/(R-55)(2026-11-09 ADR-060)',
                 },
                 results_dir=results_dir,
                 figures_dir='outputs/figures',

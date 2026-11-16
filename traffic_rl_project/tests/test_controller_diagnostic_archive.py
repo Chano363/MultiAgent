@@ -17,7 +17,8 @@ def test_exported_native_release_state_reproduces_uninterrupted_physics(tmp_path
     output, complete = tmp_path / 'state', tmp_path / 'complete'
     config_args = ['--config', 'configs/experiments/single_10kt108_coupler_rulecal.yaml']
     monkeypatch.setattr(sys, 'argv', ['diagnostic', '--output', str(output),
-        '--steps', '3', '--speed', '70', '--save-native-release-state'] + config_args)
+        '--steps', '3', '--allow-start-mismatch', '--speed', '70',
+        '--save-native-release-state'] + config_args)
     main()
     manifest = json.loads((output / 'native_release_state.json').read_text())
     payload = (output / 'native_release_state.pkl').read_bytes()
@@ -34,7 +35,8 @@ def test_exported_native_release_state_reproduces_uninterrupted_physics(tmp_path
     finally:
         saved['train_env'].close()
     monkeypatch.setattr(sys, 'argv', ['diagnostic', '--output', str(complete),
-                                    '--steps', '6', '--speed', '70'] + config_args)
+                                    '--steps', '6', '--allow-start-mismatch',
+                                    '--speed', '70'] + config_args)
     main()
     with np.load(complete / 'trajectory.npz') as a:
         np.testing.assert_array_equal(branch['trajectory'][:,1],
@@ -70,8 +72,8 @@ def test_exported_native_release_state_reproduces_uninterrupted_physics(tmp_path
 def test_requested_stop_preserves_complete_steps_and_reason_on_reuse(tmp_path, monkeypatch):
     output, stop = tmp_path / 'trace', tmp_path / 'stop'
     stop.touch()
-    args = ['diagnostic', '--output', str(output), '--steps', '8', '--speed', '70',
-            '--stop-file', str(stop)]
+    args = ['diagnostic', '--output', str(output), '--steps', '8', '--allow-start-mismatch',
+            '--speed', '70', '--stop-file', str(stop)]
     monkeypatch.setattr(sys, 'argv', args)
     main()
     record = json.loads((output / 'result.json').read_text(encoding='utf-8'))
@@ -90,7 +92,7 @@ def test_requested_stop_preserves_complete_steps_and_reason_on_reuse(tmp_path, m
         np.testing.assert_array_equal(saved['vehicle_speeds_mps'], original)
     uninterrupted = tmp_path / 'uninterrupted'
     monkeypatch.setattr(sys, 'argv', ['diagnostic', '--output', str(uninterrupted),
-                                    '--steps', '8', '--speed', '70'])
+                                    '--steps', '8', '--allow-start-mismatch', '--speed', '70'])
     main()
     with np.load(output / 'trajectory.npz') as partial, np.load(
             uninterrupted / 'trajectory.npz') as complete:
@@ -109,8 +111,8 @@ def test_failed_release_floor_stops_and_archives_native_step(tmp_path, monkeypat
     frozen = tmp_path / 'controller.py'
     frozen.write_text(source, encoding='utf-8')
     output = tmp_path / 'trace'
-    args = ['diagnostic', '--output', str(output), '--steps', '8', '--speed', '70',
-            '--controller-source', str(frozen), '--stop-on-infeasible-release']
+    args = ['diagnostic', '--output', str(output), '--steps', '8', '--allow-start-mismatch',
+            '--speed', '70', '--controller-source', str(frozen), '--stop-on-infeasible-release']
     monkeypatch.setattr(sys, 'argv', args)
     main()
     record = json.loads((output / 'result.json').read_text(encoding='utf-8'))
@@ -164,8 +166,8 @@ def test_experimental_prediction_events_record_actual_steps_and_survive_reuse(tm
     frozen = tmp_path / 'controller.py'
     frozen.write_text(source, encoding='utf-8')
     output = tmp_path / 'trace'
-    args = ['diagnostic', '--output', str(output), '--steps', '3', '--speed', '70',
-            '--controller-source', str(frozen)]
+    args = ['diagnostic', '--output', str(output), '--steps', '3', '--allow-start-mismatch',
+            '--speed', '70', '--controller-source', str(frozen)]
     monkeypatch.setattr(sys, 'argv', args)
     main()
     record = json.loads((output / 'result.json').read_text(encoding='utf-8'))
@@ -180,7 +182,8 @@ def test_experimental_prediction_events_record_actual_steps_and_survive_reuse(tm
 def test_prelimit_runtime_and_reuse_guard(tmp_path, monkeypatch):
     output = tmp_path / 'prelimit'
     argv = ['diagnostic', '--output', str(output), '--steps', '3',
-            '--consist-preset', '20kt_1plus108_1plus108', '--speed', '79', '--ed-prelimit']
+            '--consist-preset', '20kt_1plus108_1plus108', '--allow-start-mismatch',
+            '--speed', '79', '--ed-prelimit']
     monkeypatch.setattr(sys, 'argv', argv)
     main()
     result = json.loads((output / 'result.json').read_text(encoding='utf-8'))
@@ -196,7 +199,8 @@ def test_prelimit_runtime_and_reuse_guard(tmp_path, monkeypatch):
 def test_middle_distributed_20kt_archive_and_reuse_guard(tmp_path, monkeypatch):
     output = tmp_path / 'middle_20kt'
     argv = ['diagnostic', '--output', str(output), '--steps', '3',
-            '--consist-preset', '20kt_1plus108_1plus108', '--speed', '65']
+            '--consist-preset', '20kt_1plus108_1plus108', '--allow-start-mismatch',
+            '--speed', '65']
     monkeypatch.setattr(sys, 'argv', argv)
     main()
     result = json.loads((output / 'result.json').read_text(encoding='utf-8'))
@@ -241,6 +245,7 @@ def test_frozen_fleet_source_and_per_train_speeds_are_archived(tmp_path, monkeyp
     snapshot.write_bytes(source.encode('utf-8'))
     output = tmp_path / 'mixed_speeds'
     argv = ['diagnostic', '--output', str(output), '--steps', '3', '--trains', '3',
+            '--allow-start-mismatch',
             '--train-speeds-kmh', '40', '65', '65', '--fleet-env-source', str(snapshot)]
     monkeypatch.setattr(sys, 'argv', argv)
     main()
@@ -278,7 +283,8 @@ def test_frozen_fleet_source_and_per_train_speeds_are_archived(tmp_path, monkeyp
 def test_runtime_metadata_and_reuse_do_not_relabel_physics(tmp_path, monkeypatch):
     output = tmp_path / 'route_probe'
     argv = ['diagnostic', '--output', str(output), '--steps', '3',
-            '--profile', 'shuozhou_ningwuxi_beidaniu_49km', '--start-m', '16000', '--speed', '65']
+            '--profile', 'shuozhou_ningwuxi_beidaniu_49km', '--start-m', '16000',
+            '--allow-start-mismatch', '--speed', '65']
     monkeypatch.setattr(sys, 'argv', argv)
     main()
     original = json.loads((output / 'result.json').read_text(encoding='utf-8'))
@@ -333,6 +339,7 @@ def test_archived_source_replay_keeps_its_experimental_defaults(tmp_path, monkey
     output = tmp_path / 'source_replay'
     monkeypatch.setattr(sys, 'argv', ['diagnostic', '--output', str(output),
                                     '--steps', '3', '--speed', '65',
+                                    '--allow-start-mismatch',
                                     '--controller-source', str(snapshot)])
     main()
     metadata = json.loads((output / 'result.json').read_text(encoding='utf-8'))['metadata']
@@ -353,6 +360,7 @@ def test_frozen_trial_keeps_its_default_and_explicit_fleet_feedforward(tmp_path,
     output = tmp_path / 'configured_trial'
     monkeypatch.setattr(sys, 'argv', [
         'diagnostic', '--output', str(output), '--steps', '3', '--speed', '65',
+        '--allow-start-mismatch',
         '--config', 'configs/experiments/single_20kt_coupler_rulecal.yaml',
         '--controller-source', str(snapshot)])
     main()
@@ -365,6 +373,7 @@ def test_frozen_trial_keeps_its_default_and_explicit_fleet_feedforward(tmp_path,
 def test_feedforward_trial_metadata_matches_executed_braking(tmp_path, monkeypatch):
     output = tmp_path / 'feedforward'
     argv = ['diagnostic', '--output', str(output), '--steps', '3', '--speed', '65',
+            '--allow-start-mismatch',
             '--profile', 'shuozhou_ningwuxi_beidaniu_49km', '--start-m', '40000', '--ed-grade-feedforward']
     monkeypatch.setattr(sys, 'argv', argv)
     main()

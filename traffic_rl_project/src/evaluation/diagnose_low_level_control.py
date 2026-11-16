@@ -19,6 +19,24 @@ from src.metadata import build_metadata
 from src.train_dynamics.grade_profile import GradeProfile, GradeSegment, PROFILES
 from src.train_dynamics.braking import notch_from_throttle
 from src.physics_governance import official_entry_guard, official_world_config
+from src.evaluation.solver_registry import runtime_solver_record
+
+
+def tracked_diff_summary(timeout_s: float = 90.0) -> str:
+    """采集工作区相对 HEAD 的 diff 摘要，**带硬超时**。
+
+    动机（2026-11-08）：本仓 `outputs/` 下有 6 665 个被跟踪文件且位于 `/mnt/d`（drvfs），
+    整程收尾的 `git diff --stat` 实测要 10–40 min，把 `result.json` 落盘整体推后同样的时长，
+    成为流水线吞吐瓶颈。超时/失败时**显式留痕**（`TIMEOUT:` / `UNAVAILABLE:` 前缀），
+    绝不静默丢字段，也不阻塞其余元数据。
+    """
+    try:
+        return subprocess.check_output(['git', 'diff', '--stat'], encoding='utf-8',
+                                       timeout=timeout_s, stderr=subprocess.DEVNULL)
+    except subprocess.TimeoutExpired:
+        return f'TIMEOUT: git diff --stat > {timeout_s:.0f} s 未返回，摘要未采集（其余字段完整）'
+    except (subprocess.CalledProcessError, OSError) as exc:
+        return f'UNAVAILABLE: git diff --stat 失败（{exc}）'
 
 
 def capture_admission_state(train_env, controller):
@@ -39,6 +57,81 @@ def capture_admission_state(train_env, controller):
     }
 
 
+def _check_start_alignment(args, config, yaml_doc) -> None:
+    """启动闸门（2026-11-11 强制）：诊断起点条件与实验配置逐项对齐，不一致拒绝启动。
+
+    背景：训练/评估/基线三套起点口径曾不同源（初速 80/70/60 km/h、起点 0/4290/4300 m、
+    净空 138.5/753.5 m、队尾 -1105 m 坡度外推），同一策略峰值 1072–1326 kN 不可比，
+    基线对比与云 GA 产物作废（LEARNINGS 2026-11-11）。闸门在 env 构建/落盘之前执行，
+    不一致零算力退出；显式 --allow-start-mismatch 放行（裁决随 metadata 留痕）。
+
+    四要素（SSOT = --config 的 env_cfg，含显式 --override 之后的生效值）：
+      初速     --speed            ↔ env_cfg.init_speed_kmh
+      起点里程 --start-m          ↔ env_cfg.start_randomization.min_m（评估态取 min）
+      列间偏移 --gap-offset-m     ↔ 恒 0（env 自带 d_eff = 1.1×d_safe 净空，偏移 = 额外
+                                   加宽净空 ⇒ 与训练起点布局不同源）
+      逐列初速 --train-speeds-kmh ↔ 逐值核对 init_speed_kmh（敏感性实验走放行开关）
+    """
+    issues = []
+    sr = config.get('start_randomization') or {}
+    if isinstance(sr, dict) and sr.get('enabled'):
+        min_m, max_m = sr.get('min_m'), sr.get('max_m')
+        if min_m is None or max_m is None:
+            issues.append('start_randomization.enabled 但缺 min_m/max_m（--config 不完整）')
+        else:
+            if min_m != max_m:
+                print(f'[start-gate] note: start_randomization min_m={min_m} != max_m={max_m}; '
+                      'evaluation-mode layout uses min_m', flush=True)
+            expect_start_m = float(min_m)
+            if abs(args.start_m - expect_start_m) > 0.05:
+                issues.append(
+                    f'start_m mismatch: --start-m {args.start_m} != '
+                    f'start_randomization.min_m {expect_start_m}')
+    else:
+        print('[start-gate] note: start_randomization disabled/absent in --config; '
+              'start-m check skipped', flush=True)
+    if args.gap_offset_m != 0.0:
+        issues.append(
+            f'gap offset nonzero: --gap-offset-m {args.gap_offset_m} (env already provides '
+            'd_eff = 1.1 x d_safe clearance; an offset widens clearance and breaks alignment '
+            'with the training start layout)')
+    expect_speed = config.get('init_speed_kmh')
+    if expect_speed is None:
+        # init_speed_kmh 位于 YAML 顶层（train_runner 同款解析顺序：env_cfg 优先、顶层兜底），
+        # 只查 env_cfg 会静默漏检——2026-11-11 闸门首轮实测踩到，勿回退。
+        expect_speed = yaml_doc.get('init_speed_kmh')
+    if expect_speed is not None:
+        if args.train_speeds_kmh is not None:
+            bad = [v for v in args.train_speeds_kmh if abs(v - float(expect_speed)) > 0.05]
+            if bad:
+                issues.append(
+                    f'per-train speeds deviate from init_speed_kmh {expect_speed}: {bad} '
+                    '(deliberate sensitivity probe => pass --allow-start-mismatch)')
+        elif abs(args.speed - float(expect_speed)) > 0.05:
+            issues.append(
+                f'initial speed mismatch: --speed {args.speed} km/h != '
+                f'init_speed_kmh {expect_speed} km/h')
+    else:
+        print('[start-gate] note: init_speed_kmh absent in --config; speed check skipped',
+              flush=True)
+    args.start_alignment = {'verdict': 'pass' if not issues else 'allowed-mismatch',
+                            'issues': issues}
+    if not issues:
+        print(f'[start-gate] aligned: speed={args.speed} km/h, start_m={args.start_m}, '
+              f'gap_offset_m={args.gap_offset_m}', flush=True)
+        return
+    print('[start-gate] start conditions disagree with the experiment config '
+          '(see LEARNINGS 2026-11-11):', flush=True)
+    for item in issues:
+        print(f'  x {item}', flush=True)
+    if args.allow_start_mismatch:
+        print('[start-gate] --allow-start-mismatch given: proceeding; deviation archived in '
+              'metadata.diagnostic_protocol.start_alignment; results must NOT be quoted as '
+              'training-aligned comparisons', flush=True)
+        return
+    raise SystemExit(2)
+
+
 def main():
     official_entry_guard(__file__)
     ap = argparse.ArgumentParser()
@@ -57,6 +150,8 @@ def main():
                     help='Archive and stop after a release forecast fails at the existing speed floor')
     ap.add_argument('--save-native-release-state', action='store_true',
                     help='Save trusted local full single-train state for matched release sensitivity')
+    ap.add_argument('--trace-forces', action='store_true',
+                    help='【ADR-067 W1】记录 tractive/ED/AB 分项力、实际缸压、坡度（纯读，零行为变化）')
     ap.add_argument('--trains', type=int, default=1)
     ap.add_argument('--consist-preset', choices=sorted(CONSIST_PRESETS),
                     help='Explicit diagnostic consist; otherwise use main configuration')
@@ -69,6 +164,9 @@ def main():
     ap.add_argument('--profile', choices=sorted(PROFILES), help='Use a registered route instead of constant grade')
     ap.add_argument('--start-m', type=float, default=0.0, help='Translate the whole formation along the route')
     ap.add_argument('--gap-offset-m', type=float, default=0.0, help='Additional initial gap per adjacent train pair')
+    ap.add_argument('--allow-start-mismatch', action='store_true',
+                    help='Start-gate override: run even when --speed/--start-m/--gap-offset-m '
+                         'differ from the experiment YAML (deviation archived in metadata)')
     ap.add_argument('--finish-m', type=float, help='Stop when the last vehicle of every train passes this route position')
     ap.add_argument('--ed-recovery-rate', type=float, help='Diagnostic override; zero disables ED recovery limiting')
     ap.add_argument('--ed-recovery-scope', choices=('all', 'coupler'), default='all')
@@ -98,7 +196,6 @@ def main():
             or not np.all(np.isfinite(args.train_speeds_kmh))
             or min(args.train_speeds_kmh) < 0):
         ap.error('train-speeds-kmh must contain one finite nonnegative speed per train')
-    args.output.mkdir(parents=True, exist_ok=args.reuse)
     if args.reuse and (args.output / 'result.json').exists():
         archived = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))['metadata']
         protocol = archived.get('diagnostic_protocol', {})
@@ -111,7 +208,8 @@ def main():
             if key in protocol or key in defaults:
                 if getattr(args, key) != protocol.get(key, defaults.get(key)):
                     raise ValueError(f'Cannot relabel saved trajectory: {key} differs from archived protocol')
-    config = yaml.safe_load(args.config.read_text(encoding='utf-8'))['env_cfg']
+    _yaml_doc = yaml.safe_load(args.config.read_text(encoding='utf-8'))
+    config = _yaml_doc['env_cfg']
     # 【2026-10-14 运营口径标定】env_cfg 键级覆盖（bool/int/float/str 类型推断），
     # 覆盖结果随 metadata.env_cfg 归档留痕。
     for item in args.override:
@@ -131,6 +229,10 @@ def main():
                 except ValueError:
                     value = raw
         config[key] = value
+    if not args.reuse:
+        # 启动闸门：在 env 构建/落盘之前核对起点四要素（不一致拒绝启动，零算力浪费）
+        _check_start_alignment(args, config, _yaml_doc)
+    args.output.mkdir(parents=True, exist_ok=args.reuse)
     config.update(num_trains=args.trains, max_steps=args.steps,
                   start_randomization={'enabled': False})
     if args.consist_preset:
@@ -208,6 +310,9 @@ def main():
             raise ValueError('Recovery scope override requires current controller')
         for ctrl in env.multi_loco_controllers:
             ctrl.ed_recovery_scope = args.ed_recovery_scope
+    if getattr(args, 'trace_forces', False):
+        for tr in env.trains:
+            tr.dynamics.trace_forces = True
     if args.anticipate_etcs:
         if args.controller_ref or args.controller_source:
             raise ValueError('ETCS anticipation override requires current controller')
@@ -233,7 +338,17 @@ def main():
               'vehicle_speeds_mps': [], 'brake_pressure_coefficient': [],
               'air_release_fraction': [], 'effective_pressure_coefficient': [],
               'air_releasing': [], 'controller_release_force_target_kn': [],
-              'controller_ed_hold_steps': []}
+              'controller_ed_hold_steps': [], 'controller_ed_floor_kn': [],
+              # 【C 组 2026-11-08】ED 撤除时序保位窗 + 速度差协同未满足份额（逐列、逐步）
+              'controller_ed_guard_steps': [], 'controller_ed_conv_unmet': [],
+              # 【C7 活性 2026-11-08】分级施加实际生效步数 / 分级前要求 SERVICE 的步数
+              # （逐列累计值；分母必须用后者，因分级后物理指令已被改写为 MIN）
+              'ab_staged_applied_steps': [], 'ab_staged_service_requests': []}
+    # 【2026-11-13 ADR-067 W1】分项力三路观测（仅 --trace-forces 时产出，避免空数组进 npz）
+    if getattr(args, 'trace_forces', False):
+        for _k in ('force_tractive_n', 'force_ed_n', 'force_air_n',
+                   'brake_pressure_mean', 'grade_head_permille'):
+            detail[_k] = []
     admission_keys = tuple(capture_admission_state(env.trains[0], env.multi_loco_controllers[0]))
     detail.update({key: [] for key in admission_keys})
     # Observe the actual post-safety actuator inputs without modifying them.
@@ -288,6 +403,17 @@ def main():
         detail['air_releasing'].append([tr.dynamics._air_brake_releasing.copy() for tr in env.trains])
         detail['subenv_safety_events'].append([tr._safety_events for tr in env.trains])
         detail['subenv_overspeed_steps'].append([tr._overspeed_violations for tr in env.trains])
+        # 【2026-11-13 ADR-067 W1】分项力三路观测：每列车求和/均值（标量，避免 109 车 × 26000 步爆体积）。
+        # 与 ab_active / brake_pressure_coefficient / vehicle_air_force_n 互补，用于定位低速段净力构成。
+        if getattr(args, 'trace_forces', False):
+            _fb = [tr.dynamics._force_breakdown for tr in env.trains]
+            if all(f is not None for f in _fb):
+                detail['force_tractive_n'].append([float(np.sum(f['tractive_n'])) for f in _fb])
+                detail['force_ed_n'].append([float(np.sum(f['ed_n'])) for f in _fb])
+                detail['force_air_n'].append([float(np.sum(f['air_n'])) for f in _fb])
+                detail['brake_pressure_mean'].append([float(np.mean(f['brake_pressure'])) for f in _fb])
+                detail['grade_head_permille'].append(
+                    [float(f['grade_permille'][0]) * 1000.0 for f in _fb])
         detail['physical_loco_ed'].append([actuator_inputs[i]['ed'] for i in range(env.num_trains)])
         detail['physical_loco_traction'].append([actuator_inputs[i]['traction'] for i in range(env.num_trains)])
         detail['coupler_interface_force_n'].append([
@@ -310,7 +436,18 @@ def main():
             else np.nan for c in env.multi_loco_controllers])
         detail['controller_ed_hold_steps'].append([
             c._ed_hold_steps for c in env.multi_loco_controllers])
+        detail['controller_ed_floor_kn'].append([
+            float(getattr(c, '_active_ed_floor_kn', c.CYCLIC_ED_FLOOR_KN))
+            for c in env.multi_loco_controllers])
+        detail['controller_ed_guard_steps'].append([
+            int(getattr(c, '_ed_guard_steps_left', 0))
+            for c in env.multi_loco_controllers])
+        detail['controller_ed_conv_unmet'].append([
+            int(getattr(c, 'ed_conv_unmet_count', 0))
+            for c in env.multi_loco_controllers])
         detail['air_brake_segment'].append([tr.dynamics._brake_segment for tr in env.trains])
+        detail['ab_staged_applied_steps'].append([tr.ab_staged_applied_steps for tr in env.trains])
+        detail['ab_staged_service_requests'].append([tr.ab_staged_service_requests for tr in env.trains])
         detail['safety_rule_counts'].append([
             [sum(ev.get('rule') == rule for ev in tr.safety.last_events)
              for rule in safety_rules] for tr in env.trains])
@@ -419,6 +556,36 @@ def main():
     # The engine retains the last notch even after release. This is a stored
     # setting, not an assertion about active cylinder pressure/braking force.
     summary['stored_head_notch_switches'] = int(np.sum(head_notches[1:] != head_notches[:-1]))
+    # 【C 组 2026-11-08】两个新开关的**分支进入**计数（活性校验只认这些，不看峰值）
+    controllers = env.multi_loco_controllers or []
+    summary['ed_release_guard_veto_count'] = int(sum(
+        getattr(c, 'ed_release_guard_veto_count', 0) for c in controllers))
+    summary['ed_release_guard_hold_train_steps'] = int(sum(
+        getattr(c, 'ed_release_guard_hold_steps', 0) for c in controllers))
+    summary['ed_conv_active_train_steps'] = int(sum(
+        getattr(c, 'ed_conv_active_steps', 0) for c in controllers))
+    summary['ed_conv_unmet_count'] = int(sum(
+        getattr(c, 'ed_conv_unmet_count', 0) for c in controllers))
+    # 【C7 活性 2026-11-08】分级施加是否真在拆档：生效车·步 / 分级前 SERVICE 请求车·步
+    if 'ab_staged_applied_steps' in detail and len(detail['ab_staged_applied_steps']):
+        staged_applied = np.asarray(detail['ab_staged_applied_steps'])[-1]
+        staged_requests = np.asarray(detail['ab_staged_service_requests'])[-1]
+        summary['ab_staged_applied_train_steps'] = int(staged_applied.sum())
+        summary['ab_staged_service_request_train_steps'] = int(staged_requests.sum())
+        summary['ab_staged_applied_ratio'] = (
+            float(staged_applied.sum() / staged_requests.sum())
+            if staged_requests.sum() else 0.0)
+    # 【奖励标定 2026-11-08】逐槽位奖励分量占比（仅在 reward_term_log=true 时存在）
+    reward_sums = getattr(env, 'reward_term_sums', None)
+    if reward_sums:
+        n_steps = max(1, len(rows))
+        means = {k: v / n_steps for k, v in reward_sums.items() if k != 'total'}
+        share_base = sum(abs(v) for v in means.values())
+        summary['reward_term_mean_per_step'] = {k: float(v) for k, v in means.items()}
+        summary['reward_term_abs_share'] = {
+            k: (float(abs(v) / share_base) if share_base > 0 else 0.0)
+            for k, v in means.items()}
+        summary['reward_mean_per_step'] = float(reward_sums.get('total', 0.0) / n_steps)
     if 'heads' in detail:
         summary.update(elapsed_s=float(rows[-1, 0]),
                        mean_speed_kmh=float(np.mean(velocity)*3.6),
@@ -432,7 +599,7 @@ def main():
     world = official_world_config(env_cfg=config)
     world['physics'].update(grade_profile=args.profile or 'constant_grade', dt=env.dt,
                             v_max_mps=env.v_max, v_min_mps=env.v_min,
-                            target_speed_mps=env.target_speed, target_gap_m=env.target_gap,
+                            target_speed_mps=env.target_speed,
                             max_accel=env.max_accel, coupler_force_limit_n=env.coupler_force_limit_n)
     runtime_physics = [{'simcase': tr.dynamics.simcase,
                         'enable_cyclic_degrade': tr.dynamics.enable_cyclic_degrade,
@@ -488,8 +655,13 @@ def main():
                                      'thread_environment': {name: os.environ.get(name) for name in
                                          ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS')}},
                                  'env_cfg': config,
-                                 'tracked_diff': subprocess.check_output(['git', 'diff', '--stat'], encoding='utf-8'),
+                                 'tracked_diff': tracked_diff_summary(),
                                  'purpose': 'controller diagnostic; zero RL modulation, not a paper main-table evaluation'})
+    # The integrator that actually ran, observed rather than assumed. A replaced
+    # solver can never be reported as production Newmark.
+    solver_runtime = runtime_solver_record(env.trains[0].dynamics)
+    meta['solver'] = solver_runtime['solver']
+    meta['solver_runtime'] = solver_runtime
     if args.reuse and (args.output / 'result.json').exists():
         previous_record = json.loads((args.output / 'result.json').read_text(encoding='utf-8'))
         previous = previous_record['metadata']
@@ -498,7 +670,7 @@ def main():
         # Recomputing statistics must not relabel the archived controller as
         # today's working tree (especially for intermediate diagnostic trials).
         for key in ('etcs_runtime', 'etcs_braking_sha256', 'train_dynamics_sha256', 'controller_sha256', 'controller_ref', 'controller_runtime', 'fleet_env_sha256', 'train_env_sha256',
-                    'numerical_runtime', 'tracked_diff', 'actuator_diagnostic'):
+                    'numerical_runtime', 'tracked_diff', 'actuator_diagnostic', 'solver', 'solver_runtime'):
             if key in previous:
                 meta[key] = previous[key]
         if 'actuator_diagnostic' not in previous:

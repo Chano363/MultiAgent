@@ -43,6 +43,13 @@ class TrainRunner:
         os.makedirs(cfg.results_dir, exist_ok=True)
         os.makedirs(cfg.checkpoint_dir, exist_ok=True)
 
+        # 【2026-11-08 存活可视化】心跳写入（外部看护进程只读它判活/判死）。
+        # 上一轮 200 集阶段门被外部连根杀掉后静默 40 分钟无人发现——进程被杀时没有
+        # 任何机会写"我死了"，所以只能靠进程外看护者读 mtime 判死（见 scripts/watchdog_heartbeat.ps1）。
+        from src.trainer.heartbeat import Heartbeat
+        self._hb = Heartbeat(cfg.results_dir, interval_s=60.0, tag=cfg.name).start(
+            phase='init', total=int(cfg.episodes))
+
         device = cfg.device or ('cuda' if torch.cuda.is_available() else 'cpu')
         if cfg.omp_num_threads:
             torch.set_num_threads(max(1, int(cfg.omp_num_threads)))
@@ -141,12 +148,18 @@ class TrainRunner:
                 # 【2026-09-10】decompose 6 机车编队：BC 自确定性规则基线（[0,0] 即复现
                 # 规则循环制动），治诊断-2026-09-10 长时程随机探索踩暴力 AB 吸态。
                 from src.trainer.specs.fleet_spec import warm_start_decompose_bc
+                self._hb.update(phase='bc_collect')
                 warm_start_decompose_bc(
                     inter.agent, env,
                     episodes=cfg.bc_episodes, bc_epochs=cfg.bc_epochs,
                     max_steps=int(getattr(cfg, 'bc_max_steps', 1500)),
                     init_speed=cfg.env_cfg.get('init_speed_kmh', cfg.init_speed_kmh) / 3.6,
+                    save_dir=cfg.checkpoint_dir,
                 )
+                # BC 采集也算 env.step，会把奖励分量统计混进来；清零以只统计 RL 段
+                env.reward_term_sums = {}
+                env._reward_term_steps = 0
+                self._hb.update(phase='bc_done')
 
             # 【续训】--episodes = 总目标集数 → 实跑 = 总目标 - 已训。
             # 非续训路径保持 --episodes = 实跑集数（行为不变）。
@@ -222,14 +235,27 @@ class TrainRunner:
                     f"非 hetero？formation_start_randomization 是否误开？")
 
             start = time.time()
+            # 【2026-11-10 判据③】奖励分量全程累计（供训练结束的占比日志；逐集明细见 CSV）
+            term_cum, term_cum_steps = {}, 0
             for ep in range(run_episodes):
                 global_ep += 1
+                # 【2026-11-08 修复】逐集墙钟起点：CSV 的 time_s 旧实现写的是 time.time()
+                # （绝对时间戳，≈1.79e9），不是"本集耗时"，导致"按集数估时长"完全失真。
+                t_ep0 = time.time()
+                # 心跳：进入本集 rollout（单集可达 30–60 min，看护进程靠这一行判断"在跑哪一集"）
+                self._hb.update(phase='rollout', episode=global_ep + 1,
+                                note=f'ep_start {time.strftime("%H:%M:%S")}')
                 horizon = self._resolve_horizon(global_ep, cur_plan)
                 parallel_len = int(cfg.parallel_traj_len) or horizon
                 env.max_steps = parallel_len
                 self._traj_reward, self._traj_peak, self._traj_viol = [], [], []
                 # 列间间距监控（2026-09-23 新增）：每轨迹聚合间距误差均值 / 最小间距
                 self._traj_gap_err, self._traj_gap_min = [], []
+                # 【2026-11-08 取舍判据】每轨迹：超速车·步（env 逐集累计）+ 领航列均速
+                self._traj_ovs, self._traj_spd = [], []
+                # 【2026-11-08 截断判据】每轨迹是否"跑到剖面末端"（route_end_reached）。
+                # 被 max_steps 砍断（=False）的集不计入改善统计，必须在 CSV 里单独标出。
+                self._traj_end = []
 
                 # 并行 n_env 条独立轨迹（初速均匀铺开 [min,max]，随机化时叠加抖动）：
                 # 全部进共享 buffer，统一 end_episode 一次
@@ -260,6 +286,9 @@ class TrainRunner:
                     ep_reward, ep_peak, ep_viol, step, done = 0.0, 0.0, 0, 0, False
                     # 列间间距监控（2026-09-23 新增）：本轨迹间距误差累计 / 最小间距
                     ep_gap_err_sum, ep_gap_min, gap_steps = 0.0, float('inf'), 0
+                    # 【2026-11-08 取舍判据】本轨迹超速车·步 / 领航列均速
+                    ep_ovs, ep_spd = 0, 0.0
+                    ep_end = False   # 本轨迹是否跑到剖面末端（被步数砍断则为 False）
                     while not done and step < parallel_len:
                         if cfg.decision_interval > 1:
                             env_act, value, aux = inter.act(obs)
@@ -293,11 +322,17 @@ class TrainRunner:
                             ep_gap_err_sum += float(_ge)
                             ep_gap_min = min(ep_gap_min, float(_gm))
                             gap_steps += 1
+                            ep_ovs = int(info.get('overspeed_car_steps', 0))
+                            ep_spd = float(info.get('head_speed_mean_kmh', 0.0))
+                            ep_end = bool(info.get('route_end_reached', False))
                         obs = next_obs
 
                     self._traj_reward.append(ep_reward)
                     self._traj_peak.append(ep_peak)
                     self._traj_viol.append(ep_viol)
+                    self._traj_ovs.append(ep_ovs)
+                    self._traj_spd.append(ep_spd)
+                    self._traj_end.append(ep_end)
                     # 列间间距监控：轨迹级 = 间距误差均值 / 最小间距（无步则留空）
                     if gap_steps > 0:
                         self._traj_gap_err.append(ep_gap_err_sum / gap_steps)
@@ -327,6 +362,18 @@ class TrainRunner:
                         self._traj_viol.append(res['viol'])
                         self._traj_gap_err.append(res['gap_err'])
                         self._traj_gap_min.append(res['gap_min'])
+                        self._traj_ovs.append(res['overspeed'])
+                        self._traj_spd.append(res['speed_mean'])
+                        self._traj_end.append(bool(res.get('route_end', False)))
+                        # 【奖励标定 2026-11-08】并行路径：把 worker 的逐槽位累计搬回父 env，
+                        # 否则 run() 末尾的奖励分量占比为空（父进程不 step）
+                        if getattr(env, 'reward_term_log', False) and res.get('term_sums'):
+                            for _k, _v in res['term_sums'].items():
+                                env.reward_term_sums[_k] = (
+                                    env.reward_term_sums.get(_k, 0.0) + _v)
+                            env._reward_term_steps = (
+                                int(getattr(env, '_reward_term_steps', 0))
+                                + int(res.get('term_steps', 0)))
 
                 # 并行 n_env 条轨迹跑完后统一 update，聚合指标取平均
                 metrics = inter.end_episode() or {}
@@ -336,6 +383,13 @@ class TrainRunner:
                 # 列间间距监控（2026-09-23 新增）：全轨迹间距误差均值 / 最危险的最小间距
                 ep_gap_err = float(np.mean(self._traj_gap_err))
                 ep_gap_min = float(np.min(self._traj_gap_min))
+                # 【2026-11-08 取舍判据】n_env 轨迹合并：超速车·步求和（并行轨迹各自累计），
+                # 领航列均速取平均（轨迹等长，平均即总平均）
+                ep_ovs = int(np.sum(self._traj_ovs))
+                ep_spd = float(np.mean(self._traj_spd))
+                # 【2026-11-08 截断判据】n_env 条轨迹中"跑到剖面末端"的条数。
+                # == n_env 才算未被步数砍断；不足则本集不计入改善统计（CSV 逐集标出）。
+                ep_end_hits = int(np.sum(self._traj_end)) if self._traj_end else 0
                 episode_rewards.append(ep_reward)
                 peak_coupler.append(ep_peak / 1e3)
                 violations.append(ep_viol)
@@ -348,8 +402,12 @@ class TrainRunner:
                         peak_coupler_kN=ep_peak / 1e3,
                         violations=ep_viol,
                         total_loss=float(metrics.get('total_loss', 0.0)),
+                        elapsed=time.time() - t_ep0,
                         gap_err_mean=ep_gap_err,
                         gap_min_m=ep_gap_min,
+                        overspeed_car_steps=ep_ovs,
+                        speed_mean_kmh=ep_spd,
+                        route_end_traj_hits=ep_end_hits,
                         # 【X2 2026-09-30】优化器诊断量落盘（value 发散可证伪）
                         value_loss=float(metrics.get('value_loss', 0.0)),
                         policy_loss=float(metrics.get('policy_loss', 0.0)),
@@ -359,6 +417,27 @@ class TrainRunner:
                         value_norm_mean=float(metrics.get('value_norm_mean', 0.0)),
                         value_norm_std=float(metrics.get('value_norm_std', 0.0)),
                     )
+
+                # 【2026-11-10 判据③通道】本集奖励分量逐集落盘后清零。
+                # 旧实现只在训练结束打印一次全程占比 → 判据③（"车钩峰值项占比降而
+                # rel_anchor/gap_eff 不塌陷"）无法按 20 集窗口评估。并行路径的 n_env
+                # 轨迹已在上面合并进父 env，故此处快照即"本集合计"。
+                if getattr(env, 'reward_term_log', False) and env.reward_term_sums:
+                    _terms = {k: float(v) for k, v in env.reward_term_sums.items()
+                              if k != 'total'}
+                    _tsteps = int(getattr(env, '_reward_term_steps', 0))
+                    if self._tlog is not None:
+                        self._tlog.log_reward_terms(ep=global_ep + 1, terms=_terms,
+                                                    steps=_tsteps)
+                    for _k, _v in _terms.items():
+                        term_cum[_k] = term_cum.get(_k, 0.0) + _v
+                    term_cum_steps += _tsteps
+                    env.reward_term_sums = {}
+                    env._reward_term_steps = 0
+
+                # 心跳：本集完成（看护进程据 ep 号前进判断"没有卡死"）
+                self._hb.update(phase='rl', episode=global_ep + 1,
+                                note=f'ep_done {time.time() - t_ep0:.0f}s')
 
                 # 【2026-09-22】long_eval 启用时 best 由完整剖面评估驱动，训练窗口
                 # reward 不再直接写 best（否则选出短视激进的长程崩权重）
@@ -404,7 +483,24 @@ class TrainRunner:
             logger.info(f"最佳奖励: {best_reward:.2f} | 末段平均车钩力峰值: "
                         f"{np.mean(peak_coupler[-cfg.log_interval:]):.1f} kN")
             logger.info(f"模型: {cfg.checkpoint_dir}/{Path(namer.best_path(cfg.seed)).name}")
+            # 【奖励标定 2026-11-08 / 2026-11-10 改】reward_term_log=true 时落一次逐槽位
+            # 实测占比：这是"奖励通道是否正常 + 有无恒定额白拿分"的唯一闭环证据（离线复算
+            # 只能验基线轨迹，验不了策略实际踩到的分布）。逐集明细已进
+            # train_reward_terms_{tag}.csv；这里只打印全程累计（口径与旧行为一致）。
+            _term_src = term_cum if term_cum else dict(getattr(env, 'reward_term_sums', {}))
+            if getattr(env, 'reward_term_log', False) and _term_src:
+                items = {k: v for k, v in _term_src.items() if k != 'total'}
+                tot = sum(items.values())
+                n_steps = max(int(term_cum_steps
+                                  or getattr(env, '_reward_term_steps', 0)), 1)
+                denom = max(sum(abs(x) for x in items.values()), 1e-9)
+                logger.info("[奖励分量] 每步均值 / 绝对占比（%d 步）：", n_steps)
+                for k, v in items.items():
+                    logger.info("  %-14s %+8.4f  %6.2f%%", k, v / n_steps,
+                                abs(v) / denom * 100)
+                logger.info("  %-14s %+8.4f", '合计', tot / n_steps)
             logger.info("=" * 60)
+            self._hb.stop(phase='finished', episode=global_ep + 1)
 
         return {'best_reward': best_reward, 'rewards': episode_rewards,
                 'peak_coupler_kN': peak_coupler, 'violations': violations}
@@ -610,7 +706,7 @@ class TrainRunner:
                   'curriculum': self.cfg.curriculum,
                   'best_reward': float(best_reward),
                   'name': self.cfg.name,
-                  'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β'},
+                  'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β + 曲线阻力600/(R-55)(2026-11-09 ADR-060)'},
             results_dir=self.cfg.results_dir, figures_dir=self.cfg.figures_dir, tag=tag,
             write_csv=False)   # CSV 归 ExperimentLogger（8 列含 gap_min_m），勿用 4 列覆写
         # periodic checkpoint（fleet 保留 ep{gep+1} 存档协议）

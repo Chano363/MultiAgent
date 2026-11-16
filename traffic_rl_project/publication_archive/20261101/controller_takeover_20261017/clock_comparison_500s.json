@@ -1,0 +1,28 @@
+{
+  "y2_restored_fullroute_01": {
+    "window_steps": 5000,
+    "window_s": 500,
+    "peak_kn": 1468.7711249065464,
+    "mean_speed_kmh": 58.17605969483698,
+    "min_mean_speed_kmh": 48.801593345957656,
+    "jerk_rms": 0.010719232130114373,
+    "over1350_section_time_samples": 136,
+    "over1500_section_time_samples": 0,
+    "release_time_s": 152.4,
+    "physical_ed_first_zero_after_release_s": 177.4,
+    "continuous_ed_after_release_s": 25.0
+  },
+  "observation_clock_prefix5000_01": {
+    "window_steps": 5000,
+    "window_s": 500,
+    "peak_kn": 1462.1804755877044,
+    "mean_speed_kmh": 58.180746382532206,
+    "min_mean_speed_kmh": 47.97368274555457,
+    "jerk_rms": 0.010100153027756206,
+    "over1350_section_time_samples": 125,
+    "over1500_section_time_samples": 0,
+    "release_time_s": 151.5,
+    "physical_ed_first_zero_after_release_s": 201.5,
+    "continuous_ed_after_release_s": 50.0
+  }
+}

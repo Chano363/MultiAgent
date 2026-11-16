@@ -1,0 +1,60 @@
+2 期 非 线 性 结 构 动 力 分 析 的 Newmark 预 测 - 校 正 积 分 模 式 日
+
+《X}pmha 一 {X)s 十 (PJnAt +(告 十 动 {4JsAf-M4hn-4f「
+
+CT 》 预 测 : C42
+{FPJpmhx={P J 十 (1+93{4}nAl 一 t4hn-At
+
+《 卫 》 计 算 《A}pmta 一 CMD-1C[PJnaa-CKJnuafX]ponkt 一 CCJnuatFjpao) C5
+
+〈Jr)n+】={叉【〉c…"二(》r〉“十〈′')“仝′十(1/z一臼)〈/夏〉^山z十日M恤…细…(零
+{FJsn= (P 1n 一 {js+(L-Y{4jaAl+Yt4pmt )
+( 邦 》 评 算 : 【 一 CMD-1C[PJh 一 [KKJa+at 飞 a 一 [CJaat 历 Jn4o) C7 》
+上 述 式 中 [CJox,[KJnu 表 示 (“+1)Ai 瞳 时 的 阻 尼 , 刚 度 矩 阵 , 仅 对 线 性 问 题 才 为 定 数 。
+
+考 察 显 式 与 隐 式 的 截 断 误 差 , 并 按 文 献 [ 6 ] 的 方 法 进 行 误 差 补 倒 , 根 据 Taylor 展 式
+可 以 方 便 地 获 得 显 式 ( 3 》 和 隐 式 〔 2 》 的 截 断 误 差 依 次 为
+
+{ 匹 CXJ}p 一 /6 一 动 [0aAf 十 /24 十 27 切 sAtt+O(A40)
+
+( 井 》 校 正 : {
+
+{ 左 }p=(i/2 一 )( 刊 sAts 十 H/6+9/2){ 刀 sAts+O(At0)
+和 [ {CX)}。 二 /6 一 印 {JsAts+C/24 一 B/2){4JsAtt+ O(Ata)
+
+亿 )1。 一 (]/2】Y){.二薹〉^〈【【+(l/6一Y/z)〈矗〉-〈尸 于 O(A40)
+于 是 不 难 得 出 如 下 修 正 公 式 :
+
+《{ 余 Jn 二 {Kj pmya 十 Eap({ 友 jpn 一 ( 八 ]
+
+贯`渍I汐]擅三龌fr爹正{ C102
+仁 jnmg 二 仁 jpmx 十 Ecp((Fjpm 一 亿 cm)
+《XXJasa 一 { 友 ] c 十 Eae(t 叉 }pmtt 一 { 友 ] an
+
+爆邑芝正式r筐蟹正{ C1DD
+《FJaa 一 (PJomqa 丨 Ese(tFJpnp 一 (jon+0
+
+其 中 误 差 补 倒 系 数 e 见 表 1 。
+
+。 各 秦 积 分 参 数 下 的 误 差 补 偿 系 数 表 1
+积 分 多 数 1 p p c cvc
+p 心 Y 一 /2 一 盲 一 5/6 一 E
+|
+
+9 心 Y 一 | 告′蓼】 一 訾一1′
+| 7 8
+
+# f-i/6 【 3/4 一 1 一
+
+口 园 园 沥
+
+妮 p \ 58 一 8 一
+
+9 - F3
+由 此 而 构 成 的 预 测 - 校 正 积 分 模 式 共 包 吾 以 下 六 个 环 节 :
+CT 预 测 , {X}pmto (Fjpmt [ 式 (4)〕
+( 改 进 ,{X}jamso 仁 jnmv [ 式 G10) ]
+( 五 》 计 算 , 《4}pmsu 一 CMJ7“CtPJosz 一 RJnhfX}pamkd 一 CCJnatFjpma0 。 012)
+( 町 》 校 正 , 《X}cmxo jcmat [ 式 (6 )
+(TT 改 进 ,{XXJsxo (PJau [ 式 (
+( 页 计 算 , 《4}n4 [ 式 (7 7

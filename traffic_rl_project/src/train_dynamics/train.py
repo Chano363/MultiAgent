@@ -120,6 +120,14 @@ class TrainDynamics:
         friction_coef: 轮轨摩擦系数
     """
 
+    # 【ADR-048 2026-11-04】机械子步上限（秒）。生产 Picard-Newmark 在
+    # h=0.01 s 时约 99% 子步打满 30 次迭代仍未收敛并回退到松弛态，
+    # 30 s 车钩峰值较收敛解高约 19%。改为在每个 0.01 s 气动子步内
+    # 对力学方程做 0.0025 s 机械细分（公式/判据不变），收敛序列显示
+    # 峰值偏差 0.09%，且单控制步耗时由 0.067 s 降到 0.031 s。
+    # 设为 0.01 可复现旧生产口径（ADR-011 车钩物理未变）。
+    mechanical_max_step = 0.0025
+
     def __init__(
         self,
         consist: TrainConsist,
@@ -180,6 +188,9 @@ class TrainDynamics:
         self.pos = np.zeros(n)      # 每节车参考点位置（米）
         self.vel = np.zeros(n)      # 每节车速度（米/秒）
         self.grade = np.zeros(n)    # 每节车所在坡度
+        # 【ADR-060 曲线附加阻力】每节车所在曲线半径（米；+inf = 直线，无曲线阻力）。
+        # 剖面无曲线表（恒坡等）时恒为 +inf → 曲线阻力恒 0（零回归）。
+        self.curve_radius = np.full(n, np.inf)
         self.time = 0.0
 
         # 能耗追踪（kWh）：累计牵引能量（力×速度×dt 沿机车积分）
@@ -231,11 +242,22 @@ class TrainDynamics:
         # 仅用于"减压量连续"工况（张二田 S5、赵紫宁循环制动、L1 列尾压强），
         # 训练/评估流程不传此参数（向后兼容）。
         self._brake_reduction_override_kpa = None
+        # 【循环制动减压量 2026-11-08，默认 None = 零回归】把**非紧急的循环制动档
+        # （SERVICE）**的减压量从默认 140 kPa 改成给定值（如 70 kPa）。作用面 =
+        # 仅制动力当量（beta_c 查表），不改档位选择、不改 EMERGENCY、不改升压时间。
+        # 依据：长大下坡循环制动文献口径普遍 50–70 kPa，140 kPa 属"常用全制动"。
+        self.service_reduction_kpa = None
         self.brake_rise_time_s = 10.0        # 制动缸升压时间（秒，紧急制动 ~10s）
         # Newmark-β Picard 迭代参数（子步进后每控制步迭代 10×此值，是主要算力开销；
         # 设为可调属性，便于在精度/速度间权衡与实测调优）
         self.newmark_max_iter = 30
         self.newmark_tol = 1e-5
+        # 【2026-11-13 ADR-067 W1】分项力留痕开关。默认 False ⇒ 零行为变化、零额外开销；
+        # 诊断时置 True，`step_vehicles_ed_ab` 每控制步把 tractive/ED/AB 分项、实际缸压、
+        # 坡度写进 `_force_breakdown`，供 telemetry 定位"低速段 −0.05 m/s² 减速来源"
+        # （HANDOFF_2026-11-13 §11.2 的未解项）。纯记录，不参与积分。
+        self.trace_forces = False
+        self._force_breakdown = None
         # 【2026-08-30 基线对齐】分档位制动缸升压时间（李蔚2023：常用制动
         # "充气时间长，呈发散式"；周占松2026升压曲线：常用明显慢于紧急）。
         # 常用全制动升压慢 → 头尾制动力差积累更缓 → 前堵后涌峰值更低。
@@ -280,9 +302,13 @@ class TrainDynamics:
         self._update_grade_from_profile()
 
     def _update_grade_from_profile(self) -> None:
-        """根据每节车当前位置从坡度剖面查询坡度（无量纲）。"""
+        """根据每节车当前位置从坡度剖面查询坡度（无量纲）。
+
+        【ADR-060】同步按位置刷新每车曲线半径（剖面无曲线表 → 全 +inf 直线）。
+        """
         if getattr(self, '_grade_profile', None) is not None:
             self.grade = self._grade_profile.grades_for_positions(self.pos)
+            self.curve_radius = self._grade_profile.curve_radii_for_positions(self.pos)
 
     def _reset_air_brake_state(self):
         """Start a fresh episode without old notches, waves or release state."""
@@ -540,6 +566,21 @@ class TrainDynamics:
         """坡度阻力（重力沿轨道分量），m*g*grade。"""
         return -self.masses_kg * G * self.grade
 
+    def _curve_resistance_forces(self) -> np.ndarray:
+        """曲线附加阻力（TB/T 1407 系）：w_r = 600/(R−55) N/kN，恒阻碍运行。
+
+        【ADR-060 线路数据全量入模】R = 该车所在曲线半径（米），直线（+inf）
+        无此项；方向与运行方向相反（下坡时为减速项）。返回带符号数组
+        （与 `_resistance_forces` 同型：运行方向为正时返回正值阻力，由
+        net_forces/_state_forces 取负合成）。静止时无阻力（同运行阻力口径）。
+
+        F_i = m_i·g·w_r/1000（N），w_r 无量纲系数 = 600/(R−55) N/kN。
+        """
+        r = self.curve_radius
+        w_r = np.where(r > 55.0, 600.0 / np.maximum(r - 55.0, 1e-9), 0.0)
+        forces = self.masses_kg * G * w_r / 1000.0
+        return np.where(np.abs(self.vel) > 1e-6, forces * np.sign(self.vel), 0.0)
+
     def _tractive_forces(self, throttle: float) -> np.ndarray:
         """机车牵引力。throttle 为全局手柄（0~1）。"""
         n = self.num_vehicles
@@ -569,6 +610,10 @@ class TrainDynamics:
         n = self.num_vehicles
         forces = np.zeros(n)
         override = self._brake_reduction_override_kpa
+        # 【循环制动减压量 2026-11-08】仅对非紧急的循环制动档（SERVICE）改用
+        # self.service_reduction_kpa 当量；None = 保持档位默认 140 kPa（零回归）。
+        # EMERGENCY 一律不参与该覆盖（安全兜底必须一步到位、按全制动 β=1.0）。
+        service_kpa = self.service_reduction_kpa
         # B3 段间衰减乘子（默认 1.0 = 不衰减，向后兼容）
         degrade = (cyclic_braking_degrade(self._brake_segment)
                    if self.enable_cyclic_degrade else 1.0)
@@ -583,7 +628,13 @@ class TrainDynamics:
                 continue
             f = air_brake_force_real(
                 abs(self.vel[i]), self._air_brake_notch[i], v.is_locomotive,
-                reduction_kpa=override,
+                reduction_kpa=(
+                    override if override is not None
+                    else (service_kpa
+                          if service_kpa is not None
+                          and self._air_brake_notch[i] == AirBrakeNotch.SERVICE
+                          else None)
+                ),
             )
             # E7：缓解制动力渐变衰减（真实缓解逐步排风，非瞬间释放），避免掉速
             f *= self._air_brake_release_frac[i]
@@ -627,6 +678,7 @@ class TrainDynamics:
             self._tractive_forces(throttle)
             + self._braking_forces(brake_notch)
             - self._resistance_forces()
+            - self._curve_resistance_forces()
             + self._grade_forces()
             + self._coupler_forces()
         )
@@ -676,6 +728,7 @@ class TrainDynamics:
         ab_sources: list = None,
         eot: bool = False,
         reduction_kpa: float = None,
+        ab_zones: list = None,
     ):
         """按 电制动（连续）+ 空气制动（离散+波速传播）推进一个时间步。
 
@@ -694,6 +747,10 @@ class TrainDynamics:
                 提供时优先使用多源，忽略 ab_command/brake_origin 的单源逻辑。
             reduction_kpa: 【2026-09-02 P0-3】可选连续减压量（kPa），
                 覆盖档位默认减压量，对所有生效车辆施加（验证专用，向后兼容）。
+            ab_zones: 【2026-11-07 C7-S 空间分级】可选分段档位列表
+                [(start_idx, end_exclusive, AirBrakeNotch), ...]。每段自段首发波、
+                只在段内传播（不跨段），用于让同一时刻编组内存在不同制动等级。
+                提供时优先于 ab_sources / ab_command（EMERGENCY 仍走单源全列）。
         """
         n_sub = max(1, int(np.ceil(self.dt / 0.01)))
         h = self.dt / n_sub
@@ -702,13 +759,25 @@ class TrainDynamics:
             self._advance_control_once(
                 throttle, ed_throttle, ab_command, brake_origin, ab_sources,
                 eot, h, apply_command=(k == 0),
-                reduction_kpa=reduction_kpa,
+                reduction_kpa=reduction_kpa, ab_zones=ab_zones,
             )
         # 能耗追踪（控制步级）：牵引功率 = 牵引力 × 速度（仅牵引为正时累计）
         tractive = self._tractive_forces_per_vehicle(throttle)
         power_w = np.sum(np.maximum(tractive, 0.0) * self.vel)
         self._energy_delta_kwh = power_w * self.dt / 3.6e6
         self.energy_kwh += self._energy_delta_kwh
+        # 【2026-11-13 ADR-067 W1】分项力留痕（控制步级，用本步结束状态）。
+        # 三个力函数均为纯读（无副作用），复用上面已算的 tractive 免重复计算。
+        if self.trace_forces:
+            self._force_breakdown = {
+                'tractive_n': tractive,
+                'ed_n': self._electric_braking_forces(ed_throttle),
+                'air_n': self._air_braking_forces(),
+                'brake_pressure': self._brake_pressure.copy(),   # 实际缸压系数 0–1
+                'grade_permille': self.grade.copy(),             # 每节车坡度（‰）
+                'vel_mps': self.vel.copy(),
+                'air_active': self._air_brake_active.copy(),
+            }
 
     def _advance_control_once(
         self,
@@ -721,6 +790,7 @@ class TrainDynamics:
         h: float,
         apply_command: bool,
         reduction_kpa: float = None,
+        ab_zones: list = None,
     ):
         """推进一个物理子步（步长 h，≤0.01s）。"""
         if apply_command:
@@ -728,8 +798,11 @@ class TrainDynamics:
             self._brake_reduction_override_kpa = reduction_kpa
             # 【2026-09-03 B3】段切换检测：上一步无制动 → 这一步有制动指令 → 段号+1。
             # 段号仅在有新制动段发出时递增（持续制动中不递增，缓解后再制动才 +1）。
-            cmd_now = (ab_sources[0][1] if ab_sources
-                       else (None if ab_command is None else ab_command))
+            if ab_zones:
+                cmd_now = ab_zones[0][2]
+            else:
+                cmd_now = (ab_sources[0][1] if ab_sources
+                           else (None if ab_command is None else ab_command))
             is_braking_cmd = (cmd_now is not None
                               and cmd_now != AirBrakeNotch.RELEASE)
             # None means HOLD, not RELEASE. Keep the same braking episode
@@ -738,7 +811,10 @@ class TrainDynamics:
                 if self.enable_cyclic_degrade and is_braking_cmd and not self._brake_was_active:
                     self._brake_segment += 1
                 self._brake_was_active = is_braking_cmd
-            if ab_sources:
+            if ab_zones:
+                # 【2026-11-07 C7-S 空间分级】各段自段首发波、只在段内传播
+                self.apply_air_brake_zones(ab_zones)
+            elif ab_sources:
                 # 多源制动：多个位置同时发出空气制动指令（分布式动力）
                 # 尾部/中部动力源需要双向传播以提升制动同步
                 cmd = ab_sources[0][1]
@@ -820,7 +896,10 @@ class TrainDynamics:
             + self._electric_braking_forces(ed_throttle)
             + self._air_braking_forces()
         )
-        self._step_newmark(control_forces, h)
+        # 【ADR-048】力学方程按 mechanical_max_step 细分；气动/波速仍按 h 推进。
+        mech_sub = max(1, int(np.ceil(h / self.mechanical_max_step)))
+        for _ in range(mech_sub):
+            self._step_newmark(control_forces, h / mech_sub)
         self._update_grade_from_profile()
 
     # ------------------------------------------------------------------
@@ -842,7 +921,8 @@ class TrainDynamics:
         x_save, v_save = self.pos, self.vel
         self.pos, self.vel = x, v
         try:
-            f = -self._resistance_forces() + self._grade_forces() + self._coupler_forces()
+            f = -self._resistance_forces() - self._curve_resistance_forces() \
+                + self._grade_forces() + self._coupler_forces()
         finally:
             self.pos, self.vel = x_save, v_save
         return f
@@ -1031,6 +1111,7 @@ class TrainDynamics:
         cmd_notch: AirBrakeNotch,
         vehicle_idx: int,
         bidirectional: bool = False,
+        stop_idx: int = None,
     ):
         """对 vehicle_idx 施加空气制动指令，并初始化波速传播。
 
@@ -1039,6 +1120,8 @@ class TrainDynamics:
             vehicle_idx: 指令源车辆索引（0=队首，n-1=队尾）
             bidirectional: 是否双向传播（分布式动力，多源制动时用 True）。
                 True：从源向前车与后车同时传播；False：仅向后传播（单源队首，向后兼容）。
+            stop_idx: 【2026-11-07 C7-S 空间分级】向后传播的最后一个车辆索引（含）。
+                None = 传到列尾（旧行为）；给定值时段外的车辆不收该源指令。
         """
         n = self.num_vehicles
         is_emergency = cmd_notch == AirBrakeNotch.EMERGENCY
@@ -1097,12 +1180,38 @@ class TrainDynamics:
                     self._air_brake_delay_remaining[j] = delay
 
             # 向后传播（source -> 后方）：delay = 距源累计距离/波速，并行倒数
-            for j in range(vehicle_idx + 1, n):
+            j_end = n if stop_idx is None else min(n, int(stop_idx) + 1)
+            for j in range(vehicle_idx + 1, j_end):
                 _enqueue(j, cum_len[j] - cum_len[vehicle_idx])
             # 向前传播（source -> 前方），用于尾部/中部动力（分布式制动）
             if bidirectional:
                 for j in range(vehicle_idx - 1, -1, -1):
                     _enqueue(j, cum_len[vehicle_idx] - cum_len[j])
+
+    def apply_air_brake_zones(self, zones: list):
+        """【2026-11-07 C7-S 空间分级】按车辆段施加不同空气制动档位。
+
+        与"全体先低后高"的时间分级不同，本接口让**同一时刻编组内同时存在不同
+        制动等级**（例如前段 SERVICE / 后段 MIN），用于真正拆小纵向各段的
+        制动力密度，而不是把同一个 140 kPa 拆成两次跃变。
+
+        Args:
+            zones: [(start_idx, end_exclusive, AirBrakeNotch), ...]。
+                每段由段首车发波（单向向后）、并止于段末，不跨段污染相邻段。
+                RELEASE 段不在此处理（缓解由调用方走既有 _reset_air_brake_command）。
+        """
+        n = self.num_vehicles
+        for start, end, notch in zones:
+            if notch == AirBrakeNotch.RELEASE:
+                continue
+            start = int(start)
+            end = int(end)
+            if start < 0 or start >= n:
+                continue
+            end = min(n, max(start + 1, end))
+            self._apply_air_brake_command(
+                notch, start, bidirectional=False, stop_idx=end - 1,
+            )
 
     def _reset_air_brake_command(self, vehicle_idx: int = 0, eot: bool = False):
         """缓解空气制动。

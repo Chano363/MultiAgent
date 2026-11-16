@@ -44,8 +44,8 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **目的**：试点 `Auto-claude-code-research-in-sleep`（ARIS）审阅链，验证 ITSC 论文重构进展可被**独立第二模型**对抗性审出硬伤。
 - **集成**：`@` 引用 ARIS 仓库（`D:\Code\MultiAgent\Auto-claude-code-research-in-sleep`，不复制进项目）；配 `llm-chat` MCP（`mcp-servers\llm-chat\server.py`），reviewer=OpenRouter `minimax/minimax-m3:free`、executor=deepseek，`family_relation=different`（跨族对抗）。
-- **踩坑（TRAE 密钥遮罩）**：`run_mcp` 报 `'ascii' codec can't encode '\u2026' in position 7`；独立命令行跑 server 正常（`Pong!`），走 TRAE 必炸，traceback 定位 `httpx._merge_headers`（Authorization header）。根因：**TRAE 注入 stdio env 时对"值像 API key"（`sk-...`）的变量做遮罩、key 前缀替换成 `\u2026`**（非 server bug 亦非 stdio 兼容；key head codepoints=`[8230=…,115=s,107=k,45=-]` 坐实）。解决：server.py 新增 `LLM_CRED_FILE` 从本地 key 文件读 key（[server.py L52-72](file:///D:/Code/MultiAgent/Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)），env 只传中性"路径"字段绕开遮罩；key 文件 `C:\Users\chano\.trae-cn\memory\llm_chat_key.txt`（git 外）。
-- **跨模型评审结论（minimax 独立审 AUTOM 论文，[ITSC\_PAPER.md](file:///D:/Code/MultiAgent/traffic_rl_project/docs/ITSC_PAPER.md)）**：
+- **踩坑（TRAE 密钥遮罩）**：`run_mcp` 报 `'ascii' codec can't encode '\u2026' in position 7`；独立命令行跑 server 正常（`Pong!`），走 TRAE 必炸，traceback 定位 `httpx._merge_headers`（Authorization header）。根因：**TRAE 注入 stdio env 时对"值像 API key"（`sk-...`）的变量做遮罩、key 前缀替换成 `\u2026`**（非 server bug 亦非 stdio 兼容；key head codepoints=`[8230=…,115=s,107=k,45=-]` 坐实）。解决：server.py 新增 `LLM_CRED_FILE` 从本地 key 文件读 key（[server.py L52-72](Auto-claude-code-research-in-sleep/mcp-servers/llm-chat/server.py#L52-L72)），env 只传中性"路径"字段绕开遮罩；key 文件 `C:\Users\chano\.trae-cn\memory\llm_chat_key.txt`（git 外）。
+- **跨模型评审结论（minimax 独立审 AUTOM 论文，[ITSC\_PAPER.md](traffic_rl_project/docs/ITSC_PAPER.md)）**：
 
   | 攻击点                                                                                      | 裁决               | 具体修复                                                                                                             |
   | :--------------------------------------------------------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------------------------------- |
@@ -460,7 +460,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **局限**：纯 Python SLSQP（scipy），未含 C++/QP 求解器加速；计时为 CPU 单机、无并行加速；MPC 可用控制分块/线性化降维（但会牺牲保真度——正是"保真-实时两难"论点）。
 
-- **复现/数据落盘**：`outputs/exp_mpc_complexity_scale_20260903_190913.json`；脚本 `outputs/exp_mpc_complexity_scale.py`（`EXP_ONLY=mpc/marl` 可单独跑）。运行命令：`wsl -e bash -lc "source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl && cd /mnt/d/Code/MultiAgent/traffic_rl_project && python outputs/exp_mpc_complexity_scale.py"`。
+- **复现/数据落盘**：`outputs/exp_mpc_complexity_scale_20260903_190913.json`；脚本 `outputs/exp_mpc_complexity_scale.py`（`EXP_ONLY=mpc/marl` 可单独跑）。运行命令：`wsl -e bash -lc "source ~/miniconda3/etc/profile.d/conda.sh && conda activate traffic_rl && cd traffic_rl_project && python outputs/exp_mpc_complexity_scale.py"`。
 
 ***
 
@@ -713,7 +713,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 #### 根因1：协同动作控制权过小 = 微观"学无可学"（新定位，最致命）
 
-- 链路：[`hierarchical_controller.py`](file:///D:/Code/MultiAgent/traffic_rl_project/src/controllers/hierarchical_controller.py#L37-L39) [L37-39/78](file:///D:/Code/MultiAgent/traffic_rl_project/src/controllers/hierarchical_controller.py#L37-L39)：`adj = clip(coor_adj)·adj_coef·COOP_LIMIT`，`COOP_LIMIT=5km/h`。M1 训练用 `--adj_coef 0.1` → **coor\_adj=±1 仅把 v\_max/v\_min 阈值偏移 ±0.5 km/h**。
+- 链路：[`hierarchical_controller.py`](traffic_rl_project/src/controllers/hierarchical_controller.py#L37-L39) [L37-39/78](traffic_rl_project/src/controllers/hierarchical_controller.py#L37-L39)：`adj = clip(coor_adj)·adj_coef·COOP_LIMIT`，`COOP_LIMIT=5km/h`。M1 训练用 `--adj_coef 0.1` → **coor\_adj=±1 仅把 v\_max/v\_min 阈值偏移 ±0.5 km/h**。
 
 - 阈值带宽 = v\_max−v\_min = **40 km/h**（80−40）→ 协同偏移仅占带宽 **1.25%**；规则循环制动触发点只挪 0.5km/h。
 
@@ -741,7 +741,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - 各列跑同一阈值带+同一坡面 → 制动/缓解相位天然被共同坡面锁死（同频），可利用的相位自由度极少。协同概念在此场景"几乎无物可协"（间距健康时无增量必要，间距危险时该类弱动作又够不着）。
 
-- 佐证：[`coor_policy_report.md`](file:///D:/Code/MultiAgent/traffic_rl_project/outputs/diagnostics/coor_policy_report.md) 显示已学 coor\_adj 大量贴 clip 界（±0.9，std 0.7-0.8），corr(gap)=−0.642 / corr(dv)=+0.427——**RL 学到的是"间距/速度差→阈值偏移"的粗粒 bang-bang 版启发式，正是 M4 规则 PID 已实现的映射，且权威还只有其 1/3**。即 RL 没有学到规则之外的非平凡协同。
+- 佐证：[`coor_policy_report.md`](traffic_rl_project/outputs/diagnostics/coor_policy_report.md) 显示已学 coor\_adj 大量贴 clip 界（±0.9，std 0.7-0.8），corr(gap)=−0.642 / corr(dv)=+0.427——**RL 学到的是"间距/速度差→阈值偏移"的粗粒 bang-bang 版启发式，正是 M4 规则 PID 已实现的映射，且权威还只有其 1/3**。即 RL 没有学到规则之外的非平凡协同。
 
 #### 结论（期望 vs 实际）与启示
 
@@ -760,7 +760,7 @@ supersedes: partial（自 docs/records/DIAGNOSTICS.md 按月拆分出本文件�
 
 - **改动**：
 
-  1. [`hierarchical_controller.py`](file:///D:/Code/MultiAgent/traffic_rl_project/src/controllers/hierarchical_controller.py)：新增 `get_action_2d`——`v_max_adj`/`v_min_adj` 独立偏移（可压缩/拉伸循环带宽），修根因4；
+  1. [`hierarchical_controller.py`](traffic_rl_project/src/controllers/hierarchical_controller.py)：新增 `get_action_2d`——`v_max_adj`/`v_min_adj` 独立偏移（可压缩/拉伸循环带宽），修根因4；
   2. `train_fleet_env.py`：`action_dim` 配置（2 维走 `get_action_2d`）；`gap_reward` 连续化——高斯峰 `exp(-(ge/140)²)` + 拉开>150m 线性跟丢惩罚，修根因2；
   3. `train_fleet.py`：`--action_dim`、act\_per\_drone 透传、train artifact 加 `ad{action_dim}_` 前缀隔离检查点。
 
@@ -1709,7 +1709,7 @@ seed=0。场景：A平坡 SERVICE 制动建立+缓解波释放；B朔黄线 23.8
   | s1 best × 35km | 1251 | 2.38M | 59.7% | 18.0 |
   （s1 未训满 721/1400，其 last/best 均非收敛产物，仅存档；s1 best × 53km 最后一条已出/存档）
 - **根因机制（非代码 bug，机制必然）**：
-  - best 按**训练窗口 reward** 选取（[train_runner.py `_maybe_save_best`](file:///d:/Code/MultiAgent/traffic_rl_project/src/trainer/train_runner.py#L323-L333)：`ep_reward > best_reward` 才覆盖，逻辑正确）。
+  - best 按**训练窗口 reward** 选取（[train_runner.py `_maybe_save_best`](traffic_rl_project/src/trainer/train_runner.py#L323-L333)：`ep_reward > best_reward` 才覆盖，逻辑正确）。
   - 训练窗口 = **1200 步 = 120s ≈ 2.4km**（20m/s），**完全不含长时程压力**；完整 53km 评估 = 36000 步 = 3600s，需十几次循环制动 + 空气制动波速传播 + 车钩力累积。
   - s0 best 冻结轨迹：+11433.5(ep1/全局874) → +11458.9(ep2) → +11517.2(ep169/全局1042) → +11535.4 → **+11569.7（全局 ~1100+，Sep 21 15:23 冻结）**；此后 ep640-780（全局 1513-1653）reward 均 10700~11400，**从未超越**。
   - 早期策略 = 短视激进（少制动冲坡，短窗口高分）；后期策略牺牲短窗口 reward（~11000 < 11569）换取长程稳定（viol 0 / 863kN / 末速 72）→ **短窗口训练 reward 最优 ≠ 长程评估最优**。s1 同理（best +11832.8 冻结）。

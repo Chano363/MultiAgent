@@ -51,7 +51,10 @@ def test_evaluation_or_disabled_randomization_preserves_requested_speed(eval_mod
     try:
         _, info = env.reset(options={'speed': 80 / 3.6})
         assert info == {}
-        assert env.trains[0].dynamics.pos[0] == 0
+        # 【2026-11-09 起点语义】eval_mode 也应用 start_randomization 固定段
+        # （min_m=max_m=20000）作为 route_offset（训练/评估同源起点，队尾不落
+        # 虚构负里程段）；enabled=False 时才回 0。速度请求保持不做 cold-start 钳制。
+        assert env.trains[0].dynamics.pos[0] == (20000 if enabled else 0)
         np.testing.assert_allclose(env.trains[0].dynamics.vel, 80 / 3.6)
     finally:
         env.close()

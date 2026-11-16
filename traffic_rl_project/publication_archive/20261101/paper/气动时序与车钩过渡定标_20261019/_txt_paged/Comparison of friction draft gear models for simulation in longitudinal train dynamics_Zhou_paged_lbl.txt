@@ -1,0 +1,732 @@
+
+===== [PDF PAGE 1] =====
+                       FLORE
+Repository istituzionale dell'Università degli Studi
+                     di Firenze
+Comparison of friction draft gear models for simulation in
+longitudinal train dynamics
+ Questa è la versione Preprint (Submitted version) della seguente pubblicazione:
+
+ Original Citation:
+ Comparison of friction draft gear models for simulation in longitudinal train dynamics / Zhou Y., Shi Z.,
+ Hecht M.. - In: VEHICLE SYSTEM DYNAMICS. - ISSN 0042-3114. - ELETTRONICO. - (2022), pp. 1-15.
+ [10.1080/00423114.2021.1901943]
+
+
+ Availability:
+ The webpage https://hdl.handle.net/2158/1258138 of the repository was last updated on 2025-02-
+ 11T15:10:54Z
+
+
+
+
+ Published version:
+ DOI: 10.1080/00423114.2021.1901943
+
+
+
+
+ Terms of use:
+ Open Access
+ La pubblicazione è resa disponibile sotto le norme e i termini della licenza di deposito, secondo quanto
+ stabilito dalla Policy per l'accesso aperto dell'Università degli Studi di Firenze
+ (https://www.sba.unifi.it/upload/policy-oa-2016-1.pdf)
+
+
+ Publisher copyright claim:
+
+
+
+
+ La data sopra indicata si riferisce all'ultimo aggiornamento della scheda del Repository FloRe - The above-
+         mentioned date refers to the last update of the record in the Institutional Repository FloRe
+
+
+
+                                          (Article begins on next page)
+
+
+ 19 October 2026
+
+===== [PDF PAGE 2] =====
+  Comparison of friction draft gear models for simulation in longitudinal train
+                                   dynamics
+                               Yichang Zhou, Zhiyong Shi, Hecht M.
+
+Abstract: The friction draft gear with hysteresis characteristics is one of the typical nonlinear
+elements in longitudinal train dynamics. Due to nonlinear hysteresis of friction damping, the
+discontinuity between loading and unloading envelopes becomes a mathematical integration issue
+when adopting look-up table methods to establish draft gear models. It might cause integral diverges
+and wrong results if being ignored. To solve this discontinuous problem and pursue a proper
+transitional approach, three different transitional strategies (velocity-dependent, intermediate slope,
+and smoothing approximation) are applied to building the draft gear model, and the one-dimensional
+(1D) longitudinal train model adopting the modified Newmark-ß approach, also called ‘Zhai’
+method, is established. In order to ensure accurate results, the international benchmarking cases of
+longitudinal train dynamics (LTD) are studied, and dynamic responses for heavy haul trains during
+traction and dynamic braking are compared adopting three draft gear models with different
+transitional strategies in this paper. The results show that three models can successfully work with
+Zhai’s integral method in certain step-sizes to solve longitudinal impulse problems. Compared to
+the other two models, the model with the velocity-dependent approach needs a minimum step (0.1
+or 0.2 ms) to achieve convergent results, and its average time-costing is approximately eight times
+as much time as others. As this method is sensitive to the velocity difference of adjacent wagons,
+switching responses can change sharply, and it might cause instabilities in one simulation process.
+It is recommended that adopting the intermediate slope method or smoothing approximation
+approach to avoid discontinuity problems of modelling draft gears in LTD.
+
+Keywords: draft gear models; transitional strategies; ‘Zhai’ method; benchmark cases; LTD
+
+
+1. Introduction
+With the increase of axle load and train length, the study of longitudinal train dynamics (LTD) has
+been an essential element to the railway industry, especially for freight trains, and has been
+addressed by worldwide researchers [1]~[4]. The development of LTD includes advanced vehicle
+connection models of in-train forces, extended vehicle modelling into multiple degree-of-freedoms
+(DOFs), complex nonlinear characteristics of in-vehicle components and other aspects. The wagon
+connection system, including draft gears and buffers, directly affects the in-train force, and is one
+of the most critical and notable parts for LTD. In fact, the draft gear and buffer system exhibits
+strong nonlinear characteristics, including the hysteresis [5], the ‘locked unloading’ behavior [6],
+and the varying-stiffness phenomena etc. Therefore, the modelling of this system becomes highly
+challenging.
+     Early models usually simplify the single wagons as mass points with one degree of freedom,
+thereby ignoring the connecting systems between car-bodies and bogies [7][8]. Some other studies
+packaged the draft gear into an equivalent simple mass-spring or wedge-spring, failing to represent
+the realistic characteristics of corresponding components as well. A refined model was proposed by
+Cole[6] based on dropping hammer test data, which presented the varying stiffness as deflection.
+The proposed model incorporated the wedge angles and static-dynamic friction and was fitted for
+
+===== [PDF PAGE 3] =====
+reproducing the ‘locked unloading’ behavior. An alternative is the look-up table method [9]~[11],
+which could reproduce the hysteresis behaviour and improve the computation efficiency, therefore
+is widely applied. However, the nonlinear hysteresis entails the discontinuities between loading and
+unloading envelopes when applying the look-up table approaches. To fix the discontinuities,
+smoothing approximations or transitional characteristics are generally introduced as a mathematical
+solution [13]. A recent review paper by Wu on the dynamics modelling of the friction draft gear [5],
+summarized the dynamics modelling from different institutions comprehensively, and addressed the
+importance of including the velocity-dependent friction, slack, limiting stiffness and transitional
+characteristics into draft gear models. Afterwards, productive investigations on advanced draft gear
+models have been published by Wu et al. [12].
+     Among all existing draft gear models, it is necessary to understand the applicability thoroughly
+before adapting them into LTD simulations. The authors compared three representative draft gear
+models with different transitional strategies to investigate different methods for modelling the draft
+gears. The simulated scenarios are referred from the international benchmarking of LTD simulators
+in [15][16]. This paper is organized starting from a detailed introduction on three different
+transitional strategies for draft gear modelling, following by a presentation of LTD model developed
+in MATLAB adopting the ‘Zhai’ method [22] for numerical integration. Section 4 includes the
+simulated results from four benchmark cases using the developed LTD model and comparative
+discussion on different methods. The conclusion and outlook are shown in Section 5.
+
+
+
+
+2. Draft gear models
+Center-buffer couplers and buffer-hook couplers are two types of coupling connection systems for
+freight wagons in the world’s railway system. And Center-buffer couplers are popularly used in
+America, China [23][24] and Australia [5] while buffer-hook couplers are widely applied in the
+European railway system [25]. Early draft gear models for both types of couplers are simplified as
+a combination of linear stiffness and damping, ignoring the nonlinear hysteresis characteristics of
+the friction damping. Recent developments have incorporated different considerations into
+advanced draft gear models, widely using the look-up table approach.
+      A look-up table approach generally includes fixed tables to represent the force-deflection
+features of draft gears from tests, and adopts different simplifications to define the transitional
+strategies. As the force-deflection characteristic is dependent on the type of draft gear, the
+transitional characteristics affect the performance of a draft gear model significantly. To investigate
+the performance of different modelling methods, three draft gear models with different transitional
+strategies are compared in this part.
+
+2.1 Model 1 with velocity-dependent transitional characteristics
+The first transitional method in the draft gear model 1 is called a velocity-dependent transitional
+approach [17], and it stems from the spring and damper characteristics with a hysteresis function,
+as shown in Figure 1.
+     The draft gear is simplified as a parallel model of a linear spring and a frictional damper. The
+buffer force is given as the sum of the function of the relative displacement for spring functionality,
+and function of the relative velocity for the damper functionality. And it is a simple hysteresis force
+
+===== [PDF PAGE 4] =====
+with the upper envelope for positive relative speed and the lower envelope for negative relative
+speed. Since the discontinuity in the coulomb frictional force causes numerical problems for time
+integration, a regularization velocity 𝑣𝜀 is introduced to allow a steady transition between one
+envelope and the other. The force law is given in Equation (1).
+                  Spring                             Friction
+                   F                                     F                              F
+                                                                                                  v>0
+
+                                                         𝐹𝑓
+
+
+                                     X   +                      𝑣𝜀       V      =                         X
+                                                                                                   v< 0
+
+
+
+
+                    Figure 1. A simple spring and frictional damper parallel model
+
+                                                𝐹spring ± 𝐹𝑓 ,           |𝑣| ≥ 𝑣𝜀
+                                         𝐹={                    𝑣                                               (1)
+                                               𝐹spring + 𝑣 ∙ 𝐹𝑓 , |𝑣| < 𝑣𝜀
+                                                                 𝜀
+
+
+     Based on this simplified method, a detailed calculation equation for nonlinear draft gear models
+is proposed:
+                        1                            1
+                        2
+                            (𝑓l (𝑥𝑡 ) + 𝑓u (𝑥𝑡 )) + 2 (𝑓l (𝑥𝑡 ) − 𝑓u (𝑥𝑡 ))𝑠𝑖𝑔𝑛(𝑣𝑡 ∙ 𝑥𝑡 ) ,       |𝑣𝑡 | ≥ 𝑣𝜀
+    𝐹(𝑥𝑡 , 𝑣𝑡 ) = { 1                            1                                       |𝑣𝑡 |                  (2)
+                        (𝑓l (𝑥𝑡 ) + 𝑓u (𝑥𝑡 )) + (𝑓l (𝑥𝑡 ) − 𝑓u (𝑥𝑡 ))𝑠𝑖𝑔𝑛(𝑣𝑡 ∙ 𝑥𝑡 ) ∙            , |𝑣𝑡 | < 𝑣𝜀
+                   2                             2                                          𝑣𝜀
+
+where 𝑥𝑡 and 𝑣𝑡 are relative deflections and velocities of adjacent wagons of the current time-
+step, respectively; 𝑓l and 𝑓u are the buffer loading envelope and unloading envelope, respectively;
+𝑣𝜀 is the regularization velocity, and 𝐹 is buffer force. As we can see from Equation (2) and Figure
+2 (a), 𝑥𝑡 and 𝑣𝑡 are two critical parameters affecting buffer force while 𝑣𝑡 also control the
+transitional zone.
+
+2.2 Model 2 with intermediate slope transitional approach
+The transitional method of the draft gear model 2 is original from the American railway research
+institutions and applied to the software package known as Train Operation Simulator (TOS) [18].
+An intermediate slope is brought in to solve the interruption problem between the loading and
+unloading envelopes, as shown in Figure 2 (b). Thus the draft gear model can be expressed as
+Equation (3)-(5):
+                                                              𝑓l (𝑥𝑡 ), 𝑥𝑡 ≥ 𝑥𝑡−∆𝑡
+                                          𝐹(𝑥𝑡 ) = {                                                            (3)
+                                                             𝑓u (𝑥𝑡 ), 𝑥𝑡 < 𝑥𝑡−∆𝑡
+                               𝐹(𝑥𝑡 ) = 𝐹(𝑥𝑡−∆𝑡 ) + 𝑘(𝑥𝑡 − 𝑥𝑡−∆𝑡 )                              (4)
+                                   |𝑓u (𝑥𝑡 )| ≤ 𝐹(𝑥𝑡 ) ≤ |𝑓l (𝑥𝑡 )|                             (5)
+where 𝑥𝑡−∆𝑡 and 𝐹(𝑥𝑡−∆𝑡 ) are relative deflections of adjacent wagons and draft gear force of the
+previous time-step, respectively, and 𝑘 is the intermediate slope. Equation (3) determines the
+loading and unloading envelopes of the buffer system while the transitional characteristics between
+two envelopes are controlled by Equation (4) under the boundary condition (5).
+
+2.3 Model 3 with smoothing approximation
+
+===== [PDF PAGE 5] =====
+The last transitional strategy in the draft gear model 3 is developed by the China Academy of
+Railway Sciences, and carried out at the software named TOSPC [19]. This smoothing
+approximation method was initially used to simulate the dissipating energy process during each
+cycle of oscillation for truck leaf springs. The draft gear model is expressed by Equation (6):
+                                                                      −|𝑥𝑡 −𝑥𝑡−∆𝑡 |
+                            𝑓l (𝑥𝑡 ) + (𝐹(𝑥𝑡−∆𝑡 ) − 𝑓l (𝑥𝑡 ))exp (                    ), 𝑥𝑡 ≥ 𝑥𝑡−∆𝑡
+                                                                            𝛼
+              𝐹(𝑥𝑡 ) = {                                              −|𝑥𝑡 −𝑥𝑡−∆𝑡 |
+                                                                                                      (6)
+                           𝑓u (𝑥𝑡 ) + (𝐹(𝑥𝑡−∆𝑡 ) − 𝑓u (𝑥𝑡 ))exp (                     ), 𝑥𝑡 < 𝑥𝑡−∆𝑡
+                                                                           𝛼
+
+where 𝛼 is a critical parameter to describe the rate within a hysteresis loop approaches the outer
+boundary of the envelop, see Figure 2 (c).
+
+                         (a)
+
+
+                                              loading, 𝑣 ≥ 𝑣𝜀
+
+
+
+
+                                                    unloading, 𝑣 ≤ −𝑣𝜀
+
+
+
+
+                           (b)
+
+
+                                                loading
+
+                                                            slope 𝑘
+
+
+                                                   unloading
+
+
+
+
+                         (c)
+
+
+                                               loading
+
+                                                          α factor
+
+
+                                                   unloading
+
+
+
+
+Figure 2. Different transitional approaches in three draft gear models: (a) velocity-dependent
+transitional characteristics in model 1; (b) intermediate slope transitional approach in model 2; (c)
+smoothing approximation in model 3
+
+
+3. Longitudinal train dynamics model
+To compare above mentioned friction draft gear models, we have applied different draft gear models
+into longitudinal train dynamics simulator to investigate the dynamical influence. Figure 3 illustrates
+one typical LTD model.
+
+===== [PDF PAGE 6] =====
+                                Figure 3. One typical LTD model
+     As shown in Figure 3, the running direction degree of freedom of each vehicle, represented by
+multibody dynamical components, is included. A detailed explanation regarding the model is
+introduced in Section 3.2.
+
+3.1 Architecture of the LTD simulator
+A general architecture of the LTD simulator is shown in Figure 4. Five parts are included, pre-
+processing, initialization, algorithm, net force, and post-processing. The simulator is developed in
+MATLAB. The first part aims to discrete input parameters, including track discretization, buffer F-
+D discretization, theoretical traction and dynamic braking force discretization for locomotives, and
+driving control sequences discretization. For example, the track curves and gradients information
+are interpolated by a fixed discretization step in the pre-processing stage. Without judgement or loop
+statements, the fixed discretization step is an effective method to save computing resources in
+MATLAB, and the steps of track sections, buffer-coupling system deflections, locomotive speed in
+the traction and DB notches, and driving control sequences are 1 m, 0.01 mm, 1 mm/s, and 1 ms,
+respectively [20].
+      The second part initializes other simulation conditions, such as the train configuration, mass
+matrix, locomotive and coupler positions. It should be noted that the locomotive position is relevant
+to traction force and dynamic braking force while the coupler position is connected with different
+slacks between the coupler system and draw-bar system. The third part is the core of this program
+including ‘Zhai’ integration method [22], and the displacements, velocities and accelerations of
+vehicles are calculated in this component. The fourth part pursues to obtain the net force, such as
+track resistance and running resistance for each time step, and pass the total force to the third part.
+The last part of this simulator is the post-processing including outputs of speed, maximum in-train
+force and buffer F-D envelopes.
+
+                                                     Main Program
+
+
+
+
+                                                                                                    Post-
+        Pre-processing           Initialization        Algorithm              Net Force
+                                                                                                 processing
+
+
+        Track discrete        Train configuration      Zhai method         Track resistance    Locomotive speed
+
+                                                                                               Maximum in-train
+     Buffer F-D discrete         Mass Matrix        Calculation X, V, A   Running resistance
+                                                                                                    force
+
+     Theoretical traction /
+                              Locomotive position                            Buffer force      Buffer F-D curves
+             DB
+
+       Driving control         Coupler position                             Driving force      in-train force. etc
+
+===== [PDF PAGE 7] =====
+                       Figure 4. Architecture of the LTD model in MATLAB
+
+3.2 Single wagon dynamics model
+Two different vehicle models, the single locomotive and the single wagon are detailed in this section.
+The force analysis of the single wagon dynamic model is illustrated in Figure 5, and corresponding
+equations of motion are expressed in Equations 7 and 8.
+
+
+      (a)                 𝑋𝑖
+                                                        (b)             𝑋𝑖
+
+      𝐹ab𝑖                                  𝐹db 𝑖       𝐹ab𝑖
+       𝐹c𝑖               𝑚𝑖                 𝐹c(𝑖−1)     𝐹c𝑖            𝑚
+                                                                       𝑚𝑖𝑖                𝐹c(𝑖−1)
+       𝐹r𝑖                                  𝐹t𝑖         𝐹r𝑖
+
+
+
+
+              Figure 5. Single wagon dynamic model: (a) locomotives; (b) wagons
+     For locomotives:
+                         𝑚𝑖 𝑋𝑖 = 𝐹t𝑖 − 𝐹db𝑖 + 𝐹c(𝑖−1) − 𝐹c𝑖 − 𝐹ab𝑖 − 𝐹r𝑖                            (7)
+     For wagons:
+                                 𝑚𝑖 𝑋𝑖 = 𝐹c(𝑖−1) − 𝐹c𝑖 − 𝐹ab𝑖 − 𝐹r𝑖                                 (8)
+
+
+where m and 𝑋 are the vehicle mass and acceleration, respectively; 𝐹c and 𝐹ab are coupler force
+and air brake force, respectively; 𝐹r is the sum of resistance force, including propulsion resistance,
+curving resistance and track slope resistance; 𝐹db and 𝐹t are the dynamic braking and traction
+force of locomotives, respectively; 𝑖 is the number of the vehicle. All the units of variables are
+consistent with international standard units.
+     Note that the differential equations for the locomotives and wagons are different, and there is
+only one coupler force for the first and the last vehicles.
+
+3.3 Numerical integration method
+Newmark- ß is an approach of numerical integration to solve certain differential equations, and was
+developed by Nathan M. Newmark in 1959 for solving response of large-scale structural systems
+[14]. It is a typical implicit method with second-order accuracy, and are widely applied to dynamic
+systems for its high precision. However, it costs extra computing resource due to the implicit
+integration method. To solve this problem, Zhai [22] proposed a simple explicit method with second-
+order accuracy to solve large-scale nonlinear dynamic issues based on the Newmark- ß approach,
+and validated this new method in railway engineering. The modified method, also called ‘Zhai’
+method, is expressed by Equation (9) and (10)
+                                                    1
+                        𝑋𝑛+1 = 𝑋𝑛 + 𝑉𝑛 ∆𝑡 + (2 + 𝜓) 𝐴𝑛 ∆𝑡 2 − 𝜓𝐴𝑛−1 ∆𝑡 2                            (9)
+
+                              𝑉𝑛+1 = 𝑉𝑛 + (1 + 𝜑)𝐴𝑛 ∆𝑡 − 𝜑𝐴𝑛−1 ∆𝑡                                (10)
+where 𝑋𝑛 , 𝑉𝑛 and 𝐴𝑛 are the approximations of the displacement, velocity and acceleration of
+the current time-step, respectively; ∆𝑡 is the time step; 𝜓 and 𝜑 are variables controlling the
+integration stability and accuracy, which are taken as 0.5 and 0.5 in this paper, respectively. As
+shown in Equation (9) and (10), it is a two-step method, and the displacement and velocity of the
+next step can be calculated according to those of the current and the previous steps. In addition, the
+
+===== [PDF PAGE 8] =====
+acceleration of each step can be given according to Equation (7) or (8), and the program is self-
+starting with the initial conditions 𝑋0, 𝑉0 , 𝐹0 and 𝜓 = 𝜑 = 0 at the first time step.
+      The flow chart of the simulation for LTD is shown in Figure 6.
+                                                                                                   Net force            i=1         Zhai method
+   Start         Pre-processing           Initialization                𝑋0 , 𝑉0
+                                                                                                  Calculate 𝐴0       𝜓=𝜑=0         Calculate 𝑋𝑖 , 𝑉𝑖
+
+
+
+
+                                   Yes       End                    Net force                     Zhai method           i=2         Net force
+    End         Post-processing
+                                           condition               Calculate 𝐴𝑖                  Calculate 𝑋𝑖 , 𝑉𝑖   𝜓 = 𝜑 = 0.5   Calculate 𝐴𝑖
+
+                                           No
+                                                                i=i+1
+
+                                   Figure 6. Flow chart of LTD simulation
+
+
+4. Results and discussion
+To validate the proposed LTD model, four benchmark cases, shown in Figure 7, were studied in
+MATLAB using a computer with an AMD FX-8350 Core at 4.00 GHz and 16 GB of RAM. For
+each simulation case, three draft gear models with different transitional strategies explained in
+Section 2 are compared.
+      As seen in Figure 7, four different train configurations are included: a short and a long head-
+end trains in Case 1 and Case 3, whereas a short and a long distributed power train in Case 2 and
+Case 4, respectively. It should be noticed that locomotives-1 and locomotives-2 represent two
+different types of locomotives while wagons-1 and wagons-2 stand for two kinds of wagons. In
+order to reduce the slack in the train, draw-bar connection systems were used to connect two wagons
+to form a wagon pair while adjacent wagon pairs were linked by coupler systems in four benchmark
+cases.
+                     50 wagons-1              2 locomotives-1
+                                                                                                Running direction
+  Case 1:
+
+                     50 wagons-1             2 locomotives-1                      50 wagons-1                 2 locomotives-1
+  Case 2:
+
+                    240 wagons-2                     3 locomotives-2
+
+  Case 3:
+
+                    120 wagons-2         1 locomotives-2        120 wagons-2                2 locomotives-2
+
+  Case 4:
+
+
+Figure 7. Train configurations of four cases
+
+     Figure 8 shows traction control strategies for each locomotive of four cases, in which traction
+force is represented by positive values while dynamic braking of locomotives is represented by
+negative values. Besides, the parameters for trains, wagon connection systems, and more input
+information of LTD are referred to the article [16].
+
+===== [PDF PAGE 9] =====
+ (a)                                             (b)
+
+
+
+
+ (c)                                             (d)
+
+
+
+
+Figure 8. Locomotive traction controls under four cases: (a) Case 1; (b) Case 2; (c) Case 3; (d) Case
+4.
+
+4.1 Results of CASE 1
+Figure 9 shows the results of the speed of the leading locomotive, maximum longitudinal force, 10th
+in-train force, and buffer F-D characteristics in Case 1.
+      It can be seen from Figure 9 (a) that the speed of the leading locomotive synchronously changes
+with the location when adopting three draft gear models with different transitional characteristics.
+Furthermore, the speed limits in the magenta dashed line are provided to aid checking the simulation
+results while 10% of over-speed is allowed. For in-train forces, it is stipulated that the tensile force
+is represented by negative values while the compressive force is represented by positive values in
+this paper. As presented in Figure 9 (b), the maximum compressive and tensile in-train forces both
+arose between the last locomotive and the first wagon, and values of the largest forces are rather
+close. The variation of maximum compressive in-train forces, as shown in Table 1, is only 3 kN
+(from 343 to 346 kN) whereas that of maximum tensile in-train forces is 12 kN (from 590 to 602
+kN). In addition, adopting model 2 had the largest average of maximum tensile and compressive
+forces while adopting model 1 had the lowest average forces.
+      Before further analysis is executed, two terms would be clarified firstly. The 10th in-train force
+means that the force occurred between the 10th and 11th vehicles from the train head while the 10th
+buffer means that the buffer is located between the 10th and 11th vehicles. In terms of the 10th in-
+train forces in the time domain, the response results of the three models were close, as shown in
+Figure 9 (c). In order to clearly present the results, the in-train forces are shifted upwards by 0, 300,
+600 kN, respectively. The highest tensile forces all happened around at t = 37 s. In comparison, the
+maximum compressive forces arose approximately at t = 680 or 1600 s. It is evident that the whole
+trend of force curves are associated with traction curves.
+      Figure 9 (d) shows that the maximum negative and positive deflections of the model 1 are the
+highest above all, and the values are -71 and 49 mm, respectively. Besides, the 10th buffer F-D
+characteristics of the model 2 and 3 have near responses. Even though the maximum deflection of
+
+===== [PDF PAGE 10] =====
+model 1 is larger than others, the buffer force sometimes is even smaller due to the velocity-
+dependent switching strategy. And most buffer forces are obtained in the transition zone.
+ (a)                                                (b)
+
+
+
+
+ (c)                                                (d)
+
+
+
+
+Figure 9. Simulation results of Case 1: (a) 1st locomotive speed, (b) Maximum in-train force, (c) 10th in-
+train force, and (d) 10th buffer force
+
+
+4.2 Results of CASE 2
+Figure 10 describes the results of the speed of the leading locomotive, maximum longitudinal force,
+10th in-train force, and buffer F-D characteristics in Case 2.
+      Similar to Case 1, the speeds of the leading locomotive adopting three draft gear models for
+LTD simulation are almost the same, as shown in Figure 10 (a). Figure 10 (b) illustrates that three
+models had similar maximum force distribution along the train. The highest compressive and tensile
+in-train forces always arise in the process from the locomotive transferring to the wagon. Since the
+configuration of this distributed power train is a ‘locomotive + wagon + locomotive + wagon’
+pattern, there are two peaks in the compressive or tensile in-train force curve. One is located between
+the last locomotive and the first wagon in front; the other exists between the last locomotive and the
+first wagon in middle. The second peak is generally higher due to the larger longitudinal impulse.
+As presented in Table 1, the maximum tensile in-train forces of three models are 762, 763, and 777
+kN respectively, while the maximum compressive are all 418 kN. Besides, the averages of the
+maximum in-train forces have tiny differences applying three models.
+      As seen in Figure 10 (c), the dynamic responses of the 61st in-train forces approximately change
+synchronously in the time domain applying three draft gear models. The maximum tensile forces
+all happen around at t = 44 s while the largest compressive forces arise approximately at t = 1735 s.
+Even though the 61st in-train forces in the time domain are almost the same, the deflections of draft
+gears shown in Figure 10 (d) are entirely different due to the different transitional strategies adopted
+in three draft gear models, especially for the model 1. As described in Table 1, the maximum tensile
+deflections of the model 1, model 2 and model 3 are 93, 81 and 82 mm, respectively. Furthermore,
+the highest compressive deflections of the model 1 was 56 mm while those are only 34 and 35 mm
+for the model 2 and 3, respectively. In conclusion, the buffer force mainly distributed in the transition
+
+===== [PDF PAGE 11] =====
+zone of buffer F-D characteristics adopting model 1 compared other models.
+ (a)                                                  (b)
+
+
+
+
+ (c)                                                  (d)
+
+
+
+
+Figure 10. Simulation results of Case 2: (a) 1st locomotive speed, (b) Maximum in-train force, (c) 61st in-
+train force, and (d) 61st buffer force
+
+
+4.3 Results of other two cases
+The detailed dynamic responses of Case 3 and Case 4 are attached in Appendix 1 and 2, respectively.
+Similar to Case 1 and 2, the first locomotive speed adopting three models are almost the same and
+variations of the maximum in-train force between three models are tiny in both cases. The responses
+of the 147th in-train force and buffer force are calculated applying three models in Case 3 while
+those of the 146th in-train force and buffer force are shown in Case 4. Three models in both cases
+all had similar in-train force responses of the selected position in the time domain. However, the
+buffer F-D characteristics of the chosen place have some differences due to the different transitional
+strategies, especially for the model 1.
+
+4.4 Discussion
+The results from the table 1 summarize the simulation results for four cases adopting three different
+draft gear modelling methods. The calculated in-train force and the deflection of selected coupler
+position using three different draft gear models can reach well agreements with referenced results.
+     The results of Case 3 are similar to Case 1, whereas those of Case 4 are close to Case 2 due to
+similar train configurations. Compared with Case 1, the maximum compressive force occurred at
+nearly the three-fifth of the train length in Case 3 during train operations. The largest tensile and
+compressive forces in Case 2 and 4 all arose near to the locomotives in the middle of the train.
+Among all the cases, the average of maximum tensile and compressive force adopting model 1 is
+the lowest whereas the maximum buffer deflections of chosen positions are larger than others.
+
+Table 1. Main simulation results for all four cases
+           Draft gear     Max.in-train forces (kN)      Mean of Max. in-    Max. deflection of selected
+Cases
+           models         /coupler position             train forces (kN)   coupler position (mm)
+
+===== [PDF PAGE 12] =====
+                          Tensile       Comp.        Tensile     Comp.    Pos.   Tensile        Comp.
+          Model 1         -602/2        343/2        -348        198      10     -71            49
+Case 1    Model 2         -590/2        346/2        -386        214      10     -57            35
+          Model 3         -601/2        345/2        -370        205      10     -57            36
+
+          Model 1         -762/54       418/54       -444        259      61     -93            56
+Case 2    Model 2         -763/54       418/54       -476        266      61     -81            34
+          Model 3         -777/54       418/54       -472        268      61     -82            35
+
+          Model 1         1644/4        977/147      -1163       599      147    -166           133
+Case 3    Model 2         1642/3        980/146      -1172       640      147    -144           120
+          Model 3         1643/3        985/145      -1176       633      147    -145           121
+
+          Model 1         -1310/123     848/122      -931        482      146    -161           105
+Case 4    Model 2         -1319/123     848/122      -984        514      146    -140           79
+          Model 3         -1318/123     843/122      -977        508      146    -141           80
+
+
+     The computing speed of all the discussed cases are listed in Table 2. The results show that the
+model 1with the velocity-dependent transitional characteristics requires a smaller step size than the
+other two approaches in each case. In other words, it demands lots of computing resource to finish
+the simulation adopting this method. Furthermore, model 2 and model 3 can realize online
+simulations during train operations.
+
+Table 2. Computing speed of four cases
+    Transition                                                     Train operation     Speed     1
+                  Cases        Step-size (ms)    Wall time (s)
+    methods                                                        time(s)             (ms/s)
+                  Case 1       0.2               809               2400                337
+                  Case 2       0.1               3692              2400                1538
+    Model 1
+                  Case 3       0.1               10440             5000                2088
+                  Case 4       0.1               10458             5000                2092
+                  Average      −                 −                 −                   1514
+                  Case 1       1                 166               2400                69
+                  Case 2       1                 365               2400                152
+    Model 2
+                  Case 3       1                 1292              5000                258
+                  Case 4       1                 1263              5000                253
+                  Average      −                 −                 −                   183
+                  Case 1       1                 171               2400                71
+                  Case 2       1                 372               2400                155
+    Model 3
+                  Case 3       1                 1316              5000                263
+                  Case 4       1                 1331              5000                266
+                  Average      −                 −                 −                   189
+
+
+5. Conclusions
+
+===== [PDF PAGE 13] =====
+In this paper, three representative draft gear models with different transitional strategies to
+investigate different methods for modelling the draft gears were compared. The LTD simulator
+including the draft gear models were presented in detail. Based on the ‘Zhai’ integral method,
+developed in MATLAB, the simulator enables the analysis of longitudinal dynamics problems. The
+following conclusions can be obtained:
+     (1) The three transitional methods (velocity-dependent, intermediate slope, and smoothing
+         approximation) can successfully cooperate with ‘Zhai’ integral method, a two-step explicit
+         method, to solve the longitudinal impulse problems in LTD, and the results are in good
+         agreement with the benchmark results. The dynamic responses (including results and
+         calculating time of four cases) of intermediate slope and smoothing approximation have
+         tiny divergences.
+     (2) The velocity-dependent method requires a minimum integration step (0.1 ms or 0.2 ms) to
+         get stable responses while the step sizes of other two approaches are only 1 ms. Adopting
+         the intermediate slope or smoothing approximation method can save more calculating
+         resources and realize online simulations.
+     (3) The velocity-dependent method is sensitive with the velocity difference of adjacent wagons
+         while other two approaches are controlled by the relative displacement of adjacent wagons.
+         If the velocity sharply changes, it might cause instabilities in the simulation process. Hence,
+         the intermediate slope method and smoothing approximation approach are recommended
+         to deal with the discontinuity problems of modeling frictional draft gears in LTD.
+     (4) The maximum buffer deflections of the velocity-dependent method are obviously higher
+         than others, and the highest in-train forces are obtained in the transitional zone due to its
+         smoothing strategy. This explains the reason why its highest in-train forces are almost equal
+         to others although the buffer deflections are obviously larger.
+      Apart from approaches introduced in this paper, there still remain other methods to establish
+the draft gear model and further comparisons are supposed to execute in the future.
+
+
+References
+   [1] Wu Q, Spiryagin M, Cole C. Longitudinal train dynamics: an overview. Vehicle System
+       Dynamics. 2016;54(12):1688–1714.
+   [2] Iwnicki S, Spiryagin M, Cole C, et al. Handbook of railway vehicle dynamics. London:
+       Taylor & Francis; 2006.
+   [3] Cole C, Spiryagin M, Wu Q, et al. Modelling, simulation and applications of longitudinal
+       train dynamics. Vehicle System Dynamics; 2017, 55(10):1498–1571.
+   [4] Shi, Z., Wang, K., Guo, L., Chen, Z., Zhang, R., & Lv, K. (2017). Effect of arc surfaces
+       friction coefficient on coupler stability in heavy haul locomotives: simulation and
+       experiment. Vehicle System Dynamics, 55(9), 1368-1383.
+   [5] Wu, Q., Cole, C., Luo, S., & Spiryagin, M. (2014). A review of dynamics modelling of
+       friction draft gear. Vehicle System Dynamics, 52(6), 733-758.
+   [6] Cole, C. (1998). Improvements to wagon connection modelling for longitudinal train
+       simulation. In Conference on railway engineering proceedings: engineering innovation for
+       a competitive edge (p. 187). Central Queensland University.
+   [7] Pipes, L. A. (1942). Analysis of longitudinal motions of trains by the electrical analog.
+
+===== [PDF PAGE 14] =====
+     Journal of Applied Physics, 13(12), 780-786.
+[8] Kerr, A., & Blair, J. R. (1978). Simulation of the longitudinal dynamics of a train. In
+     Dynamics of Multibody Systems (pp. 108-119). Springer, Berlin, Heidelberg.
+[9] Hsu, T. K., & Peters, D. A. (1978). A simple dynamic model for simulating draft-gear
+     behavior in rail-car impacts.
+[10] Witt, T., & Müller, L. (1999). Methods for the validation of algorithms for the simulation of
+     longitudinal dynamics. Vehicle System Dynamics, 33(sup1), 386-393.
+[11] Pugi, L., Rindi, A., Ercole, A. G., Palazzolo, A., Auciello, J., Fioravanti, D., & Ignesti, M.
+     (2011). Preliminary studies concerning the application of different braking arrangements on
+     Italian freight trains. Vehicle System Dynamics, 49(8), 1339-1365.
+[12] Wu, Q., Spiryagin, M., & Cole, C. (2015). Advanced dynamic modelling for friction draft
+     gears. Vehicle System Dynamics, 53(4), 475-492.
+[13] Wu, Q., Luo, S., Xu, Z., & Ma, W. (2013). Coupler jackknifing and derailments of
+     locomotives on tangent track. Vehicle system dynamics, 51(11), 1784-1800.
+[14] Newmark Nathan M. A method of computation for structural dynamics. Journal of the
+     Engineering Mechanics Division. 1959;85 (3): 67–94.
+[15] Wu, Q., Spiryagin, M., Cole, C., Chang, C., Guo, G., Sakalo, A., ... & Chollet, H. (2018).
+     International benchmarking of longitudinal train dynamics simulators: results. Vehicle
+     system dynamics, 56(3), 343-365.
+[16] Spiryagin, M., Wu, Q., & Cole, C. (2017). International benchmarking of longitudinal train
+     dynamics simulators: benchmarking questions. Vehicle system dynamics, 55(4), 450-463.
+[17] Zhang Z, Li G, Chu G, et al. Compressed stability analysis of the coupler and buffer system
+     of heavy-haul locomotives.Veh Syst Dyn 2015; 53: 833–855.
+[18] Low EM, Garg VK. Validation of train operations simulator computer program. Chicago
+     (IL): Association of American Railroads (AAR); 1978. (Technical Report No. R-335)
+[19] Geng Z. Heavy-haul transportation technologies on Datong-Qinhuangdao railway. Beijing:
+     China Railway Publishing House; 2009.
+[20] Bosso, N., Magelli, M., & Zampieri, N. (2020). Development and validation of a new code
+     for longitudinal train dynamics simulation. Proceedings of the Institution of Mechanical
+     Engineers, Part F: Journal of Rail and Rapid Transit, 0954409720923497.
+[21] Fancher, P. S., Ervin, R. D., MacAdam, C. C., & Winkler, C. B. (1980). Measurement and
+     representation of the mechanical properties of truck leaf springs (No. 800905). SAE
+     Technical Paper.
+[22] ZHAI, W. M. (1996). Two simple fast integration methods for large‐scale dynamic problems
+     in engineering. International journal for numerical methods in engineering, 39(24), 4199-
+     4214.
+[23] Guo, L., Wang, K., Chen, Z., Shi, Z., Lv, K., & Ji, T. (2018). Analysis of the car body stability
+     performance after coupler jack-knifing during braking. Vehicle system dynamics, 56(6),
+     900-922.
+[24] Lv, K., Wang, K., Chen, Z., Guo, L., Shi, Z., Ji, T., & Zhu, S. (2018). The effect of the
+     secondary lateral stopper on the compressed stability of the couplers and running safety of
+     the locomotives. Proceedings of the Institution of Mechanical Engineers, Part F: Journal of
+     Rail and Rapid Transit, 232(3), 851-862.
+[25] Krishna VV, Jobstfinke D, Melzi S, Berg M. An integrated numerical framework to
+
+===== [PDF PAGE 15] =====
+        investigate the running safety of overlong freight trains. Proceedings of the Institution of
+        Mechanical Engineers, Part F: Journal of Rail and Rapid Transit. February 2020.
+
+
+
+
+Appendices
+Appendix 1
+ (a)                                               (b)
+
+
+
+
+ (c)                                               (d)
+
+
+
+
+Figure 11. Simulation results of Case 2: (a) 1 st locomotive speed, (b) Maximum in-train force, (c) 147th
+in-train force, and (d) 147th buffer force
+
+
+Appendix 2
+ (a)                                               (b)
+
+
+
+
+ (c)                                               (d)
+
+
+
+
+Figure 12. Simulation results of Case 2: (a) 1st locomotive speed, (b) Maximum in-train force, (c) 146th
+
+===== [PDF PAGE 16] =====
+in-train force, and (d) 146th buffer force
+
+===== [PDF PAGE 17] =====

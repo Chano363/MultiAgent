@@ -17,7 +17,6 @@ class PhysicsConfig:
     dt: float = 0.1
     max_accel: float = 1.0
     target_speed_mps: float = 20.0          # 巡航参考速度（限速带中值）
-    target_gap_m: float = 100.0
     consist_preset: str = '10kt_1plus0'     # 论文编组（重构后多列用 1+1 时在此改）
     grade_profile: str = 'shuozhou_ningwuxi_beidaniu_49km'  # 主训练真实剖面（朔黄宁武西→北大牛纵断面 49.6km）；history 'shuozhou_23800'=23.8km 仅作 Zhang2024 复现
     coupler_force_limit_n: float = 1.0e6    # 1000 kN 底线

@@ -24,7 +24,9 @@ import urllib.request
 from aliyunsdkcore.client import AcsClient
 from aliyunsdkcore.request import CommonRequest
 
-AK_FILE = os.path.join(os.path.expanduser("~"), ".aliyun_ak.txt")
+from ak_path import resolve_ak_file
+
+AK_FILE = resolve_ak_file()
 PUB_KEY = os.path.expanduser("~/.ssh/cloud_traffic.pub")
 KEY_NAME = "cloud_traffic"
 IMAGE_ID = "ubuntu_24_04_x64_20G_alibase_20260916.vhd"
@@ -163,11 +165,11 @@ def ensure_security_group(client, region, vpc_id):
 
 
 def run_instance(client, region, zone, vpc_id, vsw_id, sg_id, key_name,
-                 itype, disk_gb, name, dry_run):
+                 itype, disk_gb, name, dry_run, image_id=IMAGE_ID):
     params = {
         "RegionId": region,
         "ZoneId": zone,
-        "ImageId": IMAGE_ID,
+        "ImageId": image_id,
         "InstanceType": itype,
         "SecurityGroupId": sg_id,
         "VSwitchId": vsw_id,
@@ -219,6 +221,10 @@ def main():
     ap.add_argument("--type", default="ecs.c9i.2xlarge")
     ap.add_argument("--disk", type=int, default=40)
     ap.add_argument("--name", default="traffic-rl-train")
+    ap.add_argument("--image", default=IMAGE_ID,
+                    help="镜像 ID。给自定义镜像（如 m-xxxx）则开机即带完整环境 "
+                         "（conda/torch/numba/代码），无需重新装环境；"
+                         f"默认官方 Ubuntu 24.04：{IMAGE_ID}")
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
@@ -231,7 +237,8 @@ def main():
     key_name = ensure_keypair(client, args.region)
     sg_id = ensure_security_group(client, args.region, vpc_id)
     iid = run_instance(client, args.region, args.zone, vpc_id, vsw_id, sg_id,
-                       key_name, args.type, args.disk, args.name, args.dry_run)
+                       key_name, args.type, args.disk, args.name, args.dry_run,
+                       image_id=args.image)
     if not iid:
         return
     ip = wait_running(client, args.region, iid)

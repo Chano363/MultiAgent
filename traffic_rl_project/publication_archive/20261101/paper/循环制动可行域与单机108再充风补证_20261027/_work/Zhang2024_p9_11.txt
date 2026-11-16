@@ -1,0 +1,180 @@
+Algorithms 2024, 17, 190                                                                                               9 of 17
+
+
+
+
+                           3.2.3. Prioritized Experience Replay Design
+                                The experience of the heavy-haul train at step k is recorded as a transition
+                           ek = (sk , ak , rk+1 , sk+1 , done), and then, all experiences obtained over many training episodes
+                           are stored in the buffer D. The term done in an array is a sign signal. If done is True, it
+                           indicates that the training state sk+1 is the final state or a negative reward Rc will be im-
+                           parted. During training, the DQN algorithm updated by means of sampling prioritization
+                           is applied to small-batch transitions (sk , ak , rk+1 , sk+1 , done) according to the priority from
+                           the memory buffer storing experience. This mechanism enables greater data efficiency, as
+                           experiences of higher priority will be more frequently selected for weight updates. Samples
+                           are selected probabilistically to ensure that experiences with zero TD error can be sampled.
+                           The sampling formula P(i) of the priority experience replay is presented in Equation (23):
+
+                                                                                 piα
+                                                                     P (i ) =         ,                                  (23)
+                                                                                ∑ pαk
+                                                                                k
+
+                           where pi represents the priority of the ith experience sample; α determines the utilization
+                           priority; and pi is defined according to Equation (24),
+
+                                                                      pi =|δi |+η,                                       (24)
+
+                           where δi is the temporal difference error (TD error), representing the difference between
+                           the reward received by the agent after performing an action and the expected reward. η is
+                           a very small value, taken as 0.001 in this paper. It is used to prevent an experience sample
+                           from not being played back into the experience pool after its TD-error value reaches 0.
+                                The smaller the TD error, the smaller the actual difference between the Q value
+                           estimated from the sampled data and the target Q value. A small TD error indicates that
+                           the agent is able to manage the corresponding situation well and there is no need to sample
+                           frequently or to train this experience. When there is significant deviation between the
+                           estimated Q value and the target Q value, this indicates that the experience is relative
+                           to the strategy currently learned by the agent, that is, the experience value is high, and
+                           frequent training should be prioritized to cope with similar changes that could occur. In
+                           addition, sampling by priority breaks the strong correlation between successive samples
+                           that adversely affects the reinforcement learning algorithm. As a result, it reduces the
+                           variance in the learning updates.
+
+                           3.2.4. Action Value Function Design
+                                Defined as Q(s, a; θ), the action value function demonstrates the quality of the action
+                           taken by the agent in a given state. In the form of a formula, the value of an action can be
+                           represented as the sum of all rewards that the agent is able to accumulate in subsequent
+                           steps, commencing from the current state and action. During the learning process, the
+                           agent is coached to choose an action in a manner that optimizes the overall future reward,
+                           referred to as the expected return, as shown in the following formula:
+                                                                          N
+                                                                 Rk = ∑k0=k γk0−k rk0 ,                                  (25)
+
+                                The optimal Q function Q∗ (s, a) is characterized as the highest cumulative reward
+                           attainable by adhering to the policy π upon entering the state s and executing the action a.
+                           In the form of Q(s, a), it is a function consisting of two parts: the state value function and the
+                           advantage function. The action value function expresses the expected return obtained by
+                           executing the action in the specified states, that is, indicating that taking this action is good
+                           or bad. The formula for calculating the optimal Q function is presented in Equation (26):
+
+                                                       Q ∗ (s, a) = max E[ Rk |sk = s, ak = a, π ],                      (26)
+                                                                      π
+Algorithms 2024, 17, 190                                                                                                 10 of 17
+
+
+
+
+                               Theoretically, the optimal Q function obeys the Bellman equation, which is shown in
+                           Equation (27):
+                                                   Q ∗ (s, a) = Es0 [r (s,a) + γmax a0 Q ∗ (s0, a0)],         (27)
+                           where s0 and a0 denote the state and the potential action at the subsequent time step,
+                           respectively.
+                                 In the DQN framework, the neural network is employed to approximate the op-
+                           timal function. The Q function is estimated by the neural network, with the weight
+                           parameters denoted as θ (henceforth called the Q-network). Throughout the training
+                           process, the Q-network undergoes training through weight adjustments aimed at reduc-
+                           ing the mean square error to a minimum, as defined by Equation (27). In this context,
+                           the best possible target value, r + γmax a0 Q∗ (s0, a), is approximated with the target value
+                           y = r + γmax a0 Q̂(s0, a0; θ − ). Thus, the loss function of updating the weight for the network
+                           is as follows:
+                                                                                                                2
+                                             Li (θi ) = Es,a∼ p(),s0∼ P [r + γmax Q(s0, a0, θ − ) − Q(s, a, θ )] ,          (28)
+                                                                               a0
+
+                           where Li is the loss of the ith iteration; p is the joint probability distribution of states and
+                           actions; θ is the weight parameter of the Q-network in the iteration; and θ − is the weight
+                           parameter of the target network. The target network has an identical structure to the
+                           Q-network. To revise the Q-network, it is necessary to initially compute the derivative of
+                           the loss function concerning θ, and the gradient ∇θ L will be obtained. Then, the stochastic
+                           gradient descent (SGD) method is used to update the weight θ as follows:
+
+                                                                     θ + λ•∇θ L → θ,                                        (29)
+
+                           where λ is the learning rate. The weight of the target network θ − is updated periodically.
+                           When the parameters of the Q-network undergo J iterations of updating, a weight θ − will be
+                           assigned to the target network to generate a new target network. Then, Q̂ will be adopted
+                           to generate the target value y of the Q-learning to perform subsequent parameter updates J
+                           times for the Q-network. Through this approach, the overestimation or training instability
+                           caused by the correlation between the Q-network and the target network Q̂ can be avoided;
+                           thus, the algorithm can calculate more accurately and stably, and the convergence speed
+                           can be increased.
+                                Algorithm 1 summarizes the control method for heavy-haul trains based on the
+                           DQN algorithm.
+
+                            Algorithm 1 DQN-Based Intelligent Control Strategy for Circulating Air Brake of the
+                            Heavy-Haul Train
+                            ///Initialization///
+                            1:  Use weight θ to randomly initialize the Q-network.
+                            2:  Use weight θ − = θ to initialize target network Q̂.
+                            3:  initialize the experience pool D with size C, greedy probability ε, small-batch sample size
+                                 ne , discount rate γ, learning rate λ and the parameter update episode J of the target network
+                            ///Process of training///
+                            4:  for episode = 1,. . .M do
+                            5:  initialize the state s0 of train through Equation (13)
+                            6:  for k = 0,1,. . .,N −1 do
+                            7:      choose action ak based on strategy π
+                            8:      execute action ak ; receive rewards rk+1 and the next state of the train sk+1 according to
+                                    Equation (20) and Equation (15), respectively. Determine whether the train reaching the
+                                    target point is done, forming a quadruple (sk ,ak ,rk ,sk+1 , done)
+Algorithms 2024, 17, 190                                                                                                   11 of 17
+
+
+
+
+                            9:       calculate the priority pi , of the quadruple, then calculate the sampling probability P(i ),
+                                     and finally, calculate the importance sampling weight ωi and store the quadruple (sk , ak ,
+                                     rk , sk+1 , done) in the experience pool D with the probability P(i )
+                            10:      draw ne quadruples (sk ,ak ,rk ,sk+1 , done) from the experience pool D according to
+                                     sampling probability
+                                     If done = True, set yk =rk ; otherwise, yk = rk + γmax a0 Q sk+1 , a0; θ −
+                                                                                                                
+                            11:
+                            12:      calculate the ∇θ L of gradient (yk − Q(sk , ak ; θ ))2 with respect to weight θ
+                            13:      update the weight θ by SGD method
+                            14:      update the weight θ − of the target network Q̂ according to θ − = θ every J perods
+                            15:     end for
+                            16:    end for
+
+                           4. Algorithm Simulation and Analysis
+                                In this study, simulations were carried out with real data obtained for a section of the
+                           Shuohuang railway line in China to confirm the efficacy of the proposed algorithm. Firstly,
+                           the experimental parameter data setting was introduced. Then, the simulation results
+                           were presented and analyzed. The simulations were divided into three parts: the model
+                           training process, a practical application performance test, and performance comparison
+                           using different algorithms.
+
+                           4.1. Experimental Parameter Settings
+                                To prove the effectiveness of the intelligent control method, a heavy-haul train weigh-
+                           ing 20,000 tons was taken as the object of the simulations. The train formation consisted of
+                           1 HXD1 electric locomotive + 108 freight cars + 1 HXD1 electric locomotive + 108 freight
+                           cars. The HXD1 electric locomotive had the abilities of traction and regenerative braking.
+                           The whole train was equipped with air braking. For specific train parameters, see Table 1.
+
+                           Table 1. Train parameters.
+
+                                        Locomotive Parameters                              Freight Car Parameters
+                                 Parameter Name           Value                    Parameter Name              Value
+                                     Model                    HXD1                      Model                      C80
+                                      Mass                     200 t                     Mass                      100 t
+                                     Length                   35.2 m                    Length                    13.2 m
+
+
+                                Based on the data for the section spanning from Longgong Station to Beidaniu Station
+                           of the Shuozhou–Huanghua Line, simulations were carried out to obtain a speed curve of
+                           the heavy-haul train running on a long and steep downhill section. The operation section
+                           had a total length S = 23,800 m, with a gradient of 10–12‰ for the extended and precipitous
+                           downhill stretch. The speed limit on this line was 80 km/h. The specific data are presented
+                           in Table 2.
+
+                           Table 2. Route information.
+
+                                  Distance (m)            Gradient (-‰)              Distance (m)             Gradient (-‰)
+                                      0–1000                     1.5                 12,430–14,080                 10.5
+                                    1000–1400                    7.5                 14,080–16,330                 11.4
+                                    1400–6200                   10.9                 16,330–19,130                 10.6
+                                    6200–6750                     9                  19,130–22,260                 10.9
+                                   6750–12,430                  11.3                 22,260–23,800                  3.3
+
+
+                                  The parameter settings of Algorithm 1 used in this paper are listed in Table 3:
+

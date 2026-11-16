@@ -27,7 +27,7 @@ def main():
             raise ValueError('Second train must already have an air source')
         ctrl._held_air_balance_enabled = True
         ctrl._held_air_smooth_handoff_enabled = True
-        ctrl._held_air_gap_reference_m = env._dynamic_gap()
+        ctrl._held_air_gap_reference_m = env._formation_ref_gap()
         manifest = copy.deepcopy(manifest)
         manifest['experimental_second_held_air'] = {
             'train_one_based': 2, 'scope': 'Zero-RL local ED-only diagnostic; '

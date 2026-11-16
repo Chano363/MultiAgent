@@ -1,0 +1,390 @@
+{
+  "scope": "Static constant -12 permille, all cylinders fully built, actual ED stagger, no coupler/safety scaling, not a route simulation or validation result",
+  "env_cfg": {
+    "num_trains": 1,
+    "consist_preset": "20kt_1plus108_1plus108",
+    "grade_profile": "shuozhou_ningwuxi_beidaniu_49km",
+    "v_max": 22.222,
+    "v_min": 11.111,
+    "target_gap": 100.0,
+    "max_steps": 36000,
+    "max_accel": 1.0,
+    "use_coupler_constraint": true,
+    "hierarchical": false,
+    "decompose": "loco_ed_ab",
+    "ab_min_refill_s": 222.0,
+    "ab_min_hold_s": 0.0,
+    "coupler_force_limit_n": 1500000.0,
+    "coupler_force_limit_emergency_n": 2250000.0,
+    "cyclic_notch_50": true,
+    "cyclic_brake_trigger_kmh": 65.0,
+    "cyclic_release_kmh": 55.0,
+    "ed_release_coordination": true,
+    "ed_release_hold_s": 50.0,
+    "start_randomization": {
+      "enabled": false
+    }
+  },
+  "rows": [
+    {
+      "speed_kmh": 50,
+      "segment": 1,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 514.5762414157196,
+      "ed_kn": 998.784,
+      "air_kn": 1541.7849440000002,
+      "net_acceleration_mps2": -0.02134269595084272
+    },
+    {
+      "speed_kmh": 50,
+      "segment": 1,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 514.5762414157196,
+      "ed_kn": 998.784,
+      "air_kn": 3355.6495840000007,
+      "net_acceleration_mps2": -0.1038811306068311
+    },
+    {
+      "speed_kmh": 50,
+      "segment": 1,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 514.5762414157196,
+      "ed_kn": 998.784,
+      "air_kn": 6801.992399999998,
+      "net_acceleration_mps2": -0.2607041564532089
+    },
+    {
+      "speed_kmh": 50,
+      "segment": 3,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 514.5762414157196,
+      "ed_kn": 998.784,
+      "air_kn": 1042.0185408324876,
+      "net_acceleration_mps2": 0.001398767607926507
+    },
+    {
+      "speed_kmh": 50,
+      "segment": 3,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 514.5762414157196,
+      "ed_kn": 998.784,
+      "air_kn": 2267.922706517766,
+      "net_acceleration_mps2": -0.05438500403774507
+    },
+    {
+      "speed_kmh": 50,
+      "segment": 3,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 514.5762414157196,
+      "ed_kn": 998.784,
+      "air_kn": 4597.140621319799,
+      "net_acceleration_mps2": -0.1603741701645212
+    },
+    {
+      "speed_kmh": 60,
+      "segment": 1,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 614.905678474925,
+      "ed_kn": 832.32,
+      "air_kn": 1498.957584444445,
+      "net_acceleration_mps2": -0.01638447232068484
+    },
+    {
+      "speed_kmh": 60,
+      "segment": 1,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 614.905678474925,
+      "ed_kn": 832.32,
+      "air_kn": 3262.437095555556,
+      "net_acceleration_mps2": -0.0966301726806735
+    },
+    {
+      "speed_kmh": 60,
+      "segment": 1,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 614.905678474925,
+      "ed_kn": 832.32,
+      "air_kn": 6613.0481666666665,
+      "net_acceleration_mps2": -0.2490970033646519
+    },
+    {
+      "speed_kmh": 60,
+      "segment": 3,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 614.905678474925,
+      "ed_kn": 832.32,
+      "air_kn": 1013.0735813649183,
+      "net_acceleration_mps2": 0.005725283917007499
+    },
+    {
+      "speed_kmh": 60,
+      "segment": 3,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 614.905678474925,
+      "ed_kn": 832.32,
+      "air_kn": 2204.92485355894,
+      "net_acceleration_mps2": -0.04850893851628435
+    },
+    {
+      "speed_kmh": 60,
+      "segment": 3,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 614.905678474925,
+      "ed_kn": 832.32,
+      "air_kn": 4469.44227072758,
+      "net_acceleration_mps2": -0.15155396113953878
+    },
+    {
+      "speed_kmh": 65,
+      "segment": 1,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 670.541482785151,
+      "ed_kn": 768.2953846153847,
+      "air_kn": 1479.8382275000001,
+      "net_acceleration_mps2": -0.015132735516041846
+    },
+    {
+      "speed_kmh": 65,
+      "segment": 1,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 670.541482785151,
+      "ed_kn": 768.2953846153847,
+      "air_kn": 3220.824377500002,
+      "net_acceleration_mps2": -0.09435489377960217
+    },
+    {
+      "speed_kmh": 65,
+      "segment": 1,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 670.541482785151,
+      "ed_kn": 768.2953846153847,
+      "air_kn": 6528.698062500001,
+      "net_acceleration_mps2": -0.2448769944803666
+    },
+    {
+      "speed_kmh": 65,
+      "segment": 3,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 670.541482785151,
+      "ed_kn": 768.2953846153847,
+      "air_kn": 1000.1517244597538,
+      "net_acceleration_mps2": 0.006695008524741109
+    },
+    {
+      "speed_kmh": 65,
+      "segment": 3,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 670.541482785151,
+      "ed_kn": 768.2953846153847,
+      "air_kn": 2176.8008120594636,
+      "net_acceleration_mps2": -0.04684745086730975
+    },
+    {
+      "speed_kmh": 65,
+      "segment": 3,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 670.541482785151,
+      "ed_kn": 768.2953846153847,
+      "air_kn": 4412.434078498912,
+      "net_acceleration_mps2": -0.14857812371220638
+    },
+    {
+      "speed_kmh": 70,
+      "segment": 1,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 729.8246776157926,
+      "ed_kn": 713.417142857143,
+      "air_kn": 1462.0374468965526,
+      "net_acceleration_mps2": -0.014523169283285765
+    },
+    {
+      "speed_kmh": 70,
+      "segment": 1,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 729.8246776157926,
+      "ed_kn": 713.417142857143,
+      "air_kn": 3182.0815020689647,
+      "net_acceleration_mps2": -0.09279237456051602
+    },
+    {
+      "speed_kmh": 70,
+      "segment": 1,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 729.8246776157926,
+      "ed_kn": 713.417142857143,
+      "air_kn": 6450.1652068965495,
+      "net_acceleration_mps2": -0.24150386458725356
+    },
+    {
+      "speed_kmh": 70,
+      "segment": 3,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 729.8246776157926,
+      "ed_kn": 713.417142857143,
+      "air_kn": 988.1210300997728,
+      "net_acceleration_mps2": 0.007042011677616116
+    },
+    {
+      "speed_kmh": 70,
+      "segment": 3,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 729.8246776157926,
+      "ed_kn": 713.417142857143,
+      "air_kn": 2150.6163596289157,
+      "net_acceleration_mps2": -0.04585639246914139
+    },
+    {
+      "speed_kmh": 70,
+      "segment": 3,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 729.8246776157926,
+      "ed_kn": 713.417142857143,
+      "air_kn": 4359.357485734291,
+      "net_acceleration_mps2": -0.1463633603479808
+    },
+    {
+      "speed_kmh": 76,
+      "segment": 1,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 805.779066899511,
+      "ed_kn": 657.0947368421052,
+      "air_kn": 1442.2326049006624,
+      "net_acceleration_mps2": -0.014515303487544524
+    },
+    {
+      "speed_kmh": 76,
+      "segment": 1,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 805.779066899511,
+      "ed_kn": 657.0947368421052,
+      "air_kn": 3138.9768459602647,
+      "net_acceleration_mps2": -0.09172426968064619
+    },
+    {
+      "speed_kmh": 76,
+      "segment": 1,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 805.779066899511,
+      "ed_kn": 657.0947368421052,
+      "air_kn": 6362.790903973511,
+      "net_acceleration_mps2": -0.23842130544753948
+    },
+    {
+      "speed_kmh": 76,
+      "segment": 3,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 805.779066899511,
+      "ed_kn": 657.0947368421052,
+      "air_kn": 974.7358867058863,
+      "net_acceleration_mps2": 0.006757754311635307
+    },
+    {
+      "speed_kmh": 76,
+      "segment": 3,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 805.779066899511,
+      "ed_kn": 657.0947368421052,
+      "air_kn": 2121.483988712811,
+      "net_acceleration_mps2": -0.04542408505890185
+    },
+    {
+      "speed_kmh": 76,
+      "segment": 3,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 805.779066899511,
+      "ed_kn": 657.0947368421052,
+      "air_kn": 4300.305382525968,
+      "net_acceleration_mps2": -0.14456957986292243
+    },
+    {
+      "speed_kmh": 80,
+      "segment": 1,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 859.3332388383221,
+      "ed_kn": 624.24,
+      "air_kn": 1429.881198064517,
+      "net_acceleration_mps2": -0.014895173721461546
+    },
+    {
+      "speed_kmh": 80,
+      "segment": 1,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 859.3332388383221,
+      "ed_kn": 624.24,
+      "air_kn": 3112.094372258065,
+      "net_acceleration_mps2": -0.09144291553951525
+    },
+    {
+      "speed_kmh": 80,
+      "segment": 1,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 859.3332388383221,
+      "ed_kn": 624.24,
+      "air_kn": 6308.299403225807,
+      "net_acceleration_mps2": -0.2368836249938173
+    },
+    {
+      "speed_kmh": 80,
+      "segment": 3,
+      "notch": "CYCLIC",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 859.3332388383221,
+      "ed_kn": 624.24,
+      "air_kn": 966.3881628688392,
+      "net_acceleration_mps2": 0.006195699740300275
+    },
+    {
+      "speed_kmh": 80,
+      "segment": 3,
+      "notch": "MIN",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 859.3332388383221,
+      "ed_kn": 624.24,
+      "air_kn": 2103.315413302768,
+      "net_acceleration_mps2": -0.045539249769798416
+    },
+    {
+      "speed_kmh": 80,
+      "segment": 3,
+      "notch": "SERVICE",
+      "slope_kn": 2586.1180992,
+      "resistance_kn": 859.3332388383221,
+      "ed_kn": 624.24,
+      "air_kn": 4263.477189127231,
+      "net_acceleration_mps2": -0.14383565383898583
+    }
+  ]
+}

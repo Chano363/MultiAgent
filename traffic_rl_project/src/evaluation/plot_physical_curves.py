@@ -591,7 +591,8 @@ def main():
                           'v_range_kmh': [40, 80], 'brake_notch': -0.8, 'release_throttle': 0.5},
             'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + '
                        '卸载刚度(MT-2=1.0) + 牵规β_c制动力 + 并行波速传播 + '
-                       '段间衰减(D) + 两段式缓解排气(τ=6s) + Newmark-β 积分',
+                       '段间衰减(D) + 两段式缓解排气(τ=6s) + Newmark-β 积分'
+                       ' + 曲线阻力600/(R-55)(2026-11-09 ADR-060)',
             'adhesion_limit_kn': float(0.9 * 188.0 * 9.81),
             'figures': [p.name for p in figdir.glob('*.png')],
             'note': '对向导师的物理曲线验证；不改仿真器代码，仅新增展示脚本。',

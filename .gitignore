@@ -31,6 +31,8 @@ tmp_*.bat
 
 # 项目特定
 prompts.md
+# 上云预检放行标记（2026-11-10）：由 preflight_payload.sh 生成、随 rsync 上云，不进仓库
+traffic_rl_project/.preflight_ok
 
 # IDE MCP 配置（可能含 API key，不进仓库）
 .codebuddy/mcp.json
@@ -66,3 +68,10 @@ traffic_rl_project/outputs/**/events.out.tfevents*
 traffic_rl_project/outputs/**/*.ckpt
 traffic_rl_project/outputs/**/*.pt
 
+
+# 答辩 PPT 生成脚本的依赖（2026-11-14 迁移 defense_draft_work -> ppt_talk/midterm_20261114）
+node_modules/
+
+# 【2026-11-14】大体积实验产物不入库（intervals.json 每份 200+MB，npz 分片 40+MB）
+traffic_rl_project/outputs/sim_validation/phys_validation/*/intervals.json
+traffic_rl_project/outputs/sim_validation/phys_validation/*/trajectory.npz.part*

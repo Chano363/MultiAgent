@@ -165,7 +165,7 @@ python run_training.py --experiment configs/experiments/formation_ed_ab_3train_1
 - 🔁 **再重启（ADR-024 口径，2026-10-02）**：ADR-023 的带宽放宽经完整剖面 A/B 判为"**对 MPC 无收益、对 RL 有害**"，ADR-024 遂回退 `ed_mod_coef` 1.0→0.5 ⇒ **又一次动作语义变更**，`adr023_1400ep_seed0`（ep205/1400 停）作废并原样保留。新启动器 = `scripts/launchers/launch_retrain_adr024_seed0.sh`；新目录 = `outputs/checkpoints/formation/adr024_1400ep_seed0`；日志 = `outputs/logs/diagnostics/log_retrain_adr024_seed0_20261002.txt`；恢复命令同下，目录整体替换 `adr023` → `adr024`。**主表只引用 `adr024` 及以后的 ckpt**（`adr021` 旧结构、`adr023` 1.0 口径仅作留痕）。
 - ⚠️ **执行方式（实测教训，LRN-20261001-014）**：IDE 的 Shell 工具**在调用返回时会回收本次调用派生的全部进程** —— `nohup setsid … &` 不能让它跨调用存活（存活探针 `nohup setsid sleep 90 … &` 下次调用即查不到进程与文件）。可行两条：① `run_in_background: true`（进程与调用同生命周期，会话内可用）；② 用户自己的 WSL 终端执行下方命令（脱离 IDE 会话，适合数天级）：
   ```
-  cd /mnt/d/Code/MultiAgent/traffic_rl_project
+  cd traffic_rl_project
   nohup setsid bash scripts/launchers/launch_retrain_adr023_seed0.sh > outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt 2>&1 < /dev/null &
   ```
 - 输出（**全新目录，不覆盖任何历史产物**）：`outputs/checkpoints/formation/adr023_1400ep_seed0/{,results,figures}`；日志 `outputs/logs/diagnostics/log_retrain_adr023_seed0_20261002.txt`。启动实证：`pgrep` 到 `run_training.py … --checkpoint_dir …/adr023_1400ep_seed0`、`results/metadata.json` 已落盘（`episodes=1400` / `critic=per_agent` / `reward_schema=v2-bounded-overlimit-section-force` / **`ed_mod_coef=1.0`** / `simulator_model … simcase=official … grade=shuozhou_real_53km`）。

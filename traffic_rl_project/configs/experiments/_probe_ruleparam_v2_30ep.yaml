@@ -1,0 +1,101 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
+# ADR-065 / S1-v2 相位探针（修 S1 的"探针无效"）：动作尺度重标定 + 提高探索
+#
+# S1（v1）实测（300 步 trace，ep21 ckpt）：策略原始动作仅 ±0.13（std 0.044），
+# 映射后门限摆幅只有 1.72 / 2.16 km/h ⇒ 只用到设计空间 12%。
+# 根因：BC 目标为全零调制 + BC_LOG_STD_TARGET=-3.0（std≈0.05）+ entropy_coef=0.005 太弱。
+# ⇒ S1 测的是"微调相位"，不是"相位是否为瓶颈"。本版三处修正：
+#   ① rule_param_scale: 25  —— 把策略实际幅度放大到设计区间（±0.13 → ±3.3 km/h，利用率 ~75%）；
+#   ② entropy_coef: 0.005 → 0.05 —— 让 std 有机会涨上去，不再死守 BC 起点；
+#   ③ log_std_min: -1.5 —— std 下限 0.22（1σ 覆盖 ±0.22 动作），防熵推不动时回落到 0.05。
+# 判据（不变）：确定性全剖面峰值 + 门限是否真的摆动。**训练窗 peak 不作判据**。
+name: probe_ruleparam_v2_30ep
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.05          # 0.005 → 0.05：治"策略不敢动"
+  log_std_min: -1.5           # 默认 -4.0（std 0.018）→ -1.5（std 0.22）
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 22.22222222222222
+  v_min: 11.111
+  max_steps: 31500
+  route_end_m: 49600
+  max_accel: 1.0
+  use_coupler_constraint: true
+  coupler_force_limit_n: 1000000.0
+  speed_band_shape: ref
+  reward_term_log: true
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261111_090221/ref_speed_table.npz
+  speed_over_w: 10.0
+  hierarchical: false
+  decompose: loco_ed_ab
+  ab_min_refill_s: 222.0
+  ab_min_hold_s: 0.0
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  service_reduction_kpa: 74.12781799739679
+  ab_staged_apply: true
+  ab_staged_gap_s: 3.0
+  cyclic_brake_trigger_kmh: 65.95262385531505
+  cyclic_release_kmh: 54.956448104474134
+  ed_release_coordination: true
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
+  ed_grade_feedforward: true
+  coupler_override: release
+  eot: true
+  start_randomization:
+    enabled: true
+    min_m: 4300
+    max_m: 4300
+  rule_param_probe: true
+  # ① 动作尺度重标定：v1 实测策略 ±0.13 × 7 km/h = ±0.91 ⇒ 摆幅 1.82 km/h（设计 14 的 13%）。
+  #    取 scale=5.5 ⇒ 摆幅 ≈10 km/h（71%）；若 entropy 把 std 推到 0.22，摆幅 ≈17 km/h 会
+  #    偶尔撞 [55,69] 边界（可接受，饱和不等于失效）。
+  rule_param_scale: 5.5
+
+obs: env
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10
+episodes: 20          # 探针只需判"门限动起来后峰值是否响应"，20 集（≈7 h）足够；中途 ep10 做一次确定性评估
+curriculum: "31500:0"
+n_env: 4
+n_env_parallel: true
+parallel_traj_len: 0
+warm_start: false
+bc_episodes: 1
+bc_epochs: 3000
+bc_max_steps: 31500
+long_eval_interval: 0
+long_eval_steps: 31500
+init_speed_kmh: 60.0
+simcase: official
+ckpt_policy: fleet
+log_interval: 1
+
+dirs:
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/_probe_ruleparam_v2
+  results_dir: outputs/results/formation_10kt_1plus108/_probe_ruleparam_v2
+  figures_dir: outputs/figures/formation_10kt_1plus108/_probe_ruleparam_v2

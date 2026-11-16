@@ -1,0 +1,866 @@
+[
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 2820.7704240000003,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 300,
+    "actual_kn": 300.0000915527344,
+    "capacity_kn": 2820.7704240000003,
+    "level": 0.02553105354309082
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 900,
+    "actual_kn": 900.0002746582031,
+    "capacity_kn": 2820.7704240000003,
+    "level": 0.07659316062927246
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 10000,
+    "actual_kn": 2820.7704240000003,
+    "capacity_kn": 2820.7704240000003,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 1468.8,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 300,
+    "actual_kn": 300.0000040054321,
+    "capacity_kn": 1468.8,
+    "level": 0.2042483687400818
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 900,
+    "actual_kn": 900.0000120162964,
+    "capacity_kn": 1468.8,
+    "level": 0.6127451062202454
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 10000,
+    "actual_kn": 1468.8,
+    "capacity_kn": 1468.8,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 1175.04,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 300,
+    "actual_kn": 300.0000215148926,
+    "capacity_kn": 1175.04,
+    "level": 0.2553104758262634
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 900,
+    "actual_kn": 900.0000645446777,
+    "capacity_kn": 1175.04,
+    "level": 0.7659314274787903
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 10000,
+    "actual_kn": 1175.04,
+    "capacity_kn": 1175.04,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 1068.2181818181818,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 300,
+    "actual_kn": 300.0000278819691,
+    "capacity_kn": 1068.2181818181818,
+    "level": 0.28084152936935425
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 900,
+    "actual_kn": 900.0000199751421,
+    "capacity_kn": 1068.2181818181818,
+    "level": 0.842524528503418
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 10000,
+    "actual_kn": 1068.2181818181818,
+    "capacity_kn": 1068.2181818181818,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 903.8769230769232,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 300,
+    "actual_kn": 300.0000376774714,
+    "capacity_kn": 903.8769230769232,
+    "level": 0.3319036364555359
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 900,
+    "actual_kn": 900.0000052818887,
+    "capacity_kn": 903.8769230769232,
+    "level": 0.9957107901573181
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 10000,
+    "actual_kn": 903.8769230769232,
+    "capacity_kn": 903.8769230769232,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 734.4,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 300,
+    "actual_kn": 300.0000040054321,
+    "capacity_kn": 734.4,
+    "level": 0.4084967374801636
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 900,
+    "actual_kn": 734.4,
+    "capacity_kn": 734.4,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 10000,
+    "actual_kn": 734.4,
+    "capacity_kn": 734.4,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 156.709468,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 300,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 900,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 10000,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 156.709468,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 300,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 900,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 10000,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 156.709468,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 300,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 900,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 10000,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 156.709468,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 300,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 900,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 10000,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 156.709468,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 300,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 900,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 10000,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 156.709468,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 300,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 900,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus108_1plus108",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 10000,
+    "actual_kn": 156.709468,
+    "capacity_kn": 156.709468,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 3000.8196000000003,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 300,
+    "actual_kn": 300.0000915527344,
+    "capacity_kn": 3000.8196000000003,
+    "level": 0.02553105354309082
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 900,
+    "actual_kn": 900.0002746582031,
+    "capacity_kn": 3000.8196000000003,
+    "level": 0.07659316062927246
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 5,
+    "target_kn": 10000,
+    "actual_kn": 3000.8196000000003,
+    "capacity_kn": 3000.8196000000003,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 1468.8,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 300,
+    "actual_kn": 300.0000040054321,
+    "capacity_kn": 1468.8,
+    "level": 0.2042483687400818
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 900,
+    "actual_kn": 900.0000120162964,
+    "capacity_kn": 1468.8,
+    "level": 0.6127451062202454
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 40,
+    "target_kn": 10000,
+    "actual_kn": 1468.8,
+    "capacity_kn": 1468.8,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 1175.04,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 300,
+    "actual_kn": 300.0000215148926,
+    "capacity_kn": 1175.04,
+    "level": 0.2553104758262634
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 900,
+    "actual_kn": 900.0000645446777,
+    "capacity_kn": 1175.04,
+    "level": 0.7659314274787903
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 50,
+    "target_kn": 10000,
+    "actual_kn": 1175.04,
+    "capacity_kn": 1175.04,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 1068.2181818181818,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 300,
+    "actual_kn": 300.0000278819691,
+    "capacity_kn": 1068.2181818181818,
+    "level": 0.28084152936935425
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 900,
+    "actual_kn": 900.0000199751421,
+    "capacity_kn": 1068.2181818181818,
+    "level": 0.842524528503418
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 55,
+    "target_kn": 10000,
+    "actual_kn": 1068.2181818181818,
+    "capacity_kn": 1068.2181818181818,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 903.8769230769232,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 300,
+    "actual_kn": 300.0000376774714,
+    "capacity_kn": 903.8769230769232,
+    "level": 0.3319036364555359
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 900,
+    "actual_kn": 900.0000052818887,
+    "capacity_kn": 903.8769230769232,
+    "level": 0.9957107901573181
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 65,
+    "target_kn": 10000,
+    "actual_kn": 903.8769230769232,
+    "capacity_kn": 903.8769230769232,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 734.4,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 300,
+    "actual_kn": 300.0000040054321,
+    "capacity_kn": 734.4,
+    "level": 0.4084967374801636
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 900,
+    "actual_kn": 734.4,
+    "capacity_kn": 734.4,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.9,
+    "speed_kmh": 80,
+    "target_kn": 10000,
+    "actual_kn": 734.4,
+    "capacity_kn": 734.4,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 166.7122,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 300,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 900,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 5,
+    "target_kn": 10000,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 166.7122,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 300,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 900,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 40,
+    "target_kn": 10000,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 166.7122,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 300,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 900,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 50,
+    "target_kn": 10000,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 166.7122,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 300,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 900,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 55,
+    "target_kn": 10000,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 166.7122,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 300,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 900,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 65,
+    "target_kn": 10000,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 0,
+    "actual_kn": -0.0,
+    "capacity_kn": 166.7122,
+    "level": 0.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 300,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 900,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  },
+  {
+    "preset": "20kt_1plus1_validation",
+    "friction": 0.05,
+    "speed_kmh": 80,
+    "target_kn": 10000,
+    "actual_kn": 166.7122,
+    "capacity_kn": 166.7122,
+    "level": 1.0
+  }
+]

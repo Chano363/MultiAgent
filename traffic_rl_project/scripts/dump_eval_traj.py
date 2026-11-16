@@ -67,8 +67,6 @@ def _build_args(a):
         mask_lever='none', hetero=False, hetero_seed=0,
         n_seed=a.n_seed, eval_seed=a.eval_seed,
         init_speed_kmh=a.init_speed_kmh, random_init_speed=False,
-        enable_mpc=(a.mode == 'mpc'), mpc_type='nmpc', mpc_gap_min=20.0,
-        mpc_inner_rule_cyclic=bool(getattr(a, 'mpc_inner_rule_cyclic', False)),
         decision_interval=a.decision_interval, checkpoint=a.checkpoint,
     )
 
@@ -76,8 +74,6 @@ def _build_args(a):
 def _make_act_fn(mode, args, ns):
     if mode == 'decompose_m0':
         return (lambda env: np.zeros((env.num_agents, 2))), 1, 'D-Rule(规则基线)'
-    if mode == 'mpc':
-        return ed.mpc_act, 1, 'MPC(NMPC 集中质量多体+MT-2+IPOPT)'
     import torch
     from src.algorithms.mappo_agent import MAPPOAgent
     env0 = ed.make_env('decompose', ns)
@@ -133,10 +129,8 @@ def _save(tag, metrics, args, outdir):
 
 def main():
     p = argparse.ArgumentParser(description='跑评估并落逐步时程（不改 src，长训期可用）')
-    p.add_argument('--mode', choices=['decompose_m0', 'decompose_m1', 'mpc'], default='decompose_m0')
+    p.add_argument('--mode', choices=['decompose_m0', 'decompose_m1'], default='decompose_m0')
     p.add_argument('--checkpoint', default=ed.DEFAULT_CKPT)
-    p.add_argument('--mpc_inner_rule_cyclic', action='store_true', default=False,
-                   help='MPC 是否再叠一层规则循环护盾（默认 False = 与 D-RL 各一层，like-for-like）')
     p.add_argument('--grade', default='shuozhou_ningwuxi_beidaniu_49km')
     p.add_argument('--max_steps', type=int, default=36000)
     p.add_argument('--num_trains', type=int, default=3)

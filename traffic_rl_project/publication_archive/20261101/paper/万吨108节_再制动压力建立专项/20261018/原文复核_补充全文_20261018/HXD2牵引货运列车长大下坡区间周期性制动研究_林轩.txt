@@ -1,0 +1,1048 @@
+
+=== PDF PAGE 1 ===
+第 52卷 第 5 期
+2017年 10月
+西 南 交 通 大 学 学 报
+JOURNAL OF SOUTHWEST JIAOTONG UNIVERSITY
+Vol． 52 No． 5
+Oct． 2017
+收
+稿日期 :2016- 11- 14
+基金项目 :国家重点研发计划资助项目(2016YFB1200502)
+作者简介 :林轩(1988 —
+) ，男，博
+士研究生 ，研究方向为 列车节能优化理论与技术，电话:15882499390 ，E- mail:linstu@ 163． com
+通信作者 :王青元(1984—
+) ，男，工
+程师，研究方向为 列车节能优化理论与技术，电话:13458548923，E- mail:wangqy@ home． swjtu． edu． cn
+引文格式 :林轩，王青元，刘强强，等． HXD2 牵引货运列车长大下坡区间周期性制动研究［J］． 西南交通大学学报 ，2017，52(5)
+:859- 868．
+LIN Xuan ，WANG Qingyuan ，LIU Qiangqiang，et al． Periodic braking of freight trains with HXD2 locomotive on long heavy down
+grade［J］． Journal of Southwest Jiaotong University，2017，52(5) :859- 868．
+文
+章编号 :0258- 2724(2017)05- 0859- 10 DOI :10． 3969 / j． issn． 0258- 2724． 2017． 05． 004
+HXD2 牵引货运
+列车 长大下 坡区间
+周期性 制动研究
+林 轩 ， 王
+青元， 刘强强， 冯晓云
+(西南交通大学电 气工
+程学院 ，四川 成都 611756)
+摘 要 :针对货运列车在长大下坡道空气制动无法恒速且相邻两次空气制动之间需满足 缓解再充风 约束的特
+点，以司机实际操纵中普遍采用的 50 kPa小减压量调速 制动为 依据，根据列 车牵引 计算原理和能耗 分析 方法，
+建立了考虑再生制动能量利用的货运列车最优控制模型．首先，研究 了货运列 车在长大下坡道上的 最优操纵策
+略和站间各子区间运行时间分配;其次，基于极大值原理分析了“全电制-全制-全电制”周期性 制动控制 策略的
+最优性，以及列车入坡、出坡应满足的必要条件，提出长大下坡道及其相邻区间列车运行最优控制的数 值求解算
+法;最后，以 HXD2 型电力机车牵引 100节 C80 重车为 例，对提出的列 车最优控制 模型和数 值算法进 行仿真 验
+证，并分别与模糊预测控制和实测数据进行比较，研究结 果表明 :在准点的 前提 下，所采用的 周期性 制动策略能
+实现 5． 6% 和 17． 9% 节能效果．
+关键词 :货运列车;极大值原理;周期性制动;控制策略;数值算法
+中图分类号 :U2 文献标志码 :A
+Periodic Braking of Freight Trains with HXD2 Locomotive
+on Long Heavy Down Grade
+LIN Xuan， WANG Qingyuan ， LIU Qiangqiang ， FENG Xiaoyun
+(School of Electrical Engineering，Southwest Jiaotong University，Chengdu 611756，China)
+Abstract:An optimal control model of freight train operation，with focus on the regenerative braking
+energy， was established， based on the fundamental principles of railway traction and energy
+consumption analysis． The model was specifically developed for the following conditions:
+(1)the train
+travels along the track in the long steep downhill section at a non- constant speed while the air brake is
+applied．(2)The air recharging time should be guaranteed between two successive braking operations．
+The model was developed based on a pressure reduction of 50 kPa，which is a typical condition during
+braking． The optimal control strategies were studied for the case where the train travels along the track
+in the long steep downhill section． The time allocation for each sub- section between two stations was
+also studied． The optimality of the periodic braking strategy(full electrical braking- full braking- full
+electrical braking)was analysed using Pontryagin's maximum principle． The necessary conditions were
+also analysed for the case where the train enters and then leaves the long steep downhill section． The
+numerical algorithm used for optimal control of the train travelling along the track in the long steep
+downhill section and its adjacent section was presented in detail． The proposed model and numerical
+=== COMPACT PAGE 1 ===
+第52卷第5期2017年10月西南交通大学学报JOURNALOFSOUTHWESTJIAOTONGUNIVERSITYVol.52No.5Oct.2017收稿日期:2016-11-14基金项目:国家重点研发计划资助项目(2016YFB1200502)作者简介:林轩(1988—),男,博士研究生,研究方向为列车节能优化理论与技术,电话:15882499390,E-mail:linstu@163.com通信作者:王青元(1984—),男,工程师,研究方向为列车节能优化理论与技术,电话:13458548923,E-mail:wangqy@home.swjtu.edu.cn引文格式:林轩,王青元,刘强强,等.HXD2牵引货运列车长大下坡区间周期性制动研究[J].西南交通大学学报,2017,52(5):859-868.LINXuan,WANGQingyuan,LIUQiangqiang,etal.PeriodicbrakingoffreighttrainswithHXD2locomotiveonlongheavydowngrade[J].JournalofSouthwestJiaotongUniversity,2017,52(5):859-868.文章编号:0258-2724(2017)05-0859-10DOI:10.3969/j.issn.0258-2724.2017.05.004HXD2牵引货运列车长大下坡区间周期性制动研究林轩,王青元,刘强强,冯晓云(西南交通大学电气工程学院,四川成都611756)摘要:针对货运列车在长大下坡道空气制动无法恒速且相邻两次空气制动之间需满足缓解再充风约束的特点,以司机实际操纵中普遍采用的50kPa小减压量调速制动为依据,根据列车牵引计算原理和能耗分析方法,建立了考虑再生制动能量利用的货运列车最优控制模型.首先,研究了货运列车在长大下坡道上的最优操纵策略和站间各子区间运行时间分配;其次,基于极大值原理分析了“全电制-全制-全电制”周期性制动控制策略的最优性,以及列车入坡、出坡应满足的必要条件,提出长大下坡道及其相邻区间列车运行最优控制的数值求解算法;最后,以HXD2型电力机车牵引100节C80重车为例,对提出的列车最优控制模型和数值算法进行仿真验证,并分别与模糊预测控制和实测数据进行比较,研究结果表明:在准点的前提下,所采用的周期性制动策略能实现5.6%和17.9%节能效果.关键词:货运列车;极大值原理;周期性制动;控制策略;数值算法中图分类号:U2文献标志码:APeriodicBrakingofFreightTrainswithHXD2LocomotiveonLongHeavyDownGradeLINXuan,WANGQingyuan,LIUQiangqiang,FENGXiaoyun(SchoolofElectricalEngineering,SouthwestJiaotongUniversity,Chengdu611756,China)Abstract:Anoptimalcontrolmodeloffreighttrainoperation,withfocusontheregenerativebrakingenergy,wasestablished,basedonthefundamentalprinciplesofrailwaytractionandenergyconsumptionanalysis.Themodelwasspecificallydevelopedforthefollowingconditions:(1)thetraintravelsalongthetrackinthelongsteepdownhillsectionatanon-constantspeedwhiletheairbrakeisapplied.(2)Theairrechargingtimeshouldbeguaranteedbetweentwosuccessivebrakingoperations.Themodelwasdevelopedbasedonapressurereductionof50kPa,whichisatypicalconditionduringbraking.Theoptimalcontrolstrategieswerestudiedforthecasewherethetraintravelsalongthetrackinthelongsteepdownhillsection.Thetimeallocationforeachsub-sectionbetweentwostationswasalsostudied.Theoptimalityoftheperiodicbrakingstrategy(fullelectricalbraking-fullbraking-fullelectricalbraking)wasanalysedusingPontryagin'smaximumprinciple.Thenecessaryconditionswerealsoanalysedforthecasewherethetrainentersandthenleavesthelongsteepdownhillsection.Thenumericalalgorithmusedforoptimalcontrolofthetraintravellingalongthetrackinthelongsteepdownhillsectionanditsadjacentsectionwaspresentedindetail.Theproposedmodelandnumerical
+
+=== PDF PAGE 2 ===
+西 南 交 通 大 学 学 报
+第 52卷
+algorithm were verified by performing simulations of an HXD2 locomotive with 100 fully loaded cars．
+The simulation results were compared with those of the fuzzy predictive control and field test data．
+Based on the condition that the train is punctual，it is found that the energy consumption during train
+operation can be reduced by up to 5． 6% and 17． 9% with respect to the fuzzy predictive control and
+field test data，respectively．
+Key words :freight train;maximum principle;periodic braking;control strategy;numerical algorithm
+安全、平稳、节能是货运列 车运行优化的三 大
+目标，长大下坡区间列车运行优化操纵是列车优化
+的重点和难点．近年来，和谐型大功率机车逐渐 成
+为铁路 货运的 主力，因此，有必要对困难 区段 (含
+长大下坡)和谐型电力 机车的优化操纵进行研究 ，
+不仅保证行车安全，并且实现列车节能运行．
+文献［1］分析了长大下坡区间双机牵引 5 000 t
+货物时不同坡度值下 列车电 制动增速时间和充风
+时间的关系，并指 出 列 车 缓 解 初 速 度 为 30 km / h
+时，12‰ 和 15‰ 下坡道上列 车采用 电制动均能满
+足充风时间的要求．文献［2］比较了长大下坡区间
+列车在充风阶段的两种操纵策略:“惰行 + 空气制
+动”和“动力 制动 + 空气制动”，采用“动力 制动 +
+空气制动”联合操纵的周期性 制动方 式不仅 可以
+减少空气制动次数，而且可以降低闸瓦 温升，保证
+行车安全．文献［3- 4］针对大秦线 2 × 104
+t级列车
+在长大下坡道的操纵进行了仿
+真和现场试验，表明
+小减压量制动和全 电制动配合使用可延长列车再
+充风时间，减少列车空气制动次数，降低列车能耗．
+针对长大下坡区间 列车 再充风 时间 长、制 动 次数
+多，文献［5］提出改善制动机性能、采用高 摩合成
+闸瓦以增加制动力．
+以上文献通过仿真和现场试验，总结出长大下
+坡区间列车合理 操纵的基本原则．这些原则虽然保
+证了列车操纵的安全性，但从全局角度列车运行能
+耗不是最优的．列车在长大下坡区间运行时，最优
+操纵策略受坡长、坡度值、制动初速、缓解初速、电
+制动力、减压量的影 响
+［4］
+，且列车最低缓解速度不
+低于 30 km / h
+［6］
+．鉴于问
+题的复杂 性，本文拟 采用
+最优控制理论解决这一强耦合、非线性问题．
+文献［7］应用极大值原理推导了带限速 约束
+的列车节能最优控制策略．文献［8- 10］基于极值原
+理，针对带有单一大下坡、大上坡的全局优化问题，
+引入拉格朗日乘子，求解了列车全程运行的关键工
+况转换点，证明了列车节能运行全局最优解存在且
+唯一．文献［11- 13］建立了 考虑 限速 约束的列 车节
+能运行模型，分析了 含大下坡、大上坡的相 邻恒速
+区(牵引恒速)的可能连接方式，证明了恒速区之
+间含大坡道时，其最优连 接方 式的存 在性 和唯一
+性，并采用相轨 迹分析揭示了通过大坡道时列车最
+优工况的切换规律．文献［14- 15］把极大值原理应
+用于列车优化操纵分析，取得了一 定节能效果．文
+献［16- 17］则考虑了再生制动能量利用率对列车节
+能最优控制的影响，拓展了列车节能最优控制理论
+的适用车型．国内外文献研究了含大坡道列车节能
+运行优化问题，但对于长大下坡道的列车节能优化
+有待进一步研究．
+本文将以极大值原理为基础，研究含长大下坡
+区间的列车节能运行全局最优控制策略，同时考虑
+机车在运用 中的实际牵引 /制动力 发挥，用数 值法
+求解列车节能运行最优速度曲线．
+1 货运
+列车机械能模型
+1． 1 符号定
+义
+本文中涉及到的符号定义如表 1所示．
+表 1 数学公式
+中的符号定义
+Tab． 1 Symbol definition
+in the mathematical formulations
+符号 定义
+v 列车运行速度，m / s
+x 列车
+车头位置，m
+ft(v) 速度
+为 v 时机车牵引力，N ，
+计算方法见文献［18］
+fd (v) 速度
+为 v 时机车电制动力
+［18］，N
+fm (v) 减压量为 50 kPa，速度
+为 v 时
+列车空气制动力
+［18］，N
+w 0(v)
+速度
+为 v 时列车基本运行阻力
+［18］，N ，
+表达式为 w 0(v)= a + bv + cv2 ．
+其中，a ，b ，c 均为常数
+g(x) x 位置
+处列车附加阻力，包括坡道附加
+阻力和曲线附加阻力
+［18］，N
+t 列车运行时间，s
+μt 牵
+引手柄级位
+μd 电制动手
+柄级位
+μm 是否施加空气制动，0未施加，1施加
+x1，x2 ，…，xn 机车或车辆
+中心位置，m
+0 6 8
+=== COMPACT PAGE 2 ===
+西南交通大学学报第52卷algorithmwereverifiedbyperformingsimulationsofanHXD2locomotivewith100fullyloadedcars.Thesimulationresultswerecomparedwiththoseofthefuzzypredictivecontrolandfieldtestdata.Basedontheconditionthatthetrainispunctual,itisfoundthattheenergyconsumptionduringtrainoperationcanbereducedbyupto5.6%and17.9%withrespecttothefuzzypredictivecontrolandfieldtestdata,respectively.Keywords:freighttrain;maximumprinciple;periodicbraking;controlstrategy;numericalalgorithm安全、平稳、节能是货运列车运行优化的三大目标,长大下坡区间列车运行优化操纵是列车优化的重点和难点.近年来,和谐型大功率机车逐渐成为铁路货运的主力,因此,有必要对困难区段(含长大下坡)和谐型电力机车的优化操纵进行研究,不仅保证行车安全,并且实现列车节能运行.文献[1]分析了长大下坡区间双机牵引5000t货物时不同坡度值下列车电制动增速时间和充风时间的关系,并指出列车缓解初速度为30km/h时,12‰和15‰下坡道上列车采用电制动均能满足充风时间的要求.文献[2]比较了长大下坡区间列车在充风阶段的两种操纵策略:“惰行+空气制动”和“动力制动+空气制动”,采用“动力制动+空气制动”联合操纵的周期性制动方式不仅可以减少空气制动次数,而且可以降低闸瓦温升,保证行车安全.文献[3-4]针对大秦线2×104t级列车在长大下坡道的操纵进行了仿真和现场试验,表明小减压量制动和全电制动配合使用可延长列车再充风时间,减少列车空气制动次数,降低列车能耗.针对长大下坡区间列车再充风时间长、制动次数多,文献[5]提出改善制动机性能、采用高摩合成闸瓦以增加制动力.以上文献通过仿真和现场试验,总结出长大下坡区间列车合理操纵的基本原则.这些原则虽然保证了列车操纵的安全性,但从全局角度列车运行能耗不是最优的.列车在长大下坡区间运行时,最优操纵策略受坡长、坡度值、制动初速、缓解初速、电制动力、减压量的影响[4],且列车最低缓解速度不低于30km/h[6].鉴于问题的复杂性,本文拟采用最优控制理论解决这一强耦合、非线性问题.文献[7]应用极大值原理推导了带限速约束的列车节能最优控制策略.文献[8-10]基于极值原理,针对带有单一大下坡、大上坡的全局优化问题,引入拉格朗日乘子,求解了列车全程运行的关键工况转换点,证明了列车节能运行全局最优解存在且唯一.文献[11-13]建立了考虑限速约束的列车节能运行模型,分析了含大下坡、大上坡的相邻恒速区(牵引恒速)的可能连接方式,证明了恒速区之间含大坡道时,其最优连接方式的存在性和唯一性,并采用相轨迹分析揭示了通过大坡道时列车最优工况的切换规律.文献[14-15]把极大值原理应用于列车优化操纵分析,取得了一定节能效果.文献[16-17]则考虑了再生制动能量利用率对列车节能最优控制的影响,拓展了列车节能最优控制理论的适用车型.国内外文献研究了含大坡道列车节能运行优化问题,但对于长大下坡道的列车节能优化有待进一步研究.本文将以极大值原理为基础,研究含长大下坡区间的列车节能运行全局最优控制策略,同时考虑机车在运用中的实际牵引/制动力发挥,用数值法求解列车节能运行最优速度曲线.1货运列车机械能模型1.1符号定义本文中涉及到的符号定义如表1所示.表1数学公式中的符号定义Tab.1Symboldefinitioninthemathematicalformulations符号定义v列车运行速度,m/sx列车车头位置,mft(v)速度为v时机车牵引力,N,计算方法见文献[18]fd(v)速度为v时机车电制动力[18],Nfm(v)减压量为50kPa,速度为v时列车空气制动力[18],Nw0(v)速度为v时列车基本运行阻力[18],N,表达式为w0(v)=a+bv+cv2.其中,a,b,c均为常数g(x)x位置处列车附加阻力,包括坡道附加阻力和曲线附加阻力[18],Nt列车运行时间,sμt牵引手柄级位μd电制动手柄级位μm是否施加空气制动,0未施加,1施加x1,x2,...,xn机车或车辆中心位置,m068
+
+=== PDF PAGE 3 ===
+第 5 期
+林 轩 ，等:HXD2 牵引货运列车长大下坡区间周期性制动研究
+续 表 1
+Tab． 1 Continue
+符号 定义
+v(x) x 位置
+处列车速度，m / s
+vj(x) x 位置
+处线路静态限速，m / s
+ηt 机车牵
+引效率，本文取 0． 9
+ηd 机车
+电制动效率，本文取 0． 9
+α 再生制动能量利用率，本文取 0． 9
+T c 列车再
+充风时间，本文取 130 s
+tz
+再次施加空气制动前，
+列车惰行时间，即
+增速时间
+1． 2 假
+设条件
+本文研究对象为单元万吨货运列车，不考虑信
+号系统对列 车运行的影响，不考虑网压波动对列车
+牵引 /电制动特性产生的影响．
+1． 3 列车多 质点模型
+货运列车编组长、质量大，为揭示其运动规律，
+本文将每一辆机车或车辆视为一个具有重量 的质
+点，建立列 车多 质点模型 ，如图 1所示，图中:r 为
+曲线半径;l为曲线长度;m i 为
+第 i节车的质量．
+图 1 货运
+列车多质点模型
+Fig． 1 Multi- particle model of a freight train
+以
+列车为对象，建立其运 动学方程为
+dv
+dx =
+μtft(v)－ μd fd (v)－ μm fm (v)－ w 0(v)－ g(x)
+v ，
+(1)
+dt
+dx = 1
+v ，
+(2)
+式中:
+0≤μt≤1;0≤μd ≤1;μm ∈{0，1}． (3 )
+设列 车 区间 运 行 初始位 置为 0，末
+端位 置为
+X，故边界约束条件为
+v(0)= 0， v(X)= 0，
+(4)
+t(0)= 0， t(X)= T． (5)
+为保障行
+车安全，列车运行过程中车速不能超
+过线路限速，且列车在任何情况 下，列车空 气制动
+力充足，因此
+v(x)≤vj(x)
+， (6)
+w 0(v)+μm fm (v)+g(x)＞ 0． (7 )
+1． 4 长
+大下坡区间
+货运列车运行于长大下坡区间时，仅施加电制
+动车速仍然上升，该特征用式(8 )描述．
+fd (v)+g(x)+w 0(v)＜ 0． (8 )
+长大下坡区间的坡度值一
+般大于 10‰ ，且长
+度在 10 km以上．受轮轨 间粘着力的约束，机车电
+制动力一般不能按制动特性曲线全部发挥，实际机
+车电制动力进一步减小，因此，在长大下坡区间需
+要电制动和空气制动配合使用．
+此外，列车在长大下坡区间施加空气制动后，
+为保证下一次空气制动有效施加，列车在长大下坡
+道上的惰行时间不应小于缓解再充风时间，约束条
+件为
+［1］
+tz≥T c． (9 )
+目标函数为
+min J = ∫
+X
+(
+0
+μtft(v)
+ηt
+－ α
+ηd μd fd (v )) dx． (10)
+本
+文将求解在式(1)～ (6)、(9 )约束的条件
+下，使目 标 函 数 (10)最 小的 列车 运 行 最 优 速 度
+曲线．
+2 列
+车周期性循环制动原理分析
+2． 1 列
+车节能运行 必要条件
+联立式(1)、(2)、(10)
+，根
+据极大值原理构 造
+列车节能运行的哈密顿函数 H
+［19］
+为
+H = － μtft(v)
+ηt
++α
+ηd μd fd (v)+ λ1
+v +λ2 ×
+1 6 8
+=== COMPACT PAGE 3 ===
+第5期林轩,等:HXD2牵引货运列车长大下坡区间周期性制动研究续表1Tab.1Continue符号定义v(x)x位置处列车速度,m/svj(x)x位置处线路静态限速,m/sηt机车牵引效率,本文取0.9ηd机车电制动效率,本文取0.9α再生制动能量利用率,本文取0.9Tc列车再充风时间,本文取130stz再次施加空气制动前,列车惰行时间,即增速时间1.2假设条件本文研究对象为单元万吨货运列车,不考虑信号系统对列车运行的影响,不考虑网压波动对列车牵引/电制动特性产生的影响.1.3列车多质点模型货运列车编组长、质量大,为揭示其运动规律,本文将每一辆机车或车辆视为一个具有重量的质点,建立列车多质点模型,如图1所示,图中:r为曲线半径;l为曲线长度;mi为第i节车的质量.图1货运列车多质点模型Fig.1Multi-particlemodelofafreighttrain以列车为对象,建立其运动学方程为dvdx=μtft(v)-μdfd(v)-μmfm(v)-w0(v)-g(x)v,(1)dtdx=1v,(2)式中:0≤μt≤1;0≤μd≤1;μm∈{0,1}.(3)设列车区间运行初始位置为0,末端位置为X,故边界约束条件为v(0)=0,v(X)=0,(4)t(0)=0,t(X)=T.(5)为保障行车安全,列车运行过程中车速不能超过线路限速,且列车在任何情况下,列车空气制动力充足,因此v(x)≤vj(x),(6)w0(v)+μmfm(v)+g(x)>0.(7)1.4长大下坡区间货运列车运行于长大下坡区间时,仅施加电制动车速仍然上升,该特征用式(8)描述.fd(v)+g(x)+w0(v)<0.(8)长大下坡区间的坡度值一般大于10‰,且长度在10km以上.受轮轨间粘着力的约束,机车电制动力一般不能按制动特性曲线全部发挥,实际机车电制动力进一步减小,因此,在长大下坡区间需要电制动和空气制动配合使用.此外,列车在长大下坡区间施加空气制动后,为保证下一次空气制动有效施加,列车在长大下坡道上的惰行时间不应小于缓解再充风时间,约束条件为[1]tz≥Tc.(9)目标函数为minJ=∫X(0μtft(v)ηt-αηdμdfd(v))dx.(10)本文将求解在式(1)~(6)、(9)约束的条件下,使目标函数(10)最小的列车运行最优速度曲线.2列车周期性循环制动原理分析2.1列车节能运行必要条件联立式(1)、(2)、(10),根据极大值原理构造列车节能运行的哈密顿函数H[19]为H=-μtft(v)ηt+αηdμdfd(v)+λ1v+λ2×168
+
+=== PDF PAGE 4 ===
+西 南 交 通 大 学 学 报
+第 52卷
+μtft(v)－ μd fd (v)－ μm fm (v)－ w 0(v)－ g(x)
+v ，
+(11)
+式中:
+λ1、λ2 为拉格朗日乘子．
+为处理式(6)、(9 )中的不等式约束，引入
+松弛
+因子 M 和 T ，得
+dλ1
+dx = － H
+t，
+(12)
+dλ2
+dx = － H
+v + dM
+dx + dT
+dx． (13)
+M 是一非递增有界函数，为处理式(6)的
+限速
+约束而引入，该有界函数的导数 dM 满足
+∫
+S
+0
+［v(x)－ v j(x)
+］dM = 0， (14)
+式中:
+S为列车区间运行终点
+位置．
+当 v(x)＜ vj(x)时，dM = 0;当 v(x)= vj(x)时，
+dM ＞ 0．
+在式(9 )的约束下，结
+合列车运行基本物理模
+型，可得命题:在长大下坡区间，列车发生空气制动
+后，当且仅当缓解速度不大于使得式(9 )成立的列
+车最大缓解速度 v'lim时，即 v(x)≤ v'lim时，周期
+性制
+动有最优解．且列车由点 A (速度为 v'lim(x)
+)全电制
+到限
+速的时间不小于 T c，如图 2 所
+示．
+证明如下:
+证明 记 A → B 全电制时间为副 风缸缓 解再
+充风时间 T c;A →B 列车瞬时速度
+为 v'(x);点 A 、B
+的位置分别记为 xA 、xB ．
+假
+设 在 xA 处，列车缓解速度
+为 vlim(x)
+，且
+vlim(x)＞ v'lim(x)．列车全电制到限
+速 vj(x)的
+速度
+v(x)不低于 v'(x)
+，即 v(x)≥v'(x)．
+用反证法说明，若 v(x)＜ v'(x) ，则速度曲线
+v(x)和 v'(x)相交，交点为 C (图 2 所
+示)． 以点 C
+处的速度和位 置为 初态，求解列车 运动学 微分方
+程，易知点 C 后任一列车位置处(式(2)
+)均对应
+两
+组解，根据柯西—利普希茨定理，初态确定时，微分
+方程的解存在且唯一，与假设矛盾，命题不成立，因
+此 v(x)≥v'(x)．
+另外，在同一 区段 内，列 车 的 加速 度 一 定，因
+此，不存在 v(x)= v'(x)的情形，故 v(x)＞ v'(x)．
+根据式(9 )
+，有
+tz = ∫
+x'
+xA
+1
+v(x)dx ≥ ∫
+xB
+xA
+1
+v'(x)dx = T c，
+(15)
+式中:
+x'是车速为 vj(x)时对应的
+位置．
+根据上述结论，v(x)＞ v'(x)与式(15)矛盾，
+即 vlim(x)＞ v'lim(x)时，列车由 xA 全电制到限
+速的
+时间小于列车缓解再充风 时间 T c．充
+风时间不足，
+影响行车安全，因此，假设不成立，命题得证．
+图 2 长大下坡区间列车全电制工况分
+析
+Fig． 2 Analysis of the freight train
+by applying full electrical braking
+on the long steep downhill section
+将
+上述不等式约束引入最优控制问题
+［7，19］
+，当
+v(x)＜ v'lim(x)时，dT = 0;v(x)= v'lim(x)时，dT ＞ 0．
+定义 θ = ηtλ2 / v为伴随变量，哈密顿函数
+的表
+达式可整理为
+H =
+(θ － 1)
+ηt
+μtft(v) (+ α
+ηd － θ
+η )
+t
+μd fd (v)－
+θ
+ηt
+［μm fm (v)+w 0(v)+g(x)
+］+ λ1
+v ． (16)
+为使式(10)能
+耗 J 最小，则要求哈密顿函数 H
+取极大值，由此可得 6 种最优操纵工况，如表 2 所
+示．表 中:FP (full power)为 全 牵 工 况;PP(partial
+power )为部分牵引 工况;C(coasting)为惰行工 况;
+PEB (partial electrical braking)为 部 分 电 制 工 况;
+FEB (full electrical braking)全 电 制 工 况;FB (full
+braking)全制工况．
+表 2 最优控
+制工况
+Tab． 2 A set of optimal controls
+伴随变量 工况
+控制量取值
+θ ＞ 1 FP μt= 1， μd = 0， μm = 0
+θ = 1 PP μt∈［0，1］
+， μd = 0， μm = 0
+α
+ηd ηt＜ θ ＜ 1 C μt= 0， μd = 0， μm = 0
+θ = α
+ηd ηt PEB μt= 0， μd ∈［0，1］
+， μm = 0
+0 ＜ θ ＜ α
+ηd ηt FEB μt= 0， μd = 1， μm = 0
+θ≤0 FB μt= 0， μd = 1， μm = 1
+2 6 8
+=== COMPACT PAGE 4 ===
+西南交通大学学报第52卷μtft(v)-μdfd(v)-μmfm(v)-w0(v)-g(x)v,(11)式中:λ1、λ2为拉格朗日乘子.为处理式(6)、(9)中的不等式约束,引入松弛因子M和T,得dλ1dx=-Ht,(12)dλ2dx=-Hv+dMdx+dTdx.(13)M是一非递增有界函数,为处理式(6)的限速约束而引入,该有界函数的导数dM满足∫S0[v(x)-vj(x)]dM=0,(14)式中:S为列车区间运行终点位置.当v(x)<vj(x)时,dM=0;当v(x)=vj(x)时,dM>0.在式(9)的约束下,结合列车运行基本物理模型,可得命题:在长大下坡区间,列车发生空气制动后,当且仅当缓解速度不大于使得式(9)成立的列车最大缓解速度v'lim时,即v(x)≤v'lim时,周期性制动有最优解.且列车由点A(速度为v'lim(x))全电制到限速的时间不小于Tc,如图2所示.证明如下:证明记A→B全电制时间为副风缸缓解再充风时间Tc;A→B列车瞬时速度为v'(x);点A、B的位置分别记为xA、xB.假设在xA处,列车缓解速度为vlim(x),且vlim(x)>v'lim(x).列车全电制到限速vj(x)的速度v(x)不低于v'(x),即v(x)≥v'(x).用反证法说明,若v(x)<v'(x),则速度曲线v(x)和v'(x)相交,交点为C(图2所示).以点C处的速度和位置为初态,求解列车运动学微分方程,易知点C后任一列车位置处(式(2))均对应两组解,根据柯西—利普希茨定理,初态确定时,微分方程的解存在且唯一,与假设矛盾,命题不成立,因此v(x)≥v'(x).另外,在同一区段内,列车的加速度一定,因此,不存在v(x)=v'(x)的情形,故v(x)>v'(x).根据式(9),有tz=∫x'xA1v(x)dx≥∫xBxA1v'(x)dx=Tc,(15)式中:x'是车速为vj(x)时对应的位置.根据上述结论,v(x)>v'(x)与式(15)矛盾,即vlim(x)>v'lim(x)时,列车由xA全电制到限速的时间小于列车缓解再充风时间Tc.充风时间不足,影响行车安全,因此,假设不成立,命题得证.图2长大下坡区间列车全电制工况分析Fig.2Analysisofthefreighttrainbyapplyingfullelectricalbrakingonthelongsteepdownhillsection将上述不等式约束引入最优控制问题[7,19],当v(x)<v'lim(x)时,dT=0;v(x)=v'lim(x)时,dT>0.定义θ=ηtλ2/v为伴随变量,哈密顿函数的表达式可整理为H=(θ-1)ηtμtft(v)(+αηd-θη)tμdfd(v)-θηt[μmfm(v)+w0(v)+g(x)]+λ1v.(16)为使式(10)能耗J最小,则要求哈密顿函数H取极大值,由此可得6种最优操纵工况,如表2所示.表中:FP(fullpower)为全牵工况;PP(partialpower)为部分牵引工况;C(coasting)为惰行工况;PEB(partialelectricalbraking)为部分电制工况;FEB(fullelectricalbraking)全电制工况;FB(fullbraking)全制工况.表2最优控制工况Tab.2Asetofoptimalcontrols伴随变量工况控制量取值θ>1FPμt=1,μd=0,μm=0θ=1PPμt∈[0,1],μd=0,μm=0αηdηt<θ<1Cμt=0,μd=0,μm=0θ=αηdηtPEBμt=0,μd∈[0,1],μm=00<θ<αηdηtFEBμt=0,μd=1,μm=0θ≤0FBμt=0,μd=1,μm=1268
+
+=== PDF PAGE 5 ===
+第 5 期
+林 轩 ，等:HXD2 牵引货运列车长大下坡区间周期性制动研究
+由于式(11)不显含时间 t，哈密顿函数 H 的偏导数
+为 0，则
+dλ1
+dx = － H
+t = 0． (17)
+因
+此，λ1 的值为常数．
+对伴随变量 θ = ηtλ2 / v变
+形并求导得
+dλ2 = 1
+ηt
+d(θv)=
+1
+ηt
+(vdθ +θdv)． (18)
+联
+立式(11)、(13)、(18)
+，经化简整理得
+dθ {= (1 －θ)
+v μtf't(v)+
+(θ － α
+ηd ηt)
+v μd f'd (v)+
+［w '0(v)+μm f'm (v)
+］θ
+v + λ1ηt
+v }3 dx +
+ηt
+v dM + ηt
+v dT． (19)
+2． 2 列
+车周期性循环制动原理分析
+对表 2 中的工况 PP、PEB 、FB 作进一步分析．
+(1)当 θ = 1时，μt∈［0，1］
+， μd = 0， μm = 0，有
+dθ (= 1
+v w '0(v)+ λ1ηt
+v )3 dx + ηt
+v dM + ηt
+v dT．
+(20)
+θ 为常数，所以 dθ/dx = 0，且 v(x)＜ vj(x)
+，
+dM = 0;同
+时，dT = 0．因此，
+dθ
+dx = 1
+v w '0(v)+ λ1ηt
+v
+3 = 0． (21)
+整理得
+v
+2
+w '0(v)+λ1ηt= 0． (22)
+定义 φ(v)= v
+2
+w '0(v)
+，对 w 0(v)求导，可得
+w '0(v)= 2cv +b． (23 )
+所以，
+φ(v)= v
+2
+(2cv +b )． (24)
+由式(24)易 知，φ (v)单 调
+递 增，因 此，对 于
+式(22)
+，唯一存在 vc 使等式成立．
+定义列车运行
+目标速度为 vt，则
+vt= min{vc，vj(x)}． (25)
+对
+于部分牵引恒速的常规坡道，其数学模型描
+述为
+μtft(vt)－ g(x)－ w 0(vt)= 0． (26)
+(2)当 θ = α
+ηd ηt时，μt= 0， μd ∈［0，1］
+，
+μm = 0，有
+dθ (= α
+ηd ηt
+v w '0(v)+ λ1ηt
+v )3 dx +
+ηt
+v dM + ηt
+v dT． (27)
+θ 为一常数，故 dθ/dx = 0;dM = 0，dT = 0．因
+此
+dθ
+dx = α
+ηd v
+2
+w '0(v)+λ1 = 0． (28 )
+存在
+速 度 vd ，使 得
+式 (28 )成 立，λ1 可 通 过
+式(22)获
+得．
+在部分电制时，列车运行目标速度为
+v't = min{vd ，vj(x)}． (29 )
+对部分电制动恒速
+的常规坡道，其数学模型为
+μd fd (v't)－ g(x)－ w 0(v't)= 0． (30)
+(3 )当 θ≤0时，μt= 0，μd = 1，μm = 1．
+通过长大下坡列车周期
+性制动如图 3 所示．图
+中:θ
++
+为
+大于 θ 的一侧的数值;θ
+－
+为小于 θ 的
+一侧
+的数值;x = 0为列车起点位 置，θ'为伴随变量的最
+小值．在进 入长大下坡前，列车提前惰行．入坡后，
+列车速度上升至接近限速，伴随变量 θ 从 1连续变
+化至 0．
+图 3 通过长大下坡列车周期
+性
+制动示意(vc ＞ vj(x)
+)
+Fig． 3 Schematic of periodic braking
+while a freight train operating
+on the long steep downhill section(vc ＞ vj(x)
+)
+将 θ = 0， dT = 0代入
+式(19)
+，可得
+dθ {= (θ － α
+ηd ηt)
+v μd fd '(v)+
+［w '0(v)+μm fm '(v)
+］θ
+v +
+λ1ηt
+v }3 dx + ηt
+v dM． (31)
+① 在 θ = 0
+－
+时(0
+－
+为小于 0 的
+一侧)
+，v(x)=
+3 6 8
+=== COMPACT PAGE 5 ===
+第5期林轩,等:HXD2牵引货运列车长大下坡区间周期性制动研究由于式(11)不显含时间t,哈密顿函数H的偏导数为0,则dλ1dx=-Ht=0.(17)因此,λ1的值为常数.对伴随变量θ=ηtλ2/v变形并求导得dλ2=1ηtd(θv)=1ηt(vdθ+θdv).(18)联立式(11)、(13)、(18),经化简整理得dθ{=(1-θ)vμtf't(v)+(θ-αηdηt)vμdf'd(v)+[w'0(v)+μmf'm(v)]θv+λ1ηtv}3dx+ηtvdM+ηtvdT.(19)2.2列车周期性循环制动原理分析对表2中的工况PP、PEB、FB作进一步分析.(1)当θ=1时,μt∈[0,1],μd=0,μm=0,有dθ(=1vw'0(v)+λ1ηtv)3dx+ηtvdM+ηtvdT.(20)θ为常数,所以dθ/dx=0,且v(x)<vj(x),dM=0;同时,dT=0.因此,dθdx=1vw'0(v)+λ1ηtv3=0.(21)整理得v2w'0(v)+λ1ηt=0.(22)定义φ(v)=v2w'0(v),对w0(v)求导,可得w'0(v)=2cv+b.(23)所以,φ(v)=v2(2cv+b).(24)由式(24)易知,φ(v)单调递增,因此,对于式(22),唯一存在vc使等式成立.定义列车运行目标速度为vt,则vt=min{vc,vj(x)}.(25)对于部分牵引恒速的常规坡道,其数学模型描述为μtft(vt)-g(x)-w0(vt)=0.(26)(2)当θ=αηdηt时,μt=0,μd∈[0,1],μm=0,有dθ(=αηdηtvw'0(v)+λ1ηtv)3dx+ηtvdM+ηtvdT.(27)θ为一常数,故dθ/dx=0;dM=0,dT=0.因此dθdx=αηdv2w'0(v)+λ1=0.(28)存在速度vd,使得式(28)成立,λ1可通过式(22)获得.在部分电制时,列车运行目标速度为v't=min{vd,vj(x)}.(29)对部分电制动恒速的常规坡道,其数学模型为μdfd(v't)-g(x)-w0(v't)=0.(30)(3)当θ≤0时,μt=0,μd=1,μm=1.通过长大下坡列车周期性制动如图3所示.图中:θ+为大于θ的一侧的数值;θ-为小于θ的一侧的数值;x=0为列车起点位置,θ'为伴随变量的最小值.在进入长大下坡前,列车提前惰行.入坡后,列车速度上升至接近限速,伴随变量θ从1连续变化至0.图3通过长大下坡列车周期性制动示意(vc>vj(x))Fig.3Schematicofperiodicbrakingwhileafreighttrainoperatingonthelongsteepdownhillsection(vc>vj(x))将θ=0,dT=0代入式(19),可得dθ{=(θ-αηdηt)vμdfd'(v)+[w'0(v)+μmfm'(v)]θv+λ1ηtv}3dx+ηtvdM.(31)1在θ=0-时(0-为小于0的一侧),v(x)=368
+
+=== PDF PAGE 6 ===
+西 南 交 通 大 学 学 报
+第 52卷
+vj(x)
+，此时 dM ＞ 0， λ1 ＜ 0;在 θ = 0
++
+时(0
++
+为
+大
+于 0的一侧)
+，开
+始全制，θ = 0
++
+后一时刻 θ ＜ 0，列
+车将继
+续全制;
+② 当 v(x)= v'lim(x)时，dT ＞ 0，θ 发生正跳变，
+此时 0 ＜ θ ＜ α
+ηd ηt，列车全电制;
+③ 当列 车
+电 制 到 v(x)= vj(x)时，跳 至
+步
+骤① ;
+④ 列车在长大下坡末端 时，v(x)= vj(x)
+，
+dM ＞ 0，θ 发生正跳变，此时 θ
++
+＞ 1，列车全牵至 vc，
+最终，列车以部分牵
+引(即恒速)继续运行．
+2． 3 长大下坡末端列车最优工况 唯一性分析
+由图 3 可知，列车在长大下坡末端应采用工况
+FEB ，且车速为限速．本节将以 vc ＞ vj(x)为例，证明
+该最优工况的唯一性，vc ＜ vj(x)时，证明方法类似．
+若列车在长大 下坡末
+端未处 于 工 况 FEB ，由
+表 2 可知，列 车 可 能 处 于 工 况 FP 、PP、PEB 、C 或
+FB ，对上述工况逐一分析:
+(1)工况为 FP 时
+根据 2．2 节的分析 ，列车 在全 制后全 牵至限
+速，此时列车仍处于长大下坡区段 (图 3 )
+，该操纵
+方式不
+仅不节能，且存在超速风险和较大的纵向冲
+动，不合理，应舍去．
+(2)工况为 PP 时
+若列车部 分牵引 ，根据 式 (21)
+，得 v ＜ vc 时，
+dθ/dx ＜ 0，故列车 在前一时刻 θ ＞ 1，与假设 θ = 1
+相矛
+盾．
+(3 )工况为 PEB 时
+假设列车在长大下坡末端采用部分电制动，根
+据 2．2 节分析，工况为 PEB 时，列车保持速度为 vd
+图 3 ，该结
+论 与 本文长 大 下 坡 区 间 的 假 设 相 矛 盾
+(电制动 不 能 恒 速)
+，因
+此，列 车 不 可 能 处 于 PEB
+工况．
+(4)工况为 C 时
+若列车在长大 下坡末端 惰行 至限速 ． 在 本文
+中，结合目 标函数式(10)
+，为尽可能地使列车运行
+节能，在长大下坡区间应采
+用再生制动策略．后文
+将对该工况做进一步分析．
+(5)工况为 FB 时
+若列车全制，设伴随变量 θ 在坡道末端发生正
+跳变，使得 θ ＞ 0，出坡后列车将全 牵至 θ = 1．此时
+列车的出坡速度低于限速，出坡后全牵至部分牵引
+需要比图 3 所对应区段全牵消耗更多的能量．
+综上所述，长大下坡末端列车的最优工况为 FEB ．
+3 恒
+速区间与长大下 坡区间的连接
+3． 1 恒
+速区间连接方式
+定义恒速区为列车以部分牵引 或部分电制动
+能保持恒速运行的区间．本节将讨论相邻恒速区间
+的连接方式(恒速区之间包含长大下坡)．
+(1)如图 4 所示，当 v(x)＜ vc 时，dθ/dx ＜ 0，
+θ 单调
+递减，列车在进入长大下坡前提前惰行．
+(2)进入大下坡后，车速持续增 加，当伴随变
+量 θ ＜ αηd ηt时，列车全电制到限
+速．此时，θ = 0
+－
+，
+v(x)= vj(x)
+，dM ＞ 0，λ1 ＜ 0;在 θ = 0
++
+时刻，开
+始全
+制，θ = 0
++
+后一时刻 θ ＜ 0，列车继
+续全制．
+(3 )列车在长大下坡区间运行时，交替使用全
+电制和全制两种工况，且 θ 发生跳变的边界条件分
+别为 v(x)= vj(x)和 v(x)= v'lim(x)．
+(4)在长大 下 坡 末
+端，列 车 惰 行 至 θ = 1，此
+时，列车以部分牵引运行．
+(5)列车由部分牵引切换至部分制动，并以速
+度 vd 匀速
+运行，此时 θ = αηd ηt;部分牵
+引→部分制
+动间的切换需要用惰行连接，切换方式如图 4．
+图 4 通过长大下坡列车周期
+性
+制动示意(vc ＜ vj(x)
+)
+Fig． 4 Schematic of periodic braking
+while a freight train operating
+on the long steep downhill section(vc ＜ vj(x)
+)
+3． 2 长
+大下坡区间运行时间对全程能耗影响分析
+根据 2． 2节分析，列车在长大下坡区间应采取
+“全电 制 + 全制 + 全电 制”的周期性 循环制动 策
+略，该策略不仅 提高了 长大 下坡区间 列车通 过能
+力，而且可降低列车站间运行能耗．
+区间运行时间分配与列 车运行速度的关系如
+图 5 所示．
+4 6 8
+=== COMPACT PAGE 6 ===
+西南交通大学学报第52卷vj(x),此时dM>0,λ1<0;在θ=0+时(0+为大于0的一侧),开始全制,θ=0+后一时刻θ<0,列车将继续全制;2当v(x)=v'lim(x)时,dT>0,θ发生正跳变,此时0<θ<αηdηt,列车全电制;3当列车电制到v(x)=vj(x)时,跳至步骤1;4列车在长大下坡末端时,v(x)=vj(x),dM>0,θ发生正跳变,此时θ+>1,列车全牵至vc,最终,列车以部分牵引(即恒速)继续运行.2.3长大下坡末端列车最优工况唯一性分析由图3可知,列车在长大下坡末端应采用工况FEB,且车速为限速.本节将以vc>vj(x)为例,证明该最优工况的唯一性,vc<vj(x)时,证明方法类似.若列车在长大下坡末端未处于工况FEB,由表2可知,列车可能处于工况FP、PP、PEB、C或FB,对上述工况逐一分析:(1)工况为FP时根据2.2节的分析,列车在全制后全牵至限速,此时列车仍处于长大下坡区段(图3),该操纵方式不仅不节能,且存在超速风险和较大的纵向冲动,不合理,应舍去.(2)工况为PP时若列车部分牵引,根据式(21),得v<vc时,dθ/dx<0,故列车在前一时刻θ>1,与假设θ=1相矛盾.(3)工况为PEB时假设列车在长大下坡末端采用部分电制动,根据2.2节分析,工况为PEB时,列车保持速度为vd图3,该结论与本文长大下坡区间的假设相矛盾(电制动不能恒速),因此,列车不可能处于PEB工况.(4)工况为C时若列车在长大下坡末端惰行至限速.在本文中,结合目标函数式(10),为尽可能地使列车运行节能,在长大下坡区间应采用再生制动策略.后文将对该工况做进一步分析.(5)工况为FB时若列车全制,设伴随变量θ在坡道末端发生正跳变,使得θ>0,出坡后列车将全牵至θ=1.此时列车的出坡速度低于限速,出坡后全牵至部分牵引需要比图3所对应区段全牵消耗更多的能量.综上所述,长大下坡末端列车的最优工况为FEB.3恒速区间与长大下坡区间的连接3.1恒速区间连接方式定义恒速区为列车以部分牵引或部分电制动能保持恒速运行的区间.本节将讨论相邻恒速区间的连接方式(恒速区之间包含长大下坡).(1)如图4所示,当v(x)<vc时,dθ/dx<0,θ单调递减,列车在进入长大下坡前提前惰行.(2)进入大下坡后,车速持续增加,当伴随变量θ<αηdηt时,列车全电制到限速.此时,θ=0-,v(x)=vj(x),dM>0,λ1<0;在θ=0+时刻,开始全制,θ=0+后一时刻θ<0,列车继续全制.(3)列车在长大下坡区间运行时,交替使用全电制和全制两种工况,且θ发生跳变的边界条件分别为v(x)=vj(x)和v(x)=v'lim(x).(4)在长大下坡末端,列车惰行至θ=1,此时,列车以部分牵引运行.(5)列车由部分牵引切换至部分制动,并以速度vd匀速运行,此时θ=αηdηt;部分牵引→部分制动间的切换需要用惰行连接,切换方式如图4.图4通过长大下坡列车周期性制动示意(vc<vj(x))Fig.4Schematicofperiodicbrakingwhileafreighttrainoperatingonthelongsteepdownhillsection(vc<vj(x))3.2长大下坡区间运行时间对全程能耗影响分析根据2.2节分析,列车在长大下坡区间应采取“全电制+全制+全电制”的周期性循环制动策略,该策略不仅提高了长大下坡区间列车通过能力,而且可降低列车站间运行能耗.区间运行时间分配与列车运行速度的关系如图5所示.468
+
+=== PDF PAGE 7 ===
+第 5 期
+林 轩 ，等:HXD2 牵引货运列车长大下坡区间周期性制动研究
+图 5 中，xf 为全电制
+制动的位 置．列车在长大
+下坡增速阶段分别采用 惰行和全 电制两种运行策
+略．采用惰行策略时 列车加速度较大，全制后需要
+以较低速度缓解才能满足再充风时间约束．采用全
+电制策略，可提高缓解速度，减少周期性制动次数，
+缩短长大下坡区间运行时间 T s． 在区间运行时间
+T set给定的前
+提下，常规坡道区间运行时间T set－ T s
+增加，从而使 vc 降低为 v'c ，根
+据列车节能运行第 一
+论断
+［20］
+，列车站间运行牵
+引能耗降低．
+图 5 区间运行时间分配与
+列车运行速度的关系
+Fig． 5 Analysis of interval time allocation
+and train velocity
+4 算
+法设计
+本
+文设计的算法以 货运列 车在长大下坡区段
+周期性制动为研究目 标，确定一条包含长大下坡区
+段的列车区间最优运行曲线，并满足 准点性要求．
+算法具体步骤如下:
+步骤 1
+计算列车在给定区间的最大能力运行曲线，确
+定区间最短运行时间 T 1;若给定区间运行时间 T set
+大于 T 1，则转至
+步骤 2，否则返回最大能力运行结
+果，寻优终止．
+步骤 2
+初始化 vc，根
+据式(22)、(28 )计算 λ1 和 vd ，并
+根
+据 vc、vd 和 vj(x)划分恒速区
+段，确定各恒速区段
+的起点、终点，建立 坡道分区表;寻优开始前，剔除
+最大能力运行无法达到的恒速段;对于 vc ＞ vj(x)
+，
+则以 vj(x)作为列车保持速度，vd 同理．
+步
+骤 3
+生成坡道分区表．根据 步骤 2，将给定区间划
+分为若干各恒速区段，并用 集合 U 表示，U = {P1，
+P2，…，Pi，…，Pn }，其中，Pi 为
+第 i个恒速区段．
+步骤 4
+恒速区连接．若 i ＜ n，令 j= i，k = i + 1，执行步
+骤 5;若 i= n，则 P1 与 Pn 已连接成功，区间连接结
+束，转至
+步骤 7 ．
+步骤 5
+对 Pj 和 Pk 进行连接，若连接成功但速度曲线
+超过线
+路限速或不存在最优连接，则进行限速约束
+下的最优连接;若连接不成功，执行步骤 6．
+步骤 6
+若 k = n，则找出 Pj 之前且与 Pj 直接
+相连的元
+素 Pm (1≤m ＜ j)
+，令 j= m ，k = j+ 1，i = m ，重复
+步
+骤 5;若 k ＜ n，则 k = k + 1，重复步骤 5．
+步骤 7
+根据步骤 3 ～ 5 中所生成的列车速度曲线，模拟
+列车区间运行，计算可得区间运行时间 T．
+步骤 8
+若 T － T set ＜ 3 s，则列车区间运行时间满
+足
+准点要求，寻优结束．若 T ＞ T set，则提高 vc，重复
+步
+骤 2;若 T ＜ T set，则降低 vc，重复
+步骤 2．
+5 仿
+真案例
+5． 1 机车牵引 /制动
+力实际发挥
+在工程实践中，过大的牵引 /制动力以及牵引 /
+制动力变化率对采用 动力 集中控制 的货运列 车会
+造成较大纵向冲动和轮对 空转滑行，因此，在生成
+最优参考曲线时需要对机车特性进行修正．
+在牵引阶段，选取按牵引特性曲线输出的最大
+牵引力的 0．9 倍
+［18］
+作为机车实际输出牵
+引力限制．
+在电制动阶段，设机车粘着电制动力为 fu (v)
+，
+电制动特性曲线输出的最大制动
+力为 fd (v)
+，计算
+方法见文
+献［21］．仿真时，实际最大电制动力为
+fs(v)= min{fd (v)
+，fu (v)}． (32 )
+同理，在空气制动时，列车制动
+力不能超过粘
+着制动力的限制．经验算，本文 中空气制动力 远小
+于对应速度下的粘着空气制动力．
+5． 2 列车和线路基 本参数
+仿真线路 选用大秦线最困难区段:延庆—茶坞
+区间，线路限速为 75 km / h，列车运行方向为 下行．
+以 25 t轴 重 HXD2 型 电 力机 车 牵 引 100辆
+C80 重车作为研究 对象，采用 matlab对本文算法进
+行仿真 验证．仿真参数见表 1和文献［21］．
+5． 3 仿真结果
+给定区间运行时间 T set= 90 min ，基
+于本文所
+设计的算法和 仿真 参数，仿真结 果如 图 6 所示;司
+机实际操纵结果如图 7 所示;采用基于模 糊预测控
+制的准点节能策略运行
+［22］
+，仿
+真结果如图 8 所示．
+从如图 6 可知，伴随变量的初值较 大，在初始
+阶段，伴随变量取值随距离增加而迅速下降．
+5 6 8
+=== COMPACT PAGE 7 ===
+第5期林轩,等:HXD2牵引货运列车长大下坡区间周期性制动研究图5中,xf为全电制制动的位置.列车在长大下坡增速阶段分别采用惰行和全电制两种运行策略.采用惰行策略时列车加速度较大,全制后需要以较低速度缓解才能满足再充风时间约束.采用全电制策略,可提高缓解速度,减少周期性制动次数,缩短长大下坡区间运行时间Ts.在区间运行时间Tset给定的前提下,常规坡道区间运行时间Tset-Ts增加,从而使vc降低为v'c,根据列车节能运行第一论断[20],列车站间运行牵引能耗降低.图5区间运行时间分配与列车运行速度的关系Fig.5Analysisofintervaltimeallocationandtrainvelocity4算法设计本文设计的算法以货运列车在长大下坡区段周期性制动为研究目标,确定一条包含长大下坡区段的列车区间最优运行曲线,并满足准点性要求.算法具体步骤如下:步骤1计算列车在给定区间的最大能力运行曲线,确定区间最短运行时间T1;若给定区间运行时间Tset大于T1,则转至步骤2,否则返回最大能力运行结果,寻优终止.步骤2初始化vc,根据式(22)、(28)计算λ1和vd,并根据vc、vd和vj(x)划分恒速区段,确定各恒速区段的起点、终点,建立坡道分区表;寻优开始前,剔除最大能力运行无法达到的恒速段;对于vc>vj(x),则以vj(x)作为列车保持速度,vd同理.步骤3生成坡道分区表.根据步骤2,将给定区间划分为若干各恒速区段,并用集合U表示,U={P1,P2,...,Pi,...,Pn},其中,Pi为第i个恒速区段.步骤4恒速区连接.若i<n,令j=i,k=i+1,执行步骤5;若i=n,则P1与Pn已连接成功,区间连接结束,转至步骤7.步骤5对Pj和Pk进行连接,若连接成功但速度曲线超过线路限速或不存在最优连接,则进行限速约束下的最优连接;若连接不成功,执行步骤6.步骤6若k=n,则找出Pj之前且与Pj直接相连的元素Pm(1≤m<j),令j=m,k=j+1,i=m,重复步骤5;若k<n,则k=k+1,重复步骤5.步骤7根据步骤3~5中所生成的列车速度曲线,模拟列车区间运行,计算可得区间运行时间T.步骤8若T-Tset<3s,则列车区间运行时间满足准点要求,寻优结束.若T>Tset,则提高vc,重复步骤2;若T<Tset,则降低vc,重复步骤2.5仿真案例5.1机车牵引/制动力实际发挥在工程实践中,过大的牵引/制动力以及牵引/制动力变化率对采用动力集中控制的货运列车会造成较大纵向冲动和轮对空转滑行,因此,在生成最优参考曲线时需要对机车特性进行修正.在牵引阶段,选取按牵引特性曲线输出的最大牵引力的0.9倍[18]作为机车实际输出牵引力限制.在电制动阶段,设机车粘着电制动力为fu(v),电制动特性曲线输出的最大制动力为fd(v),计算方法见文献[21].仿真时,实际最大电制动力为fs(v)=min{fd(v),fu(v)}.(32)同理,在空气制动时,列车制动力不能超过粘着制动力的限制.经验算,本文中空气制动力远小于对应速度下的粘着空气制动力.5.2列车和线路基本参数仿真线路选用大秦线最困难区段:延庆—茶坞区间,线路限速为75km/h,列车运行方向为下行.以25t轴重HXD2型电力机车牵引100辆C80重车作为研究对象,采用matlab对本文算法进行仿真验证.仿真参数见表1和文献[21].5.3仿真结果给定区间运行时间Tset=90min,基于本文所设计的算法和仿真参数,仿真结果如图6所示;司机实际操纵结果如图7所示;采用基于模糊预测控制的准点节能策略运行[22],仿真结果如图8所示.从如图6可知,伴随变量的初值较大,在初始阶段,伴随变量取值随距离增加而迅速下降.568
+
+=== PDF PAGE 8 ===
+西 南 交 通 大 学 学 报
+第 52卷
+本文仅截取了伴随变量取值在 － 1 ～ 2之间的
+数据绘图．图 6 ～ 8 仿真结 果对比如表 4 所示．
+列车运行能耗 = 牵引能耗 － α× 再生能量，根
+据表 4 计算本文算法相对模 糊预 测和实测数据的
+节能率，以及模糊预 测相对 实测数据的节 能率，如
+表 5 所示．表中，α= 0． 9．
+从表 5 可知:司机在行车 时，通常根据 当前列
+车运行状态和前方有限距离内的线路信息，结合操
+纵经验决定未来操纵策略;并且受反应时间等主观
+因素的制约，司机无法给出准确的经济牵引 /制动
+级位和工况切换点，因此，本文 算法和模 糊预 测相
+对司 机 实 际 操 纵 结 果 节 能 率 分 别 为 17． 9% 和
+11． 6% ，具有一定节能空间．
+另外，本文中，模糊预 测算法采用模 糊控制 +
+滚动优化的分层结构，预测前方有限步长内的操纵
+策略，属于局部寻优，而本文 算法 为全局优 化，因
+此，本文算法相对模 糊预 测节能 5． 6% ，具有一 定
+节能效果．
+(a)速度 (b)伴随变量
+(c)牵
+引 /制动力 (d)线路标高
+图 6 考虑长大下坡区段的列车节能运行最优速度曲线(T set= 90 min)
+Fig． 6 Optimal speed profile of train energy- efficient operation with
+the long steep downhill section considered(T set= 90 min)
+(a)速度 (b)线
+路标高
+图 7 基于实测数据的列 车速度曲线(T set= 90 min)
+Fig． 7 Speed profile of a freight train based on the field test data(T set= 90 min)
+6 6 8
+=== COMPACT PAGE 8 ===
+西南交通大学学报第52卷本文仅截取了伴随变量取值在-1~2之间的数据绘图.图6~8仿真结果对比如表4所示.列车运行能耗=牵引能耗-α×再生能量,根据表4计算本文算法相对模糊预测和实测数据的节能率,以及模糊预测相对实测数据的节能率,如表5所示.表中,α=0.9.从表5可知:司机在行车时,通常根据当前列车运行状态和前方有限距离内的线路信息,结合操纵经验决定未来操纵策略;并且受反应时间等主观因素的制约,司机无法给出准确的经济牵引/制动级位和工况切换点,因此,本文算法和模糊预测相对司机实际操纵结果节能率分别为17.9%和11.6%,具有一定节能空间.另外,本文中,模糊预测算法采用模糊控制+滚动优化的分层结构,预测前方有限步长内的操纵策略,属于局部寻优,而本文算法为全局优化,因此,本文算法相对模糊预测节能5.6%,具有一定节能效果.(a)速度(b)伴随变量(c)牵引/制动力(d)线路标高图6考虑长大下坡区段的列车节能运行最优速度曲线(Tset=90min)Fig.6Optimalspeedprofileoftrainenergy-efficientoperationwiththelongsteepdownhillsectionconsidered(Tset=90min)(a)速度(b)线路标高图7基于实测数据的列车速度曲线(Tset=90min)Fig.7Speedprofileofafreighttrainbasedonthefieldtestdata(Tset=90min)668
+
+=== PDF PAGE 9 ===
+第 5 期
+林 轩 ，等:HXD2 牵引货运列车长大下坡区间周期性制动研究
+(a)速度 (b)牵
+引 /制动力
+(c)线
+路标高
+图 8 基于模糊预测控制的列车速度曲线(运行时间:90 min)
+Fig． 8 Speed profile of a freight train based on the fuzzy predictive control(T set= 90 min)
+表 4 仿
+真结果 对比
+Tab． 4 Comparison of simulation results
+运行策略 T set/
+min
+vc /
+(km·h － 1)
+牵
+引能耗 /
+(kW·h)
+再生能量 /
+(kW·h)
+本
+文算法 90 31． 9 1 636． 3 6 166． 8
+实测数
+据 90 — 1 821． 0 5 712． 0
+模糊预测 90 — 1 745． 8 6 057． 9
+表 5 不同运
+行策略节能率 比较
+Tab． 5 Energy- efficient rate comparison between
+different operation strategies%
+运行策略 模糊
+预测 实测数据
+本文算法 5． 6 17． 9
+模糊
+预测 — 11． 6
+6 结 论
+本
+文对长大下坡区间列车周期性 制动进行了
+研究，提出了长大下坡区间与相邻恒速区的连接算
+法，通过仿真和对比分析，得到以下结论:
+(1)列车在长大下坡区间应采用“全电 制 +
+全制 +全电制”周期性 循环制动策略，制动切换时
+机由伴随变量的取值决定，全制发生在限速位 置．
+最优操纵的缓解速度是缓解再充风 时间约束边 界
+值对应的速度 v'lim(x)
+，下坡道末
+端车速为限速，工
+况为全电制．
+(2)列车在进 入长 大下坡区间之前应提前 惰
+行，使列车充分利用线路势能，实现节能运行．列车
+在长大下坡的增速阶段采用全电制工况，可提高列
+车技术速度，进而提高区间通 过能力，同时 降低列
+车运行牵引能耗，实现能量的回馈利用．
+(3 )与模糊预测控制和现场实测数据相比，本
+文算法分别能实现 5． 6% 和 17． 9% 的节能效果．
+参考文献 :
+［1］ 孙中央，王长明． 长大下坡道区
+段开行重载列车的安
+全问题［J］． 铁道机车车辆，2009，29 (1)
+:4- 7，54．
+SUN Zhongyang ，WANG Changming． Security problems
+of operation heavy haul trains on the long heavy down
+grade［J］． Railway Locomotive ＆ Car，2009，29 (1) :
+4- 7，54．
+［2］ 陈清． 5 000 t级重
+载列车的合理操纵方法［J］． 西南
+交通大学学报 ，1994，29 (3 )
+:281- 285．
+CHEN Qing． A study on rational operating methods of
+5 000t heavy- haul trains［J］． Journal of Southwest
+Jiaotong University，1994，29 (3 ) :281- 285．
+［3］ 耿志修，李学峰，张波． 大秦线重
+载列车运行仿真计
+算研究［J］． 中国铁道科学 ，2008，29 (2)
+:88- 93．
+GENG Zhixiu ， LI Xuefeng ， ZHANG Bo． Simulation
+study of heavy haul train operation on daqin railway［J］．
+7 6 8
+=== COMPACT PAGE 9 ===
+第5期林轩,等:HXD2牵引货运列车长大下坡区间周期性制动研究(a)速度(b)牵引/制动力(c)线路标高图8基于模糊预测控制的列车速度曲线(运行时间:90min)Fig.8Speedprofileofafreighttrainbasedonthefuzzypredictivecontrol(Tset=90min)表4仿真结果对比Tab.4Comparisonofsimulationresults运行策略Tset/minvc/(km·h-1)牵引能耗/(kW·h)再生能量/(kW·h)本文算法9031.91636.36166.8实测数据90—1821.05712.0模糊预测90—1745.86057.9表5不同运行策略节能率比较Tab.5Energy-efficientratecomparisonbetweendifferentoperationstrategies%运行策略模糊预测实测数据本文算法5.617.9模糊预测—11.66结论本文对长大下坡区间列车周期性制动进行了研究,提出了长大下坡区间与相邻恒速区的连接算法,通过仿真和对比分析,得到以下结论:(1)列车在长大下坡区间应采用“全电制+全制+全电制”周期性循环制动策略,制动切换时机由伴随变量的取值决定,全制发生在限速位置.最优操纵的缓解速度是缓解再充风时间约束边界值对应的速度v'lim(x),下坡道末端车速为限速,工况为全电制.(2)列车在进入长大下坡区间之前应提前惰行,使列车充分利用线路势能,实现节能运行.列车在长大下坡的增速阶段采用全电制工况,可提高列车技术速度,进而提高区间通过能力,同时降低列车运行牵引能耗,实现能量的回馈利用.(3)与模糊预测控制和现场实测数据相比,本文算法分别能实现5.6%和17.9%的节能效果.参考文献:[1]孙中央,王长明.长大下坡道区段开行重载列车的安全问题[J].铁道机车车辆,2009,29(1):4-7,54.SUNZhongyang,WANGChangming.Securityproblemsofoperationheavyhaultrainsonthelongheavydowngrade[J].RailwayLocomotive&Car,2009,29(1):4-7,54.[2]陈清.5000t级重载列车的合理操纵方法[J].西南交通大学学报,1994,29(3):281-285.CHENQing.Astudyonrationaloperatingmethodsof5000theavy-haultrains[J].JournalofSouthwestJiaotongUniversity,1994,29(3):281-285.[3]耿志修,李学峰,张波.大秦线重载列车运行仿真计算研究[J].中国铁道科学,2008,29(2):88-93.GENGZhixiu,LIXuefeng,ZHANGBo.Simulationstudyofheavyhaultrainoperationondaqinrailway[J].768
+
+=== PDF PAGE 10 ===
+西 南 交 通 大 学 学 报
+第 52卷
+China Railway Science，2008，29 (2)
+:88- 93．
+［4］ 张波． 重
+载组合列车牵引 及制动系统的 试验 与仿真
+研究［D］． 北京:中国铁道科学研究院 ，2009．
+［5］ 马大炜． 制动系统对大秦线重载列车的影响［J］． 铁
+道机车车辆，2000，20(6)
+:9- 13．
+MA Dawei． Influence of the braking system on Daqin
+line heavy haul trains［J］． Railway Locomotive ＆ Car，
+2000，20(6) :9- 13．
+［6］ 原铁
+道 部 ． TG / JW 104—2012铁 路 机 车 操 作 规
+程［S］． 北京:中国铁道出版社，2013．
+［7］ KHMELNITSKY E． On an optimal control problem of
+train operation［J］． IEEE Transactions on Automatic
+Control，2000，45(7 )
+:1257- 1266．
+［8 ］ XUAN V． Analysis of necessary conditions for the
+optimal control of a train［D］． Adelaide:University of
+South Australia，2006．
+［9 ］ HOWLETT P ，PUDNEY P ，XUAN V． Local energy
+minimization in optimal train control［J］． Automatica，
+2009，45(11) :2692- 2698．
+［10］ ALBRECHT A R ，HOWLETT P G ，PUDNEY P J ，
+et al． Energy- efficient train control: from local
+convexity to global optimization and uniqueness［J］．
+Automatica，2013，49 (10) :3072- 3078．
+［11］ ALBRECHT A ，HOWLETT P G ，PUDNEY P J ，et al．
+The key principles of optimal control- Part 1:
+Formulation of the model，strategies of optimal type，
+evolutionary lines， location of optimal switching
+points［J］． Transportation Research Part B :
+Methodological，2015，94 (10) :482- 508．
+［12］ ALBRECHT A ，HOWLETT P ，PUDNEY P ，et al．
+The key principles of optimal control- Part 2:Existence
+of an optimal strategy，the local energy minimization
+principle， uniqueness，computational techniques［J］．
+Transportation Research Part B Methodological，2015，
+94 (10) :509- 538．
+［13］ HOWLETT P G． A new look at the rate of change of
+energy consumption with respect to journey time on an
+optimal train journey［J］． Transportation Research Part
+B :Methodological，2016，94 (10) :387- 408．
+［14］ 朱
+金陵，李会超，王青元，等． 列车节能控制 的优化
+分析［J］． 中国铁道科学 ，2008，29 (2)
+:104- 108．
+ZHU Jinling，LI Huichao，WANG Qingyuan ，et al．
+Operation analysis on the energy saving control for
+trains［J］． China Railway Science，2008，29 (2) :
+104- 108．
+［15］ LIANG Zhicheng ， WANG Qingyuan ， LIN Xuan．
+Energy- efficient handling of electric multiple unit based
+on maximum principle［C］∥ Proceedings of the 33rd
+Chinese Control Conference． Chengdu:IEEE ，2014:
+3415- 3423．
+［16］ 王青元，冯晓云，朱
+金陵，等． 考虑 再生制动能量利
+用的高速列 车节能最优控制 仿真研究 ［J］． 中国 铁
+道科学 ，2015，36(1)
+:96- 103．
+WANG Qing yuan ， FENG Xiaoyun ， ZHU Jinling，
+et al． Simulation study on optimal energy- efficient
+control of high speed train considering regenerative
+brake energy［J］． China Railway Science， 2015，
+36(1) :96- 103．
+［17］ 崔恒斌，冯晓云，王青元，等． 制动利用率对
+高速列
+车节 能 操 纵 策 略 的 影 响［J］． 铁 道 学 报，2012，
+34(8 )
+:13- 19．
+CUI Hengbin， FENG Xiaoyun ， WANG Qingyuan ，
+et al． Influence of braking efficiency on high- speed
+train energy- saving driving strategies［J］． Journal of
+the China Railway Society，2012，34(8 ) :13- 19．
+［18］ 张中央． 列车牵
+引计算［M］． 北京:中国 铁道 出版
+社，2006:28- 29．
+［19］ NAIDU D S． Optimal control systems［M］． New York :
+CRC PRESS ，2003:249- 259．
+［20］ 济南铁路 局机务处． 电力机车优化操纵基本知识及
+操纵方法［M］． 北京:中国铁道出版社，2010:7- 10．
+［21］ 原 铁 道 部 ． TB / T 1407—2013列 车 牵 引 计 算 规
+程［S］． 北京:中国铁道出版社，2013．
+［22］ 李会超，冯晓云，王青元． 重载列车优化操纵算法设计
+与仿真［J］． 电力机车与城轨车辆，2007，30(6)
+:40- 43．
+LI Huichao ， FENG Xiaoyun ， WANG Qingyuan．
+Design and simulation of heavy haul train operation
+algorithm［J］． Electric Locomotives ＆ Mass Transit
+Vehicles，2007，30(6) :40- 43．
+(编
+辑:郭菊彬 )
+8 6 8
+=== COMPACT PAGE 10 ===
+西南交通大学学报第52卷ChinaRailwayScience,2008,29(2):88-93.[4]张波.重载组合列车牵引及制动系统的试验与仿真研究[D].北京:中国铁道科学研究院,2009.[5]马大炜.制动系统对大秦线重载列车的影响[J].铁道机车车辆,2000,20(6):9-13.MADawei.InfluenceofthebrakingsystemonDaqinlineheavyhaultrains[J].RailwayLocomotive&Car,2000,20(6):9-13.[6]原铁道部.TG/JW104—2012铁路机车操作规程[S].北京:中国铁道出版社,2013.[7]KHMELNITSKYE.Onanoptimalcontrolproblemoftrainoperation[J].IEEETransactionsonAutomaticControl,2000,45(7):1257-1266.[8]XUANV.Analysisofnecessaryconditionsfortheoptimalcontrolofatrain[D].Adelaide:UniversityofSouthAustralia,2006.[9]HOWLETTP,PUDNEYP,XUANV.Localenergyminimizationinoptimaltraincontrol[J].Automatica,2009,45(11):2692-2698.[10]ALBRECHTAR,HOWLETTPG,PUDNEYPJ,etal.Energy-efficienttraincontrol:fromlocalconvexitytoglobaloptimizationanduniqueness[J].Automatica,2013,49(10):3072-3078.[11]ALBRECHTA,HOWLETTPG,PUDNEYPJ,etal.Thekeyprinciplesofoptimalcontrol-Part1:Formulationofthemodel,strategiesofoptimaltype,evolutionarylines,locationofoptimalswitchingpoints[J].TransportationResearchPartB:Methodological,2015,94(10):482-508.[12]ALBRECHTA,HOWLETTP,PUDNEYP,etal.Thekeyprinciplesofoptimalcontrol-Part2:Existenceofanoptimalstrategy,thelocalenergyminimizationprinciple,uniqueness,computationaltechniques[J].TransportationResearchPartBMethodological,2015,94(10):509-538.[13]HOWLETTPG.Anewlookattherateofchangeofenergyconsumptionwithrespecttojourneytimeonanoptimaltrainjourney[J].TransportationResearchPartB:Methodological,2016,94(10):387-408.[14]朱金陵,李会超,王青元,等.列车节能控制的优化分析[J].中国铁道科学,2008,29(2):104-108.ZHUJinling,LIHuichao,WANGQingyuan,etal.Operationanalysisontheenergysavingcontrolfortrains[J].ChinaRailwayScience,2008,29(2):104-108.[15]LIANGZhicheng,WANGQingyuan,LINXuan.Energy-efficienthandlingofelectricmultipleunitbasedonmaximumprinciple[C]∥Proceedingsofthe33rdChineseControlConference.Chengdu:IEEE,2014:3415-3423.[16]王青元,冯晓云,朱金陵,等.考虑再生制动能量利用的高速列车节能最优控制仿真研究[J].中国铁道科学,2015,36(1):96-103.WANGQingyuan,FENGXiaoyun,ZHUJinling,etal.Simulationstudyonoptimalenergy-efficientcontrolofhighspeedtrainconsideringregenerativebrakeenergy[J].ChinaRailwayScience,2015,36(1):96-103.[17]崔恒斌,冯晓云,王青元,等.制动利用率对高速列车节能操纵策略的影响[J].铁道学报,2012,34(8):13-19.CUIHengbin,FENGXiaoyun,WANGQingyuan,etal.Influenceofbrakingefficiencyonhigh-speedtrainenergy-savingdrivingstrategies[J].JournaloftheChinaRailwaySociety,2012,34(8):13-19.[18]张中央.列车牵引计算[M].北京:中国铁道出版社,2006:28-29.[19]NAIDUDS.Optimalcontrolsystems[M].NewYork:CRCPRESS,2003:249-259.[20]济南铁路局机务处.电力机车优化操纵基本知识及操纵方法[M].北京:中国铁道出版社,2010:7-10.[21]原铁道部.TB/T1407—2013列车牵引计算规程[S].北京:中国铁道出版社,2013.[22]李会超,冯晓云,王青元.重载列车优化操纵算法设计与仿真[J].电力机车与城轨车辆,2007,30(6):40-43.LIHuichao,FENGXiaoyun,WANGQingyuan.Designandsimulationofheavyhaultrainoperationalgorithm[J].ElectricLocomotives&MassTransitVehicles,2007,30(6):40-43.(编辑:郭菊彬)868

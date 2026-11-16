@@ -1,0 +1,15 @@
+【第一优先】
+Comparison of friction draft gear models for simulation in longitudinal train dynamics
+基于改进的Newmark-β法重载列车车钩纵向力仿真研究
+超长重载列车纵向力影响规律仿真研究
+International benchmarking of longitudinal train dynamics simulators: results
+Modelling, simulation and applications of longitudinal train dynamics
+
+【第二优先】
+International benchmarking of longitudinal train dynamics simulators: benchmarking questions
+Simulation and time-frequency analysis of the longitudinal train dynamics coupled with a nonlinear friction draft gear
+车载数据驱动下重载列车纵向力实时预测方法
+长大重载列车纵向动力学仿真研究及工程应用进展
+
+【已取得，不必下载】
+一种用于重载列车纵向动力学仿真的变步长积分算法

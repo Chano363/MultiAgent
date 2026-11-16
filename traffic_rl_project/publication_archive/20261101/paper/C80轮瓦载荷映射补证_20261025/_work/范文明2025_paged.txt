@@ -1,0 +1,1989 @@
+
+===== PDF PAGE 1 =====
+交通运输工程学报
+Journal of Traffic and Transportation Engineering
+ISSN 1671-1637,CN 61-1369/U
+《交通运输工程学报》网络首发论文
+题目： 重载列车长大下坡典型制动场景下的轮瓦温升特性
+作者： 范文明，孟宪国，丁颖，杨雨浩，吴磊
+DOI： 10.19818/j.cnki.1671-1637.2026.132
+收稿日期： 2025-07-03
+网络首发日期： 2025-12-10
+引用格式： 范文明，孟宪国，丁颖，杨雨浩，吴磊．重载列车长大下坡典型制动场景下
+的轮瓦温升特性[J/OL]．交通运输工程学报.
+https://doi.org/10.19818/j.cnki.1671-1637.2026.132
+网络首发：在编辑部工作流程中，稿件从录用到出版要经历录用定稿、排版定稿、整期汇编定稿等阶
+段。录用定稿指内容已经确定，且通过同行评议、主编终审同意刊用的稿件。排版定稿指录用定稿按照期
+刊特定版式（包括网络呈现版式）排版后的稿件，可暂不确定出版年、卷、期和页码。整期汇编定稿指出
+版年、卷、期、页码均已确定的印刷或数字出版的整期汇编稿件。录用定稿网络首发稿件内容必须符合《出
+版管理条例》和《期刊出版管理规定》的有关规定；学术研究成果具有创新性、科学性和先进性，符合编
+辑部对刊文的录用要求，不存在学术不端行为及其他侵权行为；稿件内容应基本符合国家有关书刊编辑、
+出版的技术标准，正确使用和统一规范语言文字、符号、数字、外文字母、法定计量单位及地图标注等。
+为确保录用定稿网络首发的严肃性，录用定稿一经发布，不得修改论文题目、作者、机构名称和学术内容，
+只可基于编辑规范进行少量文字的修改。
+出版确认：纸质期刊编辑部通过与《中国学术期刊（光盘版）》电子杂志社有限公司签约，在《中国
+学术期刊（网络版）》出版传播平台上创办与纸质期刊内容一致的网络版，以单篇或整期出版形式，在印刷
+出版之前刊发论文的录用定稿、排版定稿、整期汇编定稿。因为《中国学术期刊（网络版）》是国家新闻出
+版广电总局批准的网络连续型出版物（ISSN 2096-4188，CN 11-6037/Z），所以签约期刊的网络版上网络首
+发论文视为正式出版。
+===== PDF PAGE 2 =====
+网络首发时间：2025-12-10 15:23:50 网络首发地址：https://link.cnki.net/urlid/61.1369.u.20251210.0840.001
+重载列车长大下坡典型制动场景下的轮瓦温升特性
+范文明 1，孟宪国 1，丁 颖 1，杨雨浩 2，吴 磊 2
+（1. 国能铁路装备有限责任公司 北京 100011；2. 西南交通大学 轨道交通运载系统全国重点实验
+室，四川 成都 610031）
+摘 要：为研究重载列车长大下坡制动过程车轮和闸瓦温度场演变规律，分别建立重载铁路车轮、
+闸瓦的有限元模型，并在常用制动、紧急制动、循环制动三种重载铁路典型制动场景下，采用所
+建立的有限元模型分析了制动初速度、线路坡度、环境温度三大关键因素对重载列车车轮、闸瓦
+制动温度场的影响。分析结果表明：制动初速度的提升会显著加剧车轮/闸瓦温升，在紧急制动场
+景下极为明显，当初速度由80 km·h⁻¹增至120 km·h⁻¹时，轮瓦峰值温度分别从约223℃、225℃升
+至 471℃、469℃, 升幅达 111%与 108%；在所仿真参数范围内，线路坡度与三类典型制动场景下
+车轮、闸瓦的峰值温度均呈现近似线性增长趋势；环境温度变化对常用、紧急制动影响显著，在
+50℃较-40℃环境下，常用制动轮瓦峰值温度增幅约36%与28%，但对长时间循环制动下车轮与闸
+瓦的峰值温度几乎无影响，极端温差下最终峰值差异不足 2%。此外，不同制动场景下闸瓦温度
+场分布特性存在明显差异：常用与紧急制动工况下高温区域集中于整个闸瓦摩擦接触面，而在循
+环制动下闸瓦摩擦面则呈现“椭圆形”的局部高温区域。基于常用制动、紧急制动和循环制动三
+类典型场景下的温度场演变规律分析表明，短时制动下过高初速度与陡坡循环制动可能是导致轮
+瓦热损伤的关键风险工况。研究结果构建的分析模型为重载列车优化坡道限速策略、制动缓解时
+机等操纵决策提供直接数据支撑，从而有效预防热致故障并提升运行安全性。
+关键词：重载列车；温度场；有限元分析；踏面制动；长大坡道
+中图分类号：U272.2 文献标志码：A DOI：DOI: 10.19818/j.cnki.1671-1637.2026.132
+Temperature characteristics of wheels and brake shoes during typical
+braking on heavy-haul train long steep downgrades
+FAN Wen-ming1, MENG Xian-guo1, DING Ying1, YANG Yu-hao2, WU Lei2
+(1. China Energy Railway Equipment Co., Ltd, Beijing, 100011, China; 2. State Key Laboratory of Rail
+Transit Vehicle System, Southwest Jiaotong University, Chengdu, 610031, Sichuan, China )
+Abstract: To investigate the evolution patterns of wheel and brake shoe temperature fields during heavy-
+haul train tread braking on long downhill sections, finite element models of heavy-haul railway wheels and
+brake shoes were established, analyzing the impacts of initial braking speed, track gradient, and ambient
+temperature under three typical braking scenarios—normal, emergency, and cyclic braking. Results
+demonstrate that increased initial braking speed significantly intensifies wheel-brake shoe temperature rise,
+which is particularly pronounced under emergency braking conditions; when the initial speed rises from
+80 km·h⁻¹ to 120 km·h⁻¹, the peak temperatures of the wheel and brake shoe increase from approximately
+223℃ and 225℃ to 471℃ and 469℃, representing rises of 111% and 108%, respectively. Within the
+simulated parameter range, the track gradient shows an approximately linear growth trend in relation to the
+peak temperatures of both the wheel and the brake shoe across the three typical braking scenarios.
+出版历程：2025-07-03收稿，2025-09-30修回，2025-11-27录用
+基金项目：四川省自然科学基金重点项目(2024NSFSC0019)
+作者简介：范文明（1972- ），男，河北卢龙人，国能铁路装备有限责任公司高级工程师，从事铁路货车检修研究。
+*通信作者：吴磊（1981- ），男，贵州毕节人，博士，副教授，硕士生导师，研究方向为轨道交通运营维护。
+===== PDF PAGE 3 =====
+Variations in ambient temperature exert a notable influence on normal and emergency braking; under
+normal braking, for instance, the peak temperatures of the wheel and brake shoe increase by approximately
+36% and 28% in a 50℃ environment compared to a -40℃environment. However, ambient temperature has
+minimal impact on the peak temperatures of the wheel and brake shoe during prolonged cyclic braking,
+with the final peak difference under extreme temperature conditions being less than 2%. Notably,
+temperature distributions differ markedly: normal and emergency braking concentrate high-temperature
+zones across the entire brake shoe friction surface, while cyclic braking forms elliptical high-temperature
+regions. This study quantitatively reveals differential impact mechanisms of braking parameters on thermal
+behavior, identifying excessive initial speed during short braking and steep-gradient cyclic braking as
+critical conditions triggering thermal damage thresholds. The multiparameter coupling model delivers
+direct data support for optimizing operational decisions (downhill speed limits and braking release timing),
+thereby effectively preventing thermally induced failures and enhancing safety.
+Key words: Heavy-haul train; Temperature field; Finite element analysis (FEA);Tread braking; Long steep
+grade
+Funding: Key Project of Natural Science Foundation of Sichuan Province (2024NSFSC0019)；
+*Corresponding author: WU Lei（1981- ），male, associate professor, PhD。
+的不均匀分布。随着研究的深入，Wu 等人[15]结合
+0. 引 言
+纵向动力学模型，发现紧急制动下车辆位置差异导
+致的制动力分配不均匀会造成轮瓦温度产生显著差
+列车制动对于铁路车辆的安全、性能及运行稳
+异。董永刚等[16]及周高伟等[17]的研究则量化了制
+定性至关重要，踏面制动作为铁路车辆最常见的制
+动初速度对制动温升的关键影响：制动初速度从
+动方式，广泛应用于货运列车和地铁列车中[1-2]。
+130km·h-1 升至 160km·h-1 时，踏面的峰值温度由
+车轮踏面与闸瓦之间的摩擦将车辆的动能转化为热
+397℃跃升至 485.9℃[16]，说明制动初速度的提高会
+量的物理过程会导致摩擦面温度显著升高[3]。高温
+导致踏面温度分布的不均匀性加剧；然而，提升货
+不仅导致车轮与闸瓦的损伤，还会因高温下摩擦系
+车运行速度作为增强国家铁路运输运能和效率的有
+数、材料性能参数的变化产生金属镶嵌，容易引发
+效途径[18]，其提速的需求与制动温升效应存在矛盾
+闸瓦堆铁、护坡失火[4]等严重病害，严重威胁轮瓦
+关系，这加剧了制动系统的运维难度；综上，针对
+寿命及行车安全。
+踏面制动热负荷的仿真及计算工况的选择，尽管现
+踏面制动热负荷贯穿车轮运行全周期，针对轨
+有研究已在一定程度上分析了闸瓦温升特性及多参
+道车辆踏面制动热负荷的工程危害及运维手段的研
+数影响，然而针对重载铁路典型制动场景下车轮-
+究，已有研究明确了其对车轮损伤和闸瓦失效具有
+闸瓦制动温升的多因素作用机制，仍缺乏系统性的
+显著影响[5]；侯博文等[6]指出列车的牵引/制动行为
+深入研究。针对踏面损伤阈值温度的研究，Handa
+与钢轨擦伤间存在较强的相关性，当列车频繁进行
+K 等[19]指出踏面钢材温升软化，当温度超过 300℃
+牵引/制动时易导致钢轨出现擦伤；宋建峰等[7]发现
+时，踏面塑性变形加剧导致磨损率显著上升，本文
+紧急制动中制动温升主导车轮踏面的轮廓发生变
+以此为轮瓦阈值温度。此外，张金玉等[20]研究了长
+化；赵杰等[8]揭示制动高温抑制裂纹扩展但冷却残
+大下坡道、匀速制动下多因素叠加工况对车轮及闸
+余应力反促其扩展；乔青峰等[9]针对地铁研究表明
+瓦温升的影响，但重载列车在长大下坡通常以循环
+踏面制动过高温度会改变闸瓦力学与摩擦性能进而
+制动的方式调速、实际很难维持匀速运行。
+影响踏面磨损，而目前轨道车辆制动系统普遍采用
+针对重载铁路因制动热负荷导致车轮异常温
+定期检修维护策略，存在过维修或欠维修情况[10]。
+升、进而引发的金属镶嵌等问题，当前主要依赖定
+针对踏面制动过程中温升特性的研究，当前主要依
+期更换闸瓦等被动维护手段，成本高昂且未解决根
+托数值仿真和试验测试[11]方面，早期研究如
+源问题，亟需从温升控制角度寻求根本性解决方
+Vernersson 等人[12]和 Bosso 等人[13]采用二维有限元
+案。鉴于此，本文聚焦于重载铁路三种典型制动场
+方法，分别探究了客车及货运列车在停车与拖曳制
+景，系统分析了制动初速度、线路坡度及环境温度
+动过程中的温度场及摩擦生热、对流与钢轨冷却效
+三大关键因素对车轮-闸瓦温升场分布特性的作用
+应下的制动温升，但二维模型难以真实模拟轮瓦接
+机制，并对其作用机制进行了量化分析。本文不仅
+触状态，基于此，本文将基于三维模型模拟真实轮
+为揭示金属镶嵌现象的形成机理提供了直接理论依
+瓦制动过程中的温升特性；Landström 等人[14]结合
+据，同时对于优化操纵策略、预防车轮闸瓦失效、
+台架试验和有限元模型揭示了ER7型车轮踏面温度
+提升重载列车运行安全性具有重要的工程指导价
+===== PDF PAGE 4 =====
+值。
+1. 模型建立
+1.1 网格划分
+C80 型系列运煤专用敞车是为满足大秦线开行
+2 万吨重载列车、实现年运量超 2 亿吨的战略目标
+而开发研制的 120km·h-1专用运煤敞车，其具有载
+重大、自重轻，搭配转K6或转K7型转向架[21]。鉴
+于走行轮对结构的对称性，为确保数值计算的准确
+性和效率，本文分别建立了 HESA 型车轮（LM 型
+踏面）和闸瓦的有限元模型。模型中的节点数为
+321700，最小网格尺寸为 0.4mm，单元类型选为具
+有温度自由度的SOLID70单元。为了保证计算精度
+和提高计算效率，将车轮踏面与闸瓦表层局部区域
+网格进行了细化处理，如图1所示。
+（a）车轮 （b）闸瓦
+图1 踏面制动车轮/闸瓦有限元模型
+Fig.1 Finite element model of tread-braked wheels/blocks
+车轮直径 840mm，型号 CL60，闸瓦材料为树
+脂基合成材料，宽度为 85mm，两种材料性能参数
+如表1所示。
+表1 车轮/合成闸瓦材料参数
+Tab.1 Material parameters of wheels/synthetic brake blocks
+密度/
+组成
+k g  m  3
+上获得更精确的温度场输出。根据牵规，货运列车
+空走时间为：
+热导率/ 比热容/ 弹性模量/
+W(mC)1 J(kgC)1 GPa
+车轮 7847.5 52 470 226
+闸瓦 2340 0.997 520 0.4
+1.2 热分析边界条件
+基于传热学理论，本研究将制动过程中消耗的
+列车动能或重力势能转化为热载荷，按给定温度条
+件将热流密度分别施加于车轮踏面与闸瓦的接触面。
+同时，在车轮及闸瓦的其他表面施加辐射换热和对
+流换热边界条件，从而构建车轮-闸瓦系统的温度
+场计算模型。
+1.2.1 热流边界条件
+热流密度是在热流输入面上单位时间传递单位
+面积的热量[22]。本文采用《列车牵引计算规程》
+（TB/T 1407.1-2018[S]）[23]计算制动过程总能量，
+旨在确保能量输入边界的工程有效性；其后采用三
+维有限元方法，旨在精细模拟该能量在轮瓦系统中
+的转化、分配与耗散过程，从而在可靠的输入基础
+t
+k
+ (1 .6  0 .0 6 5 n ) (1  0 .0 2 8 i ) (1)
+式中： t k 为制动空走时间， n 为牵引辆数， i 为坡
+度千分数。列车制动过程中的减速度根据公式
+（2）、（3）计算：
+S
+e
+ L  v  t
+k
+(2)
+v2 v2
+a 0 (3)
+2S
+e
+式中： S
+e
+为有效制动距离； L 为制动距离； v 为制
+动初速度； v
+0
+为制动终时速度； a为制动过程中的
+减速度。
+短时制动场景下采用能量守恒法计算热流密度
+时，假设车辆在长大坡道踏面制动过程中动能与重
+力势能损失完全转化为摩擦产生的热量。车辆在长
+大坡道上的运行如图 2 所示，依据能量转换计算制
+动过程中的热流密度如式(4)：
+图2 长大坡道上车辆运行
+Fig.2 Vehicle operation on long steep grade
+q b
+d Q
+dS
+(
+t
+t )
+m a ( v a t
+S
+) ( a g ) 
+ 
+ 
+(4)
+式中： q b 为制动产生的总热流密度；Q(t)为制动
+过程产生的总能量； v 为列车制动时的初速度； m
+为单个车轮承受的载荷，本文中轴重设定为25t
+（即单个车轮载荷约为12.5t）；为坡度值，下坡
+取负值； S 为闸瓦与踏面接触环面的面积。
+重载列车制动过程中产生的热量通过热量分配
+系数大部分输送到车轮中，极少部分由闸瓦吸收；
+热流密度在车轮与闸瓦之间的分配如图3所示，
+根据车轮及闸瓦的材料属性[26]计算，取为0.91。
+q
+w
+q b    (5)
+q
+s
+(1 ) q b     (6)
+为模拟实际运营中周期性的调速制动过程，反
+映间歇性制动带来的热累积效应，本文引入了循环
+制动的周期特性、缓解速度以及列车下滑力的动态
+计算周期制动过程中的热流密度。本文重载列车循
+环制动如图 4示意，根据铁路机车操作规则[27]，重
+载列车的缓解速度不应低于 30km·h-1，本文缓解速
+度按35km·h-1计算，列车下滑力F 为式(7)：
+g
+F [P(iw')G(iw'')]g103 (7)
+g 0 0
+L
+v
+h
+
+===== PDF PAGE 5 =====
+式中： P 、 G 为机车整备质量和牵引质量， i 为坡
+度千分数； w '0 、 w ''0 分别为机车与车辆的单位基本
+阻力[23]，通过式(8)、式(9)计算：
+w' 1.440.0099v0.000298v2 (8)
+0
+w'' 0.920.0048v0.000125v2 (9)
+0
+式中： v 为车辆行驶速度。
+假设为匀减速下坡，则消耗的制动力 F
+b
+为：
+F F (PG)a (10)
+b g
+则该场景下热流密度按式(11)计算[28]。
+F v
+qb  b (11)
+2nS
+式中：n为机车与牵引车辆的总轴数。
+图3 热流在轮瓦间的分配 [24-25]
+Fig.3 Heat flux partitioning between wheel and brake shoe
+图4 长大坡道周期制动
+Fig.4 Cyclic braking on extended downgrade
+1.2.2 对流边界条件
+依据传热学理论，影响对流系数因素与流体本
+身的热物理性质相关[25]。研究表明在车辆运行过程
+中，车辆运行速度是影响车轮表面传热系数的主要
+因素，根据经验公式，在计算车轮表面热对流系数
+将其取为式：
+h ( t )  0 .3 8 2 8  1 4 .3 9 v ( t ) (12)
+因目前缺乏针对闸瓦的对流系数的经验公式，
+因此，本文从热力学角度进行推导闸瓦对流系数，
+长大坡道的制动过程依据强制对流计算，根据传热
+学理论，假设列车风速与列车的运行速度相等，则
+闸瓦的对流换热系数通过式(13)计算：
+
+h 
+N u
+l
+
+(13)
+层流：0.6Pr50， R e  5  1 0 5
+式中：
+：
+Nu0.664Re1/2Pr1/3 (14)
+混合边界：0.6Pr60，5105 Re107：
+Nu(0.037Re4/5871)Pr1/3 (15)
+u l
+R   (16)
+e 
+N u 为努赛尔数；为流体导热系数； u
+
+为
+空气流速；为运动黏度； P
+r
+为普朗特数； l 为闸
+瓦特征尺寸，取闸瓦长度； R e 为雷诺数。
+1.2.3 辐射边界条件
+辐射的作用虽然很小，但为使计算结果更准
+确，考虑热辐射的影响。依据斯特藩-玻尔兹曼定
+律[25]，辐射率取 0.66，轮瓦与空气辐射换热按式
+(17)计算：
+q (T4 T4) (17)
+j 0
+1.3 热分析边界条件加载
+车轮热流加载方式主要有移动热源法和均布热
+源法（图5）。移动热源法更接近真实但计算量大，
+均布热源法计算量小且结果差异微小[29]。本文采用
+均布热源法（图 5.c）加载热流密度。车轮对流、
+辐射及闸瓦边界条件加载位置见图6。
+图5 车轮瞬态热分析常用热源加载方式[30]
+Fig.5 Common heat source loading methods for transient
+thermal analysis of wheels
+图6 车轮/闸瓦边界条件
+Fig.6 Boundary conditions of wheels/brake blocks
+为保证仿真精度，经网格收敛性验证，轮瓦接
+触区车轮踏面和闸瓦表面网格尺寸可以满足热分析
+的计算要求，同时在环境温度 25℃、轴重 25t、制
+动初速度 100km/h、制动距离 600m 的工况下进行
+了仿真试验，结果如图 7 所示。该仿真结果与文献
+[7]在相同工况下仿真结果的峰值温度在数值量级与
+变化趋势上均高度一致，表明本文所建模型具备良
+闸
+车
+瓦
+轮
+q brake
+s 
+w 
+q s
+q w
+车
+车
+热
+轮
+轮
+流 分 配
+a
+w/s
+/闸 瓦 导
+w/s
+/闸 瓦 导
+as
+温 系
+热 系aw
+数
+数
+
+速速
+A
+度度
+B
+（
+制缓
+解 动缓 解
+电 制 动 ）
+C
+（
+带 闸 制 动
+电 +空 制 动 ）
+…
+制
+缓缓
+动
+解解
+里里
+初 速
+速 度速
+程程
+度
+度
+t 时 (a) i
+车 (a）
+刻
+轮
+t i
+（
+边 界
+L
+移 动 热
+t 时 (c)
+i
+条 件 加
+源
+载
+法
+刻
+位
+）
+（ 均
+热 流
+置
+密
+t i+ 1
+t 时 刻 （ (b ) i 1
+布 热 源 法 ）
+对 流 度
+闸 (b）
+ l
+移
+系 数
+瓦
+动
+边
+L
+热 源
+界 条 件
+法
+加
+）
+载 位 置
+===== PDF PAGE 6 =====
+好的准确性与可靠性。 （表征为曲线斜率增大）、温升幅度显著增大（车
+轮峰值温度从90km·h-1时的239.69℃升至120km·
+h-1时的 381.17℃）、达到峰值温度所需时间缩短；
+针对闸瓦(图9.b)而言，制动初速度为90km·h-1时达
+到峰值温度需要 42s，而初速度在 100km·h-1，
+110km·h-1，120km·h-1 时该数值分别为 38s，34s，
+31s。值得注意的是，当制动初速度超过 100km·h-1
+后，踏面温升呈现明显的非线性加速增长特征，且
+峰值温度超过热损失阈值，这凸显出制动初速度是
+影响重载列车车轮于闸瓦温升的关键因素。
+图 7 与文献[7]同工况下的仿真结果 (t=42s)
+Fig.7 the simulation results under the same operating conditions
+as those in Reference [7]
+2. 计算与结果分析
+本文参考了经试验验证的材料性能研究[19]，并
+结合了重载铁路现场的工程故障案例[4]，将 300℃
+确立为可导致材料软化和热致故障的风险阈值，用
+（a）踏面 （b）闸瓦
+图9 不同制动速度轮瓦峰值温度时间历程曲线
+于本文的热安全评估。
+Fig.9 Time - history curves of the maximum temperature on the
+tread/barke shoe at different braking speeds
+2.1 常用制动的轮瓦温升
+图 9 结果进一步表明：随着制动初速度的提
+2.1.1 制动初速度的影响
+升，轮瓦达到峰值温度所需时间缩短，温升幅度显
+图8展示了120km·h-1初速度、1400m制动距离 著增加。尤为关键的是，当初速度超过 100km·h-1
+[28]、轴重 25t 常用制动场景下车轮踏面与闸瓦达到 后，轮瓦温升呈现明显的非线性加速增长特征。这
+一现象凸显了在制动过程中，优化操纵策略、严格
+峰值温度时刻的仿真温度云图。制动初速度为
+120km·h-1时，在制动第32s时踏面温度到达峰值温 控制初速度（尤其避免超过 100km·h-1）对于预防
+度 391.75℃（图 8.a）；在制动第 31s时闸瓦达到峰
+轮瓦热损伤的必要性。
+值温度，为370.67℃（图8.b）。
+图 8与图 9的结果表明，制动初速度的提升会
+非线性地加剧轮瓦温升。这一现象源于能量转换的
+基本原理：车轮动能在制动过程中转化为摩擦热，
+初速度的微小提升会导致需耗散的能量急剧增加，
+从而使输入车轮、闸瓦的热流密度显著增大。
+尤为重要的是，轮瓦温度曲线的接近性（图 9
+）揭示了二者材料热物性差异与热流分配作用下的
+复杂热行为。根据第 1.2.1 节所述，虽有约 91%的
+热流流入车轮，但车轮的高热容和高导热系数使其
+（a）车轮 （b）闸瓦
+具备了强大的吸热和散热能力，抑制了表面温升。
+图8 120km·h-1常用制动下的轮瓦峰值温度分布云图
+反之，合成闸瓦的低热容和极低的导热系数使其像
+Fig.8 Temperature contour mapping of wheel tread/brake shoe
+during service braking at 120km·h-1 保温材料一样，热量极易在摩擦表面聚集，导致温
+度快速上升至与车轮表面接近。这种高热流输入-
+图 8 结果表明，常用制动过程中，车轮踏面与 高散热与低热流输入-低散热的竞争机制，是导致
+闸瓦表面的温度分布存在相似性，但也呈现显著差
+不同材料构成的摩擦副最终温度趋同的关键。
+异：踏面峰值温度集中于踏面中心区域。由于踏面
+为表征常用制动下轮瓦摩擦面温度随时间的演
+外侧边缘与空气的对流换热面积大、散热快，该区
+变规律，以初速度120 km/h为例，沿车轮踏面与闸
+域温度远低于中心高温区；闸瓦高温区域几乎覆盖
+瓦接触面轴向选取一组固定距离的节点，提取温度
+整个摩擦接触面，未呈现明显的局部集中现象。这
+数据并绘制三维温度场分布图（图 10）。结果表明
+主要源于闸瓦与外部空气的换热面积相对较小。
+：车轮踏面在制动初期，高速旋转导致轮瓦剧烈摩
+图9为制动初速度从90km·h-1提升至120km·
+擦，动能迅速转化为热能，踏面温升显著；随车速
+h-1下车轮、闸瓦的峰值温度的时间历程曲线。分析
+的降低，温度于轴向 40~60 mm 区域形成高温带并
+表明：不同初速度下的温度变化趋势基本一致，但
+达到峰值；此后温度逐渐降低（图 10.a）。闸瓦在
+制动初速度越高，踏面(图 9.a)温度上升速率越快
+制动全程中，摩擦面高温区域近乎覆盖整个表面，
+A温类单 ：度型位 瞬 态
+： 温
+： ℃
+2 0 9
+1 8 8
+1 6 8
+1 4 7
+1 2 7
+1 0 6
+8 6
+6 5
+4 5
+2 0
+热
+度
+.0.5.1.6.2.7.3.8.4.9 3838383838 最
+最
+大
+小
+轴 向
+(a） 踏 面 温 升
+向周
+分 布
+(b ）
+(c）
+主
+主
+侧
+剖
+剖
+剖
+视
+视
+视
+图
+角
+角
+周 向
+C°/度温
+400
+350
+300
+250
+200
+150
+100
+50
+0
+120km /h
+110km /h (32, 391.75) 100km /h
+90km /h
+(42, 239.69) (38, 290.68) (36, 338.71)
+20 40 60 80 100 120
+时 间 t/s
+C°/度温
+400
+350
+300
+250
+200
+150
+100
+50
+0
+(38, 276.79)
+(42, 237.91) (31, 370.67)
+(34, 320.96)
+20 40 60 80
+时 间 t/s
+120km /h
+110km /h 100km /h
+90km /h
+100
+===== PDF PAGE 7 =====
+呈现全域高温的空间分布特征（图 10.b），这是二
+维轴对称模型无法模拟的。
+图10 120km·h-1常用制动车轮/闸瓦制动过程轴向温升分布
+Fig.10 Axial temperature rise distribution of wheel tread/brake
+shoe during service braking at 120km·h-1
+2.1.2 线路坡度的影响
+线路坡度作为影响踏面制动热负荷的关键因
+素，本文选取了-24‰、-18‰及-10‰三种典型下坡
+坡度条件。在初速度 100km·h-1 的常用制动工况
+下，计算了车轮与闸瓦的温度场。据此绘制了轮瓦
+峰值温度随时间演变的历程曲线，如图 11 所示。
+图 11 结果表明，线路坡度越大，轮瓦温升速率越
+快，峰值温度越高。其作用机制在于：坡度增大导
+致车辆重力势能增加，根据能量守恒定律（式
+(4)），需转化为摩擦热的能量增加，输入轮瓦的热
+流密度随之增大，导致摩擦温度升高。在-24‰坡
+度下，车轮踏面峰值温度达 290.68℃，闸瓦峰值温
+度为 276.69℃，而在-10‰坡度下，车轮与闸瓦峰
+值温度分别为 220.28℃，210.01℃。该工况下轮瓦
+峰值温度分别上升70.4℃、66.68℃。
+3
+3
+2
+2
+1
+1
+5
+0
+5
+0
+5
+0
+5
+0
+0
+0
+0
+0
+0
+0
+0
+0 2 0 4 0 6 0 8 0 1 0 0 1 2 0
+°C
+/
+度 温 x =s 3 8
+x
+s
+-2
+-1
+-1
+时
+w
+480
+=
+‰‰‰
+间
+4 2 s
+踏 面 -踏
+面 -踏
+面 -
+t/s
+-2
+-1
+-1
+480 ‰‰‰ 闸-闸-闸- 瓦瓦瓦
+图11 不同坡度条件轮瓦峰值温度时间历程曲线
+Fig.11 Time-temperature history curves of maximum
+wheel/brake shoe temperature under various gradient conditions
+图 12 定量展示了不同坡度与轮瓦峰值温度的
+关系。结果表明：在常用制动工况下，在所模拟的
+坡度范围（-10‰ ~ -24‰）内，线路坡度与轮瓦峰
+值温度呈现近似线性增长趋势。
+℃
+/度温
+3
+3
+3
+2
+2
+2
+2
+2
+4
+2
+0
+8
+6
+4
+2
+0
+0
+0
+0
+0
+0
+0
+0
+0
+8
+车
+闸
+1 2
+轮瓦 常-常- 用用
+1 6线
+停停
+路
+车车
+坡
+制 动
+制 动
+2 0度
+i / 1 0
+2 4
+-3
+2 8 3 2
+图12 常用制动下，线路坡度与轮瓦峰值温度关系
+Fig.12 Relationship between track gradient and maximum brake
+shoe temperature under service braking conditions
+基于常用制动工况下-10‰与-24‰两种坡度的
+轮瓦表面轴向温度场数据，绘制了时空演变图，如
+图 13 所示。在常用制动过程中，轴向温度演变趋
+势相似性，踏面、闸瓦摩擦面温度沿轴向距离呈先
+上升后下降趋势，但踏面、闸瓦形成的高温区域有
+所不同，踏面峰值温度区集中分布于轴向 40~50
+mm 区域，轮缘处温度急剧下降。闸瓦是高温区域
+近乎覆盖整个摩擦接触面，呈现全域高温特征。图
+13结果表明，在常用制动工况下，踏面与闸瓦摩擦
+面轴向不同位置温度场演变具有相似性，且从三维
+温度场可看出随着坡度增大，踏面与闸瓦摩擦面峰
+值温度增幅明显增大，说明线路坡度对于常用制动
+下轮瓦制动温升影响明显。
+图13 100km·h-1，不同坡度轮瓦制动过程中轴向温度分布
+Fig.13 Axial temperature distribution of wheel tread/brake shoe
+during 100km·h-1 braking on various gradients
+2.1.3 环境温度的影响
+为探究极端环境温度条件对踏面制动温升的影
+响，本研究在初速度 100km·h-1的常用制动工况下，
+仿真计算了极寒（-40℃）至极热（50℃）多个梯
+度环境温度下的轮瓦温度场。据此绘制了轮瓦峰值
+温度随时间演变的历程曲线，如图14所示。
+℃/度温
+（ ）a 踏 面 轴 向 温 度 变 化
+℃
+391
+318
+244
+169
+95
+20
+℃/度温
+（ ）b 闸 瓦 轴 向 温 度 变 化
+℃
+371
+300
+230
+160
+90
+20
+℃/度温
+℃/度温
+220
+180
+140
+100 60
+20
+a （ ）
+291
+236
+182
+128
+74
+20
+c （ ）
+10‰
+24‰
+坡
+坡
+度
+度
+、
+、
+踏
+踏
+面
+面
+轴
+轴
+向
+向
+温
+温
+度
+度
+变
+变
+化
+化
+℃
+℃
+200
+180
+140
+100
+60
+20
+291
+236
+182
+128
+74
+20
+114
+95
+℃ 77 /度
+58 温 39
+20
+b （ ）
+℃/度温
+d （ ）
+10‰
+24‰
+坡
+坡
+度
+度
+、
+、
+闸
+闸
+瓦
+瓦
+表
+表
+面
+面
+轴
+轴
+向
+向
+温
+温
+度
+度
+变
+变
+化
+化
+℃
+℃
+114
+95
+77
+58
+39
+20
+147
+121
+96
+71
+45
+20
+===== PDF PAGE 8 =====
+3 5
+3 0
+2 5
+2 0
+1 5
+1 0
+5
+-5
+0
+0
+0
+0
+0
+0
+0
+0
+0 0 2 0 4 0 6 0 8 0 1 0 0
+°C
+度/
+温
+x = 42s w
+x =38s s
+车 轮 5 0 °C -车
+轮 2 0 °C -车
+轮 -2 0 °C -车
+轮 -4 0 °C -
+时 间 t/s
+闸 5 0 °C -闸
+2 0 °C -闸
+-2 0 °C -闸
+-4 0 °C -
+瓦瓦瓦瓦
+图14 不同环境温度常用制动下的车轮/闸瓦峰值温度时间历
+程曲线
+Fig.14 Time-temperature history curves of maximum
+wheel/brake shoe temperature under service braking at different
+ambient temperatures
+在常用制动工况下，踏面与闸瓦接触面的峰值
+温度呈快速上升达到峰值温度，再缓慢下降的趋势。
+在极寒-40℃环境下，车轮峰值温度为 226.18℃，
+高温带分布于踏面中心区域，闸瓦峰值温度为
+232.85℃，覆盖闸瓦表面；在极热 50℃环境下，踏
+面峰值温度达 308.6℃，增幅 36.40%，闸瓦峰值温
+度为298.88℃，增幅28.36%。环境温度越高，曲线
+越陡，说明随着环境温度的升高，制动前期温度增
+长速率越快。且根据图 15 仿真结果，在所仿真模
+拟的坡度范围（-40℃~ 50℃）内，环境温度与轮瓦
+峰值温度呈现近似线性增长趋势。
+3
+3
+3
+2
+2
+2
+2
+2
+4
+2
+0
+8
+6
+4
+2
+0
+0
+0
+0
+0
+0
+0
+0
+0-5
+0 -4 0 -3 0 -2 0 -1 0 0 1 0 2 0 3 0 4 0 5 0 6 0
+°C
+度/
+温
+高
+最
+车
+闸
+轮瓦 常-常- 用用
+环
+停停
+境
+车车
+温
+制制
+度
+动动
+T /° C
+16s达到峰值温度471.27℃、468.57℃，紧急制动在
+100km·h-1时车轮闸瓦均能迅速达到阈值温度。
+（a）踏面 （b）闸瓦
+图16 不同制动初速度紧急制动轮瓦温度时间历程曲线
+Fig.16 Time-history curves of wheel/brake shoe temperature
+under emergency braking at different initial speeds
+图 16 的结果表明，随着制动初速度的增加，
+轮瓦达到峰值温度所需时间缩短，根据式(4)，输入
+到踏面、闸瓦的热流密度增加，轮瓦温度上升，从
+80km·h-1增到120km·h-1，轮瓦温度分别从223.19℃、
+225.2℃升至 471.27℃、468.57℃，增幅分别为
+111.15%、108.06%。紧急制动下，随着制动初速度
+的增加，制动所具有动能越大，摩擦产生的热量越
+大，轮瓦温度上升速度明显加快。紧急制动过程中
+轮瓦轴向温度分布规律和常用制动相似。
+2.2.2 线路坡度的影响
+本文在制动初速度 100km·h-1，0‰、-10‰、-
+18‰、-24‰四种坡度条件下计算紧急制动工况下
+轮瓦温度场，时间历程曲线如图 17 所示。随着制
+动时间的提升，轮瓦峰值温度呈现先迅速上升至峰
+值，随后下降的趋势，四种坡度条件下，车轮、闸
+瓦分别在制动的第20s、第19s达到峰值温度。
+图 17 结果表明：坡度越大，根据公式(4)，车
+辆在长大坡道所具有的重力势能越大，随着坡度的
+增加，轮瓦峰值温度呈现增加趋势、因为紧急制动
+制动距离较短，温升增幅较小。从 0‰坡度增加到
+24‰坡度，车轮、闸瓦峰值温度分别从 274.45℃、
+251.79℃升至 330.65℃、336.58℃，增幅分别为
+20.47%、33.62%。
+图15 常用制动下，环境温度与峰值温度的关系
+Fig.15 Under conventional braking conditions, the relationship
+between ambient temperature and maximum temperature
+2.2 紧急制动的轮瓦温升
+2.2.1 制动初速度的影响
+紧急制动时轴重 25t，制动距离采用文献[7]中
+（a）踏面 （b）闸瓦
+设置的600m计算，图16为制动速度从80km·h-1增
+图17 不同坡度紧急制动轮瓦峰值温度时间历程曲线
+加到 120km·h-1时轮瓦温度的时间历程曲线，在速
+Fig.17 Time-history curves of peak wheel/brake shoe
+度为 80km·h-1下，轮瓦峰值温度分别在第 20s、19s temperature under emergency braking on different gradients
+达到峰值温度，分别为223.19℃、225.2℃，当制动 图 18 给出不同坡度条件下的轮瓦峰值温度的
+初速度增加时，车轮、闸瓦到达到峰值温度所需时 仿真结果，仿真结果表明，紧急制动下，在所仿真
+间延长，在120km·h-1下车轮与闸瓦分别在第17s、
+C°/度温
+600 500
+400
+300
+200
+100
+0
+0
+（ ， 22
+10
+） 273
+20
+（
+时
+， ） 17 471.27
+（ ， 20
+（ ， ） 25 223.19
+30 40 间 t/s
+120km/h 100km/h 90km/h 80km/h
+） 330.65
+50 60
+C°/度温
+600 500
+400
+300
+200
+100
+0
+0
+（ ， 21
+10
+） 274.11
+（ ， ） 23 225.2
+20 30 时 间
+120km/h 100km/h 90km/h 80km/h
+（ ， ） 16 468.57
+（ ， ） 19 330.69
+40 50 t/s 60
+450 400
+350 300
+250
+200
+150
+100
+50
+0 0 10 20 30 40 50
+C°/
+度温
+（20，330.65） -24‰ 500 -24‰ -18‰ 450 （19，336.58） -18‰
+-10‰ 400 -10‰ 0‰ 350 0‰ ℃300
+度
+/250
+温200
+150 （19，315.18）
+（20，282.12） （20，309.85） 100 （19，251.79） （19，287.12）
+（20，274.45） 50
+0 0 10 20 30 40 50
+时间 t/s 时间 t/s
+===== PDF PAGE 9 =====
+模拟的坡度范围内，线路坡度与轮瓦峰值温度呈现 2.3.1 制动初速度的影响
+近似线性增长趋势。
+依据《铁路机车操作规则》及重载铁路的实际
+430
+车轮-紧急停车制动 运营实践，本文周期制动工况为经历 3次制动 3次
+420 闸瓦-紧急停车制动
+缓解过程，即制动-缓解-制动-缓解-制动-缓解的过
+410
+°C400 程，每次制动过程制动距离为 10km，缓解时间设
+度/ 定为120s。图21为制动初速度80km·h-1下，经历3
+温390
+高 个周期制动后车轮与闸瓦温度达到峰值时刻仿真云
+最380
+图。
+370
+360
+350
+8 10 12 14 16 18 20 22 24 26 28 30 32
+线路坡度i / 10-3
+图18 紧急制动，线路坡度与轮瓦峰值温度的关系
+Fig.18 Relationship between track gradient and peak
+wheel/brake shoe temperature under emergency braking
+2.2.3 环境温度的影响
+本节在极寒(-40℃)、极热(50℃)环境下计算轮 （a）车轮 （b）闸瓦
+瓦温度场，图 19 给出不同环境温度下的温度仿真 图21 80km·h-1周期制动工况下轮瓦峰值温度云图
+Fig.21 Maximum temperature contour mapping of wheel
+结果，考虑不同环境温度下，车轮与闸瓦在紧急制
+tread/brake shoe under cyclic braking at 80km·h-1
+动下的峰值温度均有增加趋势，但轮瓦达到峰值温
+度的时间不变。
+制动初速度为 80km·h-1时，车轮经 3个完整的
+周期制动后在 2118s达到峰值温度 325.06℃（图
+21.a），峰值温度分布于踏面，高温区域呈“环
+形”分布；闸瓦在 2118s也达到峰值温度 243.53℃
+（图 21.b），峰值温度仍然集中于车轮踏面和闸瓦
+接触面的中间区域，高温区域呈现“椭圆形”分
+布，对比常用与紧急制动仿真结果，循环制动因长
+时间、间歇性的摩擦生热与散热过程，导致热量沿
+（a）踏面 （b）闸瓦 径向和轴向扩散范围显著扩大，轮瓦受高温影响的
+图19 不同环境温度轮瓦峰值温度时间历程曲线 区域明显增大。
+Fig.19 Time-history curves of peak wheel/brake shoe 图22.a为24‰坡度下，不同制动初速度循环制
+temperature under varying ambient temperatures
+动下踏面峰值温度的时间历程曲线，不同制动初速
+图 20 给出在紧急制动下，不同环境温度与轮 度踏面温升规律相同。制动相同的距离，根据式
+瓦峰值温度关系的仿真结果，在所仿真模拟的环境 (11)，带闸速度越高，输入到踏面的热流越大，踏
+温度范围（-40℃~ 50℃）内，环境温度与轮瓦峰值 面峰值温度越大，到达峰值温度所需时间越短。制
+温度呈现近似线性增长趋势。 动初速度从 60km·h-1到 80km·h-1，踏面峰值温度从
+305.27℃增至 325.06℃。图 22.b为不同速度下带闸
+周期制动后闸瓦峰值温度的时间历程曲线，闸瓦峰
+值温度时曲线与车轮走势相似，当车辆速度从
+60km·h-1到 80km·h-1时，闸瓦峰值温度从 233.19℃
+增至243.53℃。
+图20 紧急制动，环境温度与轮瓦峰值温度关系
+Fig.20 Relationship between ambient temperature and peak
+wheel/brake shoe temperature under emergency braking
+2.3 循环制动的轮瓦温升
+450
+400 350
+300 250
+200
+150 100500
+-50 0 10 20 30 40 50
+°C
+度/
+温 （ ， ） 20 290.65
+（ ， ） 20 270.65
+时
+4 4 0
+4 2 0
+4 0 0
+3 8 0
+3 6 0
+3 4 0
+3 2 0
+3 0 0-5
+（
+间
+0
+， ） 20 360.65
+（ ， ） 20 330.65
+t/s
+-4 0 -3 0 -2 0
+50°C
+20°C -20°C -40°C
+-1 0 0
+C°/度温
+500
+450 400
+350 300
+250
+200 150
+100500
+-50
+1 0
+（ ， 19
+（
+0
+2 0
+） 361.15
+， ） 19 309.24
+（ ， ） 19 284.97
+10 20时
+间
+3 0 4 0 5 0
+（ ， 19
+30
+t/s
+6 0
+） 336.58
+40
+50°C
+20°C -20°C -40°C
+50
+°C
+度/
+温
+高
+最
+车
+闸
+轮瓦 紧-紧- 急急
+环
+停停
+境
+车车 制制
+温
+动动
+度 T /°C
+===== PDF PAGE 10 =====
+3
+3
+2
+2
+2
+1
+1
+6
+2
+8
+4
+0
+6
+2
+8
+4
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0 3 0 0 6 0 0 9 0 0 1 2 0 0 1 5 0 0 1 8 0 0 2 1 0 0 2 4 0 0 2 7 0 0
+°C
+度/
+温
+8
+7
+6
+000 kkk mmm /h/h/h 车-车-车- 轮轮轮
+时 间 t/s
+（a）踏面
+3
+2
+2
+2
+1
+1
+2
+8
+4
+0
+6
+2
+8
+4
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0 3 0 0 6 0 0 9 0 0 1 2 0 0 1 5 0 0 1 8 0 0 2 1 0 0 2 4 0 0 2 7 0 0
+°C
+度/
+温
+8
+7
+6
+000 kkk mmm /h/h/h 闸-闸-闸- 瓦瓦瓦
+时 间 t/s
+并未改变，但根据式(11)，输入到闸瓦的热流增加，
+因此闸瓦温度逐渐升高。
+2.3.2 线路坡度的影响
+制动初速度80km·h-1，环境温度为20℃条件下，
+计算循环制动工况下，不同线路坡度条件下的轮瓦
+制动温度场，绘制轮瓦峰值温度的时间历程曲线如
+车轮（图 24.a）、闸瓦（图 24.b）。随着线路坡度的
+增加，车轮/闸瓦之间的摩擦温升迅速，增长幅度
+提升明显，30‰坡度下车轮与闸瓦均在 2118s 达到
+峰值温度，分别为 410.66℃、306.26℃。24‰坡度
+下车轮与闸瓦峰值温度分别为 325.06℃、243.53℃，
+均超过阈值温度；在12‰坡度下车轮与闸瓦峰值温
+度则为 153.86℃、118.08℃。线路坡度从 12‰增至
+30‰，车轮峰值温度增幅 166.91%，闸瓦峰值温度
+增幅159.36%。图24的结果表明，对于长期运行在
+长大坡道循环制动的重载货运列车来说，在坡度越
+大的区段，轮瓦摩擦产生的制动热负荷明显要更大。
+（b）闸瓦
+图22 不同速度循环制动工况下轮瓦峰值温度时间历程曲线
+Fig.22 The time - history curves of the maximum wheel
+temperature under periodic braking conditions at different
+speeds.
+（a）踏面
+图23 不同速度，踏面温度轴向分布及轮瓦峰值温度差值
+Fig.23 Axial distribution of tread temperature and difference in
+maximum temperature between wheel and shoe at different
+speeds
+提取循环制动过程中车轮踏面与闸瓦摩擦面轴
+向温升数据，绘制 3 次周期制动工况下完整的踏面
+与闸瓦摩擦面的温度分布，如图 23 所示。从图中
+可以看出，踏面与闸瓦接触面各点在制动过程中，
+随着速度的增加，输入到车轮与闸瓦的热流密度逐
+渐增加，踏面温度逐渐升高；闸瓦热流作用的面积
+C°/
+度温
+3
+3
+2
+2
+1
+1
+5
+0
+5
+0
+5
+0
+5
+0
+0
+0
+0
+0
+0
+0
+0
+0 3
+3 0
+2 4
+1 2
+0 0
+‰‰‰ 闸-闸-闸-
+6 0
+瓦瓦瓦
+0 9 0
+制
+0
+动
+1 2
+时
+0 0
+间
+1 5 0
+t/s
+0 1 8 0 0 2 1 0 0 2 4 0 0
+（b）闸瓦
+图24 不同坡度条件周期制动踏面峰值温度时间历程曲线
+Fig.24 Time-history curves of peak tread temperature under
+periodic braking at different gradient conditions
+循环制动工况下的踏面、闸瓦摩擦面温度场轴
+向变化如图 25 所示。制动过程中，随着线路坡度
+的增大，重载列车在长大坡道上具有的重力势能越
+大，根据式(11)，输入轮瓦的热流密度也越大，车
+轮踏面轴向温度场上升迅速，且在峰值时刻形成的
+高温带（40~50mm）与踏面其它区域的梯度差明显
+增加，且轴向温度场分布不均匀；而闸瓦摩擦面温
+（
+（
+（
+a）
+d）
+g）
+60km
+70km
+80km
+1 h
+1 h
+1 h
+、
+、
+、
+踏
+踏
+踏
+面
+面
+面
+轴
+轴
+轴
+向
+向
+向
+温
+温
+温
+度
+度
+度
+变
+变
+变
+化
+化
+化
+b （ ）
+e （ ）
+h （ ）
+1、 闸 瓦 轴 向 温 度 变 化 60km h
+1、 闸 瓦 轴 向 温 度 变 化 70km h
+1、 闸 瓦 轴 向 温 度 变 化 80km h
+℃/度温
+℃/度温
+℃/度温
+500
+400
+300
+200
+100
+0
+（
+500
+400
+300
+200
+100
+0
+（
+500
+400
+300
+200
+100
+0
+（
+c）
+f）
+i）
+757
+60km
+685
+70km
+626
+80km
+差值
+1634
+时 间 /s
+1、 轮 瓦 h
+差值
+1490
+时 间 /s 1、 轮 瓦 h
+差值
+1372
+时 间 /s 1、 轮 瓦 h
+温
+温
+温
+车轮 闸瓦
+2511
+度 差 值
+车轮 闸瓦
+2295
+度 差 值
+车轮
+闸瓦
+2118
+度 差 值
+100
+80
+60值差
+40
+20
+0
+100
+80
+60值差
+40
+20
+0
+100
+80
+60值差
+40
+20
+0
+C°/
+度温
+5
+4
+4
+3
+3
+2
+2
+1
+1
+0
+5
+0
+5
+0
+5
+0
+5
+0
+5
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0 3
+3
+2
+1
+0 0
+042 ‰‰‰ 车-车-车-
+6 0
+轮轮轮
+0 9
+制
+0 0
+动
+1
+时
+2 0 0
+间
+1 5 0
+t /s
+0 1 8 0 0 2 1 0 0 2 4 0 0
+===== PDF PAGE 11 =====
+度场在制动过程中，随着坡度的增加，形成的高温
+带区域在闸瓦摩擦面成均匀对称分布。
+图25 80km·h-1，不同坡度周期制动车轮/闸瓦轴向温升分布
+Fig.25 Axial temperature distribution of wheel/brake shoe
+during periodic braking at 80km·h-1 under different gradients
+图 26 给出循环制动工况下线路坡度与车轮/闸
+瓦峰值温度的关系，结果表明，循环制动工况下，
+在所仿真拟的坡度范围内，线路坡度与轮瓦峰值温
+度呈现近似线性增长趋势。
+4
+4
+3
+3
+2
+2
+1
+1
+5
+0
+5
+0
+5
+0
+5
+0
+5
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+8 1 0 1 2 1 4 1 6 1 8 2 0 2 2 2 4 2 6 2 8 3 0 3 2
+°C
+度/
+温
+高
+最
+车
+闸
+轮瓦 周-周- 期期
+线
+带带
+路
+闸闸
+坡
+制制
+度
+动动
+i / 1 0 -3
+图 27 结果表明，在制动过程的前期阶段，环
+境温度对轮瓦温升行为具有显著影响：极热环境
+（50℃）下的轮瓦温度明显高于极寒环境（-40℃）。
+然而，随着“制动-缓解”过程的周期性进行，第
+一个制动周期在极寒环境下的轮瓦表现出更快的温
+升速率。至第三制动周期末，两种极端环境下的轮
+瓦峰值温度趋于一致，差异不足 2%。这一现象表
+明，在循环制动这类长时、间歇性的强热输入过程
+中，环境温度带来的初始温差被持续性的内热积累
+所抵消，系统最终热状态由制动生热与结构散热能
+力的动态平衡主导，而外界气温的影响已被大幅减
+弱。
+（a）踏面
+（b）闸瓦
+图27 极端环境温度周期制动下的轮瓦温度时间历程曲线
+图26 循环制动、线路坡度与轮瓦峰值温度关系 Fig.27 Time-history curves of wheel/brake shoe temperature
+Fig.26 Relationship between track gradient and peak under periodic braking in extreme climates
+wheel/brake shoe temperature under cyclic braking
+图28为在极端环境温度（-40℃、50℃）车轮
+2.3.3 环境温度的影响
+与闸瓦在周期制动三个阶段（626s、1372s、2118s）
+为分析极端环境条件对于周期制动下车轮、闸 的峰值温度及各个时刻轮瓦温度差值，在制动第
+瓦温度场的影响，本文计算制动初速度 80km·h-1， 626s，两种极端环境温度下踏面温度差为30.22℃，
+3 次周期制动工况下，车轮与闸瓦在极端环境温度 随着制动时间的增加，在1372s时差值为7.23℃，而
+条件下的温度场，结果如图 27 所示。车轮与闸瓦 在2118s仅为1.72℃。闸瓦的仿真结果也具有类似表
+在极寒-40℃环境下经历三次周期制动，在2118s达 征，在626s时，两种极端环境温度下的闸瓦温度差
+到峰值温度，分别为 325.63℃，244.07℃；车轮与 为24.65℃，在1372s为6.5℃，而在2118s下差值仅
+闸瓦在极热 50℃环境下经历三次周期制动，均在 为1.62℃。这说明，极端环境温度对于长大坡道上
+2118s达到峰值温度，分别为323.91℃，242.45℃， 循环制动调速的重载列车制动的峰值温度几乎无影
+可以看到不同环境温度下，车轮、闸瓦峰值温度仅 响。
+相差 0.5%、0.7%，且达到峰值温度的时间与常温
+（20℃）一致，说明环境温度不影响轮瓦达到峰值
+温度的时间。
+w heel 0m m
+500
+400
+300
+200
+1000
+10
+（ ） 峰 g
+85m m
+20 30
+值 时 刻
+40
+踏
+B rake shoes
+85m m
+0mm
+0m m
+12‰
+24‰
+30‰
+50 60 70 80 90
+面 温 度 轴 向 分 布
+℃
+度 /
+温
+（
+（
+（
+a）
+c）
+e）
+12‰
+24‰
+30‰
+坡
+坡
+坡
+度
+度
+度
+、
+、
+、
+踏
+踏
+踏
+面
+面
+面
+轴
+轴
+轴
+向
+向
+向
+温
+温
+温
+度
+度
+度
+b （ ）
+d （ ）
+f （ ）
+坡 度 、 闸 瓦 表 面 轴 向 温 度 12‰
+坡 度 、 闸 瓦 表 面 轴 向 温 度 24‰
+坡 度 、 闸 瓦 表 面 轴 向 温 度 30‰
+℃/度温
+（
+400
+300
+200
+100
+00
+） 峰 h
+10
+值
+轴 向 距 离 d/m m
+20 30 40 50 60
+轴 向 距 离 d/m m 时 刻 闸 瓦 表 面 温 度
+70
+轴 向
+12‰
+24‰ 30‰
+80 90
+分 布
+C°/度温
+C°
+/度温
+4 0 0
+3 5 0
+3 0 0
+2 5 0
+2 0 0
+1 5 0
+1 0 0
+5 0
+0
+-5 0
+3 0
+2 5
+2 0
+1 5
+1 0
+5
+-5
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+车 5 0 °C -车
+-4 0 °C -
+3 0 0 6 0 0
+闸 5 0 °C -闸
+-4 0 °C -
+3 0 0 6 0 0
+轮轮
+瓦瓦
+9 0 0
+制
+9 0 0
+制
+动
+动
+1 2
+时
+1 2
+时
+0 0
+间
+0 0
+间
+1 5 0 0
+t/s
+1 5 0 0
+t /s
+1 8 0 0
+1 8 0 0
+2
+2 1
+1
+0
+0
+0
+0
+2
+2 4 0
+4 0 0
+0
+===== PDF PAGE 12 =====
+4
+4
+3
+3
+2
+2
+1
+1
+5
+0
+5
+0
+5
+0
+5
+0
+5
+0
+0
+0
+0
+0
+0
+0
+0
+0
+0
+6 2 6 1 3 7 2 2 1 1 8
+°C
+度 /
+温 高
+最
+车
+闸
+轮瓦
+制
+最最
+动
+高高 温温
+时
+度度
+间
+差差 值值
+t /s
+车
+车
+闸
+闸
+轮轮瓦瓦 (50°C
+(-40°C
+(50°C
+(-40°C
+))))
+3
+3
+2
+2
+1
+1
+5
+0
+5
+0
+5
+0
+5
+0
+制动场景下闸瓦高温区分布形态存在显著差异：常
+用与紧急制动下呈现全域高温特征，而循环制动下
+则易形成椭圆形高温区。通过对比三种制动场景的
+差异：常用/紧急制动的“全域”高温易导致闸瓦整体 值
+差 热衰退，而循环制动的“椭圆形”局部高温则更易引
+发持续性的局部过热，为故障诊断与预警提供了新
+的判别依据。
+（4） 尽管如此，本研究仍存在一定局限性。
+由于未开展实车试验，文中所揭示的线性关系等参
+数影响趋势主要反映在所设参数范围内的数值规
+图28 极端环境温度、制动各阶段轮瓦峰值温度及差值
+律，并非严格的物理定律；此外，所采用的对流换
+Fig.28 Maximum temperatures and their differentials of
+wheel/brake shoe during various braking phases under extreme 热系数模型将列车风速简化为运行速度，未考虑转
+climatic conditions
+向架遮挡与气流扰动等复杂因素，可能导致换热系
+图27与图28揭示了循环制动中一个看似矛盾的 数偏高，与实车换热强度存在一定差距。受限于
+现象：极端环境温度（-40℃至50℃）对车轮、闸 CFD耦合仿真的计算资源，本文暂未对上述简化进
+瓦的最终峰值温度影响极小。这一规律与常用制动 行深入修正。尽管如此，本文所构建的多参数耦合
+和紧急制动工况下的温度响应形成鲜明对比。其根 模型及相关结论，仍可为后续实车试验中的传感器
+本原因在于，循环制动是一个长时间、周期性、强 布点、关键工况选取以及热安全阈值制定提供理论
+热输入的过程。在制动初期，环境温度对系统的初 依据与方法参考。后续研究建议在制动试验台或运
+始温度具有一定影响，因此在图28中626s时刻可观 营列车上布设红外测温传感器，获取轮瓦温度时序
+察到约30℃的明显温差。然而，在后续多次“制动 数据，对模型进行误差评估，并重点对换热边界条
+-缓解”循环中，每一次制动阶段所产生的摩擦热 件予以校准，从而进一步提升模型的预测精度与工
+远超过同一阶段内通过表面对流与辐射所能散失的 程适用性。
+热量。热量在材料内部不断积聚，使轮瓦温升主要
+参考文献：
+取决于制动过程中的生热速率与材料自身的储热能
+力。在这种强烈的周期性内热源作用下，环境温度
+References：
+这一外部边界条件对系统整体热状态的影响逐渐被
+削弱。因此，在经过若干制动周期后，系统趋于一 [1] HASEGAWA I, UCHIDA S. Braking Systems[J].
+个由内部生热与散热动态平衡所决定的稳定热状态， Japan Railway and Transport Review, 1999, 20:
+与环境温度的相关性显著降低。 52-59.
+[2] GŰNAY M, KORKMAZ M E, ÖZMEN R. An
+3. 结 语
+Investigation on Braking Systems Used in Railway
+Vehicles[J]. Engineering Science and Technology,
+（1） 两种短时制动场景下，制动初速度超过
+an International Journal, 2020, 23(2): 421-431.
+100 km·h⁻¹时，轮瓦温度急剧上升并超过300℃材料
+软化阈值，紧急制动下车轮与闸瓦峰值温度升幅分 [3] 陈建平, 王志伟, 莫继良, 等. 基于轮瓦非均匀接
+别可达 51.41%与 47.00%。循环制动下，线路坡度
+触压力的重载列车踏面制动温度预测方法[J].
+是温升最主要影响因素。在所仿真的参数范围内， 摩擦学学报(中英文), 2025, 45(06): 812-822.
+线路坡度与轮瓦峰值温度呈现近似线性增长趋势。 CHEN Jian-ping, WANG Zhi-wei, MO Ji-liang, et
+（2） 环境温度对短时制动的峰值温度有显著 al. Temperature Prediction Method for Tread
+线性影响，但对循环制动这类长时过程的最终峰值 Braking of Heavy-Haul Trains Based on Non-
+Uniform Contact Pressure Between Wheel and
+温度几乎无影响。仿真结果表明，在长大下坡循环
+Brake Pad [J]. Tribology, 2025, 45(06): 812-822.
+制动中，周期性热输入的累积效应，而非环境温
+度，才是主导轮瓦最终热状态的核心机制。在持 [4] 田欣雨, 沈肖. 机车闸瓦熔渣导致的护坡起火现
+续、间歇性的制动过程中，内部产热与散热的动态 场勘查分析[J]. 刑事技术, 2021, 46(02): 212-214.
+平衡最终决定了系统的热状态，外部环境温度的影
+TIAN Xin-yu, SHEN Xiao. Forensic Analysis of
+响则被显著弱化。该结论对制定不同工况下的热安 Slope Fire Caused by Locomotive Brake Sintering
+全策略具有直接的指导意义。 Slag [J]. Forensic Science and Technology, 2021,
+（3） 综合三种典型制动场景的分析表明，短 46(02): 212-214.
+时制动下过高的初速度和陡坡条件下的循环制动是
+[5] FREISINGER M, FELLNER S, GAMMER C, et
+触发轮瓦热损伤阈值温度的关键工况，可能是导致 al. Stratified Surface Layers Affecting Crack
+闸瓦失效和踏面伤损现象的主要原因。此外，不同 Propagation in Wheel-rail Contacts[J]. Tribology
+===== PDF PAGE 13 =====
+International, 2024, 192: 109319. Journal of Rail and Rapid Transit, 2007, 221(2):
+167-182.
+[6] 侯博文, 乔林川, 高亮, 等. 钢轨擦伤形成机理、
+检测与防治综述[J].交通运输工程学报, 2024, [13] BOSSO N, CANTONE L, FALCITELLI G, et al.
+Simulation of the Thermo-mechanical Behaviour
+24(02): 65-84.
+of Tread Braked Railway Wheels by Means of a
+HOU Bo-wen, QIAO Lin-chuan, GAO Liang, QIN
+2D Finite Element Model[J]. Tribology
+Jia-dong, LIU Xiu-bo, MA Chao-zhi. Review on
+International, 2023, 178: 108074.
+formation mechanism, detection and prevention of
+rail squat[J]. Journal of Traffic and Transportation [14] LANDSTRŐM EV, VERMERSSON T, LUNDEN
+Engineering, 2024, 24(2): 65-84. R. Analysis and Testing of Tread Braked Railway
+[7] 宋剑锋, 时迎港, 黄伟建, 等. 重载列车紧急制动 Wheel — Effects of Hot Spots on Wheel
+Performance. Int J Fatigue 2024; 180:108116.
+过程踏面轮廓变化定量预测[J]. 中国机械工程,
+[15] Wu Q, SPIRYAGIN M, COLE C. Block–wheel–
+2025, 36(02): 369-379.
+rail Temperature Assessments Via Longitudinal
+SONG Jian-feng, SHI Ying-gang, HUANG Wei-
+Train Dynamics Simulations[J]. Journal of
+jian, et al. Quantitative Prediction of Tread Profile Computational and Nonlinear Dynamics, 2022,
+Variation during Emergency Braking of heavy 17(11): 111007.
+Duty trains[J]. China Mechanical Engineering, [16] 董永刚, 仪帅, 黄鑫磊, 等. 列车紧急制动过程中
+2025, 36(02): 369-379. 踏面温度分布及磨耗预测[J]. 中国机械工程,
+[8] 赵杰, 卢纯, 何家欢, 等. 坡道紧急制动工况下货 2021, 32(04): 431-438.
+车车轮踏面裂纹扩展行为研究[J/OL]. 中国机械 DONG Yong-gang, YI Shuai, HUANG Xin-lei, et
+al. Temperature Distribution of Treads and Wear
+工程, 2025, https://link.cnki.net/urlid/42.1294.TH.
+Prediction during Train Emergency Braking [J].
+20250314.1454.012.
+China Mechanical Engineering, 2021, 32(04): 431-
+ZHAO Jie, LU Chun, HE Jia-huan, et al.Research 438.
+on Crack Propagation Behavior of Freight train w- [17] 周高伟, 高飞, 段军军. 超长大坡道持续制动条
+件下列车车轮踏面温度分布的试验研究[J/OL].
+heel treads under Emergency Braking on ramps [J/
+西南交通大学学报, 2025, https://link.cnki.net/ur
+OL]. China Mechanical Engineering, 2025, https:/
+lid/51.1277.U.20240914.0936.006.
+/link.cnki.net/urlid/42.1294.TH.20250314.1454.0
+ZHOU Gao-wei, GAO Fei, DUAN Jun-jun.
+12.
+Experimental Study on Wheel Tread Temperature
+[9] 乔青峰. 地铁车辆车轮踏面异常磨耗原因初探 Distribution of Trains Under Continuous Braking
+[J]. 铁道车辆, 2011, 49(06): 28-32+48. Conditions on Extra-Long Steep Grades [J/OL].
+Journal of Southwest Jiaotong University, 2025,
+QIAO Qing-feng. Preliminary Study on Causes of
+https://link.cnki.net/urlid/51.1277.U.20240914.093
+Abnormal Wear in Metro Vehicle Wheel Treads [J].
+6.006.
+Rolling Stock, 2011, 49(06): 28-32+48. [18] 李芾, 傅茂海. 铁路高速货车及其相关技术研究
+[10] 左建勇, 丁景贤. 轨道车辆制动系统智能控制与 [J]. 交通运输工程学报, 2002, (01): 6-12.
+维护技术研究进展[J]. 交通运输工程学报, 2021, LI Fei, FU Mao-hai. Research of high speed
+21(6): 40-62. railway freight car and its technology[J]. Journal of
+ZUO Jian-yong, DING Jing-xian. Research
+Traffic and Transportation Engineering, 2002, 2(1):
+progress on intelligent control and maintenance
+6-12.
+technology of railway vehicle braking system[J].
+Journal of Traffic and Transportation Engineering, [19] HANDA K, IKEUCHI K, MORIMOTO F.
+2021, 21(6): 40-62. Temperature-dependent Wear of Tread-braked
+[11] SPIRYAGIN M, Wu Q, DUAN K, et al. Railway Wheels[J]. Wear, 2020, 452: 203265.
+Implementation of a Wheel–rail Temperature
+[20] 张金玉, 陶功权, 温泽峰. 长大坡道下货车车轮
+Model for Locomotive Traction Studies[J].
+International Journal of Rail Transportation, 2017, 全磨耗周期制动温度影响研究[J]. 铁道科学与
+5(1): 1-15. 工程学报, 2024, 21(06): 2442-2452.
+[12] VERMERSSON T. Temperatures at Railway Tread ZHANG Jin-yu, TAO Gong-quan, WEN Ze-feng.
+Braking. Part 1: Modelling[J]. Proceedings of the Influence of Braking Temperature on Full Wear
+Institution of Mechanical Engineers, Part F: Cycle of Freight Train Wheels on Long and Steep
+===== PDF PAGE 14 =====
+Grades [J]. Journal of Railway Science and Wheels-temperatures Generated by a Metro
+Engineering, 2024, 21(06): 2442-2452. Train[J]. Proceedings of the Institution of
+Mechanical Engineers Part F Journal of Rail &
+[21] 严隽耄. 车辆工程[M].第3版. 北京: 中国铁道出
+Rapid Transit, 2014, 228(2): 210-221.
+版社, 2008.
+[27] 国家铁路局. 铁路机车操作规则: TG/JW104—
+YAN Jun-mao. Vehicle Engineering[M]. 3rd ed.
+2012[S]. 北京: 中国铁道出版社, 2012.
+Beijing: China Railway Publishing House, 2008.
+National Railway Administration of China. Rules
+[22] 陈帅. 踏面制动温升对车轮磨耗影响的研究[D].
+for Railway Locomotive Operation: TG/JW 104-
+成都: 西南交通大学, 2017.
+2012[S]. Beijing: China Railway Publishing House,
+2012.
+CHEN Shuai. Research on the Influence of Tread
+Braking Temperature Rise on Wheel Wear[D]. [28] 张宗威. 超长连续大坡道货车踏面制动热负荷
+Chengdu: Southwest Jiaotong University, 2017.
+研究[D]. 成都: 西南交通大学, 2020.
+[23] 国家铁路局. 列车牵引计算 第1部分:机车牵引
+ZHANG Zong-wei. Research on Thermal Load of
+式列车:TB/T 1407.1—2018[S]. 北京:中国铁道
+Tread Braking for Freight Trains on Extra-Long
+出版社, 2018. Continuous Steep Grades[D]. Chengdu: Southwest
+Jiaotong University, 2020.
+National Railway Administration of China. Train
+Traction Calculation—Part 1: Locomotive Hauled [29]张萍. 地铁车轮踏面制动热负荷研究[D]. 成都：
+Trains: TB/T 1407.1-2018[S]. Beijing: China 西南交通大学, 2013.
+Railway Publishing House, 2018.
+ZHANG Ping. Research on Thermal Load of
+[24] WALIA M S, VERMERSSON T, LUNDÉN R, et
+Metro Wheel Tread Braking[D]. Chengdu：
+al. Temperatures and Wear at Railway Tread
+Southwest Jiaotong University, 2013.
+Braking: Field Experiments and Simulations[J].
+Wear, 2019, 440: 203086. [30] 张萍, 温泽峰, 吴磊, 等. 不同热流加载方式下车
+轮踏面制动温度和应力场模拟分析[J]. 润滑与
+[25] 杨世铭, 陶文铨. 传热学[M].第 4 版.北京: 高等
+密封, 2013, 38(05): 69-74.
+教育出版社, 2006.
+ZHANG Ping, WEN Ze-feng, WU Lei, et al.
+YANG Shi-ming, Tao Wen-quan. Heat Transfer
+Simulation Analysis of Temperature and Stress
+[M]. 4th ed. Beijing: Higher Education Press, 200
+Fields in Wheel Tread Braking Under Different
+6.
+Heat Flux Loading Methods [J]. Lubrication
+[26] TEIMOURIMANESH S, VERMERSSON T, Engineering, 2013, 38(05): 69-74.
+LUNDÉN R, et al. Tread Braking of Railway

@@ -1,0 +1,459 @@
+Algorithms 2024, 17, 190                                                                                               4 of 17
+
+
+
+
+                                 The additional resistance is determined by the section force gR , the curvature resistance
+                           c R and the tunnel resistance t R [19], as shown in Equation (4). The specific calculations of
+                           these factors [20] are presented in Equation (5):
+
+                                                                   L R = gR + c R + t R ,                                 (4)
+
+                                                                                    i
+                                                             
+                                                              gR = Mg sin(arctan 1000 )
+                                                                      c R = 600/R        ,                                (5)
+                                                                   t R = 0.00013Ls
+                                                             
+
+                                 For heavy-haul trains, the control inputs for the locomotives include the traction force
+                           and braking force, whereas the input for freight trains includes only the braking force. There
+                           are mainly two types of brake equipment for heavy-haul trains: one is rheostatic brake
+                           equipment and the other is pneumatic braking equipment. Rheostatic brake equipment,
+                           also known as the regenerative brake, can feed back energy to other locomotives to provide
+                           power. A pneumatic braking system achieves braking force by reducing the air pressure in
+                           the train’s air braking pipes [21].
+                                 The traction force F of a heavy-haul train depends on the relative output ratio htr of
+                           the maximum traction force utr   max ( v ), while the electric braking force U1 is determined by
+                           the maximum electric braking force udmax (v) and its relative output ratio hd . Therefore, the
+                           traction force and electric braking force of a train can be calculated according to Equation (6):
+
+                                                                   F = F tr (utr          tr
+                                                               
+                                                                              max ( v ), h )
+                                                                                             ,                            (6)
+                                                                           d   d
+                                                                   U1 = F (umax (v), hd )
+
+                           where utr               d
+                                    max ( v ) and umax ( v ) are the piecewise functions of the train’s running speed [22]. In
+                           addition, it is impossible for each locomotive to output electric braking force and traction
+                           force at the same time [23]; thus, the relative output ratio of hd and htr is hd × htr = 0.
+                                The air braking system of a heavy-haul train is its main braking force and the key to
+                           ensuring the safety of train operation. Figure 1 is a diagram showing the structural compo-
+                           sition of the air braking system of a heavy-haul train [24]. According to Reference [25], U2
+                           in Equation (1) can be calculated based on Equation (7):
+
+                                                              U2 = θb × ϕb × β s × 1000,                                  (7)
+
+                           where θb and ϕb are intimately associated with the train’s physical characteristics, such
+                           as the brake lever and transmission efficiency of locomotives and freight cars, while the
+                           service braking coefficient β s is assigned a value based on the rated pressure p of the air
+                           pipes and the corresponding air pressure drop ∆p. Therefore, when air braking is applied
+                           by heavy-haul trains, the output of the air braking force depends on the air pressure drop
+                           ∆p [25]. Equation (7) can be rewritten as a function of ∆p as follows:
+
+                                                                    U2 = h a × F (∆p),                                    (8)
+
+                           where h a is a binary variable that determines whether air braking is engaged (h a = 1) or
+                           released (h a = 1).
+ Algorithms 2024, 17, x FOR PEER REVIEW                                                                                                                                  5 of 19
+Algorithms 2024, 17, 190                                                                                                                                                 5 of 17
+
+
+
+
+                                                                                                                                Compressor
+                                              Balanced                                   Main air
+                                             air cylinder                                cylinder
+
+
+
+
+                                                                                                                                                            Angle cock
+                                                                               Brake main pipe                                                 Workshop
+                                              Angle cock                                                                                       connection
+                                                                                                 Inflatable
+                                                                                                   ditch
+
+                                                               Auxiliary air                                                       Three-way
+                                                                cylinder                                                             valve
+
+                                          Wheel
+                                                                                                                  Slide valve
+                                                                                        Piston
+                                                     Brake shoes               Spring
+
+
+
+
+                                                                Foundation
+                                                               brake rigging      Brake cylinders
+
+
+
+
+                                  Figure1.1.The
+                                 Figure      Thecompositional  structureofofthe
+                                                 compositionalstructure      theair  brakingsystem
+                                                                                 airbraking  systemfor
+                                                                                                    forheavy-haul
+                                                                                                        heavy-haultrains.
+                                                                                                                    trains.
+
+                                 2.2. Running Constraints
+                                  2.2. Running Constraints
+                                       The aim of this research on the circulating air braking of a heavy-haul train on a long
+                                        The aim of this research on the circulating air braking of a heavy-haul train on a long
+                                 and steep downhill section is essentially to solve a multi-constraint and multi-objective
+                                  and steep downhill section is essentially to solve a multi-constraint and multi-objective
+                                 optimization problem. Considering the actual requirements of train driving control and
+                                  optimization problem. Considering the actual requirements of train driving control and
+                                 model design, the running constraints set in this research are as follows:
+                                  model design, the running constraints set in this research are as follows:
+                                       (1) Air-refill time: When a train operates on a long and steep downhill section, it
+                                        (1) Air-refill time: When a train operates on a long and steep downhill section, it
+                                 necessitates the adoption of cyclic braking for speed control. To guarantee sufficient
+                                  necessitates the adoption of cyclic braking for speed control. To guarantee suﬃcient
+                                 braking force in the next braking cycle, sufficient time should be ensured for refilling the air
+                                  braking force in the next braking cycle, suﬃcient time should be ensured for refilling the
+                                 pipe to its maximum pressure [26]. In other words, the release phase must not be shorter
+                                  air pipe
+                                 than       to its maximum
+                                       the minimum                pressure
+                                                        air-filling time Ta ,[26]. In other
+                                                                              as stated      words,
+                                                                                        in the      the release
+                                                                                               operating        phase must not be
+                                                                                                         guidelines.
+                                  shorter than the minimum air-filling time 𝑇 , as stated in the operating guidelines.
+                                                                                                                     b tr ≥
+                                                                                                              tbj+1 t−
+                                                                                                                     j +1 −
+                                                                                                                              r
+                                                                                                                          j t j ≥TT
+                                                                                                                                  a ,a ,                                    (9)
+                                                                                                                                                                             (9)
+                                       Inthe
+                                      In          above
+                                           theabove       formula,
+                                                       formula,   Ta is𝑇 closely
+                                                                           is closely  related
+                                                                                 related  to the to the formation
+                                                                                                 formation            of the
+                                                                                                                           andtrain
+                                                                                                             of the train             and the
+                                                                                                                                the pressure
+                                 drop  within
+                                  pressure   drop      train the
+                                                  thewithin  air pipe.
+                                                                 train airForpipe.
+                                                                               predetermined      train parameters,
+                                                                                    For predetermined                   the air-filling
+                                                                                                          train parameters,              time
+                                                                                                                                the air-filling
+                                 needs  to be ascertained.
+                                  time needs     to be ascertained.
+                                       (2)Speed
+                                      (2)   Speed limit:    To ensure
+                                                     limit: To            safety, the
+                                                                ensure safety,         speedofofthe
+                                                                                   thespeed            heavy-haul
+                                                                                                   theheavy-haul      train
+                                                                                                                   train     cannot
+                                                                                                                          cannot      exceed
+                                                                                                                                   exceed   the
+                                  speed limit 𝑉 at any point on the lengthy and steep downhill line stretch. This value often
+                                 the speed   limit   V  at any  point   on  the lengthy    and  steep  downhill   line  stretch.  This value
+                                 often depends
+                                  depends    on the on the  underlying
+                                                         underlying         framework
+                                                                        framework      of of
+                                                                                           thethe railwayline
+                                                                                                railway    lineoror the
+                                                                                                                    the provisional setup.
+                                                                                                                                        setup.
+                                  Additionally,the
+                                 Additionally,           speedofofthe
+                                                    thespeed             trainshould
+                                                                    thetrain   shouldbe begreater
+                                                                                            greaterthan   theminimum
+                                                                                                     thanthe   minimumair       brakerelease
+                                                                                                                            airbrake   release
+                                          r
+                                  speedV𝑉
+                                 speed            Thespecified
+                                          min . .The    specifiedlimit
+                                                                   limitisisdesignated
+                                                                             designatedasas4040km/h
+                                                                                                 km/hfor      20,000-tonheavy-haul
+                                                                                                        foraa20,000-ton    heavy-haultraintrain
+                                  formation[19].
+                                 formation            Therefore,the
+                                               [19].Therefore,     thespeed
+                                                                        speedshould
+                                                                                shouldmeet
+                                                                                         meetthe    followingrequirement:
+                                                                                                thefollowing    requirement:
+                                                                                                               r V ≤v≤V,r
+                                                                                                              Vmin ≤ v ≤ V,
+                                                                                                                   min                                                     (10)
+                                                                                                                                                                          (10)
+                                       (3) Electric braking force: Heavy-haul trains are equipped with both an electric
+                                      (3) Electric braking force: Heavy-haul trains are equipped with both an electric braking
+                                  braking system and an air braking system. When the train engages electric braking, the
+                                 system and an air braking system. When the train engages electric braking, the braking
+                                  brakingiscurrent
+                                 current             is regulated
+                                             regulated                  the seriesthe
+                                                                    by adjusting
+                                                         by adjusting                      series excitation
+                                                                                      excitation    resistanceresistance   of thebraking
+                                                                                                                                   electric
+                                                                                                                of the electric
+                                  brakingso
+                                 system,   system,    so as to agenerate
+                                              as to generate              a continuous
+                                                                 continuous                  electricforce
+                                                                               electric braking       braking  forcedown
+                                                                                                           to slow    to slow
+                                                                                                                            thedown
+                                                                                                                                running the
+                                  running   speed    of the  heavily  loaded    train.   In   actual  operation,  the  constraint
+                                 speed of the heavily loaded train. In actual operation, the constraint is the maximum electric     is  the
+                                  maximum      electric braking   force [27], so  the   relative  output   ratio of the electric
+                                 braking force [27], so the relative output ratio of the electric braking force should satisfy    braking
+                                  force should satisfy
+                                                                              0 ≤0 h≤d h≤d 1,
+                                                                                            ≤ 1,                                      (11)
+                                                                                                                                       (11)
+                                 2.3. Performance Indicators
+                                       Performance
+                                  2.3. This          Indicators focuses on the safety and servicing cost of the heavy-haul train
+                                             study primarily
+                                 operation   process.  The maintenance
+                                        This study primarily                 theissafety
+                                                                 focuses oncost     expressed           cost ofdistance.
+                                                                                              by air braking
+                                                                                         and servicing                   Hence, train
+                                                                                                                the heavy-haul   two
+                                  operationare
+                                 indicators       introduced
+                                               process.        to evaluate the
+                                                        The maintenance     costcontrol  performance
+                                                                                  is expressed         of the heavy-haul
+                                                                                               by air braking              train. two
+                                                                                                                distance. Hence,
+                                       (1) Safety:
+                                  indicators                         the fundamental
+                                                   Safety servestoasevaluate
+                                               are introduced                the controlprerequisite
+                                                                                          performance    train
+                                                                                                     for of theoperation.
+                                                                                                                heavy-haulThe  speed
+                                                                                                                             train.
+                                 of the heavy-haul train should be kept under the upper limit. Yet, it cannot be lower than
+Algorithms 2024, 17, x FOR PEER REVIEW                                                                                            6 of 19
+
+
+
+
+Algorithms 2024, 17, 190                (1) Safety: Safety serves as the fundamental prerequisite for train operation.6 of 17
+                                                                                                                         The
+                                 speed of the heavy-haul train should be kept under the upper limit. Yet, it cannot be lower
+                                 than 𝑉𝑟𝑚𝑖𝑛 . Here, the parameter Y is defined to indicate whether the train speed remains
+                                 V r
+                                   min . Here,
+                                 within               range. Y is defined to indicate whether the train speed remains within
+                                                the parameter
+                                           the speed
+                                 the speed range.                         
+                                                                           1,
+                                                                              1V，r Vmrin≤≤vv≤≤ VV
+                                                                    Y=  Y =   min                ,                      (12)
+                                                                           0,        otherwise ,
+                                                                             0， otherwise
+                                                                                                                         (12)
+
+                                               braking distance:
+                                     (2) Air braking     distance: As excessive wear will be caused by the             friction between
+                                                                                                                  the friction  between
+                                wheels and
+                                wheels  and brake      shoes when
+                                              brake shoes           the air
+                                                             when the    air brake  is engaged
+                                                                                        engaged for
+                                                                             brake is                    long distance,
+                                                                                                  for aa long               maintenance
+                                                                                                              distance, aa maintenance
+                                cost will
+                                cost willbe    generatedbyby
+                                           begenerated       thethe  replacement
+                                                                  replacement        of brake
+                                                                                 of air  air brake   equipment.
+                                                                                               equipment.          By reducing
+                                                                                                                            the airthe
+                                                                                                             By reducing               air
+                                                                                                                                    brake
+                                          duringduring
+                                brake distance
+                                distance                   operation,
+                                                    operation,          the maintenance
+                                                                the maintenance      cost cancost
+                                                                                               be can   be reduced.
+                                                                                                   reduced.          Therefore,
+                                                                                                              Therefore,   the airthe  air
+                                                                                                                                    brake
+                                distance  L a of a 𝐿heavy-haul
+                                brake distance                            defined
+                                                                 train is train
+                                                     𝑎 of a heavy-haul              as Equation
+                                                                                is defined         (13). (13).
+                                                                                             as Equation
+                                                                                               T
+                                                                                     LaZ=T aba (t ) × v (t )dt ,                    (13)
+                                                                                 La =      b0 (t) × v(t)dt,                          (13)
+                                                                                           0
+
+                                    DQN Control
+                                 3. DQN
+                                 3.                   Algorithm
+                                             Control Algorithm
+                                        Reinforcement learning
+                                        Reinforcement     learning is     machine learning
+                                                                    is aa machine             method for
+                                                                                   learning method         goal-oriented tasks.
+                                                                                                                          tasks. It
+                                                                                                       for goal-oriented            does
+                                                                                                                                 It does
+                                 not   tell the  agent  how   to act, but  instead,  guides   the  agent to learn  the correct
+                                 not tell the agent how to act, but instead, guides the agent to learn the correct strategy    strategy
+                                 through interaction
+                                 through     interaction with   the environment.
+                                                          with the  environment. In    this section,
+                                                                                    In this           the train
+                                                                                                          train operation
+                                                                                             section, the                  process will
+                                                                                                                operation process    will
+                                 first  be  defined  as a Markov    decision  process.
+                                 first be defined as a Markov decision process.         Then,   a control algorithm  based  on  DQN
+                                                                                                          algorithm based on DQN is    is
+                                 proposed to
+                                 proposed      to learn the cyclic
+                                                  learn the         braking strategy
+                                                             cyclic braking   strategy of  train operation
+                                                                                                  operation when
+                                                                                        of train                    running on aa long
+                                                                                                             when running           long
+                                       steep downhill
+                                 and steep
+                                 and                      railway section.
+                                               downhill railway    section.
+
+                                 3.1. Markov Decision Process
+                                 3.1.
+                                       Prior to
+                                       Prior    implementing the
+                                             to implementing    the DQN
+                                                                    DQN algorithm,     it is essential to define the control process
+                                                                           algorithm, it                                     process
+                                 for train
+                                 for  trainoperation
+                                            operation when
+                                                        whenrunning
+                                                               runningon aon
+                                                                           long  and steep
+                                                                              a long  and downhill             as a Markov
+                                                                                                       section section
+                                                                                             steep downhill            as a decision
+                                                                                                                             Markov
+                                 decision(MDP),
+                                 process          which
+                                            process       involves
+                                                      (MDP),   which    involves sequential
+                                                                    formalizing    formalizing  decision-making.   An illustrationAn
+                                                                                                                                   of
+                                                                                                  sequential decision-making.
+                                 the  MDP   interaction during   the operation   of heavy-haul    trains running  on long
+                                 illustration of the MDP interaction during the operation of heavy-haul trains running on  and  steep
+                                 downhill   sections
+                                 long and steep      is shown
+                                                  downhill      in Figure
+                                                             sections      2.
+                                                                       is shown   in Figure 2.
+
+                                                                      Agent
+                                                               An on-board controller
+                                                                that makes control
+                                                                     decisions.
+
+
+
+
+                                          Action                      State                               Reward
+                                  A control decision taken   An observation from the                 An evaluation signal
+                                    on the environment.           environment.                     from the environment.
+
+
+
+
+                                                                      Environment
+                                                                Train dynamics and rail
+                                                                 infrastructure settings
+
+
+
+
+                                 Figure 2.
+                                 Figure 2. Illustration of MDP
+                                           Illustration of     interaction during
+                                                           MDP interaction        operation of
+                                                                                            of heavy-haul
+                                                                           during operation                trains.
+                                                                                               heavy-haul trains.
+
+                                      The locomotive
+                                      The  locomotive of      heavy-haul train
+                                                         of a heavy-haul     train is described                 responsible for making
+                                                                                       described as the agent responsible       making
+                                 control decisions,   while   the heavy-haul       train’s dynamics     and  the railway’s
+                                 control decisions, while the heavy-haul train’s dynamics and the railway’s underlying      underlying
+                                 structure arrangements
+                                 structure  arrangements are     defined as
+                                                             are defined     as the
+                                                                                 the environment.
+                                                                                      environment. Assuming           the time
+                                                                                                      Assuming that the   time interval
+                                                                                                                                interval
+                                 between   twoconsecutive
+                                 between two    consecutivestates        ∆t,Δt,
+                                                               statesis is   thethe
+                                                                                  control process
+                                                                                     control       is evenly
+                                                                                              process         divided
+                                                                                                       is evenly      into N
+                                                                                                                  divided    steps
+                                                                                                                           into    with
+                                                                                                                                N steps
+                                 respect to the to
+                                 with respect   planned    operating
+                                                    the planned          time T, and
+                                                                    operating            T, position,
+                                                                                   timethe   and the operating    speed andspeed
+                                                                                                       position, operating    operating
+                                                                                                                                    and
+                                 time of thetime
+                                 operating   trainofare   trainas
+                                                     thetaken     the
+                                                                are    states
+                                                                    taken     asof
+                                                                                 thethe heavy-haul
+                                                                                      states         train.
+                                                                                             of the heavy-haul   train.
+                                                                            s = [ P ,V , T ], k = 0,1,2,, n
+                                                                        sk = [kPk , Vkk , Tkk ], kk = 0, 1, 2, · · · , n,,           (14)
+                                                                                                                                     (14)
+
+                                where sk is the status of the heavy-haul train at step k, Pk is the position of the train, Vk is
+                                the train speed and Tk is the train running time. s0 and sn represent, respectively, the initial
+

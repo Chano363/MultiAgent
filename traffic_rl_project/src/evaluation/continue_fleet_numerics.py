@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 import sys
 from collections import Counter
-from contextlib import contextmanager, ExitStack
+from contextlib import ExitStack, contextmanager, nullcontext
 
 import numpy as np
 
@@ -14,10 +14,21 @@ from src.evaluation.fleet_checkpoint import load_fleet_checkpoint, save_fleet_ch
 from src.evaluation.fractional_air_timing import fractional_air_timing
 from src.metadata import build_metadata
 from src.physics_governance import official_entry_guard, official_world_config
+from src.evaluation.solver_registry import (
+    PRODUCTION_SOLVER, active_solver_label, assert_active_solver, labelled, solver_context)
+
+
+@contextmanager
+def labelled_context(label, inner):
+    """Declare the recorded replacement solver while it is installed."""
+    with labelled(label), inner:
+        yield
 
 
 def recorded_context(samples, numerical):
     """Resume exactly the recorded solver; never silently substitute defaults."""
+    if numerical['solver'] == 'production_newmark':
+        return nullcontext()
     if numerical['solver'] == 'newton_analytic_time_error':
         from src.evaluation.error_controlled_mechanics import candidate
         context = candidate(samples, **numerical['settings'])
@@ -211,6 +222,9 @@ def main():
                         help='Replay-only v_min margin where the follower traction floor may apply')
     parser.add_argument('--rule-formation-traction-coef', type=float,
                         help='Replay-only follower gap-chasing traction gain')
+    parser.add_argument('--solver', choices=('recorded', PRODUCTION_SOLVER),
+                        default='recorded',
+                        help='recorded = exact recorded solver; production_newmark = explicit switch')
     args = parser.parse_args()
     if args.steps < 1:
         parser.error('Positive continuation budget required')
@@ -308,8 +322,14 @@ def main():
             parser.error('Formation traction coefficient must be finite and nonnegative')
         env.LEAN_TRACTION_COEF = args.rule_formation_traction_coef
     numerical = manifest['numerical']
-    if numerical['solver'] not in ('newton_analytic', 'newton_analytic_time_error'):
-        raise ValueError('Unsupported recorded experimental solver')
+    recorded_solver = numerical.get('solver')
+    if recorded_solver not in (PRODUCTION_SOLVER, 'newton_analytic',
+                               'newton_analytic_time_error'):
+        raise ValueError('Unsupported recorded solver')
+    # A solver switch must be requested explicitly; it is then archived as such
+    # instead of being presented as a faithful continuation.
+    run_solver = PRODUCTION_SOLVER if args.solver == PRODUCTION_SOLVER else recorded_solver
+    solver_switch = run_solver != recorded_solver
     origin = json.loads((args.state_dir/'result.json').read_text(encoding='utf-8'))
     env.max_steps = max(env.max_steps, env.steps + args.steps + 1)
     for train in env.trains:
@@ -320,6 +340,8 @@ def main():
             'env_cfg': origin['metadata']['env_cfg'], 'initial_fleet_manifest': manifest,
             'numerical': numerical, 'steps_budget': args.steps,
             'route_scoped_speed_check': bool(args.route_scoped_speed_check),
+            'solver': run_solver, 'recorded_solver': recorded_solver,
+            'solver_switch': solver_switch,
             'speed_checkpoint_kmh': args.checkpoint_below_kmh,
             'speed_checkpoint_train': args.checkpoint_train,
             'one_shot_ab_suppress': (None if args.one_shot_ab_suppress_train is None else {
@@ -384,12 +406,16 @@ def main():
             actuator_inputs[_ti] = np.asarray(ed_throttle)[_tr.loco_indices].copy()
             return _original(throttle, ed_throttle, ab_command, *positional, **kwargs)
         tr.dynamics.step_vehicles_ed_ab = record_inputs
-    reason, error = 'step_budget', None
+    reason, error, active_label = 'step_budget', None, run_solver
     try:
         with ExitStack() as stack:
-            stack.enter_context(recorded_context(samples, numerical))
+            context = (solver_context(PRODUCTION_SOLVER) if run_solver == PRODUCTION_SOLVER
+                       else labelled_context(run_solver, recorded_context(samples, numerical)))
+            stack.enter_context(context)
             if args.fractional_air_timing:
                 stack.enter_context(fractional_air_timing(True))
+            assert_active_solver(run_solver)
+            active_label = active_solver_label()
             for step in range(args.steps):
                 if (args.output/'STOP').exists():
                     reason = 'requested_stop_file'
@@ -540,6 +566,8 @@ def main():
             recorded_rule_counts=dict(Counter(e['rule'] for e in event_records)),
             records=event_records), indent=2), encoding='utf-8')
         summary = dict(stop_reason=reason, error=error, steps=len(rows),
+            solver=active_label, recorded_solver=recorded_solver,
+            solver_switch=solver_switch,
             full_route_completed=reason == 'all_train_tails_finished',
             finish_m=args.finish_m,
             final_tail_positions_m=[float(t.dynamics.pos[-1]) for t in env.trains],

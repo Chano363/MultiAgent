@@ -1,0 +1,444 @@
+=== PDF PAGE 1 ===
+Vol. 42 No. 1
+January，2021
+中 国 铁 道 科 学
+CHINA RAILWAY SCIENCE
+第 42 卷， 第1 期
+2 0 2 1 年 1 月
+超长重载列车纵向力影响规律仿真研究
+常崇义 1,2，马颖明 1,2，郭 刚 1,2，陈 波 1,2
+（1. 中国铁道科学研究院集团有限公司 铁道科学技术研究发展中心，北京 100081；
+2. 中国铁道科学研究院集团有限公司 高速轮轨关系试验室，北京 100081）
+摘 要： 建立超长重载列车纵向动力学仿真模型，并利用大秦线 3 万 t 重载组合列车长大下坡道制动试验数
+据对其进行验证；分析超长重载列车平直道制动工况时列车编组长度、机车无线同步控制延迟时间，以及长大下
+坡道常用全制动时坡度差、车钩间隙和 ECP 制动控制技术对纵向力的影响规律。结果表明：正常情况下， 4 万~12
+万 t 超长重载组合列车编组长度对平直道常用全制动和紧急制动时列车最大纵向压钩力影响较小，均未超过
+2 250 kN 的安全限值；超长重载列车在平直道紧急制动时，同步控制延迟时间超过 5 s 时列车最大纵向压钩力达
+到 1 200 kN ，但仍未超过安全限值；长大下坡道中坡度差对超长重载列车最大纵向压钩力影响较大，在 60 km·h-1
+速度进行常用全制动且纵向力不超安全限值 2 250 kN 的条件下， 4 万 t 超长重载列车允许的长大下坡道最大坡度
+差为 13‰，10 万 t 仅为 5‰；超长列车采用新型无间隙车钩和 ECP 制动技术对减少变坡区段常用全制动时的列车
+最大纵向压钩力不明显。
+关键词：重载组合列车；纵向动力学；列车编组长度；机车同步控制；坡度差
+中图分类号： U270. 1 文献标识码： A doi：10. 3969/j. issn. 1001 -4632. 2021. 01. 11
+对于我国运煤专用列车，一般来说牵引重量 2
+万~3 万 t 级称为长大列车，牵引重量 4 万 t 级及以
+上可称之为超长列车。开行超长列车是进一步提高
+重载运输能力的一种有效途径，我国大秦重载铁路
+已开行了 2 万 t 级重载组合列车，并进行了 3 万 t 级
+长大列车的运行试验研究 ［1］。南非、澳大利亚也
+已经开行了 4 万 t 级的超长列车，如 2001 年澳大利
+亚完成了 9. 97 万 t 超长重载列车运行试验 ［2］。随着
+我国重载铁路运输的发展，重载铁路关键技术装备
+不断升级，使超长重载列车试验或开行成为可能。
+大轴重机车车辆的运用，列车的编组长度加
+长、牵引质量加大，将导致运行过程中的牵引力及
+制动力加大。而且，我国幅员辽阔，地形复杂，超
+长列车所占线路纵断面也较为复杂。因此，超长列
+车在复杂线路运行时的纵向冲动较一般列车更复
+杂。文献 ［3-8］ 研究了长大列车纵向动力学仿真
+关键技术和方法，并且我国还开展 3 万 t 级长大列
+车线路运行试验，但是对 4 万 t 级、甚至 10 万 t 级
+超长列车运行中纵向力变化规律的研究较少。超长
+列车纵向动力学的研究手段主要有线路试验和仿真
+计算，线路试验一般周期长、成本高、测试断面有
+限，而且有断钩和脱轨的风险；仿真计算得到线路
+试验验证后，可以很好地应用于特殊工况和多种不
+利条件组合下的运行模拟计算，分析所需时间短、
+成本低、数据全，为超长列车的线路试验和开行提
+供理论参考。
+本文建立超长重载列车纵向动力学仿真模型，
+利用该模型研究超长重载列车纵向动力学的内在影
+响规律，研究结果将进一步拓展对超长编组重载列
+车纵向动力学的理论认知，丰富长大重载列车纵向
+动力学理论体系，为超长重载列车试验和开行提供
+理论支撑。
+1 超长重载列车纵向动力学模型
+超长重载列车 （ 简称超长列车 ） 纵向动力学主
+要用来分析超长列车编组方式、分布式机车无线同
+步控制、操纵策略、运行工况及线路纵横断面造成
+的机车车辆间纵向动力作用。超长列车纵向动力学
+模型的主要特点是列车编组长，自由度大，纵向力
+文章编号： 1001-4632 （2021） 01-0087-08
+收稿日期： 2020-01-08；修订日期： 2020-04-26
+基金项目：中国铁路总公司科技研究开发计划课题 （ J2018J008）
+第一作者：常崇义 （1974— ） ，男，山西榆次人，研究员，博士 。E-mail： chychang@163. com
+
+=== PDF PAGE 2 ===
+第 42 卷中 国 铁 道 科 学
+传递复杂，模型中 1 节机车 /车辆作为 1 个分离体，
+超长列车的自由度等于组成列车的机车车辆的总辆
+数，如图 1 所示。图中： m 为质量； u 为位移；下
+标 hn 为编组中机车 /车辆的顺号，其中 h 为编组中
+每小列的序号， n 为每小列中的车辆数。
+超长列车纵向动力学方程为
+mi ü i = Fci - 1 - Fci - Fwi - FTEi - FDBi - FBi
+i = 0,1,…,hn （1）
+式中： mi 为第 i 车的质量； ü i 为第 i 车的加速度 ；
+Fci - 1 为第 i 车的前车钩力， Fc0 - 1 = 0；Fci 为第 i 车
+的后车钩力， Fchn = 0；Fwi 为第 i 车的总的运行阻
+力，包括等效运行阻力、坡道力、曲线阻力、起动
+阻力等； FTEi 为第 i 车的机车牵引力； FDBi 为第 i 车
+的 机 车 动 力 制 动 力 ；FBi 为 第 i 位 车 的 纯 空 气 制
+动力。
+将 Fci - 1 = k͂ i - 1 ( ui - ui - 1 ) （其 中 k͂ i - 1 为 第 i 车
+前车钩缓冲器与相邻车辆车钩缓冲器的串联瞬时刚
+度） 和 Fci = k͂ i ( ui + 1 - ui ) （其中 k͂ i 为第 i 车后车钩
+缓冲器与相邻车辆车钩缓冲器的串联瞬时刚度 ） 代
+入式 （1） ，可得
+ì
+í
+î
+ïï
+ïï
+Mü + ~K u = F
+u̇ | t = 0 = v0
+u| t = 0 = u0
+（2）
+式中：M 为机车和车辆质量矩阵； ~K 为系统瞬时总
+非线性刚度矩阵； F 为列车系统所受外力向量； ü ，
+u̇ 和 u 分别为多质点体系中各机车车辆相对于平衡
+点的加速度、速度和位移向量； t 为时间。
+列车空气制动作用是列车纵向运动中最为重要
+也是最为复杂的非稳态作用过程，列车空气制动模
+型采用非线性解析模型 ［3］。
+HM-1 型缓冲器为胶泥式钢摩擦缓冲器，在该
+缓冲器模型中考虑了钢摩擦与弹性胶泥的阻尼效
+应，HM-1 型钢摩擦与弹性胶泥复合缓冲器数值模
+型建立与验证见文献 ［8］ 。
+列车运行时单位基本阻力、坡道附加阻力和曲
+线 附 加 阻 力 的 计 算 参 考 文 献 ［9］ 中 规 定 的 方 法
+进行。
+超长列车一般采用动力分布式编组方式，在动
+力分布式编组方式中主控机车与从控机车间采用无
+线 同 步 控 制 技 术 ， 计 算 时 采 用 文 献 ［3］ 提 出 的
+Locotrol 同步操纵控制模型。
+2 3 万 t 长大列车纵向力计算结果试
+验验证
+超长列车纵向动力学方程是非常复杂的非线性
+方程，其许多部件具有非线性特性，如缓冲器的非
+线性阻抗特性、牵引与制动利用的非线性特性曲
+线 ， 可 利 用 基 于Newmark- β 的 高 精 度 平 衡 迭 代
+法
+［3］ 对超长列车纵向动力学方程进行求解，在文
+献 ［3］ 中已应用该算法获得了 2 万 t 重载组合列车
+紧 急 制 动 时 的 纵 向 力 结 果 ， 并 经 过 了 线 路 试 验
+验证。
+为了更好地评估超长列车在长大下坡道循环制
+动工况的计算结果有效性，根 据
+ 大秦线 3 万 t 长大
+列车 （ 到目前为止，我国线路试验中编组最长的重
+载列车） 线路实车试验工况进行列车运行模拟计
+算，并与试验结果进行对比分析。 3 万 t 长大列车
+由 3 台 HXD1 型和 1 台 SS4 型机车及 315 辆 C80 型双浴
+盆式铝合金运煤专用敞车按分布动力方式组成。试
+验机车安装 Locotrol 无线同步控制系统设备，装有
+13 号车钩和 MT-3 型缓冲器；每 3 辆敞车为 1 组装
+配牵引杆，车组之间用 16 型和 17 型车钩连接 （ 车
+钩间隙为 24 mm） ，并装有120 型制动机和 MT-2
+型 缓 冲 器 。 试 验 列 车 编 组 方 式 ：HXD1 （主 控 机
+车 ）+105×C80+HXD1 （ 从控机车1） +105×C80+
+HXD1 （ 从 控 机 车 2） +105×C80+SS4 （ 从 控
+机车 3） 。
+3 万 t 试验列车通过布置 15 个车辆测试断面对
+车辆的制动和纵向动力学参数进行测试，每 105 辆
+敞车为 1 小列，其测试断面位置为第 1、第 25、第
+52、第 79 和第 103/105 辆敞车。测试项目包括车钩
+力、车体纵向加速度、列车管压力、副风缸压力和
+制动缸压力。当试验列车以 70 km ·h-1 速度运行
+图 1 超长列车纵向动力学模型
+88
+
+=== PDF PAGE 3 ===
+第 1 期 超长重载列车纵向力影响规律仿真研究
+至大秦线 K288+320 （ 坡度为-10‰） 处时，进行
+调速制动的纵向力试验测试。在试验中，对列车头
+部的主控机车和 3 位从控机车的同步响应时间进行
+实时监测，结果表明： 3 位从控机车较主控机车的
+动作时间延迟 2～3 s。
+3 万 t 试验列车在长大下坡道的操控过程如图 2
+所示。
+测试断面 （第 53、第 104、第 131、第 164 和
+第 280 车位 ） 处纵向车钩力试验和仿真结果对比如
+图 3 所示。从图 3 可以看出，仿真和试验结果十分
+接近，说明采用第 1 节的数值模型及算法计算 3 万 t
+长大列车纵向车钩力具有足够的精度。
+3 超长列车纵向力影响规律
+在超长列车编组中，主控机车和第 1 从控机车
+采用 30 t 轴重 HXD1F 型电力机车，其他从控机车
+采用 25 t 轴重 HXN3 型内燃机车；车辆采用 30 t 轴
+重 C96 型运煤专用敞车，每 2 辆敞车为 1 组装配牵引
+杆，车组之间用 16 型和 17 型车钩连接 （ 车钩间隙
+为 9. 5 mm） ，并装配HM-1 型缓冲器。主控机车与
+从控机车间采用无线同步操控技术，从控机车操纵
+动作延迟主控机车 3 s。
+超长列车牵引重量为 3+n 万 t 时的编组方式描
+述为如下。
+（a） 第 53 车位前车钩
+（b） 第 104 车位前车钩
+（c） 第 131 车位前车钩
+（d） 第 164 车位前车钩
+（e） 第 280 车位前车钩
+图 3 3 万 t 试验列车坡道制动时纵向车钩力试验和仿真结果
+图 2 3 万 t 试验列车在长大下坡道操控过程
+89
+
+=== PDF PAGE 4 ===
+第 42 卷中 国 铁 道 科 学
+HXD1F （主 控 机 车）+84×C96+HXD1F （从
+控机车 ）+84×C96+n× （2×HXN3 （ 从控机车 ）+
+84×C96） +HXN3 （从 控 机 车）+84×C96+HXN3
+（ 从控机车 ） 。
+3. 1 平直道制动工况时列车编组长度对纵向力影
+响规律
+按 照 上 文 描 述 的 超 长 列 车 编 组 方 式 ， 计 算4
+万、6 万、8 万、10 万和 12 万 t 超长列车在平直道、
+以 60 km ·h-1 速度运行时分别进行常用全制动和
+紧急制动工况下不同列车编组长度对纵向力的影
+响。常用全制动时不同编组列车各车位纵向压钩力
+最大值分布如图 4 所示。图中，纵向力为负值时表
+示压钩力。从图 4 可以看出：不同车位的纵向压钩
+力最大值按万 t 小列波动，每个万 t 小列中的最大
+纵向压钩力均出现在其中部； 4 万~12 万 t 超长列
+车最大纵向压钩力都出现在第95车位，约为320 kN。
+紧急制动时不同编组列车各车位纵向压钩力最
+大值分布如图 5 所示。从图 5 可以看出： 4 万~12
+万 t 超长列车最大纵向压钩力出现在第 85—第 95 车
+位中，约为 800 kN ；第 95—第 500 车位的纵向压
+钩力最大值逐渐震荡减小，第 500—第 1 025 车位
+的纵向压钩力最大值按万 t 小列波动。
+平直道常用全制动和紧急制动时， 4 万~12 万
+t 超长列车的编组长度对列车最大纵向压钩力影响
+较小，主要原因是所有从控机车操纵动作较主控机
+车的延迟时间均相同，从控机车延迟时间主要影响
+超长列车前 2 个万 t 小列的制动波速和制动力，而
+之后的万 t 小列同步性较好。
+3. 2 分布机车无线同步控制延迟时间对纵向力影
+响规律
+采用 Locotrol 技术控制主控机车与从控机车间
+的同步响应时间，从控机车无线同步控制延迟时间
+长短是影响超长列车的纵向力的重要因素。由于 4
+万~12 万 t 超长列车编组长度对平直道紧急制动时
+列车最大纵向压钩力影响较小，因此分析主、从控
+机车响应时间对纵向力的影响时，只需计算 4 万 t
+超长列车在平直道以 60 km ·h
+-1 速度紧急制动工
+况下无线同步控制延迟时间分别为 2，3，5 和 6 s
+时对纵向力的影响，得到紧急制动时各车位纵向压
+钩力最大值分布如图 6 所示。
+从图 6 可以看出：列车最大纵向压钩力出现在
+第 90 车位附近；延迟时间为5 s 时列车最大纵向压钩
+力 （ 第92 车位 ） 达到1 200 kN，比2 s 时的500 kN 增
+加约 140%；延迟时间为 6 s 时，列车最大纵向压钩
+力达到1 300 kN，并没有超过安全限值2 250 kN ［11］。
+4 万 t 超长列车紧急制动时最大纵向压钩力随
+延迟时间的变化规律如图 7 所示。
+图 4 常用全制动时不同编组长度下各车位纵向压钩力最大
+值分布
+图 5 紧急制动时不同编组长度下各车位纵向压钩力最大值
+分布
+图 6 不同延迟时间时各车位纵向压钩力最大值分布
+图 7 紧急制动时列车最大纵向压钩力随延迟时间变化规律
+90
+
+=== PDF PAGE 5 ===
+第 1 期 超长重载列车纵向力影响规律仿真研究
+从图 7 可以看出：列车最大纵向压钩力随从控
+机车无线同步控制延迟时间的增加近似线性增加，
+增加斜率为 200 kN ·s-1。
+3. 3 长大下坡道坡度差对纵向力影响规律
+由于超长列车编组长，列车所占线路纵断面比
+较复杂，线路纵断面也是超长列车纵向力影响的重
+要因素。我国重载铁路从西北至东南，长大下坡道
+路况非常普遍。为分析长大下坡道坡度差对超长列
+车纵向力的影响，按照上文描述的超长列车编组方
+式，计算 4 万、 6 万、 8 万和 10 万 t 超长列车以 60
+km·h
+-1 速度运行时常用全制动工况下、在 13‰ 下
+坡道连接 10‰，8‰，6‰ 和 4‰ 下坡道和平道时的
+坡度差对纵向力的影响。
+4 万 t 超长列车在不同坡度差时各车位纵向压
+钩力最大值分布如图 8 所示。从图 8 可以看出：随
+着长大下坡道中坡度差的增加，超长列车的最大纵
+向 压 钩 力 也 在 增 加 ， 其 出 现 的 位 置 为 第195— 第
+201 车 位 ； 坡 度 差 为3‰ 时 ， 最 大 纵 向 压 钩 力 为
+897 kN ； 坡 度 差 为13‰ 时 ， 最 大 纵 向 压 钩 力 为
+2 091 kN 。
+6 万 t 超长列车在不同坡度差时各车位纵向压
+钩力最大值分布如图 9 所示。从图 9 可以看出：随
+着长大下坡道中坡度差的增加，超长列车中最大纵
+向 压 钩 力 也 在 增 加 ， 其 出 现 的 位 置 为 第284— 第
+290 车位；坡度差为 9‰ 时，最大纵向压钩力达到
+了 2 350 kN ，超过了安全限值 ［11］，出现车钩缓冲
+器压死现象。
+8 万 t 超长列车在不同坡度差时各车位纵向压
+钩力最大值分布如图 10 所示。从图 10 可以看出：
+随着长大下坡道中坡度差的增加，组合列车中最大
+纵向压钩力也在增加，其出现的位置为第 378—第
+418 车位；坡度差为 7‰ 时，最大纵向压钩力达到
+了 2 400 kN ，超过了安全限值 2 250 kN ［11］，出现
+了车钩缓冲器压死现象。
+10 万 t 超长组合列车在不同坡度差时各车位纵
+向压钩力最大值分布如图 11 所示。从图 11 可以看
+出：随着长大下坡道中坡度差的增加，组合列车中
+最大纵向压钩力也在增加，其出现在第 500 车位附
+近；坡度差为 5‰ 时，最大纵向压钩力达到了 2 099
+kN；坡度差超过 7‰ 时，最大纵向压钩力超过了
+安全限值 2 250 kN ［11］，出现车钩缓冲器压死现象。
+不同编组长度时列车最大纵向压钩力与长大下
+坡道中坡度差的关系如图 12 所示。从图 12 可以看
+出：4万~10万 t超长列车在长大下坡道以60 km·h-1
+图 10 8 万 t 超长列车不同坡度差时各车位纵向压钩力最大
+值分布
+图 8 4 万 t 超长列车不同坡度差时各车位纵向压钩力最大
+值分布
+图 9 6 万 t 超长列车不同坡度差时各车位纵向压钩力最大
+值按车位分布
+图 11 10 万 t 超长列车不同坡度差时各车位纵向压钩力最
+大值分布
+91
+
+=== PDF PAGE 6 ===
+第 42 卷中 国 铁 道 科 学
+速度进行常用全制动时，长大下坡道中坡度差对超
+长列车最大纵向压钩力影响较大，列车最大纵向压
+钩力随坡度差的增加而增大，且列车编组长度越长
+增加幅度越大；列车最大纵向压钩力随编组长度的
+增加而增大，坡度差越大增加幅度也越大；对于不
+同编组长度的超长列车，在列车最大纵向压钩力不
+超安全限值的条件下，长大下坡道中的允许最大坡
+度差随编组长度的增加而减小， 4 万 t 超长列车允
+许的最大坡度差为 13‰，而 10 万 t 时仅有 5‰。
+3. 4 车钩间隙对纵向力影响规律
+超长列车车辆之间可选择使用新型无间隙车钩
+或者牵引杆改善车辆之间的纵向冲动，通过 4 万 t
+编组列车在长大下坡道 13‰ 下坡道连接平道变坡
+区段以 60 km ·h
+-1 速度进行常用全制动时，分析
+普通车钩 （ 钩间隙为 9. 5 mm） 、牵引杆 （2 辆敞车
+为 1 组 ） 、新型无间隙车钩对纵向力的影响，得到
+不同车钩间隙时各车位纵向压钩力最大值分布如图
+13 所示。从图 13 可以看出：使用普通车钩时列车
+中最大纵向压钩力约为 2 070 kN ，使用牵引杆可使
+最大纵向压钩力减小约 2%，使用新型无间隙车钩
+可使最大纵向压钩力减小约 4%。
+3. 5 ECP 制动控制技术对纵向力影响规律
+通过模拟 4 万 t 超长列车在 13‰ 长大下坡道连
+接平道变坡区段以 60 km ·h
+-1 速度进行常用全制
+动和紧急制动工况，分析 ECP 制动控制技术对超
+长列车纵向力的影响，得到采用 ECP 制动控制技
+术和传统的 Locotrol 无线同步控制技术进行常用全
+制动工况时各车位纵向压钩力最大值分布如图 14
+所示。从图 14 可以看出：在有变坡区段，超长列
+车采用 ECP 制动技术对减少常用全制动时列车最
+大纵向压钩力不明显。
+4 万 t 超长列车分别采用 ECP 制动控制技术和
+传统的 Locotrol 无线同步控制技术进行紧急制动工
+况时各车位纵向压钩力最大值分布如图 15 所示。
+从图 15 可以看出：在有变坡区段，超长列车采用
+ECP 制动技术可以明显减小紧急制动时列车中最
+大纵向压钩力。
+4 结 论
+（1） 根据 3 万 t 长大列车线路坡道制动试验工
+况进行了列车运行模拟计算，长大列车的纵向力计
+算规律与试验结果基本一致，验证了长大列车纵向
+动力学模型和计算方法的有效性。
+图 13 不同车钩间隙时各车位纵向压钩力最大值分布
+图 12 不同编组长度时列车最大纵向压钩力与长大下坡道
+变坡差的关系
+图 14 常用全制动时不同制动控制技术下各车位纵向压钩
+力最大值分布
+图 15 紧急制动时不同制动控制技术下各车位纵向压钩力
+最大值分布
+92
+
+=== PDF PAGE 7 ===
+第 1 期 超长重载列车纵向力影响规律仿真研究
+（2） 4 万~12 万 t 超长列车编组长度对平直道
+常用全制动和紧急制动时列车最大纵向压钩力影响
+较 小 ，4 万~12 万 t 超 长 列 车 在 平 直 道 以60 km ·
+h-1 运行时进行常用全制动时的最大纵向压钩力约
+为 320 kN，紧急制动时最大纵向压钩力约为800 kN。
+（3） 超长列车平直道以 60 km ·h-1 运行时进
+行紧急制动，列车最大纵向压钩力随着从控机车与
+主控机车无线同步操控延迟时间的增加而增加，同
+步控制延迟时间 5 s 时，超长列车最大纵向压钩力
+达 到 1 200 kN ， 其 比 延 迟 时 间2 s 时 的 增 加 了 约
+140%。
+（4） 4 万 t 超长列车在 13‰ 长大下坡道接平直
+道区段以 60 km ·h
+-1 运行速度进行常用全制动时，
+列车最大纵向压钩力达到 2 091 kN ，安全裕量只
+有 7%。
+（5） 长大下坡道中的坡度变化对超长列车常用
+全制动时最大纵向压钩力影响较大，其影响规律可
+以为开行超长列车的新建重载铁路的纵断面设计提
+供参考。
+（6） 超长列车在有变坡的长大下坡道区段进行
+常用全制动时，使用牵引杆和无间隙车钩可分别减
+少最大纵向压钩力约 2% 和 4%；采用 ECP 制动控
+制技术可以有效降低紧急制动时的纵向力，但是对
+于常用全制动则改善不明显。
+参 考 文 献
+［ 1 ］ 姚小沛 . 大秦线 3 万 t 组合列车综合试验 ［R］. 北京：中国铁道科学研究院，2014.
+（YAO Xiaopei. Comprehensive Test of 30 000 Ton Combined Train on Datong -Qinhuangdao Line ［R］. Beijing ：China
+Academy of Railway Sciences ，2014. in Chinese）
+［ 2 ］ COLIN C. Longitudinal Train Dynamics ，Handbook of Railway Vehicle Dynamics ［M］. Boca Raton ：Taylor & Francis ，
+2006.
+［ 3 ］ CHANG C Y ，GUO G ，WANG J B ，et al. Study on Longitudinal Force Simulation of Heavy -Haul Train ［J］. Vehicle
+System Dynamics ，2017，55（4）：571-582.
+［ 4 ］ WU Q ，SPIRYAGIN Maksym ，COLIN Cole ，et al. International Benchmarking of Longitudinal Train Dynamics
+Simulators：Results［J］. Vehicle System Dynamics ，2018，56（3）：343-365.
+［ 5 ］ WU Q ，SPIRYAGIN Maksym ，COLIN Cole. Longitudinal Train Dynamics ：An Overview ［J］. Vehicle System
+Dynamics，2016，54（12）：1688-1714.
+［ 6 ］ WU Q ，COLIN Cole ，LUO Shihui ，et al. A Review of Dynamics Modelling of Friction Draft Gear ［J］. Vehicle System
+Dynamics，2014，52（6）：733-758.
+［ 7 ］ 杨俊杰， 常崇义， 封全保， 等. 重载组合列车机车缓冲器关键技术参数研究 ［J］. 中国铁道科学，2010，31（3）：76-81.
+（YANG Junjie ，CHANG Chongyi ，FENG Quanbao ，et al. Study on the Key Technical Parameter of the Locomotive
+Draft Gear in a Heavy Haul Combined Train ［J］. China Railway Science ，2010，31（3）：76-81. in Chinese）
+［ 8 ］ 常崇义， 王新锐， 姜岩， 等. 钢摩擦与弹性胶泥复合型缓冲器数值模型 ［J］. 中国铁道科学，2016，37（4）：83-88.
+（CHANG Chongyi ，WANG Xinrui ，JIANG Yan ，et al. Numerical Model of Steel Friction and Elasticity Cement
+Composite Draft Gear ［J］. China Railway Science ，2016，37（4）：83-88. in Chinese）
+［ 9 ］ 中华人民共和国铁道部 .TB/T 1407 —1998 列车牵引计算规程 ［S］. 北京：中国铁道出版社，1998.
+（Ministry of Railways of the People 's Republic of China. TB/T 1407 —1998 Regulations on Railway Train Traction
+Calculation［S］. Beijing ：China Railway Publishing House ，1998. in Chinese）
+［10］ 杨俊杰， 常崇义， 封全保， 等. 重载组合列车机车缓冲器关键技术参数研究 ［J］. 中国铁道科学，2010，31（3）：76-81.
+（YANG Junjie ，CHANG Chongyi ，FENG Quanbao ，et al. Study on the Key Technical Parameter of the Locomotive
+Draft Gear in a Heavy Haul Combined Train ［J］. China Railway Science ，2010，31（3）：76-81. in Chinese）
+［11］ 中华人民共和国铁道部 .TB/T 1335 —1996 铁道车辆强度设计及试验鉴定规范 ［S］. 北京：中国铁道出版社，1996.
+（Ministry of Railways of the People 's Republic of China. TB/T 1335 —1996 Standard on Strength Design and Accreditation
+Test of Railway Vehicles ［S］. Beijing ：China Railway Publishing House ，1996. in Chinese）
+93
+
+=== PDF PAGE 8 ===
+第 42 卷中 国 铁 道 科 学
+Simulation Study on the Influence of Longitudinal Force on
+Super Long Heavy Haul Trains
+CHANG Chongyi 1,2 ，MA Yingming 1,2 ，GUO Gang 1,2 ，CHEN Bo 1,2
+(1. Railway Science & Technology Research & Development Center, China Academy of Railway Sciences Corporation Limited,
+Beijing 100081, China;
+2. High -Speed Wheel/Rail System Laboratory, China Academy of Railway Sciences Corporation Limited,
+Beijing 100081, China)
+Abstract: A longitudinal dynamics simulation model of the super long heavy haul train was established and
+verified by the braking test data of 30 000 t heavy haul combination train on the long and steep down grade of
+Daqin Line. The simulation model was used to analyze the influence of train formation length and the delay time
+of locomotive wireless synchronous control under the braking condition of straight line, as well as the influence
+of the slope difference, coupler clearance and ECP braking control technology on long and steep down grade
+under full service braking on the longitudinal force of super long heavy haul train. Results show that under
+normal conditions, the formation length of 40 000 —120 000 t super long heavy haul combined train has a small
+effect on the maximum longitudinal coupler force under full service braking and emergency braking on the
+straight line, which does not exceeds the safety limit of 2 250 kN. When the delay time of the synchronous
+control of the super long heavy haul train under emergency braking on the straight line exceeds 5 s, the
+maximum longitudinal coupler force reaches 1 200 kN, but it still does not exceed the safety limit. The slope
+difference of the long and steep down grade has a great impact on the maximum longitudinal coupler force of the
+super long heavy haul trains. Under the condition that the longitudinal force does not exceed the safety limit of
+2 250 kN under full service braking at the speed of 60 km ·h
+－1, the maximum allowable slope difference of long
+and steep down grade for 40 000 t super long heavy haul combined trains is 13‰, and that of 100 000 t is only
+5‰. The new type of gapless coupler and ECP braking control technology for super long train have no obvious
+effect on reducing the maximum longitudinal coupler force when full service braking is used in the slope changing
+section.
+Key words: Heavy haul combined train; Longitudinal dynamics; Train formation length; Locomotive
+synchronization control; Slope difference
+（ 责任编辑 金 燕 ）
+94

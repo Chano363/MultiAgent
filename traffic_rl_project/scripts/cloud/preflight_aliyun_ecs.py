@@ -13,14 +13,12 @@ from aliyunsdkcore.request import CommonRequest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from probe_aliyun_ecs import call, load_ak  # noqa: E402
+from ak_path import resolve_ak_file  # noqa: E402
 
 
 def main():
     region = sys.argv[1] if len(sys.argv) > 1 else "cn-heyuan"
-    ak_id, ak_secret, _ = load_ak(os.environ.get(
-        "ALIYUN_AK_FILE",
-        os.path.join(os.path.expanduser("~"), ".aliyun_ak.txt"),
-    ))
+    ak_id, ak_secret, _ = load_ak(resolve_ak_file())
     client = AcsClient(ak_id, ak_secret, region_id=region)
 
     print(f"===== 地域 {region} 下单前置检查 =====")

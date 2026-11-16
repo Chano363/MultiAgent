@@ -1,3 +1,5 @@
+# ⛔ 【2026-11-13 ADR-068】本配置沿用旧口径 v_max=80 km/h（target=60 / d_eff=138.5）。
+#    其结果**不得**与 v_max=75 口径的数字并列引用；如需复现请按 ADR-068 六量同批改口径。
 # L1 单列循环制动 MAPPO（对齐 Zhang2024 DQN + 车钩力）
 # 统一框架配置：python run_training.py --experiment configs/experiments/l1_cyclic_mappo.yaml
 name: l1_cyclic

@@ -1,0 +1,11 @@
+{
+  "trajectory": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single108_balanced_cold70_isolated_20261019_round15\\run\\trajectory.npz",
+  "trajectory_sha256": "f17272be5d193430a9dfa53911d28d5d2eb59c69fa70265944b13729291de7ba",
+  "solver_result": "F:\\列车大创xmc\\multi-agent\\traffic_rl_project\\outputs\\sim_validation\\phys_validation\\single108_balanced_cold70_isolated_20261019_round15\\solver_result.json",
+  "duration_s": 745.2,
+  "scope": "745.2-second archived cold-start prefix, not whole-route acceptance",
+  "internal_microstep_peak_kn": 719.8165626023136,
+  "language": "zh",
+  "force_unit": "kN; ED is locomotive total; air is entire-train total",
+  "simulator_rerun": false
+}

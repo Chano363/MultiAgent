@@ -1,0 +1,249 @@
+Algorithms 2024, 17, 190                                                                                                                12 of 17
+
+
+
+
+                                  Table 3. Algorithm hyperparameters.
+
+                                                Parameter                      Value                    Parameter                   Value
+                                     Maximum training episode M               100,000        Minimum air-refilling time TAI           100
+                                    Update period of target network             300            Batch size of sampling ne               32
+                                            Discount rate γ                     0.94                Learning rate λ                  0.001
+                                           Initial value of ε                   0.98                Final value of ε                  0.1
+                                     Capacity of memory buffer D               5000            Planned operation time T             1500 s
+                                         Positive reward Rd                       5               Negative reward Rc                 −20
+                                     Minimum braking speed Vmin r            40 km/h         Maximum braking speed Vmax r          80 km/h
+
+
+                                   4.2. Simulation Experiment Verification
+                                   4.2.1. Model Training Process
+                                             In this study, simulations were carried out under different parameters and training
+                                       cycles with the proposed DQN algorithm for verification purposes. Under the specified
+                                       circumstances, the time interval ∆t was 100 s. In addition, the initial speed V0 of the heavy-
+                                       haul train running on a long and steep downhill section was 65 km/h. The change curve
+                                       of the cumulative reward obtained using the proposed algorithm is shown in Figure 4.
+                                       As shown in Figure 4a–c, the learning rates were determined to be 0.03, 0.003 and 0.0003,
+                                       respectively, for the cumulative reward curve that changes depending on the number of
+                                       episodes in different experiments. It is evident that during the short-term training period,
+                                       the total cumulative reward gradually increases and converges in a good direction after
+                                       training, as shown in Figure 4a–c. It should be noted that the best training performance
+                                       is in Figure 4b, where the learning rate was determined to be 0.003. The average total
+                    Algorithms 2024, 17, x FOR PEER REVIEW                                                                         13 of 19
+                                       reward’s evolution curve exhibits a swifter and more consistent convergence rate, along
+                                       with a higher convergence value. Consequently, a learning rate of 0.003 was selected for
+                                       the other experiments.
+
+
+
+
+                                                       Episodes                                         Episodes
+                                                         (a)                                              (b)
+
+
+
+
+                                                                                Episodes
+                                                                                  (c)
+                                                 Figure
+                                   Figure 4. Change     4. Change
+                                                    curves        curves of cumulative
+                                                            of cumulative               reward at learning
+                                                                             reward at different   diﬀerent learning  rates:
+                                                                                                             rates: (a) the (a) the learning
+                                                                                                                             learning  rate λrate
+                                                                                                                                              of λ of
+                                                 DQN algorithm is 0.03; (b) the learning rate λ of DQN algorithm is 0.003; (c) the learning rate λ of
+                                   DQN algorithm is 0.03; (b) the learning rate λ of DQN algorithm is 0.003; (c) the learning rate λ of
+                                                 DQN algorithm is 0.0003.
+                                   DQN algorithm is 0.0003.
+                                                        Figure 5 shows the change curve of the total cumulative reward with the number of
+                                                   training episodes at a learning rate of 0.003 and a training period of 10,000 episodes. It
+                                                   also illustrates the change curve of the cumulative reward after the algorithm has
+                                                   converged. The other parameters of the DQN algorithm are the same as those shown in
+                                                   Table 3.
+   Algorithms 2024, 17, 190                                                                                                   13 of 17
+
+
+
+
+                                         Figure 5 shows the change curve of the total cumulative reward with the number of
+                                   training episodes at a learning rate of 0.003 and a training period of 10,000 episodes. It also
+Algorithms 2024, 17, x FOR PEER REVIEW                                                                                             14 of 19
+                                   illustrates the change curve of the cumulative reward after the algorithm has converged.
+                                   The other parameters of the DQN algorithm are the same as those shown in Table 3.
+
+
+
+
+                                                                     Episodes
+
+                                          5. Change
+                                   Figure 5.
+                                  Figure     Changecurve
+                                                    curveofoftotal cumulative
+                                                               total          reward
+                                                                     cumulative      of the
+                                                                                 reward   ofDQN   algorithm
+                                                                                             the DQN        with λ with
+                                                                                                                   = 0.003.
+                                                                                                        algorithm        λ = 0.003.
+
+                                         It can be seen from Figure 5 that in the 10,000-episode training experiment, the fluctua-
+                                        It can be seen from Figure 5 that in the 10,000-episode training experiment, the
+                                   tion range of the cumulative reward gradually decreases as the number of training episodes
+                                  fluctuation    range
+                                   increases. From    theofchange
+                                                             the cumulative   reward
+                                                                   curve of the        gradually
+                                                                                 cumulative  reward,decreases  as the
+                                                                                                      it seems that thenumber     of training
+                                                                                                                         cumulative
+                                   reward was maintained at a significant level within a designated range upon practice whenthat the
+                                  episodes     increases.   From   the  change    curve of  the  cumulative    reward,    it seems
+                                  cumulative
+                                   executed about     5000 was
+                                                  reward         maintained
+                                                            times,             at a significant
+                                                                   and the average   cumulative level
+                                                                                                  rewardwithin  a designated
+                                                                                                          converged              range upon
+                                                                                                                      to about 1400.
+                                  practice    whenwas
+                                   After training    executed
+                                                         executed  10,0005000
+                                                                 about        times,
+                                                                          times,      and the
+                                                                                 the average    average cumulative
+                                                                                              cumulative                reward
+                                                                                                           reward remained        converged
+                                                                                                                              at 1450,
+                                   indicating   that the proposed   algorithm  is convergent.
+                                  to about 1400. After training was executed 10,000 times, the average cumulative reward
+                                  remained at 1450, indicating that the proposed algorithm is convergent.
+                                   4.2.2. Practical Application Performance Test
+                                        Figure 6a,b exhibit the outputs of the air braking force and electric braking force
+                                   during the control process of the DQN algorithm, respectively. The curve in Figure 7
+                                   shows the train speed controlled by the DQN algorithm. With the above parameter, i.e.,
+                                   the index Done was 1 with a learning rate of 0.003, the speed of the train was kept within
+                                   the limitation range during the operation. This means that the agent had learned a safe
+                                   and feasible control strategy during the test simulations to ensure the safe operation of
+                                   the heavy-haul train. Moreover, it is evident from Figures 6 and 7 that during the process
+                                   of train control, cyclic air braking was engaged when the train was running on the long
+                                   and steep downhill section. Specifically, air braking was not applied during the initial 80 s.
+                                   Since the overall braking force was not sufficient to decelerate the heavy-haul train, the
+                                   train speed increased during this period. In the following 100 s, air braking and electric
+                                   braking were utilized concurrently (h a = 1 and hd = 0.8), resulting in the train’s velocity
+                                   dropping from 76 km/h to 52 km/h. Subsequently, air braking was discontinued, while
+                                   electric braking was maintained constantly for the next 100 s (h a = 0 and hd = 0.8). At 210 s,
+                                   the train speed reached 78 km/h. At this moment, air braking was reactivated to reduce
+                                   the train’s velocity (h a = 1 and hd = 0.8).
+                           s. Since
+                           s.        the overall
+                              Since the          braking force
+                                         overall braking    force was was not
+                                                                          not suﬃcient
+                                                                               suﬃcient to      decelerate the
+                                                                                             to decelerate         heavy-haul train,
+                                                                                                             the heavy-haul      train, the
+                                                                                                                                         the
+                           train  speed  increased  during       this  period.  In
+                           train speed increased during this period. In the following 100 s, air braking and electric
+                                                                                    the following     100   s,  air  braking  and   electric
+                                                                          a                d
+                           braking   were utilized
+                           braking were             concurrently (( hh a =
+                                           utilized concurrently            = 11 and
+                                                                                  and hh d == 0.8),   resulting in
+                                                                                                0.8), resulting        the train’s
+                                                                                                                    in the train’s velocity
+                                                                                                                                   velocity
+                           dropping from 76 km/h to 52 km/h. Subsequently, air braking was discontinued, while
+                           dropping    from  76  km/h  to    52   km/h.   Subsequently,       air braking    was     discontinued,    while
+                                                                                                               a               d
+                           electric  braking  was  maintained         constantly   for the    next 100  s ( h  a = 0 and h d = 0.8). At
+Algorithms 2024, 17, 190   electric braking was maintained constantly for the next 100 s ( h = 0 and h = 0.8).                        14 ofAt
+                                                                                                                                            17
+                           210  s, the
+                           210 s,      train speed
+                                   the train         reached 78
+                                             speed reached         78 km/h.
+                                                                       km/h. At
+                                                                              At this   moment, air
+                                                                                   this moment,           braking was
+                                                                                                     air braking            reactivated to
+                                                                                                                      was reactivated      to
+                                                               a               d
+                           reduce   the train’s
+                           reduce the           velocity (( hh a =
+                                        train’s velocity                and hh d == 0.8).
+                                                                  = 11 and           0.8).
+
+
+
+
+                                                     (a)
+                                                     (a)                                                     (b)
+                                                                                                             (b)
+                           Figure 6.
+                           Figure
+                           Figure   6.6.Output
+                                         Output
+                                        Output of brake
+                                               of of    command
+                                                     brake
+                                                  brake         during
+                                                           command
+                                                        command    during
+                                                                during braking:
+                                                                           braking:
+                                                                       braking: (a)
+                                                                                (a) output
+                                                                                     (a) output
+                                                                                    output of air
+                                                                                           of     braking;
+                                                                                              air of air braking;
+                                                                                                  braking; (b) output
+                                                                                                           (b)    (b) of
+                                                                                                               output output of
+                                                                                                                      of
+                           electric braking.
+                                     braking.
+                           electric braking.
+                           electric
+
+
+
+
+                           Figure 7.
+                           Figure
+                           Figure 7. Control
+                                  7. Control Strategy
+                                     Control Strategy for
+                                             Strategy  for Running
+                                                      for  Running Speed
+                                                           Running Speed of
+                                                                         of The
+                                                                   Speed of The Heavy-Haul
+                                                                            The Heavy-Haul Train.
+                                                                                Heavy-Haul Train.
+                                                                                           Train.
+
+                                 Herein, an intelligent air braking strategy employing the DQN algorithm was used to
+                           implement five braking cycles for a heavy-haul train running on a long and steep downhill
+                           railway section. This approach ensured the safety of train operation. Furthermore, Figure 7
+                           unequivocally illustrates that the train’s safe operation indicator Y maintains a value of
+                           1, which signifies that the train velocity consistently remains within the predefined safety
+                           limits during its entire operation. Figure 7 shows that the DQN agent in the experiment
+                           learned a safe and feasible control strategy to ensure the safe operation of heavy-haul trains.
+                           It can be seen that after training, the algorithm is able to control the train speed by applying
+                           the air brakes before the train reaches the maximum speed of 80 km/h under the premise
+                           of a slope speed of 68 km/h, and by releasing the air brakes before the speed drops below
+                           the minimum release speed of 40 km/h after braking. This is done to ensure the train can
+                           maintain safe operation until it exits the long downhill section.
+
+                           4.2.3. Comparison of Algorithm Performance
+                                To prove the superiority of the DQN algorithm in dealing with the cyclic braking of a
+                           heavy-haul train running on a long and steep downhill section, the optimization results
+                           with the above settings were compared with those of the Q-learning algorithm [10]. The key
+                           parameters of the Q-learning algorithm were as follows: the learning rate λ was 0.05, the
+
