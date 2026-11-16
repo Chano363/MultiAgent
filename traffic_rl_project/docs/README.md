@@ -102,7 +102,7 @@
 | ----------------------------------------------------------- | -------------------------------------- |
 | （原 `ITSC_PAPER.tex` / `.pdf`）                            | 论文源稿，已删除（2026-10-19 目标会议更换），见 git 历史 |
 > 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`，含原"现存唯一交接文档" `HANDOFF_2026-10-17.md`）均已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。
-> **例外（待清理）**：`HANDOFF_2026-11-12.md` 仍在（阶段 1 的会话快照，已加"不再维护"横幅）；其 §7 环境坑需并入 `LEARNINGS.md` 后删除，**不得再作为计划来源**。现行状态只看 `PROJECT_PIPELINE.md` §〇。规则层标定数据看 `outputs/sim_validation/phys_validation/rulecal_*/` 与 `single108_*` 归档。
+> **2026-11-16 补删**：`HANDOFF_2026-11-12/13/14/16.md` 四份已按 AGENTS.md「HANDOFF 生命周期」规矩删除（阅后即删、仓内最多一份，现存唯一为队友的 `MPC_HANDOFF_2026-11-14.md`）。其结论已归宿：计划/待办 → `PROJECT_PIPELINE.md` §〇/§0.4（ADR-069 行）；决策 → `DECISIONS.md` ADR-069；归因 → `DIAGNOSTICS_2026-11.md`「W4-v11 穿透根因复现与归因」。下文各文档中残留的 `HANDOFF_2026-11-1x §n` 引用是**历史出处**（内容已迁），需原文时 `git show HEAD~1:./HANDOFF_2026-11-16.md` 追溯。**不得再作为计划来源**。现行状态只看 `PROJECT_PIPELINE.md` §〇。规则层标定数据看 `outputs/sim_validation/phys_validation/rulecal_*/` 与 `single108_*` 归档。
 
 ### 归档区（已有，保持）
 

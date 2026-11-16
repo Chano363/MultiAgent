@@ -5,6 +5,11 @@
 > 职责边界由 `docs/rules/README.md` §六 定义：本文件只持有**导航元数据**与**不可外包的行为约束**，其余一律给指针。
 > 下文 `docs/…` `src/…` `scripts/…` 路径均相对 `traffic_rl_project/`。
 
+## 临时交接文档（HANDOFF）生命周期
+
+- `HANDOFF_*.md`（含 `MPC_HANDOFF_*`）= **临时性文档，阅后即删**；**仓内最多同时存在一份**。
+- 接手后先把仍生效的结论与待办迁入正式归宿（计划 → `docs/PROJECT_PIPELINE.md` §〇 / §0.4；决策 → `docs/logs/decisions/DECISIONS.md`；归因 → `docs/logs/diagnostics/`），迁移完成即删，**不留档、不追加**（git 历史可追溯，无需保留工作区文件）。
+
 ## 仓库布局
 
 - `traffic_rl_project/` — 唯一研究项目（现行主战场）：重载列车群组协同控制。
