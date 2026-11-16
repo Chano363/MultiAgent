@@ -315,6 +315,16 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     gap_err_abs_peak = 0.0
     gap_min_over_ep = float('inf')
     rear_end_steps = 0
+    # 【ADR-069 ④ 2026-11-16】停车蠕行前兆报警（纯监测，不改判定/奖励）：
+    # 穿透前兆 = 后列近乎停稳（v < 0.15 m/s ≈ 0.54 km/h）而列距仍在收缩（>1 mm/步）。
+    # 正常停稳列车列距不变；列距在停稳状态下收缩 = 坡上蠕行极限环特征（ADR-069 归因）。
+    creep_v_thresh_mps = 0.15
+    creep_close_thresh_m = 1e-3
+    n_pairs = int(getattr(env, 'num_trains', 1)) - 1
+    creep_gap_prev = [None] * n_pairs
+    creep_steps = np.zeros(n_pairs, dtype=np.int64)
+    creep_first_step = np.full(n_pairs, -1, dtype=np.int64)
+    creep_closed_m = np.zeros(n_pairs)
     actions = None
     # 【W4-v3 2026-11-15】逐列超速/安全事件拆解：定位 ATP 过触发来自哪一列。
     # `safety_events` 只报总数，无法区分“哪一列超速”“是规则 C 还是 ETCS”。
@@ -418,6 +428,20 @@ def rollout(env, act_fn, args, rng, act_interval=1):
             if np.isfinite(gm):
                 gap_min_over_ep = min(gap_min_over_ep, gm)
                 rear_end_steps += int(gm <= 0.0)   # 实际列距 ≤0 = 追尾（物理穿透）
+            # 【ADR-069 ④】停车蠕行前兆：逐对取列距，后列近停稳而列距收缩即计报警。
+            for _gi in range(n_pairs):
+                _lead_tail = float(env.trains[_gi].dynamics.pos[-1])
+                _foll_head = float(env.trains[_gi + 1].dynamics.pos[0])
+                _g = _lead_tail - _foll_head
+                _v_foll = float(env.trains[_gi + 1].dynamics.vel[0])
+                _prev = creep_gap_prev[_gi]
+                if (_prev is not None and _v_foll < creep_v_thresh_mps
+                        and (_prev - _g) > creep_close_thresh_m):
+                    creep_steps[_gi] += 1
+                    creep_closed_m[_gi] += _prev - _g
+                    if creep_first_step[_gi] < 0:
+                        creep_first_step[_gi] = n + 1   # 1 基步号（与其余"首步"字段一致）
+                creep_gap_prev[_gi] = _g
         n += 1
         if (i + 1) % prog_every == 0:
             print(f"[progress] {i + 1}/{args.max_steps} 步 | 峰值车钩力 {peak / 1e3:.0f}kN | "
@@ -479,6 +503,16 @@ def rollout(env, act_fn, args, rng, act_interval=1):
         out['gap_err_mean_abs_m'] = gap_err_abs_sum / max(n, 1)   # 平均绝对列距误差（m）
         out['gap_err_peak_abs_m'] = gap_err_abs_peak              # 峰值绝对列距误差（m）
         out['gap_min_m'] = gap_min_over_ep                        # 全程最小实际列间距（m）
+        # 【ADR-069 ④】停车蠕行前兆报警（逐对）：报警步数 / 首步 / 累计收缩量。
+        # 报警 >0 即表明出现过"近停稳仍在逼近前列"的蠕行特征，评估行仍有效
+        # （穿透才作废），但该行为须归因，不得当正常通过处理。
+        out['standstill_creep_alert_steps'] = [int(x) for x in creep_steps.tolist()]
+        out['standstill_creep_first_step'] = [int(x) for x in creep_first_step.tolist()]
+        out['standstill_creep_closed_m'] = creep_closed_m.tolist()
+        if int(creep_steps.sum()) > 0:
+            print(f"[standstill-creep ALERT] 步数(逐对)={creep_steps.tolist()} "
+                  f"首步={creep_first_step.tolist()} 累计收缩(m)="
+                  f"{[round(x, 2) for x in creep_closed_m.tolist()]}", flush=True)
     # 【既定决策 2026-10｜追尾不作指标】"追尾步数"默认恒 0、且与"防追尾属 ATP 职权"
     # 的安全叙事矛盾（曾三令五申要求移除，2026-09 只改了后被 ADR-022 删除的
     # evaluate_m1_m3_long.py ⇒ 现行入口漏改，本次补齐）。物理穿透（实际列距 ≤0）一旦

@@ -211,3 +211,88 @@ def test_decision_interval_source_guards():
     assert call in text, "缺少 resolve_decision_interval 调用"
     assert text.index(call) < text.index('_meta = build_metadata('), \
         "解析发生在 build_metadata 之后 ⇒ metadata.eval_args 与实际行为矛盾"
+
+
+# =========================================================================== #
+# ⑥ 【ADR-069 ④ 2026-11-16】停车蠕行前兆报警：近停稳而列距收缩 ⇒ 报警计数
+#    穿透前兆 = 后列 v < 0.15 m/s 且列距 >1 mm/步 收缩（停稳列车列距不变）。
+# =========================================================================== #
+class _CreepDyn:
+    def __init__(self, vel, pos):
+        self.vel = np.array([vel])
+        self.pos = np.array([pos])
+
+    def coupler_interface_forces(self):
+        return np.array([])
+
+    _brake_pressure = np.array([])
+
+
+class _CreepTrain:
+    def __init__(self, vel, pos):
+        self.dynamics = _CreepDyn(vel, pos)
+        self.safety = type('S', (), {'last_events': []})()
+
+
+class _CreepStubEnv:
+    """两列编组：脚本化列距/后列速度序列，覆盖报警应触发与不应触发的形态。"""
+
+    num_agents = 1
+    act_dim = 2
+    num_trains = 2
+    decompose = True
+    v_min = 0.0
+    v_max = 80.0 / 3.6
+    coupler_force_limit_n = 1.0e6
+    _train_heads = [0.0, 100.0]
+
+    # reset 态 = (1.0, 90.0)；每步应用 _script[步号-1] = (后列速度 m/s, 后列头位 m)。
+    # 前列尾恒 100 m，列距 = 100 − 头位。
+    _pre_state = (1.0, 90.0)
+    _script = [
+        (1.0, 91.0),      # 快速逼近：v 高 → 不报警
+        (0.01, 91.005),   # 近停稳仍收缩 5 mm → 报警（第 2 步）
+        (0.01, 91.005),   # 停稳列距不变 → 不报警
+        (0.01, 91.001),   # 列距回扩（后退）→ 不报警
+    ]
+
+    def reset(self, options=None):
+        self._i = 0
+        self._state = self._pre_state
+        self._apply_state()
+        return np.zeros((self.num_agents, 11)), {}
+
+    def _apply_state(self):
+        v, pos = self._state
+        self.trains = [_CreepTrain(20.0, 0.0), _CreepTrain(v, pos)]
+
+    def _line_vmax_for(self, ti):
+        return self.v_max
+
+    def step(self, a):
+        self._i += 1
+        self._state = self._script[self._i - 1]
+        self._apply_state()
+        gap = 100.0 - self._state[1]
+        info = {'coupler_force_peak': 0.0, 'coupler_limit_violations': 0,
+                'safety_events': 0,
+                'ab_source_count': 0,
+                'executed_actions': np.zeros((self.num_agents, 2)),
+                'gap_err_mean': 0.0, 'gap_min_m': gap}
+        return None, 1.0, False, self._i >= len(self._script), info
+
+    def close(self):
+        pass
+
+
+def test_rollout_standstill_creep_alert_metric():
+    """近停稳而列距收缩触发报警（首步/步数/收缩量），正常逼近与停稳不误报。"""
+    env = _CreepStubEnv()
+    args = SimpleNamespace(random_init_speed=False, init_speed_kmh=60.0,
+                           max_steps=len(_CreepStubEnv._script))
+    out = ev.rollout(env, lambda e: np.zeros((e.num_agents, e.act_dim)),
+                     args, np.random.default_rng(0))
+    assert out['standstill_creep_alert_steps'] == [1], out['standstill_creep_alert_steps']
+    assert out['standstill_creep_first_step'] == [2]
+    assert out['standstill_creep_closed_m'][0] == pytest.approx(0.005, abs=1e-9)
+    assert out['gap_min_m'] == pytest.approx(8.995)

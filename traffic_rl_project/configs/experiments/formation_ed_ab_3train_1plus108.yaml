@@ -96,6 +96,12 @@ env_cfg:
   # 【2026-11-13 W4-0】service_reduction_kpa 不设 = 控制器默认 140 kHz（原 74.13 来自已作废 GA，实测为负债）
   ab_staged_apply: true              # 显式锚定 staged 模式（GA 搜索前提；控制器默认 true 已生效）
   ab_staged_gap_s: 3.0
+  # 【ADR-069 2026-11-16】EBI 停车保持，默认开：EBI 限速 ≤0.5 m/s 时无条件保持 EMERGENCY，
+  # 封住"停稳后 RL 缓解放掉紧急制动 → 坡上蠕行穿透"的规则 D 停车盲区。
+  # 依据（ADR-069 文献增补）：重载 ATP 团标 6.11.2/6.11.5/6.12（停车且满足缓解条件方可缓解、
+  # 停稳应施加空气制动、停车防护防溜）+ LKJ 惯例（紧急制动停车方可缓解）+ ERA ETCS 停车监督语义。
+  # 零回归实证：v4 ckpt 12k 对照 hold_ev=0、min_gap 与既有评估逐位一致（w4v18_ebihold12k_20261116）。
+  ebi_stop_hold_mps: 0.5
   cyclic_brake_trigger_kmh: 65.0
   cyclic_release_kmh: 50.0
   ed_release_coordination: true

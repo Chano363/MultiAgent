@@ -144,7 +144,7 @@ owner: Owner + Agent
 | ADR-066 ① | 每块结束回填本文件对应小节                                 | 🔄 2026-11-13 改口径：按 **W0–W6** 回填（ADR-067 重排后，原阶段 1 已回填于 §0.1/§0.2-old）                                                      |
 | **ADR-067** | ① W0 落地 `scripts/check_start_conditions.py`（六量耦合断言）；② W1 三路观测落 telemetry；③ 清 `formation_ed_ab_3train_1plus108.yaml:112–113` 过时 70 口径注释；④ 各块完成后回填 §0.2 状态列 | ⬜ 未启动（2026-11-13 立案，即当前主线） |
 | **ADR-068** | ① 主 YAML `v_max=75`、`init_speed=60` ✅；② `scripts/check_start_conditions.py` 落地并 PASS ✅；③ ref 表重生成 ✅（`refspeed_baseline_20261113_095953`，meta 记 `source_v_max_kmh=75`）；④ 600 步冒烟 ✅（peak 924.6 / min_gap 恒 = d_eff）；⑤ ~~超速统计改按段~~ ✅ 已由 ADR-060 实现；⑥ 探针 YAML 存档横幅 ✅ 24 个；⑦ **遗留**：代码默认值 `train_fleet_env.py:169` 已改 75 ✅，但 `diagnose_low_level_control.py` 的 `--finish-m` 未在基线命令中传入（致 `full_route_completed=false` 误报，实际已跑完），**下次基线跑须带 `--finish-m 49600`** | ✅ W0 完成（2026-11-13 10:05） |
-| **ADR-069** | ① **v4 ckpt 12k 零回归对照**（hold 分支构造性不可达，仍须跑通实证）；② `ebi_stop_hold_mps` **默认开与否须 Owner 在对照后拍板**（现默认关）；③ 训练侧"列距 ≤0 即 terminate"（MDP 改动须重训，**另案拍板**）；④ 评估前兆指标（停车蠕行报警，另案） | ⬜ ① 未跑；②③④ 待 Owner（2026-11-16 立案） |
+| **ADR-069** | ① v4 ckpt 12k 零回归对照 **✅ 通过（13:12）**：hold_ev=0、min_gap 与既有评估逐位一致；② `ebi_stop_hold_mps: 0.5` **已落主配置（默认开）**，依据 = 重载 ATP 团标 6.11.2/6.11.5/6.12 + LKJ 惯例 + ETCS 停车监督语义（ADR-069 文献增补；团标编号待回验原文）；③ "列距≤0 terminate + 终止罚"决议随**下一次重训窗口**实施（唯一待批项 = 重训资源）；④ 蠕行前兆报警 **✅ 已实现**（`standstill_creep_*` 指标 + 回归测试） | 🟢 ①②④ 已收口；③ 待重训窗口（2026-11-16 13:25 更新） |
 | ADR-021 ⑦ | `ab_min_hold_s` 与 `ab_min_refill_s=222 s` 实车核实 | 🟡 文献侧已结案（hold=0 无出处／222 s 双源佐证），仅余"实车数据正式核实"，**需线下获取，非本环境可完成**                 |
 
 ### 0.5 已冻结口径（一句话 + 指针，正文不重复）
