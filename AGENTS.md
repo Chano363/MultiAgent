@@ -27,13 +27,14 @@ cd /mnt/d/Code/MultiAgent/traffic_rl_project
 
 - 联网/下载用 **Windows PowerShell**（不是 WSL）；MCP 等原生调用用 `D:\Anaconda\python.exe`。风格 PEP 8；`pyproject.toml` 有 `[tool.ruff]`（`line-length=100`，但只 select `E9/F63/F7/F82/F401`，**未启用 E501**）⇒ "ruff 没报错"不等于合规。
 
-## 五条硬红线（违反即出事；正文只在指针里）
+## 六条硬红线（违反即出事；正文只在指针里）
 
 1. **云实例必须先审批**：只在正式规模训练那步开，且用户已批复规格与预算；开前给出规格 / 单价 / 预估总价 / 预计墙钟。**询价、probe、试开都算需审批范围**。关机须回查 `Status=Stopped` 且 `StoppedMode=StopCharging` 并贴回执。→ `docs/rules/SERVER_OPS.md`
 2. **>5 分钟的长跑不得在 IDE 终端启动**：客户端关闭会连带杀掉 WSL 子进程（已发生 3 次）。用 `schtasks` 独立进程树；判活用 `pgrep` / `ps`，**不看日志末行**；完成判据 = `result.json` + `trajectory.npz` + `intervals.json` 三件齐，缺 `result.json` 即判中断；中断目录保留并写 `ABORTED_BY_INTERRUPTION.txt`，不得引用；同机多任务串行。→ `docs/rules/EXECUTION_RULES.md` §长跑
 3. **验证默认整程**（49.6 km / `--steps 45000`）。短窗（≤6000 步）只作活性校验，**不得**当峰值或安全判据；必须短窗时须覆盖已知主峰 ±200 s 并写明依据。→ 同上 §验证协议
 4. **三个输出目录必须一起换**：`checkpoint_dir` / `results_dir` / `figures_dir` 同时指向新 `run_tag`，否则覆写历史产物；禁止脚本往 `outputs/` 根级落盘。→ 同上 §产物目录规范
 5. **训练/评估必须落权威 metadata**，否则结论不认可、不得引用；物理行为改动的验收口径 = 同 ckpt 同 seed 复跑 20 集，peak 逐位相同，**不另立判据**。
+6. **训练/评估窗口开跑前必走 G1 六问闸**（判据锚有文献或 owner 依据 / 机制有文献对标物 / 从头训或奖励面完全不变的纯延长 / 快评协议已进启动脚本 / ADR-070 塌缩护栏在位 / **收账 closer 已以 schtasks 注册且心跳 rc=0**）：任一"否" = 不得开训，六问答案须留痕（ADR 或 ADR-072 式附段）；**开机与注册 closer 是同一动作序列，closer 不在位不得开机**（2026-11-17 空转三事故后的 owner 硬约束："机制层面确保不空转，而不是我提醒一次检查一次"）。→ `docs/PROJECT_PIPELINE.md` §0.8.2 · `docs/rules/SERVER_OPS.md` 铁律 12
 
 ## 云凭据
 
