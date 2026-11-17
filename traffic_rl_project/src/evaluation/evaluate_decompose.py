@@ -517,8 +517,17 @@ def rollout(env, act_fn, args, rng, act_interval=1):
     # 的安全叙事矛盾（曾三令五申要求移除，2026-09 只改了后被 ADR-022 删除的
     # evaluate_m1_m3_long.py ⇒ 现行入口漏改，本次补齐）。物理穿透（实际列距 ≤0）一旦
     # 出现即判**该行评估无效并报错**；主表安全指标 = ATP 触发次数（safety_events）。
-    assert rear_end_steps == 0, (
-        f"评估无效：实际列距≤0（物理穿透）{rear_end_steps} 步，该行结果作废")
+    # 【D1 归因 2026-11-17】穿透本身是需要观测的现象（塌缩从哪一集开始、如何演化），
+    # --allow-rear-end 放行记录，结果仅作归因，禁止进主表。
+    if multi_train and np.isfinite(gap_min_over_ep):
+        out['rear_end_steps'] = int(rear_end_steps)
+    if rear_end_steps != 0:
+        if getattr(args, 'allow_rear_end', False):
+            print(f"[D1-ALLOWED] 实际列距≤0（物理穿透）{rear_end_steps} 步——"
+                  f"归因模式放行，本行结果仅作归因用途，禁止进主表", flush=True)
+        else:
+            assert False, (
+                f"评估无效：实际列距≤0（物理穿透）{rear_end_steps} 步，该行结果作废")
     return out
 
 
@@ -629,6 +638,9 @@ def main():
                    help='车钩异构抽样 seed（训练固定；held-out 用另一组，如 1000）')
     p.add_argument('--out_suffix', type=str, default='',
                    help='输出文件名后缀（区分 seed/interval/场景，防覆盖），如 "_s0_iv5"')
+    p.add_argument('--allow-rear-end', action='store_true',
+                   help='【D1 归因专用】出现物理穿透不拒收：记录 rear_end_steps 并继续评估。'
+                        '默认关（保持 assert 守卫）；放行结果仅作归因，禁止进主表')
     args = p.parse_args()
     resolve_policy_environment(args)
     # 【2026-11-10】起点口径必须在 build_metadata 之前固化为实际值（同 decision_interval 纪律）：
