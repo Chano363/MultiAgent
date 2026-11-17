@@ -646,3 +646,30 @@ def test_rear_end_no_false_positive_normal_gap():
     assert info['rear_end'] is False and info['rear_end_terminated'] is False
     assert info['gap_min_m'] > 0.0
     env.close()
+
+
+def test_coupler_peak_w_default_and_override():
+    """【W4-v20】coupler_peak_w 参数化：默认 = 常量 4.7（零回归）；显式调大时
+    车钩峰值项惩罚更深（同状态下 reward 更低），形态（有界饱和）不变。"""
+    import src.environments.train_fleet_env as tfm
+
+    def _roll(peak_w):
+        env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                             'grade_profile': 'long_downhill', 'max_steps': 10,
+                             'decompose': 'loco_ed_ab', 'eval_mode': True,
+                             'coupler_peak_w': peak_w})
+        env.reset(options={'speed': 65.0 / 3.6})
+        obs, r, term, trunc, info = env.step(np.zeros((env.num_agents, 2)))
+        env.close()
+        return r
+
+    # 默认（不传参）= 常量行为
+    env0 = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                          'grade_profile': 'long_downhill', 'max_steps': 10,
+                          'decompose': 'loco_ed_ab', 'eval_mode': True})
+    assert env0.coupler_peak_w == tfm.COUPLER_PEAK_W
+    env0.close()
+    # 同状态下权重越大 → 峰值项越负 → 总 reward 单调不升（车钩峰值项是唯一差异）
+    r_default = _roll(tfm.COUPLER_PEAK_W)
+    r_double = _roll(tfm.COUPLER_PEAK_W * 2)
+    assert r_double <= r_default

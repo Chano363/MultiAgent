@@ -243,6 +243,11 @@ class TrainFleetEnv:
         # 归因依据见 PRESSURE_GRAD_THRESHOLD；该罚只作用于梯度超阈值步。
         self.pressure_gradient_penalty_w = float(
             config.get('pressure_gradient_penalty_w', 0.0))
+        # 【W4-v20 / ADR-070 ② 2026-11-17】车钩峰值塑形权重参数化（机制冻结调参通道）。
+        # 默认 = 常量 COUPLER_PEAK_W(4.7)（零回归）；v20 探路窗口显式调高（×2）以测
+        # 权重通道对 peak/ATP 判据的弹性。只动系数不动形态（有界饱和 1−exp(−p̂) 不变），
+        # 不新增奖励项——与 pressgrad（新项引导塌缩，ADR-070）性质不同。
+        self.coupler_peak_w = float(config.get('coupler_peak_w', COUPLER_PEAK_W))
         # 【参考速度跟踪 2026-11-08】'ref' 形态参数（缺省 = 标定值；YAML 只写表路径即可）
         self.speed_ref_band_mps = float(
             config.get('speed_ref_band_kmh', SPEED_REF_BAND_KMH)) / 3.6
@@ -1754,7 +1759,7 @@ class TrainFleetEnv:
             peak_n_norm = step_coupler_peak_n / max(self.coupler_force_limit_n, 1e-9)
         else:
             peak_n_norm = 0.0
-        coupler_peak_term = -COUPLER_PEAK_W * (1.0 - float(np.exp(-peak_n_norm)))
+        coupler_peak_term = -self.coupler_peak_w * (1.0 - float(np.exp(-peak_n_norm)))
 
         # 【ADR-021 决策2 / ADR-043 修订】车钩力"受控超限项"（文献 Tang2020 / Wang2025）：
         # 仅对**断线峰值超限**加深有界梯度；上界 -12 与带外速度惩罚同档但更小，**刻意避免**
