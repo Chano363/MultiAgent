@@ -673,3 +673,70 @@ def test_coupler_peak_w_default_and_override():
     r_default = _roll(tfm.COUPLER_PEAK_W)
     r_double = _roll(tfm.COUPLER_PEAK_W * 2)
     assert r_double <= r_default
+
+
+def test_ed_rate_limit_notches_default_off_and_limits_delta():
+    """【W4-v21/ADR-072】ED 级位增量限幅（对控制器直测，绕开安全层覆盖）：
+    默认 0 = 零回归（状态恒 None，ED 直通旧映射）；开启后每决策步
+    |ΔED| ≤ notches/20，连续同向指令逐步逼近目标（积分语义）。"""
+    from types import SimpleNamespace
+
+    env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                         'grade_profile': 'long_downhill', 'max_steps': 4,
+                         'decompose': 'loco_notch', 'eval_mode': True,
+                         'ed_rate_limit_notches': 3.0})
+    env.reset(options={'speed': 65.0 / 3.6})
+    ctrl = env.multi_loco_controllers[0]
+    mock_env = SimpleNamespace(dynamics=SimpleNamespace(vel=[65.0 / 3.6]))
+    ed_seq = []
+    for _ in range(7):
+        ctrl.get_action_notch(mock_env, np.full((ctrl.num_locomotives, 2), [1.0, 0.0]),
+                              v_max=75.0 / 3.6, v_min=40.0 / 3.6)
+        ed_seq.append(ctrl._ed_notch_state[0])
+    env.close()
+    diffs = [abs(b - a) for a, b in zip(ed_seq[:-1], ed_seq[1:])]
+    assert all(d <= 3.0 / 20.0 + 1e-9 for d in diffs), diffs
+    assert abs(ed_seq[0] - 3.0 / 20.0) <= 1e-9          # 首步即受限（目标 1.0）
+    assert ed_seq[-1] >= 1.0 - 1e-9                     # 连续同向逼近目标（积分）
+
+    env0 = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                          'grade_profile': 'long_downhill', 'max_steps': 4,
+                          'decompose': 'loco_notch', 'eval_mode': True})
+    env0.reset(options={'speed': 65.0 / 3.6})
+    ctrl0 = env0.multi_loco_controllers[0]
+    assert ctrl0.ed_rate_limit_notches == 0.0
+    assert ctrl0._ed_notch_state is None
+    env0.close()
+
+
+def test_notch_smooth_w_default_zero_and_penalizes_switching():
+    """【W4-v21/ADR-072】级位切换幅度罚：默认 0 = 零回归（项恒 0）；
+    开启后记账 = w·mean(|Δed| + 0.5·|Δab|)（首步无历史不罚）。"""
+    env0 = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                          'grade_profile': 'long_downhill', 'max_steps': 4,
+                          'decompose': 'loco_notch', 'eval_mode': True,
+                          'reward_term_log': True})
+    env0.reset(options={'speed': 65.0 / 3.6})
+    env0.step(np.zeros((env0.num_agents, 2)))
+    assert env0._last_reward_terms['notch_smooth'] == 0.0
+    env0.close()
+
+    env = TrainFleetEnv({'num_trains': 2, 'consist_preset': '10kt_1plus1',
+                         'grade_profile': 'long_downhill', 'max_steps': 8,
+                         'decompose': 'loco_notch', 'eval_mode': True,
+                         'notch_smooth_w': 5.0, 'reward_term_log': True})
+    env.reset(options={'speed': 65.0 / 3.6})
+    # 首步：无历史 → 罚 0
+    env.step(np.zeros((env.num_agents, 2)))
+    assert env._notch_smooth_pen == 0.0
+    # 次步指令跳变（ED 0.77→1.0 映射 + AB 量化变档）⇒ 罚严格为正、计入奖励项
+    env.step(np.full((env.num_agents, 2), [0.6, 0.6]))
+    assert env._notch_smooth_pen > 0.0, env._notch_smooth_pen
+    assert env._last_reward_terms['notch_smooth'] == -env._notch_smooth_pen
+    # 第三步同指令（无切换）⇒ 本步罚 = 0（记账只罚变化）
+    env.step(np.full((env.num_agents, 2), [0.6, 0.6]))
+    assert env._notch_smooth_pen == 0.0, env._notch_smooth_pen
+    # reset 清零
+    env.reset(options={'speed': 65.0 / 3.6})
+    assert env._prev_edab_cmds is None and env._notch_smooth_pen == 0.0
+    env.close()

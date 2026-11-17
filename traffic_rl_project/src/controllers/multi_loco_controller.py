@@ -289,6 +289,13 @@ class MultiLocoController:
         # 依据：W4-v2 12k 探针 `raw_ed` 最小 −0.814 ⇒ 旧映射结构性下限 0.143。
         # 阈值必须由配置给出（如 −0.8），不得在代码里拍脑袋；默认关 = 零回归。
         self.ed_idle_zero_action = None
+        # 【W4-v21 / ADR-072】ED 级位增量限幅（默认 0 = 关，零回归）。
+        # 语义：>0 时 RL 的 ED 输出先按既有映射得到"目标深度"，再限制每决策步
+        #       实际 ED 深度变化 ≤ notches/20（20 级制动机，对标 Wang2023 的
+        #       "级位增量 ±3 限幅"——增量动作使级位轨迹平滑，是其实车 −8.93%
+        #       拉钩改善的间接通道；车钩力本身不进奖励）。
+        self.ed_rate_limit_notches = 0.0
+        self._ed_notch_state = None
         # 【W4-v4 / 2026-11-15】近上限 AB 充风门旁路（默认关 = 零回归）。
         # 语义：速度贴近有效上限且 RL 想施加 AB 时，绕过 222 s 充风门控。
         # 依据：W4-v3 12k 归因显示 ATP 过触发主体是规则 C 逐车超速；若门控
@@ -1187,6 +1194,21 @@ class MultiLocoController:
                            else self.ed_zero_point + (1.0 - self.ed_zero_point) * _r)
             else:
                 _ed = self.ed_zero_point + 0.5 * _r
+            # 【W4-v21 / ADR-072】ED 级位增量限幅（默认关 = 零回归）。
+            # 对既有映射的"目标深度"先 clip 到 [0,1]，再限制每决策步变化
+            # |Δed| ≤ notches/20，内部积分（状态即上一步实际 ED）；首步从
+            # 起点级位 0 出发限幅（对齐 Wang2023 增量动作语义：从当前级位
+            # 出发逐步逼近目标，禁止一步跳到满制动）。
+            if self.ed_rate_limit_notches > 0:
+                _tgt = float(np.clip(_ed, 0.0, 1.0))
+                _max_d = float(self.ed_rate_limit_notches) / 20.0
+                if self._ed_notch_state is None:
+                    self._ed_notch_state = [None] * n
+                _prev = self._ed_notch_state[k]
+                _prev = 0.0 if _prev is None else float(_prev)  # 首步从起点级位 0 出发
+                _ed = float(np.clip(
+                    _prev + np.clip(_tgt - _prev, -_max_d, _max_d), 0.0, 1.0))
+                self._ed_notch_state[k] = _ed
             final[k, 0] = float(np.clip(_ed, 0.0, 1.0))
             # AB：连续 → 4 档量化（x = 施加程度 0~1）
             x = float(np.clip(-rl[k, 1], 0.0, 1.0))
@@ -1317,6 +1339,7 @@ class MultiLocoController:
         self._ed_ramp_steps_left = 0
         self._ed_ramp_armed = True
         self._previous_ed = None
+        self._ed_notch_state = None
         self._ed_recovery_pending[:] = False
         self._ed_hold_steps = 0
         self._ed_guard_steps_left = 0

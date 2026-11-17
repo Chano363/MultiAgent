@@ -224,6 +224,14 @@ class TrainFleetEnv:
         self.reward_term_sums = {}
         self._reward_term_steps = 0
         self._last_reward_terms = None
+        # 【W4-v21 / ADR-072】级位切换幅度罚（默认 0 = 零回归）。
+        # 对标 Wang2023：车钩力不进奖励（训练贵 + v20 实证直接罚通道脆弱），
+        # 平稳性走"级位切换幅度"间接通道——罚每步 ED 指令变化 + AB 变档（0.5 权重）。
+        # 每步在 step() 内由 final_edab 与上一步指令差算出，存 _notch_smooth_pen，
+        # 分解奖励读取；非 loco_notch 路径 / reset 后无历史时恒 0。
+        self.notch_smooth_w = float(config.get('notch_smooth_w', 0.0))
+        self._prev_edab_cmds = None
+        self._notch_smooth_pen = 0.0
         # 【速度带改形 2026-11-08，默认 'flat' = 零回归】领航列速度项形态：
         #   'flat' = v6 旧行为（带内平顶 +SPEED_BAND_W，无速度梯度）
         #   'ramp' = 带内随接近上限收益递增（凸梯度），越线速重罚
@@ -632,12 +640,15 @@ class TrainFleetEnv:
                 _ab_bypass = bool(config.get('ab_high_speed_bypass_gate', False))
                 # 【W4-v5】近上限分级制动：默认关 = 零回归。
                 _ab_near_min = bool(config.get('ab_near_limit_min_brake', False))
+                # 【W4-v21 / ADR-072】ED 级位增量限幅（默认 0 = 零回归）。
+                _ed_rate = float(config.get('ed_rate_limit_notches', 0.0))
                 for _c in self.multi_loco_controllers:
                     _c.ed_zero_point = _zp
                     _c.ab_notch_hold_s = _hs
                     _c.ab_low_speed_release = _lsr
                     _c.ab_low_speed_margin_mps = _lsm
                     _c.ed_idle_action = _eia
+                    _c.ed_rate_limit_notches = _ed_rate
                     _c.ed_idle_zero_action = _eiz
                     _c.ab_high_speed_bypass_gate = _ab_bypass
                     _c.ab_near_limit_min_brake = _ab_near_min
@@ -945,6 +956,9 @@ class TrainFleetEnv:
         self._ep_head_steps = 0
         self._last_target_accels = np.zeros(self.num_trains)
         self._prev_gap_err = None
+        # 【W4-v21 / ADR-072】切换幅度罚记账清零（新 episode 无历史）
+        self._prev_edab_cmds = None
+        self._notch_smooth_pen = 0.0
         # 【E4-H domain randomization】训练态（非 eval_mode）每 episode reset 重新抽取
         # 逐车钩异构参数，让策略在分布上训练；评估（held-out）用构造时 fix 抽取保持不变。
         if self.hetero and not self.eval_mode and self._hetero_rng is not None:
@@ -1451,6 +1465,8 @@ class TrainFleetEnv:
         # 逐列车子环境（train_env）已在 info 暴露，此处聚合到 fleet info，供诊断/留痕可观测。
         ab_safety_vetoed_count = 0
         self._step_coupler_peak_n = 0.0  # 本步全列最大车钩力（跨列车取 max；奖励车钩力用真实峰值，非机车局部值）
+        # 【W4-v21 / ADR-072】切换幅度罚逐步累加从零开始（各 ctrl 循环内 +=）
+        self._notch_smooth_pen = 0.0
         a = 0
         # 【C 组 2026-11-08】编队级 ED/速度快照：本步决策前**一次采样**，供
         # ed_release_timing_guard 与 speed_convergence_share 共用。
@@ -1567,6 +1583,20 @@ class TrainFleetEnv:
                     tr, rl, v_max=self.v_max, v_min=self.v_min,
                     v_max_adj=v_bound_max, v_min_adj=v_bound_min,
                 )
+                # 【W4-v21 / ADR-072】级位切换幅度罚记账（默认 w=0 = 零回归）：
+                # 罚 = w · Σ列 mean(|Δed| + 0.5·|Δab|)。**按 ctrl 分键记 prev**——
+                # 各 ctrl 在同一 step 内先后执行，若共用单一 prev，后一个 ctrl
+                # 会与前一个刚写入的 cur 求差（同动作 ⇒ 差恒 0）覆盖罚值。
+                if self.notch_smooth_w > 0:
+                    _cur = np.asarray(final_edab, dtype=float)
+                    if self._prev_edab_cmds is None:
+                        self._prev_edab_cmds = [None] * len(self.multi_loco_controllers)
+                    _prev = self._prev_edab_cmds[ti]
+                    if _prev is not None and _prev.shape == _cur.shape:
+                        self._notch_smooth_pen += self.notch_smooth_w * float(
+                            np.mean(np.abs(_cur[:, 0] - _prev[:, 0])
+                                    + 0.5 * np.abs(_cur[:, 1] - _prev[:, 1])))
+                    self._prev_edab_cmds[ti] = _cur.copy()
             else:
                 # 【ADR-065 / S1 参数化探针】2 维动作在此被**重新解释为循环制动相位门**：
                 #   ed_mod → cyclic_brake_trigger_kmh（何时开始制动，[55,69] km/h，基线 65.95）
@@ -1842,6 +1872,11 @@ class TrainFleetEnv:
             ab_cost -= 0.5 * needs_brake
         ed_cost = -0.02 * float(ed_sum)
 
+        # 【W4-v21 / ADR-072】级位切换幅度罚（间接平稳通道，替代直接车钩罚主地位；
+        # 默认 notch_smooth_w=0 ⇒ 恒 0，零回归）。文献依据 Wang2023（级位切换
+        # 幅度罚，车钩力不进奖励，实车拉钩 −8.93%）。
+        notch_smooth_term = -float(getattr(self, '_notch_smooth_pen', 0.0))
+
         reward = (
             + speed_band_reward
             + rel_anchor_reward
@@ -1851,6 +1886,7 @@ class TrainFleetEnv:
             + coupler_peak_term
             + coupler_over_term
             + pressure_gradient_penalty
+            + notch_smooth_term
             + ab_cost
             + ed_cost
         )
@@ -1864,6 +1900,7 @@ class TrainFleetEnv:
                 'coupler_peak': coupler_peak_term,
                 'coupler_over': coupler_over_term,
                 'pressure_gradient': pressure_gradient_penalty,
+                'notch_smooth': notch_smooth_term,
                 'ab_cost': ab_cost,
                 'ed_cost': ed_cost,
                 'total': reward,
