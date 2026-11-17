@@ -1093,3 +1093,12 @@ Lesson：README = **导航索引 + 关键坑**，读者（另一 agent）会跟�
 - **正确做法**：读复现/复现类报告必须通读到"与本项目数字衔接"的那一节——**摘要层的结论经常不覆盖正式对比层**。
 - **类型标签**：`证据层次误用` / `未穷尽一手材料` / `同日复发`
 - **一句话教训**：**"不同源"的结论必须指明是哪个部分不同源**——简化复现层 ≠ 正式对比层，漏读一节就错杀一条主表对照。
+
+## LRN-20261117-002 一晚三事故：评估秒挂空转 79 min、closer 误杀、EXIT 首行误判完成 - 2026-11-17
+
+- **事故链（W4-v21 pilot 当晚）**：① 评估脚本以文件方式直跑（`python src/evaluation/evaluate_decompose.py`），`src` 包不在 sys.path **秒挂**；脚本收尾杀掉了兜底断电计时器，实例无人管——空闲计费 **79 min ≈2 元**（17:51→19:10），owner 怒斥"总是让我的服务器空转"。② 首个本地看护 grep **共享历史日志**匹配到旧崩溃行 `EXIT_EVAL_EP*=1`，把正在健康运行的评估**误停机**（19:12）。③ 修正版看护见到**第一条**退出码行 `EXIT_EVAL_EP2=0` 即判"任务完成"停机——ep4 还在跑，又被提前收账（19:26）。④ 附属 bug：scp 路径拼接 `_ssh_exe().replace("ssh.exe","scp.exe")` 大小写不匹配（实际 `ssh.EXE`）→ 产物回传静默失败；schtasks 环境 PATH 不全 → 裸 `ssh` 解析挂起（rc=124 连计即误停）；Git-ssh 不认 `-F NUL`。
+- **机制级整改（owner 硬约束"机制层面确保不空转，而不是我提醒一次检查一次"）**：
+  1. **收账 closer 入制**（`scripts/cloud/closer_aliyun_ecs.py` + schtasks 包装）：开机与注册 closer 是同一动作序列（SERVER_OPS 铁律 12 + G1 第 6 问）；四道触发 = done marker / 独立日志退出码行凑满 min-count / ssh 连续 3 次不可达 / **硬 deadline（检测无关兜底）**；schtasks 运行 = WorkBuddy 会话死了照停。
+  2. **防误杀两红线**：只读本次运行独立日志（`--start-marker` 截断历史）；多阶段任务 min-count = 阶段数（第一条 EXIT ≠ 完成）。
+  3. **工程细节**：ssh/scp 显式解析绝对路径（schtasks PATH 不可靠）；`-F` 指向真实空配置文件（`NUL` 仅 Windows-OpenSSH 认）；`BatchMode=yes` 禁交互挂起；closer 心跳必须落盘自证。
+- **类型标签**：`空转` / `收账closer` / `误杀` / `退出码语义` / `schtasks` / `sys.path`
