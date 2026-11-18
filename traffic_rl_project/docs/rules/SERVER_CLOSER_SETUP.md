@@ -69,6 +69,20 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 - [ ] 回退演练：故意把 profile 名改错 → watchdog 应回退 OS poweroff，且本地 closer 补 API 停机（双保险）
 - [ ] 物理零回归：同 ckpt 同 seed 复跑 peak 逐位一致（自停机不改物理/训练，此项应天然通过）
 
+## 验证协议（2026-11-18 12:14 事故后新增，硬约束）
+
+**事故**：对训练实例带真实参数跑 1min deadline 的 closer 验证 → deadline 兜底真实停机，
+葬送进行中的训练（ep6/40，77 分钟机时报废）。owner 明确要求：验证不得再动训练实例的账。
+
+**规则**：
+1. **凡验证 closer 逻辑，一律 `--dry-run`**：完整走轮询 / ssh 探测 / 触发判定 / 产物回传
+   链路，但跳过 StopInstance API。零成本，覆盖除"真停机"外的全部路径。
+2. 需要验证**真实停机路径**时（极少，仅 StopInstance 语义变更才需要）：用
+   `instance_state_aliyun_ecs.py` 的 stop 路径早已反复验证过 StopCharging 语义，
+   默认不再单独开实例；确需开时**只准开最便宜规格**（按量最小型），几分钟内关停并贴回执，
+   不得在训练实例上做任何会改变实例状态的实验。
+3. 本地 mock（`tests/test_cover_quick_eval_watch.sh` 等）优先于一切真机验证。
+
 ## 与现有机制的关系（迁移期）
 
 - **本地 closer 保留**：`scripts/cloud/closer_aliyun_ecs.py` + schtasks 仍注册，作为第二道（实例内自停机失败时补位）。G1 第 6 问"closer 在位"继续按本地 closer 判。

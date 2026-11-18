@@ -74,15 +74,31 @@ def ssh(ip, cmd, timeout=25):
 
     -F NUL  绕过用户 ssh config（计划任务环境下 config 内容可能引发挂起）
     BatchMode=yes  禁一切交互提示，宁可快速失败也不挂起
+    失败时 stderr 首行落自志（rc=255/124 排障需要，2026-11-18 w4cover 全程不可达教训）
     """
     argv = [_ssh_exe(), "-i", KEY, "-F", _EMPTY_CFG, "-o", "BatchMode=yes",
             "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new",
             f"root@{ip}", cmd]
     try:
         p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+        if p.returncode != 0 and SELF_LOG:
+            err1 = (p.stderr or "").strip().splitlines()[:1]
+            log(f"ssh 失败 rc={p.returncode} cmd[:60]={cmd[:60]!r} stderr={err1}")
         return p.returncode, p.stdout
-    except subprocess.TimeoutExpired:
-        return 124, ""
+    except subprocess.TimeoutExpired as e:
+        if SELF_LOG:
+            err1 = ((e.stderr or b"").decode("utf-8", "ignore").strip().splitlines()[:1])
+            log(f"ssh 超时({timeout}s) cmd[:60]={cmd[:60]!r} stderr={err1}")
+        # 网络抖动（丢包→SYN 重传）下单次超时不代表链路坏：隔 5s 重试一次
+        time.sleep(5)
+        try:
+            p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+            if p.returncode != 0 and SELF_LOG:
+                err1 = (p.stderr or "").strip().splitlines()[:1]
+                log(f"ssh 重试失败 rc={p.returncode} stderr={err1}")
+            return p.returncode, p.stdout
+        except subprocess.TimeoutExpired:
+            return 124, ""
 
 
 def trigger_met(args):
@@ -95,7 +111,8 @@ def trigger_met(args):
     rc, out = ssh(args.ip,
                   f"ls {args.marker} 2>/dev/null; "
                   f"awk '/{args.start_marker}/{{found=1}} found' {args.log} 2>/dev/null "
-                  f"| grep -E '{args.exit_pattern}' | tail -{args.exit_min_count}")
+                  f"| grep -E '{args.exit_pattern}' | tail -{args.exit_min_count}",
+                  timeout=60)
     if rc != 0:
         return False, ""
     lines = [ln for ln in out.strip().splitlines() if ln.strip()]
@@ -118,11 +135,18 @@ def pull_artifacts(args):
     argv = [scp, "-i", KEY, "-F", _EMPTY_CFG, "-o", "BatchMode=yes",
             "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new",
             f"root@{args.ip}:{args.pull_glob}", args.pull_dir]
-    try:
-        p = subprocess.run(argv, capture_output=True, text=True, timeout=180)
-        log(f"产物回传 rc={p.returncode} → {args.pull_dir} {p.stderr.strip()[:200]}")
-    except subprocess.TimeoutExpired:
-        log("⚠️ 产物回传超时（不影响停机）")
+    # 网络路径间歇性丢包（2026-11-18 w4cover 实测 rc=124/255 交替）：
+    # 产物回传失败 = 停机后产物滞留云盘，必须重试而非一次放弃。
+    for attempt in range(1, 4):
+        try:
+            p = subprocess.run(argv, capture_output=True, text=True, timeout=180)
+            log(f"产物回传(第{attempt}/3次) rc={p.returncode} → {args.pull_dir} "
+                f"{p.stderr.strip()[:200]}")
+            if p.returncode == 0:
+                return
+        except subprocess.TimeoutExpired:
+            log(f"⚠️ 产物回传(第{attempt}/3次)超时")
+        time.sleep(10)
 
 
 def stop_instance(region, iid):
@@ -176,6 +200,11 @@ def main():
     ap.add_argument("--pull-glob", default="")
     ap.add_argument("--pull-dir", default="")
     ap.add_argument("--poll-s", type=int, default=300)
+    ap.add_argument("--dry-run", action="store_true",
+                    help="验证模式：完整走轮询/触发/产物回传链路，但【不调用停机 API】。"
+                         "对训练实例做 closer 验证必须带此参数"
+                         "（2026-11-18 12:14 事故：带真实参数的 1min deadline 测试"
+                         "触发兜底停机，葬送 ep6 训练）")
     ap.add_argument("--self-log", default="",
                     help="closer 自身心跳日志路径（schtasks 场景 stdout 不可见，必须落盘自证）")
     ap.add_argument("--region", default=DEFAULT_REGION)
@@ -187,7 +216,8 @@ def main():
 
     deadline = datetime.now() + timedelta(minutes=args.deadline_min)
     log(f"closer 启动：instance={args.instance} deadline={deadline.strftime('%F %T')} "
-        f"poll={args.poll_s}s marker={args.marker}")
+        f"poll={args.poll_s}s marker={args.marker}"
+        + (" [dry-run：不会真正停机]" if args.dry_run else ""))
 
     unreachable = 0
     while datetime.now() < deadline:
@@ -195,10 +225,13 @@ def main():
         if hit:
             log(f"触发停机：{why}")
             pull_artifacts(args)
+            if args.dry_run:
+                log("[dry-run] 验证命中触发链路，跳过停机 API，退出")
+                return
             stop_instance(args.region, args.instance)
             log("closer 收账完成，退出")
             return
-        rc, _ = ssh(args.ip, "true", timeout=15)
+        rc, _ = ssh(args.ip, "true", timeout=30)
         unreachable = unreachable + 1 if rc != 0 else 0
         if unreachable >= 3:
             log(f"⚠️ ssh 连续 {unreachable} 次不可达（仅告警不停机，deadline 兜底）")
@@ -207,6 +240,9 @@ def main():
 
     log("触发停机：硬 deadline 到（检测无关兜底）")
     pull_artifacts(args)
+    if args.dry_run:
+        log("[dry-run] 验证命中 deadline 兜底链路，跳过停机 API，退出")
+        return
     stop_instance(args.region, args.instance)
     log("closer 收账完成，退出")
 
