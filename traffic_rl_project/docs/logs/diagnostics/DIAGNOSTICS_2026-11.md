@@ -2690,3 +2690,85 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
   - **对 M1 的指令（预算 ≤2 窗口）**：① 禁止"resume-weights-only + 换奖励/换安全层"的热启动续训；② 若热启动，机制必须冻结（只调非行为参数）；③ 换机制一律从头训（w4 ep1–40 从头训 40 集稳定的先例）；④ 续训窗口内插确定性快评。
 
 
+
+## 诊断-2026-11-17-v20：机制冻结热启动（窗口 a）塌缩——ADR-070 约束②通道也不安全
+
+- **设置**：v3 链机制零改动，唯一差异 `coupler_peak_w` 4.7→9.4（权重类调参，ADR-070 约束②允许的通道）；v3 ep60（band 99.78%）热启动，20 集（ep61–80），云端 c9i.2xlarge。
+- **护栏触发（约束④确定性快评首次实战拦截）**：ep63 ckpt 确定性评估（v9 口径 × 31500 步 × eval_seed 0）：band **13.27%** / peak 3128.4 kN / 末速 0（全停）/ ATP 903 957 / gap_min 4.94 m 未穿透——对照源 v3 ep60（99.78% / 1332 / 59.7 / 270 093）**深塌**，远破 79.8% 停训线。执行止损：杀训练（时值 ep71/80）、实例停费复核（Stopped+StopCharging）。云端支出 ≈1.6 h ≈2.5 元。
+- **塌缩时长画像复用成功**：健康策略确定性评估 ≈12 min（ep40/41 实测），塌态（安全层高频触发）拖至 40+ min——本次 42 min 未落盘即预警塌缩，与结果一致。可作为快评的零成本旁证信号。
+- **训练 rollout 依旧全盲**：ep61–70 rollout pkCpl 1424–1726 / gap_min=d_eff / vavg 72——毫无塌缩迹象，与 v11 教训一致，再次坐实"rollout 指标不得作为策略健康判据"。
+- **归因升级（ADR-070 需修订）**：约束②"机制冻结只调权重"**同样塌** ⇒ "热启动 + 机制/奖励变更"的排他性结论收窄为：**对该策略/管线，热启动续训期间任何奖励面变化（哪怕单项权重 ×2）都会在 2–4 集内不可逆塌缩**。v3 当时能热启动成功（band 99.78%）是因为它就是该奖励面的"原生"配置（从 w4 ep40 热启动时奖励面未变）。⇒ **热启动 + 任何形式奖励面变更 = 禁区**；热启动仅允许"奖励面完全不变"的纯延长训练。
+- **存证**：ep71 ckpt + train_history/reward_terms CSV + 云日志 → `outputs/results/diagnostics/`（`mappo_fleet_last_ep71_*`、`train_history_*`、`train_reward_terms_*`、`w4v20_peakw_20261117.log`）；快评 JSON `eval_decompose_decompose_m1_ms31500_v20quick_ep63.json`。
+- **M1 预算**：窗口 a 已消耗（1/2）。剩 1 窗口：按 ADR-070 约束③只剩"从头训"可用（且从头训也需在窗口内插确定性快评）。若不用或再败 ⇒ 触发 D2。
+
+## 诊断-2026-11-17-litcheck：车钩力判据的文献核查（owner 质疑触发："他们能做出来为什么我们做不出来"）
+
+- **触发**：owner 质疑两件事——①车钩力文献里有人做出来，我们为什么做不出来；②三判据（peak ≤1200/ATP ≤2×/band ≥90%）是 AI 起草的而非 owner 指定，不应被当成不可动摇的过关门。两条质疑均成立。
+- **文献事实**（2026-11-17 检索）：
+  1. IET MTC-HRL（10.1049/itr2.70254，SWJTU 王青元组）：2 万吨 1+108×2、真实 340 km 线、长大下坡，分层 RL（事件驱动任务分类 + 分段子任务 D3QN + DP 顶层调度）。**1100 kN 是安全限值非成绩**；其仿真车钩力实测值最大拉 315.67/压 −301.96 kN——比大秦线同工况实测（循环制动 >1500、接近 2000 kN）**低 5 倍以上** ⇒ 其动力学模型产力远低于真实，**跨文献绝对值不可比**。且其分层法相对单智能体基线车钩力**反而更大**（315 vs 178），论文自述"以舒适性换速度"——文献界同样在做此 trade-off。
+  2. 机车电传动 2023（10.13890/j.issn.1000-128X.2023.06.017）：2 万吨 RL 操纵优化，车钩力/冲动显著低于司机驾驶，实车数据验证（摘要无绝对值）。
+  3. IEEE ICIRT 2025 DQN：拉降 9.64%/压降 28.77%（相对改善口径）。
+- **可移植的架构素材**（全文 PDF 待 owner 校园网下载）：事件驱动任务分类（坡度 >10‰ 且连续 ≥4 km → 组合制动任务）；混合动作空间（电制动比例连续 + 空气制动 on/off 整型）；时间累积约束入状态空间转标准马氏；分段粒度实验（10 km 分段 2500 集收敛，100 km 不收敛）。
+- **对判据的结论**：① **peak ≤1200 无外部依据**——我们的锚是自家规则基线 1294 再压 7%；文献锚定的是各自基线或结构安全限；我们的 1294/1332 本身已优于大秦实测运营水平（1500–2000）。② **ATP ≤2× 是自造指标**——文献无此指标，它来自自家 EBI 安全层架构，且 ATP 触发与车钩尖峰耦合（每次紧急介入本身制造尖峰），用它作独立死门属于"用自家架构选择惩罚自己"。③ band ≥90% 有运营口径依据，争议最小。
+- **对路线的结论**：D2(b) 的"路线不可行"论据**失效**——文献证明 RL 在同族场景可压车钩力（相对各自基线），我们的差距更可能在架构（单层 MAPPO+档位+90s 保持 vs 文献分层+任务分解+混合动作）。新增选项 (d)：最后窗口投给架构升级（完整 MTC-HRL 改动大，缩水版 = 分段奖励权重调度/课程学习；换机制从头训，合法）。
+- **待 owner 拍板**：三判据重审方案（ADR-071 草案另立）——peak 换锚（结构限 vs 相对改善幅度）、ATP 降级为观测指标、band 保留；以及"换判据继续打（d）还是换叙事不打了（b）"。
+
+### 诊断-2026-11-18-W4-v21 唯一投：快评护栏 ep20 击杀，六点曲线证实 ep10 后真实退化（训练退化为诊断素材，不推翻 ADR-071/072）
+
+- **背景**：W4-v21 = 缩水版文献对标机制（ED 级位增量限幅 ±3 级 + `notch_smooth_w=5.0` + `coupler_peak_w=0`，ADR-072）的唯一一投，60 集从头训（零热启动），实例 i-f8zcp6vvis4rnztw0p9y，tag `w4v21_full_20261117`。训练期每 10 集插确定性快评，ep10 后加密到 ep13/16/20。训练止于 ep20，被快评破线护栏（peak 较上一快评上行 >2% 噪声带 / band <0.85）正确击杀；实例已停费。
+- **六点确定性快评曲线（同口径：v21 YAML 同参、31500 步、eval_seed 0、零穿透全程）**：
+
+| ep | 2 | 4 | 10 | 13 | 16 | 20 |
+|---|---|---|---|---|---|---|
+| peak (kN) | 1651.7 | 1505.8 | **1367.1**（最低） | 1447.0 | 1514.5 | 1507.6 |
+| band (%) | 87.74 | 86.92 | 86.73 | 86.01 | 84.15 | 84.05 |
+
+- **结论 1（退化实锤）**：ep10 后 peak 单调回升（1367→1447→1514→1508）+ band 单调下滑（86.73→86.01→84.15→84.05），三中间点排除单点噪声 ⇒ **训练真实退化，非评估抖动**。杀训正确，趋势 ep13 已现（较 ep10 peak +5.8%、band −0.72 pp）。
+- **结论 2（退化性质）**：**band 与 peak 同向恶化** ⇒ 不是峰带权衡（若权衡应 peak 降 / band 降），而是策略整体变差 ⇒ 指向优化稳定性（LR / 熵塌缩 / 优势估计 / 平滑罚逼出"冻结档位"坏平衡），**不是"车钩力压不下去"的物理问题**。故本结果**不推翻 ADR-071 判据锚、不推翻 ADR-072 机制方向**——它否的是"当前训练配方能把该机制训到位"，不是机制本身。
+- **结论 3（机制局部兑现）**：文献对标机制（±3 级限幅 + `notch_smooth_w=5.0` + `coupler_peak_w=0`）在**前 10 集兑现 peak −17.2%**（v4 锚 1651.7 → ep10 1367.1，同评估口径）——"文献量级的进步效果"确实出现过，失败模式已收窄为"ep10 后训练退化"，与 v0→v9 的"全程无进展"（A 类）性质不同。
+- **产物（本地，可直接引用）**：`outputs/results/decompose/eval_decompose_decompose_m1_ms31500_w4v21full_det_ep10.json` / `ep20.json`（窗口期）、`eval_decompose_decompose_m1_ms31500_w4v21full_mid_ep13.json` / `ep16.json`（补密）、`eval_decompose_decompose_m1_ms31500_w4v21pilot_det_ep2.json` / `ep4.json`（pilot）。六点全部零穿透、EXIT=0。
+
+#### W4-v21 退化归因（2026-11-18 短开机拉训练 CSV，诊断完成，非训练）
+
+> owner 批复短开机（≈0.2–0.8 元，封顶 ≤1 元）；实例 i-f8zcp6vvis4rnztw0p9y 开机→scp→关机复核（`Stopped`+`StopCharging`），全程收账守卫在位（billing_guard schtasks 每 10 min，未触发强停）。训练 CSV 落盘 `outputs/results/diagnostics/w4v21_train_csv/`（`train_{history,loss,reward_terms}_dec_ad2_cp_seed0.csv` + `metadata.json` + `w4v21_full_train.log`），21 集（ep1–21）。
+
+- **优化健康面全绿——排除熵塌缩 / 优化器发散**：`entropy` ep1 2.67 **单调升**至 ep21 5.08（非塌缩，塌缩应下降）；`grad_norm` 全程 1.56–1.91 平稳；`approx_kl` 0.07–0.14 震荡无尖峰；`policy_loss` 全程近零；`total_loss` 0.45→0.058 正常衰减。**故结论 2 的"优化稳定性"嫌疑中，熵塌缩与梯度异常两项被实证排除**。
+- **先拐头信号 = 间隙保持能力（gap_err / gap_eff），ep14 起、ep20 断崖**：`gap_err_mean` ep1–13 在区间 273–314 m 波动，ep14 抬升（330.6）→ ep17 317 → ep19 339 → **ep20 360.8 → ep21 372.7**，单调恶化；对应 reward 分项 `gap_eff_sum` 前段 ~117k–133k，**ep20 断崖至 99 128**（−15%）。这与确定性快评 band 下滑（86.73%→84.05%）同源——**是"车间距保持"这一项在退化，不是车钩力物理**（`coupler_peak_sum` 全程为 0 记录项，`gap_min_m` 全程 127.5–128.9 = d_eff，无穿透）。
+- **第二恶化轴 = 速度带锚定被牺牲**：`rel_anchor_sum` ep1 326 982 **单调降**至 ep21 314 215；同时 `speed_over_sum` 从 −81 818 **改善**到 −64 856（超速惩罚变小）⇒ 策略在**用速度跟踪精度换更少超速**。这与 `notch_smooth_w=5.0` 平滑罚 + `coupler_peak_w=0` 的奖励结构一致：平滑罚压制档位切换 → 策略倾向"少动档位"的保守行为 → 间隙保持与速度锚定双双漂移。
+- **归因判定（诊断层，非决策层）**：退化表现为**奖励结构内部两项（gap 保持 / 速度锚定）的渐进漂移**，发生在优化健康的前提下 ⇒ 最可能的杠杆是**奖励权重配比**（gap_eff 与 notch_smooth / rel_anchor 的相对权重），其次是 LR（entropy 一路升到 5.08，偏高的熵可能让策略持续探索到次优行为）。**这是假设，不是已定决策**——"调训练配方（LR / 熵系数）vs. 调平滑罚权重"的取舍须另立 ADR + 走 §0.8.2 G1 检查单后再投，本诊断不授权任何新一轮训练。
+
+### 诊断-2026-11-18-B路线代码可行性核查（ADR-073 开训前置，零训练零支出）
+
+- **触发**：owner 2026-11-18"继续"批复开训预算后，按 ADR-073 G1 检查单需先兑现"实现方案落地"这一前置。查 `src/environments/train_fleet_env.py` `_calculate_reward_decomposed()` line 1880–1892 + trainer/logger 逐槽位统计，核查 ADR-073 选定 B 路线（加性 → 乘性/几何平均为主）的代码可行性。**结论：首选实现不可直接套用，开训前提不成立，已停手上报，未改代码、未开机。**
+- **事实 1（加性结构现状）**：reward = **11 分项直接相加**，正负混合——正项 `speed_band`(≤5/列)、`rel_anchor`(≤2/列)、`gap_eff`(≤3/对) 有界；负罚项 `speed_over`(10/km/h 超线才触发)、`gap_danger`(60·õ² 跌破 d_safe 才触发、不封顶)、`coupler_peak`(`−w(1−exp)`)、`coupler_over`(60·cap)、`notch_smooth`、`pressure_gradient`、`ab_cost`、`ed_cost`。**8 个负罚项在常态步恒为 0**（只在越线/超限/跌破时触发）。
+- **事实 2（乘性/几何平均不可直接套用）**：Mysore 2021（arXiv:2012.06656）乘性组合 $\prod_k r_k^{1/K}$ 要求各项为正且非零；此处 8/11 项常态为 0、触发时为负 ⇒ 直接几何平均会使常态 reward 恒为 0（训练失梯度）或符号翻转。**ADR-073 "首选乘性"缺一个"罚项 → 正适应度变换"的中间设计，该变换无文献锚、属重设计奖励面。**
+- **事实 3（备选方案改动面）**：① **目标归一化**：改 `train_fleet_env.py` 分项量级统一，仍加性——不解决"分项交换"病根（归一化后可再平衡但机制不变）；② **Lu 2026 协方差提权（COVER）**：需 trainer 侧每集按 `reward_terms`（已在 `train_runner.py` line 425-436 / `logger.py` `log_reward_terms` 逐槽位落 CSV，数据现成）算各分项与总回报的协方差符号、动态调权，属**动态权重**而非换组合算子——改动在 trainer 侧、可零回归开关化，但"动态权重"边界贴近 A 路线（调配方），且与 ADR-073"选 B 不选 A"的定性有张力。
+- **待 owner 拍板（未决）**：B 路线具体落地形态在"乘性+罚项变换（重设计奖励面）/ 目标归一化（治标）/ 协方差动态提权（贴 A 路线）"三者间重选，已超出 ADR-073 已列实现范围 ⇒ 按 `EXECUTION_RULES` 决策权限测试 1/4 归拍板。**开训冻结，待重新定案 + G1 重签后再动。**
+
+#### 补充（2026-11-18 续）：owner 拍板"协方差动态提权"后的第二次落地核查——COVER 数据链缺失
+
+- **owner 拍板**：在上述三形态中选 **协方差动态提权（Lu 2026 COVER）**。据此做实现级核查，读 `train_runner.py` / `parallel_rollout.py` / `logger.py` / `configs/...3train...yaml` 数据流，并 WebFetch 复核 COVER 原文（arXiv:2602.06869 v3）。**结论：仍不可按原算法落地，二次停手，未改代码、未开机。**
+- **事实 1（数据粒度不匹配）**：本仓 reward terms 是**逐集累计**（`reward_term_sums` → `logger.log_reward_terms(ep=...)` 每集一行 CSV，主配置 `reward_term_log: true`）；21 集 ≈ 21 样本点。
+- **事实 2（COVER 算法锚的是 per-step 信号，本仓不存在）**：COVER 原文（abstract 逐字）"raises an objective's weight only when the covariance between its reward and the **clipped advantage weight** falls below a target"，协方差由局部协方差律导出、在**策略更新的 step/batch 级**计算，依赖 per-step 的 (分项 reward, clipped advantage weight) 配对。本仓：`advantage`/`adv_weight` **未逐 step 落盘**（GAE 在 update 阶段算完即弃，`train_runner.py:217` 仅注释；grep 无落盘点），per-step reward term 也无记录。**逐集累计 CSV 不是 COVER 协方差的等价量。**
+- **事实 3（跨进程权重同步成本）**：并行架构下 env 副本长期驻留 worker（`parallel_rollout._worker_init`），父进程每集只经 `payload`（weights）传参（`_weights_payload`/`run_episode:184`）。动态调权若要每集灌进 worker，须扩 payload 传"权重字典"+ worker 侧覆盖 env 可变属性+跑后恢复——三文件改动（trainer/parallel_rollout/env），且 hash 种子与 log_prob 一致性须重验。
+- **判定**：owner 选的方向（按协方差动态提权）在文献层成立，但**本仓缺 COVER 所需的 per-step (分项 reward, advantage) 数据链**，逐集替身属"用推断冒充实现"，不予采纳。两条出路待 owner 定：① 补 per-step 信号落盘（真 COVER，改动大、每步开销）；② 退回可用逐集数据的**简化启发式**（如逐集分项占比低于阈值则提权，明确标注"自创、非 COVER、须从头训验证"），接受其脱离文献锚。**开训继续冻结。**
+
+#### 补充二（2026-11-18 续 2）：owner 定"补 per-step 做真 COVER"——实现勘查与唯一剩余语义岔路
+
+- **owner 第二次拍板**：选①补 per-step 落盘做真 COVER。据此完成实现级勘查（`mappo_agent.py` GAE/minibatch、`parallel_rollout.py` worker 架构、`train_runner.py` store_transition、`registry.py` 构造、`logger.py` TERM_KEYS）：
+  - **信号链可补齐**：worker `_rollout_once` 每个 transition 可从 `env._last_reward_terms` 累加本 decision 步的分项 → 随 transition 回传 → 父进程 `store_transition` 增存入 buffer → `update()` 算 GAE 后在 minibatch 取 `clamp(ratio,1±ε)*adv`（COVER 的 clipped advantage weight，line 558 可见）→ 按 (分项_k, clipped_adv_weight) 算协方差符号 → 单边提权 → 权重乘子经 payload 回灌 worker。**技术路径通，不改物理/不改 GAE/不改判据。**
+  - **唯一语义岔路（须 owner 定，非方向选择题）**：COVER 原文多目标 = 独立 reward（helpful/harmless 等），"提权"= 提升被压制的**正目标**。本仓 11 分项是**单 reward 的分解**，其中 8 个是负罚项（常态 0、触发为负）——对负罚项"提权"= 罚得更狠，与 COVER 原意相反。**Agent 推荐：只对 3 个正项（`speed_band`/`rel_anchor`/`gap_eff`，恰是本次退化项）做 COVER 提权，8 个罚项权重保持不变**——既忠于 COVER"提升被压制正目标"的语义，又精准对治本次病根；负罚项不参与，避免语义倒置。此为实现细节决定，owner 确认后一路实现到底不再停。
+  - **硬验收（不可省）**：默认开关关 = 零回归（同 ckpt 同 seed 复跑 peak 逐位一致，硬红线第 5 条）；log_prob 一致性；600 步冒烟无穿透；单测覆盖协方差符号/单边/clip。**开训仍冻结，须 owner 另批窗口 + G1 重签。**
+
+#### 补充三（2026-11-18 续 3）：owner 锁定"只对 3 正项提权"——COVER 实现完成（零训练）
+
+- **owner 第三次拍板**：提权对象 = 只对 `speed_band`/`rel_anchor`/`gap_eff` 三个正项（本次退化同源项），8 个负罚项权重恒定。据此完成实现，**未开训、未开机、未改判据**。
+- **改动集（6 文件 + 3 测试，全部 `cover_enabled` 门控或 ×1.0 恒等）**：
+  1. **新增** `src/algorithms/cover_controller.py`：纯函数控制器——协方差 `E[(x-Ex)(y-Ey)]`、单边提权（cov<target 才提）、上界 clip、`state_dict` 往返；terms 锁定 3 正项。
+  2. `src/environments/train_fleet_env.py`：构造读 `cover_enabled`（默认 False）+ `cover_multipliers`（默认全 1.0）；`_calculate_reward_decomposed` 在 reward 定稿前对 3 正项乘乘子（×1.0 恒等），pay 端记录 `_cover_step_terms`。
+  3. `src/trainer/parallel_rollout.py`：worker 每个 decision 步累加 3 正项进 transition（第 7 元组）；`_weights_payload` 携带 `cover_multipliers`；`_rollout_once` 回灌到 worker env。
+  4. `src/trainer/train_runner.py`：解包 7/6 元组兼容；store 传 `step_terms`；**fail-fast 校验**——`cover_enabled` 但并行未启用 ⇒ 抛错拒绝静默失效（COVER 信号链只接通进程级并行路径）。
+  5. `src/algorithms/mappo_agent.py`：构造注入 controller；buffer 增 `buffer_terms`；`update()` 在 minibatch 取 `clamp(ratio,1±ε)*adv`（COVER 原文锚的 clipped advantage weight）按未打乱 `batch_indices` 配对算协方差、逐优化 step 调权。
+  6. `src/trainer/registry.py`：agent 侧 `cover_enabled` 强制对齐 env（以 env_cfg 为唯一真源），防"agent 调权但 env 不记信号"静默不一致。
+- **验收证据（全过，WSL conda traffic_rl）**：`test_cover_controller.py` 8/8（协方差符号/单边/clip/负项不参与/state_dict）；`test_cover_signal_chain.py` 4/4（**关时 reward 逐位一致**=硬红线第5条充分条件、开时记录3正项、乘子生效）；`test_cover_agent_wiring.py` 4/4（controller 构造/payload 携带/store 接线）；相关回归 `test_mappo_train`/`test_per_agent_critic`/`test_logging_metrics` 27/27；`py_compile` 全部通过。合计 **16/16 COVER 专项 + 27 回归全绿**。
+- **未做（属开训，仍冻结）**：主配置 YAML 加 `cover_enabled: true` + 参数；600 步冒烟（需跑仿真）；同 ckpt 同 seed 复跑 peak 逐位一致（训练级口径）；G1 六问重签；cloud closer 注册；开训窗口 owner 审批。**本条仅为零训练的实现与单测证据，不构成开训授权。**

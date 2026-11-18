@@ -224,6 +224,18 @@ class TrainFleetEnv:
         self.reward_term_sums = {}
         self._reward_term_steps = 0
         self._last_reward_terms = None
+        # 【COVER / Lu 2026 arXiv:2602.06869】per-step 正项 reward 记录（默认关 = 零回归）。
+        # 仅当 cover_enabled=true 时，每 step 把 3 个正项（speed_band/rel_anchor/gap_eff）写到
+        # _cover_step_terms，供 trainer 侧与 clipped advantage weight 配对算协方差。
+        # 与 reward_term_log 解耦：后者是"逐集累计占比"诊断，本项只服务 COVER 控制，
+        # 且只记录不参与 reward / 物理 / 安全计算 ⇒ 关闭时行为逐位不变。
+        self.cover_enabled = bool(config.get('cover_enabled', False))
+        self._cover_step_terms = None
+        # COVER 权重乘子（默认 1.0 = 不改原权重；trainer 侧 controller 逐集回灌）。
+        # 只作用于 3 个正项的 reward 计算，不改物理/安全/判据。
+        self.cover_multipliers = {
+            'speed_band': 1.0, 'rel_anchor': 1.0, 'gap_eff': 1.0,
+        }
         # 【W4-v21 / ADR-072】级位切换幅度罚（默认 0 = 零回归）。
         # 对标 Wang2023：车钩力不进奖励（训练贵 + v20 实证直接罚通道脆弱），
         # 平稳性走"级位切换幅度"间接通道——罚每步 ED 指令变化 + AB 变档（0.5 权重）。
@@ -1877,6 +1889,13 @@ class TrainFleetEnv:
         # 幅度罚，车钩力不进奖励，实车拉钩 −8.93%）。
         notch_smooth_term = -float(getattr(self, '_notch_smooth_pen', 0.0))
 
+        # 【COVER】3 正项权重乘子（默认全 1.0 = 零回归；已乘到实际 reward 上）。
+        # 乘子由 trainer 侧 controller 逐集回灌到 self.cover_multipliers。
+        _cm = getattr(self, 'cover_multipliers', {})
+        speed_band_reward *= float(_cm.get('speed_band', 1.0))
+        rel_anchor_reward *= float(_cm.get('rel_anchor', 1.0))
+        gap_eff_reward *= float(_cm.get('gap_eff', 1.0))
+
         reward = (
             + speed_band_reward
             + rel_anchor_reward
@@ -1890,6 +1909,14 @@ class TrainFleetEnv:
             + ab_cost
             + ed_cost
         )
+        # 【COVER】per-step 正项记录：只记录不参与 reward 计算（reward 已在上式定稿）。
+        # 关闭时（默认）完全跳过 ⇒ 数值与语义逐位零回归。
+        if self.cover_enabled:
+            self._cover_step_terms = {
+                'speed_band': float(speed_band_reward),
+                'rel_anchor': float(rel_anchor_reward),
+                'gap_eff': float(gap_eff_reward),
+            }
         if self.reward_term_log:
             terms = {
                 'speed_band': speed_band_reward,

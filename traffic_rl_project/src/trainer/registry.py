@@ -27,6 +27,15 @@ def _build_env(cfg):
 
 def _build_agents(env, cfg, device):
     p = dict(cfg.algo_params or {})
+    # 【COVER】agent 侧控制器开关强制与 env 对齐（以 env_cfg.cover_enabled 为唯一真源），
+    # 防"agent 调权但 env 不记信号 / env 记信号但 agent 不调"的静默不一致。
+    # 用户只需在 env_cfg 写 cover_enabled + cover_* 参数；algo_params 同名键被覆盖。
+    _cover = bool(getattr(env, 'cover_enabled', False))
+    p['cover_enabled'] = _cover
+    if _cover:
+        p.setdefault('cover_target_cov', 0.0)
+        p.setdefault('cover_up_factor', 1.05)
+        p.setdefault('cover_weight_max', 4.0)
     if cfg.algorithm == 'mappo':
         # 【ADR-021 方向 B】decision_interval 透传进 agent，供其计算有效信用视界（秒）。
         # 视界换算须 (原始步数 × dt)：dt 从 env 注入（环境物理步长，默认 0.1 s）。

@@ -66,12 +66,17 @@ def _load_weights(agent, payload):
 
 def _weights_payload(agent) -> dict:
     """父进程当前权重的可 pickle 快照（跨设备统一搬到 CPU）。"""
-    return {
+    payload = {
         'policy': {k: v.detach().cpu() for k, v in agent.policy.state_dict().items()},
         'value': {k: v.detach().cpu() for k, v in agent.value.state_dict().items()},
         'vn_mean': float(agent.value_norm.mean),
         'vn_std': float(agent.value_norm.std),
     }
+    # 【COVER】逐集权重乘子（关闭时 controller=None ⇒ 不写入，worker 侧保持默认 1.0）。
+    _cc = getattr(agent, 'cover_controller', None)
+    if _cc is not None:
+        payload['cover_multipliers'] = dict(_cc.multipliers)
+    return payload
 
 
 def _rollout_once(payload, init, max_steps, rand_seed):
@@ -82,6 +87,9 @@ def _rollout_once(payload, init, max_steps, rand_seed):
     """
     env, agent, inter, cfg = _W['env'], _W['agent'], _W['inter'], _W['cfg']
     _load_weights(agent, payload)
+    # 【COVER】把父进程 controller 的权重乘子灌进 worker env（默认无该字段 ⇒ 保持 1.0）。
+    if 'cover_multipliers' in payload and getattr(env, 'cover_enabled', False):
+        env.cover_multipliers = dict(payload['cover_multipliers'])
     # 每轨迹独立确定性种子：动作采样（torch）+ 起点随机化（env 自有生成器）+ 兜底 np/random
     torch.manual_seed(rand_seed)
     np.random.seed(rand_seed % (2 ** 32))
@@ -106,16 +114,24 @@ def _rollout_once(payload, init, max_steps, rand_seed):
     while not done and step < max_steps:
         env_act, value, aux = inter.act(obs)
         nxt, acc, term, trunc, info = obs, 0.0, False, False, None
+        # 【COVER】累加本 decision 步内各 env.step 的正项 reward（与 transition reward 同口径：
+        # di 步之和）。关闭时 cover_step_acc 恒 None，不进 transition ⇒ 零回归。
+        cover_step_acc = ({k: 0.0 for k in ('speed_band', 'rel_anchor', 'gap_eff')}
+                          if getattr(env, 'cover_enabled', False) else None)
         for _ in range(di):
             nxt, r_step, term, trunc, info = env.step(env_act)
             acc += r_step
+            if cover_step_acc is not None and getattr(env, '_cover_step_terms', None):
+                for _k in cover_step_acc:
+                    cover_step_acc[_k] += float(env._cover_step_terms.get(_k, 0.0))
             step += 1
             if term or trunc or step >= max_steps:
                 break
         reward = acc
         done = term or trunc or step >= max_steps
         flat, actions, log_prob = aux
-        transitions.append((flat, actions, float(reward), log_prob, bool(done), value))
+        transitions.append((flat, actions, float(reward), log_prob, bool(done), value,
+                            cover_step_acc))
 
         ep_reward += reward
         ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))

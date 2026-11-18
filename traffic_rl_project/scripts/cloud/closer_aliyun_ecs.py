@@ -6,8 +6,12 @@
 触发停机条件（任一满足即触发，不依赖人对"成败"的判读）：
   1. done marker 文件出现在云上（任务正常收尾标记）
   2. exit-pattern 在本次运行的**独立日志**中出现（脚本自记的退出码行）
-  3. ssh 连续 3 次不可达（实例可能已被兜底 poweroff——此时须补 API stop 确认 StopCharging）
-  4. 硬 deadline 到（--deadline-min；**检测无关**，这是最后一道，永不缺席）
+  3. 硬 deadline 到（--deadline-min；**检测无关**，这是最后一道，永不缺席）
+
+⚠️ 不可达触发器已废除（2026-11-18 00:24 误杀事故）："ssh 连续 3 次不可达 → 疑似已
+poweroff → 补 API stop"把 **ssh 超时 ≠ 机器关机** 两件事划了等号——三次 rc=124 网络
+抖动就把健康运行的实例停了。不可达只计数、只留痕，**永不触发停机**；机器真挂了 billing
+由 deadline 兜底，误杀概率归零优先于早停几分钟。
 
 误杀防线（19:12 事故教训：closer grep 共享日志匹配到历史崩溃行，误杀健康评估）：
   - 只读 --log 指定的**本次运行独立日志**，禁止任何形式的共享日志/历史日志匹配；
@@ -81,14 +85,13 @@ def ssh(ip, cmd, timeout=25):
         return 124, ""
 
 
-def trigger_met(args, unreachable_streak):
+def trigger_met(args):
     """返回 (是否触发, 原因)。
 
     退出码行语义（19:26 提前停机教训）：多阶段任务逐段写 EXIT_* 行，
     第一条 EXIT 行 ≠ 任务完成——必须凑满 --exit-min-count 条才算全部收尾。
+    不可达（unreachable）永不触发停机（00:24 误杀事故）。
     """
-    if unreachable_streak >= 3:
-        return True, f"ssh 连续 {unreachable_streak} 次不可达（疑似已 poweroff，须补 API stop 确认停费口径）"
     rc, out = ssh(args.ip,
                   f"ls {args.marker} 2>/dev/null; "
                   f"awk '/{args.start_marker}/{{found=1}} found' {args.log} 2>/dev/null "
@@ -188,7 +191,7 @@ def main():
 
     unreachable = 0
     while datetime.now() < deadline:
-        hit, why = trigger_met(args, unreachable)
+        hit, why = trigger_met(args)
         if hit:
             log(f"触发停机：{why}")
             pull_artifacts(args)
@@ -197,6 +200,8 @@ def main():
             return
         rc, _ = ssh(args.ip, "true", timeout=15)
         unreachable = unreachable + 1 if rc != 0 else 0
+        if unreachable >= 3:
+            log(f"⚠️ ssh 连续 {unreachable} 次不可达（仅告警不停机，deadline 兜底）")
         log(f"轮询：未见触发信号（rc={rc} 不可达连计={unreachable}）")
         time.sleep(args.poll_s)
 

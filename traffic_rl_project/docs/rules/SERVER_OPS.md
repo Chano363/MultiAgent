@@ -45,7 +45,7 @@ supersedes: 新建（原散落在会话中的云主机操作经验迁入；2026-
 | 9 | **云上长任务/watchdog 先演练再上线** | 判活自指、保真参数错配、产物判据过浅——2026-11-09 一天烧 12 元学费，清单见 §15.1；演练不过不上线 |
 | 10 | **开实例前必须过用户审批（2026-11-10 用户硬约束）** | 云服务器（阿里云或任何实例）**只在正式规模训练那一步**、且用户**明确批复规格与预算**之后才能开。开之前必须先给出：**实例规格 / 单价 / 预估总价 / 预计墙钟**。**询价、probe、试开实例一律算需要审批**，禁止自行发起。违反 = 未经授权的付费动作 |
 | 11 | **实例装过环境 → 释放前必须 CreateImage（2026-11-11 用户硬约束）** | 无镜像 = 下次开机重烧全部环境安装时间。实测 2026-11-11 v9 L1：无镜像开机到起训烧 **45 分钟**（~4.3 元，两次下载源失败 + torch 慢），用户判定违反省钱铁律。工具：`scripts/cloud/create_image_aliyun_ecs.py`（支持运行中在线快照）。**常用镜像见 §三 台账**；`provision_aliyun_ecs.py --image <id>` 复用 |
-| 12 | **开实例即注册收账 closer（2026-11-17 用户硬约束："机制层面确保不空转"）** | 空转账本：11-09 12 元 → 11-17 晨评估空转 31.5 min → 11-17 晚 79 min ≈2 元（评估秒挂后无人停机）。**任何**云任务启动的同一动作序列里必须注册 schtasks closer：`scripts/cloud/closer_aliyun_ecs.py`（schtasks 包装 = 会话无关，WorkBuddy 会话死掉照停）。四道触发：done marker / 独立日志退出码行凑满 `--exit-min-count` / ssh 连续 3 次不可达 / **硬 deadline（检测无关，永不缺席）**。两个防误杀红线：① 只读本次运行**独立日志**（`--start-marker` 截断历史），禁 grep 共享日志——19:12 误杀健康评估的根因；② 多阶段任务 min-count = 阶段数——19:26 第一条 EXIT 行即停机误杀 ep4 的根因。G1 检查单第 6 问同步加闸 |
+| 12 | **开实例即注册收账 closer（2026-11-17 用户硬约束："机制层面确保不空转"）** | 空转账本：11-09 12 元 → 11-17 晨评估空转 31.5 min → 11-17 晚 79 min ≈2 元（评估秒挂后无人停机）。**任何**云任务启动的同一动作序列里必须注册 schtasks closer：`scripts/cloud/closer_aliyun_ecs.py`（schtasks 包装 = 会话无关，WorkBuddy 会话死掉照停）。**三道触发**：done marker / 独立日志退出码行凑满 `--exit-min-count` / **硬 deadline（检测无关，永不缺席）**。三个防误杀红线：① 只读本次运行**独立日志**（`--start-marker` 截断历史），禁 grep 共享日志——19:12 误杀健康评估的根因；② 多阶段任务 min-count = 阶段数——19:26 第一条 EXIT 行即停机误杀 ep4 的根因；③ **ssh 不可达永不触发停机（2026-11-18 00:24 误杀事故修复）——只计数、只留痕、只告警，真挂了由 deadline 兜底**，三次 rc=124 网络抖动曾把健康实例停掉，误杀概率归零优先于早停几分钟。G1 检查单第 6 问同步加闸 |
 
 ---
 
@@ -544,6 +544,8 @@ wsl -d Ubuntu-24.04 -e bash -lc "rsync -avz --exclude 'outputs/' --exclude '.git
 | 单步耗时忽快忽慢（3 倍波动） | 笔记本热降频 / 云主机噪声 | 只看 cProfile 相对比值；绝对耗时多次取最小值 |
 | 排除 `outputs/` 后测试报 `FileNotFoundError` | 归档一致性测试缺历史数据 | 预期行为，这类测试在本地跑 |
 | 参考速度表加载报 `FileNotFoundError: 缺口径元数据 ref_speed_meta.json` | `speed_ref_table` 的 npz 必须与同目录 `ref_speed_meta.json` 成对（校验表与 v_max 同源），单传 npz 不够 | scp 时把 `refspeed_baseline_*/` 目录**两个文件一起传**（2026-11-16 实测） |
+| 评估秒挂后实例空转 79 min（≈2 元）；报 `ModuleNotFoundError: No module named 'src'` | 云端/本地用 `python src/.../evaluate_xxx.py` 文件直跑时项目根不在 sys.path（本地靠 editable pth 注入、云镜像没有） | 一律用 `python -m src.evaluation.evaluate_decompose` **模块方式**跑；上云前把模块方式写进启动脚本（详见 §15.1 第 7 条） |
+| closer / guard 的 schtasks `/TR` 参数"没传进去"或只剩半截 | `/TR` 用空格分隔参数，参数值含空格被拆成多个 token；datetime 的空格尤其致命 | datetime 用 ISO `T` 分隔（如 `2026-11-18T08:03`）；多参数脚本改成单个 wrapper `.sh`/`.py` 由 `/TR` 只传一个无空格路径 |
 
 > **诊断脚本陷阱**：`TrainFleetEnv` 的 `info` 里**没有** `speed` 键（只有单列 env 有）。
 > 写 `info.get('speed', 0.0)` 会恒得 0，误判"列车停住"；应读 `env.trains[i].dynamics.vel[0]`。
@@ -558,6 +560,7 @@ wsl -d Ubuntu-24.04 -e bash -lc "rsync -avz --exclude 'outputs/' --exclude '.git
 4. **保真复现 = 基准协议逐字段搬运**：任何"复现基准归档"的自检路径必须带齐基准归档的**全部** override/起点/seed 参数（rel54 的 70 kPa / start-m / gap-offset 漏一项 → 复现峰值差 17%，防线拦截烧 9 元）。换基准时同步重新生成复现配置；超差 1% 硬失败。
 5. **resume/续训前必须 pgrep 实证**：启动任何 resume 或重启链条前 `pgrep -f run_training` 核查，不凭口头状态（当天凭"已关机"假设启动 resume → 与存活进程双开抢核 40 min，险些 checkpoint 竞写）。
 6. **费用封顶 + 心跳告警**：云任务开工前定预算（如 8 元），预算超时即告警并人工介入，不靠"任务跑完自动关机"单点（该单点当天失灵）。
+7. **评估一律模块方式跑（`python -m src.evaluation.…`）**：2026-11-17 晚 `python src/...` 文件直跑因项目根不在 sys.path 秒挂（`ModuleNotFoundError: No module named 'src'`），且无人察觉 → 实例空转 **79 min ≈2 元**（继早间 31.5 min 之后第二次）。模块方式是唯一正确启动形态，启动脚本内置；秒挂由 closer 的独立日志 EXIT 行 / deadline 兜底，不等人看日志。
 
 ---
 
@@ -590,6 +593,7 @@ wsl -d Ubuntu-24.04 -e bash -lc "rsync -avz --exclude 'outputs/' --exclude '.git
 | `scripts/cloud/instance_watchdog.sh` | 实例 | 心跳超时 / 进程消失 → 写 `DEAD_*` + `poweroff` | 心跳龄 > `STALE_S`（默认 1800 s）；结束等 `.pull_done` 上限 `GRACE_S`（默认 900 s） |
 | `scripts/cloud/pull_artifacts.sh` | 本地 WSL | rsync 回传 + 完成判据校验 → 通过才 `touch .pull_done` | CSV 行数 > 0 且心跳存在；exit=0 + `训练完成` = 正常结束 |
 | `scripts/cloud/run_lifecycle.ps1` | 本地 Windows | 轮询状态 → 调回传 → API 停机 → **StopCharging 复核** → `-Release` 释放 → 记成本账本 | 未复核到 `StoppedMode=StopCharging` **禁止释放** |
+| `scripts/cloud/billing_guard.py` | 本地 Windows | **纯 API、零 ssh** 账单兜底守卫（2026-11-18 owner 指令"不相信你的机制"后立项）：schtasks 每 10 min 唤起，Running 且过 `--stop-after` 绝对时限 → API 强停（StopCharging）+ 复核回执；未到时限只记状态心跳 | ssh 通道在 schtasks 环境不可靠（探针 rc=124），本守卫只走 `DescribeInstances`/`StopInstance`，`--stop-after` 用 ISO `T` 分隔（`/TR` 空格拆参坑，见 §15） |
 
 ### 17.2 预检 8 项（缺一不许开机）
 

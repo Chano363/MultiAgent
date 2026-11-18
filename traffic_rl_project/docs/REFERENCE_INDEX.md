@@ -357,3 +357,16 @@ Ma2023 PDF2式(1)、PDF3式(4)、PDF4式(7)及§3.3已看原页；报告中页�
 | 四把闸 → 两把闸：最大拉钩 **−32.1%**、压钩 **−11.4%**（TABLDSS 仿真） | 《2 万吨重载组合列车操纵优化研究》铁道机车车辆 | `tdjc.cbpt.cnki.net`（篇名检索） | W |
 | 循环约 6 → 4 次：压钩 2057.3→1682.4、拉钩 2067.5→1295.7 kN | 专利 CN109969220B（双空气制动管循环制动方法） | `patents.google.com/patent/CN109969220B/zh` | W |
 | 空电联合的循环次数与最大车钩力均小于纯空气制动；缓解性能随编组 / 坡度 / **缓解速度**增加而变差 | 《应用空电联合制动的重载列车缓解性能》重庆理工大学学报 2017 | `search.napstic.cn`（010cqgxyxb201710014） | W |
+
+## W4-v21 退化归因的对症文献组（2026-11-18；**均为跨领域机制对标，非列车同场景证据**）
+
+> 正文与「对管线的映射」见 `docs/papers/LITERATURE_FINDINGS.md` §12。本表只记来源与出处；引用必须标"跨域机制对标"。
+
+| 结论 / 技术点 | 来源 | 出处 | 级 |
+| :--- | :--- | :--- | :--- |
+| ★★ reward hacking / Goodhart：错误代理奖励被强力优化会与真实目标脱钩 | Amodei et al. 2016《Concrete Problems in AI Safety》 | arXiv:1606.06565（DOI 10.48550/arXiv.1606.06565） | 一手经典·跨域 |
+| ★★ 形式化：代理 unhackable 当且仅当增大代理回报永不降低真实回报；对全部随机策略仅当一奖励为常数 ⇒ 严格无 hack 不可能 | Skalse et al. 2022/2025《Defining and Characterizing Reward Hacking》 | arXiv:2209.13085 | 一手理论·跨域 |
+| ★★ 熵-性能权衡 $\mathcal{R}=-a\exp(\mathcal{H})+b$；熵系数过大致 entropy explosion / 退化；宜自适应+目标熵区间 | Zhang et al. 2025/2026《Revisiting Entropy Regularization (AER)》 | arXiv:2510.10959 | 一手实证·跨域(LLM) |
+| ★★ 加性标量化 $r=\sum w_k r_k$ 致命缺陷 = "exploit one component at cost of others"；提出乘性组合（几何平均） | Mysore et al. 2020/2021《How to Train your Quadrotor (RE+AL)》 | arXiv:2012.06656；ACM TCPS 5(4) 2021, doi:10.1145/3466618 | 一手+期刊·跨域(机器人控制) |
+| ★ cross-objective interference：标量化只改善部分目标、其余退化；局部协方差律 + COVER 单边提权 | Lu et al. 2026《Uncovering Cross-Objective Interference》 | arXiv:2602.06869 | 一手理论+实证·跨域(LLM) |
+| ★ 熵正则无差别增熵、后期过度增长可压制 advantage 信号致退化 | Xu et al. 2026《Preventing Entropy Collapse (OPEFO)》 | arXiv:2605.11491 | 一手实证·跨域(LLM) |

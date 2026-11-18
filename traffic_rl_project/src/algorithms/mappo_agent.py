@@ -203,6 +203,10 @@ class MAPPOAgent(BaseRLAgent):
         value_norm_decay: float = 0.98,
         log_std_min: float = -4.0,
         log_std_max: float = 2.0,
+        cover_enabled: bool = False,
+        cover_target_cov: float = 0.0,
+        cover_up_factor: float = 1.05,
+        cover_weight_max: float = 4.0,
     ):
         # 【ADR-021 方向 B】critic 必须为枚举字符串（禁止布尔开关）：
         #   'centralized_scalar' = 集中式单标量价值头（旧行为，零回归）
@@ -236,6 +240,21 @@ class MAPPOAgent(BaseRLAgent):
 
         self.device = torch.device(device)
         logging.info(f"MAPPO设备: {self.device}")
+
+        # 【COVER / Lu 2026】协方差单边提权控制器（默认关 = 零回归）。
+        # 关闭时不 import / 不实例化 / 不调用，主链路上无任何额外运算。
+        self.cover_enabled = bool(cover_enabled)
+        self.cover_controller = None
+        if self.cover_enabled:
+            from src.algorithms.cover_controller import CoverController
+            self.cover_controller = CoverController(
+                target_cov=cover_target_cov,
+                up_factor=cover_up_factor,
+                weight_max=cover_weight_max,
+            )
+            logging.info(f"[COVER] 已启用：target_cov={cover_target_cov} "
+                         f"up_factor={cover_up_factor} weight_max={cover_weight_max} "
+                         f"正项={self.cover_controller.terms}")
 
         self.policy = ContinuousPolicyNetwork(
             obs_per_drone, act_per_drone,
@@ -282,6 +301,7 @@ class MAPPOAgent(BaseRLAgent):
         self.buffer_rewards = None
         self.buffer_dones = None
         self.buffer_values = None
+        self.buffer_terms = None  # 【COVER】per-step 正项 reward；默认 None（零回归）
 
         # value 目标归一化（解决多智能体累计回报量级过大导致的 value_loss 爆炸）
         self.value_norm = ValueNorm(decay=value_norm_decay)
@@ -364,9 +384,12 @@ class MAPPOAgent(BaseRLAgent):
         log_probs: np.ndarray,
         done: bool,
         value: "float | np.ndarray",
+        step_terms: "dict | None" = None,
     ):
         """log_probs 为 per-agent 数组（shape=[num_drones]）。
-        value：centralized_scalar 为 float，per_agent 为 [num_drones] 数组（buffer 堆叠为 [T,N]）。"""
+        value：centralized_scalar 为 float，per_agent 为 [num_drones] 数组（buffer 堆叠为 [T,N]）。
+        step_terms：【COVER】本 decision 步的 3 正项 reward dict；None 时记空 dict（零回归）。
+        """
         if self.buffer_states is None:
             self.buffer_states = [global_state]
             self.buffer_actions = [actions]
@@ -374,6 +397,7 @@ class MAPPOAgent(BaseRLAgent):
             self.buffer_rewards = [reward]
             self.buffer_dones = [done]
             self.buffer_values = [value]
+            self.buffer_terms = [step_terms]
         else:
             self.buffer_states.append(global_state)
             self.buffer_actions.append(actions)
@@ -381,6 +405,7 @@ class MAPPOAgent(BaseRLAgent):
             self.buffer_rewards.append(reward)
             self.buffer_dones.append(done)
             self.buffer_values.append(value)
+            self.buffer_terms.append(step_terms)
 
     def compute_gae(
         self,
@@ -559,6 +584,28 @@ class MAPPOAgent(BaseRLAgent):
                 # 在 batch × agents 上平均（per-agent surrogate，MAPPO 共享策略标准做法）
                 policy_loss = -torch.min(surr1, surr2).mean()
 
+                # 【COVER / Lu 2026】协方差单边提权：用本 minibatch 的
+                # (per-step 正项 reward, clipped advantage weight) 算协方差，低于地板则提权。
+                # 逐 minibatch = 逐优化 step（忠实 COVER 的 per-update 语义）。
+                # 关闭 / 无 signal 时整段跳过 ⇒ 零回归。
+                if self.cover_enabled and self.buffer_terms is not None:
+                    with torch.no_grad():
+                        # clipped adv weight：COVER 原文锚的量 = clamp(ratio,1±ε)*adv。
+                        # per-agent [batch,N] → 对 agent 维取均值成 [batch] 每条轨迹一个信号。
+                        clipped_adv_w = surr2.detach()
+                        if clipped_adv_w.ndim == 2:
+                            clipped_adv_w = clipped_adv_w.mean(dim=-1)
+                        clipped_adv_np = clipped_adv_w.cpu().numpy()
+                        # 用未打乱的 batch_indices 取对应 transition 的正项 dict
+                        terms_batch = [self.buffer_terms[i] for i in batch_indices]
+                        term_seq = {}
+                        for _k in ('speed_band', 'rel_anchor', 'gap_eff'):
+                            _vals = [float((t or {}).get(_k, 0.0)) for t in terms_batch]
+                            if any(v != 0.0 for v in _vals):  # 全零（关/无信号）跳过
+                                term_seq[_k] = _vals
+                        if term_seq:
+                            self.cover_controller.observe(term_seq, clipped_adv_np)
+
                 # 【ADR-021 方向 B】价值输出形状显式对齐（不用 .squeeze()：batch=1 时
                 # squeeze 会把 [1,N] 压成 [N]，与 returns 广播出错）：
                 #   per_agent → [batch, N]；centralized_scalar → [batch]。
@@ -666,6 +713,7 @@ class MAPPOAgent(BaseRLAgent):
         self.buffer_rewards = None
         self.buffer_dones = None
         self.buffer_values = None
+        self.buffer_terms = None
 
     # -- checkpoint 钩子（save/load 协议在 BaseRLAgent） ------------------
     def _checkpoint_payload(self) -> dict:

@@ -227,6 +227,13 @@ class TrainRunner:
                 from src.trainer.parallel_rollout import ParallelRollout
                 parallel = ParallelRollout(cfg, n_env)
                 logger.info(f"[并行 rollout] 进程级并行已启用：n_env={n_env} 个 worker 进程")
+            # 【COVER】动态提权的 per-step 信号链只在进程级并行路径接通；
+            # 若配置要求 COVER 但并行未启用，fail fast——防"以为在调权、其实静默没调"。
+            if getattr(agents, 'cover_enabled', False) and parallel is None:
+                raise RuntimeError(
+                    "[COVER] cover_enabled=true 要求进程级并行 rollout（n_env_parallel + "
+                    "mappo_fleet + obs=env + reward!=cyclic）；当前走串行路径无 per-step "
+                    "信号链，拒绝以静默失效方式训练。")
             elif n_env > 1:
                 # 【2026-10-21 治本｜静默/慢】不满足并行条件时明确告警，避免"以为在并行、其实单核串行"。
                 logger.warning(
@@ -355,8 +362,15 @@ class TrainRunner:
                         inits.append(init)
                     results = parallel.run_episode(agents, parallel_len, global_ep, inits)
                     for res in results:
-                        for flat, actions, reward, log_prob, done, value in res['transitions']:
-                            agents.store_transition(flat, actions, reward, log_prob, done, value)
+                        for trans in res['transitions']:
+                            # 【COVER】7 元组（末位=本 decision 步正项 reward dict）兼容旧 6 元组。
+                            if len(trans) == 7:
+                                flat, actions, reward, log_prob, done, value, step_terms = trans
+                            else:
+                                flat, actions, reward, log_prob, done, value = trans
+                                step_terms = None
+                            agents.store_transition(flat, actions, reward, log_prob, done,
+                                                    value, step_terms=step_terms)
                         self._traj_reward.append(res['reward'])
                         self._traj_peak.append(res['peak'])
                         self._traj_viol.append(res['viol'])
