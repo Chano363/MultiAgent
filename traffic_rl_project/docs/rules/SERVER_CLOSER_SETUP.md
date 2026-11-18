@@ -109,4 +109,16 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 - **双活注册**：`scripts/cloud/register_closer_pair.ps1` 一次注册 `<prefix>_closer_primary` + `<prefix>_closer_backup` 两个 schtasks，共用 JSON 配置、独立心跳/产物目录；`stop_instance()` 幂等（已 Stopped+StopCharging 直接成功），任一存活即可收账。
 - **停机未确认不收工**：closer 在 API 复核拿不到 StopCharging 时继续轮询重试（wrapper 看不到 CLOSEOUT_OK 也不会误判完成）。
 - **演练实证**：dry-run 双任务并行心跳、手杀 primary python → 20 s 自愈且剩余 deadline 2min→1min、两者 CLOSEOUT_OK 退出（演练任务已注销）；单测 `test_closer_idempotent` + `test_closer_trigger` 13/13。
-- **云端根治**：见 `../CLOUD_PERMISSION_REQUEST.md`（授权清单，非规则正本）——OOS 硬顶已 arm（2026-11-18 21:32，OOSServiceRole 由 owner 控制台建好）；实例内自停机（ecs-training-selfstop）未启用。
+## 云端硬顶 OOS（2026-11-18 已 arm，本地全死也停费）
+
+**当前状态**：OOS 硬顶执行 `exec-ce9089bc4f674c789ee4` = **Waiting**，deadline `2026-11-19T04:00:00Z`（北京 12:00），RamRole=`OOSServiceRole`；到点执行 `ACS::ECS::StopInstance` stoppedMode=StopCharging。开窗时 `--arm` 新执行、收工 `--disarm` 旧执行，工具 = `scripts/cloud/oos_hard_deadline.py`。
+
+**授权清单（换账号/重建时照此办，1 用户 + 2 角色）**：
+
+| 主体 | 需要什么 | 关键点 |
+|---|---|---|
+| 用户 `ecs-ops`（手里的 AK） | 系统 `AliyunOOSFullAccess` + 现有 ECS 读写 + 自定义 `TrainingRoleManager` | `TrainingRoleManager` 必须含 `ram:CreateRole`/`GetRole`/`CreatePolicy`/`AttachPolicyToRole`/**`ram:PassRole`**——`PassRole` 是"把角色递给 OOS"的权限，缺它即使角色存在也 `AssumeRoleNotExist` |
+| 角色 `OOSServiceRole`（**必需**，已建） | 信任主体 = 云服务 `oos.aliyuncs.com`；挂最小策略 `ecs:StopInstance` + `ecs:DescribeInstances`，资源限定 `acs:ecs:cn-heyuan:1749554754126152:instance/i-f8zcp6vvis4rnztw0p9y` | OOS 定时执行的载体；owner 已在控制台建好 |
+| 角色 `ecs-training-selfstop`（可选，未启用） | 信任主体 = `ecs.aliyuncs.com`；同上的最小 ECS 停机策略 | 实例内免 AK 自停机用，OOS 硬顶跑通后再考虑 |
+
+**两个实测坑（写脚本必看）**：① 含 `ACS::TimerTrigger` 的模板**必须显式 `RamRole`**（平台硬约束，内联/持久模板都拒过）；② `TimerTrigger.Expression` 必须是 **UTC `Z` 格式**（`2026-11-19T04:00:00Z`），传 `+08:00` 会 Failed：`format is invalid. Example: 2019-06-18T09:12:43Z`。历史授权探测与失败执行记录已随临时文档删除，关键结论以此节为准。
