@@ -1,5 +1,98 @@
 # 云端停费权限请求（2026-11-18，owner 口头"全部权限放开"后的 API 探测结果）
 
+## 〇、授权总清单（先看这节：要什么角色 / 谁挂什么授权）
+
+三层停费涉及 **1 个用户 + 2 个角色**。把它们的关系和每方需要的授权一次列清（下文第一至六节是探测过程与留痕）。
+
+### 0.1 要创建的两个角色
+
+| 角色 | 用途 | 信任主体（谁能扮演它） | 状态 |
+|---|---|---|---|
+| **`OOSServiceRole`** | OOS 定时执行"戴"它，到点调用 StopInstance 停训练实例 | 云服务 `oos.aliyuncs.com` | ❌ 不存在（arm 硬顶的直接卡点） |
+| `ecs-training-selfstop`（可选，实例内自停启用时） | 绑到 ECS 实例，实例内免 AK 取 STS 凭证停自己 | 云服务 `ecs.aliyuncs.com` | ❌ 不存在（当前实例内自停未启用） |
+
+> 当前只**必须**建 `OOSServiceRole`——它是 OOS 云端硬顶的前提，也是"本地全死也停费"的唯一缺口。`ecs-training-selfstop` 属实例内自停机制（第三层增强），可在 OOS 硬顶跑通后再建。
+
+### 0.2 每个角色要挂的授权（权限策略）
+
+角色本身**没有权限**，建完必须挂策略；挂的策略决定"戴上这张工牌能干什么"。
+
+| 角色 | 挂什么权限策略 | 内容 | 资源范围 |
+|---|---|---|---|
+| `OOSServiceRole` | 自定义 `TrainingHardDeadlineMinimal`（或系统 `AliyunECSFullAccess` 图省事） | `ecs:StopInstance`、`ecs:DescribeInstances` | 限定到 `acs:ecs:cn-heyuan:1749554754126152:instance/i-f8zcp6vvis4rnztw0p9y` |
+| `ecs-training-selfstop`（可选） | 同上的最小 ECS 停机策略 | 同上两项 | 同上，限定目标实例 |
+
+最小权限策略 JSON（`TrainingHardDeadlineMinimal`，两个角色共用这一份）：
+
+```json
+{
+  "Version": "1",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["ecs:StopInstance", "ecs:DescribeInstances"],
+      "Resource": "acs:ecs:cn-heyuan:1749554754126152:instance/i-f8zcp6vvis4rnztw0p9y"
+    }
+  ]
+}
+```
+
+角色信任策略 JSON（`OOSServiceRole`，创建角色时"信任主体类型=云服务 / 名称=OOS"即自动生成同款；脚本编辑时填）：
+
+```json
+{
+  "Version": "1",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {"Service": ["oos.aliyuncs.com"]},
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+（`ecs-training-selfstop` 把上面 `oos.aliyuncs.com` 换成 `ecs.aliyuncs.com`。）
+
+### 0.3 用户 `ecs-ops` 要挂的授权（这个 AK 就是你手里的）
+
+用户是"身份"，挂的策略决定**它能直接干什么、以及能不能把角色递给服务**。
+
+| 授权 | 类型 | 为什么需要 | 状态 |
+|---|---|---|---|
+| `AliyunOOSFullAccess` | 系统策略 | 建 OOS 模板、启动/取消定时执行 | ✅ 已挂（21:10 复验 200 OK） |
+| ECS 读写（现有） | 已有 | closer 调 `StopInstance`/`DescribeInstances` 收账 | ✅ 已有 |
+| `TrainingRoleManager`（自定义，须补挂） | 自定义策略 | **建角色 + 给角色挂策略 + 把角色递给 OOS（PassRole）** | ❌ 未挂（RAM API 全 403） |
+
+必须补挂的自定义策略 JSON（`TrainingRoleManager`，命名可自定）：
+
+```json
+{
+  "Version": "1",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["ram:CreateRole", "ram:GetRole", "ram:ListRoles",
+                 "ram:CreatePolicy", "ram:AttachPolicyToRole",
+                 "ram:ListRolePolicies", "ram:PassRole"],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+> **关键说明**：`ram:PassRole` 是核心——`StartExecution` 时调用者（`ecs-ops`）必须有权限把 `OOSServiceRole` 这个角色"传递"给 OOS 服务，否则即使角色存在也会报 `AssumeRoleNotExist`/无权限。上一节探测里这一步全 403，就是缺这条策略。上表用 `Resource: "*"` 是最省事写法；若要最小权限，可拆成两条——建/查/挂策略类限定到 `acs:ram:*:1749554754126152:role/OOSServiceRole`，`ram:PassRole` 单独限定到同一角色 ARN（提前写好角色名即可）。
+>
+> 若图省事：直接给用户挂系统策略 `AdministratorAccess`（含以上全部），但权限过宽，不推荐。
+
+### 0.4 补挂完成后的动作链（我来做）
+
+1. 复验 `ram:ListRoles` = 200；
+2. 建 `OOSServiceRole` + 挂 `TrainingHardDeadlineMinimal`；
+3. `oos_hard_deadline.py --arm` 建到点停机执行，实测进入 Waiting；
+4. 用**已停机**的实例做一次到点停机回执验证（零成本、零风险，停机态重复 Stop 幂等）；
+5. 把 arm/disarm 纳入窗口启动检查单（G1 第 6 问）。
+
 ## 一、探测事实（一手，2026-11-18 20:30）
 
 用当前 AK（RAM 子账号 `ecs-ops`，主账号 1749554754126152）经 HTTPS + 区域端点实测：
