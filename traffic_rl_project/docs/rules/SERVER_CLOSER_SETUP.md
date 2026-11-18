@@ -109,4 +109,4 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 - **双活注册**：`scripts/cloud/register_closer_pair.ps1` 一次注册 `<prefix>_closer_primary` + `<prefix>_closer_backup` 两个 schtasks，共用 JSON 配置、独立心跳/产物目录；`stop_instance()` 幂等（已 Stopped+StopCharging 直接成功），任一存活即可收账。
 - **停机未确认不收工**：closer 在 API 复核拿不到 StopCharging 时继续轮询重试（wrapper 看不到 CLOSEOUT_OK 也不会误判完成）。
 - **演练实证**：dry-run 双任务并行心跳、手杀 primary python → 20 s 自愈且剩余 deadline 2min→1min、两者 CLOSEOUT_OK 退出（演练任务已注销）；单测 `test_closer_idempotent` + `test_closer_trigger` 13/13。
-- **云端根治`：见 `CLOUD_PERMISSION_REQUEST.md`——RAM/OOS API 权限探测 403/401，待 owner 在 RAM 控制台授权后自动部署实例内自停机 + OOS 硬顶（不依赖本地机器）。
+- **云端根治**：见 `../CLOUD_PERMISSION_REQUEST.md`（授权清单，非规则正本）——OOS 硬顶已 arm（2026-11-18 21:32，OOSServiceRole 由 owner 控制台建好）；实例内自停机（ecs-training-selfstop）未启用。

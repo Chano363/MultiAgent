@@ -45,9 +45,9 @@ TEMPLATE = {
         "instanceId": {"Type": "String", "Description": "ECS instance to stop at deadline"},
         "deadline": {"Type": "String", "Description": "ISO8601 absolute deadline, e.g. 2026-11-19T03:00:00+08:00"}
     },
-    # 关键：TemplateContent 是"立即执行"路径，OOS 用调用者身份（AK 有 ECS 权限），
-    # 不需要 RamRole；而持久模板含 TimerTrigger 时必须 RamRole（平台硬约束，账号没建该角色）。
-    # 故本方案不部署持久模板，arm 时直接传 TemplateContent（TimerTrigger + Stop 一体）。
+    # 【2026-11-18 21:30】OOSServiceRole 已由 owner 在控制台建好（信任 oos.aliyuncs.com）。
+    # TimerTrigger 模板强制要求 RamRole（平台硬约束，已实测两种路径都拒），必须显式指定。
+    "RamRole": "OOSServiceRole",
     "Tasks": [
         {
             "Name": "waitUntilDeadline",
@@ -142,10 +142,12 @@ def main():
         if not args.deadline:
             ap.error("--arm 需要 --deadline")
         expr, end = normalize_deadline(args.deadline)
+        # TimerTrigger 实测（exec-ff871...）：Expression 必须是 UTC 'Z' 格式，
+        # 传 '+08:00' 会 Failed: "The (...) format is invalid. Example: 2019-06-18T09:12:43Z."
         params = {
             "regionId": REGION,
             "instanceId": args.instance,
-            "deadline": expr,
+            "deadline": end,
         }
         res = call("StartExecution", {
             "TemplateContent": json.dumps(TEMPLATE, ensure_ascii=False),

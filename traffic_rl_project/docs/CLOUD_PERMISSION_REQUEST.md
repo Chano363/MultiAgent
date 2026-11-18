@@ -4,12 +4,14 @@
 
 三层停费涉及 **1 个用户 + 2 个角色**。把它们的关系和每方需要的授权一次列清（下文第一至六节是探测过程与留痕）。
 
+> **当前状态（2026-11-18 21:35）**：owner 已完成 RAM 授权 → `OOSServiceRole` 由 owner 控制台建好 → **OOS 硬顶已 arm 成功**（执行 `exec-ce9089bc4f674c789ee4`，Status=Waiting，deadline 2026-11-19T04:00:00Z = 12:00 北京时间，RamRole=OOSServiceRole）。下方表格中"❌"是授权前的历史快照，以本节状态为准。实例当前 Stopped+StopCharging。**本文件在 docs/ 根目录，不属于 rules/ 规则正本。**
+
 ### 0.1 要创建的两个角色
 
-| 角色 | 用途 | 信任主体（谁能扮演它） | 状态 |
-|---|---|---|---|
-| **`OOSServiceRole`** | OOS 定时执行"戴"它，到点调用 StopInstance 停训练实例 | 云服务 `oos.aliyuncs.com` | ❌ 不存在（arm 硬顶的直接卡点） |
-| `ecs-training-selfstop`（可选，实例内自停启用时） | 绑到 ECS 实例，实例内免 AK 取 STS 凭证停自己 | 云服务 `ecs.aliyuncs.com` | ❌ 不存在（当前实例内自停未启用） |
+| 角色                                   | 用途                                   | 信任主体（谁能扮演它）            | 状态                 |
+| ------------------------------------ | ------------------------------------ | ---------------------- | ------------------ |
+| **`OOSServiceRole`**                 | OOS 定时执行"戴"它，到点调用 StopInstance 停训练实例 | 云服务 `oos.aliyuncs.com` | ✅ 已由 owner 控制台建好（21:29，信任策略核实为 oos.aliyuncs.com） |
+| `ecs-training-selfstop`（可选，实例内自停启用时） | 绑到 ECS 实例，实例内免 AK 取 STS 凭证停自己        | 云服务 `ecs.aliyuncs.com` | ❌ 不存在（当前实例内自停未启用）  |
 
 > 当前只**必须**建 `OOSServiceRole`——它是 OOS 云端硬顶的前提，也是"本地全死也停费"的唯一缺口。`ecs-training-selfstop` 属实例内自停机制（第三层增强），可在 OOS 硬顶跑通后再建。
 
@@ -17,10 +19,10 @@
 
 角色本身**没有权限**，建完必须挂策略；挂的策略决定"戴上这张工牌能干什么"。
 
-| 角色 | 挂什么权限策略 | 内容 | 资源范围 |
-|---|---|---|---|
-| `OOSServiceRole` | 自定义 `TrainingHardDeadlineMinimal`（或系统 `AliyunECSFullAccess` 图省事） | `ecs:StopInstance`、`ecs:DescribeInstances` | 限定到 `acs:ecs:cn-heyuan:1749554754126152:instance/i-f8zcp6vvis4rnztw0p9y` |
-| `ecs-training-selfstop`（可选） | 同上的最小 ECS 停机策略 | 同上两项 | 同上，限定目标实例 |
+| 角色                          | 挂什么权限策略                                                          | 内容                                         | 资源范围                                                                     |
+| --------------------------- | ---------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
+| `OOSServiceRole`            | 自定义 `TrainingHardDeadlineMinimal`（或系统 `AliyunECSFullAccess` 图省事） | `ecs:StopInstance`、`ecs:DescribeInstances` | 限定到 `acs:ecs:cn-heyuan:1749554754126152:instance/i-f8zcp6vvis4rnztw0p9y` |
+| `ecs-training-selfstop`（可选） | 同上的最小 ECS 停机策略                                                   | 同上两项                                       | 同上，限定目标实例                                                                |
 
 最小权限策略 JSON（`TrainingHardDeadlineMinimal`，两个角色共用这一份）：
 
@@ -58,11 +60,11 @@
 
 用户是"身份"，挂的策略决定**它能直接干什么、以及能不能把角色递给服务**。
 
-| 授权 | 类型 | 为什么需要 | 状态 |
-|---|---|---|---|
-| `AliyunOOSFullAccess` | 系统策略 | 建 OOS 模板、启动/取消定时执行 | ✅ 已挂（21:10 复验 200 OK） |
-| ECS 读写（现有） | 已有 | closer 调 `StopInstance`/`DescribeInstances` 收账 | ✅ 已有 |
-| `TrainingRoleManager`（自定义，须补挂） | 自定义策略 | **建角色 + 给角色挂策略 + 把角色递给 OOS（PassRole）** | ❌ 未挂（RAM API 全 403） |
+| 授权                             | 类型    | 为什么需要                                          | 状态                    |
+| ------------------------------ | ----- | ---------------------------------------------- | --------------------- |
+| `AliyunOOSFullAccess`          | 系统策略  | 建 OOS 模板、启动/取消定时执行                             | ✅ 已挂（21:10 复验 200 OK） |
+| ECS 读写（现有）                     | 已有    | closer 调 `StopInstance`/`DescribeInstances` 收账 | ✅ 已有                  |
+| `TrainingRoleManager`（自定义，须补挂） | 自定义策略 | **建角色 + 给角色挂策略 + 把角色递给 OOS（PassRole）**         | ✅ 已挂（21:30 复验 RAM ListRoles=200，硬顶已 arm） |
 
 必须补挂的自定义策略 JSON（`TrainingRoleManager`，命名可自定）：
 
@@ -149,10 +151,10 @@ RAM 控制台 → 身份管理 → 用户 → `ecs-ops` → 权限管理 → **�
 
 ## 六、2026-11-18 21:10 复验结果（owner 说"已完成授权"后实测）
 
-| 探测 | 结果 | 结论 |
-|---|---|---|
-| OOS `ListTemplates`/`ListExecutions` | **200 OK** | `AliyunOOSFullAccess` 已挂成功 ✅ |
-| RAM `ListRoles`/`GetRole`/`CreateRole`/`ListPoliciesForUser` | **全部 403 NoPermission** | 自定义 RAM 策略**没挂上/没生效** ❌ |
+| 探测                                                           | 结果                      | 结论                           |
+| ------------------------------------------------------------ | ----------------------- | ---------------------------- |
+| OOS `ListTemplates`/`ListExecutions`                         | **200 OK**              | `AliyunOOSFullAccess` 已挂成功 ✅ |
+| RAM `ListRoles`/`GetRole`/`CreateRole`/`ListPoliciesForUser` | **全部 403 NoPermission** | 自定义 RAM 策略**没挂上/没生效** ❌      |
 
 **已部署产物**：OOS 模板 `TrainingHardDeadlineStop`（t-b4040f69606f4734aba3，TimerTrigger(at) + ACS::ECS::StopInstance stoppedMode=StopCharging）已建好；脚本 `scripts/cloud/oos_hard_deadline.py` 就绪（arm/disarm/list/dry-run 全实现）。
 
