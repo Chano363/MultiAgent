@@ -34,6 +34,19 @@ exec /usr/bin/env python3 "$@"
 EOF
 sed -i "s|/tmp/PLACEHOLDER|$ROOT|" "$TMP/bin/python"
 chmod +x "$TMP/bin/python"
+# mock pgrep/pkill：验证 BREAK 分支"实例内 self_stop 失败 → 杀训练进程"兜底
+# （2026-11-18 nincr ep10 实弹缺口：破线后训练继续跑 2 min 靠人发现）
+cat > "$TMP/bin/pgrep" <<'EOF'
+#!/usr/bin/env bash
+echo mock_train_pid
+EOF
+cat > "$TMP/bin/pkill" <<'EOF'
+#!/usr/bin/env bash
+echo "$*" >> /tmp/PLACEHOLDER/pkill.called
+EOF
+sed -i "s|/tmp/PLACEHOLDER|$TMP|" "$TMP/bin/pkill"
+chmod +x "$TMP/bin/pgrep" "$TMP/bin/pkill"
+
 # mock self_stop：记录调用
 cat > "$ROOT/scripts/cloud/self_stop_ecs.sh" <<'EOF'
 #!/usr/bin/env bash
@@ -51,6 +64,7 @@ grep -q 'BREAK_LINE 触发自停机' "$TMP/watch.log" && ok "识别破线" || ba
 [ -f "$TMP/selfstop.called" ] && ok "调用 self_stop" || bad "未调 self_stop"
 grep -q 'BREAK_LINE_ep10' "$TMP/selfstop.called" && ok "reason 含 ep10" || bad "reason 错"
 [ -f "$RD/BREAK_LINE.txt" ] && ok "写 BREAK_LINE 标记" || bad "未写标记"
+grep -q 'run_training.py' "$TMP/pkill.called" 2>/dev/null && ok "self_stop 后兜底杀训练进程" || bad "未杀训练进程（破线后继续烧钱）"
 
 echo "== ep 非倍率门控场景（ep5 不触发）=="
 rm -rf "$ROOT"; mkdir -p "$CK" "$RD" "$DE" "$ROOT/scripts/cloud"
@@ -64,6 +78,7 @@ EOF
 sed -i "s|/tmp/PLACEHOLDER|$TMP|" "$ROOT/scripts/cloud/self_stop_ecs.sh"; chmod +x "$ROOT/scripts/cloud/self_stop_ecs.sh"
 timeout 4 env PATH="$TMP/bin:$PATH" bash "$SCRIPT" >"$TMP/watch2.log" 2>&1 || true
 [ ! -f "$TMP/selfstop2.called" ] && ok "ep5 不触发" || bad "ep5 误触发"
+[ $(grep -c 'run_training.py' "$TMP/pkill.called" 2>/dev/null || echo 0) -eq 1 ] && ok "ep5 不杀训练" || bad "ep5 误杀训练"
 
 echo "---- PASS=$PASS FAIL=$FAIL ----"
 [ "$FAIL" -eq 0 ]

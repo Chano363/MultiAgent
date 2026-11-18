@@ -35,7 +35,7 @@ owner: Owner + Agent
 | 指标更正 | `ab_steps` 分母是"**任一列** `ab_source_count>0`"，单列常施加即 100%。V15b 的「全程 100% 施加」改为「**至少一列全程施加**」；该指标今后改逐列或报最大列占比（`evaluate_decompose.py:328`） |
 | 作废 | 旧口径 1271.1 / band 100% / 末速 50.5 **全部作废**——那是 `loco_ed_ab` 下规则层排程的表现，与 S2-v3 策略无关。另：D1–D4 诊断、S4 双口径判读、V09/V10/V14 的定量归因同样建立在错口径/错指标上 |
 | 根因（上一步） | `evaluate_decompose.py:261` 把 YAML 的 `decompose` 无条件覆盖成 `loco_ed_ab`。已修复为"尊重 YAML，未指定才回退"。见「诊断-2026-11-12-V15/V15b」、`LEARNINGS.md` **LRN-20261112-001** |
-| 下一步 | **⛔ 路线二首投 ep10 快评 BREAK 止损（2026-11-18 20:15 停机，Stopped+StopCharging 复核 ✅，计费 ≈2.5 元）**：band 84.97%<85% 杀训线触发（peak 1217>1180、穿透 576 亦未过；gap_err 457m；**meanED 0.900/ED≤0 率 2.7% = 级位贴顶不惰行**）。**峰单项优于规则基线 77 kN（1217<1294）但稳定面全崩**——与 COVER 投（band 满格降不动峰）互补的反向证据。训练 rollout 与确定性评估背离 3 次实证（ADR-070 附带发现）。**机制缺口已补修**：快评 BREAK 分支无杀训练兜底（self_stop 依赖未部署的 aliyun CLI）→ 加 pkill fallback；本轮收账实际走"手动杀训练→bootstrap exit_code→本地 closer API 停机"兜底链（closer 首次实战成功）。归因与下一步杠杆复选 → `DIAGNOSTICS_2026-11.md`「诊断-2026-11-18-W4-nincr」；判据四条见 §0.5。**规则基线 = 1 294 kN（未调参，唯一）**；对照基线按 ADR-042 = 规则层 + **Tube MPC**（两基线） |
+| 下一步 | **⛔ 路线二首投 ep10 快评 BREAK 止损（2026-11-18 20:15 停机，Stopped+StopCharging 复核 ✅，计费 ≈2.5 元）**：band 84.97%<85% 杀训线触发（peak 1217>1180、穿透 576 亦未过；gap_err 457m；**meanED 0.900/ED≤0 率 2.7% = 级位贴顶不惰行**）。**峰单项优于规则基线 77 kN（1217<1294）但稳定面全崩**——与 COVER 投（band 满格降不动峰）互补的反向证据。训练 rollout 与确定性评估背离 3 次实证（ADR-070 附带发现）。**机制缺口已三层闭环（20:30，owner 指令"赶紧给我修机制缺口"）**：①快评 BREAK 分支加 pkill 兜底；②本地 closer 加 `--abort-glob`（BREAK_LINE/DEAD 标记出现即 API 停机，poll 120 s，触发器单测 9/9）；③实例内 watchdog self_stop 失败后取消 OS poweroff（按量 OS 关机不停费且断 ssh 让 closer 读不到标记），保持 OS 存活等 closer 收账（mock 4/4）；快评 mock 7/7。本轮实际收账走"手动杀训练→bootstrap exit_code→本地 closer API 停机"兜底链（closer 首次实战成功）。归因与下一步杠杆复选 → `DIAGNOSTICS_2026-11.md`「诊断-2026-11-18-W4-nincr」；判据四条见 §0.5。**规则基线 = 1 294 kN（未调参，唯一）**；对照基线按 ADR-042 = 规则层 + **Tube MPC**（两基线） |
 
 ### 0.2 执行顺序（**2026-11-13 重排：七块串行 W0–W6**，取代 ADR-066 四阶段顺序，见 ADR-067）
 
@@ -327,7 +327,7 @@ owner: Owner + Agent
 3. 是"从头训"或"奖励面完全不变的纯延长"二者之一？（C 类闸；**热启动 + 任何奖励面变化 = 禁区**）
 4. 确定性快评协议已写进启动脚本：时点、口径、停训线？（B 类闸）
 5. 塌缩机制（ADR-070）对本改动是否适用、适用时护栏是否在位？（C 类闸）
-6. **收账 closer 已以 schtasks 注册且心跳 rc=0？**（空转闸，2026-11-17 用户硬约束"机制层面确保不空转"；SERVER_OPS 铁律 12）——开机与注册 closer 是**同一动作序列**，closer 未在位不得开机；参数红线：独立日志 + start-marker 截断历史 + exit-min-count = 阶段数 + 硬 deadline 必填。**2026-11-18 三层收账增强**：①本地 closer（本问判据，不可省）②实例内 `self_stop_ecs.sh` 免 AK 自停机（已实现/mock 9/9，云端 RAM 配置待批）③`oos_hard_deadline_template.yml` 云端硬顶（待批）；启用手册 `docs/rules/SERVER_CLOSER_SETUP.md`。②③④在云端配置批下来前，本问只按①判。
+6. **收账 closer 已以 schtasks 注册且心跳 rc=0？**（空转闸，2026-11-17 用户硬约束"机制层面确保不空转"；SERVER_OPS 铁律 12）——开机与注册 closer 是**同一动作序列**，closer 未在位不得开机；参数红线：独立日志 + start-marker 截断历史 + exit-min-count = 阶段数 + **abort-glob 必填（BREAK_LINE.txt / DEAD_*.txt，破线/死亡立即 API 停机；2026-11-18 nincr ep10 实弹补）** + 硬 deadline 必填。**2026-11-18 三层收账增强**：①本地 closer（本问判据，不可省）②实例内 `self_stop_ecs.sh` 免 AK 自停机（已实现/mock 9/9，云端 RAM 配置待批）③`oos_hard_deadline_template.yml` 云端硬顶（待批）；启用手册 `docs/rules/SERVER_CLOSER_SETUP.md`。②③④在云端配置批下来前，本问只按①判。
 
 **G2 判据/方向变更检查**：D 类决策（判据锚、路线终止、卖点切换）前，强制重读 `LITERATURE_FINDINGS` 相关节 + owner 拍板留痕（ADR）。
 **G3 探针闸**：任何新机制先过 12 min 探针或冻结评估，禁直接进 ≥1 h 训练。

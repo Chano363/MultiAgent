@@ -14,6 +14,9 @@ $env:PYTHONIOENCODING = 'utf-8'
   --deadline-min 510 `
   --ip 47.120.13.44 `
   --marker /root/traffic_rl_project/outputs/results/formation_10kt_1plus108/w4nincr_full_20261118/exit_code.txt `
+  --abort-glob /root/traffic_rl_project/outputs/results/formation_10kt_1plus108/w4nincr_full_20261118/BREAK_LINE.txt `
+  --abort-glob '/root/traffic_rl_project/outputs/results/formation_10kt_1plus108/w4nincr_full_20261118/DEAD_*.txt' `
+  --poll-s 120 `
   --log /root/traffic_rl_project/outputs/logs/cloud/lifecycle_w4nincr_full_20261118.txt `
   --start-marker w4nincr_START `
   --exit-pattern 'train_rc=' `

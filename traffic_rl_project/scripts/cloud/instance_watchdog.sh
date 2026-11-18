@@ -9,8 +9,10 @@
 # 关机两级（2026-11-18 服务器端 closer 增强，一手依据见 docs/CLOSER_SERVER_SIDE_ASSESSMENT.md）：
 #   第一道 = 实例内 API 自停机 self_stop_ecs.sh（RAM 角色免 AK，StopInstance --StoppedMode
 #            StopCharging）→ 实例自己完成"停费"，不依赖本地 Windows 在线。
-#   第二道 = OS 层 poweroff（自停机脚本缺失/失败时回退；按量实例 OS 关机不保证等于节省停机，
-#            此时仍需本地看护补 API 停机）。
+#   第二道 = 本地 closer API 停机（2026-11-18 ep10 实弹修订：原来是 OS poweroff，
+#            但按量实例 OS 关机不停费，且 ssh 一断 closer 就读不到 BREAK_LINE/exit_code/
+#            DEAD 标记，只能空等到 deadline = 数小时白烧。三结局里训练已杀/已退出，
+#            无失控进程需要 poweroff 止血）。本地 closer 带 --abort-glob 是 G1 第 6 问硬闸。
 # 三种结局判据（心跳超时/进程退出/无退出码）完全不变——只换执行方式，不引入新误杀面。
 set -uo pipefail
 
@@ -40,10 +42,12 @@ poweroff_now() {
     log "self_stop_verified reason=$reason：实例已 API 停机并复核 StopCharging"
     return 0
   fi
-  # 第二道：自停机脚本缺失/失败（RAM 角色未绑/CLI 未装等）→ OS poweroff 止血，
-  # 本地看护再补 API 停机。此回退路径与改动前行为一致。
-  log "self_stop_unavailable reason=$reason → OS poweroff 回退（需本地补 API 停机）"
-  poweroff -f 2>/dev/null || shutdown -h now 2>/dev/null || log "poweroff 命令不可用，需本地看护 API 停机"
+  # 【2026-11-18 ep10 实弹补】不再 OS poweroff：按量实例 OS 关机不停费，且 ssh 断后
+  # 本地 closer 读不到 BREAK_LINE/exit_code/DEAD 标记，只能空等到 deadline（数小时白烧）。
+  # 三结局里训练进程已被杀/已退出，没有失控进程要止血；保持 OS 存活让 closer 读标记 →
+  # API stop + StopCharging 复核（SERVER_OPS 铁律 12 四道触发）。
+  log "self_stop_unavailable reason=$reason → 等本地 closer API 停机（不 OS poweroff，保 ssh 可读标记）"
+  return 1
 }
 
 log "watchdog_start pid=$PID stale=${STALE_S}s grace=${GRACE_S}s"

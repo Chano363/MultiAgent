@@ -88,3 +88,17 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 - **本地 closer 保留**：`scripts/cloud/closer_aliyun_ecs.py` + schtasks 仍注册，作为第二道（实例内自停机失败时补位）。G1 第 6 问"closer 在位"继续按本地 closer 判。
 - **不删本地 AK**：迁移期本地仍需 AK 跑 closer/instance_state；云上侧已免 AK。待 owner 另批才考虑收紧本地凭据。
 - **判据不变**：三结局（心跳超时/进程退出+exit_code/无退出码）+ 硬 deadline，与铁律 12 一致；只是执行点从"本地轮询"扩展为"实例内自停 + 云端硬顶 + 本地补位"三层。
+
+## 失败标记立即停机（2026-11-18 nincr ep10 实弹补，**必填项**）
+
+**缺口复盘**：ep10 快评 BREAK 后，快评脚本只调实例内 `self_stop_ecs.sh`——云端 RAM 角色/CLI 未部署 ⇒ `FAIL CLI_MISSING` ⇒ 训练继续跑、实例继续计费，直到人发现（多烧 ≈2 分钟）。同轮 watchdog 在无退出码死亡路径写 `DEAD_*.txt` 后 OS poweroff（**按量实例 OS 关机不等于节省停机，仍计费**），而本地 closer 只认 exit_code/exit pattern/deadline，看到 DEAD 标记也一直空等到点。
+
+**闭环（现在起强制）**：
+
+1. 快评 BREAK 分支：写 `BREAK_LINE.txt` → 调 self_stop → **pkill run_training.py 兜底**（self_stop 成功时为无害空操作）；bootstrap 捕获退出码落 `exit_code.txt` + `train_rc=` 台账行。
+2. 本地 closer（wrapper 模板 `scripts/cloud/run_w4nincr_closer.ps1`）：除 `--marker`/`--log`/deadline 外，**必须传** `--abort-glob <run_tag目录>/BREAK_LINE.txt` 与 `--abort-glob '<run_tag目录>/DEAD_*.txt'`，轮询命中任一 ⇒ 先拉产物再 API 停机（StopCharging + 回执复核）。轮询间隔建议 `--poll-s 120`（默认 300 s 时最坏多烧 5 分钟）。
+3. 触发器单测 `tests/test_closer_trigger.py`（9/9，含"ssh 不可达永不触发"和"退出码行数不足不触发"两条误杀红线）+ `tests/test_cover_quick_eval_watch.sh`（7/7，含 BREAK 后 pkill 兜底与 ep5 不误杀）为开训前必跑项。
+
+**依赖结构诚实标注**：云端 RAM 角色/aliyun CLI/OOS 硬顶在 owner 批准前均未部署，实例内自停机路径全部为死路径；**当前唯一可靠的停费机制 = 本地 closer 的 API stop**。因此开训前 closer 注册（G1 第 6 问）+ abort-glob 参数完整性是硬前置；OS poweroff 只能止血不能停费，不得当作收账完成。
+
+补充：实例内 watchdog 在 self_stop 失败后已**取消 OS poweroff 回退**（按量实例 OS 关机不停费，且 ssh 断让 closer 读不到标记），改为保持 OS 存活等本地 closer 读标记 → API 停机复核（mock 单测 `tests/test_instance_watchdog_no_poweroff.sh` 4/4）。

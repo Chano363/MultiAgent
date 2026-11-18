@@ -2810,3 +2810,12 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
 **机制缺口（本轮实弹暴露，已补修）**：快评 BREAK 分支只调实例内 `self_stop_ecs.sh`（依赖 aliyun CLI + RAM 角色——**云端配置仍未批未部署**），失败时无任何杀进程动作 ⇒ BREAK 判决后训练继续跑（20:09 判决 → 20:12 手动发现 → 手动 SIGTERM）。修复：BREAK 分支加 `pkill -f run_training.py` 兜底（self_stop 成功时为无害空操作）⇒ bootstrap 落 exit_code → 本地 closer 收账停机。**本轮实际收账走的就是这条兜底链**：手动杀训练 → bootstrap 写 train_rc=143 → 本地 closer 20:15:32 触发 → 产物回传 → API 停机 + StopCharging 复核 ✅（closer 兜底链首次实战成功）。**根因警示**：实例内自停机（CLI/RAM 角色）云端配置一直未批，所有"实例内停机"路径当前都是死的——在 owner 批 RAM 角色配置前，停机兜底完全依赖本地 closer（API 停机），这个依赖结构要写进 G1 第 6 问口径。
 
 **留痕**：快评产物 `outputs/results/decompose/eval_decompose_decompose_m1_ms31500_w4nincr_full_20261118_det_ep10.json`（本地副本 + 实例云盘）；恢复产物 `outputs/results/w4nincr_recovery/`（eval JSON + BREAK_LINE.txt + best ckpt）；closer 自志 `outputs/logs/cloud/closer_w4nincr_20261118.log`。本 run_tag 无完整 40 集 result.json（10 集止损）——训练侧 CSV/ckpt 按"提前止损窗口"对待：可作归因素材，不进结论主表。
+
+**机制缺口三层闭环（2026-11-18 20:30 全修完，owner 指令"赶紧给我修机制缺口"）**：
+
+1. **快评 BREAK 分支**（`cover_quick_eval_watch.sh`）：pkill run_training.py 兜底已加（上条）。
+2. **本地 closer**（`closer_aliyun_ecs.py`）：新增 `--abort-glob` 触发器——BREAK_LINE.txt / DEAD_*.txt 出现即拉产物 + API 停机（StopCharging + 回执），不再空等到 deadline；探测输出加 ABORT:/DONE:/EXIT: 前缀防误判；poll 建议 120 s。触发器单测 9/9（含"ssh 不可达永不触发""退出行数不足不触发"两条误杀红线）。
+3. **实例内 watchdog**（`instance_watchdog.sh`）：self_stop 失败后**不再 OS poweroff**——按量实例 OS 关机不停费，且 ssh 断开让 closer 读不到标记反而要空等到 deadline；三结局里训练已杀/已退出无失控进程，保持 OS 存活让 closer 读标记→API 停机。mock 单测 4/4。
+4. **快评 mock 测试补** BREAK→pkill 与 ep5 不误杀，7/7；wrapper 模板 `run_w4nincr_closer.ps1` 加双 abort-glob + poll 120 s；SERVER_OPS 铁律 12 改"四道触发"，SERVER_CLOSER_SETUP 加必填章节。
+
+**残留依赖（诚实标注）**：云端 RAM 角色/aliyun CLI/OOS 硬顶在 owner 批准前未部署；当前唯一可靠停费机制 = 本地 closer 的 API stop。closer 进程自身若意外死亡仍无第二进程接管（除非 OOS 硬顶批下来）——这是**需要 owner 批云端配置**才能根治的最后一层，不再属于本地可修范围。

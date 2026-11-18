@@ -6,7 +6,10 @@
 触发停机条件（任一满足即触发，不依赖人对"成败"的判读）：
   1. done marker 文件出现在云上（任务正常收尾标记）
   2. exit-pattern 在本次运行的**独立日志**中出现（脚本自记的退出码行）
-  3. 硬 deadline 到（--deadline-min；**检测无关**，这是最后一道，永不缺席）
+  3. **失败/破线标记出现（--abort-glob，如 BREAK_LINE.txt / DEAD_*.txt）**——
+     2026-11-18 nincr ep10 实弹暴露：快评破线后训练还活着，而 closer 只认正常退出
+     与 deadline，失败标记出现时它一直空等=实例继续计费。失败标记 = 立即收账。
+  4. 硬 deadline 到（--deadline-min；**检测无关**，这是最后一道，永不缺席）
 
 ⚠️ 不可达触发器已废除（2026-11-18 00:24 误杀事故）："ssh 连续 3 次不可达 → 疑似已
 poweroff → 补 API stop"把 **ssh 超时 ≠ 机器关机** 两件事划了等号——三次 rc=124 网络
@@ -107,19 +110,30 @@ def trigger_met(args):
     退出码行语义（19:26 提前停机教训）：多阶段任务逐段写 EXIT_* 行，
     第一条 EXIT 行 ≠ 任务完成——必须凑满 --exit-min-count 条才算全部收尾。
     不可达（unreachable）永不触发停机（00:24 误杀事故）。
+
+    【2026-11-18 失败标记】每条探测输出加 ABORT:/DONE:/EXIT: 前缀再解析：
+    避免"basename 子串恰好出现在无关行"造成误判（19:12 误杀同类风险）。
     """
-    rc, out = ssh(args.ip,
-                  f"ls {args.marker} 2>/dev/null; "
-                  f"awk '/{args.start_marker}/{{found=1}} found' {args.log} 2>/dev/null "
-                  f"| grep -E '{args.exit_pattern}' | tail -{args.exit_min_count}",
-                  timeout=60)
+    parts = []
+    for pat in args.abort_glob:
+        parts.append(f"for f in {pat}; do [ -e \"$f\" ] && echo \"ABORT:$f\"; done")
+    parts.append(f"ls {args.marker} 2>/dev/null | sed 's/^/DONE:/'")
+    parts.append(
+        f"awk '/{args.start_marker}/{{found=1}} found' {args.log} 2>/dev/null "
+        f"| grep -E '{args.exit_pattern}' | tail -{args.exit_min_count} "
+        f"| sed 's/^/EXIT:/'")
+    rc, out = ssh(args.ip, "; ".join(parts), timeout=60)
     if rc != 0:
         return False, ""
-    lines = [ln for ln in out.strip().splitlines() if ln.strip()]
-    if any(args.marker.split("/")[-1] in ln for ln in lines):
+    lines = [ln.strip() for ln in out.strip().splitlines() if ln.strip()]
+    for ln in lines:
+        if ln.startswith("ABORT:"):
+            return True, f"失败/破线标记出现：{ln[len('ABORT:'):]}"
+    if any(ln.startswith("DONE:") for ln in lines):
         return True, "done marker 出现"
-    if len(lines) >= args.exit_min_count:
-        return True, f"独立日志退出码行凑满 {args.exit_min_count} 条：{lines}"
+    exits = [ln[len('EXIT:'):] for ln in lines if ln.startswith("EXIT:")]
+    if len(exits) >= args.exit_min_count:
+        return True, f"独立日志退出码行凑满 {args.exit_min_count} 条：{exits}"
     return False, ""
 
 
@@ -191,6 +205,9 @@ def main():
     ap.add_argument("--deadline-min", type=int, required=True,
                     help="硬 deadline（分钟）；检测无关、到点必停")
     ap.add_argument("--marker", required=True)
+    ap.add_argument("--abort-glob", action="append", default=[],
+                    help="失败/破线标记的文件通配符（云端路径），出现即触发停机；"
+                         "可给多个。例：/root/.../BREAK_LINE.txt /root/.../DEAD_*.txt")
     ap.add_argument("--log", required=True, help="本次运行独立日志（禁用共享日志）")
     ap.add_argument("--start-marker", required=True,
                     help="独立日志中本次运行的启动标记行；其之前的内容一律不匹配")
