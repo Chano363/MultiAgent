@@ -22,21 +22,53 @@ PEAK_RISE_TOL = 0.02       # 相对上次快评上行 2% 噪声带
 
 
 def parse_eval_json(path: str | Path) -> dict:
-    """读 evaluate_decompose 产物，容错 results/metadata 包装与裸 dict。"""
+    """读 evaluate_decompose 产物，容错 results/metadata 包装与裸 dict。
+
+    【修复 2026-11-18 护栏失明】evaluate_decompose.py L716 实际写出的结构是
+    ``{"results": {"decompose_M1_rl": {...}, "decompose_M0_rule": {...}}}``
+    （results 以方法名为键）。旧实现直接 results.get("peak_coupler_kN") 永远
+    miss → peak/band 解析为 nan → judge 三条比较遇 nan 全为 False →
+    护栏从未能真正判破线（ep10/ep20 verdict=PASS||nan 实证）。
+    现兼容扁平结构，嵌套结构自动钻取到含指标的方法字典。
+    """
     d = json.loads(Path(path).read_text(encoding="utf-8"))
     results = d.get("results", d)
     if isinstance(results, list):
         results = results[0] if results else {}
+    if isinstance(results, dict) and "peak_coupler_kN" not in results:
+        m1 = results.get("decompose_M1_rl")
+        if isinstance(m1, dict):
+            results = m1
+        else:  # 兕底：任一含指标字段的子字典
+            for v in results.values():
+                if isinstance(v, dict) and "peak_coupler_kN" in v:
+                    results = v
+                    break
+    peak = results.get("peak_coupler_kN")
+    band = results.get("band_rate")
+    rear_end = results.get("rear_end_steps")
     return {
-        "peak_kN": float(results.get("peak_coupler_kN", float("nan"))),
-        "band": float(results.get("band_rate", float("nan"))),
-        "rear_end": int(results.get("rear_end_steps", 0)),
+        "peak_kN": float(peak) if peak is not None else float("nan"),
+        "band": float(band) if band is not None else float("nan"),
+        "rear_end": int(rear_end) if rear_end is not None else -1,
     }
 
 
 def judge(eval_json: str | Path, prev_peak_kN: Optional[float] = None) -> dict:
-    """返回 {pass: bool, reason: str, metrics: {...}}。reason 为空表示未破线。"""
+    """返回 {pass: bool, reason: str, metrics: {...}}。reason 为空表示未破线。
+
+    【fail-closed】peak/band 为 nan（字段缺失/结构漂移）时判不通过——
+    杀护栏绝不允许静默放行；调用方（watch）会触发自停机，宁停不赌。
+    """
     m = parse_eval_json(eval_json)
+    import math
+
+    if math.isnan(m["peak_kN"]) or math.isnan(m["band"]):
+        return {
+            "pass": False,
+            "reason": "metrics 不可解析（peak/band=nan，JSON 结构漂移？）",
+            "metrics": m,
+        }
     reasons = []
     if m["rear_end"] != 0:
         reasons.append(f"穿透 rear_end_steps={m['rear_end']}")

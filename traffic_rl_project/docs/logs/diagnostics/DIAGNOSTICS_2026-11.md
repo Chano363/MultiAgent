@@ -2772,3 +2772,17 @@ t=2543–2597 s 逐 2 s 归档读数（事实）：
   6. `src/trainer/registry.py`：agent 侧 `cover_enabled` 强制对齐 env（以 env_cfg 为唯一真源），防"agent 调权但 env 不记信号"静默不一致。
 - **验收证据（全过，WSL conda traffic_rl）**：`test_cover_controller.py` 8/8（协方差符号/单边/clip/负项不参与/state_dict）；`test_cover_signal_chain.py` 4/4（**关时 reward 逐位一致**=硬红线第5条充分条件、开时记录3正项、乘子生效）；`test_cover_agent_wiring.py` 4/4（controller 构造/payload 携带/store 接线）；相关回归 `test_mappo_train`/`test_per_agent_critic`/`test_logging_metrics` 27/27；`py_compile` 全部通过。合计 **16/16 COVER 专项 + 27 回归全绿**。
 - **未做（属开训，仍冻结）**：主配置 YAML 加 `cover_enabled: true` + 参数；600 步冒烟（需跑仿真）；同 ckpt 同 seed 复跑 peak 逐位一致（训练级口径）；G1 六问重签；cloud closer 注册；开训窗口 owner 审批。**本条仅为零训练的实现与单测证据，不构成开训授权。**
+
+### 诊断-2026-11-18-W4-COVER-b 停止：快评护栏失明 + ep20 追溯 BREAK（owner 2026-11-18 16:52 拍板"停吧"）
+
+- **运行档案**：run_tag `w4cover_full_20261118b`，12:16 开训，40 集从头训，实例 i-f8zcp6vvis4rnztw0p9y。**止损时训练至 ~ep27**（16:52 API 停机，回查 `Status=Stopped` + `StoppedMode=StopCharging` 已贴回执）。实际计费 ≈12:16–16:52 ≈4.6 h ≈7 元（本窗口含 12:14 事故报废 ≈3 元，合计 ≈10 元）。
+- **训练侧数据（真实，与护栏 bug 无关）**：reward ep2 跳升 63 万 → ep9 best +667 692，loss 收敛 0.012；ep10/ep20 确定性快评（v21 同参 31 500 步 / eval_seed 0）：
+  - ep10：**peak 1261.7 kN / band 100% / 零穿透**（逐列 peak [912.2, 1250.3, 1261.7]，逐列超限 [0, 8643, 13385]）——四投以来最佳单点（v21 同期 1367.1 / 86.73%）；
+  - ep20：**peak 1301.1 kN / band 100% / 零穿透**（逐列 [916.6, 1289.0, 1301.1]，超限 [0, 10419, 8053]，车钩超限步 22028→18472 **反降 16%**）。
+- **护栏失明（本次止损的直接诱因，agent 实现事故）**：`src/evaluation/cover_quick_eval.py` `parse_eval_json` 对着**单测里虚构的扁平结构**写——而 `evaluate_decompose.py` L716 真实结构是 `results` 以方法名为键（`decompose_M1_rl`）。真产物解析永远 miss → peak/band = nan → judge 三条比较（安全线 / band 下限 / peak 上行）遇 nan 全为 False ⇒ **护栏自部署起从未能判破线**（ep10/ep20 verdict=PASS||nan 实证）。8/8 单测全绿是假象：测试 schema 是编的。教训入 G1：**评估判据单测必须用真产物 JSON 回放，不得用自造 dict**。
+- **修复（已部署实例 + 入库）**：`parse_eval_json` 钻取 `results["decompose_M1_rl"]`（扁平结构兼容保留）+ judge fail-closed（peak/band nan ⇒ 判不通过，杀护栏绝不静默放行）；单测 10/10（新增真实嵌套结构回归 + nan fail-closed 两案）。
+- **追溯判决（修复后用 ep10/ep20 真实 JSON 补判）**：ep10 PASS；**ep20 BREAK——"peak 上行 3.1% > 2%"**（1261.7 → 1301.1；band 1.0 / 零穿透仍守住）。护栏失明期间未执行，止损时已至 ep27。
+- **owner 拍板（2026-11-18 16:52）**："停吧"——按预注册协议追补执行 BREAK，停机止损。理由记录：①peak 距目标 1180 差 121 kN 且以 +3.1%/10 集回升，ep40 前进线概率趋近零（本项目四投训练后期从无 ≥9% 后期下行先例）；②预注册协议不许事后豁免（v0→v9 十版扫参的制度根源）；③归因信息已齐（见下），续跑只花钱不加信息。
+- **归因结论（三层，供续攻决策）**：① **COVER 稳定面改善兑现**——band 从 v21 的 86.7%→100% 满格、零穿透守住、车钩超限步反降，"改奖励组合方式能修稳定面"成立；② **峰压不动**——peak 在 band 满格约束下触 1300 平台且小幅回升，"奖励组合方式降不动峰"成立 ⇒ ADR-073 B 路线（奖励组合）这条支线的上限就在这里；③ **下一步指向止损树路线二**（物理/规则侧降峰杠杆：时变制动性能 BP 建模、任务分解/DP 顶层等 `LITERATURE_FINDINGS` §11.2 未搬件），以及一个此前未答的结构问题——"剩余 ~400–500 kN 谁来削"（诊断-2026-11-08(七)挂起项）。
+- **与 v21 退化形状的区分（防混淆）**：v21 = peak +10.3% **且** band 崩至 84%（双破线，实锤退化）；本次 = peak +3.1% **band 满格**（仅上行线触发）。2% 噪声带的校准从未用本机制实测方差标定过——若未来重新启用 COVER 类机制，建议快评协议把"上行幅度阈值"与"band/穿透绝对线"解耦表述，上行线单独标注校准依据。
+- **留痕**：快评产物 `outputs/results/decompose/eval_decompose_decompose_m1_ms31500_w4cover_full_20261118b_det_ep{10,20}.json`（实例云盘，停机保留）；补判脚本 `scripts/cloud/rejudge_ep10_ep20.py`（一次性，已执行）；修复提交见本日 commit（cover_quick_eval.py + 测试 + 本节 + 管线同步）。**ABORTED 纪律适用**：本 run_tag 无 result.json，按红线 2 其训练数据不得作为结论引用，本节快评数值为确定性评估产物、仅作归因素材。

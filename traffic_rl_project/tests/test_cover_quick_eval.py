@@ -55,3 +55,31 @@ def test_multiple_reasons(tmp_path):
     assert not r["pass"]
     for kw in ("穿透", "安全线", "band", "上行"):
         assert kw in r["reason"]
+
+
+def test_parse_real_nested_schema(tmp_path):
+    """【2026-11-18 护栏失明修复回归】evaluate_decompose 真实结构：
+    results 以方法名为键，旧实现对此永远 miss → nan → 三条检查全静默通过。"""
+    p = tmp_path / "eval.json"
+    p.write_text(json.dumps({
+        "metadata": {},
+        "args": {},
+        "results": {
+            "decompose_M1_rl": {"peak_coupler_kN": 1262.2, "band_rate": 1.0,
+                                "rear_end_steps": 0, "reward": -375},
+            "decompose_M0_rule": {"peak_coupler_kN": 1400.0, "band_rate": 0.9,
+                                  "rear_end_steps": 0},
+        },
+    }), encoding="utf-8")
+    m = parse_eval_json(p)
+    assert m == {"peak_kN": 1262.2, "band": 1.0, "rear_end": 0}
+    assert judge(p)["pass"]
+
+
+def test_judge_failclosed_on_nan(tmp_path):
+    """字段缺失/结构漂移 → nan → 必须 fail-closed（护栏绝不静默放行）。"""
+    p = tmp_path / "eval.json"
+    p.write_text(json.dumps({"results": {"decompose_M1_rl": {"reward": 1}}}),
+                 encoding="utf-8")
+    r = judge(p)
+    assert not r["pass"] and "不可解析" in r["reason"]
