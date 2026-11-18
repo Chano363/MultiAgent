@@ -102,3 +102,11 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 **依赖结构诚实标注**：云端 RAM 角色/aliyun CLI/OOS 硬顶在 owner 批准前均未部署，实例内自停机路径全部为死路径；**当前唯一可靠的停费机制 = 本地 closer 的 API stop**。因此开训前 closer 注册（G1 第 6 问）+ abort-glob 参数完整性是硬前置；OS poweroff 只能止血不能停费，不得当作收账完成。
 
 补充：实例内 watchdog 在 self_stop 失败后已**取消 OS poweroff 回退**（按量实例 OS 关机不停费，且 ssh 断让 closer 读不到标记），改为保持 OS 存活等本地 closer 读标记 → API 停机复核（mock 单测 `tests/test_instance_watchdog_no_poweroff.sh` 4/4）。
+
+## 本地双活 closer（2026-11-18 owner"不烧钱就行"，不再依赖单人盯梢）
+
+- **自愈 wrapper**：`scripts/cloud/closer_wrapper_resilient.ps1`——python 非正常退出 20 s 重启；绝对 deadline 一次性计算、重启只传剩余分钟（崩溃不能延长计费窗口）；只在 self-log 出现 `CLOSEOUT_OK`（=StopCharging 已复核）才退出。
+- **双活注册**：`scripts/cloud/register_closer_pair.ps1` 一次注册 `<prefix>_closer_primary` + `<prefix>_closer_backup` 两个 schtasks，共用 JSON 配置、独立心跳/产物目录；`stop_instance()` 幂等（已 Stopped+StopCharging 直接成功），任一存活即可收账。
+- **停机未确认不收工**：closer 在 API 复核拿不到 StopCharging 时继续轮询重试（wrapper 看不到 CLOSEOUT_OK 也不会误判完成）。
+- **演练实证**：dry-run 双任务并行心跳、手杀 primary python → 20 s 自愈且剩余 deadline 2min→1min、两者 CLOSEOUT_OK 退出（演练任务已注销）；单测 `test_closer_idempotent` + `test_closer_trigger` 13/13。
+- **云端根治`：见 `CLOUD_PERMISSION_REQUEST.md`——RAM/OOS API 权限探测 403/401，待 owner 在 RAM 控制台授权后自动部署实例内自停机 + OOS 硬顶（不依赖本地机器）。

@@ -164,7 +164,11 @@ def pull_artifacts(args):
 
 
 def stop_instance(region, iid):
-    """与 instance_state_aliyun_ecs.py --stop 完全同口径：StopCharging + 复核。"""
+    """与 instance_state_aliyun_ecs.py --stop 完全同口径：StopCharging + 复核。
+
+    幂等（2026-11-18 双活冗余）：先查状态，已 Stopped+StopCharging 直接视为成功，
+    避免第二个 closer 重复发 StopInstance 抛错——双活任一存活即可收账。
+    """
     from aliyunsdkcore.client import AcsClient
     from aliyunsdkcore.request import CommonRequest
 
@@ -182,17 +186,26 @@ def stop_instance(region, iid):
             req.add_query_param(k, v)
         return json.loads(client.do_action_with_exception(req))
 
-    call("StopInstance", {"RegionId": region, "InstanceId": iid,
-                          "StoppedMode": "StopCharging", "ForceStop": "false"})
-    for _ in range(30):
+    def describe():
         res = call("DescribeInstances", {"RegionId": region,
                                          "InstanceIds": json.dumps([iid])})
         it = res.get("Instances", {}).get("Instance", [])
-        if it and it[0].get("Status") == "Stopped":
-            mode = it[0].get("StoppedMode")
-            log(f"复核 Status=Stopped StoppedMode={mode} "
-                + ("✅ 已停费" if mode == "StopCharging" else "⚠️ 未停费口径！"))
-            return mode == "StopCharging"
+        return (it[0].get("Status"), it[0].get("StoppedMode")) if it else ("", "")
+
+    st, sm = describe()
+    if st == "Stopped":
+        log(f"实例已 Stopped（StoppedMode={sm}），幂等返回 "
+            + ("✅ 已停费" if sm == "StopCharging" else "⚠️ 未停费口径！"))
+        return sm == "StopCharging"
+
+    call("StopInstance", {"RegionId": region, "InstanceId": iid,
+                          "StoppedMode": "StopCharging", "ForceStop": "false"})
+    for _ in range(30):
+        st, sm = describe()
+        if st == "Stopped":
+            log(f"复核 Status=Stopped StoppedMode={sm} "
+                + ("✅ 已停费" if sm == "StopCharging" else "⚠️ 未停费口径！"))
+            return sm == "StopCharging"
         time.sleep(5)
     log("❌ 复核超时，请人工到控制台检查")
     return False
@@ -243,11 +256,14 @@ def main():
             log(f"触发停机：{why}")
             pull_artifacts(args)
             if args.dry_run:
-                log("[dry-run] 验证命中触发链路，跳过停机 API，退出")
+                log("CLOSEOUT_OK [dry-run] 验证命中触发链路，跳过停机 API，退出")
                 return
-            stop_instance(args.region, args.instance)
-            log("closer 收账完成，退出")
-            return
+            if stop_instance(args.region, args.instance):
+                log("closer 收账完成 CLOSEOUT_OK，退出")
+                return
+            # 停费未确认（API 抖动/复核超时）→ 不退出，下一轮继续（幂等 StopInstance
+            # 已保证重复调用安全）。这是"没停费就绝不收工"的最后防线。
+            log("⚠️ 停机未确认 StopCharging，继续轮询重试（不收工）")
         rc, _ = ssh(args.ip, "true", timeout=30)
         unreachable = unreachable + 1 if rc != 0 else 0
         if unreachable >= 3:
@@ -258,10 +274,20 @@ def main():
     log("触发停机：硬 deadline 到（检测无关兜底）")
     pull_artifacts(args)
     if args.dry_run:
-        log("[dry-run] 验证命中 deadline 兜底链路，跳过停机 API，退出")
+        log("CLOSEOUT_OK [dry-run] 验证命中 deadline 兜底链路，跳过停机 API，退出")
         return
-    stop_instance(args.region, args.instance)
-    log("closer 收账完成，退出")
+    if stop_instance(args.region, args.instance):
+        log("closer 收账完成 CLOSEOUT_OK，退出")
+        return
+    log("❌ deadline 到但停费未确认，进程继续存活等待下次 API 重试（wrapper 不死心）")
+    # 不 return：保持进程存活 → wrapper 观察不到"收账完成"，不会误判正常退出。
+    # 进入兜底轮询（此时 datetime.now() >= deadline，直接走触发分支）。
+    while True:
+        time.sleep(args.poll_s)
+        pull_artifacts(args)
+        if stop_instance(args.region, args.instance):
+            log("closer 收账完成 CLOSEOUT_OK（deadline 后重试成功），退出")
+            return
 
 
 if __name__ == "__main__":
