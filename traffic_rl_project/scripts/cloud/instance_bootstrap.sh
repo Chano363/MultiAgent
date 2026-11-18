@@ -69,6 +69,7 @@ QPID=""
 if [ "${COVER_QUICK_EVAL:-0}" = "1" ]; then
   RUN_ID="$RUN_ID" ROOT="$ROOT" EVERY="${COVER_EVAL_EVERY:-10}" \
   EVAL_STEPS="${COVER_EVAL_STEPS:-31500}" \
+  EVAL_CFG="${COVER_EVAL_CFG:-configs/experiments/formation_ed_ab_3train_1plus108_cover.yaml}" \
   nohup bash scripts/cloud/cover_quick_eval_watch.sh \
     > "$LOG_DIR/quick_eval_$RUN_ID.log" 2>&1 &
   QPID=$!

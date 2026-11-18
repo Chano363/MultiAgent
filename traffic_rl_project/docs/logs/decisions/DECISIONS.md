@@ -1728,3 +1728,31 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **配置接线自检通过**（`tests/check_nincr_config_wiring.py`：act_dim=1 全链路贯通、obs 13、COVER=False、三目录同 run_tag）。
 - **回归**：fleet/cover/safety/env 十个测试文件全绿，**3 个 `test_fleet_decompose` 失败为存量问题**（git stash 对照实验：未改动 HEAD 同样失败，与本实现无关）。
 - **600 步冒烟未跑**（须开机，属窗口开训前置，待 owner 预算审批后与 G1 六问、closer 注册同序列执行）。
+
+### ADR-074 附段二（2026-11-18）：本地冒烟 + 冒烟抓出两 bug 修复 + G1 六问重签
+
+**冒烟（本地，零机时；红线 2 允许 ≤6000 步作活性校验，不作峰值/安全判据）**：
+
+- **第一次冒烟**（`w4nincr_smoke_20261118`，链路未修复版）：BC→warm start→4 worker 并行 rollout→update→ckpt 三件落盘，全链路跑通。但暴露**两个静默 bug**（见下），其 BC 产物作废、不作判据引用。
+- **第二次冒烟**（`w4nincr_smoke2_20261118`，修复后）：1 集全链路完成（21.7 min，88853 步 4 worker）。**修复验证**：BC fit_mse=0.0248 < 标签方差 0.0279（优于恒均值平凡基线，新判据 pass=True）；并行"未启用"误报告警消失。指标侧（仅活性佐证非判据）：gap_err 均值 503m→114m（BC 跟踪教师起效的直接证据）。
+- **快评链路本地端到端验证**（零机时）：`evaluate_decompose` + nincr 配置 + smoke1 的 1 维 ckpt 载入跑通 600 步确定性评估 → 产物 JSON → `cover_quick_eval.judge` 解析 peak 364.2/band 100%/零穿透全非 nan（真产物回放，G1 教训闭环）。
+
+**冒烟抓出的两个静默 bug（均已修复+单测回归全绿）**：
+
+1. **BC 回归目标恒为零（d3ade06 引入）**：`fleet_spec` BC loss = `mean.pow(2).mean()`，回归目标是全零而非采集到的级位增量标签——`act_arr` 采了但没进损失。对非 incr 模式（标签全零）恰好数值等价，但对 nincr 等于把策略预热成"永远不动"，且旧判据（loss 有限）静默放行——正是 G1"判据单测必须真产物回放"教训的又一变体。**修复**：统一改为对标签回归 `(mean - act_t)²`（非 incr 时 act_t 全零，逐位等价旧行为，零回归保证）；判据 fail-closed：incr 模式要求 `fit_mse < label_var`（优于恒均值平凡基线），label_var==0（标签退化）退回 loss 有限。
+2. **并行"未启用"告警误报（15b572b 引入）**：COVER fail-fast 的 `if/elif` 插入后，原并行启用 `if` 的 `elif` 告警挂到了 COVER 检查上——并行**成功**也报"单核串行跑 4 条轨迹"。告警不可信 = 真降级时没人信。**修复**：告警改回独立条件 `parallel is None and n_env > 1`。smoke2 实证：并行已启用且无告警。
+
+**快评环境同源加固**：`cover_quick_eval_watch.sh` 的 `EVAL_CFG` 由写死 cover 配置改为可环境变量覆盖（默认不变，零回归），`instance_bootstrap.sh` 透传 `COVER_EVAL_CFG`——nincr 投快评必须用 nincr 配置建环境（decompose 模式/act_dim 同源），否则 1 维策略载入即失败=快评静默失效。已本地端到端验证解析兼容。
+
+**回归**：`test_notch_incr` 10/10 + cover 四件套 26/26 + `test_fleet_bc_initial_speed` 通过；3 个 `test_fleet_decompose` 失败仍为存量（HEAD 同样失败）。
+
+**G1 六问重签（依 §0.8.2，任一"否"不得开训）**：
+
+1. **判据锚**——是：peak ≤1180/安全线 1500 锚 Wang2023（ADR-071 生效未变）；band ≥90%、零穿透保留。
+2. **文献对标物**——是：Wang2023 ②（实车验证 −8.93%），借"级位派生 + 平滑通道"思想；差在跨域单列 Q-learning vs 本仓 3×1+108 MARL，三问表见 ADR-074 正文。
+3. **从头训或纯延长**——从头训：动作面变更（ADR-070③ 从头训铁律）；零热启动。
+4. **快评协议已进启动脚本**——是：watch 脚本在役（每 10 集×31500 步、band<0.85/穿透/peak 上行>2%/安全线 1500 停训线），本次补 EVAL_CFG 同源覆盖并经真产物回放验证；**注意 ADR-073 G1 曾栽在"护栏自部署失明"，本次的 fail-closed + 嵌套钻取修复（0890f94）已部署口径为准**。
+5. **塌缩护栏在位**——是：从头训无热启动塌缩（ADR-070 不适用）；渐变退化由第 4 问快评守。
+6. **closer 注册且心跳 rc=0**——**开机那一刻才判**：注册 `closer_aliyun_ecs.py` + schtasks（deadline 硬顶）与开机同一动作序列，rc=0 才开机；验证一律 `--dry-run`（SERVER_CLOSER_SETUP 验证协议）。
+
+**窗口规格（待 owner 红线 1 审批）**：复用停机实例 i-f8zcp6vvis4rnztw0p9y（c9i.2xlarge，1.436+盘 0.084 ≈1.52 元/h）；云实测 10.2 min/集 → 40 集 ≈6.8 h + 快评开销 ≈ **预估 10–11 元，建议封顶 13 元**；closer deadline 硬顶同步设。开窗前按 EXECUTION_RULES 核 run_tag 时间戳。

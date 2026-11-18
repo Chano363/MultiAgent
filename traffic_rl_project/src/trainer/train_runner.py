@@ -229,12 +229,15 @@ class TrainRunner:
                 logger.info(f"[并行 rollout] 进程级并行已启用：n_env={n_env} 个 worker 进程")
             # 【COVER】动态提权的 per-step 信号链只在进程级并行路径接通；
             # 若配置要求 COVER 但并行未启用，fail fast——防"以为在调权、其实静默没调"。
+            # 【2026-11-18 修复】COVER fail-fast 插入后，下方"未启用"告警的 elif 挂到了
+            # COVER 检查上（原为并行启用 if 的 elif），导致并行成功也误报"单核串行"——
+            # 告警不可信 = 真降级时没人信。改回独立条件：parallel is None 才告警。
             if getattr(agents, 'cover_enabled', False) and parallel is None:
                 raise RuntimeError(
                     "[COVER] cover_enabled=true 要求进程级并行 rollout（n_env_parallel + "
                     "mappo_fleet + obs=env + reward!=cyclic）；当前走串行路径无 per-step "
                     "信号链，拒绝以静默失效方式训练。")
-            elif n_env > 1:
+            if parallel is None and n_env > 1:
                 # 【2026-10-21 治本｜静默/慢】不满足并行条件时明确告警，避免"以为在并行、其实单核串行"。
                 logger.warning(
                     f"[并行 rollout] 未启用（n_env={n_env}）：本回合单核串行跑 {n_env} 条轨迹。"

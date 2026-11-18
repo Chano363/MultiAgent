@@ -125,10 +125,12 @@ def warm_start_decompose_bc(
     if not _incr_mode:
         assert not np.any(act_arr), 'BC 标签必须全零调制（否则不再是"复现规则基线"）'
     logger.info(
-        f"Fleet BC warm start: 采集 {obs_arr.shape[0]} 条 (obs, [0,0])，"
-        f"预训练 {bc_epochs} epochs"
+        f"Fleet BC warm start: 采集 {obs_arr.shape[0]} 条 (obs, "
+        + ('级位增量标签' if _incr_mode else '[0,0]')
+        + f"），预训练 {bc_epochs} epochs"
     )
     obs_t = torch.as_tensor(obs_arr, dtype=torch.float32, device=agent.device)
+    act_t = torch.as_tensor(act_arr, dtype=torch.float32, device=agent.device)
 
     # BC has its own learning rate and policy-only optimizer. Leave the RL
     # optimizer's learning rate and moment estimates untouched.
@@ -139,7 +141,12 @@ def warm_start_decompose_bc(
         # 不用高斯 NLL：NLL 对均值的梯度 ∝ 1/std²，σ 一旦收小就与 std_reg 互相拉扯，
         # 实测 30/200 epochs 后 |mean| 仍 0.046/0.052（且 σ 被拉低到 0.04，偏离目标 0.1）。
         # 改成 MSE 后梯度尺度恒定，均值能真正收敛（BC 常用做法：对动作头做 L2 回归）。
-        mean_mse = mean.pow(2).mean()
+        # 【2026-11-18 修复｜ADR-074】回归目标必须是**标签本身**（act_t）：原实现
+        # mean.pow(2).mean() 恒回归全零——对非 incr 模式（标签全零）恰好等价，但对
+        # loco_notch_incr 的级位增量标签（非零分布）等于把策略预热成"永远不动"，
+        # 且旧判据（loss 有限）静默放行。统一为对标签回归：非 incr 时 act_t 全零，
+        # 数值上与旧行为逐位一致（零回归保证）。
+        mean_mse = (mean - act_t).pow(2).mean()
         std_reg = (log_std - BC_LOG_STD_TARGET).pow(2).mean()   # 拉 log_std→-3.0 (std≈0.05)
         loss = mean_mse + 0.5 * std_reg
         opt.zero_grad()
@@ -150,8 +157,16 @@ def warm_start_decompose_bc(
     with torch.no_grad():
         mean_s, log_std_s = agent.policy(obs_t)
     std_mean = float(log_std_s.mean().exp())
-    logger.info(f"[BC] 拟合结果：|mean| 均值 {float(mean_s.abs().mean()):.4f}"
-                f"（目标 0），std 均值 {std_mean:.4f}（目标 ≈0.10）")
+    # 【ADR-074】incr 模式判据量：拟合 MSE 与"平凡基线"（恒预测标签均值，MSE=标签方差）
+    # 对比——拟合必须**优于**平凡基线（fit_mse < label_var），否则 BC 等于没学到增量。
+    fit_mse = float(((mean_s - act_t).pow(2).mean()).item())
+    label_var = float(act_arr.var())
+    if _incr_mode:
+        logger.info(f"[BC] 拟合结果（incr）：fit_mse={fit_mse:.4f} vs 标签方差={label_var:.4f}"
+                    f"（须严格小于，= 优于恒均值平凡基线），std 均值 {std_mean:.4f}")
+    else:
+        logger.info(f"[BC] 拟合结果：|mean| 均值 {float(mean_s.abs().mean()):.4f}"
+                    f"（目标 0），std 均值 {std_mean:.4f}（目标 ≈0.10）")
 
     if save_dir:
         out = Path(save_dir)
@@ -169,6 +184,8 @@ def warm_start_decompose_bc(
             'bc_lr': float(lr),
             'n_samples': int(obs_arr.shape[0]),
             'bc_loss': float(loss.item()),
+            'bc_fit_mse': fit_mse,
+            'bc_label_var': label_var,
             'policy_abs_mean': float(mean_s.abs().mean()),
             'policy_std_mean': std_mean,
             'policy_mean_abs_threshold': float(BC_MEAN_ABS_TOL),
@@ -183,10 +200,14 @@ def warm_start_decompose_bc(
             'checkpoint_path': str(pt),
             'checkpoint_bytes': int(pt.stat().st_size),
             # 判据：文件存在且非 0、样本充足、loss 有限；incr 模式标签非零，
-            # 均值收敛判据不适用（改验 loss 有限），非 incr 模式保留原判据。
+            # 均值收敛判据不适用——改验"拟合优于恒均值平凡基线"（fit_mse < label_var，
+            # 【2026-11-18 补】fail-closed：原判据只验 loss 有限，回归全零也放行，
+            # 静默把策略预热成"永远不动"）；label_var==0（标签退化全零）时退回
+            # loss 有限。非 incr 模式保留原判据。
             'pass': bool(pt.is_file() and pt.stat().st_size > 0
                          and obs_arr.shape[0] > 0
                          and np.isfinite(loss.item())
+                         and (label_var == 0.0 or fit_mse < label_var)
                          and (_incr_mode
                               or float(mean_s.abs().mean()) < BC_MEAN_ABS_TOL)),
             'reuse': f"python run_training.py --experiment <yaml> --resume {pt} "

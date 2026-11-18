@@ -12,7 +12,9 @@ RUN_ID="${RUN_ID:-w4cover_full_20261118}"
 CKPT_DIR="$ROOT/outputs/checkpoints/formation_10kt_1plus108/$RUN_ID"
 RES_DIR="$ROOT/outputs/results/formation_10kt_1plus108/$RUN_ID"
 LOG_DIR="$ROOT/outputs/logs/cloud"
-EVAL_CFG="configs/experiments/formation_ed_ab_3train_1plus108_cover.yaml"
+# 【2026-11-18】评估配置改为可覆盖：快评环境必须与训练配置同源（decompose 模式、
+# act_dim 一致），否则策略载入即失败/快评静默失效。默认保持 cover 配置（零回归）。
+EVAL_CFG="${EVAL_CFG:-configs/experiments/formation_ed_ab_3train_1plus108_cover.yaml}"
 EVAL_STEPS="${EVAL_STEPS:-31500}"        # v21 口径（全程确定性评估步数）
 EVERY="${EVERY:-10}"                      # 每 10 集快评
 POLL="${POLL:-300}"                       # 5 min 轮询
