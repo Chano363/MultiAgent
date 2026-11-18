@@ -667,9 +667,33 @@ def main():
     results = {}
 
     if args.mode in ('all', 'decompose_m0'):
+        def _m0_actions(env):
+            if getattr(env, 'decompose', None) == 'loco_notch_incr':
+                # 【ADR-074】incr 模式零动作 = 级位保持（惰行），不是规则基线。
+                # M0 改用"级位跟踪规则基线"教师（与 BC 教师同口径）：增量把级位推向
+                # get_action_cyclic_braking 的 ED 深度，AB 由级位越限派生隐式跟随。
+                from copy import deepcopy
+                _rate = float(getattr(env.multi_loco_controllers[0],
+                                      'notch_incr_rate_notches', 0.0) or 0.0)
+                _max_d = _rate / 20.0 if _rate > 0 else 0.0
+                if not (_max_d > 0):
+                    raise ValueError('M0 teacher requires notch_incr_rate_notches > 0')
+                act = np.zeros((env.num_agents, env.act_dim))
+                _ai = 0
+                for _ti, _ctrl in enumerate(env.multi_loco_controllers):
+                    _tr = env.trains[_ti]
+                    _base_ed = deepcopy(_ctrl).get_action_cyclic_braking(
+                        _tr, v_max=env.v_max, v_min=env.v_min)
+                    _nl = (_ctrl._notch_level if _ctrl._notch_level is not None
+                           else [0.0] * len(_tr.loco_indices))
+                    for _k in range(len(_tr.loco_indices)):
+                        _tgt = float(np.clip(_base_ed[_k, 0], 0.0, 1.0))
+                        act[_ai, 0] = float(np.clip((_tgt - _nl[_k]) / _max_d, -1.0, 1.0))
+                        _ai += 1
+                return act
+            return np.zeros((env.num_agents, 2))
         results['decompose_M0_rule'] = eval_method(
-            'decompose-M0 规则基线(RL调制恒0)', 'decompose',
-            lambda env: np.zeros((env.num_agents, 2)), args)
+            'decompose-M0 规则基线', 'decompose', _m0_actions, args)
 
     if args.mode in ('all', 'decompose_m1'):
         env0 = make_env('decompose', args)
@@ -687,7 +711,8 @@ def main():
         def policy_act(env):
             flat = env._get_obs_decomposed().flatten()
             a, _ = agent.select_actions(flat, deterministic=True)
-            return a.reshape(env.num_agents, 2)
+            # 【ADR-074】act_dim 从 env 取（loco_notch_incr=1，其它 decompose=2）
+            return a.reshape(env.num_agents, env.act_dim)
 
         results['decompose_M1_rl'] = eval_method(
             f'decompose-M1 RL({os.path.basename(args.checkpoint)}, interval={args.decision_interval})',

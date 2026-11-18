@@ -296,6 +296,17 @@ class MultiLocoController:
         #       拉钩改善的间接通道；车钩力本身不进奖励）。
         self.ed_rate_limit_notches = 0.0
         self._ed_notch_state = None
+        # 【ADR-074 / 2026-11-18 级位派生化】decompose='loco_notch_incr' 专用
+        # （默认 0/关 = 旧路径零回归）。Wang2023 ②对标：动作 = 级位增量（单决策步
+        # |Δn| ≤ notches/20，量级对标文献"级位限 ±12、单步变化限 3"），
+        # **ED = 级位（派生）**，**AB 由级位越限派生（不再进动作空间）**——
+        # ED→AB 交接由"两个独立指令的时序"退化为"级位越限的派生事件"，
+        # 直接作用于诊断 §7 的"缓解—再施加—ED 交接相位差"瓶颈。
+        # 文献锚：Wang2023 实车拉钩 −8.93%（间接平滑通道替代直接车钩罚）。
+        self.notch_incr_rate_notches = 0.0        # >0 = 本模式启用（语义同 ed_rate_limit_notches）
+        self.ab_derive_threshold = 0.5            # n ≥ 阈值 → 请求 AB on
+        self.ab_derive_release_margin = 0.05      # n < 阈值 − margin → 释放（滞回防抖）
+        self.ab_derive_notch_idx = 2              # 派生档位 = AB_NOTCH_LEVELS[2] = MIN(70 kPa)
         # 【W4-v4 / 2026-11-15】近上限 AB 充风门旁路（默认关 = 零回归）。
         # 语义：速度贴近有效上限且 RL 想施加 AB 时，绕过 222 s 充风门控。
         # 依据：W4-v3 12k 归因显示 ATP 过触发主体是规则 C 逐车超速；若门控
@@ -390,6 +401,8 @@ class MultiLocoController:
         # 门控拒绝计数（诊断用）
         self.ab_refill_veto_count = 0
         self.ab_hold_veto_count = 0
+        # 【ADR-074 级位派生化】每机车级位状态 [0,1]，0=惰行；仅 loco_notch_incr 模式使用
+        self._notch_level = None
         # 【2026-09-30 死代码消除】原内部 SafetyLayer 从未被调用（真安全层 = 环境的
         # train_env.safety，在动作喂给动力学前统一钳制）。此处删除，避免"两套安全层"混淆；
         # 车钩力源头门控改为直接咨询 train_env.safety（见 get_action_decomposed）。
@@ -1270,6 +1283,104 @@ class MultiLocoController:
         return final
 
     # ------------------------------------------------------------------ #
+    # 主接口 5【ADR-074 / 2026-11-18 级位派生化】动作 = 级位增量，ED/AB 均派生
+    # ------------------------------------------------------------------ #
+    # Wang2023 ②对标（实车验证拉钩 −8.93%）：空气制动 on/off 不进动作空间，
+    # 由级位越限 + 最小充风时间派生。本实现：
+    #   - RL 动作 = 每机车 1 维 ∈ [-1,1] = 级位增量请求；
+    #   - 级位状态 n ∈ [0,1]（0=惰行，1=满制动；长大下坡无牵引语义与 S2 一致），
+    #     单决策步 |Δn| ≤ notch_incr_rate_notches/20（复用 ADR-072 口径，默认 3
+    #     ⇒ 0.15/决策步，量级对标文献 ±3/±12）；
+    #   - ED = n（派生；n=0 = 真惰行，天然实现 Wang2023 "初制动 + 惰行" 循环）；
+    #   - AB 派生（级位越限 + 滞回）：n ≥ θ → 请求 on；n < θ − margin → 释放。
+    #     派生档位默认 MIN（70 kPa）——诊断 §7：140 kPa 时序完美也 ≈1004 > 1000，
+    #     70 kPa 级循环制动是单源进线的前提而非选项。
+    # 安全链与 get_action_notch 同口径、同顺序（RL 无权关闭）：
+    #   ① 超速兜底强制 SERVICE；② 近上限分级（W4-v5）；③ 档位最短保持（仅施加态）
+    #   ④ 222 s 充风门（近上限旁路 W4-v4）；⑤ 低速强制缓解（V17）。
+    def get_action_notch_incr(
+        self, train_env, rl_actions, v_max: float = 80.0 / 3.6,
+        v_min: float = 40.0 / 3.6, v_max_adj: float = 0.0, v_min_adj: float = 0.0,
+    ) -> np.ndarray:
+        """级位派生化：rl_actions (num_loco, 1) ∈[-1,1] = 级位增量请求。
+
+        Returns:
+            final (num_loco, 2)：[ED=n, AB（负=施加）]，语义与现有通道一致。
+        """
+        if not (self.notch_incr_rate_notches > 0):
+            raise ValueError(
+                'notch_incr mode requires notch_incr_rate_notches > 0 '
+                '(fail-fast: 无速率限制的级位积分不满足 Wang2023 对标语义)')
+        self._ab_step += 1
+        rl = np.asarray(rl_actions, dtype=float).reshape(self.num_locomotives, -1)
+        if rl.shape[1] != 1:
+            raise ValueError(
+                f'notch_incr expects (num_loco, 1) actions, got shape {rl.shape}')
+        n_loco = self.num_locomotives
+        if self._notch_level is None:
+            self._notch_level = [0.0] * n_loco   # 起点级位 0 = 惰行
+        final = np.zeros((n_loco, 2), dtype=float)
+        vel = float(train_env.dynamics.vel[0])
+        vmax_eff = float(v_max) + float(v_max_adj)
+        max_d = float(self.notch_incr_rate_notches) / 20.0
+        for k in range(n_loco):
+            # 1) 级位积分：增量限幅
+            a_k = float(np.clip(rl[k, 0], -1.0, 1.0))
+            n_k = float(np.clip(self._notch_level[k] + a_k * max_d, 0.0, 1.0))
+            self._notch_level[k] = n_k
+            # 2) ED = 级位（派生）
+            final[k, 0] = n_k
+            # 3) AB 派生（级位越限；滞回防抖：释放阈值低于触发阈值）。
+            #    比较带 epsilon：级位是浮点积分，0.60−0.15=0.4499…96 会击穿
+            #    恰好落在阈值上的滞回边界（单测实证），必须容差比较。
+            _eps = 1e-9
+            if self._ab_on[k]:
+                want_on = n_k >= (self.ab_derive_threshold
+                                  - self.ab_derive_release_margin - _eps)
+            else:
+                want_on = n_k >= self.ab_derive_threshold - _eps
+            ab = (self.AB_NOTCH_LEVELS[self.ab_derive_notch_idx]
+                  if want_on else self.AB_NOTCH_LEVELS[0])
+            # 4) 安全链（与 get_action_notch 同顺序）
+            if vel >= vmax_eff:
+                # 超速兜底：强制 SERVICE（RL 无权关闭安全底线）
+                if ab > self.AB_NOTCH_LEVELS[3]:
+                    ab = self.AB_NOTCH_LEVELS[3]
+            elif vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS:
+                _soft_limit = (self.AB_NOTCH_LEVELS[2]
+                               if self.ab_near_limit_min_brake
+                               else self.AB_NOTCH_LEVELS[3])
+                if ab > _soft_limit:
+                    ab = _soft_limit
+            # 档位最短保持（只约束施加态 → 施加态；缓解不受限，防 S2-v2 式拖停）
+            if self.ab_notch_hold_s > 0 and ab < 0 and self._ab_notch_state[k] < 0:
+                elapsed = (self._ab_step - self._ab_notch_step[k]) * self.dt
+                if ab != self._ab_notch_state[k] and elapsed < self.ab_notch_hold_s:
+                    ab = self._ab_notch_state[k]
+            # 充风/保持门控（新增源被拒 → 本步不发；近上限旁路 W4-v4）
+            _near_upper_limit = (
+                self.ab_high_speed_bypass_gate
+                and vel >= vmax_eff - self.AB_SUPPRESS_MARGIN_MPS)
+            if ab < 0 and not _near_upper_limit and not self._ab_gate(k, True):
+                ab = 0.0
+            # 低速强制缓解兜底（V17：防 AB 拖到停车）
+            if self.ab_low_speed_release and vel <= float(v_min) + self.ab_low_speed_margin_mps:
+                ab = 0.0
+            final[k, 1] = ab
+        # 提交 AB 状态（与 get_action_notch 同口径：施加/释放时刻 + 档位保持记账）
+        for i in range(n_loco):
+            new_on = bool(final[i, 1] < 0)
+            if new_on and not self._ab_on[i]:
+                self._ab_last_apply_step[i] = self._ab_step
+            elif (not new_on) and self._ab_on[i]:
+                self._ab_last_release_step[i] = self._ab_step
+            self._ab_on[i] = new_on
+            if float(final[i, 1]) != float(self._ab_notch_state[i]):
+                self._ab_notch_state[i] = float(final[i, 1])
+                self._ab_notch_step[i] = self._ab_step
+        return final
+
+    # ------------------------------------------------------------------ #
     # 主接口 2：目标加速度（fleet 非分层模式，与 TrainLowLevelController 同签名）
     # ------------------------------------------------------------------ #
     def get_action_accel(self, train_env, target_accel: float) -> np.ndarray:
@@ -1340,6 +1451,7 @@ class MultiLocoController:
         self._ed_ramp_armed = True
         self._previous_ed = None
         self._ed_notch_state = None
+        self._notch_level = None
         self._ed_recovery_pending[:] = False
         self._ed_hold_steps = 0
         self._ed_guard_steps_left = 0

@@ -16,6 +16,7 @@ horizon >=1500 步时 on-policy 随机探索踩进"暴力 AB 吸态"且 value �
 import json
 import logging
 import time
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 
@@ -64,6 +65,18 @@ def warm_start_decompose_bc(
     """
     import torch
 
+    # 【ADR-074】loco_notch_incr 模式：零动作 = 级位保持（惰行），不是规则基线。
+    # 教师 = **级位跟踪规则基线**：每决策步增量标签把级位 n 推向规则基线 ED 深度
+    # （get_action_cyclic_braking，53km 全程 peak 793 kN 安全），AB 由级位越限
+    # 派生隐式跟随。BC 拟合目标 = 标签分布（非零），均值收敛判据不适用。
+    _incr_mode = getattr(env, 'decompose', None) == 'loco_notch_incr'
+    _act_dim = int(getattr(env, 'act_dim', 2)) if getattr(env, 'decompose', None) else 1
+    if _incr_mode:
+        _rate = float(getattr(env.multi_loco_controllers[0],
+                              'notch_incr_rate_notches', 0.0) or 0.0)
+        if not (_rate > 0):
+            raise ValueError('BC for loco_notch_incr requires notch_incr_rate_notches > 0')
+        _max_d = _rate / 20.0
     if episodes <= 0:
         return
     env.max_steps = max(env.max_steps, max_steps)
@@ -78,7 +91,25 @@ def warm_start_decompose_bc(
         done = False
         step = 0
         while not done and step < max_steps:
-            action = np.zeros((env.num_agents, 2), dtype=np.float32)  # [0,0]=复现规则基线
+            if _incr_mode:
+                # 教师 = 级位跟踪规则基线（deepcopy 隔离，不推控制器时钟——
+                # 与 _get_obs_decomposed 的预览同口径）
+                action = np.zeros((env.num_agents, _act_dim), dtype=np.float32)
+                _ai = 0
+                for ti, _ctrl in enumerate(env.multi_loco_controllers):
+                    _tr = env.trains[ti]
+                    _base_ed = deepcopy(_ctrl).get_action_cyclic_braking(
+                        _tr, v_max=env.v_max, v_min=env.v_min)
+                    _n = len(_tr.loco_indices)
+                    _nl = (_ctrl._notch_level if _ctrl._notch_level is not None
+                           else [0.0] * _n)
+                    for _k in range(_n):
+                        _tgt = float(np.clip(_base_ed[_k, 0], 0.0, 1.0))
+                        action[_ai, 0] = float(np.clip(
+                            (_tgt - _nl[_k]) / _max_d, -1.0, 1.0))
+                        _ai += 1
+            else:
+                action = np.zeros((env.num_agents, 2), dtype=np.float32)  # [0,0]=复现规则基线
             bc_obs.append(np.asarray(obs, dtype=np.float32).reshape(env.num_agents, -1))
             bc_acts.append(action.reshape(-1))
             next_obs, r, term, trunc, info = env.step(action)
@@ -89,9 +120,10 @@ def warm_start_decompose_bc(
                     f"累计 {len(bc_obs)} 步，已耗时 {time.time() - t_bc:.0f}s")
 
     num_agents = int(env.num_agents)
-    obs_arr = np.asarray(bc_obs, dtype=np.float32).reshape(-1, agent.obs_per_drone)  # [N*6, 11]
-    act_arr = np.asarray(bc_acts, dtype=np.float32).reshape(-1, agent.act_per_drone)  # [N*6, 2]
-    assert not np.any(act_arr), 'BC 标签必须全零调制（否则不再是"复现规则基线"）'
+    obs_arr = np.asarray(bc_obs, dtype=np.float32).reshape(-1, agent.obs_per_drone)
+    act_arr = np.asarray(bc_acts, dtype=np.float32).reshape(-1, agent.act_per_drone)
+    if not _incr_mode:
+        assert not np.any(act_arr), 'BC 标签必须全零调制（否则不再是"复现规则基线"）'
     logger.info(
         f"Fleet BC warm start: 采集 {obs_arr.shape[0]} 条 (obs, [0,0])，"
         f"预训练 {bc_epochs} epochs"
@@ -140,7 +172,8 @@ def warm_start_decompose_bc(
             'policy_abs_mean': float(mean_s.abs().mean()),
             'policy_std_mean': std_mean,
             'policy_mean_abs_threshold': float(BC_MEAN_ABS_TOL),
-            'label': '[0,0]（零调制 = 复现规则基线）',
+            'label': (f'级位增量跟踪规则基线（rate={_rate} notches/20级，目标 = 规则基线 ED）'
+                      if _incr_mode else '[0,0]（零调制 = 复现规则基线）'),
         }
         if metadata:
             meta.update(metadata)
@@ -149,11 +182,13 @@ def warm_start_decompose_bc(
         judge.update({
             'checkpoint_path': str(pt),
             'checkpoint_bytes': int(pt.stat().st_size),
-            # 判据：文件存在且非 0、样本充足、loss 有限、动作均值已收敛到规则基线附近
+            # 判据：文件存在且非 0、样本充足、loss 有限；incr 模式标签非零，
+            # 均值收敛判据不适用（改验 loss 有限），非 incr 模式保留原判据。
             'pass': bool(pt.is_file() and pt.stat().st_size > 0
                          and obs_arr.shape[0] > 0
                          and np.isfinite(loss.item())
-                         and float(mean_s.abs().mean()) < BC_MEAN_ABS_TOL),
+                         and (_incr_mode
+                              or float(mean_s.abs().mean()) < BC_MEAN_ABS_TOL)),
             'reuse': f"python run_training.py --experiment <yaml> --resume {pt} "
                      f"--resume-weights-only",
         })

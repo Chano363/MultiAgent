@@ -1704,3 +1704,27 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 **边界与后续（全部待批，本 ADR 不构成开训授权）**：①杠杆确认后进入实现 → 冒烟 → G1 六问重签 → 训练窗口规格/预算审批（红线 1）；② COVER 去留待定（保留 = 承认双变量叠加，隔离 = 需重验稳定面）；③ 两侧物理同源铁律不变——本杠杆改动作面与控制器映射，**不改物理引擎**，基线可比性不破坏。
 
 **相关**：ADR-070/071/073、`PROJECT_PIPELINE.md` §〇/§0.8.3、诊断 §7、Wang2023/Wang2026 信息卡、`RESEARCH_POSITIONING.md` §1.2（C-GAP-01）。
+
+### ADR-074 附段（2026-11-18）：owner 两项拍板 + 首投设计定稿 + 实现留痕
+
+**owner 拍板（2026-11-18，AskUserQuestion 留痕）**：①首投杠杆 = **级位派生化**（推荐项）；②**COVER 关闭，隔离变量**（推荐项）。
+
+**设计定稿（decompose='loco_notch_incr'，S2 家族新模式）**：
+
+- **动作**：每机车 1 维 ∈ [-1,1] = 级位增量请求（`env.act_dim=1`，全链路 registry/interaction/parallel_rollout 自动派生；ckpt tag `dec_ad1`）。
+- **级位状态**：n ∈ [0,1]（0=惰行，1=满制动；长大下坡无牵引语义与 S2 一致），单决策步 |Δn| ≤ `notch_incr_rate_notches`/20（默认 3 → 0.15/决策步；decision_interval=10 ⇒ 1 s/决策，量级对标 Wang2023 ±3/±12）。
+- **ED = n（派生）**：n=0 = 真惰行，天然实现 Wang2023 "初制动 + 惰行" 循环；不再需要 ed_idle/zero 通道。
+- **AB 派生（级位越限 + 滞回）**：n ≥ 0.5 → 请求 on；n < 0.45 → 释放；派生档位 = MIN（70 kPa，诊断 §7 进线前提）。**AB 不再进动作空间**——ED→AB 交接退化为"级位越限的派生事件"（本杠杆的机制本体）。
+- **安全链与 get_action_notch 同口径同顺序**（RL 无权关闭）：超速兜底 SERVICE → 近上限分级（默认关）→ 档位 90 s 保持（仅施加态）→ 222 s 充风门（近上限旁路默认关）→ 低速强制缓解（**显式开**，V17 教训防 AB 拖停）。
+- **obs 12→13**：obs[12] = 本机车级位（memoryless 策略必须可观测积分状态，否则增量动作不可马氏）；observation_schema `loco_notch_incr_v1`。
+- **奖励不动**：11 项与主配置逐字一致；**不加切换幅度罚**——速率限制是硬约束即 Wang2023 的平稳性通道，避免重蹈 B 路线"改奖励面"。
+- **BC 教师 = 级位跟踪规则基线**：每决策步标签把 n 推向 `get_action_cyclic_braking` 的 ED 深度（peak 793 kN 安全教师）；BC 判据对 incr 模式改验 loss 有限（标签非零，均值收敛判据不适用）。
+- **M0 对齐**：incr 模式下零动作 = 级位保持（惰行）不是规则基线，`evaluate_decompose` M0 改用同一教师（口径一致）。
+
+**实现留痕（2026-11-18，零训练）**：
+
+- 改动文件：`multi_loco_controller.py`（`get_action_notch_incr` + 状态/参数 + reset）、`train_fleet_env.py`（模式分支/act_dim/obs_dim/obs[12]/切换罚记账复用）、`fleet_spec.py`（BC incr 分支）、`evaluate_decompose.py`（M0 教师 + M1 reshape 从 env.act_dim 派生）、新配置 `formation_ed_ab_3train_1plus108_nincr.yaml`（run_tag `w4nincr_full_20261118`，开窗时按 EXECUTION_RULES 核时间戳）。
+- **单测 10/10**（`tests/test_notch_incr.py`：积分限幅/派生/滞回/超速兜底/低速缓解/充风门/fail-fast×2/env 接线/端到端）；实现中发现并修复浮点积分击穿滞回边界问题（0.60−0.15=0.4499…96，比较加 1e-9 容差）。
+- **配置接线自检通过**（`tests/check_nincr_config_wiring.py`：act_dim=1 全链路贯通、obs 13、COVER=False、三目录同 run_tag）。
+- **回归**：fleet/cover/safety/env 十个测试文件全绿，**3 个 `test_fleet_decompose` 失败为存量问题**（git stash 对照实验：未改动 HEAD 同样失败，与本实现无关）。
+- **600 步冒烟未跑**（须开机，属窗口开训前置，待 owner 预算审批后与 G1 六问、closer 注册同序列执行）。

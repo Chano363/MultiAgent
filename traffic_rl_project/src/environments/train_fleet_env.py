@@ -664,6 +664,36 @@ class TrainFleetEnv:
                     _c.ed_idle_zero_action = _eiz
                     _c.ab_high_speed_bypass_gate = _ab_bypass
                     _c.ab_near_limit_min_brake = _ab_near_min
+            # 【ADR-074 / 2026-11-18 级位派生化】loco_notch_incr 模式参数
+            # （构造后属性级覆盖，不改 MultiLocoController 构造签名；其它模式零回归）。
+            # 速率限制为模式必需（fail-fast 在 controller 内校验）；
+            # 安全链参数与 loco_notch 同名同默认，保两模式口径一致。
+            elif self.decompose == 'loco_notch_incr':
+                _rate = float(config.get('notch_incr_rate_notches', 3.0))
+                _hs = float(config.get('ab_notch_hold_s', 90.0))
+                _lsr = bool(config.get('ab_low_speed_release', False))
+                _lsm = float(config.get('ab_low_speed_margin_kmh', 2.0)) / 3.6
+                _ab_bypass = bool(config.get('ab_high_speed_bypass_gate', False))
+                _ab_near_min = bool(config.get('ab_near_limit_min_brake', False))
+                _thr = float(config.get('ab_derive_threshold', 0.5))
+                _margin = float(config.get('ab_derive_release_margin', 0.05))
+                _nidx = int(config.get('ab_derive_notch_idx', 2))
+                if not (0 < _nidx < len(MultiLocoController.AB_NOTCH_LEVELS)):
+                    raise ValueError(
+                        f'ab_derive_notch_idx must be in (0, {len(MultiLocoController.AB_NOTCH_LEVELS)})'
+                        f'; got {_nidx}')
+                if not (0.0 < _thr < 1.0):
+                    raise ValueError(f'ab_derive_threshold must be in (0,1); got {_thr}')
+                for _c in self.multi_loco_controllers:
+                    _c.notch_incr_rate_notches = _rate
+                    _c.ab_notch_hold_s = _hs
+                    _c.ab_low_speed_release = _lsr
+                    _c.ab_low_speed_margin_mps = _lsm
+                    _c.ab_high_speed_bypass_gate = _ab_bypass
+                    _c.ab_near_limit_min_brake = _ab_near_min
+                    _c.ab_derive_threshold = _thr
+                    _c.ab_derive_release_margin = _margin
+                    _c.ab_derive_notch_idx = _nidx
             self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
         else:
             self.num_agents = self.num_trains
@@ -686,23 +716,32 @@ class TrainFleetEnv:
             # [11]【ADR-030】AB 充风就绪度 = 距上次 AB 释放的充风时长 / ab_min_refill_s ∈[0,1]
             #    ——把 222 s 长充风滞后"编码进观测"（文献 Wang2026 的累计缓解时间 t_r 口径），
             #    使策略不必靠"拉长 rollout 窗口"即可感知该长时约束。
-            self.obs_dim = 14 if self.formation_relative_speed_obs else 12
+            #    【ADR-074】loco_notch_incr 模式追加 obs[12] = 本机车级位 n∈[0,1]
+            #    （memoryless 策略必须能观测积分状态）；此时 formation 上下文顺延至 [13,14]。
+            self.obs_dim = (12
+                            + (1 if self.decompose == 'loco_notch_incr' else 0)
+                            + (2 if self.formation_relative_speed_obs else 0))
             self.observation_schema = {
-                'name': ('loco_ed_ab_relative_speed_v1' if self.formation_relative_speed_obs
-                         else 'loco_ed_ab_base12'),
+                'name': ('loco_notch_incr_v1' if self.decompose == 'loco_notch_incr'
+                         else ('loco_ed_ab_relative_speed_v1' if self.formation_relative_speed_obs
+                               else 'loco_ed_ab_base12')),
                 'dimension': self.obs_dim,
-                'appended_fields': (['head_relative_speed_mps', 'tail_closing_speed_mps']
-                                    if self.formation_relative_speed_obs else []),
+                'appended_fields': (['notch_level']
+                                    if self.decompose == 'loco_notch_incr' else [])
+                                    + (['head_relative_speed_mps', 'tail_closing_speed_mps']
+                                       if self.formation_relative_speed_obs else []),
                 'relative_speed_sign': 'positive means follower is faster',
-                'leader_appended_values': [0.0, 0.0] if self.formation_relative_speed_obs else [],
+                'leader_appended_values': ([0.0] if self.decompose == 'loco_notch_incr' else [])
+                                          + ([0.0, 0.0] if self.formation_relative_speed_obs else []),
             }
-            self.act_dim = 2
+            # 【ADR-074】loco_notch_incr：每机车 1 维（级位增量）；其它 decompose：2 维 [ed_mod, ab_mod]
+            self.act_dim = 1 if self.decompose == 'loco_notch_incr' else 2
             self.observation_space = spaces.Box(
                 low=-np.inf, high=np.inf,
                 shape=(self.num_agents, self.obs_dim), dtype=np.float32,
             )
             self.action_space = spaces.Box(
-                low=-1.0, high=1.0, shape=(self.num_agents, 2), dtype=np.float32,
+                low=-1.0, high=1.0, shape=(self.num_agents, self.act_dim), dtype=np.float32,
             )
         else:
             self.obs_dim = 11 + (2 if self.group_obs else 0)
@@ -980,7 +1019,8 @@ class TrainFleetEnv:
                 tr.dynamics.set_couplers(
                     [sample_coupler_params(self._hetero_rng) for _ in range(n_coupling)]
                 )
-        # decompose 模式：每机车 (ED,AB) 2 维；旧模式：每列 1 维 throttle
+        # decompose 模式：每机车控制器输出 (ED,AB) 2 维（所有 decompose 模式统一，
+        # _executed_actions 存的是控制器 final_edab 而非 RL 原始动作）；旧模式：每列 1 维
         self._executed_actions = (
             np.zeros((self.num_agents, 2)) if self.decompose
             else np.zeros(self.num_agents)
@@ -1392,9 +1432,15 @@ class TrainFleetEnv:
                 # 让策略无需靠拉长 rollout 窗口即可感知该长时约束。初值 -1e9 → 首次恒为 1.0（允许）。
                 _refill_s = max((ctrl._ab_step - ctrl._ab_last_release_step[k]) * ctrl.dt, 0.0)
                 obs[a, 11] = float(min(_refill_s / max(self.ab_min_refill_s, 1.0), 1.0))
+                # [12]【ADR-074】本机车级位 n∈[0,1]（仅 loco_notch_incr；memoryless 策略
+                # 必须能观测积分状态，否则增量动作不可马氏）。
+                if self.decompose == 'loco_notch_incr':
+                    _nl = getattr(ctrl, '_notch_level', None)
+                    obs[a, 12] = float(_nl[k]) if _nl is not None else 0.0
                 if context is not None and ti > 0:
-                    obs[a, 12] = context[ti]['head_relative_speed_mps']
-                    obs[a, 13] = context[ti]['tail_closing_speed_mps']
+                    _ctx_base = 13 if self.decompose == 'loco_notch_incr' else 12
+                    obs[a, _ctx_base] = context[ti]['head_relative_speed_mps']
+                    obs[a, _ctx_base + 1] = context[ti]['tail_closing_speed_mps']
                 a += 1
         return obs
 
@@ -1464,11 +1510,16 @@ class TrainFleetEnv:
         return (float(np.mean(errs)) if errs else 0.0), float(np.min(gaps))
 
     def _step_decomposed_fleet(self, actions: np.ndarray):
-        """decompose 模式 step：每机车 RL 调制 [ed_mod, ab_mod] → 规则基线+调制 → 单列 _step_decomposed。"""
+        """decompose 模式 step：逐机车动作 → 控制器 → 单列 _step_decomposed。
+
+        动作语义按模式：loco_ed_ab = [ed_mod, ab_mod] 调制；loco_notch = [ed_cmd, ab_frac]
+        绝对档位；loco_notch_incr（ADR-074）= 级位增量 1 维（ED/AB 均派生）。
+        """
         actions = np.asarray(actions, dtype=float)
-        if actions.shape != (self.num_agents, 2):
+        _dec_act_dim = 1 if self.decompose == 'loco_notch_incr' else 2
+        if actions.shape != (self.num_agents, _dec_act_dim):
             raise ValueError(
-                f"decompose 动作形状应为 {(self.num_agents, 2)}, 实际 {actions.shape}"
+                f"decompose 动作形状应为 {(self.num_agents, _dec_act_dim)}, 实际 {actions.shape}"
             )
         self._safety_events = 0
         ab_count = 0       # 本步激活的 AB 源总数（奖励塑形：AB 贵）
@@ -1586,7 +1637,27 @@ class TrainFleetEnv:
                             rear_ed_frac, float(np.mean(np.abs(np.asarray(prev)))))
                 tr.formation_rear_braking = rear_braking
                 tr.formation_rear_ed_frac = rear_ed_frac
-            if self.decompose == 'loco_notch':
+            if self.decompose == 'loco_notch_incr':
+                # 【ADR-074 级位派生化】RL 只给级位增量 1 维；ED = 级位、AB 由
+                # 级位越限派生（充风门/超速兜底/低速缓解在 controller 内保留），
+                # **不经规则循环制动状态机**；车钩力源头 veto 仍由子环境 safety 层执行。
+                final_edab = ctrl.get_action_notch_incr(
+                    tr, rl, v_max=self.v_max, v_min=self.v_min,
+                    v_max_adj=v_bound_max, v_min_adj=v_bound_min,
+                )
+                # 切换幅度罚记账（与 loco_notch 同口径：罚 = w · mean(|Δed| + 0.5·|Δab|)，
+                # 按 ctrl 分键记 prev，防同一 step 内多 ctrl 相互覆盖）。
+                if self.notch_smooth_w > 0:
+                    _cur = np.asarray(final_edab, dtype=float)
+                    if self._prev_edab_cmds is None:
+                        self._prev_edab_cmds = [None] * len(self.multi_loco_controllers)
+                    _prev = self._prev_edab_cmds[ti]
+                    if _prev is not None and _prev.shape == _cur.shape:
+                        self._notch_smooth_pen += self.notch_smooth_w * float(
+                            np.mean(np.abs(_cur[:, 0] - _prev[:, 0])
+                                    + 0.5 * np.abs(_cur[:, 1] - _prev[:, 1])))
+                    self._prev_edab_cmds[ti] = _cur.copy()
+            elif self.decompose == 'loco_notch':
                 # 【S2 / ADR-065 绝对档位】RL 直接决定 ED 深度与 AB 减压档
                 # （0=缓解 / 50 kPa / 70 kPa / 140 kPa），**不经规则循环制动状态机**。
                 # 安全边界（充风 222 s 门控、超速强制 SERVICE）在 controller 内保留，
