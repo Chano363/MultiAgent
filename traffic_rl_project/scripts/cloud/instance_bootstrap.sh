@@ -63,7 +63,21 @@ nohup bash scripts/cloud/instance_watchdog.sh \
 WPID=$!
 echo "watchdog_pid=$WPID" | tee -a "$LEDGER"
 
+# 3b) 【COVER 投】快评看护（G1 第 4 问）：每 10 集确定性快评、破线即杀。
+# 仅当 COVER_QUICK_EVAL=1 时启动；默认关 = 非 COVER 训练零回归。
+QPID=""
+if [ "${COVER_QUICK_EVAL:-0}" = "1" ]; then
+  RUN_ID="$RUN_ID" ROOT="$ROOT" EVERY="${COVER_EVAL_EVERY:-10}" \
+  EVAL_STEPS="${COVER_EVAL_STEPS:-31500}" \
+  nohup bash scripts/cloud/cover_quick_eval_watch.sh \
+    > "$LOG_DIR/quick_eval_$RUN_ID.log" 2>&1 &
+  QPID=$!
+  echo "quick_eval_pid=$QPID" | tee -a "$LEDGER"
+fi
+
 wait "$PID"; RC=$?
+# 通知快评看护：训练已结束，停止轮询（收尾交给 watchdog）
+touch "$RES/train_finished.marker" 2>/dev/null
 echo "$RC" > "$RES/exit_code.txt"
 echo "train_rc=$RC end_at=$(date -Is) end_epoch=$(date +%s)" | tee -a "$LEDGER"
 

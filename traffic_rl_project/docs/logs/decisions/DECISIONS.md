@@ -1633,7 +1633,7 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 
 ## ADR-073 W4-v21 退化归因后续路线定案：选 B 改奖励组合方式（owner 委托推荐）+ G1 六问留痕 - 2026-11-18
 
-- **状态**：✅ **实现完成（2026-11-18，零训练）/ ⚠️ 开训仍冻结待批**。三次核查—拍板—实现闭环：① 乘性组合不可直接套用（负项/零值）；② owner 拍板协方差动态提权、核查发现缺 per-step 信号链；③ owner 拍板补 per-step 做真 COVER、锁定"只对 3 正项提权"⇒ 已实现。G1 第 2 问（对标物可落地）**现满足**；第 6 问（closer 注册）未兑现。**未开训、未开机、未改判据（ADR-071 四条不变）**。详见 `DIAGNOSTICS_2026-11.md`「诊断-2026-11-18-B路线代码可行性核查」及续段 1/2/3。开训须 owner 另批窗口（两窗口已耗尽）+ 规格预算 + closer 注册 + G1 重签。
+- **状态**：✅ **实现完成、开训前置全过（2026-11-18）/ ⏳ 待开机执行**。三次核查—拍板—实现闭环：① 乘性不可直接套用；② COVER 缺 per-step 数据链；③ owner 锁定"补 per-step + 只对 3 正项提权"⇒ 已实现。G1 六问于 2026-11-18 重签全"是"（见文末附段），600 步冒烟 + 同 seed 逐位一致实证通过。**未开机、未改判据（ADR-071 四条不变）**。owner 2026-11-18 "按你的建议继续"→ 授权开第 4 投；开机仍须 closer 与开机同一动作序列（G1 第 6 问）。详见诊断「B路线代码可行性核查」续段 1/2/3。
 - **背景**：W4-v21 唯一投止于 ep20（快评护栏正确击杀，非训满）。退化归因（2026-11-18 短开机拉 CSV，一手数据归档 `outputs/results/diagnostics/w4v21_train_csv/`）结论：**优化信号全绿**——熵 2.67→5.08 单调升、grad_norm 1.56–1.91、approx_kl 0.07–0.14 无尖峰、policy_loss 近零，排除熵塌缩/优化器发散；**先拐头的是间隙保持**（`gap_err_mean` ep14 起抬升、ep20 断崖 360.8；`gap_eff` ~117k→99k）+ **速度锚定单调降**（`rel_anchor` 327k→314k，超速惩罚反改善）= 策略在加性奖励分项间做交换。源：`DIAGNOSTICS_2026-11.md`「诊断-2026-11-18-W4-v21」。
 - **三问骨架（对应 §0.8.2 G1 第 2 问：谁做过、差在哪、借什么）**——按两条候选路线分别填，全部一手核实、**跨域机制对标非列车同场景证据**：
 
@@ -1666,3 +1666,16 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
   6. 收账 closer：**挂起**——当前未开机、未注册；开训时 closer 注册与开机为同一动作序列、心跳 rc=0 才开机（SERVER_OPS 铁律 12）。**此问未兑现前不得开训。**
 - **未授权事项（明确边界）**：开训（规格/预算审批）、D2（失败后路线终止，owner 专属）、奖励项正负号/归一化的具体实现选择——三者均未在本 ADR 授权内，须分别报批/报备。
 - **相关**：`LITERATURE_FINDINGS.md` §12（六篇一手对标 + 文献裁定）、`DIAGNOSTICS_2026-11.md`「诊断-2026-11-18-W4-v21」、ADR-070/071/072、`PROJECT_PIPELINE.md` §0.4/§0.8.2、§11.3 制度修正。
+
+### ADR-073 附段（2026-11-18）：G1 六问重签（开训前置全过）
+
+> 依 §0.8.2 逐条留痕，任一"否"不得开训。本次为 COVER 第 4 投开训前重签，证据均本地零训练/单测。
+
+1. **判据锚有文献或 owner 依据？——是**：peak ≤1180/安全线 1500 锚 Wang2023 相对改善（ADR-071）；band ≥90%、零穿透保留；ADR-071 生效未变。
+2. **本改动有文献对标物（谁做过/差在哪/借什么）？——是**：Mysore 2021（乘性组合防分项交换，正式期刊）+ Lu 2026 COVER（协方差单边提权）；差在跨域（机器人/LLM）、只借思想；落地=真 COVER 只对 3 正项（owner 锁定）。三问表见上文 + LITERATURE_FINDINGS §12。
+3. **从头训或纯延长？——从头训**：换奖励组合方式=换机制（ADR-070③）；两窗口已耗尽，owner 2026-11-18 授权第 4 投；零热启动。
+4. **快评协议已进启动脚本？——是**：新增 `src/evaluation/cover_quick_eval.py`（判据纯函数，单测 8/8）+ `scripts/cloud/cover_quick_eval_watch.sh`（每 10 集×31500 步、破线即杀，mock 5/5）+ `instance_bootstrap.sh` 接 `COVER_QUICK_EVAL=1` 并行启动；停训线 band<0.85/穿透/peak 上行>2%/安全线 1500。
+5. **塌缩护栏在位？——是**：从头训无热启动塌缩（ADR-070 不适用）；ep10 后渐变退化由第 4 问确定性快评守；训练 rollout 指标不当健康判据（ADR-070 附带发现已进代码）。
+6. **收账 closer 已注册且心跳 rc=0？——待开机时兑现**：本地 closer（`closer_aliyun_ecs.py` + schtasks，G1 判据）与开机**同一动作序列**，注册且 rc=0 才开机；三层增强（实例内自停机 mock 9/9 + OOS 硬顶）云端配置待批，按 `SERVER_CLOSER_SETUP.md`，不替代本地 closer。**本问在开机那一刻才最终判"是"，未兑现前不得开机。**
+
+**实证（2026-11-18，本地零训练）**：600 步冒烟 `outputs/smoke/w4cover_600_20261118/`——1 集 27.5s、peak 926 kN、viol 0、gap_min 129 m(=d_eff)、零穿透、COVER 控制器 4 worker 全启用、3 正项正常记账；同 seed 复跑 `w4cover_600_repeat_20261118/`——`train_loss`/`train_reward_terms` 逐位一致，`train_history` 仅 `time_s` 列差 0.1s（墙钟，非物理量），reward/peak/gap/band 全逐位一致（硬红线第 5 条 peak 逐位口径满足）。配置接线自检 `tests/check_cover_config_wiring.py` 通过（三目录同 run_tag、未覆写历史）。

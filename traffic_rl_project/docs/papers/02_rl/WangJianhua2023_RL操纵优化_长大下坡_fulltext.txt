@@ -1,0 +1,1082 @@
+第 6 期
+2023 年 11 月 Electric Drive for Locomotives
+No . 6
+Nov .  2023
+基于强化学习的重载组合列车
+长大下坡操纵优化研究
+王建华
+1 , 2
+， 王春毅
+1
+， 曾 周
+1 , 2
+， 王 聪
+2
+， 王青元
+2
+， 杨 航
+2
+（  1 . 国能朔黄铁路发展有限责任公司 ， 河北  肃宁 　 062350 ；
+2 . 西南交通大学  电气工程学院 ， 四川  成都 　 611756  ）
+摘 要 ： 针对 2 万 t 重载组合列车在长大下坡区段列车纵向冲动大 ， 以及连续循环空气制动操纵困难的问
+题 ， 文章基于数据驱动算法 ， 设计了一种适用于长编组重载组合列车的长大下坡区段操纵优化方法 。 该方法
+考虑了不同列车间 、 同一列车不同制动系统状态间空气制动特性的差异 ， 利用神经网络对列车在不同操作状
+态下的空气制动性能变化规律进行学习 ， 得到空气制动力预测模型 ； 而后基于强化学习设计重载组合列车操
+纵优化算法 ， 以速度跟随性为目标建立奖励函数 ， 考虑列车牵引 / 电制动特性 、 列车管制动及缓解时间 、 限
+速 、 运行平稳性等约束条件 ， 应用强化学习方法开展重载组合列车长大下坡操纵策略优化 。 基于实车数据验
+证空气制动仿真模型与操纵优化算法的可行性与合理性 。 结果表明 ， 文章建立的空气制动力预测模型对列车
+运行中空气制动系统性能具有良好的预测作用 ， 优化操纵控制策略相较于司机驾驶能够有效地减小列车运行
+中的纵向冲动与最大车钩力 ， 保障列车运行安全 。
+关键词 ： 重载组合列车 ； 空气制动 ； 长大下坡 ； 神经网络 ； 强化学习 ； 重载铁路
+中图分类号 ： U 292 . 92
++
+1 文献标识码 ： A
+Research on operation optimization of heavy-haul combined trains in long 
+and steep downhill sections based on reinforcement learning
+WANG Jianhua
+1 , 2
+,  WANG Chunyi
+1
+,  ZENG Zhou
+1 , 2
+,  WANG Cong
+2
+,  WANG Qingyuan
+2
+,  YANG Hang
+2
+( 1 .  CHN ENERGY Shuohuang Railway Development Co .,  Ltd .,  Suning ,  Hebei 062350 ,  China ;  
+2 .  School of Electric Engineering ,  Southwest Jiaotong University ,  Chengdu ,  Sichuan 611756 ,  China )
+Abstract :   To mitigate longitudinal impulse and address challenge posed by continuous air braking operations in long and steep 
+downhill sections for 20  000 -ton heavy haul combined trains ,  this paper proposes an approach for operation optimization of such trains 
+featuring a long formation in such sections based on a data-driven algorithm .  An air braking force prediction model was developed based 
+on neural network learning focusing on the variation rules of air braking performance across different operating states ,  to incorporate dif ‐
+ferences in air braking characteristics across different trains and varied braking system states on same trains .  Then ,  an operation optimiza ‐
+tion algorithm was designed ,  establishing a reward function that prioritized speed following features ,  based on reinforcement learning .  
+This algorithm incorporated constraints including train traction/electric braking characteristics ,  braking application and release times of 
+train pipes ,  speed limits ,  and operational smoothness ,  to optimize the operation strategy for heavy-haul combined trains in long and steep 
+downhill sections by reinforcement learning .  The proposed air braking simulation model and operation optimization algorithm were veri ‐
+fied using data collected from operation of real trains ,  confirming their feasibility and rationality .  The results show the effectiveness of 
+the proposed air braking force prediction model in predicting performance of air braking systems on running trains .  Compared to manual 
+DOI :  10 . 13890 /j . issn . 1000 - 128 X . 2023 . 06 . 017 文章编号 ： 1000 - 128 X ( 2023 ) 06 - 0139 - 08
+基金项目 ： 国家重点研发计划项目 （ 2021 YFB 2601504 ）
+通信作者 ： 王 青元 （ 1984 — ） ， 男 ， 博士 ， 高级工程师 ， 硕士生导师 ， 主要从事轨道交通电气与自动化方面的研究 ； E-mail :  wangqy@swjtu . edu . cn
+引用格式 ： 王建华 ,  王春毅 ,  曾周 ,  等 .  基于强化学习的重载组合列车长大下坡操纵优化研究 [ J ].  机车电传动 ,  2023 ( 6 ):  139 - 146 .
+Citation ： WANG Jianhua ,  WANG Chunyi ,  ZENG Zhou ,  et al .  Research on operation optimization of heavy-haul combined trains in long and steep 
+downhill sections based on reinforcement learning [ J ].  Electric drive for locomotives , 2023 ( 6 ):  139 - 146 .
+2023  年 11 月
+driving ,  the optimized operation strategy plays an effective role in reducing longitudinal impulse and maximum coupler force to ensure 
+the safety during train operation .
+Keywords :   heavy-haul combined train ;  air braking ;  long and steep downhill ;  neural network ;  reinforcement learning ;  heavy-haul 
+rallway
+0 　引言
+铁路货运需求量的不断增加 ， 推动着我国铁路货
+运列车朝着长编组 、 大载重的方向发展
+[ 1 ]
+。 重载组合列
+车的运行区间大多经过山区路段 ， 线路条件复杂 ， 往
+往伴随着连续长大下坡道 ， 需要使用 “ 空气制动 ‒ 缓解
+‒ 再制动 ‒ 再缓解 ” 的循环制动操纵方式
+[ 2 ]
+。 现阶段 ， 我
+国已开行的重载组合列车运行控制主要依赖于司机的
+手动驾驶 ， 缺乏灵活可靠的在线操纵指导 ， 长大下坡
+区段停缓现象时常发生 ， 严重地影响重载铁路运输效
+益 。 因此 ， 开展重载组合列车长大下坡区段操纵优化
+研究 ， 为司机操纵提供动态指导 ， 对提高司机操纵水
+平 、 降低重载铁路运输成本 ， 具有重要指导意义 。
+针对列车运行优化问题 ， 文献 [ 3 - 4 ] 从极值原理出
+发 ， 推导了列车节能运行的最优控制工况集 。 文献 [ 5 ]
+利用二次规划算法实现了重载组合列车多目标优化策
+略的研究 ， 实现了一种满足安全 、 准点 、 平稳 、 节能
+的货运列车多目标预测控制算法 。 文献 [ 6 ] 将重载列车
+的运行操作分为连续的牵引 、 电制动力控制和离散的
+空气制动控制 ， 并分别设计不同的机器学习算法实现
+对不同控制量的智能控制 。
+针对长大下坡区段的操纵困难问题 ， 文献 [ 7 ] 对重载
+组合列车在长大下坡区段运行时如何满足周期性制动所
+需的缓解充风时间这一问题做了论述 ， 并验算了不同情
+况下能够满足缓解充风时间约束的最大允许运行坡道千
+分数 。 文献 [ 8 - 9 ] 提出在长大下坡区段使用 “ 动 力制动 +
+空气制动 ” 联锁制动 ， 能够提高制动调速效果 ， 优化
+周期性制动次数 ， 降低闸瓦磨耗与减小闸瓦温升 。 文
+献 [ 10 - 11 ] 以大秦线为背景 ， 通过仿真和现场试验结果
+表明 ： 长大下坡区段空气制动减压量通常为 - 5 0  kPa ，
+并且缓解初速度不得低于 30  km/h ， 制动初速度考虑限
+速 ， 最高不得超过 70  km/h 。 文献 [ 12 - 13 ] 指出在变坡点
+进行空气制动时 ， 列车所受的纵向冲动值最大 ， 提高
+制动波的传递速度可以有效降低列车纵向冲动 。
+目前 ， 针对重载组合列车长大下坡问题的研究大
+多关注纵向冲动和空气制动系统的建模 ， 对其操纵优
+化研究大多停留在非长大下坡区段 ， 鲜有考虑运行过
+程中重载组合列车空气制动性能的变化 。 因此 ， 本文
+拟从工程应用出发 ， 以实车运行数据为基础 ， 针对长
+大下坡道操纵优化问题 ， 考虑重载组合列车在运行过
+程中由于前序空气制动操纵引起的空气制动系统性能
+变化 ， 基于神经网络构建空气制动力预测模型 ， 用以
+求解列车运行中的空气制动力 ； 在该模型基础上 ， 基
+于强化学习的方法 ， 设计考虑重载组合列车空气制动
+性能时变性的长大下坡操纵优化算法 ， 求解重载组合
+列车在长大下坡区段的操纵控制策略 ， 以解决 2 万 t 重
+载组合列车在长大下坡区段循环空气制动操纵困难
+问题 。
+1 　重载组合列车运动学建模
+重载组合列车编组长 ， 其整车长度可达 2 . 6  km ，
+在线路上运行时往往会覆盖多个坡道或多条曲线 。 为
+了能够更加准确地计算列车所受的附加阻力 ， 本文采
+用刚性多质点模型 （ 如图 1 所示 ） ， 该模型将每一节车
+厢视作 1 个刚性质点 ， 分别计算其受到的附加阻力 。 在
+越过变坡点时 ， 整列车所受附加阻力不会发生大的突
+变 ， 计算结果精度相对较高 ； 同时 ， 相对于纵向动力
+学模型 ， 计算简便 ， 能够满足在线实时计算需求 。
+考虑列车运行中所受到的力 ， 包括机车牵引力 、
+机车电制动力 、 空气制动力 、 基本运行阻力 、 附加阻
+力 ， 建立列车运动学方程 ， 用以解算列车运行状态 ，
+运动方程如下 ：
+ü
+ý
+þ
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+ï
+d v
+d x
+=
+g [ ]F
+t ( )v - W
+0 ( )v - B
+d ( )v - B
+c ( )v - W
+j ( )x
+1 0 0 0 ( )1 + γ v
+d t
+d x
+=
+1
+v
+                                                                                
+( 1 )
+式中 ： x 为列车运行位置 ， m ； v 为列车运行速度 ， m/s ；
+γ 为 列 车 回 转 质 量 系 数 ； F
+t ( v ) 为 列 车 单 位 牵 引 力 ，
+N/kN ； B
+d ( v ) 为列车单位电制动力 ， N/kN ； B
+c ( v ) 为列
+车单位空气制动力 ， N/kN ； W
+0 ( v ) 为列车单位基本运行
+阻力 ， N/kN ； W
+j ( x ) 为列车单位加算坡道阻力 ， N/kN 。
+考虑列车长度 ， 加算线路附加阻力 W
+j
+， 其计算公
+式为
+图 1 　重载列车刚性多质点模型
+Fig .  1 　 Rigid multi-particle model of heavy-haul train
+140
+ 第 6  期 王建华 ， 王春毅 ， 曾 周 ， 王 聪 ， 王青元 ， 杨 航 ： 基于强化学习的重载组合列车长大下坡操纵优化研究
+W
+j
+=
+( )∑ ( )w
+g k
+l
+g k
++ ∑ ( )w
+r k
+l
+r k
++ ∑ ( )w
+s k
+l
+s k
+L
+t
+( 2 )
+式中 ： L
+t
+为列车长度 ， m ； w
+g k
+,  w
+r k
+,  w
+s k
+为列车所覆盖的
+第 k 个坡道 、 曲线和隧道的单位附加阻力 ， N/kN ； l
+g k
+,  
+l
+r k
+,  l
+s k
+为列车所覆盖的第 k 个坡道 、 曲线和隧道的长
+度 ， m 。
+2 　基于神经网络的空气制动力预测模型
+空气制动通过机械摩擦的方式将列车的动能转换
+为热能 ， 然后消散于空气中 。 空气制动力的大小由列
+车管的减压量控制 ， 当列车管减压时 ， 空气波通过列
+车管逐渐传递至全列车 ， 进而使得副风缸为制动缸充
+风 ， 通过 120 型空气控制阀作用 ， 并通过旋压制动缸和
+组合制动梁放大作用驱使闸瓦压紧车轮 ， 形成空气制
+动力 。
+在空气制动过程中 ， 由于列车管中空气波的传播
+不是立即完成的 ， 制动信号到达列车各车辆的时间存
+在差异 ， 越是靠近机车的车辆接收到空气制动信息指
+令越早 ， 各车辆制动力随着空气波由前及后依次传递 。
+因此 ， 整列车制动力大小存在一个从小逐渐增强直至
+稳定发挥的变化过程 ， 如图 2 中的虚线 “ acef ” 所示 。
+牵规中为简化计算 ， 将其等效替换为 “ 开展过程 + 有效
+制动过程 ” ， 如图 2 中的实线 “ ade ′ f ” 所示 。
+“ 牵规 ” 同时给出了在该空气制动力模型下的制动
+力计算方程式
+[ 6 ]
+， 具体如下所示 ：
+B
+c ( t ) =
+ì
+í
+î
+ïïïï
+ï
+ïï
+ï
+0                                t < t
+k z
+β
+c
+( )
+∑
+i = 1
+N
+( )φ
+h
+K
+h
+     t ≥ t
+k z
+( 3 )
+式中 ： β
+c
+为 “ 牵规 ” 常用制动系数 ； φ
+h
+为 “ 牵规 ” 闸
+瓦的换算摩擦因数 ； K
+h
+为 “ 牵规 ” 闸瓦的换算闸瓦压
+力 ， kN ； t
+k z
+为 “ 牵规 ” 车辆空走时间 ， s 。
+在不同减压量下 ， 常用制动系数 β
+c
+如表 1 所示 。
+2 . 1 　经验操纵对空气制动性能的影响
+在实际运行中 ， 考虑到过大的减压量带来的纵向
+冲动问题 ， 重载组合列车司机往往仅采用 50  kPa 的常
+用制动减压量 。 由于列车实际减压量存在波动 ， 以及
+制动系统状态因前序空气制动操纵而变化等因素的影
+响 ， 同样是在 50  kPa 减压作用下 ， 不同列车之间 、 同
+一列车不同制动系统状态之间的空气制动系统所发挥
+的制动能力均存在明显差异
+[ 14 - 15 ]
+。
+本文将空气制动力的发挥过程采用数学方程式描
+述 ， 其数学方程式为
+f = 1 ( )a + e
+- b t
+( 4 )
+式中 ： a ,  b 为描述列车空气制动发挥过程相关的参数 ，
+参数 a 为本次空气制动制动力最大值的倒数 ， 表征列车
+空气制动实际性能发挥 ， 参数 b 为影响从开始制动到空
+气制动有效发挥时间的大小 。
+对本务机车运行监控记录装置 LKJ- 2000 记录数据
+进行分析 ， 以列车管压力变化为基准 ， 拆分空气常用
+制动区段 ， 按式 ( 4 ) 寻找贴合度最高的参数 a 和 b ， 获得
+不同常用制动区段的制动力稳态值 ， 统计其中一趟车
+的制动力数据 ， 具体如表  2 所示 。
+分析该本务机车数据可知 ， 在列车运行过程中 ，
+不同制动区段之间空气制动力最大值存在明显的差异
+性 ， 并且制动力的变化并不存在单调性 ， 这种复杂的
+变化性增加了司机在长大下坡区段的驾驶操作难度 。
+通过对多趟实车数据进行统计 ， 其不同空气制动段制
+动力的分布如图 3  所示 。
+由图 3 可知 ， 不同列车的初始空气制动性能即存在
+较大差异 ， 而在后续的运行途中 ， 其空气制动性能的
+差异性会进一步加大 。 由于无法掌握空气制动系统的
+具体作用状况 ， 司机需要依据原有的制动数据与驾驶
+操作经验 ， 来预测下一次空气制动性能的强弱 ， 但其
+复杂的变化规律仅凭人的经验很难识别 ， 即使是指导
+司机也难以对其进行准确预测和预判 。 若能根据制动
+操作历史数据来预测下一次的空气制动的制动力数值 ，
+将极大地降低重载组合列车在长大下坡区段的操纵
+难度 。
+图 2 　列车空气制动力变化示意图
+Fig .  2 　 Schematic diagram of variations in air braking force
+表 1 　常用制动系数 β
+c
+Table 1 　 Service braking coefficient ( β
+c
+)
+管压 /kPa
+500
+600
+减压量 /kPa
+50
+0 . 19
+0 . 17
+60
+0 . 32
+0 . 28
+70
+0 . 42
+0 . 37
+80
+0 . 52
+0 . 46
+90
+0 . 60
+0 . 53
+100
+0 . 68
+0 . 60
+表 2 　某实车空气制动力发挥表
+Table 2 　 Table for air braking force application of a real train
+常用制动
+区段序号
+1
+2
+3
+4
+5
+6
+常用制动
+力 /kN
+2  028
+1  718
+1  342
+993
+1  055
+968
+常用制动
+区段序号
+7
+8
+9
+10
+11
+12
+常用制动
+力 /kN
+1  941
+1  146
+1  316
+1  479
+1  166
+1  289
+141
+2023  年 11 月
+本文从重载组合列车实际操纵需求出发 ， 利用影
+响空气制动系统性能发挥的制动操作经验信息 ， 实现
+基于 BP 神经网络的空气制动力预测模型 。 通过制动操
+作历史数据预测空气制动力 ， 其本质上是通过列车空
+气制动系统的状态来判断其输出空气制动力的大小 。
+由于这些参数在实际系统中难以采样 ， 本文中选择多
+趟实际列车运行中 LKJ- 2000 机车运行监控记录设备所
+记录的相关数据作为特征参数 。
+2 . 2 　样本数据准备与模型训练
+列车空气制动力的大小主要由减压指令传输至后
+面列车管施加的实际减压量决定 ， 实际减压量的波动
+主要受 2 次空气制动间的缓解充风时间影响 ； 同时 ， 制
+动力的变化还受到列车空气制动系统当前疲劳状态的
+影响 ， 如前序制动带来的闸瓦温度变化等 。
+本文对神经网络的输入和输出设计如下 ：
+1 ） 神经网络输入参数
+输入参数见式 ( 5 ) 。
+x = [ T
+B
+  D
+B
+  T
+R
+  F
+b
+  F
+m
+]
+T
+( 5 )
+　　 2 ） 神经网络输出参数
+输出参数见式 ( 6 ) 。
+y = F ′
+b
+( 6 )
+式中 ： T
+B
+为上一次空气制动过程持续的时间 ； D
+B
+为上
+一次空气制动过程列车运行距离 ； T
+R
+为上一次空气制
+动结束后列车管的充风时间 ； F
+b
+为上一次空气制动的
+制动力稳态值 ； F
+m
+为列车首次空气制动的制动力稳态
+值 ； F ′
+b
+为列车下一次空气制动的制动力稳态值 。
+3 ） 神经网络训练条件
+① 网络结构 ： BP 神经网络 ， 其中输入层节点数 5 、
+隐藏层节点数 32 、 输出层节点数 1 ；
+② 优化算法 ： Levenberg-Marquardt ；
+③ 误差指标 ： 均方差 ；
+④ 数据划分 ： 70 % 训练集 ， 15 % 试验验证集 ， 15 %
+测试集 ；
+⑤ 终止条件 ： 连续 6 次试验验证网络性能未变化或
+达到最大训练次数 。
+对输入参数进行归一化处理 ， 搭建 BP 神经网络 ，
+训练终止后 ， 采用测试集测试该模型 ， 统计预测结果
+并与实际值对比 ， 计算误差分布 ， 计算结果如表  3 、
+图  4 、 表  4 、 图  5 所示 。
+图 3 　不同列车空气制动力随制动段分布
+Fig .  3 　 Distribution of air braking force in braking sections for different trains
+表 3 　绝对误差分布
+Table 3 　 Absolute error distribution
+绝对误差 /kN
+样本比例 /%
+＜ 100
+75
+＜ 200
+90
+＜ 300
+96
+图 4 　绝对误差分布图
+Fig .  4 　 Chart of absolute error distribution
+142
+ 第 6  期 王建华 ， 王春毅 ， 曾 周 ， 王 聪 ， 王青元 ， 杨 航 ： 基于强化学习的重载组合列车长大下坡操纵优化研究
+如训练结果所示 ， 75 % 数据的绝对误差值在 100  
+kN 内 ， 90 % 数据的绝对误差值在 200  kN 内 。 这表明该
+空气制动力预测模型对列车运行中空气制动系统制动
+性能的变化具有良好的预测能力 。
+3 　 基于强化学习的重载组合列车操纵优化算法
+本节将重载组合列车的操纵问题抽象为标准的强
+化学习问题 ， 基于 Q 学习方法设计重载组合列车操纵
+优化算法 ， 无须驾驶操作经验 ， 能够在满足列车牵引 /
+电制动特性 、 空气制动缓解时间等多种约束条件下 ，
+依据目标奖励函数求解列车操纵控制策略 。
+3 . 1 　强化学习关键元素设计
+① 智能体 ： 智能体是强化学习系统中的学习者与
+决策者 ， 在此问题中 ， 它可以接受环境奖励信号 ， 并
+根据列车运行状态 （ 如列车位置 、 运行速度 、 曲线 、
+平直道及坡道等线路断面等 ） 对列车下一步采取的操
+纵级位做出决策 。 从过去的经验中学习出最优价值函
+数和最优策略 ， 建立完整的操纵策略 。
+② 环境 ： 在此问题中 ， 环境可分为 2 部分 — —列车
+动力学模型和列车运行线路 。 环境接收智能体给出的
+动作 ， 根据列车当前的运行状态 ， 计算列车当前所能
+发挥的牵引力 / 制动力 ， 以及受到的附加阻力 、 基本阻
+力 、 空气制动力等 ， 进而更新列车下一步的运行状态 ，
+并根据奖励函数反馈该步的奖励值 。
+③ 动作空间 ： 在此问题中 ， 动作设定为列车手柄
+级位的加减值 ， 如下式所示 ：
+A
+k
+= a     a Î { a
+m i n
+ a
+m i n
+- 1    0    a
+m a x
+- 1  a
+m a x
+} ( 7 )
+式中 ： a
+m i n
+,  a
+m a x
+表示级位变化的最小值与最大值 。
+空气制动的施加由动作与当前手柄级位状态共同
+决定 。 若当前电制动级位加上动作值小于最低手柄级
+位限制 ， 并且此时缓解时间满足最小充风时间约束 ，
+则施加空气制动 ； 若空气制动已施加 ， 而当前手柄级
+位加上动作值将大于 0 级位时 ， 退出空气制动状态 ， 手
+柄级位恢复至电制动级位 。 其数学表达为
+A
+b _ k
+=
+ì
+í
+î
+ïï 1         J
+w _ k - 1
++ a
+k - 1
+< J
+w _ m i n
+& R
+t _ k - 1
+> 1 8 0
+0        J
+w _ k - 1
++ a
+k - 1
+> 0  
+( 8 )
+式中 ： A
+b _ k
+为第 k 步是否施加空气制动 ； J
+w _ k - 1
+为第 k - 1
+步时列车的手柄级位 ， J
+w
+Î [ - 1 2  1 2 ] ； R
+t _ k - 1
+为第 k - 1 步
+缓解时间 。
+④ 状态空间 ： 在此问题中 ， 状态指所希望观测到
+的部分列车运行信息 ， 其表征了列车当前的状况 ， 包
+括列车运行速度 、 所处位置 、 当前手柄级位 、 运行加
+速度 、 是否正在施加空气制动等基本信息 。 同时 ， 为
+了更加准确地计算空气制动力 ， 还需引入上文提及的
+空气制动力预测模型的输入信息 ， 如下式所示 ：
+S
+k
+= [ X
+k
+ V
+k
+ J
+w _ k
+ A
+c c _ k
+ A
+b _ k
+ T
+B _ k
+ T
+R _ k
+ D
+B _ k
+ F
+b _ k
+ F
+m _ k
+] ( 9 )
+式中 ： X
+k
+为第 k 步列车的位置 ， km ； V
+k
+为第 k 步列车的
+速 度 ， km/h ； A
+cc_ k
+为第 k 步列车的加速度 ， m/s
+2
+； T
+B_ k
+为第 k 步列车空气制动时长 ， s ； T
+R_ k
+为第 k 步列车的缓
+解时长 ， s ； D
+B_ k
+为第 k 步列车在空气制动状态下行进
+的距离 ， m ； F
+b_ k
+为第 k 步列车空气制动力的稳态值 ，
+kN ； F
+m_ k
+为本车空气制动的标准制动力稳态值 ， kN 。
+列车在切换到空气制动状态时 ， 使用上一状态中
+的制动信息 [ T
+B _ k - 1
+ T
+R _ k - 1
+ D
+B _ k - 1
+ F
+b _ k - 1
+ F
+m _ k - 1 ] 作为空气
+制动力预测模型的输入参数 ， 得到本次空气制动力预
+测值 F
+b _ k
+， 同时更新空气制动时长 T
+B _ k
+和空气制动距离
+D
+B _ k
+为 0 ， 并重新计数 。 列车从空气制动状态结束而开
+始缓解时 ， 更新缓解时长 T
+R _ k
+为 0 ， 并重新计数 。
+⑤ 奖励 ： 奖励是强化学习系统的学习目标 。 在重
+载组合列车操纵问题中 ， 学习目标主要为准点与安全
+平稳 。 重载组合列车的安全平稳性通常使用车钩力来
+衡量 ， 但由于车钩力的计算复杂 ， 若将其加入到单步
+奖励中去会极大地增加训练时长 。 因此 ， 在本文中重
+载组合列车的平稳性以手柄切换幅度来限制 ， 安全性
+则由列车的最高限速与最低限速来限制 ， 数学表达式
+如下所示 ：
+ü
+ý
+þ
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+ï
+ï
+ï
+ïï
+ï
+ï
+ï
+R
+k
+= r + r
+v
+                                                                                      
+r =
+ì
+í
+î
+r                                                               v > v
+m i n
+& v < v
+m a x
+0                                                               v > v
+m a x
+| v < v
+m i n
+   
+r
+v
+=
+ì
+í
+î
+ïï
+ïïïï
+r
+v [ ]1 + f l o o r ( )a b s ( v - v
+*
+) D v       v > v
+m i n
+& v < v
+m a x
+0                                                             v > v
+m a x
+| v < v
+m i n
+   
+( 10 )
+式中 ： R
+k
+为奖励函数 ； r 为单步基础奖励 ； r
+v
+为速度目
+标奖励 ； v 为实车速度 ； v
+*
+为目标速度 ； D v 为速度变
+化量 。
+⑥ 策略 ： 策略决定了智能体在某一状态下选择某
+表 4 　相对误差分布
+Table 4 　 Relative error distribution
+相对误差 /%
+样本比例 /%
+＜ 10
+50
+＜ 20
+80
+＜ 30
+93
+图 5 　相对误差分布图
+Fig .  5 　 Chart of relative error distribution
+143
+2023  年 11 月
+种动作的概率 。 本文使用变步长的贪心策略 ， 其探索
+率随着迭代次数的增加而减小 ， 其数学表达为
+π ( a ′ | s ) =
+ì
+í
+î
+ïï
+ïï
+1 - ε
+0
+g
+k
+       a ′ = a
+*
+ε
+0
+g
+k
+           a ′ = r a n d ( )A ( s )
+( 11 )
+式中 ： ε
+0
+为随机探索率初值 ， ε
+0
+Î [ 0  1 ] ； g 为探索率衰减
+率 ， g Î [ 0  1 ] ； a ′ 为某一状态下所对应的级位 ； a
+*
+为最
+优级位 ； A ( s ) 为与状态相关的动作空间 。
+在学习初期 ， 智能体应以较大的探索率对环境进
+行探索以尽快建立粗略的知识体系 ， 其后再以较小的
+探索率进行优化学习 。
+3 . 2 　重载组合列车操纵优化算法设计
+考虑到本文设计的状态空间维度较大 ， 经验池存储
+过去的探索经验数据 ， 用来训练神经网络以逼近其 q 表 ，
+能够较好地处理 “ 状态 ‒ 动作空间 ” 维度较大的情况 ， 并
+且无须对状态量进行离散处理 。 算法结构如图 6 所示 。
+算法流程如下 ：
+Step 1 ： 超参数设置
+环境参数 ： 列车性能参数 、 运行线路参数 、 运行
+目标速度 v
+t
+、 运行区间 [ X
+s t a r t
+ X
+e n d
+] 、 运行起始状态 S
+0
+、
+仿真步长 ∆ x 、 动作步长 ∆ X 等 ；
+智能体参数 ： Q 网络超参数 、 目标值折扣率 γ 、 探
+索率初始值 ε
+0
+、 探索率衰减率 g 、 探索率最小值 ε
+m i n
+、
+经验池参数等 ；
+训练参数 ： 最大迭代次数 M 、 回合最大步数 N 、 终
+止条件 、 目标网络更新频率 f 、 Q 网络学习输入容量 b 等 。
+Step 2 ： 初始化 Q 网络 、 目标网络 、 经验池 ；
+Step 3 ：
+for ( i= 1 ;  i <= M ;  i++ )
+选择初始化状态  ；
+for ( k= 1 ;  k <= N ;  k++ )
+根据贪心策略 ， 选择动作 a ；
+环境执行动作 a ； 状态从 s → s ′ ， 并计算奖励 r ；
+环境返回状态转移矩阵 [ s a r s ′ ] 并存入经验池 ；
+从经验池中随机选取 b 组样本 ， 训练 Q 网络并更新
+目标网络 ；
+if Done :
+　 break ;
+　 end
+end
+if rewards > stop Value
+　 break ;
+　 end
+end
+本节给出了基于 Q 学习的重载列车优化算法 ， 该
+算法无须任何先验知识 ， 以数据驱动的方法进行学习 ，
+给出完整的驾驶策略及对应的速度曲线 。
+4 　仿真试验验证
+为验证本文所提出的操纵优化算法 ， 求解长大下
+坡操纵问题的正确性和有效性 ， 本节在 MATLAB 环境
+下 ， 采用真实车辆编组 、 实际运行线路开展仿真试验 ，
+并与实际运行数据进行对比 。
+以我国某 Ⅰ 级线路 、 双线电气化重载铁路为例 ， 其重
+车方向由西向东 ， 线路长约 408  km ， 坡道条件如图  7 所示 。
+图 6 　重载列车操纵优化算法结构图
+Fig .  6 　 Structure diagram of operation optimization algorithm for heavy-haul train
+图 7 　仿真线路条件
+Fig .  7 　 Track conditions for simulation
+144
+ 第 6  期 王建华 ， 王春毅 ， 曾 周 ， 王 聪 ， 王青元 ， 杨 航 ： 基于强化学习的重载组合列车长大下坡操纵优化研究
+仿真区段为该线路中的第一个长大下坡区段 ， 公
+里标为 9 ~ 90  km 。
+选取的列车对象为 2 万 t 组合列车 ， 列车编组为 “ 2
+辆 HX D 1 型电力机车 + 216 辆 C 80 货车 ” 。 HX D 1 型电力机
+车具备牵引和再生制动能力 ， 整列车配备空气制动 ，
+具体的列车参数如表 5 所示 ， 优化算法所使用的仿真参
+数如表  6 所示 。
+目标奖励函数具体参数如表  7 所示 。
+采用本文所提出的空气制动力预测模型 ， 考虑列
+车空气制动系统制动性能的变化性 ， 建立重载组合列
+车长大下坡运行仿真环境 ， 设置迭代次数等目标参数 ，
+使用本文提出的重载组合列车操纵优化算法进行学习 ，
+得到列车速度曲线与操纵工况 ， 并与实车数据进行对
+比 （ 该车首次空气制动力为 2  383  kN ） 。 仿真结果如图
+8 所示 ， 图 8 包括 3 个子图 ， 其中子图 1 包含了线路限
+速 、 实车速度曲线 、 仿真速度曲线 、 实车管压曲线 、
+仿真管压曲线 、 仿真级位曲线 ； 子图 2 包含了实车电制
+动力曲线 、 仿真使用电制动力曲线 、 仿真空气制动力
+曲线 ； 子图 3 包含了线路坡道附加阻力曲线 。 仿真结果
+中空气制动部分数据和优化算法所使用的空气制动数
+据如表  8 所示 。
+对比图  8 子图 1 中的实车管压与优化管压曲线 ， 可
+以看出优化算法所给出的驾驶策略较司机操纵少了 1 次
+空气制动操作 ； 对比图 8 子图 2 中的实车电制动力与优
+化电制动力曲线 ， 可以看出相较于司机操纵而言 ， 优
+化算法所使用的电制动力变化更为平缓 。
+仿真结果中优化算法所使用的车钩力和实车数据
+对比结果如图  9 所示 。
+由图 9 可知 ， 优化算法中车钩力变化趋势与实车数
+据相同 ， 同时运行过程中最大压钩力和最大拉钩力都
+小于司机操纵的结果 。
+表 9 为仿真结果对比 。 由表 9 可知 ， 优化算法所得
+到的计算结果相较于实车曲线 ， 运行时间减少 63  s ， 最
+大拉钩力减小 8 . 93 % ， 最大压钩力减小 16 . 00 % 。
+通过对上述仿真结果分析 ， 可以得出以下几点结
+论 ： ① 引入考虑历史制动因素的空气制动力预测模型 ，
+使用重载列车操纵优化算法学习重载列车在长大下坡
+图 9 　优化算法车钩力仿真结果对比
+Fig .  9 　 Comparison of coupler force simulation results 
+of optimization algorithm
+表 5 　列车参数
+Table 5 　 Parameters of trains
+参数名称
+HX D 1 / 辆
+C 80 / 辆
+总质量 /t
+参数值
+2
+216
+21  600
+参数名称
+最大牵引力 /kN
+最大电制动力 /kN
+列车长度 /m
+参数值
+760
+461
+2  921 . 6
+表 6 　优化算法参数
+Table 6 　 Parameters of optimization algorithm
+参数名称
+机车级位最大值
+机车级位最小值
+探索率初始值
+探索率最小值
+级位变化最大值
+Q 网络学习率
+目标网络更新频率
+折扣系数
+参数值
+12
+- 1 2
+1
+0 . 05
+3
+0 . 01
+4
+0 . 92
+参数名称
+经验池大小
+最低速度 / ( km · h
+- 1
+)
+探索率衰减率
+仿真步长 /km
+动作步长 /km
+目标速度 / ( km · h
+- 1
+)
+最高速度 / ( km · h
+- 1
+)
+最小学习样本数
+参数值
+30  000
+30
+0 . 05
+0 . 05
+0 . 25
+70
+80
+1  024
+表 7 　奖励参数
+Table 7 　 Parameters of reward
+参数名称
+参数值
+r
+50
+r
+v
+20
+∆ v / ( km · h
+- 1
+)
+5
+图 8 　优化算法仿真结果对比
+Fig .  8 　 Comparison of simulation results of optimization 
+algorithm
+表 8 　仿真空气制动数据
+Table 8 　 Air braking data of simulation
+参数值
+T
+B
+/s
+T
+R
+/s
+D
+B
+/m
+F
+b
+/kN
+F ′
+b
+/kN
+制动段序号
+1
+0
+0
+2  383
+2
+69
+1  250
+227
+2  383
+1  382
+3
+131
+2  250
+252
+1  382
+1  489
+4
+1  282
+22  750
+270
+1  489
+1  253
+5
+1  170
+20  500
+248
+1  253
+1  260
+145
+2023  年 11 月
+区段的操纵策略 ， 能够获得与司机操纵相类似的列车
+运行速度曲线 。 ② 引入操纵级位变化率的限制 ， 以及
+运行目标速度跟随 ， 求解获得的操纵策略相较于司机
+驾驶电制动力变化更加平稳 ， 能够有效地减小列车运
+行中的最大车钩力 。
+5 　结论
+为解决重载组合列车在长大下坡区段循环制动操
+纵困难的问题 ， 本文从空气制动性能预测与操纵序列
+求解这 2 个方面开展研究 ， 结合真车实线数据进行了理
+论模型与优化算法的正确性和有效性分析 。 通过分析 ，
+可以得到以下结论 ： ① 针对重载组合列车在运行过程
+中受历史空气制动影响 ， 空气制动性能估算难的问题 ，
+采用神经网络学习大量实车空气制动数据 ， 获得基于
+神经网络的空气制动力预测模型 。 分析实车数据表明 ，
+构建的模型显著提升了空气制动动态过程描述的准确
+性 。 ②  将重载组合列车的操纵问题转为典型的强化学
+习问题 ， 设计基于强化学习的重载列车操纵优化算法 。
+结果表明 ， 基于强化学习的重载列车操纵优化算法能
+够考虑这种空气制动性能的变化性 ， 相较于司机驾驶
+电制动力变化更加平稳 ， 能够有效地减小列车运行中
+的最大车钩力 。
+参考文献 ：
+[ 1 ] 　蒋立干 .  不同操作模式下重 载列车长大下坡道曲线地段
+行车性能分析 [ D ].  北京 :  北京交通大学 ,  2017 .
+　　 JIANG Ligan .  Analysis on the operation performance of 
+heavy haul trains under different operating modes [ D ].  Bei ‐
+jing :  Beijing Jiaotong University ,  2017 .
+[ 2 ] 　魏玉晓 ,  李宵寅 .  铁路长大下坡道列车周期制动参数的分
+析及应用 [ J ].  铁道运输与经济 ,  2017 ,  39 ( 10 ):  67 - 72 .
+　　 WEI Yuxiao ,  LI Xiaoyin .  Analysis and application of train 
+cycle braking parameters on the long steep descending grade
+[ J ].  Railway transport and economy ,  2017 ,  39 ( 10 ):  67 - 72 .
+[ 3 ] 　 KHMELNITSKY E .  On an optimal control problem of train 
+operation [ J ].  IEEE transactions on automatic control ,  2000 ,  
+45 ( 7 ):  1257 - 1266 .
+[ 4 ] 　 LIU Rongfang ,  GOLOVITCHER I M .  Energy-efficient op ‐
+eration of rail vehicles [ J ].  Transportation research part A :  
+policy and practice ,  2003 ,  37 ( 10 ):  917 - 932 .
+[ 5 ] 　 BAI Baoxue ,  XIAO Zhuang ,  WANG Qingyuan ,  et al .  Multi-
+objective trajectory optimization for freight trains based on 
+quadratic programming [ J ].  Transportation research record ,  
+2020 ,  2674 ( 11 ):  466 - 477 .
+[ 6 ] 　王悉 .  基于机器学习的重载列车智能驾驶方法研究 [ D ].  
+北京 :  北京交通大学 ,  2017 .
+　　 WANG Xi .  Machine learning based intelligent operation 
+methods for heavy haul train [ D ].  Beijing :  Beijing Jiaotong 
+University ,  2017 .
+[ 7 ] 　孙中央 ,  王长明 .  长大下坡道区段开行重载列车的安全问
+题 [ J ].  铁道机车车辆 ,  2009 ,  29 ( 1 ):  4 - 7 .
+　　 SUN Zhongyang ,  WANG Changming .  Security problems of 
+operation heavy haul trains on the long heavy down grade
+[ J ].  Railway locomotive & car ,  2009 ,  29 ( 1 ):  4 - 7 .
+[ 8 ] 　王自力 .  列车节能运行优化操纵的研究 [ J ].  西南交通大学
+学报 ,  1994 ,  29 ( 3 ):  275 - 280 .
+　　 WANG Zili .  An optimal operating method of train running 
+for saving energy [ J ].  Journal of southwest Jiaotong universi ‐
+ty ,  1994 ,  29 ( 3 ):  275 - 280 .
+[ 9 ] 　陈清 ,  王自力 .  机车动力制动对操纵方式及限制坡度的影
+响 [ J ].  西南交通大学学报 ,  2005 ,  40 ( 4 ):  448 - 452 .
+　　 CHEN Qing ,  WANG Zili .  Influences of locomotive dynam ‐
+ic brake on brake operation and limiting grade [ J ].  Journal of 
+southwest Jiaotong university ,  2005 ,  40 ( 4 ):  448 - 452 .
+[ 10 ]   耿志修 ,  李学峰 ,  张波 .  大秦线重载列车运行仿真计算研
+究 [ J ].  中国铁道科学 ,  2008 ,  29 ( 2 ):  88 - 93 .
+　　 GENG Zhixiu ,  LI Xuefeng ,  ZHANG Bo .  Simulation study 
+of heavy haul train operation on Datong — Qinhuangdao rail ‐
+way [ J ].  China railway science ,  2008 ,  29 ( 2 ):  88 - 93 .
+[ 11 ]   张波 .  重载组合列车牵引及制动系统的试验与仿真研究
+[ D ].  北京 :  中国铁道科学研究院 ,  2009 .
+　　 ZHANG Bo .  Test and simulation study on traction and 
+brake system of combined heavy haul train [ D ].  Beijing :  
+China Academy of Railway Sciences ,  2009 .
+[ 12 ]   魏伟 ,  王强 .  坡道上重载列车纵向冲动研究 [ J ].  振动与冲
+击 ,  2014 ,  33 ( 5 ):  143 - 148 .
+　　 WEI Wei ,  WANG Qiang .  Influence of train brake on longitu ‐
+dinal impulse of a heavy haul train passing through a ramp
+[ J ].  Journal of vibration and shock ,  2014 ,  33 ( 5 ):  143 - 148 .
+[ 13 ]   刘嘉 ,  杨相健 ,  罗世辉 ,  等 .  朔黄铁路重载列车线路适应性
+仿真研究 [ J ].  振动 、 测试与诊断 ,  2020 ,  40 ( 4 ):  673 - 679 .
+　　 LIU Jia ,  YANG Xiangjian ,  LUO Shihui ,  et al .  Heavy-haul-
+train line adaptability simulation of Shuohuang railway [ J ].  
+Journal of vibration ,  measurement and diagnosis ,  2020 ,  40
+( 4 ):  673 - 679 .
+[ 14 ]   温军刚 .  朔黄铁路两万吨重载列车平稳操纵优化方案 [ J ].  
+中国高新科技 ,  2019 ( 6 ):  58 - 60 .
+　　 WEN Jungang .  An optimal scheme of smooth operation of 
+the 20 , 000 -ton heavy haul train of Shuohuang railway [ J ].  
+China high-tech ,  2019 ( 6 ):  58 - 60 .
+[ 15 ]   魏伟 ,  张益铭 .  2 万吨重载组合列车操纵优化研究 [ J ].  铁道
+机车车辆 ,  2021 ,  41 ( 4 ):  35 - 40 .
+　　 WEI Wei ,  ZHANG Yiming .  Operating optimization study of 
+20 , 000 -ton heavy haul combined train [ J ].  Railway locomo ‐
+tive & car ,  2021 ,  41 ( 4 ):  35 - 40 .
+收稿日期 ： 2022 - 09 - 09
+修回日期 ： 2023 - 10 - 26
+表 9 　仿真结果对比
+Table 9 　 Comparison of simulation results
+类型
+实车曲线
+优化算法曲线
+优化率 /%
+对比项目
+运行时间 /s
+4  962
+4  899
+1 . 27
+最大拉钩力 /kN
+1  276
+1  162
+8 . 93
+最大压钩力 /kN
+1  500
+1  260
+16 . 00
+146
