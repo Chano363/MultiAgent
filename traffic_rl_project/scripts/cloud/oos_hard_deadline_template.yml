@@ -1,0 +1,48 @@
+# OOS 定时硬顶兜底模板（服务器端 closer 的第二道防线）
+# 一手依据：docs/CLOSER_SERVER_SIDE_ASSESSMENT.md §二.2（阿里云 OOS 定时开关机，免费）
+# 用途：实例内 self_stop_ecs.sh 若整体失效（RAM 角色未绑/CLI 崩/实例假死），
+#       到硬 deadline 由云端强制 StopInstance(StopCharging)——与现有本地 hard deadline 同定位，
+#       但执行点在云端，不依赖本地机器在线。
+#
+# 启用步骤（控制台一次性操作，需 owner 批，本脚本不执行）：
+#   1. OOS 控制台 → 模板 → 创建模板 → 粘贴本文件
+#   2. 自动化任务 → 定时执行 → 选本模板 + 设 deadline（如训练开机后 +6h）
+#   3. 资源选目标实例（或按标签 machine:TrainCluster 批量）
+#   4. 权限选 OOSServiceRole（默认服务关联角色，无需 AK）
+#
+# 注意：这是"硬顶"，不是"任务完成即停"——完成即停由实例内 self_stop_ecs.sh 负责。
+# 两者职责不重叠：完成信号管早停，本模板管必停（防实例内机制也挂掉）。
+FormatVersion: OOS-2019-06-01
+Description:
+  en: "Hard deadline stop for training ECS (StopCharging / economical mode) - closer backend"
+  zh-cn: "训练实例硬 deadline 强制省钱停机（closer 云端兜底）"
+Parameters:
+  regionId:
+    Type: String
+    Description:
+      en: "Region of the ECS instance"
+      zh-cn: "实例地域"
+  instanceId:
+    Type: String
+    Description:
+      en: "Instance ID to stop at hard deadline"
+      zh-cn: "到点强制停机的实例 ID"
+  OOSAssumeRole:
+    Description:
+      en: "The RAM role assumed by OOS"
+      zh-cn: "OOS 扮演的 RAM 角色"
+    Type: String
+    Default: OOSServiceRole
+RamRole: '{{ OOSAssumeRole }}'
+# Action 名称与参数已按一手核实：help.aliyun.com/en/oos/user-guide/acs-ecs-stopinstance
+# （ACS::ECS::StopInstance：regionId / instanceId / stoppedMode / forceStop 均合法）
+Tasks:
+  - Name: stopAtHardDeadline
+    Action: ACS::ECS::StopInstance
+    Properties:
+      regionId: '{{ regionId }}'
+      instanceId: '{{ instanceId }}'
+      # 省钱停机：vCPU/内存/静态公网 IP 停计费（StopInstance API 的 StopCharging）
+      stoppedMode: StopCharging
+      forceStop: false
+Outputs: {}

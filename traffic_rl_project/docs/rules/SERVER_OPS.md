@@ -583,6 +583,14 @@ wsl -d Ubuntu-24.04 -e bash -lc "rsync -avz --exclude 'outputs/' --exclude '.git
 
 > 硬约束（用户 2026-11-10）：**绝不允许实例开机却空等计费**。本节的包就是为了满足它：
 > 预检全过才开 → 第一条命令即训练 → 三种结局都自动关机 → **日志回传校验通过才释放**。
+>
+> **服务器端 closer（2026-11-18，实现就绪、云端配置待 owner 批）**：
+> 评估 = `docs/CLOSER_SERVER_SIDE_ASSESSMENT.md`；启用手册 = `docs/rules/SERVER_CLOSER_SETUP.md`。
+> 代码已就绪：`scripts/cloud/self_stop_ecs.sh`（实例内免 AK 自停机 StopCharging，离线 mock 9/9）、
+> `instance_watchdog.sh` 三结局已接入自停机（失败回退原 OS poweroff）、
+> `oos_hard_deadline_template.yml`（云端硬顶）。
+> **云端配置（建 RAM 角色/绑实例/装 CLI/建 OOS 定时任务）须 owner 批，未执行；
+> 本地 closer + G1 第 6 问判据保持原样，不得因本增强而跳过本地 closer 注册。**
 
 ### 17.1 脚本清单
 
