@@ -4,11 +4,11 @@
 
 用当前 AK（RAM 子账号 `ecs-ops`，主账号 1749554754126152）经 HTTPS + 区域端点实测：
 
-| API | 结果 | 含义 |
-|---|---|---|
-| ECS `DescribeInstances` | 200 OK | 现有 ECS 读写权限（含 StopInstance）可用 |
-| RAM `ListRoles` | **403 NoPermission** | 不能建/查 RAM 角色 ⇒ 实例内免 AK 自停机无法部署 |
-| OOS `ListTemplates` / `ListExecutions` | **401 User.NoPermission** | 不能建 OOS 模板/定时执行 ⇒ 云端硬顶无法部署 |
+| API                                    | 结果                        | 含义                             |
+| -------------------------------------- | ------------------------- | ------------------------------ |
+| ECS `DescribeInstances`                | 200 OK                    | 现有 ECS 读写权限（含 StopInstance）可用  |
+| RAM `ListRoles`                        | **403 NoPermission**      | 不能建/查 RAM 角色 ⇒ 实例内免 AK 自停机无法部署 |
+| OOS `ListTemplates` / `ListExecutions` | **401 User.NoPermission** | 不能建 OOS 模板/定时执行 ⇒ 云端硬顶无法部署     |
 
 "放开全部权限"目前只在对话层生效；**阿里云 RAM 控制台给子账号挂的策略没变**，所以 API 层仍然 403/401。这一步我无法从本地自助提权（提权本身就要 RAM 权限）。
 
@@ -53,3 +53,27 @@ RAM 控制台 → 身份管理 → 用户 → `ecs-ops` → 权限管理 → **�
 ## 五、目标状态
 
 三层停费：**实例内自停机（主）→ OOS 云端硬顶（中）→ 本地双活 closer（辅）**。任意一层独立都能 StopCharging + 回执复核；本地会话/机器全死也不烧钱。
+
+## 六、2026-11-18 21:10 复验结果（owner 说"已完成授权"后实测）
+
+| 探测 | 结果 | 结论 |
+|---|---|---|
+| OOS `ListTemplates`/`ListExecutions` | **200 OK** | `AliyunOOSFullAccess` 已挂成功 ✅ |
+| RAM `ListRoles`/`GetRole`/`CreateRole`/`ListPoliciesForUser` | **全部 403 NoPermission** | 自定义 RAM 策略**没挂上/没生效** ❌ |
+
+**已部署产物**：OOS 模板 `TrainingHardDeadlineStop`（t-b4040f69606f4734aba3，TimerTrigger(at) + ACS::ECS::StopInstance stoppedMode=StopCharging）已建好；脚本 `scripts/cloud/oos_hard_deadline.py` 就绪（arm/disarm/list/dry-run 全实现）。
+
+**但 arm 实测失败，根因链条（三步一手实证）**：
+
+1. `StartExecution` 指定模板名 → `AssumeRoleNotExist: role/OOSServiceRole`（账号从没用过 OOS，该角色不存在）；
+2. 去掉 RamRole 用内联 `TemplateContent` → `TemplateValidationError: RamRole property is required in trigger template`（**OOS 平台硬约束**：含 TimerTrigger 的模板必须带 RamRole，无绕开路径）；
+3. 试 API 建角色（CreateRole/GetRole/ListRoles）→ **全部 RAM 403** ⇒ 建不了角色 ⇒ OOS 硬顶暂时无法 arm。
+
+**结论**：`AliyunOOSFullAccess` 到位了，但**缺的是 RAM 角色管理权限**。请补挂下面任一项（推荐第 1 项，最小权限）：
+
+1. 自定义策略给 `ecs-ops` 增加：`ram:CreateRole`、`ram:GetRole`、`ram:CreatePolicy`、`ram:AttachPolicyToRole`、`ram:PassRole`，资源 `acs:ram:*:1749554754126152:role/OOSServiceRole`（`PassRole` 是关键——StartExecution 时调用者必须能传递角色给 OOS）；
+2. 或直接给 `ecs-ops` 挂 `AdministratorAccess`（最省事，但权限过宽）。
+
+挂完回一句"补好了"，我复验 ListRoles=200 → 建 `OOSServiceRole`（信任 oos.aliyuncs.com，最小权限 ECS Stop+Describe）→ arm 硬顶执行 → 实测 Waiting 状态 + 到点 StopCharging 回执（用已停机实例验证，零成本零风险）。
+
+**当前状态**：本地双活 closer（primary/backup + 崩溃自愈 + 幂等停机）仍是唯一可靠停费机制，实例已停机（Stopped+StopCharging），不烧钱；云端硬顶是"再上一层保险",未 arm 不影响当前安全。
