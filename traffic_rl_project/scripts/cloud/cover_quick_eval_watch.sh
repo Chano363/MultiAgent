@@ -77,6 +77,15 @@ print(('PASS' if r['pass'] else 'BREAK') + '|' + r['reason'] + '|' + str(r['metr
             echo "BREAK_LINE ep=$ep reason=$reason at $(date -Is)" > "$RES_DIR/BREAK_LINE.txt"
             log "BREAK_LINE 触发自停机：ep=$ep reason=$reason"
             if [ -f "$SELF_STOP" ]; then bash "$SELF_STOP" "BREAK_LINE_ep${ep}" >>"$WLOG" 2>&1; fi
+            # 【2026-11-18 ep10 实证补】self_stop 依赖实例内 aliyun CLI（RAM 角色未部署时
+            # FAIL CLI_MISSING），失败时上面没有任何杀进程动作 = 破线后训练继续跑、白烧钱。
+            # 兜底：杀训练进程 → bootstrap 捕获退出码写 exit_code.txt + train_rc →
+            # 本地 closer（API 停机+复核）收账。若 self_stop 已成功（实例在关机），
+            # pgrep 自然无命中，本分支为无害空操作。
+            if pgrep -f 'run_training.py' >/dev/null 2>&1; then
+              pkill -f 'run_training.py'
+              log "fallback_kill：self_stop 不可用，已杀训练进程（交本地 closer 收账）"
+            fi
             exit 0
             ;;
           PASS*)
