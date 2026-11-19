@@ -62,7 +62,7 @@
 | `knowledge/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` | 代码知识库：列车动力学仿真引擎             | active |
 | `knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` | 代码知识库：编队训练环境与安全层           | active |
 | `knowledge/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` | 代码知识库：RL 训练评估框架            | active |
-| `knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md`  | 代码知识库：MPC 对比基线（NMPC）        | active |
+| `knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md`  | 代码知识库：MPC 对比基线（**主表 = Tube MPC，现状/正式对照行/作废产物看 §10**；NMPC 部分已降为历史参考）        | active |
 | `PROJECT_PIPELINE.md`             | **仅 §〇 写现状**（覆盖式修订）；§一/§二 只放历史与流水的索引                           | active |
 | `RESEARCH_POSITIONING.md`         | 定位+文献库                       | active |
 | `REFERENCE_INDEX.md`              | 引用索引（技术/公式→论文，写作速查）          | active |
@@ -102,7 +102,8 @@
 | ----------------------------------------------------------- | -------------------------------------- |
 | （原 `ITSC_PAPER.tex` / `.pdf`）                            | 论文源稿，已删除（2026-10-19 目标会议更换），见 git 历史 |
 > 历史交接/会议备忘（`HANDOFF_*`、`GROUP_MEETING_TALK_PLAN.md`、`HUMAN_TODO.md`，含原"现存唯一交接文档" `HANDOFF_2026-10-17.md`）均已删除，任务全部并入 `PROJECT_PIPELINE.md`；需要时从 git 历史恢复。
-> **2026-11-16 补删**：`HANDOFF_2026-11-12/13/14/16.md` 四份已按 AGENTS.md「HANDOFF 生命周期」规矩删除（阅后即删、仓内最多一份，现存唯一为队友的 `MPC_HANDOFF_2026-11-14.md`）。其结论已归宿：计划/待办 → `PROJECT_PIPELINE.md` §〇/§0.4（ADR-069 行）；决策 → `DECISIONS.md` ADR-069；归因 → `DIAGNOSTICS_2026-11.md`「W4-v11 穿透根因复现与归因」。下文各文档中残留的 `HANDOFF_2026-11-1x §n` 引用是**历史出处**（内容已迁），需原文时 `git show HEAD~1:./HANDOFF_2026-11-16.md` 追溯。**不得再作为计划来源**。现行状态只看 `PROJECT_PIPELINE.md` §〇。规则层标定数据看 `outputs/sim_validation/phys_validation/rulecal_*/` 与 `single108_*` 归档。
+> **2026-11-16 补删**：`HANDOFF_2026-11-12/13/14/16.md` 四份已按 AGENTS.md「HANDOFF 生命周期」规矩删除（阅后即删、仓内最多一份，现存唯一为队友的 `MPC_HANDOFF_2026-11-14.md`）。其结论已归宿：计划/待办 → `PROJECT_PIPELINE.md` §〇/§0.4（ADR-069 行）；决策 → `DECISIONS.md` ADR-069；归因 → `DIAGNOSTICS_2026-11.md`「W4-v11 穿透根因复现与归因」。下文各文档中残留的 `HANDOFF_2026-11-1x §n` 引用是**历史出处**（内容已迁），需原文时 `git show HEAD~1:./HANDOFF_2026-11-16.md` 追溯。**不得再作为计划来源**。
+> **2026-11-18 深夜启动、2026-11-19 凌晨收口**：上面那句"现存唯一为队友的 `MPC_HANDOFF_2026-11-14.md`"已过期——该件的仍生效内容全部迁入正式归宿后删除：实现现状 / 代码地图 / 正式数字 / 作废产物 / 场景参数卡 → `knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md` **§10**；owner 2026-11-14 17:37 拍板（MPC 主对比用 MT-2 被控对象，"物理关闭车钩力"改述"控制器侧关闭车钩模型"）→ `logs/decisions/DECISIONS.md` **ADR-042 附段**；顺带更正「穿透 576」误标（实为车钩**超限**步，`rear_end_steps=0`）与 `band_rate` 口径 → `PROJECT_PIPELINE.md` §0.1/§0.5 + `DIAGNOSTICS_2026-11.md`。**本轮结束时仓内无任何 HANDOFF 文件**；其后 **2026-11-19 上午另建唯一一份 `HANDOFF_2026-11-19.md`**（整程 AB 对照的活口登记在里头，迁移完成即删）；规则上限仍是「最多同时一份」，不是「必须有一份」。基线版原文 `git show 65db1bf:traffic_rl_project/MPC_HANDOFF_2026-11-14.md`（其工作树 §0 复核段未提交，内容已全量迁入 MPC KB §10.2–§10.5）。现行状态只看 `PROJECT_PIPELINE.md` §〇。规则层标定数据看 `outputs/sim_validation/phys_validation/rulecal_*/` 与 `single108_*` 归档。
 
 ### 归档区（已有，保持）
 

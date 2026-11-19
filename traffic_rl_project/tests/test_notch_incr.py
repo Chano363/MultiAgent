@@ -20,8 +20,11 @@ def _ctrl(rate=3.0):
     return ctrl
 
 
-def _env(vel=60.0 / 3.6):
-    return SimpleNamespace(dynamics=SimpleNamespace(vel=np.array([vel])))
+def _env(vel=60.0 / 3.6, grade=None):
+    dyn = SimpleNamespace(vel=np.array([vel]))
+    if grade is not None:
+        dyn.grade = np.array([grade])   # 无量纲坡度（下坡为负）
+    return SimpleNamespace(dynamics=dyn)
 
 
 V_MAX = 75.0 / 3.6
@@ -69,6 +72,216 @@ def test_hysteresis_keeps_ab_between_threshold_and_margin():
     out = ctrl.get_action_notch_incr(env, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
     assert out[0, 0] == pytest.approx(0.30)
     assert out[0, 1] == 0.0                    # n=0.30 < 0.45 → 释放
+
+
+def test_grade_release_gate_default_off_zero_regression():
+    """坡度门默认关：行为与旧派生逐位一致（无 grade 属性也不受影响）。"""
+    c_on = _ctrl(3.0)
+    c_on.ab_grade_release_gate = True   # 即便开，缺 grade 信息也应回退旧行为
+    c_off = _ctrl(3.0)
+    env = _env()  # 无 grade
+    for _ in range(4):
+        a = c_on.get_action_notch_incr(env, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+        b = c_off.get_action_notch_incr(env, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+        assert a == pytest.approx(b)
+    for _ in range(2):
+        a = c_on.get_action_notch_incr(env, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+        b = c_off.get_action_notch_incr(env, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+        assert a == pytest.approx(b)
+
+
+def test_grade_release_gate_blocks_release_on_steep_grade():
+    """陡坡（−10.2‰ < −7‰ 门限）：级位下探到释放区也不许释放 AB。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_grade_release_gate = True
+    ctrl.ab_grade_release_permille = -7.0
+    steep = _env(grade=-10.2 / 1000.0)
+    for _ in range(4):   # n → 0.60，AB on（过充风门）
+        ctrl.get_action_notch_incr(steep, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    # 下探两级：n 0.60→0.45→0.30，均低于释放阈值 0.45（第二级肯定该释放）
+    out = ctrl.get_action_notch_incr(steep, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 0] == pytest.approx(0.45)
+    assert out[0, 1] == pytest.approx(-0.20)  # 陡坡门否决释放
+    out = ctrl.get_action_notch_incr(steep, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 0] == pytest.approx(0.30)
+    assert out[0, 1] == pytest.approx(-0.20)  # 仍陡，继续否决
+
+
+def test_grade_release_gate_allows_release_on_gentle_grade():
+    """缓坡（−5‰ > −7‰ 门限）：级位下探正常释放 AB（解耦生效）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_grade_release_gate = True
+    ctrl.ab_grade_release_permille = -7.0
+    gentle = _env(grade=-5.0 / 1000.0)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(gentle, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    out = ctrl.get_action_notch_incr(gentle, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)  # n=0.45 仍保持
+    out = ctrl.get_action_notch_incr(gentle, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 0] == pytest.approx(0.30)
+    assert out[0, 1] == 0.0                    # 缓坡允许释放
+
+
+# ---- A-4（P1 第二版，2026-11-19）：变坡点门 + 低速兜底坡度门控 ----
+
+def _env_grade(grade_permille, vel_kmh=60.0):
+    return _env(vel=vel_kmh / 3.6, grade=grade_permille / 1000.0)
+
+
+def test_a4a_rebound_gate_blocks_without_rebound():
+    """A-4a：坡度未回升（持续陡坡 −10‰）时，级位下探不许释放 AB。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_grade_rebound_gate = True
+    ctrl.ab_grade_rebound_permille = 3.0
+    steep = _env_grade(-10.0)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(steep, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    # 下探到 n=0.30（低于释放阈值），但坡度一直 −10‰ 无回升 ⇒ 门否决
+    out = ctrl.get_action_notch_incr(steep, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)
+    out = ctrl.get_action_notch_incr(steep, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)
+
+
+def test_a4a_rebound_gate_allows_on_rebound():
+    """A-4a：坡度回升 ≥Δ（−10‰→−6‰，回升 4‰）时允许级位下探释放。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_grade_rebound_gate = True
+    ctrl.ab_grade_rebound_permille = 3.0
+    steep = _env_grade(-10.0)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(steep, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    # 先把 n 降到 0.45（释放阈值边界，门会否决但状态仍 on），此刻上一步坡度 −10‰
+    ctrl.get_action_notch_incr(steep, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    # 这一step 坡度回升到 −6‰（+4‰ ≥ Δ=3）⇒ 允许释放
+    rebound = _env_grade(-6.0)
+    out = ctrl.get_action_notch_incr(rebound, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == 0.0
+
+
+def test_a4b_low_speed_gate_holds_on_steep_then_releases_near_stop():
+    """A-4b：陡坡低速继续带闸，逼近 v_stop 仍强制缓解（保 V17 拖停底线）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_low_speed_release = True
+    ctrl.ab_low_speed_grade_gate = True
+    ctrl.ab_low_speed_stop_kmh = 35.0
+    steep = _env_grade(-10.0, vel_kmh=41.0)   # ≤ v_min+2(=42) 触发低速区
+    for _ in range(4):
+        ctrl.get_action_notch_incr(steep, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    # 低速 + 陡坡 + 未到 v_stop ⇒ 继续带闸
+    out = ctrl.get_action_notch_incr(steep, np.array([[0.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)
+    # 逼近 v_stop（34 km/h < 35）⇒ 强制缓解
+    near_stop = _env_grade(-10.0, vel_kmh=34.0)
+    out = ctrl.get_action_notch_incr(near_stop, np.array([[0.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == 0.0
+
+
+def test_a4_all_off_zero_regression():
+    """A-4 两开关默认关：与旧派生逐位一致（含低速兜底原行为）。"""
+    a = _ctrl(3.0)
+    b = _ctrl(3.0)
+    a.ab_low_speed_release = b.ab_low_speed_release = True
+    env = _env_grade(-10.0, vel_kmh=60.0)
+    for act in [[1.0]] * 4 + [[-1.0]] * 4:
+        oa = a.get_action_notch_incr(env, np.array([act]), v_max=V_MAX, v_min=V_MIN)
+        ob = b.get_action_notch_incr(env, np.array([act]), v_max=V_MAX, v_min=V_MIN)
+        assert oa == pytest.approx(ob)
+
+
+def test_ab_release_speed_gate_default_off_zero_regression():
+    """速度门默认关：释放判据仍是级位下探（与旧行为逐位一致）。"""
+    ctrl = _ctrl(3.0)
+    env = _env(grade=-10.0 / 1000.0, vel=60.0 / 3.6)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(env, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    out = ctrl.get_action_notch_incr(env, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)   # n=0.45 仍保持
+    out = ctrl.get_action_notch_incr(env, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == 0.0                     # n=0.30 < 0.45 → 正常释放
+
+
+def test_ab_release_speed_gate_holds_above_speed_limit():
+    """速度门开：速度 > 门限时，即使级位下探到 0 也不释放 AB（on 段与 ED 解耦）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_release_speed_gate = True
+    ctrl.ab_release_speed_kmh = 50.0
+    env = _env(grade=-10.0 / 1000.0, vel=60.0 / 3.6)   # 60 > 50
+    for _ in range(4):
+        ctrl.get_action_notch_incr(env, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    for _ in range(8):   # 级位一路下探到 0
+        out = ctrl.get_action_notch_incr(env, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 0] == pytest.approx(0.0)
+    assert out[0, 1] == pytest.approx(-0.20)   # 速度仍高 → 保持 AB on
+
+
+def test_ab_release_speed_gate_allows_release_below_limit():
+    """速度门开：速度降到门限以下 ⇒ 允许释放（与级位无关）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_release_speed_gate = True
+    ctrl.ab_release_speed_kmh = 50.0
+    fast = _env(grade=-10.0 / 1000.0, vel=60.0 / 3.6)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(fast, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    slow = _env(grade=-10.0 / 1000.0, vel=45.0 / 3.6)   # 45 < 50
+    out = ctrl.get_action_notch_incr(slow, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == 0.0
+
+
+def test_ab_release_speed_gate_low_speed_fallback_still_releases():
+    """低速强制缓解（v ≤ v_min+2 = 42）在速度门之上仍强制释放（防拖停底线不可被门关掉）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_release_speed_gate = True
+    ctrl.ab_release_speed_kmh = 50.0
+    ctrl.ab_low_speed_release = True
+    env = _env(grade=-10.0 / 1000.0, vel=60.0 / 3.6)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(env, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    slow = _env(grade=-10.0 / 1000.0, vel=41.0 / 3.6)   # ≤ 42 → 低速兜底
+    out = ctrl.get_action_notch_incr(slow, np.array([[-1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == 0.0
+
+
+def test_ab_apply_speed_gate_default_off_zero_regression():
+    """施加门控默认关（0 = 不启用）：行为与旧派生逐位一致。"""
+    ctrl = _ctrl(3.0)
+    env = _env(grade=-10.0 / 1000.0, vel=45.0 / 3.6)
+    for _ in range(4):
+        out = ctrl.get_action_notch_incr(env, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)   # 低速也照常施加（门关）
+
+
+def test_ab_apply_speed_gate_blocks_new_apply_below_threshold():
+    """施加门控开：低速段不新增 AB 源（请求被搁置，状态不变）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_apply_speed_min_kmh = 55.0
+    slow = _env(grade=-10.0 / 1000.0, vel=45.0 / 3.6)   # 45 < 55 ⇒ 不施加
+    for _ in range(4):
+        out = ctrl.get_action_notch_incr(slow, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == 0.0
+    assert ctrl._ab_on[0] is False
+
+
+def test_ab_apply_speed_gate_allows_apply_above_threshold():
+    """施加门控开：速度高于门限 ⇒ 正常新增 AB 源。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_apply_speed_min_kmh = 55.0
+    fast = _env(grade=-10.0 / 1000.0, vel=60.0 / 3.6)   # 60 > 55 ⇒ 施加
+    for _ in range(4):
+        out = ctrl.get_action_notch_incr(fast, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)
+
+
+def test_ab_apply_speed_gate_keeps_existing_apply_alive():
+    """施加门控只挡新增：已施加态在低速段仍维持（不被门强制释放）。"""
+    ctrl = _ctrl(3.0)
+    ctrl.ab_apply_speed_min_kmh = 55.0
+    fast = _env(grade=-10.0 / 1000.0, vel=60.0 / 3.6)
+    for _ in range(4):
+        ctrl.get_action_notch_incr(fast, np.array([[1.0]]), v_max=V_MAX, v_min=V_MIN)
+    slow = _env(grade=-10.0 / 1000.0, vel=45.0 / 3.6)
+    out = ctrl.get_action_notch_incr(slow, np.array([[0.0]]), v_max=V_MAX, v_min=V_MIN)
+    assert out[0, 1] == pytest.approx(-0.20)   # 已 on ⇒ 维持
 
 
 def test_overspeed_forces_service():

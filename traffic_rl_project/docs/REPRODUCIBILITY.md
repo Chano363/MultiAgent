@@ -235,7 +235,7 @@ python src/evaluation/evaluate_decompose.py --mode mpc --mpc_type nmpc --grade <
 
 > 注：`--mode` 的合法取值是 `all / decompose_m1 / decompose_m0 / mpc / single`（无 `decompose`；旧文档写 `--mode decompose` 属笔误，2026-10-01 更正）。
 
-- 跨线协议（ADR-037，2026-10-16；2026-10-19 ADR-042 起升格为正式实验组别）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 用该线坡度数据（固有输入），**不设逐线重喂 `grade_at`/标定 b0 协议**（ADR-037 废止 Regime A；ADR-016 已废止 Regime B），不作成本叙事。核心 claim（2026-10-19 ADR-042）= **相对传统基线的编队指标收益**（主对比物理关闭车钩力，无独立消融列）。
+- 跨线协议（ADR-037，2026-10-16；2026-10-19 ADR-042 起升格为正式实验组别）：D-RL 跨线**严格零微调**（公开声明 "no fine-tuning on target line"）；MPC 用该线坡度数据（固有输入），**不设逐线重喂 `grade_at`/标定 b0 协议**（ADR-037 废止 Regime A；ADR-016 已废止 Regime B），不作成本叙事。核心 claim（2026-10-19 ADR-042）= **相对传统基线的编队指标收益**（主对比 = MT-2 同物理 + **控制器侧**关闭车钩模型，ADR-042 附段 2026-11-14；无独立消融列）。
 
 **消融（杠杆隔离）**：`--mask_lever ed/ab`（ED-only / AB-only），留痕见 `docs/logs/diagnostics/`。
 

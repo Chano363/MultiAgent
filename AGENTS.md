@@ -10,6 +10,10 @@
 - `HANDOFF_*.md`（含 `MPC_HANDOFF_*`）= **临时性文档，阅后即删**；**仓内最多同时存在一份**。
 - 接手后先把仍生效的结论与待办迁入正式归宿（计划 → `docs/PROJECT_PIPELINE.md` §〇 / §0.4；决策 → `docs/logs/decisions/DECISIONS.md`；归因 → `docs/logs/diagnostics/`），迁移完成即删，**不留档、不追加**（git 历史可追溯，无需保留工作区文件）。
 
+## 产出纪律（2026-11-18 自 HANDOFF 固化）
+
+- 论文/文档类产出**仅在 owner 明确要求时写**（owner 多次纠偏：“我没让你写论文”“别写文档里”）；检索/调查结论默认只在对话给出，不新建 md、不未经要求塞进正式文档。
+
 ## 仓库布局
 
 - `traffic_rl_project/` — 唯一研究项目（现行主战场）：重载列车群组协同控制。
@@ -47,7 +51,7 @@ cd /mnt/d/Code/MultiAgent/traffic_rl_project
 | 动力学 / 车钩 / 制动 / 坡度 | `docs/knowledge/TRAIN_DYNAMICS_KNOWLEDGE_BASE.md` | 口径漂移 ⇒ 训练与评估不同源 |
 | 观测 / 动作 / 奖励 / 安全层 / curriculum | `docs/knowledge/TRAIN_ENV_SAFETY_KNOWLEDGE_BASE.md` | 破坏 1000 kN 硬约束或 log_prob 一致性 |
 | 训练/评估链路、trainer、配置 | `docs/knowledge/RL_TRAINING_EVAL_KNOWLEDGE_BASE.md` | metadata 不合规、覆写历史产物 |
-| 立论 / 论文措辞 / 对比基线 | `docs/RESEARCH_POSITIONING.md` §1.2 / §1.5 / §1.6 · `docs/knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md` | 写出已被 ADR 废止的主张（把"分层架构"当卖点）；把已删的 NMPC 当基线；以为 Tube MPC 已实现（未实现） |
+| 立论 / 论文措辞 / 对比基线 | `docs/RESEARCH_POSITIONING.md` §1.2 / §1.5 / §1.6 · `docs/knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md` | 写出已被 ADR 废止的主张（把"分层架构"当卖点）；把已删的 NMPC 当基线；或引用 MPC 数字前没读 `MPC_BASELINE_KNOWLEDGE_BASE.md` §10（正式对照行 + 作废产物清单 + `viol`/`rear_end_steps` 语义分家都在那里） |
 | 引用数值 / 文献 | `docs/REFERENCE_INDEX.md` · `docs/VALIDATION_BASELINE.md` | 二手当一手、已决当待定 |
 | **要拍板 / 判断"该不该请示"** | `traffic_rl_project/docs/rules/EXECUTION_RULES.md` §决策权限 | 过度请示（把判断成本推回 Owner）或擅自改方向（ADR-066 立案诱因） |
 
@@ -78,7 +82,7 @@ cd /mnt/d/Code/MultiAgent/traffic_rl_project
 | 评估与诊断 | `src/evaluation/` | 155 个脚本多为一次性诊断，在役清单未裁（→ PIPELINE §0.6 C2） |
 | 实验配置 | `configs/experiments/formation_ed_ab_3train_1plus108.yaml`（主配置）· `configs/experiments/` | 以 _pilot / _probe / _debug 开头的是探针，不是论文配置 |
 | 立论与决策 | `docs/RESEARCH_POSITIONING.md` · `docs/logs/decisions/DECISIONS.md` · `docs/CLAIM_LEDGER.yaml` | 立论唯一真源；claim 台账有机器守卫 |
-| 知识库（改码前必读） | `docs/knowledge/`（动力学 / 环境安全 / 训练评估 / MPC 基线） | 在役；MPC 那本已标代码删除 |
+| 知识库（改码前必读） | `docs/knowledge/`（动力学 / 环境安全 / 训练评估 / MPC 基线） | 在役；MPC 那本：NMPC 部分已随代码删除降为历史参考，**Tube MPC 现状 = §10** |
 | 验证与规范 | `tests/` · `docs/VALIDATION_BASELINE.md` · `docs/rules/` · `scripts/check_{agents_links,claim_ledger,outputs_layout}.py` | 三个守卫只查形式，见上节边界 |
 | 文献与引用 | `docs/papers/` · `docs/REFERENCE_INDEX.md` · `docs/REPRODUCIBILITY.md` | PDF 仍入库（待移出，§0.6 A2）；引用先查 INDEX |
 | 实验证据 | `outputs/sim_validation/` · `docs/logs/verification/` · `docs/logs/diagnostics/` | 10 GB+ 级、非可再生，勿当缓存删；证据目录不进 git |

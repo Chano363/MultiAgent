@@ -69,6 +69,10 @@ class TubeMPC:
         self.du_tight = kappa * self.eps_v          # 式 56 输入收紧
         self._build_condensed()
         self.xbar = np.zeros(4)                     # 名义状态
+        self._u_prev = np.zeros(self.H)
+        self.last_solve_success = False
+        self.last_solve_attempts = 0
+        self.last_solve_status = ""
 
     def _build_condensed(self):
         H, Ad, Bd, nx = self.H, self.Ad, self.Bd, 4
@@ -124,11 +128,33 @@ class TubeMPC:
             dict(type="ineq",
                  fun=lambda U: self._terminal_g(U, PsiD)),
         ]
-        res = minimize(cost, np.zeros(self.H), method="SLSQP", constraints=cons,
-                       bounds=[(self.u_min_n + self.du_tight,
-                                self.u_max_n - self.du_tight)] * self.H,
-                       options=dict(maxiter=60, ftol=1e-10))
-        U = res.x if res.x is not None else np.zeros(self.H)
+        lo = self.u_min_n + self.du_tight
+        hi = self.u_max_n - self.du_tight
+        # SLSQP 对退化/贴边状态常报 "Positive directional derivative"。
+        # 保持同一代价与约束，仅换初值做确定性多起点；优先上一拍解。
+        starts = [np.zeros(self.H), self._u_prev,
+                  np.full(self.H, -0.5), np.full(self.H, -1.5),
+                  np.full(self.H, 0.5), np.full(self.H, 1.0)]
+        attempts = []
+        chosen = None
+        for x_init in starts:
+            res = minimize(cost, np.clip(x_init, lo, hi), method="SLSQP",
+                           constraints=cons, bounds=[(lo, hi)] * self.H,
+                           options=dict(maxiter=100, ftol=1e-10))
+            attempts.append(res)
+            if res.success and res.x is not None:
+                chosen = res
+                break
+        if chosen is None:
+            finite = [r for r in attempts if r.x is not None
+                      and np.all(np.isfinite(r.x))]
+            chosen = min(finite, key=lambda r: float(r.fun)) if finite else attempts[0]
+        U = (chosen.x if chosen.x is not None else np.zeros(self.H))
+        U = np.clip(U, lo, hi)
+        self.last_solve_success = bool(chosen.success)
+        self.last_solve_attempts = len(attempts)
+        self.last_solve_status = str(chosen.message)
+        self._u_prev = U.copy()
         return float(U[0])
 
     def _terminal_g(self, U, PsiD):

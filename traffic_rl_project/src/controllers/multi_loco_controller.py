@@ -307,6 +307,67 @@ class MultiLocoController:
         self.ab_derive_threshold = 0.5            # n ≥ 阈值 → 请求 AB on
         self.ab_derive_release_margin = 0.05      # n < 阈值 − margin → 释放（滞回防抖）
         self.ab_derive_notch_idx = 2              # 派生档位 = AB_NOTCH_LEVELS[2] = MIN(70 kPa)
+        # 【P1 候选 / ADR-074 附段三「坡度门解耦」，2026-11-19；默认关 = 零回归】
+        # 语义：把「缓解 AB」的触发条件从"级位下探穿释放阈值"解耦为"坡度进入缓坡段"。
+        # 已施加态即便级位下探，只要本列队首坡度仍陡（≤ 门限），就不许释放 AB——
+        # 与规程一致（赵紫宁2022「尽量在缓坡段缓解」+ 张二田2021「带闸到缓坡处缓解」）。
+        # 门限锚：张二田2021「列车全部处于 −7 ‰以下缓坡」(fulltext:353) ⇒ 默认 −7.0 ‰。
+        # 只加一道释放否决（RL 无法关闭，与低速强制缓解同层），不改奖励面、不改物理、
+        # 不动 222 s 充风门数值。坡度缺失（mock/恒坡无 grade 属性）时门自动失效 = 零回归。
+        self.ab_grade_release_gate = False
+        self.ab_grade_release_permille = -7.0
+        # 【A-4 / 诊断 §8，2026-11-19；默认关 = 零回归】P1 第二版两个候选开关。
+        # A-4a 变坡点门：把级位释放的坡度门从"绝对坡度 ≤ 门限"改为"坡度较上一步回升
+        #   ≥ ab_grade_rebound_permille（变缓事件）"——49.6 km 真实剖面变缓点锚
+        #   （K25013 −8.9→−1.5 回升 7.4‰；grade_profile.py:418）。开启时覆盖
+        #   ab_grade_release_gate 的绝对判断（二者互斥，A-4a 优先）。
+        # A-4b 低速兜底坡度门控：低速强制缓解触发从"v≤v_min+2"改为
+        #   "v≤v_min+2 且（坡度已变缓 或 v≤ab_low_speed_stop_kmh）"——
+        #   陡坡低速继续带闸，直到变缓点或逼近停车红线。须配 v_stop 防 V18-b 拖停。
+        #   具体数值 Δ=3‰ / v_stop=35 km/h 是待探针检验的候选值，非文献锚。
+        self.ab_grade_rebound_gate = False
+        self.ab_grade_rebound_permille = 3.0
+        self.ab_low_speed_grade_gate = False
+        self.ab_low_speed_stop_kmh = 35.0
+        self._prev_grade_permille = None
+        # 【AB 物理释放判据（诊断 §14，2026-11-19）；默认关 = 零回归】
+        # 语义：已施加态的**释放**判据不再由「级位下探」触发，而由「物理上 ED 已足够」
+        # 触发 —— ed_avail = F_ed/F_req（_ed_ab_price，物理化口径）≥ 门限才允许释放；
+        # 物理仍不足时保持 AB on。判据与规则基线同源（decompose 基线 L701 用
+        # `ed_avail >= 0.99` 才不引 AB），但**释放权仍属安全层**（低速强制缓解 v≤42
+        # 仍可强制释放，222 s 充风门不动）。
+        # 动机（一手量化，诊断 §14）：nincr 轨迹上 ed_avail 恒 ≈0.51 < 1（ED 物理不足、
+        #   AB 是刚需），但 AB on:off ≈ 1:9.6、86% 时间被 222 s 充风门锁死 ⇒ ED 单源空窗
+        #   ⇒ ED 贴顶（meanED 0.900）⇒ band 崩（84.97%）。
+        # 风险（须整程探针判）：AB 长时间不释放 ⇒ 拖停（V17/V18-b 铁证）。
+        self.ab_release_by_physical = False
+        self.ab_release_avail_threshold = 0.99
+        # 【AB 释放速度门（诊断 §14，2026-11-19）；默认关 = 零回归】
+        # 语义：已施加态的释放判据由「级位下探」改为「速度门」——v ≤ 门限才允许释放。
+        # 门限默认 50 km/h = 主配置 `cyclic_release_kmh`（**未调参值**；诊断 L2386 明确
+        # GA 那批 54.96/56/52 已作废，规则基线唯一身份以未调参 50 为准）。
+        # 机理（一手量化，诊断 §14）：nincr 现状 AB on:off ≈ 1:9.6、86% 时间被 222 s
+        # 充风门锁死（每次 on 仅 23–31 s）⇒ ED 单源空窗 ⇒ ED 贴顶 ⇒ band 崩。
+        # 速度门让 AB on 段与 ED 级位轨迹**解耦**（ED 可自由上下探而不动 AB 状态），
+        # 与 A-4a/b 的「加否决」方向相反（那两条否决了正确的级位释放路径、留下最坏的
+        # 低速兜底路径 ⇒ 拖停/暴峰）。
+        # 风险：AB 持续到 v≤50 ⇒ 须整程探针判末速/是否跑完全程（V17/V18-b 拖停铁证）。
+        # 低速强制缓解（v ≤ v_min+2）仍可强制释放（安全底线，不受本门影响）。
+        self.ab_release_speed_gate = False
+        self.ab_release_speed_kmh = 50.0
+        # 【AB 施加门控（诊断 §16，2026-11-19）；默认 0 = 不启用 = 零回归】
+        # 语义：**低速段不新增 AB 源**——速度低于 `ab_apply_speed_min_kmh` 时，即使
+        # 级位越限请求 AB（want_on=True）也不落地（ab=0，请求被搁置但不改变 AB 状态）。
+        # 动机（一手，诊断 §16）：释放速度门整程三变体中，**全程峰 1,199.4 kN 全部来自
+        # 起步段 t=26.2 s、尾列**——起步时速度已 60 km/h > 释放门限 50/56 ⇒ AB 立即施加
+        # ⇒ 起步瞬态冲高；而 gate56 在真实主峰窗（1,100–1,300 s）尾列峰 838.9 kN
+        # **低于 baseline 928.1**（−89.2）⇒ 机制本身有效、收益被起步瞬态吃掉。
+        # 物理依据：`ed_avail` 在低速段更高（ED 功率富余 ⇒ 物理上更不需要 AB）。
+        # 与释放门控**方向相反**（释放门控管"何时放"，本门控管"何时加"），互不替代。
+        # 风险：低速段不施加 AB ⇒ 若该段物理确需 AB 会更差 ⇒ 须整程探针判
+        #（判据：起步峰回落 ≤ baseline 853、主峰窗保持 838.9 量级改善、band ≥90%、
+        #  超限步回落至 ≲baseline 量级、零穿透、跑完全程）。
+        self.ab_apply_speed_min_kmh = 0.0
         # 【W4-v4 / 2026-11-15】近上限 AB 充风门旁路（默认关 = 零回归）。
         # 语义：速度贴近有效上限且 RL 想施加 AB 时，绕过 222 s 充风门控。
         # 依据：W4-v3 12k 归因显示 ATP 过触发主体是规则 C 逐车超速；若门控
@@ -1323,6 +1384,14 @@ class MultiLocoController:
         vel = float(train_env.dynamics.vel[0])
         vmax_eff = float(v_max) + float(v_max_adj)
         max_d = float(self.notch_incr_rate_notches) / 20.0
+        # 【A-4】每决策步读一次队首坡度（‰）；坡度缺失（mock/恒坡无 grade）⇒ None，
+        # 所有 A-4 门自动失效 = 零回归。变缓量 = 当前 − 上一步（正=坡度回升/变缓）。
+        _grade_arr = getattr(train_env.dynamics, 'grade', None)
+        grade_permille = (float(np.asarray(_grade_arr).ravel()[0]) * 1000.0
+                          if _grade_arr is not None else None)
+        grade_rebound = (grade_permille - self._prev_grade_permille
+                         if (grade_permille is not None
+                             and self._prev_grade_permille is not None) else None)
         for k in range(n_loco):
             # 1) 级位积分：增量限幅
             a_k = float(np.clip(rl[k, 0], -1.0, 1.0))
@@ -1339,8 +1408,34 @@ class MultiLocoController:
                                   - self.ab_derive_release_margin - _eps)
             else:
                 want_on = n_k >= self.ab_derive_threshold - _eps
+            # 【AB 释放速度门（诊断 §14，默认关 = 零回归）】：已施加态若开启本门，
+            # 释放判据由「级位下探」改为「速度门」——速度高于门限 ⇒ 保持 AB on，
+            # 使 AB on 段与 ED 级位轨迹解耦（消除 25 s on → 222 s 锁死空窗的自锁死）。
+            # 低速强制缓解在安全链末尾仍可强制释放（v ≤ v_min+2）⇒ 防拖叠底线在位。
+            if (self._ab_on[k] and self.ab_release_speed_gate):
+                want_on = vel * 3.6 > float(self.ab_release_speed_kmh)
+            # 【A-4 坡度门（默认全关 = 零回归）】：已施加态若因级位下探而想释放，
+            # 但没进入"变缓点"，则否决释放、保持 AB on。释放时机由级位下探解耦到坡度。
+            # A-4a（相对变坡点）：仅当坡度回升 ≥ Δ 才允许释放（覆盖绝对门）。
+            # P1-v1（绝对坡度门）：坡度 ≤ 门限才否决（保留供对照）。
+            if (not want_on) and self._ab_on[k] and grade_permille is not None:
+                if (self.ab_grade_rebound_gate and grade_rebound is not None):
+                    if grade_rebound < float(self.ab_grade_rebound_permille):
+                        want_on = True   # 没到变缓点 → 否决释放
+                elif self.ab_grade_release_gate:
+                    if grade_permille <= float(self.ab_grade_release_permille):
+                        want_on = True   # 坡度仍陡 → 否决释放（P1-v1 对照）
             ab = (self.AB_NOTCH_LEVELS[self.ab_derive_notch_idx]
                   if want_on else self.AB_NOTCH_LEVELS[0])
+            # 【AB 施加门控（诊断 §16，默认 0 = 不启用 = 零回归）】：低速段不**新增** AB 源
+            # ——速度低于 `ab_apply_speed_min_kmh` 且当前未施加时，即使 want_on=True
+            # 也不落地（ab=0）。只挡新增、不挡已施加态的维持（与释放门控互不替代）。
+            # 动机：释放速度门整程实测的全程峰 1,199.4 kN 全部来自起步段 t=26.2 s
+            # （起步速度已 60 > 释放门限 ⇒ 立即施加 ⇒ 起步瞬态冲高），而 gate56 在
+            # 真实主峰窗尾列峰 838.9 < baseline 928.1 ⇒ 收益被起步瞬态吃掉。
+            if (self.ab_apply_speed_min_kmh > 0 and not self._ab_on[k]
+                    and vel * 3.6 < float(self.ab_apply_speed_min_kmh)):
+                ab = self.AB_NOTCH_LEVELS[0]
             # 4) 安全链（与 get_action_notch 同顺序）
             if vel >= vmax_eff:
                 # 超速兜底：强制 SERVICE（RL 无权关闭安全底线）
@@ -1365,7 +1460,18 @@ class MultiLocoController:
                 ab = 0.0
             # 低速强制缓解兜底（V17：防 AB 拖到停车）
             if self.ab_low_speed_release and vel <= float(v_min) + self.ab_low_speed_margin_mps:
-                ab = 0.0
+                # 【A-4b】陡坡低速时继续带闸（推迟缓解到变缓点），但逼近停车红线
+                # v_stop 仍强制缓解——保住 V17/V18-b 拖停底线。默认关 = 零回归。
+                _allow_low_release = True
+                if (self.ab_low_speed_grade_gate and ab < 0
+                        and grade_permille is not None):
+                    _at_rebound = (grade_rebound is not None and
+                                   grade_rebound >= float(self.ab_grade_rebound_permille))
+                    _near_stop = vel * 3.6 <= float(self.ab_low_speed_stop_kmh)
+                    if (not _at_rebound) and (not _near_stop):
+                        _allow_low_release = False
+                if _allow_low_release:
+                    ab = 0.0
             final[k, 1] = ab
         # 提交 AB 状态（与 get_action_notch 同口径：施加/释放时刻 + 档位保持记账）
         for i in range(n_loco):
@@ -1378,6 +1484,8 @@ class MultiLocoController:
             if float(final[i, 1]) != float(self._ab_notch_state[i]):
                 self._ab_notch_state[i] = float(final[i, 1])
                 self._ab_notch_step[i] = self._ab_step
+        # 【A-4】记录本步坡度供下一步算"变缓量"；坡度缺失时清空（零回归）。
+        self._prev_grade_permille = grade_permille
         return final
 
     # ------------------------------------------------------------------ #
@@ -1463,6 +1571,7 @@ class MultiLocoController:
         self.ed_conv_active_steps = 0
         self._ab_step = 0
         self._ab_on = [False] * self.num_locomotives
+        self._prev_grade_permille = None   # 【A-4】变坡点门的坡度历史，reset 清零
         self._ab_last_release_step = [-10 ** 9] * self.num_locomotives
         self._ab_last_apply_step = [-10 ** 9] * self.num_locomotives
         self.ab_refill_veto_count = 0

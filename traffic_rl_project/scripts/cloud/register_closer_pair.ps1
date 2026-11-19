@@ -21,7 +21,10 @@ param(
 )
 
 $base = 'D:\Code\MultiAgent\traffic_rl_project'
-$cfgDir = Join-Path $base 'outputs\configs'; New-Item -ItemType Directory -Force -Path $cfgDir | Out-Null
+# Closer configs are operational artifacts, not a new outputs/ first-level category.
+# They live under the registered logs/ tree (EXECUTION_RULES output-layout R1 and section 1) which is
+# gitignored, so instance ids and IPs never enter git. Never create outputs\configs here.
+$cfgDir = Join-Path $base 'outputs\logs\cloud'; New-Item -ItemType Directory -Force -Path $cfgDir | Out-Null
 $cfgPath = Join-Path $cfgDir "closer_${RunTag}.json"
 $remoteRoot = '/root/traffic_rl_project/outputs'
 $cfg = [ordered]@{
@@ -42,7 +45,9 @@ $cfg = [ordered]@{
   )
   pull_glob      = "$remoteRoot/results/formation_10kt_1plus108/$RunTag/*"
 }
-$cfg | ConvertTo-Json -Depth 5 | Set-Content -Path $cfgPath -Encoding UTF8
+$cfgJson = $cfg | ConvertTo-Json -Depth 5
+# UTF-8 WITHOUT BOM: schtasks readers use PowerShell, but python json.load must also work.
+[System.IO.File]::WriteAllText($cfgPath, $cfgJson, (New-Object System.Text.UTF8Encoding($false)))
 Write-Output "config=$cfgPath"
 
 $wrapper = Join-Path $base 'scripts\cloud\closer_wrapper_resilient.ps1'

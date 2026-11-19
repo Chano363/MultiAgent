@@ -12,7 +12,7 @@
 #      Any other exit => restart. "No money saved" is never treated as success.
 #
 # Usage via schtasks (/TR must stay <261 chars; pass config file + role only):
-#   powershell -NoProfile -ExecutionPolicy Bypass -File D:\Code\MultiAgent\traffic_rl_project\scripts\cloud\closer_wrapper_resilient.ps1 -Config D:\Code\MultiAgent\traffic_rl_project\outputs\configs\closer_w4xxx.json -Role primary
+#   powershell -NoProfile -ExecutionPolicy Bypass -File D:\Code\MultiAgent\traffic_rl_project\scripts\cloud\closer_wrapper_resilient.ps1 -Config D:\Code\MultiAgent\traffic_rl_project\outputs\logs\cloud\closer_w4xxx.json -Role primary
 param(
   [Parameter(Mandatory=$true)][string]$Config,
   [ValidateSet('primary','backup')][string]$Role = 'primary',

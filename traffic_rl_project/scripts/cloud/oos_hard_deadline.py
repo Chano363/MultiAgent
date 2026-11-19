@@ -128,7 +128,7 @@ def main():
         e = call("ListExecutions", {"Limit": 20}, c)
         for x in e.get("Executions", []):
             print("EXEC:", x.get("ExecutionId"), x.get("Status"), x.get("TemplateName"),
-                  x.get("Parameters", "")[:120], x.get("StartDate"))
+                  str(x.get("Parameters") or "")[:120], x.get("StartDate"))
         return
     if args.deploy_template:
         res = call("CreateTemplate", {

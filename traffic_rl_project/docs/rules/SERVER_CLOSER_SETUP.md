@@ -107,6 +107,7 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 
 - **自愈 wrapper**：`scripts/cloud/closer_wrapper_resilient.ps1`——python 非正常退出 20 s 重启；绝对 deadline 一次性计算、重启只传剩余分钟（崩溃不能延长计费窗口）；只在 self-log 出现 `CLOSEOUT_OK`（=StopCharging 已复核）才退出。
 - **双活注册**：`scripts/cloud/register_closer_pair.ps1` 一次注册 `<prefix>_closer_primary` + `<prefix>_closer_backup` 两个 schtasks，共用 JSON 配置、独立心跳/产物目录；`stop_instance()` 幂等（已 Stopped+StopCharging 直接成功），任一存活即可收账。
+- **配置落盘位置（硬口径）**：closer JSON 固定写 `outputs/logs/cloud/closer_<run_tag>.json`——必须落在 `EXECUTION_RULES` 已登记的一级目录内且 gitignored（实例 ID/IP 不进 git）；**禁止新建 `outputs/configs/` 这类未登记一级目录**（`check_outputs_layout.py` 判错）。JSON 以无 BOM UTF-8 写盘。
 - **停机未确认不收工**：closer 在 API 复核拿不到 StopCharging 时继续轮询重试（wrapper 看不到 CLOSEOUT_OK 也不会误判完成）。
 - **演练实证**：dry-run 双任务并行心跳、手杀 primary python → 20 s 自愈且剩余 deadline 2min→1min、两者 CLOSEOUT_OK 退出（演练任务已注销）；单测 `test_closer_idempotent` + `test_closer_trigger` 13/13。
 ## 云端硬顶 OOS（2026-11-18 已 arm，本地全死也停费）

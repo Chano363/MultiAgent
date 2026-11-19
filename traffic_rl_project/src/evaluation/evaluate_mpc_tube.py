@@ -6,7 +6,7 @@
 - 控制器：`src/mpc_baseline/tube_mpc.py`（zba 忠实移植，3 实例对称 3 列）
 - 参考轨迹：主仓 `ref_speed_table`（与 D-RL 同源，公平标定自动成立）
 - 列间协调：跟随车 v_ref = min(v_t(s_self), v_lead + gap 修正)（zba v2 参考律）
-- 安全：列间安全包络（ETCS 式）+ 50 kPa 循环制动（文献[22]）；`--atp` 可开简化 ATP
+- 安全：列间安全包络（ETCS 式）+ 50 kPa 循环制动（文献[22]）；`--atp` 尚未接入，禁用
 - 车钩：`--coupler mt2|zero` 参数化（ADR-042 主对比 = 关车钩物理）
 
 用法：
@@ -15,6 +15,7 @@
         --coupler mt2 --max_steps 31500
 """
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -31,7 +32,7 @@ from src.train_dynamics.grade_profile import PROFILES                    # noqa:
 from src.environments.train_env import CONSIST_PRESETS                   # noqa: E402
 from src.mpc_baseline.params import (DT_MPC, M_LOCO, M_WAGON_GROUP,      # noqa: E402
                                      D_DES, V_INIT, GAP_T_ADJ, GAP_V_ADJ,
-                                     ED_MAX, ED_AIR_CAP, R_CYCLE,
+                                     ED_MAX, ED_AIR_CAP, R_CYCLE, KAPPA,
                                      V_MIN_RELEASE, V_STATIC)
 from src.mpc_baseline.tube_mpc import TubeMPC                            # noqa: E402
 from src.metadata import build_metadata                                  # noqa: E402
@@ -42,7 +43,7 @@ N_TRAINS = 3
 GA = (1, 54)                  # 货车组1 = 车辆索引 1..54（0=机车）
 GB = (55, 108)                # 货车组2 = 55..108
 S_HEAD0 = 4300.0              # m  领航列头位（ADR-068 起点）
-HEAD_GAP = 1424.7             # m  列间头对头距（与主仓 env reset 一致：4300−2875.3）
+HEAD_GAP = D_DES              # m  列间头对头距（与主仓 env reset 共用同一目标间距）
 S_END = 49600.0               # m  终点（route_end_m，ADR-068）
 A_EB = 0.15                   # m/s² 列间安全包络紧急制动率（zba v2）
 MIN_GAP_AIR = 150.0           # m   安全包络静态最小间隔（zba v2）
@@ -93,22 +94,44 @@ def safety_envelope(dyn, lead_dyn):
     return float(np.sqrt(max(lead_dyn.vel[0], 0.0) ** 2 + 2.0 * A_EB * clearance))
 
 
-def cycle_brake(dyn, v_ref):
-    """文献[22] 循环制动：50 kPa 初制动 + 45 s 最短充风（速度带控制）。"""
+def solve_tube_command(mpc, x0, v_ref, a_ref, d2):
+    """按 zba 原实现求解并合成 tube 反馈；名义状态每控制步重置为实测误差。"""
+    mpc.xbar = np.asarray(x0, dtype=float).copy()
+    u_star = mpc.solve(x0, v_ref, a_ref, d2)
+    z = x0 - mpc.xbar
+    return float(u_star + KAPPA * (z[1] - z[3]))       # 式 48 tube 反馈
+
+
+def speed_guard(dyn, v_ref, thr, ed):
+    """绝对速度保护：超参考 0.5 m/s 时强制零牵引、满电制动。
+
+    Tube MPC 的硬约束只限制“不低于参考带下界”，并不保证从超速态回落到参考；
+    其前馈又会抵消已施加的 AB/坡度分力，可能反解出牵引。故在执行层加独立保护，
+    与主环境 ATP 的兜底语义一致；AB 仍由循环制动状态机负责。
+    """
+    if float(dyn.vel[0]) > v_ref + 0.5:
+        return 0.0, ED_MAX
+    return thr, ed
+
+
+def cycle_brake(dyn, v_ref, t_now):
+    """文献[22] 循环制动：50 kPa 初制动 + 缓解后 45 s 最短充风。"""
     st = getattr(dyn, "_mpc_cycle_state", None)
-    now = float(dyn.t) if hasattr(dyn, "t") else 0.0
     if st is None:
-        st = dict(b_app=False, t_cmd=-1e9)
+        st = dict(b_app=False, t_rel=-1e9)
         dyn._mpc_cycle_state = st
-    if not st["b_app"] and dyn.vel[0] > v_ref + 0.5:
-        st["b_app"] = True
-        st["t_cmd"] = now
-    elif st["b_app"] and (dyn.vel[0] < v_ref - 0.5
-                          or now - st["t_cmd"] > 45.0):
-        st["b_app"] = False
-        st["t_cmd"] = now
-    if st["b_app"] and dyn.vel[0] * 3.6 < 40.0:    # 文献式 2-26：低速强制缓解
-        st["b_app"] = False
+    v = float(dyn.vel[0])
+    if v <= V_MIN_RELEASE:                 # 式 2-26：低速强制缓解
+        if st["b_app"]:
+            st["b_app"] = False
+            st["t_rel"] = float(t_now)
+        return False
+    if st["b_app"]:
+        if v <= v_ref - 0.5:
+            st["b_app"] = False
+            st["t_rel"] = float(t_now)
+    elif v >= v_ref + 0.5 and t_now - st["t_rel"] >= 45.0:
+        st["b_app"] = True                 # 仅缓解后计时；施加时长不设 45 s 上限
     return st["b_app"]
 
 
@@ -120,6 +143,8 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--atp", action="store_true")
     args = ap.parse_args()
+    if args.atp:
+        raise SystemExit("--atp 尚未接入执行链，禁止用它产出 ATP 指标")
 
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -135,18 +160,22 @@ def main():
     dyns = [make_train(args.coupler, S_HEAD0 - i * HEAD_GAP, profile)
             for i in range(N_TRAINS)]
     mpcs = [TubeMPC(idx=i) for i in range(N_TRAINS)]
+    train_len0 = float(dyns[0].pos[0] - dyns[0].pos[-1])
     intra0 = [dyns[i].pos[0] - grp_mean(dyns[i], GA, "pos") for i in range(3)]
     v_lead_prev = [d.vel[0] for d in dyns]
     v_ga_prev = [grp_mean(d, GA) for d in dyns]
 
     keys = ["t", "s_head", "v_head", "v_ga", "thr", "ed", "b", "uhat",
-            "fc_peak", "v_ref0", "gap_lead"]
+            "fc_peak", "v_ref0", "gap_lead", "gap_air_lead"]
     log = {k: [] for k in keys}
     per_train_peak = np.zeros(N_TRAINS)
     solve_ms = []
+    solve_ok = []
+    solve_attempts = []
 
     n_steps = int(args.max_steps)
     t0 = time.time()
+    route_reached = False
     for k in range(n_steps):
         cmds = []
         for i in range(N_TRAINS):
@@ -175,13 +204,13 @@ def main():
                            dyn.vel[0] - v_ga])
             d2 = float(-(v_ga - v_ga_prev[i]) / DT_MPC)
             ts = time.time()
-            u_star = mpcs[i].solve(x0, v_ref, a_ref, d2)
+            u_hat = solve_tube_command(mpcs[i], x0, v_ref, a_ref, d2)
             solve_ms.append((time.time() - ts) * 1000.0)
-            z = x0 - mpcs[i].xbar
-            u_hat = u_star + 1.0 * (z[1] - z[3])           # 式 48 tube 反馈
+            solve_ok.append(bool(mpcs[i].last_solve_success))
+            solve_attempts.append(int(mpcs[i].last_solve_attempts))
             if i > 0 and dyn.vel[0] > v_allow:
                 u_hat = min(u_hat, 0.0)                     # 安全包络内禁加速
-            b_app = cycle_brake(dyn, v_ref)
+            b_app = cycle_brake(dyn, v_ref, k * DT_MPC)
             ed_cap = ED_AIR_CAP if (b_app and dyn.vel[0] < v_ref + 0.3) else ED_MAX
             # 式 11/13 前馈：非控制力补偿后反解手柄（zba :276 同款）
             v_abs = abs(dyn.vel[0])
@@ -206,6 +235,7 @@ def main():
                                               loco.transmission_efficiency)
                 ed = float(np.clip(abs(u_n) / max(f_ed, 1.0), 0.0, ed_cap))
                 thr = 0.0
+            thr, ed = speed_guard(dyn, v_ref, thr, ed)
             cmds.append((dyn, thr, ed, b_app))
             row_i = dict(t=k * DT_MPC + DT_MPC, s_head=dyn.pos[0],
                          v_head=dyn.vel[0], v_ga=v_ga, thr=thr, ed=ed,
@@ -214,6 +244,7 @@ def main():
             row_i["fc_peak"] = float(fc.max()) / 1e3 if fc.size else 0.0
             row_i["v_ref0"] = v_ref
             row_i["gap_lead"] = (dyns[i - 1].pos[0] - dyn.pos[0]) if i else np.nan
+            row_i["gap_air_lead"] = (dyns[i - 1].pos[-1] - dyn.pos[0]) if i else np.nan
             for kk, vv in row_i.items():
                 log[kk].append(vv)
             per_train_peak[i] = max(per_train_peak[i],
@@ -241,41 +272,94 @@ def main():
             print(f"异常终止 t={k * DT_MPC:.0f}s（非有限速度）")
             break
         if dyns[0].pos[0] >= S_END:
+            route_reached = True
             print(f"头车到达 {S_END/1000:.1f} km，提前结束")
             break
 
-    T = len(log["t"])
-    gaps_12 = np.array(log["gap_lead"][1::3]) if T >= 3 else np.array([np.nan])
+    # log 按“控制步 → 列”交错展开；steps/full_route 必须与主环境一致，
+    # 以领航列是否到达 route_end 判定，不能误用数组末尾的第三列状态。
+    T = len(log["t"]) // N_TRAINS
+    def matrix(key):
+        return np.asarray(log[key], dtype=float).reshape(T, N_TRAINS)
+
+    v_mat = matrix("v_head")
+    b_mat = matrix("b")
+    gap_air = matrix("gap_air_lead")
+    gap_head = matrix("gap_lead")
+    # 日志在每控制步下达指令前记录；末态须取最后一次 ZOH 子步之后的状态。
+    final_heads = np.array([d.pos[0] for d in dyns], dtype=float)
+    final_speeds = np.array([d.vel[0] for d in dyns], dtype=float)
+    # 主指标用与主环境 reset 同源的头对头间距；零车钩下车辆可纵向拉开，
+    # 尾端净空只作诊断，不能拿末态尾位反推参考间距。
+    d_eff = D_DES - train_len0
+    gap_err = gap_head[:, 1:] - D_DES
+    gap_err_mean = np.mean(gap_err, axis=1)
+    lead_band = (v_mat[:, 0] >= V_MIN_RELEASE) & (v_mat[:, 0] <= V_CAP_MPS)
+    min_gap_m = float(np.nanmin(gap_air[:, 1:]))
+    rear_end_steps = int(np.sum(gap_air[:, 1:] <= 0.0))
+    src_hashes = {}
+    for rel in ("src/evaluation/evaluate_mpc_tube.py",
+                "src/mpc_baseline/params.py",
+                "src/mpc_baseline/tube_mpc.py"):
+        src_hashes[rel] = hashlib.sha256(
+            (Path(__file__).resolve().parents[2] / rel).read_bytes()).hexdigest()
     meta = build_metadata(
         project_root=str(Path(__file__).resolve().parents[2]),
         case="official",
         world_cfg={"simcase": "official", "coupler": args.coupler,
                    "v_max_kmh": 75.0, "init_speed_kmh": 60.0,
                    "start_m": S_HEAD0, "d_des_m": D_DES,
+                   "train_len_m": train_len0, "d_eff_m": D_DES - train_len0,
                    "route_end_m": S_END, "grade_profile":
                        "shuozhou_ningwuxi_beidaniu_49km",
                    "consist_preset": "10kt_1plus108",
                    "H_pred": 5, "DT_MPC": DT_MPC, "M_LOCO_t": M_LOCO,
                    "M_WAGON_GROUP_t": M_WAGON_GROUP, "W_LIM_KN": 1.0,
-                   "KAPPA": 1.0, "mpc_solver": "SLSQP"},
+                   "KAPPA": 1.0, "mpc_solver": "SLSQP",
+                   "cycle_reduction_kpa": R_CYCLE, "recharge_s": 45.0,
+                   "speed_guard_margin_mps": 0.5,
+                   "speed_guard_action": "zero_traction_full_ed",
+                   "reference_table": ("refspeed_baseline_20261113_095953/"
+                                       "ref_speed_table.npz")},
         seed=args.seed,
         entry="src/evaluation/evaluate_mpc_tube.py",
         extra={"max_steps": n_steps, "actual_steps": T,
-               "solve_ms_mean": float(np.mean(solve_ms))})
+               "solve_ms_mean": float(np.mean(solve_ms)),
+               "solve_success_rate": float(np.mean(solve_ok)),
+               "solve_attempts_mean": float(np.mean(solve_attempts)),
+               "source_sha256": src_hashes})
     result = {
         "metadata": meta,
         "summary": {
             "steps": T,
             "peak_coupler_kN": float(np.max(per_train_peak)),
             "per_train_peak_kN": per_train_peak.tolist(),
-            "mean_speed_kmh": float(np.mean(log["v_head"]) * 3.6),
-            "final_head_speed_kmh": float(log["v_head"][-1] * 3.6),
-            "min_gap_head_m": float(min(g for g in log["gap_lead"]
-                                        if np.isfinite(g))),
-            "overspeed_steps_atp": int(sum(log["b"])),
+            "coupler_reporting": ("mt2_physical_diagnostic_not_mpc_claim"
+                                  if args.coupler == "mt2" else
+                                  "zero_impedance_not_a_comparison_metric"),
+            "mean_fleet_speed_kmh": float(np.mean(v_mat) * 3.6),
+            "mean_lead_speed_kmh": float(np.mean(v_mat[:, 0]) * 3.6),
+            "final_head_speed_kmh": float(final_speeds[0] * 3.6),
+            "final_head_speeds_kmh": (final_speeds * 3.6).tolist(),
+            "final_head_positions_m": final_heads.tolist(),
+            "band_rate": float(np.mean(lead_band)),
+            "d_eff_m": d_eff,
+            "gap_err_mean_abs_m": float(np.mean(np.abs(gap_err_mean))),
+            "gap_err_peak_abs_m": float(np.max(np.abs(gap_err_mean))),
+            "min_gap_m": min_gap_m,
+            "rear_end_steps": rear_end_steps,
+            "min_gap_head_m": float(np.nanmin(gap_head[:, 1:])),
+            "ab_steps": int(np.any(b_mat > 0.0, axis=1).sum()),
+            "ab_agent_ratio": (b_mat > 0.0).mean(axis=0).tolist(),
+            "mean_ed": float(np.mean(matrix("ed"))),
+            "cycle_brake_train_steps": int(np.sum(b_mat > 0.0)),
+            "atp_interventions": None,
+            "atp_metric_note": "not_available_in_independent_tube_mpc_entry",
             "solve_ms_mean": float(np.mean(solve_ms)),
+            "solve_success_rate": float(np.mean(solve_ok)),
+            "solve_attempts_mean": float(np.mean(solve_attempts)),
             "wall_clock_s": time.time() - t0,
-            "full_route": bool(log["s_head"][-1] >= S_END),
+            "full_route": bool(route_reached),
         },
     }
     (out / "result.json").write_text(
