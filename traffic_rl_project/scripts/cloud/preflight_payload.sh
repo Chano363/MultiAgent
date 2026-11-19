@@ -121,7 +121,16 @@ EOF
       *) bad "$BCOK";;
     esac
   else
-    bad "warm_start=true 但 $BC 不存在（--resume-weights-only 会读它）"
+    # 【2026-11-19 修正】原先此处无条件 FAIL，与第 5 项「未指定 --resume ⇒ 从 BC 起步」
+    # 自相矛盾：BC 权重由训练流程内的 warm_start_decompose_bc 自动生成到 <ckpt_dir>/
+    # bc_warmstart.pt（fleet_spec.py:41-60/174-221），**只有 --resume-weights-only
+    # 续训才需要预置**。故：无 --resume（从头训）降级为 WARN；给了 --resume 仍 FAIL
+    # （不放宽续训场景的判据）。
+    if [ -z "$RESUME" ]; then
+      warn "warm_start=true 但 $BC 不存在：从头训场景该权重由训练时 warm_start_decompose_bc 自动生成（仅 --resume-weights-only 需预置）"
+    else
+      bad "warm_start=true 但 $BC 不存在（--resume-weights-only 会读它）"
+    fi
   fi
 fi
 

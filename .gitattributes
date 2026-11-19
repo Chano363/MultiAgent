@@ -828,3 +828,6 @@ traffic_rl_project/outputs/sim_validation/figures/controller_repair_20261020/*.p
 traffic_rl_project/publication_archive/20261101/** -text whitespace=-trailing-space,-blank-at-eof
 traffic_rl_project/publication_archive/20261101/**/*.pdf -diff
 
+
+# Shell scripts must keep LF on Windows checkout (CRLF breaks bash on Linux/cloud).
+*.sh text eol=lf
