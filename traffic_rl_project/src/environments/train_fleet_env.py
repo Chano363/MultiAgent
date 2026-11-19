@@ -123,6 +123,11 @@ class TrainFleetEnv:
     # 【A1-final 双向列距维持，2026-09-09】leader 最多比尾部列快这么多（m/s），
     # 留出追上裕量。大于此则 leader 迁就压速，编队以尾部能跟上的共同速度前进。
     LEAD_TAIL_OFFSET_MPS = 5.0
+    # 【ADR-076 待验证 2026-11-19】follower 追距上限的 offset（**与 leader 迁就解耦**）。
+    # 语义：follower 的速度带上限 = "前列速度 + 本值" ⇒ 允许 follower 略快于前列
+    #       以持续缩距（chase 语义，诊断 §19.7.2：几何收敛靠 leader 让，不是靠 follower 追）。
+    # 与 LEAD_TAIL_OFFSET_MPS 同值 ⇒ 改动前行为逐位一致（零回归）。
+    FOLLOWER_CHASE_OFFSET_MPS = 5.0
 
     # 【列距主动收缩 v2 2026-09-09】follower 级联追前列的强化增益。
     # A2 全局共同速度锁把 follower 上限一起压到"最慢列+5"，使"最慢列当 follower"时
@@ -259,6 +264,32 @@ class TrainFleetEnv:
         # 长大下坡难免瞬时越线，罚太狠会诱导"宁可少制动"。
         over_w_default = 10.0 if self.speed_band_shape in ('ramp', 'ref') else 5.0
         self.speed_over_w = float(config.get('speed_over_w', over_w_default))
+        # 【ADR-076 待验证 2026-11-19】领航迁就 offset / follower 追距 offset 参数化。
+        # 默认 = 类常量（+5 / +5）⇒ 与改动前逐位一致（**零回归**）。
+        # 依据：诊断 §19.7.2 —— 迁就 offset 的**符号**是编队几何收敛性的开关
+        #   （>0 允许 leader 领先尾列 ⇒ 几何持续发散；≤0 ⇒ 几何静止/收敛），
+        #   而 §19.7.3 实测 offset<0 的代价落在 band（领航降速 ⇒ 掉出绝对带）。
+        # 两项语义不同（leader 迁就 = 允许领先尾列；follower 追距 = 允许快于前列）
+        # ⇒ 独立参数化，避免改一个连带压另一个（诊断 §19.9 的交互说明）。
+        self.leader_tail_offset_mps = float(
+            config.get('leader_tail_offset_mps', self.LEAD_TAIL_OFFSET_MPS))
+        self.follower_chase_offset_mps = float(
+            config.get('follower_chase_offset_mps', self.FOLLOWER_CHASE_OFFSET_MPS))
+        # 【ADR-076 待验证 2026-11-19】分段奖励权重调度（MTC-HRL 缩水版，Wang2026 对标）。
+        # 默认空列表 = 不启用 ⇒ 全部项权重 1.0（**零回归**）。
+        # 结构：[{start_m, end_m, weights: {term: factor}}, ...]，按**领航列头车位置**查表；
+        #   位置不落在任何段内 ⇒ 用 segment_reward_weights_default（全 1.0）。
+        # 只作用于正项（speed_band / rel_anchor / gap_eff）；负罚项权重恒定。
+        self.segment_reward_weights = list(config.get('segment_reward_weights', []) or [])
+        self.segment_reward_weights_default = dict(
+            config.get('segment_reward_weights_default', {}) or {})
+        # 分段可作用的项（与 COVER_POSITIVE_TERMS 同族：只有正项参与权重调度）
+        self.segment_weight_terms = tuple(
+            config.get('segment_weight_terms',
+                       ('speed_band', 'rel_anchor', 'gap_eff')))
+        # 分段切换的迟滞（m）：避免位置在段边界抖动导致权重频繁跳变（默认 0 = 无迟滞）
+        self.segment_weight_hysteresis_m = float(
+            config.get('segment_weight_hysteresis_m', 0.0))
         # 【W4-v11】纵向制动缸压梯度罚权重（默认 0 = 零回归）。
         # 归因依据见 PRESSURE_GRAD_THRESHOLD；该罚只作用于梯度超阈值步。
         self.pressure_gradient_penalty_w = float(
@@ -843,6 +874,36 @@ class TrainFleetEnv:
         scripts/gen_ref_speed_table.py 的修订说明）。
         """
         return self._ref_speed_at(float(self._train_heads[0]))
+
+    def _segment_weights(self, position_m: float) -> dict:
+        """按领航列头车位置查表返回该段的正项权重系数（默认全 1.0）。
+
+        【ADR-076 待验证 2026-11-19】分段奖励权重调度（MTC-HRL 缩水版）。
+        段未配置 ⇒ 空 dict（调用方按 1.0 处理 ⇒ 零回归）。
+        位置取领航列头车 `self._train_heads[0]`（奖励计算前已更新）。
+        """
+        if not self.segment_reward_weights:
+            return {}
+        pos = float(position_m)
+        hys = float(self.segment_weight_hysteresis_m)
+        # 1) 段内命中优先
+        for seg in self.segment_reward_weights:
+            lo = float(seg.get('start_m', 0.0))
+            hi = float(seg.get('end_m', float('inf')))
+            if lo <= pos < hi:
+                return dict(seg.get('weights', {}) or {})
+        # 2) 迟滞带：仅当位置落在**唯一一段**的迟滞带内时归属该段
+        #    （否则可能同时命中多段的迟滞带 ⇒ 归属不确定 ⇒ 不采用迟滞，走 default）
+        if hys > 0.0:
+            cand = []
+            for seg in self.segment_reward_weights:
+                lo = float(seg.get('start_m', 0.0))
+                hi = float(seg.get('end_m', float('inf')))
+                if (lo - hys) <= pos < (hi + hys):
+                    cand.append(seg)
+            if len(cand) == 1:
+                return dict(cand[0].get('weights', {}) or {})
+        return dict(self.segment_reward_weights_default)
 
     def _line_vmax_for(self, ti: int) -> float:
         """【ADR-060 限速逐段联动】该列的联动线路限速（m/s）。
@@ -1571,7 +1632,7 @@ class TrainFleetEnv:
                 # 【leader 迁就】限制 leader 速度带不高于 "尾部列速度 + 裕量"。
                 tail_speed = float(self.trains[-1].dynamics.vel[0])
                 lead_cap = float(np.clip(self.v_max, 0.0,
-                                         tail_speed + self.LEAD_TAIL_OFFSET_MPS))
+                                         tail_speed + self.leader_tail_offset_mps))
                 v_bound_max = lead_cap - self.v_max  # ≤0：压低 leader 的超速触发线
                 v_bound_min = 0.0
                 coordination_traction = 0.0
@@ -1595,7 +1656,13 @@ class TrainFleetEnv:
                 # 的 gap 抬带/牵引收缩，防追尾由 rel_speed 抑制 + 前置 ETCS(gap) 监督兜底。
                 # The controller expects an offset relative to self.v_max,
                 # whereas preceding speed + margin is an absolute speed cap.
-                follower_cap_adj = lead_speed + self.LEAD_TAIL_OFFSET_MPS - self.v_max
+                # 【ADR-076 待验证 2026-11-19】follower 上限的 offset 与 leader 迁就 offset
+                # **语义不同**（前者是"允许追前列"，后者是"允许领先尾列"）⇒ 解耦为两个参数：
+                #   · leader 迁就 offset（可为负 ⇒ 几何收敛路径，诊断 §19.7.2）
+                #   · follower 追距 offset（保持为正 ⇒ chase 语义不受 leader 迁就牵连）
+                # 现值 follower=+5 / leader=+5 ⇒ 与改动前逐位一致（零回归）。
+                follower_cap_adj = (lead_speed + self.follower_chase_offset_mps
+                                    - self.v_max)
                 v_bound_max = min(v_bound_max, follower_cap_adj)
                 # 【等速冻结消除 chase 2026-09-09】三列等速时 coordination_adj 追的偏置
                 # 因 rel_speed≈0 / gap_err 恒定而无累积 → 间距在 ~1300m 冻结。补救：当
@@ -1960,6 +2027,13 @@ class TrainFleetEnv:
         # 幅度罚，车钩力不进奖励，实车拉钩 −8.93%）。
         notch_smooth_term = -float(getattr(self, '_notch_smooth_pen', 0.0))
 
+        # 【ADR-076 待验证】分段奖励权重调度：按领航位置查段，把该段的正项系数乘上去。
+        # 与 COVER 乘子**正交**：有效权重 = base × 段系数 × COVER 乘子（后者 ≤ 4×）。
+        _seg_w = self._segment_weights(self._train_heads[0])
+        if _seg_w:
+            speed_band_reward *= float(_seg_w.get('speed_band', 1.0))
+            rel_anchor_reward *= float(_seg_w.get('rel_anchor', 1.0))
+            gap_eff_reward *= float(_seg_w.get('gap_eff', 1.0))
         # 【COVER】3 正项权重乘子（默认全 1.0 = 零回归；已乘到实际 reward 上）。
         # 乘子由 trainer 侧 controller 逐集回灌到 self.cover_multipliers。
         _cm = getattr(self, 'cover_multipliers', {})
