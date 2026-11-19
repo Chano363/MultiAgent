@@ -1814,7 +1814,7 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 3. **从头训或奖励面完全不变的纯延长？——从头训。** ④改奖励组合方式 ⇒ ADR-070③；且禁止热启动（ADR-070①）。
 4. **快评协议已进启动脚本？——是。** `scripts/cloud/cover_quick_eval_watch.sh`（每 10 集确定性快评 31500 步），判据四条 = 零穿透 / band ≥0.85 / peak ≤1500 / peak 较上次上行 ≤2%；破线写 `BREAK_LINE.txt` + 实例内自停机。⚠️ **`EVAL_CFG` 必须覆盖为本投配置**（否则 1 维策略载入失败 ⇒ 快评静默失效；ADR-074 附段二已踩此坑）。
 5. **ADR-070 塌缩护栏在位？——是。** 从头训 ⇒ 无热启动塌缩面；pilot（4 集 + 逐 2 集快评）拦首次塌缩窗口；确定性快评每 10 集守门（v20/v21 两次实弹拦截已验证有效）。
-6. **收账 closer 已以 schtasks 注册且心跳 rc=0？——⏳ 待回填（本 ADR 写下时尚未注册）。** 铁律 12 要求**开机与注册 closer 是同一动作序列，closer 不在位不得开机**。注册走 `scripts/cloud/register_closer_pair.ps1`（primary+backup 双活 + 20 s 自愈 + 幂等停机；一次性 wrapper 仅历史参考、**不得用**）；四道触发 = done marker / 独立日志 `--start-marker` 截断 + `--exit-min-count`（= 阶段数）/ `--abort-glob`（`BREAK_LINE.txt` + `DEAD_*.txt`）/ 硬 deadline；三条防误杀红线 = 只读本次独立日志 / min-count=阶段数 / **ssh 不可达永不触发停机**。⚠️ **本机 2026-11-19 实测：新任务可能停 `Queued`（无交互会话 ⇒ 不启动进程）⇒ 开机前必须确认 `State=Running`；若仍 Queued 则不得开机**（宁可不训也绝不空转）。
+6. **收账 closer 已以 schtasks 注册且心跳 rc=0？——✅ 是（2026-11-20 06:0x–06:35 实证）。** 铁律 12 要求**开机与注册 closer 是同一动作序列，closer 不在位不得开机**。注册走 `scripts/cloud/register_closer_pair.ps1`（primary+backup 双活 + 20 s 自愈 + 幂等停机；一次性 wrapper 仅历史参考、**不得用**）；四道触发 = done marker / 独立日志 `--start-marker` 截断 + `--exit-min-count`（= 阶段数）/ `--abort-glob`（`BREAK_LINE.txt` + `DEAD_*.txt`）/ 硬 deadline；三条防误杀红线 = 只读本次独立日志 / min-count=阶段数 / **ssh 不可达永不触发停机**。⚠️ **本机 2026-11-19 实测：新任务可能停 `Queued`（无交互会话 ⇒ 不启动进程）⇒ 开机前必须确认 `State=Running`；若仍 Queued 则不得开机**（宁可不训也绝不空转）。 **第 6 投实证**：closer 双活（primary+backup）注册并确认 `State=Running` 后才开机；2026-11-19 21:46:21 护栏写 `BREAK_LINE ep=4 reason=band=0.8396<0.85; peak上行 16.5%>2%` ⇒ backup closer 命中该标记 → 拉产物（`outputs/results/w4nincrgate_full_20261119b_primary/`，含 BREAK_LINE.txt / exit_code.txt=143 / metadata.json / ep2+ep4 快评 JSON）→ 停机 → 复核 `Status=Stopped` + `StoppedMode=StopCharging` ✅ → CLOSEOUT_OK。⚠️ **记录缺陷（2026-11-20 发现）**：closer 的 self-log 按**固定文件名**（`closer_primary.log` / `closer_backup.log`）写入，**后一窗口覆盖前一窗口** ⇒ 第 6 投当时的逐条轮询日志已被第 8 投覆盖，只能靠回传产物 + 本补录复原。**改进项**：closer self-log 应按 `run_tag` 分文件（与 `closer_stdout_<run_tag>.log` 同口径）。 **本投实证**：注册后 `State=Running`（primary+backup 双活）→ 才开机 → 取到 EIP（47.120.11.1，本投较上投变更）→ 更新 closer 配置并重启任务 → 心跳 **rc=0**（06:01/06:03 primary、06:00/06:02 backup）⇒ 满足「注册与开机同一动作序列」。⚠️ 过程中一度 rc=124（ssh 不可达），根因 = `known_hosts` 首次写入缺失（closer 用 `StrictHostKeyChecking=accept-new`）⇒ Windows 侧手测一次写入后恢复 rc=0；**收账时 backup closer 先命中 `BREAK_LINE.txt` → 拉产物 rc=0 → 复核 `Status=Stopped` + `StoppedMode=StopCharging` ✅ → CLOSEOUT_OK** ⇒ 整条链路实战可用。
 
 ### 三、窗口规格（红线 1 四件套，owner 2026-11-19「同意，继续」批准）
 
@@ -1871,7 +1871,7 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 3. **从头训或奖励面完全不变的纯延长？——从头训。** 改控制面（ED 上限改变策略面对的环境）+ 继承 ADR-075 的奖励面改动 ⇒ ADR-070③；禁止热启动（ADR-070①）。
 4. **快评协议已进启动脚本？——是。** `scripts/cloud/cover_quick_eval_watch.sh`（每 2 集确定性快评 31500 步），判据 = 零穿透 / band ≥0.85 / peak ≤1500 / peak 较上次上行 ≤2%；破线写 `BREAK_LINE.txt` + 实例内自停机。⚠️ **`EVAL_CFG` 必须覆盖为本投配置**（否则 1 维策略载入失败 ⇒ 快评静默失效；ADR-074 附段二已踩此坑）。
 5. **ADR-070 塌缩护栏在位？——是。** 从头训 ⇒ 无热启动塌缩面；pilot（4 集 + 逐 2 集快评）拦首次塌缩窗口；确定性快评逐 2 集守门（v20/v21 两次实弹拦截 + 第 6 投 ep4 实弹拦截已验证有效）。
-6. **收账 closer 已以 schtasks 注册且心跳 rc=0？——⏳ 待回填（本 ADR 写下时尚未注册）。** 铁律 12：**开机与注册 closer 是同一动作序列，closer 不在位不得开机**。注册走 `scripts/cloud/register_closer_pair.ps1`（primary+backup 双活 + 20 s 自愈 + 幂等停机；一次性 wrapper 仅历史参考、**不得用**）；四道触发 = done marker / 独立日志 `--start-marker` 截断 + `--exit-min-count` / `--abort-glob`（`BREAK_LINE.txt` + `DEAD_*.txt`）/ 硬 deadline；三条防误杀红线 = 只读本次独立日志 / min-count=阶段数 / **ssh 不可达永不触发停机**。⚠️ **2026-11-19 实测：本机新任务可能停 `Queued`（无交互会话 ⇒ 不启动进程）⇒ 开机前必须确认 `State=Running`；若仍 Queued 则不得开机**（宁可不训也绝不空转）。第 6 投已实证该链路可用（backup closer 先命中 marker → 拉产物 → 停机 → 复核 `Stopped+StopCharging` → CLOSEOUT_OK）。
+6. **收账 closer 已以 schtasks 注册且心跳 rc=0？——✅ 是（2026-11-19 21:4x 实证，2026-11-20 补录）。** 铁律 12：**开机与注册 closer 是同一动作序列，closer 不在位不得开机**。注册走 `scripts/cloud/register_closer_pair.ps1`（primary+backup 双活 + 20 s 自愈 + 幂等停机；一次性 wrapper 仅历史参考、**不得用**）；四道触发 = done marker / 独立日志 `--start-marker` 截断 + `--exit-min-count` / `--abort-glob`（`BREAK_LINE.txt` + `DEAD_*.txt`）/ 硬 deadline；三条防误杀红线 = 只读本次独立日志 / min-count=阶段数 / **ssh 不可达永不触发停机**。⚠️ **2026-11-19 实测：本机新任务可能停 `Queued`（无交互会话 ⇒ 不启动进程）⇒ 开机前必须确认 `State=Running`；若仍 Queued 则不得开机**（宁可不训也绝不空转）。第 6 投已实证该链路可用（backup closer 先命中 marker → 拉产物 → 停机 → 复核 `Stopped+StopCharging` → CLOSEOUT_OK）。
 
 ### 三、窗口规格（红线 1 四件套）
 
@@ -1891,4 +1891,40 @@ ules/EXECUTION_RULES.md / knowledge/MPC_BASELINE_KNOWLEDGE_BASE.md / knowledge/T
 - **零机时探针的性质**：本 ADR 的机制可行性由 **8 个整程变体**支撑（`adr076_edcap_probe_20261120` 5 档 + `adr076_edcap2_probe_20261120` 3 档阶跃阀），产物 `outputs/results/diagnostics/adr076_edcap*/`；**这些是 OOD 对照（现有 ckpt 在 AB 不可用 + ED 贴顶下训练），只作投前方向筛选，不作峰值/安全判据、不作论文口径**。
 - **已知风险（探针已暴露，未消除）**：① **band 是唯一未过项**（edcap0.75 = 0.8318 < 85% 杀线）：机制已 100% 归因为**领航超速跑分 16.8%**（below40 占比 0.0000）；**控制面已无可解**——加深 ED 能减速但峰涨（阶跃释放阀实测 peak 961.9→1237.7、超限 0→1854）⇒ **本投能否过 band 判据，取决于策略能否在 ED 受限环境下学出「提前减速」而非事后补刹**；② 权衡**非单调**（0.85 是最差中间点，0.65/0.55 反而更差）⇒ 从头训后工作点可能偏移，`ed_notch_cap` 需按 pilot 读数复核；③ 几何改善在整程成立但终值仍 316.8/561.4 m（规则基线 24.54 m）⇒ **H1 仍需本投及后续继续压**。
 - **本投被判定为「值得投」而非「必过」**：peak 与超限两条判据已有 OOD 证据支撑（961.9 kN / [0,0,0]），band 一条**无 OOD 证据支撑**（控制面已证不可解）⇒ 风险集中在 band。
+
+### 六、本投执行结果（2026-11-20 06:35，pilot 未过 ⇒ 按止损规则不进正式窗口）
+
+- **结局**：窗口 `w4nincrgatecap_full_20261120`（05:52:38 boot）→ **06:35:27 护栏 BREAK**
+  （`BREAK_LINE ep=2 reason=band=0.8298<0.85`）⇒ 机时 ≈43 min ≈ **1.1 元**；
+  closer 收账完整（拉产物 rc=0 → `Stopped`+`StopCharging` 复核 ✅ → CLOSEOUT_OK）。
+  **按本 ADR §四 执行序 ⑧：pilot 三条判据不过 ⇒ 立即停机收账，不进正式窗口。**
+- **ep2 确定性快评读数（红线 5 可追溯：metadata `git_commit = 154c1b8`）**：
+
+  | 指标 | 第 8 投 ep2 | 第 6 投 ep2 | 探针 edcap0.75（OOD 对照） | 规则基线 M0 |
+  |---|---:|---:|---:|---:|
+  | **gap_err 均值** | **178.15 m** | 495.08 m | 316.8 m | 24.54 m |
+  | gap_err 峰值 | 333.57 m | 928.56 m | — | — |
+  | peak | 1262.26 kN | 1080.36 kN | 961.9 kN | 1294.2 kN |
+  | band | **0.82983** | 0.86222 | 0.8318 | 1.000 |
+  | viol / rear_end_steps | 3477 / **0** | 151 / 0 | [0,0,0] / 0 | — |
+  | mean_ed | 0.6833 | 0.9013 | 0.699 | 0.7365 |
+  | overspeed_car_steps | 423873/390788/368605 | — | — | — |
+
+  ⇒ ① **ED 深度上限在真实训练中机制有效**：gap_err 均值比第 6 投改善 **317 m（−64%）**，
+  为本项目历史最好；训练侧逐集 313.6/290.9/308.8（第 6 投 666.6/671.2/656.9）；
+  `gap_eff` 达成率 58646/246046/200180（第 6 投 19365/96997，**高一个量级**）⇒ H1 训练通道充分打开；
+  ② **band 缺口在训练中被放大**（overspeed 42–51 万步）⇒ §五所预判的
+  「策略学不会提前减速」**已兑现**；③ 训练侧 peak 1329.8/1292.3/1385.0 ≫ 快评 1262.3
+  ⇒ ADR-070「训练 rollout 对确定性评估盲」**第 5 次实证**。
+- **⚠️ 本 ADR §三「预算」行已更正**（2026-11-20 08:0x）：原文写「预算剩 13.55 元 ⇒ 够，
+  余额 0.55 元」——**该「预算」是 agent 自造的伪预算**（＝agent 自设的单次封顶建议值 15 元
+  − 第 6 投实际 1.45 元），**owner 从未给过任何金额上限、额度或余额约束**。
+  红线 1 要求的是「单次窗口的成本透明」，不是「账户余额管理」⇒ 该表述作废。
+- **下一机制（未开窗）**：诊断 §19.21 的三假设判别指出，领航超速跑分的成因是
+  **「陡坡上纯 ED 物理上无法平衡（沿坡分力 ≈1163 kN > 单台机车粘着上限 ≈645 kN）
+  ⇒ 必须靠 AB；而 AB 在超速时刻 89% 的时间缺席」**。
+  解法不是加 ED（已被实测否证：ED 深度对超速只贡献 1.94 pp），
+  而是 **AB 释放判据改用「当前实际坡度」的物理需求**（`_ed_cannot_hold_speed`），
+  避免今早物理触发式兜底在低速误判「ED 已够用」⇒ 释放 ⇒ 222 s 充风门锁死 ⇒ 陡坡拖停。
+  **该机制须先过零机时整程探针（band ≥0.85 / peak ≤1180 / 几何不劣化），再谈开窗。**
 
