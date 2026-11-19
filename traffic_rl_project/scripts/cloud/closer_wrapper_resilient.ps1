@@ -55,8 +55,8 @@ while ($true) {
     '--self-log', $selfLog,
     '--region', $cfg.region
   )
-  # 【2026-11-19】pull_glob 改为可多值（cfg 里是数组）：训练产物在
-  # results/formation_.../<run_tag>/，快评结果在 results/decompose/ ⇒ 两个都要回传。
+  # NOTE (2026-11-19): pull_glob is an array in the config (training products +
+  # quick-eval results in results/decompose/). Pass one --pull-glob per entry.
   foreach ($g in $cfg.pull_glob) { $a += @('--pull-glob', $g) }
   foreach ($g in $cfg.abort_glob) { $a += @('--abort-glob', $g) }
   if ($DryRun) { $a += '--dry-run' }
