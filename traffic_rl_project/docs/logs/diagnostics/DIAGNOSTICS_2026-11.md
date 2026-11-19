@@ -4406,3 +4406,63 @@ nincr（规则拿掉）拿到 peak 1080 但 gap 495 m / band 86%。**
 把所有可用 RL 路线并排），而不是在当前路线上做第 N 次局部调参。
 本次靠自查 62 份历史产物才发现该事实，而它本应是立项第一天的检查项。
 
+### 19.18 decompose 路线的几何优势来源（动作面结构级定案，2026-11-20 04:1x）
+
+#### 19.18.1 差异不在 env_cfg 开关，只在动作面本身
+
+核实：主配置 `formation_ed_ab_3train_1plus108.yaml`（**decompose 路线 41.78 m
+用的就是它** + 旧 ckpt `v10_l1_20261111_163412/seed0/mappo_fleet_ep13_dec_ad2_cp_seed0.pt`）
+与 `..._nincr.yaml` 的 env_cfg **差异只有 8 个键**：
+
+| 键 | 主配置（decompose 路线） | nincr 配置 |
+|---|---|---|
+| `decompose` | `loco_ed_ab` | `loco_notch_incr` |
+| `ab_derive_notch_idx` / `ab_derive_release_margin` / `ab_derive_threshold` | 未设 | 2 / 0.05 / 0.5 |
+| `ab_low_speed_margin_kmh` / `ab_low_speed_release` | 未设 | 2.0 / true |
+| `ab_min_hold_s` | 0.0 | 未设 |
+| `ab_notch_hold_s` | 未设 | 90.0 |
+| `notch_incr_rate_notches` | 未设 | 3.0 |
+
+**关键**：除 `decompose` 外的 7 个键**全部只在 nincr 路径被读取**
+（`ab_derive_*` / `ab_notch_hold_s` / `ab_low_speed_*` 是 ADR-074 级位派生化的配套件；
+`notch_incr_rate_notches` 是级位积分速率）。
+decompose 路径不读它们 ⇒ **把 nincr 配置的 `decompose` 改回 `loco_ed_ab`，
+这 7 个键自动失效 ⇒ 配置等价于主配置。**
+
+⇒ **结论（硬）**：decompose 路线的几何优势（gap 41.78 m vs 495.08 m，11.9 倍）
+**不可能来自某个 env_cfg 开关**，只能来自**动作面结构本身**。
+
+#### 19.18.2 两条路径的 ED 计算方式（源码级）
+
+- **decompose**（`multi_loco_controller.py:1058`）：
+  `final[i,0] = clip(baseline[i,0] + ed_mod_coef * ed_mod, 0, 1)`
+  其中 `baseline` = 规则循环制动状态机 + ED 前馈浅化算出的**规则基础值**；
+  `ed_mod_coef = 0.5`（半幅调制，ADR-024）⇒
+  **RL 只能在规则给出的可行域内做有界微调**（ED ∈ [baseline−0.5, baseline+0.5]）。
+- **nincr**（`get_action_notch_incr`）：`final[k,0] = n_k`（RL 直接积分的级位）
+  ⇒ **规则层完全不在环**，ED 只能单调积分推深 ⇒ 实测 mean_ed 0.9013（贴顶）。
+
+⇒ **几何优势的物理来源 = 规则基线提供的「浅 ED + 正确缓解节奏」可行域**，
+而 nincr 让 RL 从零自由积分级位 ⇒ **掉出了那个可行域**
+（ED 贴顶 ⇒ 后列被迫自己减速 ⇒ 净空被撑开）。
+
+#### 19.18.3 对下一投的含义：需要重建可行域约束，而不是继续调 AB
+
+| 落点 | 机制 | 状态 |
+|---|---|---|
+| (a) **ED 深度上限** | `ed_notch_cap` 常数封顶，把 ED 压回 decompose 同等深度（mean_ed ≈ 0.77） | **已实现**（默认关 = 逐位零回归）；600 步冒烟 peak 1002.2→893.9→867.8→800.1→**735.7**（上限 1.0/0.85/0.75/0.65/0.55）单调生效、超限步清零、band 恒 100%、mean_ed 0.97→0.54 |
+| (b) 前馈基准 + 有界调制 | `ed_feedforward_cap` | **实测无效**：陡坡工况 `_grade_feedforward_actions` 二分命中 `capacity(1.0) <= required` ⇒ 前馈反解饱和为 **1.0** ⇒ cap1.0 与 cap2.0 结果几乎相同（600 步冒烟） |
+
+⇒ **(a) 是当前唯一可判的干预旋钮**；整程探针 `adr076_edcap_probe_20261120`
+（5 变体，零机时）判据 = 整程 peak（目标 ≤1180 / 安全线 ≤1500）、band、
+逐列 AB 率、几何速率与终值、末速、零穿透。
+**判决性问题：ED 浅化是否同时压峰 AND 改善几何**（若只压峰不改善几何，
+则 §19.17.3 的机制解释只对一半，须回头拆解 decompose 的 41.78 m 由哪些机制构成）。
+
+#### 19.18.4 一个必须记住的排除项
+
+`rl_base_seed1`（`eval_decompose_decompose_m1_ms36000_ctrl_base_seed1.json`）
+的 `gap_err_mean_abs_m = 22.09 m` 看起来**低于规则基线 24.54 m**，
+但同份产物的 `band_rate = 0.0287`、`final_speed_kmh = 0.0094`
+⇒ **列车停住**，该"好间距"是**停车伪峰**，**不得引用**（若引用会把 H1 判据带偏）。
+
