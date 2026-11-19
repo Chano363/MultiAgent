@@ -364,6 +364,17 @@ class MultiLocoController:
         # 本阀：当速度 ≥ 释放阀值时**放开 ED 上限**（回到 1.0）⇒ 允许策略正常减速
         # ⇒ 抑制速度上飘；其余区段仍受上限约束（几何收敛收益保留）。
         self.ed_notch_cap_release_kmh = 0.0     # >0：速度 ≥ 该值(km/h)时放开上限
+        # 【ADR-076 待验证 2026-11-20：ED 上限的渐进式斜坡，默认 0 = 不启用】
+        # 诊断 §19.19.6（整程实测）：**阶跃式释放阀（速度≥72 放开上限）有害**——
+        #   cap0.75+valve72：peak 961.9→**1237.7**、超限 [0,0,0]→[0,871,983]、
+        #   band 0.8318→0.8266 ⇒ 领航从浅 ED **突跳**到深 ED ⇒ 相位差冲击大 ⇒ 峰涨。
+        #   ⇒ "放开 ED 来减速"在控制面上是死的（同一动作的三面，§19.7 三轴耦合
+        #   在 ED 维度上的再现：加深 ED 能减速 ⇒ 但峰涨 ⇒ band 与峰互斥）。
+        # 本斜坡改为**连续放宽**：上限(v) = min(1, cap + slope·max(0, v − v_from))，
+        # 速度越高允许越深 ED，但**变化率受限** ⇒ 无阶跃冲击 ⇒ 抑制超速跑分的
+        # 同时不引入新的相位差冲击。纯参数 ⇒ 零机时可判。
+        self.ed_notch_cap_slope = 0.0           # 每 km/h 放宽的级位量（0 = 不启用）
+        self.ed_notch_cap_slope_from_kmh = 70.0 # 斜坡起点速度
         # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
         # 诊断 §19.14.2 的核心发现：规则基线与我们的策略**同物理、同协调律**，
         # 但规则基线 gap_err 24.5 m / band 100%，我们 654 m ⇒ H1 可解。
@@ -1498,12 +1509,20 @@ class MultiLocoController:
             # 检验"ED 浅 ⇒ 缓解-再施加相位差小 ⇒ 几何与峰同时可控"的因果性。
             # ⚠️ 只压 ED 深度上限，不改 AB 派生/充风门/低速兜底/车钩 veto。
             if self.ed_notch_cap < 1.0 and n_k > float(self.ed_notch_cap):
-                # 【ADR-076】速度释放阀：速度接近速度带上限时放开 ED 上限，
-                # 让策略能正常减速 ⇒ 抑制"ED 限浅 ⇒ 减速不足 ⇒ 速度上飘 ⇒
-                # 贴带上限 ⇒ 车钩力/超限恶化"的代价链（诊断 §19.19）。
+                # 【ADR-076】ED 上限的两种放宽方式（互斥，斜坡优先）：
+                # ① 阶跃释放阀：速度 ≥ 阈值 ⇒ 完全放开（实测有害，见参数注释）
+                # ② 渐进斜坡：上限随速度线性放宽（变化率受限 ⇒ 无阶跃冲击）
+                _cap_eff = float(self.ed_notch_cap)
                 _rel_v = float(self.ed_notch_cap_release_kmh)
-                if _rel_v <= 0.0 or vel * 3.6 < _rel_v:
-                    n_k = float(self.ed_notch_cap)
+                if _rel_v > 0.0 and vel * 3.6 >= _rel_v:
+                    _cap_eff = 1.0
+                _slope = float(self.ed_notch_cap_slope)
+                if _slope > 0.0:
+                    _dv = vel * 3.6 - float(self.ed_notch_cap_slope_from_kmh)
+                    if _dv > 0.0:
+                        _cap_eff = min(1.0, _cap_eff + _slope * _dv)
+                if n_k > _cap_eff:
+                    n_k = _cap_eff
             self._notch_level[k] = n_k
             # 2) ED = 级位（派生）
             final[k, 0] = n_k

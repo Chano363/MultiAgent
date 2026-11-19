@@ -1,0 +1,133 @@
+# 下一投配置（由 tmp_make_config.py 自 nincr 配置生成，其余参数逐字继承 ⇒ 两侧物理同源）
+# 开关：AB 释放速度门 56.0 km/h + AB 施加门 60.0 km/h + COVER
+# 继承来源：formation_ed_ab_3train_1plus108_nincr.yaml（ADR-074 级位派生化）
+# 生成时刻：run_tag=w4nincrgatecap_full_20261120
+# ═══════════════════════════════════════════════════════════════════════════
+# W4 路线二首投：级位派生化（ADR-074，owner 2026-11-18 拍板"当然是路线二"）
+# 继承自 formation_ed_ab_3train_1plus108.yaml（主配置），与 COVER 配置的差异：
+#   ① decompose: loco_notch_incr —— 动作 = 级位增量 1 维/机车（act_dim 1→，
+#      obs 追加 obs[12]=本机车级位），ED=级位（派生）、AB 由级位越限派生
+#      （不再进动作空间）。对标 Wang2023 ②（实车拉钩 −8.93%），直接作用于
+#      诊断 §7 "缓解—再施加—ED 交接相位差"瓶颈。
+#   ② cover_enabled=true + COVER 参数（Lu 2026，只对 3 正项提权）——本投多机制叠加（奖励面变更 ⇒ 从头训，ADR-070③）
+#   ③ 三目录同换新 run_tag（硬红线第 4 条，禁覆写历史）。
+# 物理引擎不动（两侧物理同源不破坏）；奖励 11 项与主配置逐字一致（不加切换幅度罚：
+#   速率限制是硬约束即 Wang2023 的平稳性通道，避免重蹈 B 路线"改奖励面"）。
+# 安全链（RL 无权关闭）：超速兜底 SERVICE → 档位 90s 保持 → 222s 充风门 →
+#   低速强制缓解（V17 教训：防 AB 拖停）；车钩力源头 veto 由子环境 safety 层执行。
+# ═══════════════════════════════════════════════════════════════════════════
+name: formation_ed_ab_3train_1plus108_nincrgatecap
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002      # 与主配置/W4 系列一致（发散调参 run2 口径）
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+  # 【本投】COVER controller 参数（env_cfg.cover_enabled=true 才生效）
+  cover_target_cov: 0.0        # 协方差地板：cov<0（该正项与优势反相关）才提权
+  cover_up_factor: 1.05        # 每次触发乘性增幅（单边，只增不减）
+  cover_weight_max: 4.0        # 乘子上界，防逐 minibatch 累乘漂移
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 20.833333333333332    # 【ADR-068】75 km/h（与主配置同源，勿改）
+  v_min: 11.111                # 40 km/h
+  max_steps: 31500
+  route_end_m: 49600
+  max_accel: 1.0
+  use_coupler_constraint: true
+  coupler_force_limit_n: 1000000.0
+  speed_band_shape: ref
+  reward_term_log: true
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261113_095953/ref_speed_table.npz
+  speed_over_w: 10.0
+  hierarchical: false
+  # ── 【ADR-074 核心】级位派生化动作面 ──────────────────────────────────
+  decompose: loco_notch_incr   # 每机车动作 = 级位增量 ∈[-1,1]（act_dim=1）
+  notch_incr_rate_notches: 3.0 # 单决策步 |Δn| ≤ 3/20（ADR-072 口径；decision_interval=10
+                               # ⇒ 1s/决策，量级对标 Wang2023 ±3/±12；全幅扫完 ≈7 决策步）
+  ab_derive_threshold: 0.5     # 级位 ≥ 0.5 → 请求 AB on（级位越限派生，Wang2023 ②）
+  ab_derive_release_margin: 0.05
+  # 【ADR-076】ED 深度上限：把 nincr 的 ED 级位封顶到 0.75（诊断 §19.19 整程干预）
+  # —— ed_cap 扫描 5 档（1.0/0.85/0.75/0.65/0.55）显示 0.75 是甜点：
+  #    peak 961.9 kN（首次进 1180 目标线）/ 车钩超限 [0,0,0]（首次清零）/
+  #    几何由发散转收敛（gap_rate +0.255 → +0.081 m/s）。
+  # 机制：ED 深度是编队几何的主控变量（ED 贴顶 ⇒ 缓解-再施加相位差大 ⇒
+  # 后列被迫自己减速 ⇒ 净空被撑开）；限浅 ⇒ 相位差小 ⇒ 几何收敛。
+  # ⚠️ 已知代价：ED 限浅 ⇒ 减速不足 ⇒ 尾列速度上飘贴带上限 75 km/h ⇒
+  #    领航超速跑分 16.8% ⇒ band 0.8318（低于 85% 杀线）⇒ **band 缺口
+  #    须由本投从头训的策略解决**（学"提前减速"而非事后补刹）。
+  ed_notch_cap: 0.75   # 释放滞回：级位 < 0.45 → 释放（防阈值抖动）
+  ab_derive_notch_idx: 2       # 派生档位 = MIN（70 kPa）；诊断 §7：140 kPa 时序完美也
+                               # ≈1004 > 1000 ⇒ 70 kPa 级循环制动是进线前提而非选项
+  ab_notch_hold_s: 90.0        # 档位最短保持（AB 波传播时延，张二田实测；W4-v3 同源）
+  ab_low_speed_release: true   # 低速强制缓解（V17 教训：防 AB 一次施加拖到停车）
+  ab_low_speed_margin_kmh: 2.0
+  ab_min_refill_s: 222.0       # 充风门（VALIDATION_BASELINE 张二田 S6，与主配置同源）
+  # ── 【下一投：AB 释放门 + 施加门 + 奖励面（ADR-075 待立）】──────────
+  ab_release_speed_gate: true    # AB 释放判据 = 速度门（诊断 §15/§16）
+  ab_release_speed_kmh: 56.0
+  ab_apply_speed_min_kmh: 60.0   # 低速段不新增 AB 源（诊断 §16 起步瞬态）
+  notch_smooth_w: 5.0            # 切换幅度罚（Wang2023 对标；v21 取 5.0）
+  cover_enabled: true           # COVER 奖励组合（Lu 2026；ADR-073 已实测稳面有效）
+  # ── 控制器标定（与主配置同源：编组级标定，两侧物理同源）────────────────
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  ab_staged_apply: true
+  ab_staged_gap_s: 3.0
+  ebi_stop_hold_mps: 0.5
+  cyclic_brake_trigger_kmh: 65.0
+  cyclic_release_kmh: 50.0
+  ed_release_coordination: true
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
+  ed_grade_feedforward: true
+  coupler_override: release
+  eot: true
+  start_randomization:
+    enabled: true
+    min_m: 4300
+    max_m: 4300
+
+obs: env                       # 逐机车 13 维观测（+obs[12]=本机车级位）
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10          # 与主配置一致（1 s/决策步）
+episodes: 1400                 # 默认值；实际投單数由 CLI --episodes 覆盖（窗口审批时定）
+curriculum: "31500:0"
+n_env: 4
+n_env_parallel: true
+parallel_traj_len: 0
+warm_start: true               # BC 教师 = 级位跟踪规则基线（fleet_spec incr 分支）
+bc_episodes: 1
+bc_epochs: 3000                # 标签非零分布的确定性回归，epochs 与主配置同量级
+bc_max_steps: 31500
+long_eval_interval: 0
+long_eval_steps: 31500
+init_speed_kmh: 60.0           # 【ADR-068】与主配置同源（60/75 = 0.80 对齐 Zhang2024）
+simcase: official
+ckpt_policy: fleet
+log_interval: 1
+
+dirs:
+  # 【ADR-074】三目录同换新 run_tag（硬红线第 4 条）；⚠️ 正式开窗前按 EXECUTION_RULES
+  # 确认时间戳后缀（若跨日开训须改日期段，禁止覆写历史产物）。
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/w4nincrgatecap_full_20261120/seed0
+  results_dir: outputs/checkpoints/formation_10kt_1plus108/w4nincrgatecap_full_20261120/seed0/results
+  figures_dir: outputs/checkpoints/formation_10kt_1plus108/w4nincrgatecap_full_20261120/seed0/figures

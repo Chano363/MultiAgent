@@ -231,3 +231,35 @@ def test_cap_release_valve_off_by_default():
     c.ed_notch_cap_release_kmh = 0.0        # 默认不启用
     _run(c, env, [1.0] * 12)
     assert c._notch_level[0] == pytest.approx(0.7, abs=1e-6)
+
+
+# ---------------------------------------------------------------- #
+# 5) ED 上限的渐进式斜坡（§19.19.6：阶跃释放阀有害后的修正）
+# ---------------------------------------------------------------- #
+def test_slope_relaxes_cap_progressively():
+    """斜坡：速度越高上限越高（连续放宽，无阶跃）。"""
+    c = _ctrl(cap=0.0)
+    c.ed_notch_cap = 0.75
+    c.ed_notch_cap_slope = 0.1
+    c.ed_notch_cap_slope_from_kmh = 70.0
+    # v=70 km/h ⇒ 上限 0.75
+    c1 = _ctrl(cap=0.0)
+    c1.ed_notch_cap = 0.75
+    c1.ed_notch_cap_slope = 0.1
+    c1.ed_notch_cap_slope_from_kmh = 70.0
+    _run(c1, _Env(vel=70.0 / 3.6), [1.0] * 12)
+    # v=75 km/h ⇒ 上限 0.75 + 0.1*5 = 1.25 → 截到 1.0
+    c2 = _ctrl(cap=0.0)
+    c2.ed_notch_cap = 0.75
+    c2.ed_notch_cap_slope = 0.1
+    c2.ed_notch_cap_slope_from_kmh = 70.0
+    _run(c2, _Env(vel=75.0 / 3.6), [1.0] * 12)
+    assert c1._notch_level[0] == pytest.approx(0.75, abs=1e-6)
+    assert c2._notch_level[0] > c1._notch_level[0]
+
+
+def test_slope_off_by_default():
+    c = _ctrl(cap=0.0)
+    c.ed_notch_cap = 0.75
+    _run(c, _Env(vel=75.0 / 3.6), [1.0] * 12)
+    assert c._notch_level[0] == pytest.approx(0.75, abs=1e-6)

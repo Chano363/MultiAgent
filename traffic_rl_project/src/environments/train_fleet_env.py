@@ -296,6 +296,13 @@ class TrainFleetEnv:
         # 默认 0 = 不启用 = 零回归。
         self.ed_notch_cap_release_kmh = float(
             config.get('ed_notch_cap_release_kmh', 0.0))
+        # 【ADR-076 待验证 2026-11-20】ED 上限的渐进式斜坡（诊断 §19.19.6）：
+        # 阶跃释放阀实测有害（峰 961.9→1237.7，突跳 ⇒ 相位差冲击）；
+        # 斜坡改为上限随速度线性放宽（变化率受限 ⇒ 无阶跃冲击）。
+        # 默认 0 = 不启用 = 零回归。
+        self.ed_notch_cap_slope = float(config.get('ed_notch_cap_slope', 0.0))
+        self.ed_notch_cap_slope_from_kmh = float(
+            config.get('ed_notch_cap_slope_from_kmh', 70.0))
         # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
         # 诊断 §19.14.2：规则基线的 AB 兜底是**物理触发**（ed_avail < 0.99），
         # 逐列 ed_avail 不同 ⇒ 领航 AB 率天然最高（实测 39% vs 中尾 4~6%）
@@ -1792,6 +1799,9 @@ class TrainFleetEnv:
                     ctrl.ed_notch_cap = float(self.ed_notch_cap)
                     ctrl.ed_notch_cap_release_kmh = float(
                         self.ed_notch_cap_release_kmh)
+                    ctrl.ed_notch_cap_slope = float(self.ed_notch_cap_slope)
+                    ctrl.ed_notch_cap_slope_from_kmh = float(
+                        self.ed_notch_cap_slope_from_kmh)
                 # 【ADR-076 待验证】物理触发式 AB 兜底（规则基线同源判据）：
                 # ed_avail < 阈值 ⇒ 即便级位未越限也请求 AB（只做加法）。
                 if self.ab_physical_trigger:
