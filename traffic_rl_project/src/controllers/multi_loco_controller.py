@@ -327,6 +327,34 @@ class MultiLocoController:
         # 不改奖励面、不改安全层 ⇒ 两侧物理同源；222 s 充风门与低速兜底全保留。
         self.ab_derive_threshold_lead = None      # 领航列 AB 派生阈值覆写（None=用默认）
         self.ab_derive_threshold_follower = None  # 后列列 AB 派生阈值覆写（None=用默认）
+        # 【ADR-076 待验证 2026-11-20：ED 前馈浅化上限，默认 0 = 不启用 = 零回归】
+        # 诊断 §19.17.3（路线级发现）：decompose 路线（规则在环）的 RL 投历史读数
+        #   gap_err 41.78 m / band 100% / mean_ed 0.7693
+        # 而 nincr 路线（现行第 6 投）gap_err 495.08 m / band 86% / mean_ed 0.9013
+        #   —— 几何差 11.9 倍。机制定位（源码级）：
+        #   `ed_grade_feedforward` 的 ED 前馈浅化**只在 decompose 路径被调用**
+        #   （get_action_cyclic_braking L857 / get_action_decomposed L1067），
+        #   `get_action_notch_incr`（nincr）**从不调用** ⇒ nincr 的 ED 只能由 RL
+        #   单调积分推深 ⇒ 贴顶（0.9013）⇒ 缓解-再施加相位差大 ⇒ 既丢几何
+        #   （ED 贴顶 ⇒ 后列被迫自己减速）又丢峰（冲击集中）。
+        # 本开关把同一前馈反解（`_grade_feedforward_actions`：二分求维持速度
+        # 所需的最小 ED 级位）作为 **RL 级位的上限**，使 ED 保持"浅"：
+        #   · RL 仍可自由下探（缓解空间保留 ⇒ 相位差小）；
+        #   · RL 不能把 ED 推过头贴顶（多余的制动力只会加剧纵向冲击）。
+        # 不改动作面（仍 1 维级位增量）、不改物理、不改奖励面、不改安全层
+        # ⇒ 两侧物理同源；属控制面改动 ⇒ 改轨迹 ⇒ 可零机时探针判。
+        self.ed_feedforward_cap = 0.0            # >0：级位上限 = 前馈反解 ED × 该系数
+        self.ed_feedforward_margin = 0.0         # 额外裕量（级位单位）
+        # 【ADR-076 待验证 2026-11-20：ED 深度常数上限，默认 1.0 = 不启用】
+        # 诊断 §19.17.4（路线级对照）：decompose 路线（规则在环）历史读数
+        #   gap_err 41.78 m / band 100% / **mean_ed 0.7693**
+        # 而 nincr 路线 gap_err 495.08 m / band 86% / **mean_ed 0.9013**（ED 贴顶）。
+        # `ed_feedforward_cap` 在陡坡实测前馈反解 = 1.0（饱和）⇒ 封顶无效
+        # （600 步冒烟：cap1.0 与 cap2.0 结果几乎相同）⇒ 需要一个**常数**上限
+        # 才能把 ED 压到与 decompose 同等深度。这是把"ED 浅 ⇒ 缓解-再施加相位差
+        # 小 ⇒ 几何与峰同时可控"从相关升级为干预实验的最小旋钮。
+        # 纯参数 ⇒ 两侧物理同源；改轨迹 ⇒ 可零机时探针判。
+        self.ed_notch_cap = 1.0                  # ED 级位上限（1.0 = 不限制）
         # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
         # 诊断 §19.14.2 的核心发现：规则基线与我们的策略**同物理、同协调律**，
         # 但规则基线 gap_err 24.5 m / band 100%，我们 654 m ⇒ H1 可解。
@@ -1432,6 +1460,36 @@ class MultiLocoController:
             # 1) 级位积分：增量限幅
             a_k = float(np.clip(rl[k, 0], -1.0, 1.0))
             n_k = float(np.clip(self._notch_level[k] + a_k * max_d, 0.0, 1.0))
+            # 【ADR-076 待验证：ED 前馈浅化上限（默认关 = 零回归）】
+            # 诊断 §19.17.3：decompose 路线（规则在环）历史读数 gap_err 41.78 m /
+            # band 100% / mean_ed 0.7693；nincr 路线 495.08 m / 86% / 0.9013
+            # —— 几何差 11.9 倍。机制定位（源码级）：`ed_grade_feedforward` 的
+            # ED 前馈浅化**只在 decompose 路径调用**（get_action_cyclic_braking /
+            # get_action_decomposed），**nincr 从不调用** ⇒ nincr 的 ED 只能由
+            # RL 单调积分推深 ⇒ 贴顶 ⇒ 缓解-再施加相位差大 ⇒ 既丢几何又丢峰。
+            # 本段把同一前馈反解（维持速度所需的最小 ED 级位）作为 **RL 级位的
+            # 上限**：RL 仍可自由下探（缓解空间保留 ⇒ 相位差小），但不能把 ED
+            # 推过头贴顶（多余制动力只加剧纵向冲击）；额外减速需求交给 AB。
+            # 不改动作面（仍 1 维级位增量）/不改物理/不改奖励面/不改安全层。
+            if self.ed_feedforward_cap > 0.0:
+                try:
+                    _ff = self._grade_feedforward_actions(train_env)
+                    # 前馈给的是"维持速度所需"的最小 ED ⇒ 乘系数后可作上限；
+                    # 系数 >1 留出策略余量（探针扫描用）。
+                    _cap = float(_ff[k, 0]) * float(self.ed_feedforward_cap) \
+                        + float(self.ed_feedforward_margin)
+                    if _cap > 0.0 and n_k > _cap:
+                        n_k = _cap
+                except Exception:
+                    pass
+            # 【ADR-076 待验证：ED 深度常数上限（默认 1.0 = 不限制 = 零回归）】
+            # 诊断 §19.17.4：decompose 路线 mean_ed 0.7693（浅）/ gap 41.78 m；
+            # nincr mean_ed 0.9013（贴顶）/ gap 495.08 m ⇒ 差 11.9 倍。
+            # 本项把 ED 级位封顶到常数（探针扫描 0.6~0.9），直接干预 ED 深度，
+            # 检验"ED 浅 ⇒ 缓解-再施加相位差小 ⇒ 几何与峰同时可控"的因果性。
+            # ⚠️ 只压 ED 深度上限，不改 AB 派生/充风门/低速兜底/车钩 veto。
+            if self.ed_notch_cap < 1.0 and n_k > float(self.ed_notch_cap):
+                n_k = float(self.ed_notch_cap)
             self._notch_level[k] = n_k
             # 2) ED = 级位（派生）
             final[k, 0] = n_k

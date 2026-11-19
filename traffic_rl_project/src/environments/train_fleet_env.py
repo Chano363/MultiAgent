@@ -277,6 +277,19 @@ class TrainFleetEnv:
         self.ab_derive_threshold_follower = (
             None if config.get('ab_derive_threshold_follower') is None
             else float(config.get('ab_derive_threshold_follower')))
+        # 【ADR-076 待验证 2026-11-20】ED 前馈浅化上限（诊断 §19.17.3 路线级发现）：
+        # decompose 路线（规则在环）历史读数 gap_err 41.78 m / band 100% /
+        # mean_ed 0.7693；nincr 路线 495.08 m / 86% / 0.9013 ⇒ 几何差 11.9 倍。
+        # 机制定位：`ed_grade_feedforward` 的 ED 前馈浅化只在 decompose 路径被调用，
+        # nincr 从不调用 ⇒ nincr 的 ED 只能被 RL 推深贴顶 ⇒ 相位差大。
+        # 本项把前馈反解值作为 nincr 级位的上限（默认 0 = 不启用 = 零回归）。
+        self.ed_feedforward_cap = float(config.get('ed_feedforward_cap', 0.0))
+        self.ed_feedforward_margin = float(config.get('ed_feedforward_margin', 0.0))
+        # 【ADR-076 待验证 2026-11-20】ED 深度常数上限（诊断 §19.17.4 路线级对照）：
+        # decompose 路线 mean_ed 0.7693 / gap 41.78 m；nincr mean_ed 0.9013 / 495.08 m
+        # ⇒ 差 11.9 倍。把 ED 级位封顶到常数可把这条相关升级为干预实验。
+        # 默认 1.0 = 不限制 = 零回归。
+        self.ed_notch_cap = float(config.get('ed_notch_cap', 1.0))
         # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
         # 诊断 §19.14.2：规则基线的 AB 兜底是**物理触发**（ed_avail < 0.99），
         # 逐列 ed_avail 不同 ⇒ 领航 AB 率天然最高（实测 39% vs 中尾 4~6%）
@@ -1759,6 +1772,18 @@ class TrainFleetEnv:
                     ctrl.ab_derive_threshold_follower = (
                         float(_foll_thr) if (ti > 0 and _foll_thr is not None)
                         else None)
+                # 【ADR-076 待验证 2026-11-20】ED 前馈浅化上限（诊断 §19.17.3）：
+                # decompose 路线（规则在环）历史读数 gap_err 41.78 m / band 100%
+                # / mean_ed 0.7693；nincr 路线 495.08 m / 86% / 0.9013 ⇒ 几何差
+                # 11.9 倍。机制定位：`ed_grade_feedforward` 的 ED 前馈浅化只在
+                # decompose 路径被调用，nincr 从不调用 ⇒ nincr 的 ED 只能被 RL
+                # 推深贴顶 ⇒ 缓解-再施加相位差大。本项把前馈反解的"维持速度所需
+                # 最小 ED"作为 nincr 级位上限（默认 0 = 不启用 = 零回归）。
+                if self.ed_feedforward_cap > 0.0:
+                    ctrl.ed_feedforward_cap = float(self.ed_feedforward_cap)
+                    ctrl.ed_feedforward_margin = float(self.ed_feedforward_margin)
+                if self.ed_notch_cap < 1.0:
+                    ctrl.ed_notch_cap = float(self.ed_notch_cap)
                 # 【ADR-076 待验证】物理触发式 AB 兜底（规则基线同源判据）：
                 # ed_avail < 阈值 ⇒ 即便级位未越限也请求 AB（只做加法）。
                 if self.ab_physical_trigger:
