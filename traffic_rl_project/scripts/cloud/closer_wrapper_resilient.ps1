@@ -51,11 +51,13 @@ while ($true) {
     '--exit-pattern', $cfg.exit_pattern,
     '--exit-min-count', "$($cfg.exit_min_count)",
     '--poll-s', "$($cfg.poll_s)",
-    '--pull-glob', $cfg.pull_glob,
     '--pull-dir', $pullDir,
     '--self-log', $selfLog,
     '--region', $cfg.region
   )
+  # 【2026-11-19】pull_glob 改为可多值（cfg 里是数组）：训练产物在
+  # results/formation_.../<run_tag>/，快评结果在 results/decompose/ ⇒ 两个都要回传。
+  foreach ($g in $cfg.pull_glob) { $a += @('--pull-glob', $g) }
   foreach ($g in $cfg.abort_glob) { $a += @('--abort-glob', $g) }
   if ($DryRun) { $a += '--dry-run' }
   W "python start remain=${remain}min restarts=$restarts"

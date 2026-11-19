@@ -12,16 +12,37 @@ import sys
 import json
 import hashlib
 import subprocess
+from pathlib import Path
 from contextlib import contextmanager
 
 
 def git_commit(project_root: str) -> str:
+    """训练/评估 metadata 的代码版本锚（红线 5 可追溯性）。
+
+    【2026-11-19 补】原实现只跑 `git rev-parse HEAD`，**云端失败即返回空串**
+    （本投实测：云端最小 .git 下 metadata.git_commit 仍为空 ⇒ 结论不可追溯，
+    与上一投同款债）。现补两级：
+      ① 首选 git rev-parse HEAD（本地正常路径，行为不变）；
+      ② 失败则读 `<project_root>/.git_commit`（本地生成、rsync 上云的纯文本
+         commit hash；**不入 git**（避免自指），故 .gitignore 排除之）。
+    两者都拿不到才返回空串（保持旧行为，不掩盖缺失）。
+    """
     try:
         r = subprocess.run(["git", "-C", project_root, "rev-parse", "HEAD"],
-                          capture_output=True, text=True)
-        return r.stdout.strip() if r.returncode == 0 else ""
+                           capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
     except Exception:
-        return ""
+        pass
+    try:
+        f = Path(project_root) / '.git_commit'
+        if f.is_file():
+            v = f.read_text(encoding='utf-8', errors='ignore').strip()
+            if v:
+                return v
+    except Exception:
+        pass
+    return ""
 
 
 def physics_version(world_cfg: dict) -> str:

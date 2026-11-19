@@ -78,3 +78,6 @@ node_modules/
 # 【2026-11-14】大体积实验产物不入库（intervals.json 每份 200+MB，npz 分片 40+MB）
 traffic_rl_project/outputs/sim_validation/phys_validation/*/intervals.json
 traffic_rl_project/outputs/sim_validation/phys_validation/*/trajectory.npz.part*
+
+# 本地 commit hash 快照（rsync 上云，供云端 metadata 的 git_commit fallback；不入库避免自指）
+traffic_rl_project/.git_commit

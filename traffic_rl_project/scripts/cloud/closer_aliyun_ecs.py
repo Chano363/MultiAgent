@@ -138,7 +138,8 @@ def trigger_met(args):
 
 
 def pull_artifacts(args):
-    if not args.pull_glob or not args.pull_dir:
+    globs = list(args.pull_glob or [])
+    if not globs or not args.pull_dir:
         return
     os.makedirs(args.pull_dir, exist_ok=True)
     ssh_path = _ssh_exe()
@@ -146,9 +147,14 @@ def pull_artifacts(args):
     if not os.path.exists(scp):
         log(f"⚠️ 找不到 scp（{scp}），跳过产物回传")
         return
+    # 【2026-11-19】支持多个 --pull-glob（可重复传）：快评结果写在
+    # outputs/results/decompose/，而训练产物在 outputs/results/formation_.../<run_tag>/
+    # ⇒ 单一 glob 漏回传快评 JSON（pilot 首投实测漏回，红线5 证据链断）。
     argv = [scp, "-i", KEY, "-F", _EMPTY_CFG, "-o", "BatchMode=yes",
             "-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=accept-new",
-            f"root@{args.ip}:{args.pull_glob}", args.pull_dir]
+            f"root@{args.ip}:{globs[0]}", args.pull_dir]
+    for extra in globs[1:]:
+        argv.insert(-1, f"root@{args.ip}:{extra}")
     # 网络路径间歇性丢包（2026-11-18 w4cover 实测 rc=124/255 交替）：
     # 产物回传失败 = 停机后产物滞留云盘，必须重试而非一次放弃。
     for attempt in range(1, 4):
@@ -227,7 +233,8 @@ def main():
     ap.add_argument("--exit-pattern", required=True)
     ap.add_argument("--exit-min-count", type=int, default=1,
                     help="触发所需退出码行数下限；多阶段任务 = 阶段数（防第一条 EXIT 行即误判完成）")
-    ap.add_argument("--pull-glob", default="")
+    ap.add_argument("--pull-glob", action="append", default=[],
+                    help="产物回传 glob；可重复传（多个路径各回传到 --pull-dir）")
     ap.add_argument("--pull-dir", default="")
     ap.add_argument("--poll-s", type=int, default=300)
     ap.add_argument("--dry-run", action="store_true",

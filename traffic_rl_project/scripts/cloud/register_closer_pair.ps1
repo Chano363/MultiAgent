@@ -43,7 +43,12 @@ $cfg = [ordered]@{
     "$remoteRoot/results/formation_10kt_1plus108/$RunTag/BREAK_LINE.txt",
     "$remoteRoot/results/formation_10kt_1plus108/$RunTag/DEAD_*.txt"
   )
-  pull_glob      = "$remoteRoot/results/formation_10kt_1plus108/$RunTag/*"
+  pull_glob     = @(
+    "$remoteRoot/results/formation_10kt_1plus108/$RunTag/*",
+    # 【2026-11-19】快评结果写在 results/decompose/（文件名含 run_tag）⇒ 单独一个 glob；
+    # 单一 glob 时 pilot 首投实测漏回传快评 JSON（红线5 证据链断）。
+    "$remoteRoot/results/decompose/*${RunTag}*"
+  )
 }
 $cfgJson = $cfg | ConvertTo-Json -Depth 5
 # UTF-8 WITHOUT BOM: schtasks readers use PowerShell, but python json.load must also work.
