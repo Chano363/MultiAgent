@@ -56,7 +56,7 @@ env_cfg:
   notch_incr_rate_notches: 3.0 # 单决策步 |Δn| ≤ 3/20（ADR-072 口径；decision_interval=10
                                # ⇒ 1s/决策，量级对标 Wang2023 ±3/±12；全幅扫完 ≈7 决策步）
   ab_derive_threshold: 0.5     # 级位 ≥ 0.5 → 请求 AB on（级位越限派生，Wang2023 ②）
-  ab_derive_release_margin: 0.05
+  ab_derive_release_margin: 0.05   # 释放滞回：级位 < 0.45 → 释放（防阈值抖动）
   # 【ADR-076】ED 深度上限：把 nincr 的 ED 级位封顶到 0.75（诊断 §19.19 整程干预）
   # —— ed_cap 扫描 5 档（1.0/0.85/0.75/0.65/0.55）显示 0.75 是甜点：
   #    peak 961.9 kN（首次进 1180 目标线）/ 车钩超限 [0,0,0]（首次清零）/
@@ -66,7 +66,7 @@ env_cfg:
   # ⚠️ 已知代价：ED 限浅 ⇒ 减速不足 ⇒ 尾列速度上飘贴带上限 75 km/h ⇒
   #    领航超速跑分 16.8% ⇒ band 0.8318（低于 85% 杀线）⇒ **band 缺口
   #    须由本投从头训的策略解决**（学"提前减速"而非事后补刹）。
-  ed_notch_cap: 0.75   # 释放滞回：级位 < 0.45 → 释放（防阈值抖动）
+  ed_notch_cap: 0.75
   ab_derive_notch_idx: 2       # 派生档位 = MIN（70 kPa）；诊断 §7：140 kPa 时序完美也
                                # ≈1004 > 1000 ⇒ 70 kPa 级循环制动是进线前提而非选项
   ab_notch_hold_s: 90.0        # 档位最短保持（AB 波传播时延，张二田实测；W4-v3 同源）
