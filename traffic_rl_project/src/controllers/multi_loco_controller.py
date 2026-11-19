@@ -307,6 +307,42 @@ class MultiLocoController:
         self.ab_derive_threshold = 0.5            # n ≥ 阈值 → 请求 AB on
         self.ab_derive_release_margin = 0.05      # n < 阈值 − margin → 释放（滞回防抖）
         self.ab_derive_notch_idx = 2              # 派生档位 = AB_NOTCH_LEVELS[2] = MIN(70 kPa)
+        # 【ADR-076 待验证 2026-11-20：逐列 AB 派生阈值偏置，默认关 = 零回归】
+        # 诊断 §19.13.3 的根因：规则基线与我们的策略跑在同一套 env 协调律上
+        # （同一 LEAD_TAIL_OFFSET_MPS=+5、同一 _formation_ref_gap / leader 迁就 /
+        # follower 追距），但规则基线拿到 gap_err 24.5 m + band 100%，
+        # 而 nincr 拿 495 m ⇒ **H1 可解，不是物理不可行**。
+        # 差异载体 = **AB 的逐列分配方向相反**：
+        #   规则基线 ab_agent_steps = [10693, 1527, 1171]（领航 39% / 中尾 4~6%）
+        #   我们 baseline           = [0.092, 0.138, 0.138]      （领航 9% / 中尾 14%）
+        # 逐拍分解：领航 AB 在场时 pair0 几何速率 −0.437 m/s（收拢），
+        # 而中/尾列 AB 在场时 pair1 速率 +1.17/+0.42 m/s（撑开）⇒
+        # **让速义务必须落在领航列**（领航减速 ⇒ 后列追得上），
+        # 落在后列上则后列自己慢下来 ⇒ 净空被撑开。
+        # nincr 路径的 AB 由级位越限派生（ADR-074），逐列阈值相同 ⇒ 分配结构
+        # 完全由 RL 的级位动作决定，无法表达"领航多带闸、后列少带闸"。
+        # 本偏置把**派生阈值**逐列区分：领航列阈值下调（更早、更久请求 AB），
+        # 后列列阈值上调（更少带 AB）⇒ 复刻规则基线的分配结构。
+        # 只改 AB **请求**门限，不改 ED/AB 物理、不改动作面（仍 1 维级位增量）、
+        # 不改奖励面、不改安全层 ⇒ 两侧物理同源；222 s 充风门与低速兜底全保留。
+        self.ab_derive_threshold_lead = None      # 领航列 AB 派生阈值覆写（None=用默认）
+        self.ab_derive_threshold_follower = None  # 后列列 AB 派生阈值覆写（None=用默认）
+        # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
+        # 诊断 §19.14.2 的核心发现：规则基线与我们的策略**同物理、同协调律**，
+        # 但规则基线 gap_err 24.5 m / band 100%，我们 654 m ⇒ H1 可解。
+        # 唯一的系统性差异 = **AB 的触发源**：
+        #   规则基线（decompose）：`_ed_ab_price(train_env) < 0.99` ⇒ 引 AB 兜底
+        #        （物理触发；逐列 ed_avail 不同 ⇒ 领航在陡坡高速段 AB 率天然最高
+        #          ⇒ 减速责任落在领航 ⇒ 几何收敛；实测领航 39% / 中尾 4~6%）
+        #   我们 nincr（ADR-074）：级位越限派生（策略派生；分配结构由 RL 决定，
+        #        无任何机制保证让速义务落在领航 ⇒ 实测领航 9% / 中尾 14%，方向相反）
+        # 本开关把**物理触发**接入 nincr：当本列 ED 物理上不足以维持速度时，
+        # 即便级位未越限也请求 AB（**只做加法**：多一个请求理由，绝不绕开
+        # 222 s 充风门 / 低速强制缓解 / 车钩力源头 veto 等任何既有安全门）。
+        # ED 仍由级位派生（动作面 1 维不变，Wang2023 对标保持），
+        # AB 变为「级位越限 **或** 物理不足」双通道。
+        self.ab_physical_trigger = False           # > 开启：ed_avail 不足时也请求 AB
+        self.ab_physical_avail_threshold = 0.99    # 触发阈值（同规则基线口径）
         # 【P1 候选 / ADR-074 附段三「坡度门解耦」，2026-11-19；默认关 = 零回归】
         # 语义：把「缓解 AB」的触发条件从"级位下探穿释放阈值"解耦为"坡度进入缓坡段"。
         # 已施加态即便级位下探，只要本列队首坡度仍陡（≤ 门限），就不许释放 AB——
@@ -1402,17 +1438,64 @@ class MultiLocoController:
             # 3) AB 派生（级位越限；滞回防抖：释放阈值低于触发阈值）。
             #    比较带 epsilon：级位是浮点积分，0.60−0.15=0.4499…96 会击穿
             #    恰好落在阈值上的滞回边界（单测实证），必须容差比较。
+            # 【ADR-076 待验证：逐列 AB 派生阈值，默认 None = 用默认 0.5 = 零回归】
+            # 诊断 §19.13.3：AB 的**逐列分配方向**是几何收敛的载体——领航多带闸
+            # （规则基线 39%）⇒ 领航减速 ⇒ 后列追得上（pair0 速率 −0.437 m/s）；
+            # 后列多带闸 ⇒ 后列自己慢下来 ⇒ 净空被撑开（pair1 速率 +1.17 m/s）。
+            # nincr 的 AB 由级位越限派生且逐列同阈 ⇒ 分配结构完全由 RL 的级位
+            # 动作决定，无法表达该结构。此处按列角色选**请求门限**：
+            # 领航列阈值下调（更早/更久请求 AB）、后列列阈值上调（更少带 AB）。
+            # 只改 AB 请求门限，不改 ED/AB 物理、不改动作面（仍 1 维级位增量）、
+            # 不改奖励面、不改安全层 ⇒ 两侧物理同源；222 s 充风门与低速兜底保留。
+            _thr = self.ab_derive_threshold
+            if self.ab_derive_threshold_lead is not None:
+                _thr = float(self.ab_derive_threshold_lead)
+            elif self.ab_derive_threshold_follower is not None:
+                _thr = float(self.ab_derive_threshold_follower)
             _eps = 1e-9
+            # 【ADR-076 待验证：物理触发式 AB 兜底，默认关 = 零回归】
+            # 诊断 §19.14.2：规则基线的 AB 是**物理触发**（ed_avail < 0.99 ⇒ 引 AB），
+            # 我们的 nincr 是级位派生 ⇒ 逐列分配结构由 RL 决定，实测方向与规则基线
+            # 相反（领航 9% vs 39%）⇒ 减速责任落在后列 ⇒ 净空被撑开、几何发散。
+            #
+            # 语义设计（与规则基线的循环制动状态机同构，但严格「只加不减」）：
+            #   · 物理不足（ed_avail < 阈值）⇒ **持续**请求 AB（规则基线同源判据：
+            #     循环制动态下 ed_avail < 0.99 即引 AB 兜底，并持续到退出循环制动）。
+            #   · 释放权仍归既有链：释放速度门（§16）、低速强制缓解（V17）、
+            #     档位最短保持、222 s 充风门 —— 全部保留且不受本机制否决。
+            #   · **级位滞回在物理触发下不单独触发释放**：否则"级位滞回 ⇒ 释放"与
+            #     "物理不足 ⇒ 请求"每步互相打架，产生 1 步抖动（实测）。
+            #     物理触发下的释放改由 ed_avail 恢复（≥ 阈值 ⇒ ED 足够 ⇒ 缓解），
+            #     即**物理判据自洽地同时管请求与释放**，与规则基线同构。
+            #     ⚠️ 因此"只加不减"指的是**不放松任何既有安全门**（充风门/低速兜底/
+            #     档位保持/车钩 veto 全在），而不是"物理判据永不释放"——
+            #     后者会把 AB 永久按住不放（拖停风险），规则基线也不是那样。
+            _phys_insufficient = False
+            if self.ab_physical_trigger:
+                try:
+                    _avail = self._ed_ab_price(train_env)
+                except Exception:
+                    _avail = None
+                if _avail is not None and _avail < float(self.ab_physical_avail_threshold):
+                    _phys_insufficient = True
             if self._ab_on[k]:
-                want_on = n_k >= (self.ab_derive_threshold
+                want_on = n_k >= (_thr
                                   - self.ab_derive_release_margin - _eps)
+                if _phys_insufficient:
+                    want_on = True      # 物理不足 ⇒ 保持（释放交由物理判据恢复）
             else:
-                want_on = n_k >= self.ab_derive_threshold - _eps
+                want_on = n_k >= _thr - _eps
+                if _phys_insufficient:
+                    want_on = True      # 级位未越限但物理不足 ⇒ 仍请求（加法）
             # 【AB 释放速度门（诊断 §14，默认关 = 零回归）】：已施加态若开启本门，
             # 释放判据由「级位下探」改为「速度门」——速度高于门限 ⇒ 保持 AB on，
             # 使 AB on 段与 ED 级位轨迹解耦（消除 25 s on → 222 s 锁死空窗的自锁死）。
             # 低速强制缓解在安全链末尾仍可强制释放（v ≤ v_min+2）⇒ 防拖叠底线在位。
-            if (self._ab_on[k] and self.ab_release_speed_gate):
+            # 【ADR-076】物理触发开启时，物理不足已把 want_on 置 True（保持），
+            # 此时**不再用速度门覆盖**（否则会抹掉物理保持语义）；速度门只在
+            # 物理不不足（即 want_on 由级位判据给出）时接管释放判据。
+            if (self._ab_on[k] and self.ab_release_speed_gate
+                    and not _phys_insufficient):
                 want_on = vel * 3.6 > float(self.ab_release_speed_kmh)
             # 【A-4 坡度门（默认全关 = 零回归）】：已施加态若因级位下探而想释放，
             # 但没进入"变缓点"，则否决释放、保持 AB on。释放时机由级位下探解耦到坡度。

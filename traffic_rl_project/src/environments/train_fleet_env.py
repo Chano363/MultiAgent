@@ -249,6 +249,44 @@ class TrainFleetEnv:
         self.notch_smooth_w = float(config.get('notch_smooth_w', 0.0))
         self._prev_edab_cmds = None
         self._notch_smooth_pen = 0.0
+        # 【ADR-076 待验证 2026-11-20：协调追距通道接入 nincr，默认关 = 零回归】
+        # 诊断 §19.13.3 的根因链：规则基线与我们的策略跑在同一套 env 协调律上
+        # （同一 offset=+5、同一 _formation_ref_gap / leader 迁就 / follower 追距），
+        # 但规则基线拿到 gap_err 24.5 m + band 100%，我们拿 495 m ⇒ H1 可解。
+        # 差异载体 = AB 逐列分配方向相反（规则基线领航 39% / 中尾 4~6%；
+        # 我们领航 9% / 中尾 14%）⇒ 让速义务被推给后列 ⇒ 后列自己慢下来撑开净空。
+        # 规则基线的缩距靠 decompose 的 `v_min_adj` 抬高缓解门实现，而 nincr 路径
+        # **从不读 v_min_adj** ⇒ 该通道在级位派生化时丢失。本开关把同源语义接到
+        # 级位通道：follower 落后（gap_err > 0）时限制其 ED 级位下探深度。
+        # 安全侧不变（ED/AB 仍派生、222 s 充风门与低速兜底保留、不放开制动上限）。
+        self.ab_chase_gap_guard = bool(config.get('ab_chase_gap_guard', False))
+        self.ab_chase_notch_floor = float(config.get('ab_chase_notch_floor', 0.0))
+        self.ab_chase_gap_deadband_m = float(config.get('ab_chase_gap_deadband_m', 0.0))
+        # 【ADR-076 待验证 2026-11-20：逐列 AB 派生阈值偏置，默认 None = 零回归】
+        # 诊断 §19.13.3：AB 逐列分配方向是几何收敛的载体。规则基线
+        # ab_agent_steps = [10693, 1527, 1171]（领航 39% / 中尾 4~6%），
+        # 我们 = [0.092, 0.138, 0.138]（领航 9% / 中尾 14%）⇒ 让速义务方向相反。
+        # 逐拍分解：领航 AB 在场 ⇒ pair0 速率 −0.437 m/s（收拢）；
+        #           中/尾列 AB 在场 ⇒ pair1 速率 +1.17/+0.42 m/s（撑开）。
+        # nincr 的 AB 由级位越限派生且逐列同阈 ⇒ 分配结构由 RL 决定，
+        # 无法表达该结构。此处按列角色给**派生阈值**：领航早请求 / 后列少请求。
+        # 只改请求门限 ⇒ 不改物理、不改动作面、不改奖励面、不改安全层。
+        self.ab_derive_threshold_lead = (
+            None if config.get('ab_derive_threshold_lead') is None
+            else float(config.get('ab_derive_threshold_lead')))
+        self.ab_derive_threshold_follower = (
+            None if config.get('ab_derive_threshold_follower') is None
+            else float(config.get('ab_derive_threshold_follower')))
+        # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
+        # 诊断 §19.14.2：规则基线的 AB 兜底是**物理触发**（ed_avail < 0.99），
+        # 逐列 ed_avail 不同 ⇒ 领航 AB 率天然最高（实测 39% vs 中尾 4~6%）
+        # ⇒ 减速责任落在领航 ⇒ 几何收敛（gap_err 24.5 m）。
+        # 我们 nincr 的 AB 是级位派生 ⇒ 分配方向相反（领航 9% / 中尾 14%）
+        # ⇒ 后列自己慢下来撑开净空 ⇒ 几何发散（654 m）。
+        # 本开关把同一物理判据接入 nincr（只做加法，不绕开任何既有安全门）。
+        self.ab_physical_trigger = bool(config.get('ab_physical_trigger', False))
+        self.ab_physical_avail_threshold = float(
+            config.get('ab_physical_avail_threshold', 0.99))
         # 【速度带改形 2026-11-08，默认 'flat' = 零回归】领航列速度项形态：
         #   'flat' = v6 旧行为（带内平顶 +SPEED_BAND_W，无速度梯度）
         #   'ramp' = 带内随接近上限收益递增（凸梯度），越线速重罚
@@ -1708,6 +1746,25 @@ class TrainFleetEnv:
                 # 【ADR-074 级位派生化】RL 只给级位增量 1 维；ED = 级位、AB 由
                 # 级位越限派生（充风门/超速兜底/低速缓解在 controller 内保留），
                 # **不经规则循环制动状态机**；车钩力源头 veto 仍由子环境 safety 层执行。
+                # 【ADR-076 待验证 2026-11-20】逐列 AB 派生阈值：按列角色选门限
+                # （领航早请求 / 后列少请求），复刻规则基线的 AB 分配结构。
+                # 默认 None ⇒ 逐列都用默认 0.5 ⇒ 零回归。
+                if (self.ab_derive_threshold_lead is not None
+                        or self.ab_derive_threshold_follower is not None):
+                    _lead_thr = self.ab_derive_threshold_lead
+                    _foll_thr = self.ab_derive_threshold_follower
+                    ctrl.ab_derive_threshold_lead = (
+                        float(_lead_thr) if (ti == 0 and _lead_thr is not None)
+                        else None)
+                    ctrl.ab_derive_threshold_follower = (
+                        float(_foll_thr) if (ti > 0 and _foll_thr is not None)
+                        else None)
+                # 【ADR-076 待验证】物理触发式 AB 兜底（规则基线同源判据）：
+                # ed_avail < 阈值 ⇒ 即便级位未越限也请求 AB（只做加法）。
+                if self.ab_physical_trigger:
+                    ctrl.ab_physical_trigger = True
+                    ctrl.ab_physical_avail_threshold = float(
+                        self.ab_physical_avail_threshold)
                 final_edab = ctrl.get_action_notch_incr(
                     tr, rl, v_max=self.v_max, v_min=self.v_min,
                     v_max_adj=v_bound_max, v_min_adj=v_bound_min,
