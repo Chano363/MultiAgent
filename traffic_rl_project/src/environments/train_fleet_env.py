@@ -290,6 +290,12 @@ class TrainFleetEnv:
         # ⇒ 差 11.9 倍。把 ED 级位封顶到常数可把这条相关升级为干预实验。
         # 默认 1.0 = 不限制 = 零回归。
         self.ed_notch_cap = float(config.get('ed_notch_cap', 1.0))
+        # 【ADR-076 待验证 2026-11-20】ED 上限的速度释放阀（诊断 §19.19）：
+        # ED 限浅 ⇒ 减速不足 ⇒ 尾列速度上飘贴带上限（74.9/75 km/h）⇒ 车钩力与
+        # 超限恶化（超限集中 t≥2000 s）；本阀在速度接近带上限时放开 ED 上限。
+        # 默认 0 = 不启用 = 零回归。
+        self.ed_notch_cap_release_kmh = float(
+            config.get('ed_notch_cap_release_kmh', 0.0))
         # 【ADR-076 待验证 2026-11-20：物理触发式 AB 兜底，默认关 = 零回归】
         # 诊断 §19.14.2：规则基线的 AB 兜底是**物理触发**（ed_avail < 0.99），
         # 逐列 ed_avail 不同 ⇒ 领航 AB 率天然最高（实测 39% vs 中尾 4~6%）
@@ -1784,6 +1790,8 @@ class TrainFleetEnv:
                     ctrl.ed_feedforward_margin = float(self.ed_feedforward_margin)
                 if self.ed_notch_cap < 1.0:
                     ctrl.ed_notch_cap = float(self.ed_notch_cap)
+                    ctrl.ed_notch_cap_release_kmh = float(
+                        self.ed_notch_cap_release_kmh)
                 # 【ADR-076 待验证】物理触发式 AB 兜底（规则基线同源判据）：
                 # ed_avail < 阈值 ⇒ 即便级位未越限也请求 AB（只做加法）。
                 if self.ab_physical_trigger:

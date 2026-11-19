@@ -199,3 +199,35 @@ def test_ed_notch_cap_does_not_block_ab_derivation():
     out = _run(c, env, [1.0] * 12)
     assert c._notch_level[0] == pytest.approx(0.7, abs=1e-6)
     assert out[0, 1] < 0, "AB 应仍被派生（级位 0.7 ≥ 阈值 0.5）"
+
+
+# ---------------------------------------------------------------- #
+# 4) ED 上限的速度释放阀（§19.19 代价链对策）
+# ---------------------------------------------------------------- #
+def test_cap_release_valve_opens_above_threshold():
+    """速度 ≥ 释放阀值时 ED 上限放开（策略可正常减速）。"""
+    fast = _Env(vel=74.0 / 3.6)   # _Env 收 m/s
+    c = _ctrl(cap=0.0)
+    c.ed_notch_cap = 0.7
+    c.ed_notch_cap_release_kmh = 72.0
+    _run(c, fast, [1.0] * 12)
+    assert c._notch_level[0] == pytest.approx(1.0, abs=1e-6), "高速时上限应放开"
+
+
+def test_cap_release_valve_keeps_cap_below_threshold():
+    """速度 < 释放阀值时 ED 上限仍生效（几何收敛收益保留）。"""
+    slow = _Env(vel=60.0 / 3.6)   # _Env 收 m/s
+    c = _ctrl(cap=0.0)
+    c.ed_notch_cap = 0.7
+    c.ed_notch_cap_release_kmh = 72.0
+    _run(c, slow, [1.0] * 12)
+    assert c._notch_level[0] == pytest.approx(0.7, abs=1e-6)
+
+
+def test_cap_release_valve_off_by_default():
+    env = _Env(vel=74.0 / 3.6)   # _Env 收 m/s
+    c = _ctrl(cap=0.0)
+    c.ed_notch_cap = 0.7
+    c.ed_notch_cap_release_kmh = 0.0        # 默认不启用
+    _run(c, env, [1.0] * 12)
+    assert c._notch_level[0] == pytest.approx(0.7, abs=1e-6)
