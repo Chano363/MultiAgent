@@ -5590,3 +5590,28 @@ ED 贴顶 ⇒ 缓解-再施加相位差增加 ⇒ 抵消了收益**）；
   训练后策略的最优阈值可能不同 ⇒ 探针给方向，不给论文数值；
 - 超限步 1029 步**仍非零** ⇒ 「车钩超限步 = 0」这一更严的目标**未达成**，
   第 9 投的判据四条里**不含**该项（ADR-071 第三条是追尾穿透 = 0，已达成）。
+
+#### 19.32 第 9 投 pilot 开窗结果（2026-11-20 15:41–16:51，机时 ≈1.13h ≈1.71 元）
+
+**开窗前置（四件套经 owner 批复）**：规格 `ecs.c9i.2xlarge`（8vCPU/4 物理核/16GiB）、单价 1.52 元/h（1.436 计算+0.084 盘）、pilot 预估 1.7 元、墙钟 1–1.5h；复用停机实例 `i-f8zcp6vvis4rnztw0p9y`。六问留痕见 ADR-081 第二节（六问全"是"）；preflight payload PASS（FAIL=0，3 WARN = 从头训正常态）；closer/快评单测 33/33；commit git_commit=154c1b8。
+
+**运行与判定**：`w4nincrgatecaprel_full_20261120`（4 集 + 逐 2 集确定性快评 31500 步，`EVAL_CFG` 锁定本投配置、**与训练同源**）。训练 exit_code=0，耗时 31.4min，ckpt×10（ep1–4 全在），metadata git_commit=154c1b8（权威）。快评由 `src.evaluation.cover_quick_eval.judge()` 权威判定：
+
+| 快评 | peak_kN | band | rear_end | verdict |
+|:--|--:|--:|--:|:--|
+| ep2 | 1179.23 | 0.9089 | 0 | PASS |
+| ep4 | 1132.40 | 0.9074 | 0 | PASS（较 ep2 −4%，无 2% 上行） |
+
+三条判据（band≥0.85 / 零穿透 / peak≤1500 且逐次上行≤2%）**全过** ⇒ pilot 成功。注意训练日志在线峰值 ep3=1226kN / ep4=1297kN 含探索噪声，**不作判据**；判据只认确定性快评 json。ep2 峰值 1179.2 与探针 1113.8 不可直接比（后者为零机时 OOD 对照、既存 ckpt、不同口径，AGENTS.md 证据纪律禁止混用）。
+
+**产物与收账**：results（exit_code/metadata/run.log/train_history）+ ckpt×10 + 快评 json×2（ep2/ep4）+ 云端日志全部回传校验通过（本地单 seed 口径，落 `*_cloud/` 后缀目录，不覆写历史）。实例 API 停机复核 **Status=Stopped + StoppedMode=StopCharging ✅已停费**（保留不释放，供正式窗口复用）。实际机时 15:43→16:51≈1.13h≈**1.71 元**，账本 `outputs/logs/cloud/lifecycle_w4nincrgatecaprel_full_20261120.csv`。**结论**：pilot 达标，具备进正式窗口的技术条件；但正式窗口规格/预算须 owner 另批（红线 1，pilot 报价只覆盖 pilot）。
+
+##### 19.32.3 closer 双活失效（防空转机制实测缺口，必须修复）
+
+**现象**：本次 closer 双活（primary+backup）15:41:32 / 15:41:35 注册，`State=Running`、两 python 进程存活、初始心跳 rc=0（开窗前置满足）。但 `closer_primary_wrapper_trace.log` 在 `15:41:32 python start remain=150min restarts=0` 之后**再无写入**——既无 self-heal restart 记录，也无 CLOSEOUT_OK。`closer_primary_stdout.log` 写到 **15:59:16**（连续 ssh rc=255，`ssh: connect to host 47.120.11.1 port 22: Connection timed out`）即停止。16:51 复查：两 closer 任务 State=Ready、无任何 closer python 进程，即双活已全死。
+
+**后果**：exit_code 在 16:34:54 落盘，closer 本应在下次轮询（≤120s）触发回传+停机，但因进程已死未触发 ⇒ 实例空转约 15 min（16:34→16:51）。本次由 agent 在场手动收账止损，未酿成 79min 空转级事故。
+
+**根因（待深挖）**：python 在 15:59 连续 ssh timeout 后退出，wrapper 的自愈重启未生效（trace 无 restart 记录）。对照既往成功案例（11-19 21:47、11-20 06:35 均有 `CLOSEOUT_OK verified` + 自愈 restart 记录），本次是 wrapper 进程自身先于 python 退出，或 self-heal 分支在某种退出码下未命中。注意：ssh 不可达本不应触发停机（三次防误杀红线），但也不应导致 closer 进程**退出**——rc=255 应只计数、只留痕、继续轮询到 deadline（18:11）。这是 `closer_aliyun_ecs.py` / `closer_wrapper_resilient.ps1` 的待修缺陷。
+
+**处置建议（正式窗口开窗前必须闭环）**：① 复现 15:59 连续 rc=255 后 closer 退出路径，确认是 python 未捕获异常还是 wrapper 判定逻辑缺陷；② 加机器守卫：closer python/wrapper 进程意外退出且非 CLOSEOUT_OK ⇒ 立即由 schtasks 重启并告警，不得静默 Ready；③ 本次为 agent 在场兜底，不构成"机制已确保不空转"的证据 ⇒ 正式窗口不得援引本次 closer 在线作为护栏证据，须修复后重测。

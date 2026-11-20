@@ -2259,4 +2259,8 @@ ADR-077 第五轮同源探针后，三条判据的可达性：
 5. **ADR-070 塌缩护栏在位？——是。** 从头训 ⇒ 无热启动塌缩面；pilot（4 集 + 逐 2 集快评）拦首次塌缩窗口；确定性快评逐 2 集守门（v20/v21 + 第 6/8 投实弹拦截已验证）。
 6. **收账 closer 已以 schtasks 注册且心跳 rc=0？——开窗前置：是（占位注册 + State=Running）；心跳 rc=0 待开机拿 IP 后覆盖注册即补实证（ADR-076 同款补录顺序）。** 铁律 12：开机与注册 closer 同一动作序列，closer 不在位不得开机。注册走 `register_closer_pair.ps1`（primary+backup 双活 + 20 s 自愈 + 幂等停机；一次性 wrapper `run_w4*_closer.ps1` 仅历史参考、**不得用**）；四道触发 = done marker / 独立日志 `--start-marker` 截断 + `--exit-min-count` / `--abort-glob`（`BREAK_LINE.txt` + `DEAD_*.txt`）/ 硬 deadline；三条防误杀 = 只读本次独立日志 / min-count=阶段数 / ssh 不可达永不触发停机。⚠️ 本机新任务可能停 `Queued`（无交互会话）⇒ 开机前确认 `State=Running`，否则不得开机。**执行留痕（2026-11-20 15:4x）**：占位注册（IP `47.120.11.1` = 开机后真实 IP，无需覆盖）→ 两任务 `w4nincrgatecaprel_closer_{primary,backup}` 均 `State=Running`（非 Queued）；closer python 进程 62300/59580 存活，自日志轮询持续刷新至 15:47、ssh 不可达只计数不触发停机（防误杀红线验证）；deadline 150 min（15:41→18:11）。心跳 rc=0 已实证（15:44 轮询记录 rc=0 不可达计数归零）。
 
-- **相关**：ADR-077 §三、ADR-078、诊断 §19.29–§19.31。
+**开窗实测回填（2026-11-20，pilot 判定）**：六问第 6 问的初始"心跳 rc=0"实证属实（15:44 轮询 rc=0），但**事后证明护栏未持续在线**——closer 双活在 15:59 连续 ssh rc=255 后 python 退出且 wrapper 自愈未重启，两任务转 Ready、进程全无（诊断 §19.32.3）；exit_code 16:34 落盘后 closer 未触发收账，实例空转约 15 min，由 agent 在场手动停机止损。**⇒ 第 6 问"closer 在位"仅在开窗瞬间成立，不构成"机制确保不空转"的证据；正式窗口开窗前必须修复 closer 意外退出不自愈的缺陷并重测，否则不得援引本次在线记录作护栏依据。**
+
+**pilot 结果（2026-11-20 16:51 收账完成）**：`w4nincrgatecaprel_full_20261120` 训练 exit_code=0（31.4 min / ckpt×10），逐 2 集确定性快评 ep2 = peak 1179.23 kN / band 0.9089 / 追尾 0、ep4 = peak 1132.40 kN / band 0.9074 / 追尾 0（较 ep2 −4%，无 2% 上行）⇒ `cover_quick_eval.judge()` 两条均 PASS，三条判据（band≥0.85 / 零穿透 / peak≤1500 且逐次无上行）全过 ⇒ **pilot 成功**。产物回传校验通过，API 停机复核 Stopped+StopCharging 贴回执，机时 ≈1.13 h ≈**1.71 元**（账本 `lifecycle_w4nincrgatecaprel_full_20261120.csv`）。**⇒ 具备进正式窗口的技术条件；正式窗口规格/预算须 owner 另批（红线 1，本次批复只覆盖 pilot）。** 全文见诊断 §19.32、PIPELINE §0.3 第 9 投行。
+
+- **相关**：ADR-077 §三、ADR-078、诊断 §19.29–§19.32。
