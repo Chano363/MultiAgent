@@ -2263,4 +2263,15 @@ ADR-077 第五轮同源探针后，三条判据的可达性：
 
 **pilot 结果（2026-11-20 16:51 收账完成）**：`w4nincrgatecaprel_full_20261120` 训练 exit_code=0（31.4 min / ckpt×10），逐 2 集确定性快评 ep2 = peak 1179.23 kN / band 0.9089 / 追尾 0、ep4 = peak 1132.40 kN / band 0.9074 / 追尾 0（较 ep2 −4%，无 2% 上行）⇒ `cover_quick_eval.judge()` 两条均 PASS，三条判据（band≥0.85 / 零穿透 / peak≤1500 且逐次无上行）全过 ⇒ **pilot 成功**。产物回传校验通过，API 停机复核 Stopped+StopCharging 贴回执，机时 ≈1.13 h ≈**1.71 元**（账本 `lifecycle_w4nincrgatecaprel_full_20261120.csv`）。**⇒ 具备进正式窗口的技术条件；正式窗口规格/预算须 owner 另批（红线 1，本次批复只覆盖 pilot）。** 全文见诊断 §19.32、PIPELINE §0.3 第 9 投行。
 
-- **相关**：ADR-077 §三、ADR-078、诊断 §19.29–§19.32。
+### 二·B、G1 训练窗口启动检查单（六问逐条留痕，§0.8.2）—— W4 正式窗口 20 集（owner 2026-11-20 18:34「批准 W4」）
+
+> pilot（4 集）三条判据全过后，owner 第二批 W4 单 seed 20 集（红线 1：规格/单价/总价/墙钟四件套已批 = c9i.2xlarge / 1.52 元·h / ≤6.1 元 / ≤3.5 h）。本轮六问在 pilot 六问基础上逐条重签，差异只在第 4 问（集数 4→20）与第 6 问（护栏升级为修复版 + billing_guard）；任一"否"不得开训。
+
+1. **判据锚有文献或 owner 依据？——是。** ADR-071 四条不变（peak ≤1180 / band ≥90% / 零穿透 / ≤1500 安全线）。**注意口径**：正式 W4 判据用 band ≥90%、peak ≤1180（比 pilot 快评的 0.85/1500 更严）——pilot 快评只作活性 + 早止损守门，正式判定以端到端四条为准。owner 18:34「批准 W4」= 方向与预算依据（四件套上列）。
+2. **机制有文献对标物？——是。** 同 pilot：Wang2023（级位增量 + 切换幅度罚）、Lu2026 COVER（分项提权）；ED 上限×追及需求为本项目自有实测发现（诊断 §19.29–§19.31），不冒充文献结论。
+3. **从头训或奖励面完全不变的纯延长？——从头训。** 与 pilot 同配置同机制（ADR-070③ 换控制面从头训、禁热启动①）。新 run_tag 需与 pilot 分开（三目录同换），W4 产物不覆写 pilot 证据。
+4. **快评协议已进启动脚本？——是。** `cover_quick_eval_watch.sh` 每 2 集确定性快评 31500 步，判据零穿透/band≥0.85/peak≤1500/peak 上行≤2%；破线写 `BREAK_LINE.txt` → closer abort-glob 停机。bootstrap 注入 `COVER_QUICK_EVAL=1` / `COVER_EVAL_EVERY=2` / `COVER_EVAL_STEPS=31500` / **`COVER_EVAL_CFG=<第9投配置>`**（必须覆盖，否则快评静默失效，ADR-074 附段二坑）。W4 = 20 集 × 31500 步 = 630000 env-steps（R6，禁止只报集数）。
+5. **ADR-070 塌缩护栏在位？——是。** 从头训 ⇒ 无热启动塌缩面；逐 2 集确定性快评守门（v20/v21 + 第 6/8 投 + pilot 实弹验证）；pilot 已证明本机制不塌（band 0.9089→0.9074 平稳）。
+6. **收账 closer 在位且机制确保不空转？——开窗前置：是（修复版注册 + 回查触发器）；心跳 rc=0 待开机拿 IP 后补实证。** ⚠️ 本问按 pilot 事故（诊断 §19.32.3）升级后的判据执行：**不得援引 pilot 的 closer 在线记录**——那次双活静默死亡、空转 15 min。W4 开窗必须用修复后的 `register_closer_pair.ps1`（**回查 `Triggers.Count>=1`**，5 min 周期触发器 + IgnoreNew + S4U 回退，wrapper 自身死后自动重拉）**并同时注册 `register_billing_guard.ps1`**（纯 API 零 ssh，10 min 周期，到绝对 deadline 强停）——两者同属"注册与开机同一动作序列"，缺一不开机。`tests/test_closer_registration_resilience.py`（8 项）开训前已跑全绿；§0.8.2 第六问新闸已在位。开机后补写实证：两任务 State/Triggers/心跳 rc/实例 IP + billing_guard 任务 State/Triggers。
+
+- **相关**：ADR-077 §三、ADR-078、诊断 §19.29–§19.32（含 §19.32.3 closer 失效与修复）、PIPELINE §0.3 第 9 投行。
