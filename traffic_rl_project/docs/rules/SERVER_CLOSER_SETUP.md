@@ -106,7 +106,8 @@ aliyun ecs DescribeInstances --RegionId cn-heyuan --profile ecs-self
 ## 本地双活 closer（2026-11-18 owner"不烧钱就行"，不再依赖单人盯梢）
 
 - **自愈 wrapper**：`scripts/cloud/closer_wrapper_resilient.ps1`——python 非正常退出 20 s 重启；绝对 deadline 一次性计算、重启只传剩余分钟（崩溃不能延长计费窗口）；只在 self-log 出现 `CLOSEOUT_OK`（=StopCharging 已复核）才退出。
-- **双活注册**：`scripts/cloud/register_closer_pair.ps1` 一次注册 `<prefix>_closer_primary` + `<prefix>_closer_backup` 两个 schtasks，共用 JSON 配置、独立心跳/产物目录；`stop_instance()` 幂等（已 Stopped+StopCharging 直接成功），任一存活即可收账。
+- **双活注册**：`scripts/cloud/register_closer_pair.ps1` 一次注册 `<prefix>_closer_primary` + `<prefix>_closer_backup` 两个 schtasks，共用 JSON 配置、独立心跳/产物目录；`stop_instance()` 幂等（已 Stopped+StopCharging 直接成功），任一存活即可收账。**【2026-11-20 硬要求，事故后修复】注册必须带 5 min 周期触发器 + `MultipleInstances=IgnoreNew`（wrapper 自身随交互会话死后 5 min 内自动重拉，且每轮从绝对 deadline 重算 remain、不延长计费窗口）；纯自愈 wrapper 只覆盖"python 死、wrapper 活"，覆盖不了 wrapper 自己死——历史 4 个无触发器 closer 任务全部静默变 Ready 即此因（诊断 §19.32.3）。注册后用 `Get-ScheduledTask` 回查 `Triggers.Count>=1` 方可开机，否则不得开窗。S4U 优先/Interactive 回退（非管理员会话 S4U 注册报"拒绝访问"，回退后触发器仍在）。脚本必须保持纯 ASCII（PS 5.1 对无 BOM UTF-8 中文按 GBK 解码会破坏解析）。**
+- **账单兜底常驻（2026-11-20 新增，终极防线）**：`scripts/cloud/register_billing_guard.ps1` 注册 `billing_guard.py`（**纯 API、零 ssh** 短进程，每 10 min 唤起；Running 且过绝对时限 → StopInstance + StopCharging 复核）。SYSTEM 优先/Interactive 回退。**开窗时与 closer 在同一动作序列注册**：即便所有 ssh 型 closer 全死、会话不在场，到绝对 deadline 仍强停。单测守卫 `tests/test_closer_registration_resilience.py`（8 项）防触发器/纯 API/ASCII 属性被后续改动静默删除。
 - **配置落盘位置（硬口径）**：closer JSON 固定写 `outputs/logs/cloud/closer_<run_tag>.json`——必须落在 `EXECUTION_RULES` 已登记的一级目录内且 gitignored（实例 ID/IP 不进 git）；**禁止新建 `outputs/configs/` 这类未登记一级目录**（`check_outputs_layout.py` 判错）。JSON 以无 BOM UTF-8 写盘。
 - **停机未确认不收工**：closer 在 API 复核拿不到 StopCharging 时继续轮询重试（wrapper 看不到 CLOSEOUT_OK 也不会误判完成）。
 - **演练实证**：dry-run 双任务并行心跳、手杀 primary python → 20 s 自愈且剩余 deadline 2min→1min、两者 CLOSEOUT_OK 退出（演练任务已注销）；单测 `test_closer_idempotent` + `test_closer_trigger` 13/13。

@@ -54,15 +54,41 @@ $cfgJson = $cfg | ConvertTo-Json -Depth 5
 Write-Output "config=$cfgPath"
 
 $wrapper = Join-Path $base 'scripts\cloud\closer_wrapper_resilient.ps1'
+# 2026-11-20 FIX (idle-burn root cause): old Register-ScheduledTask had no -Trigger and
+# used Interactive logon => once the wrapper process died with the interactive session,
+# the task stayed Ready forever and self-heal never happened (4 historical closers all Ready).
+# Fix = 3 things: (1) 5min repetition trigger (re-launches a dead wrapper within 5min,
+# recomputing remaining deadline so the billing window never extends);
+# (2) MultipleInstances=IgnoreNew (no duplicate python while one is running);
+# (3) try S4U logon, fall back to Interactive+trigger if not permitted.
+# Ultimate backstop: register_billing_guard.ps1 (pure API, hard stop at absolute deadline).
+# NOTE: keep this file ASCII-only - PS 5.1 mis-decodes BOM-less UTF-8 and breaks parsing.
+$repInterval = New-TimeSpan -Minutes 5
+$repDuration = New-TimeSpan -Days 3
+$startAt = (Get-Date).AddSeconds(10)
+$trigger = New-ScheduledTaskTrigger -Once -At $startAt -RepetitionInterval $repInterval -RepetitionDuration $repDuration
+$execLimit = New-TimeSpan -Days 3
+$settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit $execLimit
 foreach ($role in @('primary','backup')) {
   $name = "${TaskPrefix}_closer_$role"
   $argStr = "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`" -Config `"$cfgPath`" -Role $role"
   if ($DryRun) { $argStr += ' -DryRun' }
   $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $argStr
-  $principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive
-  Register-ScheduledTask -TaskName $name -Action $action -Principal $principal -Force | Out-Null
+  # S4U needs SeBatchLogonRight: a non-admin session can create the principal object,
+  # but Register fails with access denied. Wrap the Register itself in try, fall back
+  # to Interactive+trigger. Both modes carry the 5min trigger (the core of this fix).
+  $mode = 'Interactive+trigger'
+  try {
+    $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType S4U
+    Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force -ErrorAction Stop | Out-Null
+    $mode = 'S4U'
+  } catch {
+    Write-Output "S4U register unavailable ($($_.Exception.Message)) -> fallback Interactive+trigger"
+    $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive
+    Register-ScheduledTask -TaskName $name -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force -ErrorAction Stop | Out-Null
+  }
   Start-ScheduledTask -TaskName $name
   $st = (Get-ScheduledTask -TaskName $name).State
-  Write-Output "task=$name state=$st"
+  Write-Output "task=$name state=$st logon=$mode triggers=$((Get-ScheduledTask -TaskName $name).Triggers.Count)"
 }
-Write-Output "DUAL_ACTIVE_REGISTERED prefix=$TaskPrefix deadline_min=$DeadlineMin dryrun=$DryRun"
+Write-Output "DUAL_ACTIVE_REGISTERED prefix=$TaskPrefix deadline_min=$DeadlineMin dryrun=$DryRun (5min-trigger + IgnoreNew + self-heal)"

@@ -5615,3 +5615,13 @@ ED 贴顶 ⇒ 缓解-再施加相位差增加 ⇒ 抵消了收益**）；
 **根因（待深挖）**：python 在 15:59 连续 ssh timeout 后退出，wrapper 的自愈重启未生效（trace 无 restart 记录）。对照既往成功案例（11-19 21:47、11-20 06:35 均有 `CLOSEOUT_OK verified` + 自愈 restart 记录），本次是 wrapper 进程自身先于 python 退出，或 self-heal 分支在某种退出码下未命中。注意：ssh 不可达本不应触发停机（三次防误杀红线），但也不应导致 closer 进程**退出**——rc=255 应只计数、只留痕、继续轮询到 deadline（18:11）。这是 `closer_aliyun_ecs.py` / `closer_wrapper_resilient.ps1` 的待修缺陷。
 
 **处置建议（正式窗口开窗前必须闭环）**：① 复现 15:59 连续 rc=255 后 closer 退出路径，确认是 python 未捕获异常还是 wrapper 判定逻辑缺陷；② 加机器守卫：closer python/wrapper 进程意外退出且非 CLOSEOUT_OK ⇒ 立即由 schtasks 重启并告警，不得静默 Ready；③ 本次为 agent 在场兜底，不构成"机制已确保不空转"的证据 ⇒ 正式窗口不得援引本次 closer 在线作为护栏证据，须修复后重测。
+
+**根因（2026-11-20 17:3x 深挖，一手实测坐实）**：不是 python 的 ssh 处理缺陷——`closer_aliyun_ecs.py` 主循环对 rc≠0 只计数不退出（代码 274–279 行），三条防误杀红线完整。真正的缺口在**注册层**：`register_closer_pair.ps1` 旧版 `Register-ScheduledTask` **没有 `-Trigger`**，且用 `LogonType=Interactive`。实测当前机器全部 4 个历史 closer 任务 **Triggers=0 / RestartCount=0 / Interactive**：wrapper 的 20s 自愈只能救"python 死、wrapper 活"，一旦 wrapper 进程本身随交互会话终止（15:59 那次连续 ssh timeout 期间），任务转 Ready 后**永久无人拉起**。所谓"双活"是两个同样脆弱的进程，同死只是时间问题。
+
+**修复（已落地，2026-11-20）**：
+1. `register_closer_pair.ps1`：加 **5 min 周期触发器** + `MultipleInstances=IgnoreNew` + S4U 优先/Interactive 回退（本机非管理员，S4U 注册"拒绝访问"如实回退但**触发器仍在**）。wrapper 每轮从绝对 deadline 重算 remain，**自愈不延长计费窗口**。
+2. 新增 `register_billing_guard.ps1`：注册 `billing_guard.py`（**纯 API、零 ssh** 短进程，每 10 min 唤起，过绝对时限 StopInstance+StopCharging 复核）。SYSTEM 优先/Interactive 回退（本机同因回退）。这是**终极兜底**：即便所有 ssh 型 closer 全死、会话不在场，到点仍强停。
+3. 新增 `tests/test_closer_registration_resilience.py`（8 项静态守卫）：断言两注册脚本含周期触发器/IgnoreNew/权限回退、billing_guard 纯 API、两脚本**纯 ASCII**——最后一条因为修复过程中在 ASCII-only 的 PS5.1 脚本里写入中文注释，被 GBK 误解码后导致 `New-TimeSpan` 静默返回 null、注册失败（复现并定位，已改回 ASCII）。
+4. 清理历史 4 个 Triggers=0 的死 closer 任务（w4nincrgateB / w4nincrgatecap 系列）。
+
+**重测证据**：① DryRun 注册 closer pair → 两任务 `State=Running / Triggers=1 / MultipleInstances=IgnoreNew`；② 杀掉两个 closer python → 20 s 内自愈重启，trace 记 `self-heal restart`；③ 再杀 wrapper、模拟触发器到期 `Start-ScheduledTask` → 新 wrapper 起来并 `python start remain=6min`（deadline 重算，窗口未延长）；④ 注册 billing_guard → `State=Ready（秒级跑完）/ Triggers=1`；⑤ 单测：closer trigger 9/9、idempotent 4/4、cover_quick_eval_watch 7/7、watchdog 4/4、新增注册守卫 8/8 全绿。**⇒ 正式窗口的"机制层面不空转"前置已具备**（下次开窗须用新注册脚本 + 同时注册 billing_guard，两者都是开窗同一动作序列的一部分）。

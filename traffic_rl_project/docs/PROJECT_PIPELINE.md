@@ -334,7 +334,7 @@ owner: Owner + Agent
 3. 是"从头训"或"奖励面完全不变的纯延长"二者之一？（C 类闸；**热启动 + 任何奖励面变化 = 禁区**）
 4. 确定性快评协议已写进启动脚本：时点、口径、停训线？（B 类闸）
 5. 塌缩机制（ADR-070）对本改动是否适用、适用时护栏是否在位？（C 类闸）
-6. **收账 closer 已以 schtasks 注册且心跳 rc=0？**（空转闸，2026-11-17 用户硬约束"机制层面确保不空转"；SERVER_OPS 铁律 12）——开机与注册 closer 是**同一动作序列**，closer 未在位不得开机；参数红线：独立日志 + start-marker 截断历史 + exit-min-count = 阶段数 + **abort-glob 必填（BREAK_LINE.txt / DEAD_*.txt，破线/死亡立即 API 停机；2026-11-18 nincr ep10 实弹补）** + 硬 deadline 必填。**2026-11-18 三层收账增强**：①本地 closer（本问判据，不可省）②实例内 `self_stop_ecs.sh` 免 AK 自停机（已实现/mock 9/9，云端 RAM 配置待批）③`oos_hard_deadline_template.yml` 云端硬顶（待批）；启用手册 `docs/rules/SERVER_CLOSER_SETUP.md`。②③④在云端配置批下来前，本问只按①判。
+6. **收账 closer 已以 schtasks 注册且心跳 rc=0？**（空转闸，2026-11-17 用户硬约束"机制层面确保不空转"；SERVER_OPS 铁律 12）——开机与注册 closer 是**同一动作序列**，closer 未在位不得开机；参数红线：独立日志 + start-marker 截断历史 + exit-min-count = 阶段数 + **abort-glob 必填（BREAK_LINE.txt / DEAD_*.txt，破线/死亡立即 API 停机；2026-11-18 nincr ep10 实弹补）** + 硬 deadline 必填。**2026-11-18 三层收账增强**：①本地 closer（本问判据，不可省）②实例内 `self_stop_ecs.sh` 免 AK 自停机（已实现/mock 9/9，云端 RAM 配置待批）③`oos_hard_deadline_template.yml` 云端硬顶（待批）；启用手册 `docs/rules/SERVER_CLOSER_SETUP.md`。②③④在云端配置批下来前，本问只按①判。**【2026-11-20 事故后加闸】**：本问"closer 在位"的判据升级为——注册后 `Get-ScheduledTask` 回查两 closer 任务 `Triggers.Count>=1`（5 min 周期触发器，wrapper 自身死后自动重拉；历史无触发器 closer 全部静默 Ready ⇒ 空转，诊断 §19.32.3）+ **同时注册 `register_billing_guard.ps1`（纯 API 零 ssh，10 min 周期，到绝对 deadline 强停）**，两者同属"注册与开机同一动作序列"；`tests/test_closer_registration_resilience.py`（8 项）为开训前必跑守卫。细则见 `SERVER_CLOSER_SETUP.md`「本地双活 closer」。
 
 **G2 判据/方向变更检查**：D 类决策（判据锚、路线终止、卖点切换）前，强制重读 `LITERATURE_FINDINGS` 相关节 + owner 拍板留痕（ADR）。
 **G3 探针闸**：任何新机制先过 12 min 探针或冻结评估，禁直接进 ≥1 h 训练。
