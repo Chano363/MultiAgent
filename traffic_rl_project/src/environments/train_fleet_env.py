@@ -285,6 +285,19 @@ class TrainFleetEnv:
         # 陡坡（含低速）保持 AB、进缓坡才释放。默认 False = 零回归。
         self.ab_release_by_local_grade = bool(
             config.get('ab_release_by_local_grade', False))
+        # 【ADR-080 待验证 2026-11-20：AB 释放迟滞带（诊断 §19.29.3）】
+        # 已施加态下，若物理不足判据在最近 N 秒内曾成立 ⇒ 继续保持 AB
+        # ⇒ 避免「物理需求一消失即释放」造成的反复施加-释放（相位差来源）。
+        # 默认 0.0 = 不启用 = 零回归。
+        self.ab_release_hysteresis_s = float(
+            config.get('ab_release_hysteresis_s', 0.0))
+        # 【ADR-081 待验证 2026-11-20：ED 深度上限随「追及需求」放宽】
+        # 追及压力大（本列比前列快 ≥ 阈值 km/h）⇒ ED 上限从 ed_notch_cap
+        # 放宽到 ed_cap_relaxed ⇒ 追及时有减速能力（治中列「急追+无减速」型超限）。
+        # 默认阈值 0.0 = 不启用 = 零回归。
+        self.ed_cap_rel_speed_kmh = float(
+            config.get('ed_cap_rel_speed_kmh', 0.0))
+        self.ed_cap_relaxed = float(config.get('ed_cap_relaxed', 1.0))
         # 【ADR-077 修复 2026-11-20：AB 门三键的 env 侧读取 + 下发】
         # 缺陷（诊断 §19.23）：这三个键此前**只写在 YAML 里，env 从未读取、
         # 也从未下发到 controller** ⇒ 训练与探针实际都吃 controller 默认值
@@ -825,6 +838,15 @@ class TrainFleetEnv:
                     _c.ab_release_speed_gate = self.ab_release_speed_gate
                     _c.ab_release_speed_kmh = self.ab_release_speed_kmh
                     _c.ab_apply_speed_min_kmh = self.ab_apply_speed_min_kmh
+                # 【ADR-080】AB 释放迟滞带（逐列下发）
+                for _c in self.multi_loco_controllers:
+                    _c.ab_release_hysteresis_s = self.ab_release_hysteresis_s
+                # 【ADR-081】ED 上限追及放宽（逐列下发 + 列索引）
+                # 列索引必需：controller 靠它取「前列速度」算相对速度。
+                for _ci, _c in enumerate(self.multi_loco_controllers):
+                    _c.ed_cap_rel_speed_kmh = self.ed_cap_rel_speed_kmh
+                    _c.ed_cap_relaxed = self.ed_cap_relaxed
+                    _c._ed_cap_col_index = int(_ci)
             self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
         else:
             self.num_agents = self.num_trains

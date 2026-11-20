@@ -273,6 +273,9 @@ class MultiLocoController:
         self.ab_notch_hold_s = 0.0
         self._ab_notch_state = [0.0] * self.num_locomotives
         self._ab_notch_step = [-10 ** 9] * self.num_locomotives
+        # 【ADR-080】AB 释放迟滞带的状态：每台机车记录「物理不足判据最近成立时刻」
+        #（原始步；-10**9 = 从未成立）。
+        self._ab_phys_insuff_step = [-10 ** 9] * self.num_locomotives
         # 【V17 / 2026-11-13 探针】低速强制缓解兜底（默认关 = 零回归）。
         # 与"超速强制 SERVICE"对称的安全底线：速度逼近下限时不允许新增/保持 AB，
         # 否则 AB 可被一次施加到停车，而 loco_notch 无牵引通道 ⇒ 停车是吸收态
@@ -407,6 +410,27 @@ class MultiLocoController:
         #     ⇒ 超速跑分减少 ⇒ band 回升。
         # 纯控制面改动（不改动作面/物理/奖励面/安全层）⇒ 两侧物理同源、零机时可判。
         self.ab_release_by_local_grade = False
+        # 【ADR-081 待验证 2026-11-20：ED 深度上限随「追及需求」放宽】
+        # 依据（诊断 §19.29.2 / §19.30.3–§19.30.4）：中列超限是「急追 + 无减速」型
+        # （超限时 v_rel = +12.50 km/h、dgap = −3.40 m/s、中列 AB 在场 0.000）
+        # ⇒ 结构性矛盾 = 「ED 深度上限 0.75（压峰）」× 「中列追及减速需求」
+        # ⇒ 机制：追及压力大（v_rel ≥ 阈值）时把 ED 上限放宽到 `ed_cap_relaxed`，
+        #    不追及时维持原上限 ⇒ 常态的峰保护不变，追及时有减速能力。
+        # ⚠️ 只改 ED 级位上限的生效值；不改施加来源/不改 AB 派生/不改安全链。
+        # 默认 0.0 = 不启用 = 逐位零回归。
+        self.ed_cap_rel_speed_kmh = 0.0
+        self.ed_cap_relaxed = 1.0
+        self._ed_cap_col_index = -1
+        # 【ADR-080 待验证 2026-11-20：AB 释放迟滞带】
+        # 依据（诊断 §19.29.2–§19.29.3）：中列超限是「制动力不足」型
+        # （超限时 v01 = −12.50 km/h、中列 AB 在场率 0.000 vs 全程 0.265）
+        # ⇒「该用 AB 时 AB 缺席」与「AB 用太久 ⇒ 相位差累积」是同一根轴两端。
+        # 语义：已施加态下，若物理不足判据在最近 N 秒内曾成立，则继续保持 AB
+        # （需求消失后仍维持一小段）⇒ 避免「需求一消失即释放」造成反复施加-释放。
+        # ⚠️ 只改「释放时机」，不改施加来源、不改档位保持、不改 222 s 充风门、
+        #    不改低速强制缓解、不改车钩 veto ⇒ 安全链不放松。
+        # 默认 0.0 = 不启用 = 逐位零回归。
+        self.ab_release_hysteresis_s = 0.0
         # 【P1 候选 / ADR-074 附段三「坡度门解耦」，2026-11-19；默认关 = 零回归】
         # 语义：把「缓解 AB」的触发条件从"级位下探穿释放阈值"解耦为"坡度进入缓坡段"。
         # 已施加态即便级位下探，只要本列队首坡度仍陡（≤ 门限），就不许释放 AB——
@@ -1524,11 +1548,29 @@ class MultiLocoController:
             # 本项把 ED 级位封顶到常数（探针扫描 0.6~0.9），直接干预 ED 深度，
             # 检验"ED 浅 ⇒ 缓解-再施加相位差小 ⇒ 几何与峰同时可控"的因果性。
             # ⚠️ 只压 ED 深度上限，不改 AB 派生/充风门/低速兜底/车钩 veto。
-            if self.ed_notch_cap < 1.0 and n_k > float(self.ed_notch_cap):
+            # 【ADR-081】追及需求 ⇒ ED 深度上限放宽（仅在本列追及压力大时）
+            _cap_eff_base = float(self.ed_notch_cap)
+            if (self.ed_cap_rel_speed_kmh > 0.0
+                    and _cap_eff_base < float(self.ed_cap_relaxed)):
+                try:
+                    _trains = getattr(train_env, 'trains', None)
+                    _ci = int(self._ed_cap_col_index)
+                    if (_trains is not None and 0 <= _ci < len(_trains)
+                            and _ci > 0):
+                        _v_self = float(_trains[_ci].dynamics.vel[0])
+                        _v_lead = float(_trains[_ci - 1].dynamics.vel[0])
+                        _v_rel = (_v_self - _v_lead) * 3.6   # km/h
+                        if _v_rel >= float(self.ed_cap_rel_speed_kmh):
+                            _cap_eff_base = float(self.ed_cap_relaxed)
+                except Exception:
+                    pass
+            if _cap_eff_base < 1.0 and n_k > _cap_eff_base:
                 # 【ADR-076】ED 上限的两种放宽方式（互斥，斜坡优先）：
                 # ① 阶跃释放阀：速度 ≥ 阈值 ⇒ 完全放开（实测有害，见参数注释）
                 # ② 渐进斜坡：上限随速度线性放宽（变化率受限 ⇒ 无阶跃冲击）
-                _cap_eff = float(self.ed_notch_cap)
+                # 【ADR-081】起点用 `_cap_eff_base`（追及放宽后的上限）；
+                # 未开启 ADR-081 时它 == ed_notch_cap ⇒ 逐位等价。
+                _cap_eff = float(_cap_eff_base)
                 _rel_v = float(self.ed_notch_cap_release_kmh)
                 if _rel_v > 0.0 and vel * 3.6 >= _rel_v:
                     _cap_eff = 1.0
@@ -1603,10 +1645,23 @@ class MultiLocoController:
                                   - self.ab_derive_release_margin - _eps)
                 if _phys_insufficient:
                     want_on = True      # 物理不足 ⇒ 保持（释放交由物理判据恢复）
+                elif self.ab_release_hysteresis_s > 0.0:
+                    # 【ADR-080】释放迟滞带：物理不足在最近 N 秒内曾成立
+                    # ⇒ 继续保持 AB（避免「需求一消失即释放」的反复相位差）。
+                    # 注意：仅在「因物理理由释放」这条路径上加迟滞；
+                    # 其它释放路径（级位释放判据/低速强制缓解/充风门）不受影响。
+                    _last_insuff = self._ab_phys_insuff_step[k]
+                    _since_insuff = (self._ab_step - _last_insuff) * self.dt
+                    if (0.0 <= _since_insuff
+                            <= float(self.ab_release_hysteresis_s)):
+                        want_on = True
             else:
                 want_on = n_k >= _thr - _eps
                 if _phys_insufficient:
                     want_on = True      # 级位未越限但物理不足 ⇒ 仍请求（加法）
+            if _phys_insufficient:
+                # 【ADR-080】记录「物理不足最近成立时刻」（释放迟滞带用）
+                self._ab_phys_insuff_step[k] = self._ab_step
             # 【AB 释放速度门（诊断 §14，默认关 = 零回归）】：已施加态若开启本门，
             # 释放判据由「级位下探」改为「速度门」——速度高于门限 ⇒ 保持 AB on，
             # 使 AB on 段与 ED 级位轨迹解耦（消除 25 s on → 222 s 锁死空窗的自锁死）。
