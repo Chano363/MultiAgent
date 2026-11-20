@@ -19,14 +19,31 @@ param(
   [switch]$DryRun
 )
 
-$cfg = Get-Content $Config -Raw | ConvertFrom-Json
+$cfg = $null
+try {
+  $cfg = Get-Content $Config -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+} catch {
+  Write-Output "FATAL: cannot read config '$Config' - exit without self-heal loop: $($_.Exception.Message)"
+  exit 3
+}
+# Guard: config must carry the fields the closer needs. A missing field used to
+# become [int]$null = 0 -> deadline in the past -> python exits rc=2 instantly ->
+# wrapper spun a 20s self-heal loop forever (2026-11-20 ZTEST leftover). Fail fast.
+if (-not $cfg -or -not $cfg.instance -or -not $cfg.ip -or -not $cfg.deadline_min) {
+  Write-Output "FATAL: config incomplete (need instance/ip/deadline_min) - exit without self-heal loop"
+  exit 3
+}
 $base = 'D:\Code\MultiAgent\traffic_rl_project'
 $py = 'D:\Anaconda\python.exe'
 $closer = Join-Path $base 'scripts\cloud\closer_aliyun_ecs.py'
-$trace = Join-Path $base "outputs\logs\cloud\closer_${Role}_wrapper_trace.log"
-$stdout = Join-Path $base "outputs\logs\cloud\closer_${Role}_stdout.log"
-$selfLog = Join-Path $base "outputs\logs\cloud\closer_${Role}.log"
-$pullDir = Join-Path $base "outputs\results\$($cfg.run_tag)_${Role}"
+# Log file names carry the run_tag: primary/backup of DIFFERENT windows (and any
+# leftover drill) used to share closer_primary_*.log -> traces interleaved and the
+# "restarts=350" state was an artifact of a foreign writer, not a real fault.
+$tag = $cfg.run_tag
+$trace = Join-Path $base "outputs\logs\cloud\closer_${tag}_${Role}_wrapper_trace.log"
+$stdout = Join-Path $base "outputs\logs\cloud\closer_${tag}_${Role}_stdout.log"
+$selfLog = Join-Path $base "outputs\logs\cloud\closer_${tag}_${Role}.log"
+$pullDir = Join-Path $base "outputs\results\${tag}_${Role}"
 $deadlineAbs = (Get-Date).AddMinutes([int]$cfg.deadline_min)
 
 function W([string]$m) {

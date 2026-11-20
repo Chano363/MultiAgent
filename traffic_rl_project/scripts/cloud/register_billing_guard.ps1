@@ -35,7 +35,9 @@ $repDuration = New-TimeSpan -Days 3
 $startAt = $deadline.AddMinutes(-10)
 $trigger = New-ScheduledTaskTrigger -Once -At $startAt -RepetitionInterval $repInterval -RepetitionDuration $repDuration
 $execLimit = New-TimeSpan -Minutes 5
-$settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit $execLimit
+# 2026-11-20 FIX: same battery/restart hardening as register_closer_pair.ps1 - the
+# ultimate backstop must never be stopped by a battery switch or a missed trigger.
+$settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit $execLimit -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 
 # Prefer SYSTEM (no session dependency); fall back to current-user Interactive if the
 # session lacks privilege (non-admin). Both are pure-API short processes, every 10 min.

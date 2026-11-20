@@ -16,6 +16,15 @@ properties, so a future edit cannot silently drop them again:
   5. both scripts are ASCII-only (PS 5.1 mis-decodes BOM-less UTF-8 and breaks
      parsing -- a Chinese comment actually caused a silent registration failure
      during the fix, see diagnostics 19.32.3).
+
+SECOND incident guarded (2026-11-20 19:53, diagnostics 19.33): the closer pair
+was terminated mid-window (LastTaskResult=0x800703E3, NumberOfMissedRuns=3),
+14 min before the window broke its guard line -- abort-glob then had nobody
+left to run it, and the instance was stopped by hand. Settings-level causes:
+battery-stop defaults, StartWhenAvailable=False, RestartCount=0. Tests 6-8
+below lock those down; test 9/10 cover the wrapper (fail fast on an
+unreadable config instead of spinning a self-heal loop, and keep per-run_tag
+log files so two windows never interleave their traces).
 """
 from pathlib import Path
 
@@ -27,6 +36,7 @@ SCRIPTS = ROOT / "scripts" / "cloud"
 CLOSER_REG = SCRIPTS / "register_closer_pair.ps1"
 BILLING_REG = SCRIPTS / "register_billing_guard.ps1"
 BILLING_GUARD = SCRIPTS / "billing_guard.py"
+WRAPPER = SCRIPTS / "closer_wrapper_resilient.ps1"
 
 
 @pytest.fixture(scope="module")
@@ -37,6 +47,11 @@ def closer_src() -> str:
 @pytest.fixture(scope="module")
 def billing_src() -> str:
     return BILLING_REG.read_text(encoding="utf-8")
+
+
+@pytest.fixture(scope="module")
+def wrapper_src() -> str:
+    return WRAPPER.read_text(encoding="utf-8")
 
 
 def test_scripts_ascii_only():
@@ -91,3 +106,42 @@ def test_billing_guard_is_pure_api():
 def test_billing_guard_iso_deadline_validated(billing_src):
     """ISO 'T' separator is validated (schtasks argument splitting hazard)."""
     assert "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}" in billing_src
+
+
+@pytest.mark.parametrize("src_name", ["closer", "billing"])
+def test_registration_allows_battery_and_makes_up_missed_triggers(src_name):
+    """Second idle-burn incident (diagnostics 19.33): a battery switch stopped the
+    running task (DisallowStartIfOnBatteries / StopIfGoingOnBatteries default
+    TRUE) and a missed trigger was never made up (StartWhenAvailable default
+    FALSE), so the guard stayed down until the deadline."""
+    src = CLOSER_REG.read_text(encoding="utf-8") if src_name == "closer" else BILLING_REG.read_text(encoding="utf-8")
+    assert "-AllowStartIfOnBatteries" in src
+    # -AllowStartIfOnBatteries alone only clears DisallowStartIfOnBatteries;
+    # StopIfGoingOnBatteries (stop the RUNNING task on battery) needs its own switch.
+    assert "-DontStopIfGoingOnBatteries" in src
+    assert "-StartWhenAvailable" in src
+    assert "-RestartCount" in src
+
+
+@pytest.mark.parametrize("src_name", ["closer", "billing"])
+def test_registration_task_has_restart_count(src_name):
+    src = CLOSER_REG.read_text(encoding="utf-8") if src_name == "closer" else BILLING_REG.read_text(encoding="utf-8")
+    assert "-RestartCount 3" in src
+
+
+def test_wrapper_fails_fast_on_unreadable_config(wrapper_src):
+    """A missing/incomplete config used to become [int]$null = 0 -> deadline in
+    the past -> python exits rc=2 -> wrapper spun a 20s self-heal loop forever
+    (the ZTEST leftover that polluted the closer logs). It must exit instead."""
+    assert "FATAL: cannot read config" in wrapper_src
+    assert "FATAL: config incomplete" in wrapper_src
+    # the fail-fast must happen BEFORE the self-heal loop is entered
+    assert wrapper_src.index("FATAL: config incomplete") < wrapper_src.index("while ($true)")
+
+
+def test_wrapper_log_files_are_run_tag_scoped(wrapper_src):
+    """Two windows (or a leftover drill) used to share closer_primary_*.log ->
+    interleaved traces made a healthy window look like it was restarting 350x."""
+    assert "closer_${tag}_${Role}" in wrapper_src
+    assert "closer_${Role}_wrapper_trace.log" not in wrapper_src
+    assert "closer_${Role}.log" not in wrapper_src

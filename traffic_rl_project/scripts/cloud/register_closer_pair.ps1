@@ -68,7 +68,17 @@ $repDuration = New-TimeSpan -Days 3
 $startAt = (Get-Date).AddSeconds(10)
 $trigger = New-ScheduledTaskTrigger -Once -At $startAt -RepetitionInterval $repInterval -RepetitionDuration $repDuration
 $execLimit = New-TimeSpan -Days 3
-$settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit $execLimit
+# 2026-11-20 FIX #2 (second idle-burn incident): the closer pair was terminated at
+# 19:53:21 (LastTaskResult=0x800703E3, NumberOfMissedRuns=3) while the window was
+# still training -> abort-glob never fired, nothing stopped the instance by itself.
+# Settings-level causes addressed here:
+#   - DisallowStartIfOnBatteries / StopIfGoingOnBatteries default TRUE: switching to
+#     battery STOPS the running task. -AllowStartIfOnBatteries turns the first off,
+#     -DontStopIfGoingOnBatteries turns the second off (verified: it is the only
+#     switch that actually sets StopIfGoingOnBatteries=False).
+#   - StartWhenAvailable default FALSE: a missed trigger was never made up.
+#   - RestartCount default 0: the task had no self-restart; it depended on triggers only.
+$settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit $execLimit -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 foreach ($role in @('primary','backup')) {
   $name = "${TaskPrefix}_closer_$role"
   $argStr = "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`" -Config `"$cfgPath`" -Role $role"

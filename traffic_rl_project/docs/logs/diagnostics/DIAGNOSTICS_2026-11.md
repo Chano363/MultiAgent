@@ -5625,3 +5625,40 @@ ED 贴顶 ⇒ 缓解-再施加相位差增加 ⇒ 抵消了收益**）；
 4. 清理历史 4 个 Triggers=0 的死 closer 任务（w4nincrgateB / w4nincrgatecap 系列）。
 
 **重测证据**：① DryRun 注册 closer pair → 两任务 `State=Running / Triggers=1 / MultipleInstances=IgnoreNew`；② 杀掉两个 closer python → 20 s 内自愈重启，trace 记 `self-heal restart`；③ 再杀 wrapper、模拟触发器到期 `Start-ScheduledTask` → 新 wrapper 起来并 `python start remain=6min`（deadline 重算，窗口未延长）；④ 注册 billing_guard → `State=Ready（秒级跑完）/ Triggers=1`；⑤ 单测：closer trigger 9/9、idempotent 4/4、cover_quick_eval_watch 7/7、watchdog 4/4、新增注册守卫 8/8 全绿。**⇒ 正式窗口的"机制层面不空转"前置已具备**（下次开窗须用新注册脚本 + 同时注册 billing_guard，两者都是开窗同一动作序列的一部分）。
+
+### §19.33 第 9 投 W4 正式窗口（20 集）：ep6 破线归因 + closer 第二次未兜住收账（2026-11-20 18:38–20:12）
+
+**结论两条**（互相独立，必须分开记）：
+- **A. W4 判据未过 ⇒ 不进 W5。** ep6 确定性快评 BREAK（peak 上行 11.0% > 2%），护栏破线 kill 训练（exit 143，仅完成 7/20 集）。
+- **B. closer 护栏第二次未兜住收账**（§19.32.3 之后）。closer 双活 **19:53:21 被终止**，早于 20:07 破线 **14 分钟** ⇒ abort-glob 触发时已无 closer 在跑 ⇒ 产物回传与 API 停机均由 agent 手动完成。
+
+**A. 破线归因（一手，逐列逐指标对比）**
+
+| 指标 | ep2 (PASS) | ep4 (PASS) | ep6 (BREAK) |
+| :--- | :--- | :--- | :--- |
+| peak 合计 | 1179.23 | 1132.40 | **1256.72** |
+| band_rate | 0.9089 | 0.9074 | 0.9066（稳） |
+| rear_end_steps | 0 | 0 | 0（稳） |
+| 逐列 peak（头/中/尾） | 1145.9 / 1179.2 / 1136.7 | 1132.4 / 1088.0 / 1120.0 | 1147.2 / 1163.5 / **1256.7** |
+| 逐列超限 | 410 / 1299 / 551 | 390 / 232 / 167 | 412 / 1314 / **2493** |
+| AB 步数（总） | 12630 | 12084 | **15961**（+32%） |
+| AB 步数（头/中/尾） | 4623 / 3968 / 7740 | 4623 / 5283 / 4733 | 4615 / **9414** / 7568 |
+| AB 使用率（中列） | 0.1590 | 0.2117 | **0.3773**（×1.78） |
+| ED≤0 率（中列） | 0.0843 | 0.0573 | **0.3205**（×5.6） |
+| 中列缸压均值 / 梯度 | 1.0 / **0.0** | 1.0 / **0.0** | **0.294 / 0.294**（首现） |
+| mean_ed | 0.581 | 0.673 | 0.488 |
+
+**归因链**：**中列在 ep6 动作面漂移**——AB 施加率 0.2117→0.3773、AB 步数 +78%、ED 打到非正区间的比例 ×5.6、中列首次出现缸压梯度 0.29 ⇒ **中列改用"空气制动 + ED 打到底"替代可控减速**；其代价直接落在**尾列**（peak +12.2%、超限 ×15）。**头列 peak 1132.4→1147.2 基本不变** ⇒ **不是全局退化、不是物理漂移、不是 reward 面崩塌**，而是**列间动作分配失衡**（中列过强干预 → 尾列被动承压）。band 与零穿透三轮稳定 ⇒ 几何与追尾侧未被破坏。
+
+**与历史同型性**：第 6 投是"gap_eff 提权 ⇒ 车钩超限 ×21.5、peak +178"（目标间交换）；第 8 投是"ED 限浅 ⇒ 减速不足 ⇒ 超速跑分"（代价链放大）；本投是**"中列换用 AB 强行减速 ⇒ 尾列承压峰值"**（干预手段漂移 ⇒ 代价转移到他列）。**三者共同点：主指标（peak）不是被策略"能力不足"拉高，而是被"用哪个手段减速"的选择决定** ⇒ 下一投的干预点应落在**手段选择的成本面**（AB 施加的代价项），而非继续调 ED 上限/门限。
+
+**⚠️ 口径纪律**：训练侧 ep6 peak 1275.0 kN 与快评 1256.72 kN 不可互相替代（ADR-070 第 6 次：训练 rollout 对确定性评估盲）；本节全部判据读数引自**同源确定性快评**（`COVER_EVAL_CFG` 锁本投配置，31500 步），判定用 `cover_quick_eval.judge()` 权威实现，非手工读数。
+
+**B. closer 第二次失效（机制层，一手）**
+- 现象：两 closer 任务 19:53:21 同时转 `Ready`，`LastTaskResult=2147943467`（0x800703E3 = ERROR_SERVICE_MARKED_FOR_DELETE）、`NumberOfMissedRuns=3`、`NextRunTime=20:13:20`（触发器仍在，但当时未把进程拉起来）；python 进程全无；自日志最后一条 19:53:54。
+- **与破线的时间关系**：19:53 死 → 20:07 破线 ⇒ **abort-glob 机制本次完全没参与**（pilot 那次 closer 至少活到 exit_code 落盘后仍没触发，属"活着但没触发"；本次是"提前死亡"）。
+- **已排除的解释**：① 不是 wrapper 自愈失效（自愈逻辑只在 python 挂时重启 wrapper，本例是 wrapper 本身被终止）；② 不是 config 不可读（`closer_w4nincrgatecaprel_w4full_20261120.json` 完整，`deadline_min=240`、`abort_glob` 两条指向本 run_tag）；③ 不是 SSH 不可达误杀（三条防误杀红线完好：不可达只计数、deadline 硬顶、abort-glob 命中才停机）；④ 不是演练残留孤儿（那个孤儿是 DryRun + `none.json`，确实在污染 trace/stdout，已查明并单独处置，但它**不能停机**）。
+- **待查方向（本次未能定论，Windows TaskScheduler/Operational 事件日志无记录）**：任务被终止的外部原因。已知设置层面的**两个真实隐患**：`DisallowStartIfOnBatteries=True` + `StopIfGoingOnBatteries=True`（切电池即停任务，且 `StartWhenAvailable=False` 错过触发不补跑）、`RestartCount=0`（任务自身无失败重启，完全依赖触发器）。⇒ **下一个窗口开窗前必须**：① 关闭电池相关两项 + 置 `StartWhenAvailable=True` + 设 `RestartCount>=3`；② 把 closer 的 `Role` 改为按 run_tag 命名（本次 primary/backup 与历史演练共用 `closer_primary_*.log`，导致日志互相污染、状态误判——本次"restarts=350 疯狂重启"实为演练孤儿写进同一文件造成的假象）；③ wrapper 侧修"config 不可读时直接退出"（现为无限 20 s 自愈刷屏）。
+- **本窗口的实际损失**：破线 20:07:43 → 手动停机 20:12:30，**空转约 4.8 min**（pilot 为 15 min，确有改善），费用 2.39 元在批复预算（≤6.1 元）内。
+
+**收账回执**：产物回传校验通过（results + ckpt×16 + 快评 json×3 + metadata + BREAK_LINE + exit_code=143，落 `*_cloud/` 后缀不覆写历史）；API 停机复核 `Status=Stopped / StoppedMode=StopCharging` ✅已停费（实例保留不释放）；账本 `outputs/logs/cloud/lifecycle_w4nincrgatecaprel_w4full_20261120.csv`；实际机时 1.572 h ≈ **2.39 元**。
