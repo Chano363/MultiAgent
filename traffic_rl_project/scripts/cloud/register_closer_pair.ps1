@@ -25,28 +25,34 @@ $base = 'D:\Code\MultiAgent\traffic_rl_project'
 # They live under the registered logs/ tree (EXECUTION_RULES output-layout R1 and section 1) which is
 # gitignored, so instance ids and IPs never enter git. Never create outputs\configs here.
 $cfgDir = Join-Path $base 'outputs\logs\cloud'; New-Item -ItemType Directory -Force -Path $cfgDir | Out-Null
-$cfgPath = Join-Path $cfgDir "closer_${RunTag}.json"
+# 2026-11-21 FIX: a drill gets its own config file AND its own run_tag suffix.
+# Sharing the real run_tag would make the drill wrapper write into the SAME
+# closer_<tag>_primary*.log files as a live window -> interleaved traces again
+# (the exact defect that per-run_tag log scoping was introduced to fix).
+$drySuffix = if ($DryRun) { '_dryrun' } else { '' }
+$cfgPath = Join-Path $cfgDir "closer_${RunTag}${drySuffix}.json"
 $remoteRoot = '/root/traffic_rl_project/outputs'
+$tag = "${RunTag}${drySuffix}"
 $cfg = [ordered]@{
-  run_tag        = $RunTag
+  run_tag        = $tag
   instance       = $Instance
   region         = $Region
   ip             = $Ip
   deadline_min   = $DeadlineMin
-  marker         = "$remoteRoot/results/formation_10kt_1plus108/$RunTag/exit_code.txt"
-  log            = "$remoteRoot/logs/cloud/lifecycle_${RunTag}.txt"
+  marker         = "$remoteRoot/results/formation_10kt_1plus108/$tag/exit_code.txt"
+  log            = "$remoteRoot/logs/cloud/lifecycle_${tag}.txt"
   start_marker   = $StartMarker
   exit_pattern   = 'train_rc='
   exit_min_count = 1
   poll_s         = 120
   abort_glob     = @(
-    "$remoteRoot/results/formation_10kt_1plus108/$RunTag/BREAK_LINE.txt",
-    "$remoteRoot/results/formation_10kt_1plus108/$RunTag/DEAD_*.txt"
+    "$remoteRoot/results/formation_10kt_1plus108/$tag/BREAK_LINE.txt",
+    "$remoteRoot/results/formation_10kt_1plus108/$tag/DEAD_*.txt"
   )
   # NOTE (2026-11-19): quick-eval results live in results/decompose/ (file name
   # contains run_tag), while training products live in results/formation_.../<run_tag>/.
   # A single glob missed the quick-eval JSON (pilot: not pulled back) => two globs.
-  pull_glob     = @("$remoteRoot/results/formation_10kt_1plus108/$RunTag/*", "$remoteRoot/results/decompose/*${RunTag}*")
+  pull_glob     = @("$remoteRoot/results/formation_10kt_1plus108/$tag/*", "$remoteRoot/results/decompose/*${tag}*")
 }
 $cfgJson = $cfg | ConvertTo-Json -Depth 5
 # UTF-8 WITHOUT BOM: schtasks readers use PowerShell, but python json.load must also work.
@@ -80,7 +86,12 @@ $execLimit = New-TimeSpan -Days 3
 #   - RestartCount default 0: the task had no self-restart; it depended on triggers only.
 $settings = New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit $execLimit -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
 foreach ($role in @('primary','backup')) {
-  $name = "${TaskPrefix}_closer_$role"
+  # 2026-11-21 FIX: a DRILL must never be able to overwrite a live window's
+  # guard. The real task name is "${TaskPrefix}_closer_$role" and registration
+  # uses -Force, so a drill on the same prefix used to silently REPLACE the
+  # running window's primary/backup task (and its wrapper, which holds the
+  # remaining-deadline state). Drill tasks therefore get a distinct suffix.
+  $name = if ($DryRun) { "${TaskPrefix}_dryrun_closer_$role" } else { "${TaskPrefix}_closer_$role" }
   $argStr = "-NoProfile -ExecutionPolicy Bypass -File `"$wrapper`" -Config `"$cfgPath`" -Role $role"
   if ($DryRun) { $argStr += ' -DryRun' }
   $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $argStr
@@ -100,5 +111,17 @@ foreach ($role in @('primary','backup')) {
   Start-ScheduledTask -TaskName $name
   $st = (Get-ScheduledTask -TaskName $name).State
   Write-Output "task=$name state=$st logon=$mode triggers=$((Get-ScheduledTask -TaskName $name).Triggers.Count)"
+}
+if ($DryRun) {
+  # 2026-11-21 FIX: a drill must not leave a live guard behind. The 5min
+  # repetition trigger would keep re-launching the drill wrapper for up to 3
+  # days, and the wrapper would keep polling a real instance. Stop + unregister
+  # both drill tasks; the drill has already proven registration+start worked.
+  foreach ($role in @('primary','backup')) {
+    $drillName = "${TaskPrefix}_dryrun_closer_$role"
+    try { Stop-ScheduledTask -TaskName $drillName -ErrorAction SilentlyContinue } catch {}
+    try { Unregister-ScheduledTask -TaskName $drillName -Confirm:$false -ErrorAction SilentlyContinue } catch {}
+  }
+  Write-Output "DRILL_CLEANED prefix=$TaskPrefix (drill tasks stopped+unregistered; no live guard left behind)"
 }
 Write-Output "DUAL_ACTIVE_REGISTERED prefix=$TaskPrefix deadline_min=$DeadlineMin dryrun=$DryRun (5min-trigger + IgnoreNew + self-heal)"
