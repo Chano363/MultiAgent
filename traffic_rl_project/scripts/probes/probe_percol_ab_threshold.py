@@ -53,9 +53,10 @@ from src.evaluation.evaluate_decompose import (make_env, probe_critic_mode,
 
 BASE_YAML = "configs/experiments/formation_ed_ab_3train_1plus108_nincrgatecaprel.yaml"
 YAML_DIR = "tmp_adr082_yaml"
-CKPT = ("outputs/checkpoints/formation_10kt_1plus108/"
-        "w4nincrgatecaprel_w4full_20261120_cloud/"
-        "mappo_fleet_last_ep6_dec_ad1_cp_seed0_seed0.pt")
+CKPT = os.environ.get("LG10_CKPT") or (
+    "outputs/checkpoints/formation_10kt_1plus108/"
+    "w4nincrgatecaprel_w4full_20261120_cloud/"
+    "mappo_fleet_last_ep6_dec_ad1_cp_seed0_seed0.pt")
 RUN_TAG = os.environ.get("LG10_TAG", "adr082_abcolbias_probe_20261120")
 N_STEPS = int(os.environ.get("LG10_STEPS", "31500"))
 OUT_ROOT = "outputs/results/diagnostics"
