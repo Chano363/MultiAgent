@@ -42,6 +42,36 @@ source /root/miniconda3/etc/profile.d/conda.sh || { echo "conda 初始化失败"
 conda activate traffic_rl || { echo "conda traffic_rl 激活失败"; exit 91; }
 cd "$ROOT" || exit 91
 
+# 1b) 上传同源校验（诊断 §19.34-C/D，2026-11-20）
+#   - .git_commit：由 scripts/cloud/prepare_upload.sh 按本地 HEAD 生成，是"这次
+#     实际上云的代码"的权威锚（云端 .git 是部署残留，git rev-parse HEAD 会失真）。
+#   - MANIFEST/ref：参考速度表 md5 必须与本地一致，否则训练/评估用的参考速度
+#     表不是同一份 ⇒ 口径不同源（该表在 outputs/ 下，rsync 会排除，必须单独传）。
+#   校验失败只告警不阻断（训练窗口已获批，硬阻断会造成空转），但会写进 ledger。
+UPLOAD_NOTE=""
+if [ -f "$ROOT/.git_commit" ]; then
+  UPLOAD_NOTE="git_commit=$(cat "$ROOT/.git_commit")"
+else
+  UPLOAD_NOTE="git_commit=MISSING(provenance失真风险)"
+fi
+if [ -f "$ROOT/.upload_payload/MANIFEST.txt" ]; then
+  LOCAL_MD5="$(grep -F 'ref_speed_table.npz' "$ROOT/.upload_payload/MANIFEST.txt" 2>/dev/null | awk '{print $1}')"
+  CLOUD_REF="$(python -c 'import sys,yaml;cfg=yaml.safe_load(open(sys.argv[1],encoding="utf-8")) or {};print(((cfg.get("env_cfg") or {}).get("speed_ref_table") or ""))' "$CONFIG" 2>/dev/null | head -1 | tr -d "\r")"
+  if [ -n "$CLOUD_REF" ] && [ -f "$CLOUD_REF" ]; then
+    CLOUD_MD5="$(md5sum "$CLOUD_REF" | awk '{print $1}')"
+    if [ -n "$LOCAL_MD5" ] && [ "$LOCAL_MD5" != "$CLOUD_MD5" ]; then
+      UPLOAD_NOTE="$UPLOAD_NOTE; ref_table_md5_MISMATCH local=$LOCAL_MD5 cloud=$CLOUD_MD5"
+    else
+      UPLOAD_NOTE="$UPLOAD_NOTE; ref_table_md5=OK"
+    fi
+  else
+    UPLOAD_NOTE="$UPLOAD_NOTE; ref_table_CLOUD_MISSING($CLOUD_REF)"
+  fi
+else
+  UPLOAD_NOTE="$UPLOAD_NOTE; upload_manifest=MISSING"
+fi
+echo "upload_provenance: $UPLOAD_NOTE" | tee -a "$LEDGER"
+
 echo "boot_at=$(date -Is) boot_epoch=$(date +%s) run_id=$RUN_ID" | tee -a "$LEDGER"
 
 ARGS=(--experiment "$CONFIG" --seed "$SEED" --episodes "$EPISODES"

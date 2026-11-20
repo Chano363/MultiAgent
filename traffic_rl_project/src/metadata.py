@@ -26,20 +26,30 @@ def git_commit(project_root: str) -> str:
       ② 失败则读 `<project_root>/.git_commit`（本地生成、rsync 上云的纯文本
          commit hash；**不入 git**（避免自指），故 .gitignore 排除之）。
     两者都拿不到才返回空串（保持旧行为，不掩盖缺失）。
+
+    【2026-11-20 §19.34-C 修正 provenance 失真】上云时 rsync 排除 `.git/`，
+    云端 `/root/traffic_rl_project/.git` 是**部署残留**（停在镜像/上次部署的
+    HEAD），而代码文件是 rsync 上去的**当前工作区** ⇒ 旧顺序会让
+    `git rev-parse HEAD` 抢先返回**不含本投机制的旧 commit**（实测：云端
+    metadata.git_commit=154c1b8，而实际运行的是 dcbe214 分支的工作区代码）
+    ⇒ provenance 指向错误代码，事后复核会被误导。
+    故改为**优先读 `.git_commit`**（它由 scripts/cloud/prepare_upload.sh 按
+    本地 HEAD 生成，代表的正是"这次实际上云的代码"）；其次才是
+    `git rev-parse HEAD`；两者皆无才返回空串。
     """
-    try:
-        r = subprocess.run(["git", "-C", project_root, "rev-parse", "HEAD"],
-                           capture_output=True, text=True)
-        if r.returncode == 0 and r.stdout.strip():
-            return r.stdout.strip()
-    except Exception:
-        pass
     try:
         f = Path(project_root) / '.git_commit'
         if f.is_file():
             v = f.read_text(encoding='utf-8', errors='ignore').strip()
             if v:
                 return v
+    except Exception:
+        pass
+    try:
+        r = subprocess.run(["git", "-C", project_root, "rev-parse", "HEAD"],
+                           capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
     except Exception:
         pass
     return ""
