@@ -285,6 +285,25 @@ class TrainFleetEnv:
         # 陡坡（含低速）保持 AB、进缓坡才释放。默认 False = 零回归。
         self.ab_release_by_local_grade = bool(
             config.get('ab_release_by_local_grade', False))
+        # 【ADR-077 修复 2026-11-20：AB 门三键的 env 侧读取 + 下发】
+        # 缺陷（诊断 §19.23）：这三个键此前**只写在 YAML 里，env 从未读取、
+        # 也从未下发到 controller** ⇒ 训练与探针实际都吃 controller 默认值
+        # （gate=False / kmh=50.0 / apply_min=0.0），YAML 里的
+        # `ab_release_speed_gate: true` / `ab_release_speed_kmh: 56.0` /
+        # `ab_apply_speed_min_kmh: 60.0` **从未生效**。
+        # 后果（两条，都已实测）：
+        #   ① 训练口径与探针口径分裂 —— 探针脚本手动 setattr 才让门生效，
+        #      于是「训练配置」与「探针配置」不是同一个系统；
+        #   ② ADR-075/076 声称"继承 AB 门控四件套"，实际上门控两件从未在
+        #      训练中起作用，归因链须重审（§19.23）。
+        # 修法：env 侧读取 + 逐列下发（默认与 controller 构造默认逐位相同
+        # ⇒ 未在 YAML 配置时零回归）。
+        self.ab_release_speed_gate = bool(
+            config.get('ab_release_speed_gate', False))
+        self.ab_release_speed_kmh = float(
+            config.get('ab_release_speed_kmh', 50.0))
+        self.ab_apply_speed_min_kmh = float(
+            config.get('ab_apply_speed_min_kmh', 0.0))
         # 【ADR-076 待验证 2026-11-20】ED 前馈浅化上限（诊断 §19.17.3 路线级发现）：
         # decompose 路线（规则在环）历史读数 gap_err 41.78 m / band 100% /
         # mean_ed 0.7693；nincr 路线 495.08 m / 86% / 0.9013 ⇒ 几何差 11.9 倍。
@@ -797,6 +816,15 @@ class TrainFleetEnv:
                     _c.ab_derive_threshold = _thr
                     _c.ab_derive_release_margin = _margin
                     _c.ab_derive_notch_idx = _nidx
+                # 【ADR-077 修复 2026-11-20：AB 门三键下发（诊断 §19.23）】
+                # 这三个键此前只在 YAML 里声明、env 从未读取也从未下发 ⇒
+                # 训练与探针都吃 controller 默认值（gate=False / kmh=50.0 /
+                # apply_min=0.0）⇒ YAML 里的 true/56.0/60.0 从未生效。
+                # 此处补齐下发（默认与 controller 构造默认逐位相同 ⇒ 零回归）。
+                for _c in self.multi_loco_controllers:
+                    _c.ab_release_speed_gate = self.ab_release_speed_gate
+                    _c.ab_release_speed_kmh = self.ab_release_speed_kmh
+                    _c.ab_apply_speed_min_kmh = self.ab_apply_speed_min_kmh
             self.num_agents = sum(len(tr.loco_indices) for tr in self.trains)
         else:
             self.num_agents = self.num_trains
