@@ -2249,4 +2249,14 @@ ADR-077 第五轮同源探针后，三条判据的可达性：
   本文件 ADR-077 §四；判定后的开窗前必做清单见 `PROJECT_PIPELINE.md` §0.3 第 9 投行。
 - **证据边界**：整程探针 = 零机时 OOD 对照（既有 ckpt，非本项目策略）
   ⇒ 只作方向筛选，**不作峰值/安全判据、不作论文口径**。
-- **相关**：ADR-077 §三、ADR-078、诊断 §19.29–§19.30。
+
+### 二、G1 训练窗口启动检查单（六问逐条留痕，§0.8.2）—— 2026-11-20 开窗（owner「批准开窗」）
+
+1. **判据锚有文献或 owner 依据？——是。** ADR-071 四条不变：① peak ≤1180 kN（锚 Wang2023 相对改善 −8.93% × 规则基线 1294）② band ≥90%（速度带 [40,75]）③ 零穿透（`rear_end_steps==0`）④ peak ≤1500 安全线。owner 2026-11-20「批准开窗」= 方向与预算依据（四件套：c9i.2xlarge / 1.52 元·h / pilot ≈1.7 元 / 墙钟 ≈1–1.5 h）。
+2. **机制有文献对标物？——是。** 机理层对标 Wang2023（级位增量 + 切换幅度罚）与 Lu2026 COVER（分项提权）；「ED 深度上限 × 追及需求」的几何主控变量属本项目自有实测发现（诊断 §19.29–§19.31），不冒充文献结论。
+3. **从头训或奖励面完全不变的纯延长？——从头训。** 本投改控制面（ED 上限随追及放宽改变策略面对的环境）+ 继承 ADR-075 奖励面 ⇒ ADR-070③；禁止热启动（ADR-070①）。
+4. **快评协议已进启动脚本？——是。** `scripts/cloud/cover_quick_eval_watch.sh`（每 2 集确定性快评 31500 步），判据 = 零穿透 / band ≥0.85 / peak ≤1500 / peak 较上次上行 ≤2%；破线写 `BREAK_LINE.txt` + 兜底 pkill + 本地 closer 读 abort-glob 停机。pilot 经 bootstrap 注入 `COVER_QUICK_EVAL=1` / `COVER_EVAL_EVERY=2` / `COVER_EVAL_STEPS=31500` / **`COVER_EVAL_CFG=<第9投配置>`**（必须覆盖，否则 1 维策略载不进来、快评静默失效；ADR-074 附段二已踩此坑）。
+5. **ADR-070 塌缩护栏在位？——是。** 从头训 ⇒ 无热启动塌缩面；pilot（4 集 + 逐 2 集快评）拦首次塌缩窗口；确定性快评逐 2 集守门（v20/v21 + 第 6/8 投实弹拦截已验证）。
+6. **收账 closer 已以 schtasks 注册且心跳 rc=0？——开窗前置：是（占位注册 + State=Running）；心跳 rc=0 待开机拿 IP 后覆盖注册即补实证（ADR-076 同款补录顺序）。** 铁律 12：开机与注册 closer 同一动作序列，closer 不在位不得开机。注册走 `register_closer_pair.ps1`（primary+backup 双活 + 20 s 自愈 + 幂等停机；一次性 wrapper `run_w4*_closer.ps1` 仅历史参考、**不得用**）；四道触发 = done marker / 独立日志 `--start-marker` 截断 + `--exit-min-count` / `--abort-glob`（`BREAK_LINE.txt` + `DEAD_*.txt`）/ 硬 deadline；三条防误杀 = 只读本次独立日志 / min-count=阶段数 / ssh 不可达永不触发停机。⚠️ 本机新任务可能停 `Queued`（无交互会话）⇒ 开机前确认 `State=Running`，否则不得开机。**执行留痕**：开机后补写于此（任务 ID/两任务 State/心跳 rc/实例 IP）。
+
+- **相关**：ADR-077 §三、ADR-078、诊断 §19.29–§19.31。
