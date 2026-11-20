@@ -5885,3 +5885,70 @@ W4 云端快评与本地复现（同一 ckpt、同一配置、同一 `eval_seed=
 - `scripts/probes/calibrate_notch_level.py`（n_k 标定 + 区分度预判）
 - `scripts/probes/run_crossckpt.sh`（跨 ckpt 泛化测试）
 - `tests/test_adr082_percol_ab_threshold.py`（10 项守卫）
+
+#### §19.36 W4 收账遗留：closer 护栏三项缺陷的**运行时**复测（离线、零机时、零费用）
+
+**背景**：§19.33 记录 W4 窗口的第二次空转事故（closer 对在 19:53:21 被终止，`LastTaskResult=0x800703E3`、`NumberOfMissedRuns=3`，距破线尚有 14 min，abort-glob 无人执行，实例靠人工停机）。当时定位到**三个设置层根因**，并在 `c10f148` 修复：
+
+| # | 缺陷 | 修复项 | Windows 设置层默认 | 修复后 |
+| :--- | :--- | :--- | :--- | :--- |
+| ① | 电池策略杀死正在跑的 guard | `-AllowStartIfOnBatteries` + `-DontStopIfGoingOnBatteries` | `DisallowStartIfOnBatteries=True`、`StopIfGoingOnBatteries=True` | 双 False |
+| ② | 漏掉的触发从不被补上 | `-StartWhenAvailable` | `False` | `True` |
+| ③ | 任务崩溃后无自重启 | `-RestartCount 3` + `-RestartInterval 1min` | `RestartCount=0` | `3` / `PT1M` |
+| ④ | closer 日志跨窗口串写 | 日志按 `run_tag` 隔离 | — | `closer_{tag}_{role}*` |
+| ⑤ | config 不可读 ⇒ 20 s 自愈死循环 | wrapper 坏 config 快失败 | — | `exit 3` |
+
+§19.33 明确要求："**下一窗口开窗前必须修复并重测**"。本节即该"重测"。
+
+**但重测时发现的更重要的问题**：既有守卫 `tests/test_closer_registration_resilience.py`（13 项）**全部是静态字符串断言**——它只证明源码里**出现过** `-StartWhenAvailable`、`-RestartCount 3` 这些开关，**不证明注册出来的任务真的带着这些设置**。这正是 ADR-077「配置声明 ≠ 运行时生效」的同族缺陷：**一个写在源码里却在设置层被丢弃或覆盖的开关，能通过全部静态测试，然后在下一个窗口静默复现事故。** 与 ADR-077 的差别只在触发层（不是 env_cfg，而是 SCHEDULTASK 设置层），机理完全相同。
+
+**处置**：新增**运行时生效探针** `scripts/cloud/verify_closer_settings.ps1` —— 它从**真实注册脚本**里取出 `New-ScheduledTaskSettingsSet` 语句原文求值、用该 settings 对象注册一个一次性探针任务、再用 `Get-ScheduledTask` **读回注册后的真实属性**并断言，全部离线完成：**不碰云实例、不走 ssh、不产生任何机时或费用**，探针任务在 finally 中注销（实测残留 0 个）。
+
+**运行时读回结果（两个注册脚本各一轮）**：
+
+| 注册脚本 | DisallowStartIfOnBatteries | StopIfGoingOnBatteries | StartWhenAvailable | RestartCount | RestartInterval | MultipleInstances | ExecutionTimeLimit | Triggers | 判定 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `register_closer_pair.ps1` | False | False | True | 3 | PT1M | IgnoreNew | PT72H | 1 | **PASS** |
+| `register_billing_guard.ps1` | False | False | True | 3 | PT1M | IgnoreNew | PT72H | 1 | **PASS** |
+
+**反向对照（证明守卫不是空转）**：把上述四个加固开关从真实注册脚本中剥离后重跑探针，读回值为 `DisallowStartIfOnBatteries=True`、`StopIfGoingOnBatteries=True`、`StartWhenAvailable=False`、`RestartCount=0`——**与 §19.33 事故当时的设置逐项一致**，探针判 `all_pass=false`、退出码 1。⇒ **探针能够复现历史事故条件，不会对弱配置放行。**
+
+**wrapper 快失败的运行时验证**（此前同样只有静态断言）：以不存在的 config 与字段缺失的 config 各调一次 wrapper，均在 **15 s 内**以 `exit 3` + `FATAL: cannot read config` / `FATAL: config incomplete` 退出，**未进入 20 s 自愈循环**。
+
+**新增永久守卫**：`tests/test_closer_settings_runtime.py`（4 项，Windows-only，WSL 下 skip）——
+1. 两个注册脚本的设置**运行时解析结果**必须携带全部加固项（读回真实任务属性）；
+2. **反向对照**：削弱后的设置必须被探针拒绝；
+3. wrapper 对坏 config 必须在 15 s 内 `exit 3`（两个子场景）。
+
+同时把 `verify_closer_settings.ps1` 纳入既有 ASCII-only 守卫（PS 5.1 对 BOM-less UTF-8 的中文注释会解析失败，该坑已在 §19.32.3 实际发生过一次静默注册失败）。
+
+**⇒ 结论**：§19.33 列出的三项缺陷（①②③）**已完成修复并在运行时层面复测通过**，W4 遗留的"下一窗口开窗前必须修复并重测"这一前置条件**已满足**；护栏同时从"静态字符串断言"升级为"运行时生效证明 + 反向对照"，关闭了 ADR-077 同族的最后一个未覆盖触发层。
+
+**边界声明**：本节验证的是**设置层与注册路径**的生效性，**不构成**对"云端 closer 在真实窗口内确实执行了 abort-glob 并停机成功"的端到端证明——后者只能在真实窗口（需 owner 批复红线 1 四件套）复测。§19.33 遗留的另一半（真实窗口端到端）**仍未闭合**。
+
+#### §19.36.1 复测途中新发现的两个演练隔离缺陷（已修 + 守卫）
+
+在核对 `-DryRun` 演练路径时，发现演练与真实窗口之间**缺少隔离**，两个缺陷都会在"演练后接真窗口"的操作序列里造成实际危害：
+
+| # | 缺陷 | 危害 | 修复 |
+| :--- | :--- | :--- | :--- |
+| ⑥ | **演练任务名与真实窗口完全相同**（`<prefix>_closer_primary`），且注册用 `-Force` | 一次演练会**静默覆盖**正在运行的窗口护栏任务——连同 wrapper 进程里持有的"剩余 deadline"状态一起被换掉。护栏看似在位，实则已被演练配置接管 | 演练任务名改为 `<prefix>_dryrun_closer_<role>`，**永不与真实任务名碰撞** |
+| ⑦ | **演练注册后从不注销**，而触发器是 5 min 重复、时长 3 天 | 演练结束后留下一个会**每 5 分钟自己重启一次**、持续轮询真实实例的活任务，持续数天 | 演练分支在验证注册+启动成功后，`Stop` + `Unregister` 两个演练任务，并打印 `DRILL_CLEANED` |
+| ⑧ | **演练 config 与日志与真实窗口共用 `run_tag`** | 演练 wrapper 会写进真实窗口的 `closer_<tag>_primary*.log` ⇒ **重新引入刚在 §19.36 修掉的"日志串写"缺陷** | 演练的 config 文件名与 `run_tag` 均加 `_dryrun` 后缀 ⇒ 日志天然隔离 |
+
+**实测（离线演练，`Ip=127.0.0.1`、`DeadlineMin=1`）**：
+
+```
+config=.../closer_zzdrill_test_dryrun.json
+task=zzdrill_dryrun_closer_primary state=Running logon=Interactive+trigger triggers=1
+task=zzdrill_dryrun_closer_backup  state=Running logon=Interactive+trigger triggers=1
+DRILL_CLEANED prefix=zzdrill (drill tasks stopped+unregistered; no live guard left behind)
+--- live tasks matching zzdrill*: 0
+```
+
+演练 wrapper trace 确认走的是 dry-run 分支（`[dry-run：不会真正停机]`），**未调用停机 API**；ssh 探测 `127.0.0.1` 预期被拒（`Connection refused`）⇒ **零机时、零费用、不触碰任何真实实例状态**。
+
+**新增守卫**：`tests/test_closer_settings_runtime.py::test_drill_cannot_overwrite_a_live_guard_and_leaves_no_residue` —— 断言演练用独立任务名、**从不出现**真实任务名 `task=<prefix>_closer_primary`、config 带 `_dryrun` 后缀、且演练后 `Get-ScheduledTask` 查无残留。
+
+**⇒ 结论**：§19.33 的三项缺陷（①②③）已在**运行时**层面复测通过（§19.36）；复测途中另外发现并修复三个演练隔离缺陷（⑥⑦⑧）。护栏的"设置层 + 注册路径 + 演练隔离"三块现已同时具备**运行时生效证明**与**反向对照**。
+

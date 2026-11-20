@@ -37,6 +37,7 @@ CLOSER_REG = SCRIPTS / "register_closer_pair.ps1"
 BILLING_REG = SCRIPTS / "register_billing_guard.ps1"
 BILLING_GUARD = SCRIPTS / "billing_guard.py"
 WRAPPER = SCRIPTS / "closer_wrapper_resilient.ps1"
+VERIFY_PS1 = SCRIPTS / "verify_closer_settings.ps1"
 
 
 @pytest.fixture(scope="module")
@@ -56,7 +57,7 @@ def wrapper_src() -> str:
 
 def test_scripts_ascii_only():
     """PS 5.1 + BOM-less UTF-8: non-ASCII breaks parsing (incident reproduced)."""
-    for p in (CLOSER_REG, BILLING_REG):
+    for p in (CLOSER_REG, BILLING_REG, VERIFY_PS1):
         raw = p.read_bytes()
         bad = [b for b in raw if b > 0x7F]
         assert not bad, f"{p.name} contains non-ASCII bytes {bad[:8]!r}"
