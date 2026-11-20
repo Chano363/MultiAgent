@@ -303,7 +303,12 @@ def test_decompose_ab_suppress_allowed_when_far_below_vmax():
     suppress = np.zeros((2, 2))
     suppress[:, 1] = 1.0  # ab_mod=+1 → 请求抑制
     found = False
-    for _ in range(150):
+    # 【2026-11-21 修】步数预算 150 → 400：ADR-068 把全局上界 v_max 由 80 锁到
+    # 75 km/h 后，"远离 v_max" 的门限随之下降（75-0.5 m/s 裕量 ⇒ 73.2 km/h），
+    # 而列车在 -10.2‰ 陡坡上的实际减速很慢（实测 13.5 s 仅降 3.2 km/h），150 步
+    # （15 s）走不到窗口 ⇒ 报"未进入窗口"。本测的守护点是"窗口内 RL 能关掉
+    # 基线 AB 兜底"，不是"150 步内必须进窗口"，故放大预算而非放宽判据。
+    for _ in range(400):
         tr = env.trains[0]
         if (np.max(tr.dynamics.vel) < env.v_max - MultiLocoController.AB_SUPPRESS_MARGIN_MPS
                 and ctrl._ed_ab_price(tr) < 0.99):
@@ -314,7 +319,7 @@ def test_decompose_ab_suppress_allowed_when_far_below_vmax():
             found = True
             break
         env.step(suppress)
-    assert found, "150 步内未进入'远离超速且 ED 不足'窗口"
+    assert found, "400 步内未进入'远离超速且 ED 不足'窗口"
 
 
 def test_decompose_ab_advance_fallback():
@@ -333,7 +338,13 @@ def test_decompose_ab_advance_fallback():
 def test_decompose_reward_ab_more_expensive_than_ed():
     """电空分工塑形：同样 1 单位制动量，走 AB 的成本显著高于走 ED（ED 优先可学）。"""
     env = _make_decompose_fleet()
-    env.reset(options={'speed': 78.0 / 3.6})
+    # 【2026-11-21 修】初速由硬编码 78 km/h 改为**相对 v_max** 的 0.9 倍。
+    # 原值 78 是按 ADR-068 之前的 v_max=80 km/h 选定的"带内但接近上限"点；
+    # ADR-068 把上界锁到 75 km/h 后 78 km/h 已**越线** ⇒ 奖励里的
+    # "领航带外/超速却无 AB 兜底"罚项（ab_cost -= 0.5·needs_brake）触发 ⇒
+    # r_base 比 r_ab 低 0.5，本测的"AB 成本已归零"前提被破坏。改为按
+    # v_max 的比例取点 ⇒ 与口径解耦，且仍落在速度带内（needs_brake = 0）。
+    env.reset(options={'speed': 0.9 * env.v_max})
     tr = env.trains[0]
     ctrl = env.multi_loco_controllers[0]
     zero = np.zeros((2, 2))
@@ -366,7 +377,12 @@ def test_decompose_ab_release_command_issued():
     # Isolate air-brake release below the line limit. At 81 km/h rule C
     # legitimately retains ED, so force dissipation is not a pure AB test.
     # Overspeed execution is covered by real actuator contracts separately.
-    env.reset(options={'speed': 78.0 / 3.6})
+    # 【2026-11-21 修】初速由硬编码 78 km/h 改为 0.9·v_max：注释要求的
+    # "below the line limit" 在 ADR-068 之前成立（78 < 80），但 v_max 锁到
+    # 75 km/h 后 78 km/h 已越线 ⇒ ATP 超速监督介入 ⇒ 本测测到的不再只是
+    # "AB 释放"，混入了超速制动。改为按 v_max 取比例 ⇒ 口径无关且守住原意。
+    v_start = 0.9 * env.v_max
+    env.reset(options={'speed': v_start})
     tr = env.trains[0]
     # Keep every vehicle below the line limit throughout this release-only
     # contract; a steep transition may legitimately trigger fresh ATP braking.
@@ -397,8 +413,17 @@ def test_decompose_ab_release_command_issued():
         tr.step(release)
     v_end = float(tr.dynamics.vel[0])
     f_end = float(np.max(np.abs(tr.dynamics.coupler_interface_forces()))) / 1e3
-    assert v_end > 20.0, \
-        f"缓解后列车速度塌缩（{v_end:.2f} m/s），疑似残留制动未释放"
+    # 【2026-11-21 修】判据由绝对值 20.0 m/s 改为**相对起步速度的 92%**。
+    #   ① 绝对阈值把"线速口径"写死：ADR-068 把 v_max 由 80 锁到 75 km/h 后，
+    #      原初速 78 km/h 已越线 ⇒ ATP 超速监督介入 ⇒ 额外减速 ⇒ v_end 跌破
+    #      20.0 m/s，误报"残留制动未释放"。故把初速改到线速门内（0.9·v_max），
+    #      使本测只考察"AB 释放"这一个变量。
+    #   ② 相对阈值与口径解耦：原比值 20.0/21.67 = 0.923，取 0.92 等价保留。
+    #      实测纯物理（无牵引、-2‰ 坡、Davis 阻力）550 步仅降 0.95 m/s
+    #      ⇒ 保持率 0.950 > 0.92，留有裕量；而真正的残留制动 bug 会造成
+    #      持续大幅减速甚至拖停，仍会被拦下。
+    assert v_end > 0.92 * v_start, \
+        f"缓解后列车速度塌缩（{v_end:.2f} m/s，起步 {v_start:.2f}），疑似残留制动未释放"
     assert f_end < 300.0, \
         f"缓解 15s 后车钩力仍 {f_end:.0f} kN，疑似残留制动力未消散"
 

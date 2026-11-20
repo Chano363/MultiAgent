@@ -11,13 +11,20 @@ from src.environments.train_fleet_env import TrainFleetEnv
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize('filename', [
-    'single_10kt108_coupler_rulecal.yaml',
-    'formation_ed_ab_3train_1plus108.yaml',
+@pytest.mark.parametrize('filename,expected_kmh', [
+    # 【ADR-068 2026-11-13】全局上界 v_max 由 80 改为 75 km/h（宁武西—北大牛
+    # 分段限速表最高 75，见 V01；80 无依据）。逐配置跟随现行口径：
+    #   - single_10kt108_coupler_rulecal.yaml = 80 km/h 旧口径存档（该 YAML 首行
+    #     明确标注「⛔ 旧口径 v_max=80，其结果不得与 v_max=75 口径并列引用」）；
+    #   - formation_ed_ab_3train_1plus108.yaml = 75 km/h 现行口径（ADR-068 锁定）。
+    # 本测的守护点不是"80 这个数"，而是**线速单位换算必须精确**（YAML 里存
+    # km/h ÷ 3.6 的精确值，贴线速判定才不会被浮点误差击穿）。
+    ('single_10kt108_coupler_rulecal.yaml', 80.0),
+    ('formation_ed_ab_3train_1plus108.yaml', 75.0),
 ])
-def test_current_80_kmh_limit_keeps_conversion_precision(filename):
+def test_line_speed_limit_keeps_conversion_precision(filename, expected_kmh):
     config = yaml.safe_load((ROOT / 'configs/experiments' / filename).read_text(encoding='utf-8'))
-    assert config['env_cfg']['v_max'] == 80.0 / 3.6
+    assert config['env_cfg']['v_max'] == expected_kmh / 3.6
 
 
 @pytest.mark.parametrize('speed_kmh,expect_overspeed', [(79.9996, False), (80.0, True), (80.001, True)])

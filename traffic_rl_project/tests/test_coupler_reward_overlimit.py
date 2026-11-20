@@ -19,26 +19,36 @@ from src.environments.train_fleet_env import (
 )
 from src.environments.train_env import COUPLER_FORCE_LIMIT_N
 
-
 class _VelTrain:
     def __init__(self, v):
         self.dynamics = type('D', (), {'vel': np.array([v], dtype=float)})()
 
 
 def _reward_env():
-    """绕过 __init__ 构造一个只够 _calculate_reward_decomposed 用的环境骨架。"""
-    env = object.__new__(TrainFleetEnv)
-    env.v_min = 40.0 / 3.6
-    env.v_max = 80.0 / 3.6
-    env.num_trains = 1
-    env.num_agents = 2
-    env.coupler_force_limit_n = COUPLER_FORCE_LIMIT_N
+    """构造一个够用且**不会随生产代码漂移**的环境。
+
+    【2026-11-21 重写】原实现用 `object.__new__(TrainFleetEnv)` 绕过 __init__
+    手搓骨架，只设了 6 个属性。此后奖励函数陆续新增读取的属性
+    （coupler_peak_w → f6a71bf、pressure_gradient_penalty_w → W4-v11 等），
+    骨架没跟上 ⇒ AttributeError ⇒ 本文件自 2026-11-11 起一直是**红的**
+    （全量跑才暴露）。骨架式测试与生产代码之间没有任何同步机制，是这类
+    "长期红测"的根源。
+
+    改为**直接构造真实 env**（同 test_fleet_decompose 的构造方式）：奖励函数
+    读到的属性全部由 __init__ 提供，不会再漂移。本测只关心车钩两项，其余
+    槽位在两次调用之间相消（同一 env 状态，只改 step_coupler_peak_n）。
+    """
+    env = TrainFleetEnv({
+        'num_trains': 1,
+        'consist_preset': '10kt_1plus1',
+        'grade_profile': 'long_downhill',
+        'target_speed': 20.0,
+        'max_steps': 20,
+        'decompose': 'loco_ed_ab',
+    })
+    env.reset(options={'speed': 60.0 / 3.6})
     env.speed_band_shape = 'flat'      # 默认形态（v6 零回归），本测只验车钩项
     env.reward_term_log = False        # 本测不采集逐槽位分量
-    env.REL_ANCHOR_SPD_SCALE = 3.0
-    env.REL_ANCHOR_SPD_W = 2.0
-    env._prev_gap_err = None
-    env.trains = [_VelTrain(20.0)]
     return env
 
 
