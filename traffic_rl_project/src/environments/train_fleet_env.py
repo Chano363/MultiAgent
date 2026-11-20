@@ -1853,6 +1853,16 @@ class TrainFleetEnv:
                 if self.ed_feedforward_cap > 0.0:
                     ctrl.ed_feedforward_cap = float(self.ed_feedforward_cap)
                     ctrl.ed_feedforward_margin = float(self.ed_feedforward_margin)
+                # 【ADR-081】按列算「相对前列速度差」并交给 controller
+                # （controller 收到的是单列子环境，取不到整编队前列速度）
+                if self.ed_cap_rel_speed_kmh > 0.0:
+                    if ti > 0:
+                        _v_rel_now = (
+                            float(tr.dynamics.vel[0])
+                            - float(self.trains[ti - 1].dynamics.vel[0])) * 3.6
+                    else:
+                        _v_rel_now = float('-inf')   # 领航无前列
+                    ctrl._ed_cap_rel_speed_now = float(_v_rel_now)
                 if self.ed_notch_cap < 1.0:
                     ctrl.ed_notch_cap = float(self.ed_notch_cap)
                     ctrl.ed_notch_cap_release_kmh = float(

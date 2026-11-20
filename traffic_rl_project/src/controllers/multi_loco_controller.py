@@ -419,6 +419,9 @@ class MultiLocoController:
         # ⚠️ 只改 ED 级位上限的生效值；不改施加来源/不改 AB 派生/不改安全链。
         # 默认 0.0 = 不启用 = 逐位零回归。
         self.ed_cap_rel_speed_kmh = 0.0
+        # 【ADR-081】env 侧每步写入的「本列相对前列速度差」(km/h)；
+        # 领航列写 -inf（无前列 ⇒ 永不触发放宽）。
+        self._ed_cap_rel_speed_now = float('-inf')
         self.ed_cap_relaxed = 1.0
         self._ed_cap_col_index = -1
         # 【ADR-080 待验证 2026-11-20：AB 释放迟滞带】
@@ -1552,18 +1555,28 @@ class MultiLocoController:
             _cap_eff_base = float(self.ed_notch_cap)
             if (self.ed_cap_rel_speed_kmh > 0.0
                     and _cap_eff_base < float(self.ed_cap_relaxed)):
-                try:
-                    _trains = getattr(train_env, 'trains', None)
-                    _ci = int(self._ed_cap_col_index)
-                    if (_trains is not None and 0 <= _ci < len(_trains)
-                            and _ci > 0):
-                        _v_self = float(_trains[_ci].dynamics.vel[0])
-                        _v_lead = float(_trains[_ci - 1].dynamics.vel[0])
-                        _v_rel = (_v_self - _v_lead) * 3.6   # km/h
-                        if _v_rel >= float(self.ed_cap_rel_speed_kmh):
-                            _cap_eff_base = float(self.ed_cap_relaxed)
-                except Exception:
-                    pass
+                # 【ADR-081】相对速度优先取 env 侧传入的标量
+                # （env 侧算好，因 controller 收到的是单列子环境、
+                #  取不到整编队的前列速度；见 ADR-081 修正说明）。
+                _v_rel_now = float(self._ed_cap_rel_speed_now)
+                if _v_rel_now >= float(self.ed_cap_rel_speed_kmh):
+                    _cap_eff_base = float(self.ed_cap_relaxed)
+                else:
+                    # 双保险：若 train_env 恰为 fleet env，则在此自算
+                    try:
+                        _trains = getattr(train_env, 'trains', None)
+                        _ci = int(self._ed_cap_col_index)
+                        if (_trains is not None and 0 <= _ci < len(_trains)
+                                and _ci > 0):
+                            _v_self = float(_trains[_ci].dynamics.vel[0])
+                            _v_lead = float(
+                                _trains[_ci - 1].dynamics.vel[0])
+                            _v_rel = (_v_self - _v_lead) * 3.6   # km/h
+                            if _v_rel >= float(
+                                    self.ed_cap_rel_speed_kmh):
+                                _cap_eff_base = float(self.ed_cap_relaxed)
+                    except Exception:
+                        pass
             if _cap_eff_base < 1.0 and n_k > _cap_eff_base:
                 # 【ADR-076】ED 上限的两种放宽方式（互斥，斜坡优先）：
                 # ① 阶跃释放阀：速度 ≥ 阈值 ⇒ 完全放开（实测有害，见参数注释）
