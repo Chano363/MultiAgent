@@ -277,6 +277,14 @@ class TrainFleetEnv:
         self.ab_derive_threshold_follower = (
             None if config.get('ab_derive_threshold_follower') is None
             else float(config.get('ab_derive_threshold_follower')))
+        # 【ADR-076 待验证 2026-11-20】AB 保持/释放改用「当前实际坡度」的物理判据
+        # （诊断 §19.21）：ed_avail 的需求项取**全程最陡坡**（位置无关）且随速度
+        # 变化 ⇒ 低速误判「ED 已够用」⇒ 释放 AB ⇒ 222 s 充风门锁死 ⇒ 陡坡拖停；
+        # 而陡坡上纯 ED 物理上无法平衡（沿坡分力 ≈1163 kN > 粘着上限 ≈645 kN）
+        # ⇒ AB 是物理刚需。改用位置相关的 `_ed_cannot_hold_speed`：
+        # 陡坡（含低速）保持 AB、进缓坡才释放。默认 False = 零回归。
+        self.ab_release_by_local_grade = bool(
+            config.get('ab_release_by_local_grade', False))
         # 【ADR-076 待验证 2026-11-20】ED 前馈浅化上限（诊断 §19.17.3 路线级发现）：
         # decompose 路线（规则在环）历史读数 gap_err 41.78 m / band 100% /
         # mean_ed 0.7693；nincr 路线 495.08 m / 86% / 0.9013 ⇒ 几何差 11.9 倍。
@@ -1804,6 +1812,8 @@ class TrainFleetEnv:
                         self.ed_notch_cap_slope_from_kmh)
                 # 【ADR-076 待验证】物理触发式 AB 兜底（规则基线同源判据）：
                 # ed_avail < 阈值 ⇒ 即便级位未越限也请求 AB（只做加法）。
+                if self.ab_release_by_local_grade:
+                    ctrl.ab_release_by_local_grade = True
                 if self.ab_physical_trigger:
                     ctrl.ab_physical_trigger = True
                     ctrl.ab_physical_avail_threshold = float(

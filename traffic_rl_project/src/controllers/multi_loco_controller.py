@@ -391,6 +391,22 @@ class MultiLocoController:
         # AB 变为「级位越限 **或** 物理不足」双通道。
         self.ab_physical_trigger = False           # > 开启：ed_avail 不足时也请求 AB
         self.ab_physical_avail_threshold = 0.99    # 触发阈值（同规则基线口径）
+        # 【ADR-076 待验证 2026-11-20：AB 保持/释放改用「当前实际坡度」的物理判据】
+        # 诊断 §19.21 的判别结论 + 今早物理触发失败的死因：
+        #   · `ed_avail = F_ed / F_req` 中 **F_req 取「全剖面最陡下坡」**
+        #     （`_ed_ab_price`：`steepest_down = max(0, -min(grades))`）⇒ **位置无关**，
+        #     且 F_ed = P/v 随速度降低而增大 ⇒ **低速时 ed_avail 反而 ≥ 1 ⇒ 误判
+        #     「ED 已够用」⇒ 释放 AB ⇒ 222 s 充风门锁死 ⇒ 陡坡拖停**
+        #     （该机制整程 peak 1842.4 / 尾列末速 0.0 的死因，§19.14–§19.15）。
+        #   · 而陡坡上**纯 ED 物理上无法平衡**：沿坡分力 ≈1163 kN > 单台机车
+        #     粘着上限 ≈645 kN（§19.21.3 核算）⇒ AB 是物理刚需，释放代价极高。
+        # 本开关把「物理不足」判据换成**位置相关**的 `_ed_cannot_hold_speed`
+        # （按各车实际坡度算 grade_force − resistance vs electric_capacity）：
+        #   · 陡坡（含低速）⇒ 仍判「ED 不够」⇒ **保持 AB ⇒ 不拖停**；
+        #   · 进缓坡 ⇒ 判「ED 够用」⇒ **允许释放** ⇒ 释放次数少 ⇒ 222 s 锁死空窗少
+        #     ⇒ 超速跑分减少 ⇒ band 回升。
+        # 纯控制面改动（不改动作面/物理/奖励面/安全层）⇒ 两侧物理同源、零机时可判。
+        self.ab_release_by_local_grade = False
         # 【P1 候选 / ADR-074 附段三「坡度门解耦」，2026-11-19；默认关 = 零回归】
         # 语义：把「缓解 AB」的触发条件从"级位下探穿释放阈值"解耦为"坡度进入缓坡段"。
         # 已施加态即便级位下探，只要本列队首坡度仍陡（≤ 门限），就不许释放 AB——
@@ -1562,7 +1578,20 @@ class MultiLocoController:
             #     档位保持/车钩 veto 全在），而不是"物理判据永不释放"——
             #     后者会把 AB 永久按住不放（拖停风险），规则基线也不是那样。
             _phys_insufficient = False
-            if self.ab_physical_trigger:
+            if self.ab_release_by_local_grade:
+                # 【ADR-076 待验证：位置相关的物理判据（§19.21）】
+                # 用**当前实际坡度**判定「ED 是否已不足以维持速度」
+                # （`_ed_cannot_hold_speed`：grade_force − resistance vs
+                #  electric_capacity，按各车实际坡度算，位置相关）。
+                # 与 ed_avail 口径的关键差异：
+                #   · ed_avail 的需求项取**全程最陡坡**（位置无关）且随速度变化
+                #     ⇒ 低速误判「ED 已够用」⇒ 释放 ⇒ 222 s 锁死 ⇒ 拖停；
+                #   · 本判据在陡坡（含低速）恒判「不够」⇒ 保持 AB；进缓坡才释放。
+                try:
+                    _phys_insufficient = bool(self._ed_cannot_hold_speed(train_env))
+                except Exception:
+                    _phys_insufficient = False
+            elif self.ab_physical_trigger:
                 try:
                     _avail = self._ed_ab_price(train_env)
                 except Exception:
