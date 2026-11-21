@@ -80,5 +80,34 @@ timeout 4 env PATH="$TMP/bin:$PATH" bash "$SCRIPT" >"$TMP/watch2.log" 2>&1 || tr
 [ ! -f "$TMP/selfstop2.called" ] && ok "ep5 不触发" || bad "ep5 误触发"
 [ $(grep -c 'run_training.py' "$TMP/pkill.called" 2>/dev/null || echo 0) -eq 1 ] && ok "ep5 不杀训练" || bad "ep5 误杀训练"
 
+echo "== 训练结束但仍有待评估集（ep10）⇒ 必须补评估后再退出（§19.64 缺陷回归）=="
+rm -rf "$ROOT"; mkdir -p "$CK" "$RD" "$DE" "$ROOT/scripts/cloud"
+touch "$CK/mappo_fleet_last_ep10_w4cover_full_20261118_seed0.pt"
+touch "$CK/train_finished.marker"          # 训练已结束标记（缺陷触发条件）
+cat > "$ROOT/scripts/cloud/self_stop_ecs.sh" <<'EOF'
+#!/usr/bin/env bash
+echo "$*" > /tmp/PLACEHOLDER/selfstop3.called
+EOF
+sed -i "s|/tmp/PLACEHOLDER|$TMP|" "$ROOT/scripts/cloud/self_stop_ecs.sh"; chmod +x "$ROOT/scripts/cloud/self_stop_ecs.sh"
+# mock python：评估写正常（不破线）产物
+cat > "$TMP/bin/python" <<'EOF'
+#!/usr/bin/env bash
+for a in "$@"; do
+  if [ "$a" = "src.evaluation.evaluate_decompose" ]; then
+    suffix=""; prev=""
+    for x in "$@"; do [ "$prev" = "--out_suffix" ] && suffix="$x"; prev="$x"; done
+    mkdir -p "/tmp/PLACEHOLDER/root/outputs/results/decompose"
+    echo '{"results":{"peak_coupler_kN":1300.0,"band_rate":0.90,"rear_end_steps":0}}' > "/tmp/PLACEHOLDER/root/outputs/results/decompose/eval_decompose_decompose_m1_ms31500${suffix}.json"
+    exit 0
+  fi
+done
+exit 0
+EOF
+sed -i "s|/tmp/PLACEHOLDER|$TMP|" "$TMP/bin/python"; chmod +x "$TMP/bin/python"
+timeout 20 env PATH="$TMP/bin:$PATH" bash "$SCRIPT" >"$TMP/watch3.log" 2>&1; rc=$?
+[ -f "$DE/eval_decompose_decompose_m1_ms31500_w4cover_full_20261118_det_ep10.json" ]   && ok "训练结束后补做了 ep10 评估"   || bad "训练结束后未补评估（末集读数被丢弃，§19.64）: $(tail -5 "$TMP/watch3.log")"
+grep -q 'train_finished after eval' "$TMP/watch3.log" && ok "评估后才退出" || bad "退出时机不对"
+[ -f "$RD/.quick_eval_done" ] && ok "写 done 标记" || bad "未写 done 标记"
+
 echo "---- PASS=$PASS FAIL=$FAIL ----"
 [ "$FAIL" -eq 0 ]

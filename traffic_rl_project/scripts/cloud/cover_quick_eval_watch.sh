@@ -33,10 +33,13 @@ done_marks="$RES_DIR/.quick_eval_done"
 # 等待 ckpt 出现（训练启动中）
 log "watch_start run=$RUN_ID every=$EVERY steps=$EVAL_STEPS"
 while true; do
-  # 训练进程消失 → 收尾由 watchdog 负责，本脚本退出
-  if [ -f "$CKPT_DIR/train_finished.marker" ]; then
-    log "train_finished marker seen, watcher exit"; exit 0
-  fi
+  # ⚠️ 【2026-11-21 缺陷修复，诊断 §19.64】**训练结束 ≠ 评估结束**：
+  #   原实现在检测到 `train_finished.marker` 时**立即 exit** ⇒ 若训练在快评跑完前结束
+  #   （小窗口 / 末集刚出 ckpt），**应做的整程快评被直接丢弃** ⇒ 窗口没有主指标读数。
+  #   实测：窗口 B（EPISODES=2）训练 17:13 正常结束 ⇒ ep2 的整程快评**从未启动**，
+  #   产物里没有任何快评 JSON ⇒ A/B 判决缺对照侧。
+  #   ⇒ 现在改为：**先判断有没有"应评估但未评估"的集（EVERY 倍数且不在 done_marks）**，
+  #     有则**先补评估**，评估完才退出；没有待评估集才退出。
   # 找最新 ep：训练 ckpt 命名 = mappo_fleet_last_ep{N}_{tag}_seed{S}.pt（logger.py:221），
   # 不写 last_ep.txt——从文件名解析 ep 号，取最大者。
   # 逐个提 ep 号再数值排序（文件名含多段下划线，直接 sort 字段不可靠）
@@ -47,7 +50,13 @@ while true; do
     [ -n "$e" ] && [ "$e" -gt "$max_ep" ] 2>/dev/null && { max_ep="$e"; latest="$f"; }
   done
   ep="$max_ep"
-  [ -n "$latest" ] || { sleep "$POLL"; continue; }
+  if [ -z "$latest" ]; then
+    # 没有 ckpt：训练结束且无 ckpt ⇒ 真的可以退出了
+    if [ -f "$CKPT_DIR/train_finished.marker" ]; then
+      log "train_finished marker seen and no ckpt available, watcher exit"; exit 0
+    fi
+    sleep "$POLL"; continue
+  fi
   [ -n "$ep" ] || { sleep "$POLL"; continue; }
   # 只处理 EVERY 的倍数且未评估过
   if [ $((ep % EVERY)) -eq 0 ] && [ "$ep" -gt 0 ] && ! grep -qx "$ep" "$done_marks" 2>/dev/null; then
@@ -64,6 +73,12 @@ while true; do
     jf="$ROOT/outputs/results/decompose/eval_decompose_decompose_m1_ms${EVAL_STEPS}${tag}.json"
       if [ "$rc" -ne 0 ] || [ ! -f "$jf" ]; then
         log "eval_FAILED ep=$ep rc=$rc json=${jf:-?}（评估故障不判破线，仅留痕；deadline 兜底）"
+        # ⚠️ 评估失败**不写 done_marks** ⇒ 训练未结束则下一轮重试；若训练已结束则不再重试
+        #    （否则无限重试打转）⇒ 训练结束 + 评估失败 ⇒ 退出（读数缺失如实留痕）。
+        if [ -f "$CKPT_DIR/train_finished.marker" ]; then
+          log "train_finished after failed eval of ep=$ep, watcher exit"
+          exit 0
+        fi
       else
         verdict=$(PREV_PEAK="$prev_peak" PREV_GAP="$prev_gap" \
           GAP_MAX_ABS_M="${GAP_MAX_ABS_M:-}" GAP_RISE_TOL="${GAP_RISE_TOL:-}" \
@@ -102,7 +117,18 @@ print(('PASS' if r['pass'] else 'BREAK') + '|' + r['reason'] + '|' + str(r['metr
             prev_gap=$(echo "$verdict" | cut -d'|' -f4)
             ;;
         esac
+        # ⚠️ 训练已结束 ⇒ **评估完这一集就退出**（原本靠下一轮轮询顶部的 marker 检查退出，
+        #   而那次检查会在评估**之前**触发 ⇒ 末集快评被丢弃；见 §19.64）。
+        if [ -f "$CKPT_DIR/train_finished.marker" ]; then
+          log "train_finished after eval of ep=$ep, watcher exit"
+          exit 0
+        fi
       fi
+  fi
+  # 训练已结束且没有待评估集（EVERY 倍数）⇒ 退出
+  if [ -f "$CKPT_DIR/train_finished.marker" ]; then
+    log "train_finished marker seen, no pending eval, watcher exit"
+    exit 0
   fi
   sleep "$POLL"
 done
