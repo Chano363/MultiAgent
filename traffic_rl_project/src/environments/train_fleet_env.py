@@ -112,6 +112,16 @@ PRESSURE_GRAD_CAP = 2.0
 #   （平滑跟踪项 + 独立防撞项）。参见 docs/REFERENCE_INDEX.md。
 GAP_EFF_MARGIN = 1.1          # 效率目标 = 1.1 · d_safe（10% 裕量）
 GAP_EFF_SCALE_M = 150.0       # 效率项衰减尺度（gap ≥ d_eff + 此值 → 效率奖励为 0）
+# 【2026-11-21 §19.66】该尺度**已可配置**（env_cfg 键 `gap_eff_scale_m`），
+#   但**默认值仍为 150.0（零回归）**：既有配置的行为**逐位不变**。
+#   为什么要可配：第 9 投实测列距 584–940 m ⇒ 散开量 x = gap − d_eff(≈141 m) = 443–799 m
+#   ⇒ x/150 = 2.95–5.33 ⇒ **gap_eff 项全程恒为 0**（奖励面看不见"散开"，§19.51.3d）。
+#   量纲分析（scripts/probes/analyze_gap_reward_gradient.py，同源 48 条读数）：
+#   工作区间（第 9 投族 584–940 m）要**全部**有梯度需 s ≥ 740 m ⇒ 推荐 s ∈ [900, 1200] m；
+#   且**已达标样本（gap < d_eff）不受影响**（原语义：gap < d_eff 时不计效率奖励）。
+#   ⚠️ 形状不变（有界归一 W·max(0, 1 − x/s)）；文献可迁移的是"有界归一 + 权重占比 + 阶段调度"，
+#   而 Hu2026 的 d_target 归一化公式在本工况**恒零**（e_d = 3.1–6.7 全部越界）⇒ 不可照抄。
+GAP_EFF_SCALE_M_DEFAULT = GAP_EFF_SCALE_M   # 保留别名，便于引用"默认值语义"
 GAP_EFF_W = 3.0               # 效率项权重（每对，与原速度带 +6.0/列 同量级但不喧宾夺主）
 GAP_DANGER_W = 60.0           # 危险项权重（每对）；跌破 d_safe **不封顶**（替代旧 -200 饱和）
 # 【修复 2026-10-04】穿透时 _atp_safe_gap 恒返 0.0 ⇒ d_safe 退化为 0，用本固定参考尺度（m）
@@ -353,6 +363,9 @@ class TrainFleetEnv:
         self.ab_physical_trigger = bool(config.get('ab_physical_trigger', False))
         self.ab_physical_avail_threshold = float(
             config.get('ab_physical_avail_threshold', 0.99))
+        # 【2026-11-21 §19.66】效率项衰减尺度**可配**（默认 = 常量 150 ⇒ 零回归）。
+        # 量纲依据见模块常量处注释；窗口配置显式设值才会改变行为。
+        self.gap_eff_scale_m = float(config.get('gap_eff_scale_m', GAP_EFF_SCALE_M))
         # 【速度带改形 2026-11-08，默认 'flat' = 零回归】领航列速度项形态：
         #   'flat' = v6 旧行为（带内平顶 +SPEED_BAND_W，无速度梯度）
         #   'ramp' = 带内随接近上限收益递增（凸梯度），越线速重罚
@@ -2175,7 +2188,7 @@ class TrainFleetEnv:
                 # 效率项：gap ≥ d_eff 时，越接近 d_eff（间距越小）奖励越高；再大则衰减到 0。
                 if actual_gap >= d_eff:
                     gap_eff_reward += GAP_EFF_W * max(
-                        0.0, 1.0 - (actual_gap - d_eff) / GAP_EFF_SCALE_M)
+                        0.0, 1.0 - (actual_gap - d_eff) / float(self.gap_eff_scale_m))
                 # 危险项：跌破 ATP 安全线 d_safe → 陡罚，不封顶（越线绝不被速度带收益抵消）。
                 # 【修复 2026-10-04】穿透时 _atp_safe_gap 恒返 0.0（lead_tail<=head），原
                 # max(d_safe,1.0)=1.0 使 over 退化成"穿透米数"（-53m→over=53）⇒ over² 爆炸

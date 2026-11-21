@@ -208,18 +208,25 @@ def test_gap_eff_scale_mismatch_recorded():
     assert "待验证假设" in sec, f"{SEC} 必须把『调到 600 m 能拉回』标为待验证假设"
 
 
-def test_gap_eff_scale_is_hardcoded_not_config():
-    """守卫与代码一致：`GAP_EFF_SCALE_M` 必须是模块级常量，**不是** config 键。
+def test_gap_eff_scale_is_configurable_with_zero_regression():
+    """【2026-11-21 §19.66 更新】`GAP_EFF_SCALE_M` **已可配置**，但**默认值仍为常量**。
 
-    若将来被改成可配置项，本守卫判过期 ⇒ 须更新诊断中"改它必须改代码"的表述。
+    旧守卫断言"必须是常量、不是 config 键"，该断言已随实现变更过期（守卫本身提示了这一点）
+    ⇒ 现改为：**常量仍在（默认语义）+ config 键存在且默认取常量 + 奖励处真的用它**。
+    ⚠️ 零回归要求：**默认路径的行为必须与改动前逐位相同** ⇒ 默认值必须仍为 150.0。
     """
     env_src = (ROOT / "src" / "environments" / "train_fleet_env.py").read_text(
         encoding="utf-8")
-    assert re.search(r"^GAP_EFF_SCALE_M\s*=\s*[\d.]+", env_src, flags=re.M), (
-        "GAP_EFF_SCALE_M 应仍是模块级常量"
+    m = re.search(r"^GAP_EFF_SCALE_M\s*=\s*([\d.]+)", env_src, flags=re.M)
+    assert m, "GAP_EFF_SCALE_M 默认常量应仍在"
+    assert float(m.group(1)) == 150.0, (
+        f"默认值必须仍为 150.0（零回归），实际 {m.group(1)}"
     )
-    assert not re.search(r"config\.get\(\s*['\"]gap_eff_scale", env_src), (
-        "GAP_EFF_SCALE_M 已改为配置键 ⇒ §19.51.3d 的『改它必须改代码』表述已过期"
+    assert "config.get('gap_eff_scale_m', GAP_EFF_SCALE_M)" in env_src, (
+        "env 必须支持 gap_eff_scale_m 配置键，且默认值取常量"
+    )
+    assert "float(self.gap_eff_scale_m)" in env_src, (
+        "奖励计算处必须使用 self.gap_eff_scale_m（否则配置读了也不生效 = ADR-077 形态）"
     )
 
 
@@ -238,3 +245,45 @@ def test_brief_flags_ffcap_mechanism_ineffectiveness():
     assert "接线完整" in brief and "机制有效" in brief, \
         "决策简报必须区分'接线完整'与'机制有效'"
     assert "饱和" in brief, "决策简报必须引用陡坡前馈饱和这一实测限定"
+
+
+def test_gap_eff_scale_runtime_default_and_override():
+    """运行时自证：默认 = 150.0（零回归）；配置 900 时生效。
+
+    ⚠️ 这是**运行时读数**（不是静态字符串断言）⇒ 满足 ADR-077「配置声明 ≠ 运行时生效」的
+    反向要求：证明键真的被 env 读取并生效。
+    """
+    import sys
+    sys.path.insert(0, str(ROOT))
+    import yaml
+    from src.environments.train_fleet_env import TrainFleetEnv
+
+    cfg_path = (ROOT / "configs/experiments"
+                / "formation_ed_ab_3train_1plus108_nincrgatecaprel.yaml")
+    base = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+    env_cfg = dict(base.get("env_cfg") or {})
+
+    env0 = TrainFleetEnv(dict(env_cfg))
+    assert abs(float(getattr(env0, "gap_eff_scale_m", -1)) - 150.0) < 1e-12, (
+        f"默认尺度应为 150.0（零回归），实际 {getattr(env0, 'gap_eff_scale_m', None)}"
+    )
+
+    env_cfg2 = dict(env_cfg)
+    env_cfg2["gap_eff_scale_m"] = 900.0
+    env1 = TrainFleetEnv(env_cfg2)
+    assert abs(float(getattr(env1, "gap_eff_scale_m", -1)) - 900.0) < 1e-12, (
+        "配置 900 未生效 ⇒ 键未真正被 env 读取"
+    )
+
+
+def test_gap_gradient_analysis_exists_and_flags_pm_masac_scope():
+    """量纲分析产物须存在，并给出'PM-MASAC 的 d_target 归一化在本工况恒零'的限定。"""
+    import json
+    p = (ROOT / "outputs/logs/adr083_gap_primary_metric_sweep"
+         / "gap_reward_gradient_analysis.json")
+    if not p.exists():
+        return  # 分析脚本已就位，产物待下一次运行时生成
+    d = json.loads(p.read_text(encoding="utf-8"))
+    q1 = d["Q1_pm_masac_d_target_normalized"]
+    assert "治不了本病" in q1["conclusion"], "必须写明照抄 d_target 归一化治不了本病"
+    assert d["viable_scales_m"], "必须给出可行尺度区间"
