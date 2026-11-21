@@ -18,10 +18,15 @@ def _text(p):
 
 def test_pm_sens_waits_for_pytest_summary_not_just_file():
     t = _text(PM_SENS)
-    assert "grep -qE 'passed|failed|error'" in t, \
-        "主指标敏感度队列的等待条件必须包含 pytest 收尾汇总行判据（§19.54）"
+    # 【2026-11-21 §19.57 更新】判据已加固为"大小写不敏感 + 含 summary 特征"，
+    #   并且**删除了 pgrep 进程判据**（它会匹配到上游队列自身的命令行 ⇒ 永久误判）。
+    assert "grep -qiE 'short test summary info|passed|failed|error'" in t, \
+        "主指标敏感度队列的等待条件必须包含 pytest 收尾判据（大小写不敏感 + summary 特征）"
     assert "-f outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt ] &&" in t, \
         "必须把文件存在判据与内容判据并列（&&）"
+    code_only = "\n".join(ln for ln in t.splitlines() if not ln.strip().startswith("#"))
+    assert "pgrep" not in code_only, \
+        "等待判据不得使用 pgrep 进程判据（会自匹配上游命令行 ⇒ 永久等待，§19.57）"
 
 
 def test_edab_waits_for_content_of_all_predecessors():

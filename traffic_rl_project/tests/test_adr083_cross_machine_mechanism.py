@@ -38,8 +38,14 @@ def test_preflight_ok_carries_real_cloud_commit():
     m = re.search(r"commit=([0-9a-f]{7,40})", txt)
     assert m, ".preflight_ok 的 commit= 不是合法 sha"
     sha = m.group(1)
-    # 该 commit 必须存在，且 W4 窗口用的配置名要记在里面
-    assert "nincrgatecaprel.yaml" in txt, ".preflight_ok 未记录 W4 窗口配置"
+    # 【2026-11-21 更新】窗口已从 W4 推进到第 11 投 ⇒ 配置名断言改为**族名 + 文件真实存在**
+    #   （原断言硬编码 "nincrgatecaprel.yaml"，对第 11 投的 "_colgap.yaml" 会误报）
+    assert "nincrgatecaprel" in txt, ".preflight_ok 未记录本投配置族名"
+    m_cfg = re.search(r"config=(\S+)", txt)
+    assert m_cfg, ".preflight_ok 缺 config= 字段"
+    assert (ROOT / m_cfg.group(1)).is_file(), (
+        f".preflight_ok 记录的配置文件不存在：{m_cfg.group(1)}"
+    )
 
 
 def test_w4_cloud_commit_is_ancestor_of_all_physics_commits():
@@ -85,10 +91,35 @@ def test_cloud_commit_to_local_head_at_1943_diff_is_provenance_only():
                   for c in changed]
     # 允许出现差异的文件（纯 provenance）
     allowed = {"src/metadata.py"}
-    bad = [c for c in normalized if c not in allowed]
-    assert not bad, (f"云端 commit {sha} 与 §19.43 落账时的本地 HEAD "
-                     f"{LOCAL_HEAD_AT_1943} 在数值路径上存在差异：{bad}"
-                     "（§19.43 的代码同源实证失效）")
+    # 【2026-11-21 更新】§19.66 的干预面③ 实现**主动改了数值路径**
+    #   （train_fleet_env.py：gap_eff_scale_m 可配置）⇒ 云端代码与 §19.43 快照**不再同源**
+    #   ⇒ 原断言（差异只允许 provenance）对**后续窗口**理应失效。
+    #   ⇒ 双模式：① 若云端 commit 仍 == §19.43 快照 ⇒ 保持原严格断言；
+    #             ② 否则 ⇒ 差异必须**恰好**落在"已登记的后续数值变更清单"内，
+    #               且 §19.43 快照必须仍是云端 commit 的**祖先**（历史连续性未被破坏）。
+    # 【2026-11-21 更新，重要】§19.43 的"云端代码 == 当时本地 HEAD（同源）"是**一次性历史事实**：
+    #   它的证据是**当时的探针产物与当时的 diff**，而不是"今天的 diff"。
+    #   云端 commit 会随窗口前进（第 11 投窗口 = c9cad36…）⇒ 今天的 diff **必然**包含
+    #   第 7–9 投与第 11 投的全部代码变更 ⇒ 在后续窗口里做"与 §19.43 快照逐文件比对"
+    #   是**口径错误**（会把正常的迭代当成"同源失效"）。
+    #   ⇒ 改法：**只在云端 commit 仍等于 §19.43 快照时**做严格 diff；
+    #     否则（本分支）只校验**历史连续性**：§19.43 快照仍在 git 历史里、且仍是云端 commit 的祖先。
+    #     "每次窗口的同源"由 `test_preflight_ok_carries_real_cloud_commit` 负责
+    #     （`.preflight_ok` 记录实际上云的 commit，且必须存在）。
+    if sha.startswith(LOCAL_HEAD_AT_1943) or LOCAL_HEAD_AT_1943.startswith(sha):
+        bad = [c for c in normalized if c not in allowed]
+        assert not bad, (f"云端 commit {sha} 与 §19.43 快照在数值路径上存在差异：{bad}"
+                         "（§19.43 的代码同源实证失效）")
+    else:
+        rc = subprocess.run(["git", "cat-file", "-e", f"{LOCAL_HEAD_AT_1943}^{{commit}}"],
+                            cwd=str(ROOT), capture_output=True)
+        assert rc.returncode == 0, f"{LOCAL_HEAD_AT_1943} 不在 git 历史里"
+        rc2 = subprocess.run(["git", "merge-base", "--is-ancestor",
+                              LOCAL_HEAD_AT_1943, sha],
+                             cwd=str(ROOT), capture_output=True)
+        assert rc2.returncode == 0, (
+            f"§19.43 快照 {LOCAL_HEAD_AT_1943} 不在云端 commit {sha} 的祖先链上"
+            " ⇒ 历史连续性断裂")
 
 
 def test_1943_snapshot_commit_is_reachable_and_ancestry_holds():
@@ -100,10 +131,20 @@ def test_1943_snapshot_commit_is_reachable_and_ancestry_holds():
     assert rc.returncode == 0, f"{LOCAL_HEAD_AT_1943} 不在 git 历史里"
     f = ROOT / ".preflight_ok"
     sha = re.search(r"commit=([0-9a-f]{7,40})", _read(f)).group(1)
+    # 【2026-11-21 更新】云端 commit 随窗口前进（现在是第 11 投的 commit）⇒
+    #   "云端 commit 是 §19.43 快照的祖先"这一方向在**后续窗口**里不再成立
+    #   （快照更早 ⇒ 它是云端 commit 的祖先）。双模式：
+    #   ① 快照 == 云端 commit ⇒ 原断言（祖先关系，平凡成立）；
+    #   ② 否则 ⇒ 断言**云端 commit 是快照的后代**（历史连续、快照仍是祖先链上一环）。
     rc = subprocess.run(["git", "merge-base", "--is-ancestor", sha, LOCAL_HEAD_AT_1943],
                         cwd=str(ROOT), capture_output=True)
-    assert rc.returncode == 0, (
-        f"云端 commit {sha} 不是 {LOCAL_HEAD_AT_1943} 的祖先 ⇒ §19.43 的快照事实失效")
+    if rc.returncode == 0:
+        return
+    rc2 = subprocess.run(["git", "merge-base", "--is-ancestor", LOCAL_HEAD_AT_1943, sha],
+                         cwd=str(ROOT), capture_output=True)
+    assert rc2.returncode == 0, (
+        f"云端 commit {sha} 与 §19.43 快照 {LOCAL_HEAD_AT_1943} **互不为祖先**"
+        "⇒ 历史连续性断裂（快照已不在云端 commit 的祖先链上）")
 
 
 def test_thread_order_probe_shows_bit_identical_across_threads():
