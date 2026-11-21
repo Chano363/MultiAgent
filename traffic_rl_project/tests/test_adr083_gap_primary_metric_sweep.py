@@ -93,3 +93,42 @@ def test_no_unqualified_best_result_claim():
     doc = _text(DIAG)
     bad = re.findall(r"第 ?9 ?投窗口[^。\n]{0,20}(?<!不)(?<!非)(?<!并非)最好结果", doc)
     assert not bad, f"出现无口径限定的『最好结果』表述：{bad[:3]}"
+
+
+def test_switch_wiring_state_is_recorded():
+    """§19.51.4 必须区分"完整接线"与"死代码（只读属性、无使用点）"。
+
+    背景：`ab_chase_gap_guard` 一族在 env 里只被读成属性，**全仓无任何使用点**
+    ⇒ 属死代码（ADR-077 的镜像形态），与"配置缺失"是**两件事**，
+    必须分别陈述，否则会误导"加一行配置就能启用"。
+    """
+    sec = _section(_text(DIAG))
+    assert "接线核实" in sec, f"{SEC} 必须含接线核实表"
+    assert "未接线" in sec, f"{SEC} 必须标出未接线的开关"
+    assert "死代码" in sec, f"{SEC} 必须把『死代码』与『配置缺失』分开"
+    # 完整接线的两个开关也要点名，避免只说坏消息
+    assert "ed_feedforward_cap" in sec and "ab_physical_trigger" in sec
+
+
+def test_switch_wiring_matches_code():
+    """守卫接线断言本身与代码一致：读 env 的属性定义 + grep 下游使用点。"""
+    env_src = (ROOT / "src" / "environments" / "train_fleet_env.py").read_text(
+        encoding="utf-8")
+    ctrl_src = (ROOT / "src" / "controllers" / "multi_loco_controller.py").read_text(
+        encoding="utf-8")
+
+    # 三个开关在 env 侧都有属性定义
+    for key in ("ab_chase_gap_guard", "ab_physical_trigger", "ed_feedforward_cap"):
+        assert key in env_src, f"env 侧缺 {key} 的属性定义"
+
+    # 完整接线的两个：controller 侧必须有属性 + 使用点
+    for key in ("ab_physical_trigger", "ed_feedforward_cap"):
+        assert key in ctrl_src, f"controller 侧缺 {key}"
+        uses = len(re.findall(rf"self\.{key}", ctrl_src))
+        assert uses >= 2, f"{key} 在 controller 侧只有属性定义、无使用点"
+
+    # 未接线的一个：controller 侧**不得**出现该键（否则守卫结论过期）
+    assert "ab_chase_gap_guard" not in ctrl_src, (
+        "ab_chase_gap_guard 已在 controller 侧接线 ⇒ §19.51.4 的接线表已过期，"
+        "请更新诊断与本守卫"
+    )
