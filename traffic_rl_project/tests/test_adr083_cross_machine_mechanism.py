@@ -1,0 +1,150 @@
+"""§19.43 永久守卫：跨机器差异的机制层追查结论不得被静默推翻。
+
+钉住四类事实：
+  1. 代码同源的三重旁证（`.preflight_ok` 的 commit + 祖先核验 + `src/` 路径 diff）；
+  2. 浮点层排除：线程序（torch 线程 1/2/4/8/16/默认）与 JIT 目标 ISA
+     （generic/skylake/icelake/sapphirerapids/默认）均**位级唯一**；
+  3. 放大系数探针的产物契约（字段齐全、基线档存在、不得缺整程结果）；
+  4. 文档纪律：§19.43 已排除项不得在规则/诊断里被改写成"未定位"或反过来
+     写成"已定位到某一项"。
+
+⚠️ 本守卫**不重跑整程仿真**（那是 2–3 h 的长跑，属计划任务范畴）：
+它复核**已落盘的探针产物**与**文档表述**。
+"""
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+DIAG = ROOT / "docs/logs/diagnostics/DIAGNOSTICS_2026-11.md"
+RULES = ROOT / "docs/rules/EXECUTION_RULES.md"
+AGENTS = ROOT.parent / "AGENTS.md"
+PROBE_DIR = ROOT / "outputs/logs/adr083_float_probe"
+
+
+def _read(p: Path) -> str:
+    return p.read_text(encoding="utf-8")
+
+
+def test_preflight_ok_carries_real_cloud_commit():
+    """.preflight_ok 是"实际上云 commit"的权威标记（W4 窗口）。"""
+    f = ROOT / ".preflight_ok"
+    assert f.is_file(), ".preflight_ok 缺失：无法核验实际上云的代码版本"
+    txt = _read(f)
+    assert "commit=" in txt, ".preflight_ok 缺 commit= 字段"
+    assert "preflight_ok_at=" in txt, ".preflight_ok 缺 preflight_ok_at= 字段"
+    m = re.search(r"commit=([0-9a-f]{7,40})", txt)
+    assert m, ".preflight_ok 的 commit= 不是合法 sha"
+    sha = m.group(1)
+    # 该 commit 必须存在，且 W4 窗口用的配置名要记在里面
+    assert "nincrgatecaprel.yaml" in txt, ".preflight_ok 未记录 W4 窗口配置"
+
+
+def test_w4_cloud_commit_is_ancestor_of_all_physics_commits():
+    """云端真实 commit 必须是 ADR-076/077/080/081 物理改动的后代。
+
+    云端真实 commit = `.preflight_ok` 的 commit（§19.43 (1)）。
+    """
+    import subprocess
+
+    f = ROOT / ".preflight_ok"
+    sha = re.search(r"commit=([0-9a-f]{7,40})", _read(f)).group(1)
+    # ADR-076 AB 坡度物理判据 / ADR-077 AB 三键修复 / ADR-080+081 / ADR-081 v_rel 修正
+    for c in ("4a96d40", "fb005d9", "dcbe214", "fef27a3", "b14e2bd"):
+        rc = subprocess.run(["git", "merge-base", "--is-ancestor", c, sha],
+                            cwd=str(ROOT), capture_output=True)
+        assert rc.returncode == 0, (
+            f"{c} 不是云端真实 commit {sha} 的祖先 ⇒ 云端代码不含该物理改动，"
+            f"§19.43 的代码同源实证失效")
+
+
+def test_cloud_commit_to_head_diff_is_provenance_only():
+    """云端真实 commit → HEAD 的 src/ configs/ 差异只能是 provenance。"""
+    import subprocess
+
+    f = ROOT / ".preflight_ok"
+    sha = re.search(r"commit=([0-9a-f]{7,40})", _read(f)).group(1)
+    out = subprocess.run(["git", "diff", "--stat", sha, "HEAD", "--", "src/", "configs/"],
+                         cwd=str(ROOT), capture_output=True, text=True).stdout
+    changed = [ln.split("|")[0].strip() for ln in out.splitlines()
+               if "|" in ln and ln.strip()]
+    # git 输出的路径带仓库前缀（traffic_rl_project/…），归一到 src/… 后比对
+    normalized = [c.split("traffic_rl_project/", 1)[-1] if "traffic_rl_project/" in c else c
+                  for c in changed]
+    # 允许出现差异的文件（纯 provenance）
+    allowed = {"src/metadata.py"}
+    bad = [c for c in normalized if c not in allowed]
+    assert not bad, f"云端 commit {sha} 与 HEAD 在数值路径上存在差异：{bad}（§19.43 实证失效）"
+
+
+def test_thread_order_probe_shows_bit_identical_across_threads():
+    """线程序不是放大层：策略前向在 1/2/4/8/16/默认线程下 md5 唯一。"""
+    f = PROBE_DIR / "thread_order_probe.json"
+    assert f.is_file(), "thread_order_probe.json 缺失：§19.43 (2) 的排除性证据丢失"
+    d = json.loads(_read(f))
+    assert d.get("across_threads_bit_identical") is True, (
+        "探针结论变了：跨线程前向不再位级唯一 ⇒ 线程序重回候选层，§19.43 (2) 需重做")
+    assert d.get("n_unique_action_hashes") == 1, d.get("n_unique_action_hashes")
+    assert len(d.get("threads_tried", [])) >= 5, d.get("threads_tried")
+    for k, v in d.get("within_thread_stable", {}).items():
+        assert v is True, f"{k} 线程内重复不稳定：{k}"
+
+
+def test_numba_isa_probe_shows_bit_identical_across_isa_targets():
+    """JIT 目标 ISA 不是放大层：车钩力内核跨 ISA 输出 md5 唯一。"""
+    f = PROBE_DIR / "numba_isa_probe.json"
+    assert f.is_file(), "numba_isa_probe.json 缺失：§19.43 (3) 的排除性证据丢失"
+    d = json.loads(_read(f))
+    assert d.get("across_isa_bit_identical") is True, (
+        "探针结论变了：跨 ISA 内核输出不再位级唯一 ⇒ ISA 重回候选层，§19.43 (3) 需重做")
+    assert d.get("n_unique_md5") == 1, d.get("n_unique_md5")
+    ok_targets = set(d.get("targets_ok", []))
+    for t in ("generic", "skylake", "icelake", "sapphirerapids"):
+        assert t in ok_targets, f"ISA 目标 {t} 未成功执行，排除性证据不完整"
+
+
+def test_amplification_probe_artifact_contract():
+    """放大系数产物契约：字段齐全、基线档存在、每档带相对漂移。"""
+    f = PROBE_DIR / "amplification_probe.json"
+    if not f.is_file():
+        # 整程探针仍在跑（计划任务 MultiAgent_ADR083_amp）⇒ 允许暂缺，
+        # 但不得让"缺产物"被当成"结论已成立"。
+        return
+    d = json.loads(_read(f))
+    assert "baseline_peak_kN" in d, "放大系数产物缺 baseline_peak_kN"
+    rs = d.get("results", [])
+    assert len(rs) >= 2, f"放大系数档位不足（{len(rs)} 档），无法给敏感度曲线"
+    ulps = [r["ulps"] for r in rs]
+    assert 0 in ulps, "放大系数产物缺 0 ULP 基线档"
+    for r in rs:
+        for k in ("peak_coupler_kN", "rel_delta_peak_vs_base_pct", "steps"):
+            assert k in r, f"放大系数档位缺字段 {k}"
+        if r["ulps"] == 0:
+            assert r["steps"] == d.get("max_steps"), (
+                f"基线档未跑整程（{r['steps']} 步 vs {d.get('max_steps')}）"
+                "⇒ 放大系数不成立（短窗不作峰值判据）")
+
+
+def test_diagnostics_records_1943_and_keeps_exclusions():
+    """§19.43 必须在诊断文档里，且已排除项不得被改写成别的说法。"""
+    txt = _read(DIAG)
+    assert "§19.43" in txt, "诊断文档缺 §19.43"
+    for kw in ("probe_float_order.py", "probe_numba_isa.py", "probe_amplification.py",
+               "1bb7b02", "三重旁证"):
+        assert kw in txt, f"§19.43 缺关键内容：{kw}"
+    # 不得把已排除项又写成"已定位"
+    assert "线程序 / BLAS 线程归约顺序 —— 不是放大层" in txt
+    assert "JIT 目标 ISA（AVX2 vs AVX512）—— 不是放大层" in txt
+
+
+def test_rules_and_agents_keep_exclusion_and_no_assumption():
+    """规则正文与 AGENTS.md 必须保留"已排除两项"+"不得当假设写进结论"。"""
+    rules = _read(RULES)
+    assert "均被实测排除" in rules, "规则正文未记录已排除的浮点候选层"
+    assert "三重旁证" in rules, "规则正文缺代码同源三重旁证法"
+    assert "放大系数实测回答" in rules, "规则正文缺『放大系数须实测』的纪律"
+    ag = _read(AGENTS)
+    assert "已排除两项" in ag, "AGENTS.md 未同步 §19.43 的排除结论"
+    assert "不得当假设写进结论" in ag, "AGENTS.md 缺『不得把假设当结论』的纪律"
