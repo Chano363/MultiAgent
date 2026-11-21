@@ -148,10 +148,22 @@ def test_amplification_probe_artifact_contract():
     for r in rs:
         for k in ("peak_coupler_kN", "rel_delta_peak_vs_base_pct", "steps"):
             assert k in r, f"放大系数档位缺字段 {k}"
-        if r["ulps"] == 0:
-            assert r["steps"] == d.get("max_steps"), (
-                f"基线档未跑整程（{r['steps']} 步 vs {d.get('max_steps')}）"
-                "⇒ 放大系数不成立（短窗不作峰值判据）")
+    # ⚠️ 2026-11-21 修正（守卫误报 ⇒ 口径澄清）：
+    #   `max_steps` 是**步数上限**，不是"整程步数"。本线路（49.6 km，起点 4300 m，
+    #   init 60 km/h）在 **24953 步自然终止**（term/trunc ⇒ 跑完线路终点），
+    #   31500 步只是不会触顶的上限 ⇒ **"整程"= 走完全程线路，不是"跑满 31500 步"**。
+    #   原断言 `steps == max_steps` 把整程误判为短窗 ⇒ 误报（首现于四档产物落盘时）。
+    #   正确的整程判据 = **各档步数彼此一致（同一线路终点）**，而不是等于上限。
+    steps = [r["steps"] for r in rs]
+    lo, hi = min(steps), max(steps)
+    assert hi > 0
+    assert (hi - lo) / hi < 0.02, (
+        f"各档步数不一致（{lo}~{hi}）⇒ 不是同一整程口径 ⇒ 曲线不可比"
+    )
+    assert lo >= 20000, (
+        f"各档步数（{lo}~{hi}）远低于本线路的整程量级（≈2.5 万步）"
+        "⇒ 疑似短窗（红线 3：短窗不作判据）"
+    )
 
 
 def test_diagnostics_records_1943_and_keeps_exclusions():
