@@ -221,3 +221,20 @@ def test_gap_eff_scale_is_hardcoded_not_config():
     assert not re.search(r"config\.get\(\s*['\"]gap_eff_scale", env_src), (
         "GAP_EFF_SCALE_M 已改为配置键 ⇒ §19.51.3d 的『改它必须改代码』表述已过期"
     )
+
+
+def test_switch_table_requires_three_columns():
+    """§19.51.4 必须写明：接线完整 ≠ 机制有效 ≠ 已验证（三栏纪律）。"""
+    t = _text(DIAG)
+    seg = t[t.index("19.51.4"):]
+    seg = seg[:seg.index("19.51.5")]
+    for token in ("接线完整", "机制有效", "已验证", "饱和"):
+        assert token in seg, f"§19.51.4 缺少开关三栏纪律要素：{token}"
+    assert "不得据" in seg
+
+
+def test_brief_flags_ffcap_mechanism_ineffectiveness():
+    brief = _text(ROOT / "docs" / "reports" / "decision_brief_20261121_p11_direction.md")
+    assert "接线完整" in brief and "机制有效" in brief, \
+        "决策简报必须区分'接线完整'与'机制有效'"
+    assert "饱和" in brief, "决策简报必须引用陡坡前馈饱和这一实测限定"

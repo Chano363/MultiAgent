@@ -1,0 +1,167 @@
+# 【第 11 投草案 · 干预面②】notch_incr 内补 ADR-076 通道 —— 目标：把列距拉回早期档量级
+#
+# ⚠️ **本文件是"待批草案"，未获批复、不得用于任何窗口**：
+#    · 红线 1 四件套（规格/单价/预算/墙钟）**待 owner 批复**；
+#    · 第 11 投方向（三个干预面择一或组合）**待 owner 拍板**；
+#    · §0.8.2 训练窗口启动检查单六问**待填表**（任一"否" = 不得开训）。
+#    ⇒ 本草案**只是把"选定后要改什么"提前落到文件里**，避免开窗时临时改配置。
+#
+# 【为什么是这三个键】（诊断 §19.51.4 + §19.51.4 补正）
+#   根因 = nincr 路线 AB 分配方向相反（领航 9% / 中尾 14%，规则基线 39% / 4–6%）
+#        ⇒ 减速义务落到后列 ⇒ 后列自己慢下来撑开净空 ⇒ 列距发散（598–983 m）。
+#   ① `ab_physical_trigger: true`（+ `ab_physical_avail_threshold`）
+#      —— 把规则基线的**物理触发 AB 兜底**接入 nincr（只做加法：ED 物理不足 ⇒ 保持 AB）
+#      —— **与根因直接对应**：减速责任回到领航 ⇒ 几何收敛。
+#   ② `ed_feedforward_cap`（默认关，此处**留注释**）
+#      —— ⚠️ 源码注释实测"陡坡前馈反解 = 1.0（饱和）⇒ 封顶无效"⇒ **系数 ≥1 等于什么都没发生**；
+#         且系数 <1 时语义退化为常数上限，而 `ed_notch_cap: 0.75` 第 9 投**已开、列距仍差**。
+#      ⇒ 故**默认不启用**；若 owner 选"前馈型上限"作为受控对比项，把注释解开并把系数设为 **< 1.0**，
+#         且**必须与 `ed_notch_cap` 做受控对比**（否则与现状不可分）。
+#   ③ `ed_notch_cap` 保持 **0.75**（逐字继承第 9 投）⇒ 干预面②与第 9 投的差异面**只有 ①**，
+#      便于把"列距变化"归因到 AB 通道而不是别的东西。
+#
+# 【⚠️ 判据必须同时成立（§19.51.5）】
+#   · `gap_err_mean` 拉回 **~50–130 m** 量级（第 9 投窗口 = 598–983 m）；
+#   · 且峰值**不劣于第 9 投窗口**（≤1257 kN 量级）、`band_rate` 不降、零穿透；
+#   · 只满足其一 ⇒ 该干预面被证伪（判读规则见决策简报 §1.2）。
+#
+# 【属改机制 ⇒ 从头训】不适用"零差异继承第 9 投配置"；奖励面未动（本草案只动控制面）
+#   ⇒ §0.8.2 第 3 问按"从头训"填；ADR-070 适用性由填表时确认。
+#
+# ★ 三目录同换新 run_tag（硬红线第 4 条，禁覆写历史产物）。
+# ═══════════════════════════════════════════════════════════════════════════
+name: formation_ed_ab_3train_1plus108_nincrgatecaprel_colgap
+algorithm: mappo
+algo_params:
+  learning_rate: 0.00002      # 与主配置/W4 系列一致（发散调参 run2 口径）
+  gamma: 0.999
+  gae_lambda: 0.99
+  critic: per_agent
+  clip_epsilon: 0.15
+  entropy_coef: 0.005
+  value_coef: 0.5
+  epochs: 10
+  batch_size: 128
+  max_grad_norm: 0.5
+  # 【本投】COVER controller 参数（env_cfg.cover_enabled=true 才生效）
+  cover_target_cov: 0.0        # 协方差地板：cov<0（该正项与优势反相关）才提权
+  cover_up_factor: 1.05        # 每次触发乘性增幅（单边，只增不减）
+  cover_weight_max: 4.0        # 乘子上界，防逐 minibatch 累乘漂移
+
+env_type: fleet
+env_cfg:
+  num_trains: 3
+  consist_preset: 10kt_1plus108
+  grade_profile: shuozhou_ningwuxi_beidaniu_49km
+  v_max: 20.833333333333332    # 【ADR-068】75 km/h（与主配置同源，勿改）
+  v_min: 11.111                # 40 km/h
+  max_steps: 31500
+  route_end_m: 49600
+  max_accel: 1.0
+  use_coupler_constraint: true
+  coupler_force_limit_n: 1000000.0
+  speed_band_shape: ref
+  reward_term_log: true
+  speed_ref_table: outputs/sim_validation/phys_validation/refspeed_baseline_20261113_095953/ref_speed_table.npz
+  speed_over_w: 10.0
+  hierarchical: false
+  # ── 【ADR-074 核心】级位派生化动作面 ──────────────────────────────────
+  decompose: loco_notch_incr   # 每机车动作 = 级位增量 ∈[-1,1]（act_dim=1）
+  notch_incr_rate_notches: 3.0 # 单决策步 |Δn| ≤ 3/20（ADR-072 口径；decision_interval=10
+                               # ⇒ 1s/决策，量级对标 Wang2023 ±3/±12；全幅扫完 ≈7 决策步）
+  ab_derive_threshold: 0.5     # 级位 ≥ 0.5 → 请求 AB on（级位越限派生，Wang2023 ②）
+  ab_derive_release_margin: 0.05   # 释放滞回：级位 < 0.45 → 释放（防阈值抖动）
+  # 【ADR-076】ED 深度上限：把 nincr 的 ED 级位封顶到 0.75（诊断 §19.19 整程干预）
+  # —— ed_cap 扫描 5 档（1.0/0.85/0.75/0.65/0.55）显示 0.75 是甜点：
+  #    peak 961.9 kN（首次进 1180 目标线）/ 车钩超限 [0,0,0]（首次清零）/
+  #    几何由发散转收敛（gap_rate +0.255 → +0.081 m/s）。
+  # 机制：ED 深度是编队几何的主控变量（ED 贴顶 ⇒ 缓解-再施加相位差大 ⇒
+  # 后列被迫自己减速 ⇒ 净空被撑开）；限浅 ⇒ 相位差小 ⇒ 几何收敛。
+  # ⚠️ 已知代价：ED 限浅 ⇒ 减速不足 ⇒ 尾列速度上飘贴带上限 75 km/h ⇒
+  #    领航超速跑分 16.8% ⇒ band 0.8318（低于 85% 杀线）⇒ **band 缺口
+  #    须由本投从头训的策略解决**（学"提前减速"而非事后补刹）。
+  ed_notch_cap: 0.75
+  # 【ADR-081】ED 深度上限随「本列追及需求」放宽（第 9 投核心机制）
+  # 追及压力大（本列比前列快 ≥ 阈值 km/h）⇒ ED 上限从 0.75 放宽到 1.0；
+  # 否则维持 0.75 ⇒ 常态峰保护不变（band 与头列超限步逐位不变为证据）。
+  # 依据：诊断 §19.29.2（中列「急追+无减速」型超限）/ §19.31（整程探针判定）。
+  # ⚠️ 阈值 8 km/h 是同源探针在本 ckpt 上的最优（窗口 ≈7–9），
+  #    训练后策略的最优阈值可能不同 ⇒ 探针给方向，不给论文数值。
+  ed_cap_rel_speed_kmh: 8.0
+  ed_cap_relaxed: 1.0
+
+  # ── 【第 11 投草案 · 干预面②】ADR-076 通道：物理触发 AB 兜底 ──────────
+  # 把规则基线的"物理不足 ⇒ 保持 AB"判据接入 nincr 通道（只做加法，
+  # 不绕开任何既有安全门：222 s 充风门 / 低速强制缓解 / 车钩 veto 均不受影响）。
+  # 目的 = 把减速义务从后列移回领航 ⇒ 纠正 §19.51.4 定位的"AB 分配方向相反"。
+  # ⚠️ 默认阈值 0.99 = "ED 物理可用性不足 1%"即判不足（保守加法）。
+  ab_physical_trigger: true
+  ab_physical_avail_threshold: 0.99
+  # ⚠️ `ed_feedforward_cap` 保持关闭：源码实测陡坡前馈反解饱和到 1.0 ⇒ 系数 ≥1 无约束；
+  #    若 owner 选它作受控对比项 ⇒ 解开下面两行并把系数设为 < 1.0（如 0.75）。
+  # ed_feedforward_cap: 0.75
+  # ed_feedforward_margin: 0.0
+  ab_derive_notch_idx: 2       # 派生档位 = MIN（70 kPa）；诊断 §7：140 kPa 时序完美也
+                               # ≈1004 > 1000 ⇒ 70 kPa 级循环制动是进线前提而非选项
+  ab_notch_hold_s: 90.0        # 档位最短保持（AB 波传播时延，张二田实测；W4-v3 同源）
+  ab_low_speed_release: true   # 低速强制缓解（V17 教训：防 AB 一次施加拖到停车）
+  ab_low_speed_margin_kmh: 2.0
+  ab_min_refill_s: 222.0       # 充风门（VALIDATION_BASELINE 张二田 S6，与主配置同源）
+  # ── 【下一投：AB 释放门 + 施加门 + 奖励面（ADR-075 待立）】──────────
+  ab_release_speed_gate: true    # AB 释放判据 = 速度门（诊断 §15/§16）
+  ab_release_speed_kmh: 56.0
+  ab_apply_speed_min_kmh: 60.0   # 低速段不新增 AB 源（诊断 §16 起步瞬态）
+  notch_smooth_w: 5.0            # 切换幅度罚（Wang2023 对标；v21 取 5.0）
+  cover_enabled: true           # COVER 奖励组合（Lu 2026；ADR-073 已实测稳面有效）
+  # ── 控制器标定（与主配置同源：编组级标定，两侧物理同源）────────────────
+  ed_native_force_conversion: true
+  coupler_force_limit_emergency_n: 2250000.0
+  cyclic_notch_50: true
+  ab_staged_apply: true
+  ab_staged_gap_s: 3.0
+  ebi_stop_hold_mps: 0.5
+  cyclic_brake_trigger_kmh: 65.0
+  cyclic_release_kmh: 50.0
+  ed_release_coordination: true
+  ed_release_hold_s: 16.970343976123257
+  ed_release_boost_kn: 835.5980537119971
+  cyclic_ab_upgrade_kmh: 71.08494805964575
+  ed_upgrade_ramp_s: 16.65239691095876
+  ed_upgrade_ramp_scale: 0.8225254007598803
+  ed_grade_feedforward: true
+  coupler_override: release
+  eot: true
+  start_randomization:
+    enabled: true
+    min_m: 4300
+    max_m: 4300
+
+obs: env                       # 逐机车 13 维观测（+obs[12]=本机车级位）
+action: continuous
+interaction: mappo_fleet
+reward: env_default
+
+num_trains: 3
+decision_interval: 10          # 与主配置一致（1 s/决策步）
+episodes: 1400                 # 默认值；实际投單数由 CLI --episodes 覆盖（窗口审批时定）
+curriculum: "31500:0"
+n_env: 4
+n_env_parallel: true
+parallel_traj_len: 0
+warm_start: true               # BC 教师 = 级位跟踪规则基线（fleet_spec incr 分支）
+bc_episodes: 1
+bc_epochs: 3000                # 标签非零分布的确定性回归，epochs 与主配置同量级
+bc_max_steps: 31500
+long_eval_interval: 0
+long_eval_steps: 31500
+init_speed_kmh: 60.0           # 【ADR-068】与主配置同源（60/75 = 0.80 对齐 Zhang2024）
+simcase: official
+ckpt_policy: fleet
+log_interval: 1
+
+dirs:
+  # 【ADR-074】三目录同换新 run_tag（硬红线第 4 条）；⚠️ 正式开窗前按 EXECUTION_RULES
+  # 确认时间戳后缀（若跨日开训须改日期段，禁止覆写历史产物）。
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121/seed0
+  results_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121/seed0/results
+  figures_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121/seed0/figures
