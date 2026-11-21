@@ -6408,3 +6408,51 @@ DRILL_CLEANED prefix=zzdrill (drill tasks stopped+unregistered; no live guard le
 **§19.45 补记：判据执行器（训练期同向性检验工具）已就位，窗口数据到位后一条命令出判决。** §19.44 把候选前提②改写为"**训练期同向性**"后，还缺最后一块：**谁来判**。已补上工具 `scripts/probes/analyze_train_col_collinearity.py`：输入 = 训练期落盘 `train_history_*.json`（§19.45 新增键）+ 本地官方口径 ep1–ep7 评估态产物；输出 = ① 逐集对照表（训练期逐列 peak/超限 ↔ 评估态总 peak / 评估态逐列 peak）；② 训练期量 × 评估态量的 **Spearman 秩相关**；③ **单阈值可分性**（是否命中破线集 ep6、是否放过 ep7、**误杀集**（含 §19.40 的 ep3 硬约束））；④ 边界声明（n 小不得主张显著、形态量跨机器翻转、不产出峰值/安全判据）。守卫 `tests/test_adr083_train_col_tool.py`（6 项全绿，含"缺逐列键必须**显式报错**"——防止窗口没带通道时被误读成"无相关"）。
 
 ⚠️ **当前状态：工具已就位但**判决未出**——训练期逐列数据尚不存在**（须一次带落盘的重训窗口，owner 按红线 1 批复四件套）。已实测两条错误路径：① 落盘文件不存在 ⇒ 报错并提示"需带落盘的训练窗口"；② 落盘存在但缺 `col_peak_coupler_kN` 键（W4 既有窗口即是）⇒ 报错并指出"该窗口未带 §19.45 通道" ⇒ **不会把"无数据"误报成"无相关"**。
+
+---
+
+#### §19.46 跨机器差异的剩余候选收窄：补测 **策略前向的 ISA 路径** + 建立**环境指纹**核对机制（零机时）
+
+**承接 §19.43 的未闭合项**：§19.43 排除了两项浮点候选（线程序/BLAS 线程归约顺序、numba JIT 目标 ISA），把剩余候选归为"其它浮点实现细节差异"。本节做两件**零机时零费用**的事：① 指出 §19.43 的排除存在**一处覆盖缺口**并补测；② 把"其它浮点实现细节"从模糊描述变成**可逐项核对的事实清单**。
+
+**(1) 覆盖缺口：§19.43 只排除了 numba 内核的 ISA，未覆盖 torch 策略前向**
+
+§19.43 (3) 的 ISA 探针针对的是**车钩断面力内核**（`src/train_dynamics/train.py` 的 `@_njit(cache=True)`）。而**策略输出**由 **torch CPU 上的 MLP 前向**产生（评估入口 `MAPPOAgent.select_actions`）⇒ torch 的 CPU GEMM 在 AVX2 与 AVX512 上**可能**采用不同向量化/归约路径，**这条通道 §19.43 未测**。
+
+⇒ 旁证：诊断 2026-09 小节-三曾把一次跨机偏差归因指向"**CPU 微架构浮点代码生成差异**"，并已排除 numpy 版本差异（本地 numpy 2.2.5↔2.2.6 原位切换后偏差 **0.0000%**，peak / gap / c1500 全零偏差）。
+⚠️ **口径限制（重要）**：该次对照发生在**BC 归档场景**（gen0 自检），**不是**本项目的 fleet 编组场景 ⇒ 只能作**方向性旁证**（"微架构层确有产生位级差异的先例"），**不能**直接推广为本项目 17.7% 差异的结论。
+
+**探针 C**：`scripts/probes/probe_torch_isa_path.py`（产出 `outputs/logs/adr083_float_probe/torch_isa_path_probe.json`）。做法：**同机、同码、同权重、同真实 env 观测**，仅切 CPU 指令集能力档（子进程 + 环境变量）后跑**与评估入口同源**的策略前向，比对动作 md5：
+
+| 档位族 | 环境变量 |
+| :--- | :--- |
+| ATEN 能力 | `ATEN_CPU_CAPABILITY` ∈ {default, avx2, avx512, sse41} |
+| oneDNN 上限 | `ONEDNN_MAX_CPU_ISA` ∈ {DEFAULT, SSE41, AVX2, AVX512} |
+| MKL 指令集 | `MKL_ENABLE_INSTRUCTIONS` ∈ {AVX2, SSE4_2} |
+
+判读规则（先定，避免事后解释）：**各档 md5 唯一** ⇒ 策略前向对 ISA 路径**不敏感**，与 §19.43 的 numba 结论一致地排除"微架构"这一支；**出现两个不同 md5** ⇒ **策略前向位级依赖指令集路径** ⇒ 云端（AVX512）与本地（AVX2）之间存在**一条 §19.43 未覆盖的真实位级差异通道**。
+⚠️ 本机为 AVX2（无 AVX512）⇒ AVX512 档若被回退，其结果只说明"回退后与谁相同"，**不能替代云端 AVX512 的实测**（须开窗验证）。
+**⇒ 状态：结果待补**（已排在放大系数探针之后的串行队列第二位）。
+
+**(2) 把"其它浮点实现细节"变成可核对清单：环境指纹采集器**
+
+剩余候选（库版本 / BLAS 实现 / libm / 归约次序）中，**大部分是可客观比对的事实**。新增 `scripts/probes/collect_env_fingerprint.py`（只读、零成本）：采集解释器与依赖版本（python / numpy / numba / torch / gym / scipy…）、**`torch.__config__.show()` 全文**（**BLAS 是 MKL 还是 OpenBLAS**、oneDNN/MKL-DNN 版本、CPU capability、编译选项）、CPU 型号与 flags（AVX2 / AVX512 / FMA）、glibc（libm）、线程与并行环境变量（OMP / MKL / OPENBLAS / `ATEN_CPU_CAPABILITY` / `ONEDNN_MAX_CPU_ISA` / `NUMBA_CPU_NAME`）、`pip freeze` 全量依赖。同工具的 `--compare` 给出**分档**差异清单：`watch`（可能影响数值：版本 / BLAS / CPU capability / glibc / 线程环境变量）与 `ignore`（主机名 / 路径 / 时间戳）。
+
+**本地指纹已采集**（`outputs/logs/env_fingerprint/local_wsl_20261121_105822.json`）：
+
+| 维度 | 本地（WSL / conda traffic_rl） |
+| :--- | :--- |
+| python / numpy / numba / torch | 3.10.20 / **2.2.5** / 0.68.0 / **2.5.1+cu121** |
+| torch BLAS | **Intel oneAPI MKL 2024.2**（`BLAS_INFO=mkl`）、**MKL-DNN v3.5.3** |
+| torch CPU capability | **AVX2**（本地 i5-13420H，**无 AVX512**） |
+| glibc | **2.39**（Ubuntu） |
+| numba | 0.68.0（§19.43 已测其 JIT 目标 ISA 不敏感） |
+
+**⇒ 一条具体的机制候选浮出**：本地 torch 是 **cu121 wheel**（MKL-DNN v3.5.3 / oneAPI MKL 2024.2），而云端镜像据 `docs/rules/SERVER_OPS.md` 记载为 **CPU 版 torch 2.5.1** ⇒ **torch 版本相同但 wheel 构建可能不同** ⇒ **GEMM 的 BLAS 后端与归约路径可能不同**（这是 §19.43 未覆盖、且**当前无法零机时排除**的一条）。
+⚠️ **纪律**：以上是**候选**，**不是**已定位的原因（相关性 ≠ 因果）；且云端 wheel 的实际 BLAS **必须用指纹采集实证**（不得据文档推断）。
+
+**(3) 规则新增（EXECUTION_RULES「评估读数的机器口径与形态可迁移性」第 9 条）**
+
+**每次开窗（含评估窗口）必须跑 `collect_env_fingerprint.py --label cloud`**，并与本地指纹用同一工具逐项比对，把差异分类为"可能影响数值 / 与数值无关"。⇒ **纪律**：不得因"两机指纹一致"就宣称"差异必在别处"，也不得因"指纹不同"就宣称"差异由此造成"。守卫 `tests/test_adr083_env_fingerprint.py`（6 项全绿，含"指纹必须带 BLAS / oneDNN / CPU capability 三类构建信息"与"比对器必须把这些项算进 watch"）。
+
+**证据边界**：① 探针 C **结果待补**；② 云端指纹**待采集**（需开窗，owner 按红线 1 批复四件套）；③ 本节**未推翻任何既有结论**，只是把 §19.43 的剩余候选**结构化**并指出其**覆盖缺口**；④ 全程零机时零费用。
