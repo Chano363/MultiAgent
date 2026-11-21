@@ -67,6 +67,17 @@
 | 专家知识+RL 列车运行（源码） | Zhou2020 | —（无本地，arXiv:2003.03327） |
 | 车队 DRL 通信框架（源码） | Abdelrahman2021 | —（无本地，arXiv:2312.06858） |
 
+### 编队几何（间距）奖励与混合架构对标（2026-11-21 新增）
+
+| 技术/公式 | 来源 | 文件 |
+| :--- | :--- | :--- |
+| **间距奖励按目标间距归一化 + 有界映射 + 越界置零**：`e_d = (Δd_t − d_target)/(d_target + ε)`、`r_dist = 1 − e_d`（0≤e_d<1），**偏差超界置零**（原文理由：避免 "misleading or ineffective reward signals"）；结果：速度跟踪误差 ≤3%、间距跟踪误差 ≤1%、稳态编队成功率 95.7%；**奖励权重按训练阶段调度**（距离 0.5 → 0.3 → 平滑 0.5） | Hu2026（PM-MASAC, *Electronics* 2026, 15(9):1823, doi:10.3390/electronics15091823） | `electronics-15-01823.pdf` + `Hu2026_PMMASAC_fulltext.txt`（**本地全文**） |
+| **间距项占奖励主导（70%）**：`r = 0.7·r_distance + 0.1·r_velocity + 0.1·r_acceleration + 0.1·r_safety` | Jing2025（HHG-MAPPO, *TST* 2025, doi:10.26599/TST.2025.9010067） | `Multi-Agent Reinforcement Learning Optimization for Virtual Coupled Train Set Problem in CBTC Systems.pdf` + `Jing2025_VCTS_fulltext.txt`（**本地全文**） |
+| **规则算约束、RL 在约束内决策**（混合架构）：以列车安全制动模型生成的**安全限制速度作为奖励约束项**，而非任意加权；多列车 SAC 协同制动，间距奖励按**列车长度 L_train 归一化**（`R₁ = −2^(−|X_ij − d_min − L_train|/L_train)`） | 林俊亭/邱晓辉/李茂林《基于SAC算法的虚拟编组列车协同制动控制》*西南交通大学学报* doi:10.3969/j.issn.0258-2724.20240312 | —（无本地，网络获取摘要） |
+| **重载群组"几何收敛"的工程基线**（规则/模型型二维协同控制）：中国神华+中国通号 2026-01 首次 3.5 万吨重载群组试验（7 列 5000 t，包神北线），"相对速度 + 绝对距离"二维协同控制，间距 4 km→1 km；60 km/h 时 5000 t 重车最小安全追踪距离 **1091 m**（空车 943 m） | 中国神华 / 中国通号 官方报道（**工程报道，非同行评审**） | —（无本地） |
+| **重载虚拟编组的学术收敛路线**（非 RL）：改进 MPC + "撞软墙"动态间隔模型 + 卡尔曼滤波，多目标 = 速度跟踪误差 + 车间距误差 ⇒ 协同运行阶段**车间距误差 ≤ 20 m**、编组建立阶段速度误差收敛至 0.4 km/h | 王泓钰等《基于改进MPC的重载列车虚拟编组协同运行控制方法研究》，《铁道运输与经济》2026(2) | —（无本地，网络获取摘要） |
+| **间距误差作为编队评价指标**（"average spacing error"，含权重 ω4/ω5 for distance and velocity） | Guo2025（MARL platoon consensus） | `Guo2025_MARL_PlatoonConsensus.txt`（本地全文；公路编队，**仅作指标口径对标，非重载可比**） |
+
 ## 安全层 / 虚拟耦合 / MPC
 
 | 技术/公式 | 来源 | 文件 |

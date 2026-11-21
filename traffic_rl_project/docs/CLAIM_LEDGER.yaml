@@ -301,3 +301,65 @@ claims:
       **也禁止**写作"无人在多列车组层面处理车钩力/车钩力进 RL 目标"——C-LIT-12 已破这半格。
       唯一可主张的交集必须三要素同时列出，且写"据系统检索未见"。
       边界口径：智能体粒度 = 列车；单列车内部的机车级/车厢级多智能体（C-LIT-06/09）不算占位。
+
+  - id: C-LIT-14
+    statement: >-
+      重载列车"群组运行"（多列协同、虚拟软连接）的**工程实现路径是规则/模型型二维协同控制，
+      不是 RL**：中国神华 + 中国通号 2026-01 首次试验 3.5 万吨重载群组（7 列 5000 t，
+      包神北线），采用"相对速度 + 绝对距离"二维协同控制，车间距由约 4 km 压缩到约 1 km；
+      60 km/h 群组运行时 5000 t 重车最小安全追踪距离 **1091 m**（空车 943 m），
+      万吨空车发车间隔缩短至 3 min 43 s。**公开材料未说明使用 RL 策略网络闭环保距**
+      ⇒ 工程追踪距离指标**只能作"是否值得上线"的基准线，不能作 RL 有效性的证据**。
+    polarity: positive
+    grade: B            # 工程/企业报道，非同行评审；无本地文件
+    status: active
+    external_doi: "https://www.crsc.com.cn/news/tsi_2905_6489_93309.html"
+    notes: >-
+      2026-11-21 在线检索（中国神华 / 中国通号 / 科技日报 / 中国交通新闻网）。用途：
+      ① 界定"重载多列编队几何收敛"的工程基线量级；② **不得**据此声称"RL 保间距已被工程验证"。
+      与本项目的关系：本项目 10kt 1+108 编组的列距口径与之**不同源**（编组、线路、
+      追踪距离定义均不同）⇒ **不得并排比较数值**。
+
+  - id: C-LIT-15
+    statement: >-
+      虚拟编组多智能体 RL 的**间距奖励必须按目标间距归一化并做有界映射、越界置零**：
+      Hu2026（PM-MASAC, Electronics 2026, 15(9):1823）定义归一化间距误差
+      `e_d = (Δd_t − d_target) / (d_target + ε)`，间距奖励 `r_dist = 1 − e_d`（0 ≤ e_d < 1），
+      **偏差超过界时奖励置零**，原文理由为"避免误导性或无效的奖励信号"
+      （avoiding misleading or ineffective reward signals）。该文结果：速度跟踪误差 ≤3%、
+      间距跟踪误差 ≤1%、稳态编队成功率 95.7%；并按训练阶段调度奖励权重
+      （早期距离权重 0.5 → 中期 0.3 → 后期平滑 0.5）。
+    polarity: positive
+    grade: A            # 本地全文（docs/papers/03_formation/Hu2026_PMMASAC_fulltext.txt）
+    status: active
+    external_doi: "10.3390/electronics15091823"
+    evidence:
+      - file: docs/papers/03_formation/Hu2026_PMMASAC_fulltext.txt
+        lines: [341, 350]
+        anchor: "normalized distance error"
+      - file: docs/papers/03_formation/Hu2026_PMMASAC_fulltext.txt
+        lines: [366, 374]
+        anchor: "ineffective reward signals"
+    notes: >-
+      2026-11-21 本地全文核实。**这是本项目奖励面缺陷（§19.51.3d）的外部一手依据**：
+      项目 `gap_eff` 项在第 9 投实测列距（584–940 m）下**全程恒为 0**，正属该文
+      明令要避免的 "ineffective reward signals" ⇒ 若改奖励面，**正确改法是按 d_target
+      归一化 + 有界映射 + 越界置零**，**不是**把固定米数尺度（`GAP_EFF_SCALE_M=150`）放大。
+
+  - id: C-LIT-16
+    statement: >-
+      虚拟编组 MARL 的**间距项是奖励的主导项**：Jing2025（HHG-MAPPO, TST 2025，
+      CBTC 虚拟编组）奖励为 `r = 0.7·r_distance + 0.1·r_velocity + 0.1·r_acceleration
+      + 0.1·r_safety` ⇒ **间距项占 70%**，是主导项（速度/加速度/安全各 10%）。
+    polarity: positive
+    grade: A            # 本地全文（docs/papers/03_formation/Jing2025_VCTS_fulltext.txt）
+    status: active
+    evidence:
+      - file: docs/papers/03_formation/Jing2025_VCTS_fulltext.txt
+        lines: [1118, 1126]
+        anchor: "rdistance"
+    notes: >-
+      2026-11-21 本地全文核实。用途：说明"**间距/编队几何是编队类 RL 的主目标权重**"
+      这一外部共识 ⇒ 支持本项目把主 claim 锚在列距/速度带（ADR-042 §1.6），
+      同时说明本项目 `gap_eff` 权重（`GAP_EFF_W = 3.0`/对）**在第 9 投全程无效**
+      （因尺度失配恒零，见 §19.51.3d）⇒ **权重占比本身不是问题，尺度才是**。
