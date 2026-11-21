@@ -37,9 +37,27 @@
 #   · **不产出任何峰值/安全判据**（只比策略前向输出的 md5）；
 #   · 产物落在 outputs/logs/adr083_float_probe/ 下 ⇒ 不违反硬红线 4。
 set -uo pipefail
-source /home/chano/miniconda3/etc/profile.d/conda.sh
+
+# ⚠️ 【2026-11-21 修正】本脚本必须在**云端实例内**运行，而云端与本地的
+#    conda 根目录 / 项目根都不同 ⇒ 不得写死路径（初版写死 /home/chano + /mnt/d
+#    ⇒ 云端直接 "No such file or directory"）。此处按存在性自适应。
+if [ -f /root/miniconda3/etc/profile.d/conda.sh ]; then
+  source /root/miniconda3/etc/profile.d/conda.sh
+elif [ -f /home/chano/miniconda3/etc/profile.d/conda.sh ]; then
+  source /home/chano/miniconda3/etc/profile.d/conda.sh
+else
+  echo "[isa-cloud] ABORT: 找不到 conda 环境初始化脚本"; exit 2
+fi
 conda activate traffic_rl
-cd /mnt/d/Code/MultiAgent/traffic_rl_project
+
+if [ -d /root/traffic_rl_project ]; then
+  ROOT=/root/traffic_rl_project
+elif [ -d /mnt/d/Code/MultiAgent/traffic_rl_project ]; then
+  ROOT=/mnt/d/Code/MultiAgent/traffic_rl_project
+else
+  ROOT="$(pwd)"
+fi
+cd "$ROOT"
 
 CKPT="${1:-outputs/checkpoints/formation_10kt_1plus108/w4nincrgatecaprel_w4full_20261120_cloud/mappo_fleet_last_ep6_dec_ad1_cp_seed0_seed0.pt}"
 OUT="${2:-outputs/logs/adr083_float_probe/torch_isa_path_probe_cloud.json}"
@@ -56,6 +74,9 @@ fi
 
 echo "[isa-cloud] ckpt=${CKPT}"
 echo "[isa-cloud] out=${OUT}"
+# ⚠️ 云端实例上 outputs/logs/... 可能不存在（首次跑该探针）⇒ 重定向会失败
+#    ⇒ 探针 rc=1、判决作废（实测踩到）。先建目录。
+mkdir -p "$(dirname "${OUT}")" outputs/logs/adr083_float_probe
 python scripts/probes/probe_torch_isa_path.py \
   --checkpoint "${CKPT}" --out "${OUT}" \
   > outputs/logs/adr083_float_probe/torch_isa_path_cloud.log 2>&1

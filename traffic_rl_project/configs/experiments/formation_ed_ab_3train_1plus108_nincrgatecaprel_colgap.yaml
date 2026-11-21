@@ -162,6 +162,6 @@ log_interval: 1
 dirs:
   # 【ADR-074】三目录同换新 run_tag（硬红线第 4 条）；⚠️ 正式开窗前按 EXECUTION_RULES
   # 确认时间戳后缀（若跨日开训须改日期段，禁止覆写历史产物）。
-  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121/seed0
-  results_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121/seed0/results
-  figures_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121/seed0/figures
+  checkpoint_dir: outputs/checkpoints/formation_10kt_1plus108/w5colgap_abphys_20261121
+  results_dir: outputs/results/formation_10kt_1plus108/w5colgap_abphys_20261121
+  figures_dir: outputs/figures/formation_10kt_1plus108/w5colgap_abphys_20261121
