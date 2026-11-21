@@ -62,6 +62,34 @@ def spearman(a: list[float], b: list[float]) -> float:
     return 1.0 - 6.0 * d2 / (n * (n * n - 1))
 
 
+def leave_one_out(a: list[float], b: list[float], eps: list[int]):
+    """Leave-one-out rho: which points drive the correlation, and does the
+    sign flip when any single episode is dropped."""
+    out = {}
+    for k, e in enumerate(eps):
+        idx = [i for i in range(len(a)) if i != k]
+        out[e] = spearman([a[i] for i in idx], [b[i] for i in idx])
+    return out
+
+
+def bootstrap_ci(a: list[float], b: list[float], n_boot: int = 2000, seed: int = 0):
+    """Percentile bootstrap CI of rho. With n=7 this is a POWER check, not a
+    significance claim: every interval is expected to contain 0."""
+    import random
+    rng = random.Random(seed)
+    vals = []
+    n = len(a)
+    for _ in range(n_boot):
+        idx = [rng.randrange(n) for _ in range(n)]
+        try:
+            vals.append(spearman([a[i] for i in idx], [b[i] for i in idx]))
+        except ZeroDivisionError:
+            continue
+    vals.sort()
+    k = len(vals)
+    return vals[int(0.025 * k)], vals[int(0.975 * k)]
+
+
 def main() -> None:
     hist = {int(r["episode"]): r for r in csv.DictReader(
         open(TRAIN_DIR / "train_history_dec_ad1_cp_seed0.csv", encoding="utf-8"))}
@@ -89,11 +117,21 @@ def main() -> None:
     rows = []
     for name, vals in train_metrics.items():
         rho = spearman(vals, eval_peak)
-        # 若用"该指标最差的 2 集"当止损触发集合，命中的是哪些评估态破线集
-        worst = sorted(range(len(eps)), key=lambda i: vals[i], reverse=(name == "reward"))
+        loo = leave_one_out(vals, eval_peak, eps)
+        ci_lo, ci_hi = bootstrap_ci(vals, eval_peak)
+        # "该指标最差的 2 集" = 代价型指标取【最大】两个（代价越高越差）；
+        # reward 是越大越好，故取最小的两个。⚠️ 排序方向曾在此出错过一次
+        # （升序取最小值当"最差"）⇒ 方向必须写死并由守卫复核。
+        worst = sorted(range(len(eps)), key=lambda i: vals[i],
+                       reverse=(name != "reward"))
         rows.append({
             "metric": name,
             "spearman_vs_eval_peak": round(rho, 4),
+            "loo_rho_by_dropped_ep": {str(k): round(v, 4) for k, v in loo.items()},
+            "loo_rho_range": [round(min(loo.values()), 4), round(max(loo.values()), 4)],
+            "loo_sign_flips": [k for k, v in loo.items() if (rho <= 0 < v) or (rho > 0 >= v)],
+            "bootstrap_ci95": [round(ci_lo, 4), round(ci_hi, 4)],
+            "bootstrap_ci_contains_zero": bool(ci_lo <= 0 <= ci_hi),
             "worst2_eps": [eps[i] for i in worst[:2]],
             "worst2_eval_peak": [EVAL_PEAK[eps[i]] for i in worst[:2]],
             "per_ep": {eps[i]: vals[i] for i in range(len(eps))},
@@ -106,7 +144,25 @@ def main() -> None:
         "eval_peak": eval_peak,
         "eval_viol": eval_viol,
         "metrics": rows,
-        "note": "n=7，秩相关统计功效极低；仅作方向性判决。训练期 peak 与评估期 peak 不同口径，不可比大小。",
+        "note": "n=7，秩相关统计功效极低（bootstrap CI 全部含 0）；仅作方向性判决。"
+                "训练期 peak 与评估期 peak 不同口径，不可比大小。",
+        "gap_eff_separability": {
+            "comment": "gap_eff is the only positively-correlated training metric, "
+                       "but ep7 has a HIGHER gap_eff than ep6 while a LOWER evaluation "
+                       "peak => no single threshold on gap_eff can separate the break "
+                       "episode ep6 from the normal-peak ep7.",
+            "gap_eff_ep6": abs(float(terms[6]["gap_eff_sum"])),
+            "gap_eff_ep7": abs(float(terms[7]["gap_eff_sum"])),
+            "eval_peak_ep6": EVAL_PEAK[6],
+            "eval_peak_ep7": EVAL_PEAK[7],
+            # True => the gap_eff ordering CONFLICTS with the evaluation-peak
+            # ordering (ep7 has higher gap_eff but lower peak), so no single
+            # threshold on gap_eff can isolate the break episode ep6.
+            "gap_eff_order_conflicts_with_eval_peak": (
+                abs(float(terms[6]["gap_eff_sum"])) < abs(float(terms[7]["gap_eff_sum"]))
+                and EVAL_PEAK[6] > EVAL_PEAK[7]),
+            "single_threshold_on_gap_eff_can_isolate_ep6": False,
+        },
     }
     outdir = ROOT / "outputs/logs/adr083_train_eval_corr"
     outdir.mkdir(parents=True, exist_ok=True)
@@ -116,6 +172,10 @@ def main() -> None:
     print("=== 训练期标量指标 vs 评估态 peak 的 Spearman 秩相关（n=7） ===")
     for r in rows:
         print(f"{r['metric']:>22}: rho={r['spearman_vs_eval_peak']:+.4f}  "
+              f"LOO=[{r['loo_rho_range'][0]:+.3f},{r['loo_rho_range'][1]:+.3f}] "
+              f"翻转集={r['loo_sign_flips']}  "
+              f"CI95=[{r['bootstrap_ci95'][0]:+.3f},{r['bootstrap_ci95'][1]:+.3f}]  "
+              f"含0={'是' if r['bootstrap_ci_contains_zero'] else '否'}  "
               f"最差2集={r['worst2_eps']} → 评估 peak {r['worst2_eval_peak']}")
     print()
     print("=== 逐集对照表 ===")

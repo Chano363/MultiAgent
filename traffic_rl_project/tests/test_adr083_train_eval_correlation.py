@@ -224,3 +224,80 @@ def test_checkpoint_selection_by_training_peak_would_pick_the_worst():
     best_train_peak = min(eps, key=lambda e: series["peak_coupler_kN"][eps.index(e)])
     assert worst_train_peak == 1 and EVAL_PEAK[1] == min(EVAL_PEAK.values())
     assert best_train_peak == 3
+
+
+def _loo(a, b, eps):
+    out = {}
+    for k in range(len(a)):
+        idx = [i for i in range(len(a)) if i != k]
+        out[eps[k]] = _spearman([a[i] for i in idx], [b[i] for i in idx])
+    return out
+
+
+def test_cost_metric_signs_survive_leave_one_out():
+    """Robustness (a): the negative correlations of the four break-cost
+    training metrics must NOT flip sign when any single episode is dropped
+    -- i.e. they are not driven by a single outlier episode."""
+    eps, series = _train_series()
+    eval_peak = [EVAL_PEAK[e] for e in eps]
+    for name in ("peak_coupler_kN", "coupler_over_abs", "violations",
+                 "overspeed_car_steps"):
+        full = _spearman(series[name], eval_peak)
+        loo = _loo(series[name], eval_peak, eps)
+        for dropped, rho in loo.items():
+            assert rho <= 0.0, (
+                f"{name} flipped positive (rho={rho:.4f}) when ep{dropped} was "
+                f"dropped -- the 19.41 verdict must be revisited")
+
+
+def test_no_metric_is_significant_across_bootstrap_seeds():
+    """Robustness (b): with n=7 NO metric reaches statistical significance.
+
+    Note the CI is itself unstable at this sample size: with 2000 resamples
+    gap_eff's CI was [-0.107, +1.000] (contains 0) while with 500 it was
+    [+0.036, +1.000] (excludes 0) -- even the SIGN of the significance
+    verdict flips with the resample count. That instability IS the finding:
+    no significance claim may be made on these rho values.
+
+    The test therefore asserts the robust form: no metric excludes 0 for
+    EVERY bootstrap seed (i.e. at least one seed yields a CI containing 0)."""
+    import random
+    eps, series = _train_series()
+    eval_peak = [EVAL_PEAK[e] for e in eps]
+    for name, vals in series.items():
+        excludes_for_all_seeds = True
+        for seed in range(8):
+            rng = random.Random(seed)
+            boots = []
+            for _ in range(300):
+                idx = [rng.randrange(len(eps)) for _ in eps]
+                try:
+                    boots.append(_spearman([vals[i] for i in idx],
+                                           [eval_peak[i] for i in idx]))
+                except ZeroDivisionError:
+                    continue
+            boots.sort()
+            lo, hi = boots[int(0.025 * len(boots))], boots[int(0.975 * len(boots))]
+            if lo <= 0.0 <= hi:
+                excludes_for_all_seeds = False
+                break
+        assert not excludes_for_all_seeds, (
+            f"{name} excludes 0 for every bootstrap seed -- either the sample "
+            "grew (re-derive the boundary) or a significance claim may now be "
+            "made (update diagnostics 19.41 explicitly)")
+
+
+def test_no_single_gap_eff_threshold_can_isolate_the_break_episode():
+    """Separability (b): ep7 has a HIGHER training gap_eff than ep6 (163375 vs
+    158666) while its evaluation peak is LOWER (1185.81 vs 1478.85) => the
+    orderings conflict => no single threshold on gap_eff can select ep6
+    without also selecting ep7. This is an ordering contradiction, not a
+    precision problem."""
+    eps, series = _train_series()
+    i6, i7 = eps.index(6), eps.index(7)
+    assert series["gap_eff_abs"][i7] > series["gap_eff_abs"][i6]
+    assert EVAL_PEAK[7] < EVAL_PEAK[6]
+    # the two episodes are adjacent in gap_eff but opposite in evaluation peak
+    ranked = sorted(eps, key=lambda e: series["gap_eff_abs"][eps.index(e)],
+                    reverse=True)
+    assert ranked[0] == 7 and ranked[1] == 6
