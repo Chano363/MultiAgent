@@ -84,3 +84,35 @@ def test_perturb_helper_is_zero_identity_at_0_ulp():
     out1 = pm._perturb(obs, 1)
     assert np.all(out1 >= obs)
     assert np.any(out1 > obs)
+
+
+def test_perturb_supports_both_directions():
+    """扰动必须**双向可测**（正负 ULP）。
+
+    理由：单向曲线**无法区分"混沌放大"与"系统性偏置"**——
+    若峰值随扰动单调变化，可能只是"整体抬高观测 ⇒ 峰值抬高"的偏置，
+    而不是轨迹分叉。⇒ 负档位是必需的，不是可选项。
+    """
+    import numpy as np
+    obs = np.array([1.0, -2.5], dtype=np.float32)
+    plus = pm._perturb(obs, 1)
+    minus = pm._perturb(obs, -1)
+    # 正向：全体元素向上一个 ULP
+    assert np.all(plus > obs)
+    # 反向：全体元素向下一个 ULP
+    assert np.all(minus < obs)
+    # 0 档恒等
+    assert np.array_equal(pm._perturb(obs, 0), obs)
+    # 档位标记
+    import inspect
+    src = inspect.getsource(pm.run_one)
+    assert '"direction"' in src
+
+
+def test_doc_states_bidirectional_judgement_rule():
+    """判读规则必须含双向条款：结果不同 ⇒ 路径依赖；相同 ⇒ 单调系统性效应，
+    且此时**不得**称"混沌放大"。"""
+    doc = pm.__doc__ or ""
+    assert "双向" in doc
+    assert "系统性偏置" in doc
+    assert "路径依赖" in doc

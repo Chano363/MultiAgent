@@ -27,6 +27,15 @@
       §19.47 的"唯一稳定同向信号 = `speed_band_sum`"可继续作为第 11 投靶子。
     · **主指标漂移与峰值漂移不同量级** ⇒ 两条口径必须**分别记、分别判**
       （与 §19.47 判决③同向，不得互相冒充）。
+    · **双向档位（+1 / −1 ULP）结果不同（非镜像）⇒ 轨迹路径依赖**，
+      此时"混沌放大"成立；**双向结果相同 ⇒ 是单调系统性效应**，
+      此时**不得**把扰动—漂移关系称作"混沌放大"。
+      ⚠️ **单向扰动曲线无法区分"混沌放大"与"系统性偏置"**
+      （若峰值随扰动单调变化，可能只是"整体抬高观测 ⇒ 峰值抬高"的偏置，
+      而非轨迹分叉）⇒ **负档位是必跑项，不是可选项**。
+    · **双向档位结果不同（非镜像）⇒ 轨迹路径依赖（混沌放大成立）**；
+      **双向结果相同 ⇒ 是单调系统性效应**，此时**不得**把扰动—漂移关系称作
+      "混沌放大"，只能说"扰动与漂移单调相关"。⚠️ 这是本探针**必跑负档位**的原因。
 
 ⚠️ 口径：本探针跑**整程**（31500 步），但**不作为峰值/安全判据**——
     它测的是"扰动 → 后果量漂移"的**敏感度**，属机制层诊断，
@@ -60,14 +69,24 @@ def _build(args, ns):
 
 
 def _perturb(obs, ulps: int):
-    """在 float32 观测上施加 ulps 个 ULP 的正向扰动（全体元素同向）。"""
+    """在 float32 观测上施加 ulps 个 ULP 的扰动（全体元素同向）。
+
+    ⚠️ **方向可正可负**（ulps < 0 ⇒ 朝 -inf）：
+        **单向扰动的曲线无法区分"混沌放大"与"系统性偏置"**——
+        若峰值随扰动**单调**变化，可能只是"整体抬高观测 ⇒ 峰值抬高"的偏置，
+        而不是轨迹分叉。⇒ 必须**双向**各跑一档：
+          · 双向结果**不同**（非镜像）⇒ 轨迹**路径依赖**（混沌放大成立）；
+          · 双向结果**相同** ⇒ 是**单调系统性效应**，不得称"混沌"。
+        本探针默认档位 `0,1,-1` 即为此。
+    """
     import numpy as np
 
-    if ulps <= 0:
+    if ulps == 0:
         return obs
     out = obs.copy()
-    for _ in range(ulps):
-        out = np.nextafter(out, np.float32(np.inf))
+    target = np.float32(np.inf) if ulps > 0 else np.float32(-np.inf)
+    for _ in range(abs(ulps)):
+        out = np.nextafter(out, target)
     return out
 
 
@@ -135,6 +154,7 @@ def run_one(args, ulps: int) -> dict:
     env.close()
     return {
         "ulps": ulps,
+        "direction": "plus" if ulps > 0 else ("minus" if ulps < 0 else "none"),
         "steps": n,
         # 工程口径
         "peak_coupler_kN": peak / 1e3,
@@ -156,7 +176,8 @@ def main() -> None:
     ap.add_argument("--experiment",
                     default="configs/experiments/formation_ed_ab_3train_1plus108_nincrgatecaprel.yaml")
     ap.add_argument("--max_steps", type=int, default=31500)
-    ap.add_argument("--ulps", default="0,1")
+    ap.add_argument("--ulps", default="0,1,-1",
+                    help="扰动档位；负数 = 朝 -inf（用于区分混沌放大与系统性偏置）")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
@@ -166,7 +187,7 @@ def main() -> None:
               flush=True)
         r = run_one(args, u)
         results.append(r)
-        print(f"[probe] ulps={u:<4} peak={r['peak_coupler_kN']:.10f} kN  "
+        print(f"[probe] ulps={u:<4}({r['direction']:>4}) peak={r['peak_coupler_kN']:.10f} kN  "
               f"viol={r['coupler_violations']:.0f}  "
               f"band={r['band_rate']:.6f}  gapMean={r['gap_err_mean_abs_m']:.4f} m  "
               f"gapPeak={r['gap_err_peak_abs_m']:.4f} m  "
