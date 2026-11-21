@@ -45,9 +45,16 @@ WSL_CMD = (
     "echo '[edab-recheck] waiting for 3 predecessors' && "
     "for i in $(seq 1 1440); do "
     "  ok=1; "
-    + "".join(
-        f"  [ -f {p} ] || ok=0; " for p in PREDECESSORS
-    ) +
+    # ⚠️ 2026-11-21 修正：等"上游已完成"而非"文件存在"——
+    # pytest 输出文件在**启动瞬间**就被 shell 重定向创建；JSON 产物在写入过程中
+    # 也可能只写了一半 ⇒ 只判存在会让本队列与上游任务**并发**（违反红线 2
+    # 「同机多任务串行」）或读到半写文件。⇒ 追加"内容判据"。
+    "  [ -f outputs/logs/adr083_float_probe/amplification_probe.json ] || ok=0; "
+    "  grep -q '\"ulps\"' outputs/logs/adr083_float_probe/amplification_probe.json 2>/dev/null || ok=0; "
+    "  [ -f outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt ] || ok=0; "
+    "  grep -qE 'passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt 2>/dev/null || ok=0; "
+    "  [ -f outputs/logs/adr083_float_probe/primary_metric_sensitivity.json ] || ok=0; "
+    "  grep -q '\"ulps\"' outputs/logs/adr083_float_probe/primary_metric_sensitivity.json 2>/dev/null || ok=0; "
     "  [ \"$ok\" = \"1\" ] && break; "
     "  sleep 30; "
     "done; "

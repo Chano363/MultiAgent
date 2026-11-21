@@ -28,10 +28,15 @@ WSL_CMD = (
     "mkdir -p outputs/logs/adr083_float_probe && "
     "echo '[pm-sens] waiting for followup queue (full pytest output)' && "
     "for i in $(seq 1 720); do "
-    "  if [ -f outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt ]; then break; fi; "
+    # ⚠️ 2026-11-21 修正：等待条件必须判"上游**已完成**"，不能只判"文件存在"
+    # （shell 重定向会在 pytest **启动瞬间**就创建该文件 ⇒ 只判存在会让本队列
+    #  与仍在跑的 pytest **并发**，违反红线 2「同机多任务串行」）。
+    # ⇒ 追加判据：pytest 输出里必须出现收尾汇总行（passed/failed/error）。
+    "  if [ -f outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt ] && "
+    "     grep -qE 'passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt; then break; fi; "
     "  sleep 30; "
     "done; "
-    "if [ ! -f outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt ]; then "
+    "if ! grep -qE 'passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt 2>/dev/null; then "
     "  echo '[pm-sens] ABORT: followup queue not finished after 6h'; exit 2; fi; "
     "echo '[pm-sens] followup done, starting primary metric sensitivity probe' && "
     "python scripts/probes/probe_primary_metric_sensitivity.py "
