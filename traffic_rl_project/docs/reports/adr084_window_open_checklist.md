@@ -42,6 +42,7 @@
 1. 写 ADR 留痕（ADR-084 已含四件套批复依据；本票据为附页）；
 2. **同序列注册** closer 双活 + billing_guard ⇒ 回查 `Triggers.Count>=1` ⇒ `verify_closer_settings.ps1` 属性读回 ⇒ 心跳 rc=0（**先注册，后开机**）；
 3. `prepare_upload.sh --config <本投配置>`（写 `.git_commit` + 参考速度表载荷 + MANIFEST）⇒ 上传 ⇒ 实例侧 `preflight_payload.sh` 全 PASS（生成 `.preflight_ok`）⇒ `check_env_cfg_effectiveness.py` 全绿（确认 `ab_physical_trigger` **运行时生效**，ADR-077 纪律）；
+   **✅ 本地已完成（2026-11-21 13:49）**：上传载荷 `git_commit=c9cad36` / `git_tree=99e5ae9f` / `tracked_dirty_files=0`、参考速度表 md5 已入 MANIFEST；**本地 payload 预检 PASS（FAIL=0, WARN=3，三条 WARN 均为预期：BC 权重由训练时生成、无 resume 续训、依赖版本一致）** ⇒ `.preflight_ok` 已生成；**死配置守卫**：两份配置均"✓ 生效 44 项、无死配置"；**运行时自证**：`verify_ab_physical_trigger_runtime.py` **8 项全绿**（配置→env→controller 运行时下发 True、阈值 0.99、对照侧 False、非死代码）；
 4. **云端探针 C**（秒级）：`bash scripts/probes/run_cloud_isa_probe.sh <本投ckpt>` ⇒ 按前置判读规则出判决（根因定位 / ISA 非根因 / 基准失效 / 第三路径）——**这是把跨机 17.7% 从"可解释"推进到"已定位"的唯一一步**；
 5. **云端重标定**：`bash scripts/probes/run_cloud_recalibration.sh <训练期落盘目录> <out_suffix>`（零新增训练）⇒ 得到云端口径的判据（本地标定只当先验）；
 6. §0.8.2 第 5/6 问回填（护栏在位 + closer 读回）；
