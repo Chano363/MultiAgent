@@ -6895,6 +6895,8 @@ if actual_gap >= d_eff:
 
 **(c) ⚠️ 闭合只剩一个零机时成本的动作：把探针 C 在云端机跑一次**。判据**前置写死**：云端机上 `probe_torch_isa_path.py` 的 **default 档 md5 若 = `56bb457aab560bbc`**（= 本机 SSE4.2 档的 md5）⇒ **云端 MKL 实际走的正是 SSE4.2 路径** ⇒ **跨机 17.7% 差异的根因即定位到"MKL ISA 派发"这一条具体机制**（机制层收口，且**可解释**而非仅"可被解释"）；若云端 default = `dc324208b1387f4f`（与本地相同）⇒ 则 ISA 不是根因，**候选须再向下收窄**（libm / 归约次序细节 / 其他库版本），**不得**回头宣称"已定位"。
 ⚠️ **该动作在第 11 投开窗后于云端实例内执行即可（评估级、秒级、零额外训练、零额外费用）** ⇒ 它是第 11 投窗口的**第一个应执行动作**，优先级高于任何训练动作。
+**⇒ 已包装成一条命令**：`scripts/probes/run_cloud_isa_probe.sh [ckpt] [out_json]`（云端实例内执行）⇒ 跑完探针后**自动按上述判读规则出判决**并把判决写回 JSON（`cloud_verdict` 字段，四种出口：`ROOT_CAUSE_ISOLATED` / `ISA_NOT_ROOT_CAUSE` / `BASELINE_INVALID` / `THIRD_PATH`）。
+⚠️ **md5 写法纪律**：本文与日志里的 md5 均为 **16 位前缀缩写**（如 `dc324208b1387f4f`），**脚本比对一律用完整 32 位值**（`dc324208b1387f4f576cbac6cfad2f5b` / `56bb457aab560bbc756bd7bacabae84e`）⇒ 已据此自测并修正过一次（初版误用前缀 ⇒ 会被判成 `BASELINE_INVALID`）。
 
 **（4）口径边界（必读）**
 
