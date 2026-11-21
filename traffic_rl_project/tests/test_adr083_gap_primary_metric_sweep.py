@@ -132,3 +132,30 @@ def test_switch_wiring_matches_code():
         "ab_chase_gap_guard 已在 controller 侧接线 ⇒ §19.51.4 的接线表已过期，"
         "请更新诊断与本守卫"
     )
+
+
+def test_schema_stratification_recorded():
+    """§19.51.3b：必须记录"列距优势与 observation_schema 共变"的分层统计。
+
+    这层很重要——它把"第 9 投列距差"从"这个窗口差"变成"这条动作空间差"，
+    并明确**共变 ≠ 因果**，防止后续直接断言"换 schema 就能拿到 42 m 列距"。
+    """
+    sec = _section(_text(DIAG))
+    assert "19.51.3b" in sec, f"{SEC} 必须含 §19.51.3b 分层统计"
+    assert "loco_ed_ab_base12" in sec and "loco_notch_incr_v1" in sec, (
+        f"{SEC} 分层统计必须点名两个 observation_schema"
+    )
+    assert "共变 ≠ 因果" in sec or "共变≠因果" in sec, (
+        f"{SEC} 必须标明『共变 ≠ 因果』"
+    )
+    assert "不得断言" in sec, f"{SEC} 必须禁止『换 schema 就能拿到 42 m 列距』这类断言"
+
+
+def test_two_intervention_surfaces_both_listed():
+    """第 11 投有两个干预面（回 ed_ab schema / 在 notch_incr 内补通道），都须列出。"""
+    for path in (DIAG, DECISIONS, PIPELINE):
+        t = _text(path)
+        assert "两个干预面" in t or "干预面" in t, f"{path.name} 缺干预面表述"
+    sec = _section(_text(DIAG))
+    assert "loco_ed_ab_base12" in sec
+    assert "ab_chase_gap_guard" in sec
