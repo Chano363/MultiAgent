@@ -159,3 +159,37 @@ def test_two_intervention_surfaces_both_listed():
     sec = _section(_text(DIAG))
     assert "loco_ed_ab_base12" in sec
     assert "ab_chase_gap_guard" in sec
+
+
+def test_unique_wording_corrected_in_1952():
+    """§19.52：`speed_band_sum` 不是"唯一"稳定同向信号——`term_coupler_peak_sum` 也是。
+
+    §19.47 原文写"唯一"，与它自己的产物 json 不符（后者显示
+    `term_coupler_peak_sum` ~ gapMean +0.679，LOO 稳定同向）。
+    ⇒ 必须有 §19.52 的修正节，且关键文档不得再出现未加限定的"唯一"表述。
+    """
+    doc = _text(DIAG)
+    assert "19.52" in doc, "诊断缺 §19.52 修正节"
+    sec1952 = doc[doc.find("### 19.52"):]
+    assert "term_coupler_peak_sum" in sec1952, "§19.52 必须点名 term_coupler_peak_sum"
+    assert "+0.679" in sec1952 or "0.6786" in sec1952, "§19.52 必须给出该相关系数"
+
+    # 关键文档不得再出现"唯一…同向"表述——**限 speed_band_sum 语境**
+    # （§19.41 在**峰值口径**下说 `gap_eff` 是"唯一同向"是正确的，不在修正范围）
+    for path in (DIAG, DECISIONS, PIPELINE):
+        t = _text(path)
+        for m in re.finditer(r"唯一[^。\n]{0,40}同向", t):
+            seg = t[max(0, m.start() - 160): m.end() + 80]
+            if "gap_eff" in seg:
+                continue  # §19.41 峰值口径的正确表述
+            assert "最稳" in seg or "修正" in seg or "不是唯一" in seg, (
+                f"{path.name} 出现未加限定的『唯一…同向』表述：{m.group(0)!r}"
+            )
+
+
+def test_1952_keeps_target_unchanged():
+    """§19.52 只改措辞，**不改靶子**——`speed_band_sum` 仍是最强信号、仍是靶子。"""
+    doc = _text(DIAG)
+    sec = doc[doc.find("### 19.52"):]
+    assert "靶子结论" in sec and "不变" in sec, "§19.52 必须声明靶子结论不变"
+    assert "不得主张统计显著" in sec, "§19.52 必须保留 n=7 不得主张显著的纪律"
