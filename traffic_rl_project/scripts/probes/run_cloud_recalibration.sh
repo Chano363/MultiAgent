@@ -9,7 +9,11 @@
 #   本脚本产出的**云端标定**才是第 11 投窗口内使用这些判据的依据。
 #
 # 【用法】（在云端实例内执行）
-#   bash scripts/probes/run_cloud_recalibration.sh <train_results_dir> <eval_out_suffix> [ep_list]
+#   bash scripts/probes/run_cloud_recalibration.sh <train_results_dir> <eval_out_suffix> [ckpt_dir] [ep_list]
+#
+#   ⚠️ **ckpt_dir 必须显式给对**：第 11 投窗口有自己的 run_tag 与 ckpt 目录
+#      ⇒ **不得沿用第 9 投的路径**，否则标定会拉错 ckpt（标定结果毫无意义）。
+#      缺省值是第 9 投 W4 窗口的 ckpt 目录（仅用于回溯当前这条校准链）。
 #   例：
 #     bash scripts/probes/run_cloud_recalibration.sh \
 #       outputs/results/formation_10kt_1plus108/w4nincrgatecaprel_w4full_20261120_cloud \
@@ -26,16 +30,22 @@ source /home/chano/miniconda3/etc/profile.d/conda.sh
 conda activate traffic_rl
 cd /mnt/d/Code/MultiAgent/traffic_rl_project
 
-TRAIN_RESULTS_DIR="${1:?用法: run_cloud_recalibration.sh <train_results_dir> <eval_out_suffix> [ep_list]}"
+TRAIN_RESULTS_DIR="${1:?用法: run_cloud_recalibration.sh <train_results_dir> <eval_out_suffix> [ckpt_dir] [ep_list]}"
 OUT_SUFFIX="${2:?缺 eval_out_suffix}"
-EP_LIST="${3:-1 2 3 4 5 6 7}"
+CKPT_DIR="${3:-outputs/checkpoints/formation_10kt_1plus108/w4nincrgatecaprel_w4full_20261120_cloud}"
+EP_LIST="${4:-1 2 3 4 5 6 7}"
 
-CKPT_DIR=outputs/checkpoints/formation_10kt_1plus108/w4nincrgatecaprel_w4full_20261120_cloud
+if [ ! -d "${CKPT_DIR}" ]; then
+  echo "[recal] ABORT: ckpt dir 不存在：${CKPT_DIR}"
+  echo "[recal] ⚠️ 第 11 投窗口必须传入**本投自己的** ckpt 目录，勿沿用第 9 投路径。"
+  exit 2
+fi
 LOGDIR=outputs/logs/adr083_cloud_recal_${OUT_SUFFIX}
 mkdir -p "${LOGDIR}"
 
 echo "[recal] train_results_dir=${TRAIN_RESULTS_DIR}"
 echo "[recal] out_suffix=${OUT_SUFFIX}  episodes=${EP_LIST}"
+echo "[recal] ckpt_dir=${CKPT_DIR}"
 echo "[recal] logdir=${LOGDIR}"
 
 # ---- 第一步：云端机重跑 ep1..ep7 官方口径整程确定性快评 ----
