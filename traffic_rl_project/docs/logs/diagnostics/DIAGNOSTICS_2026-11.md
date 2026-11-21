@@ -6731,6 +6731,25 @@ DRILL_CLEANED prefix=zzdrill (drill tasks stopped+unregistered; no live guard le
 
 ⚠️ **共变 ≠ 因果**：两族是**不同训练配置 + 不同动作空间 + 不同 ckpt**，n=15 vs 29，**不是受控对照** ⇒ 只能说"**列距优势与 schema 强共变，且与项目自有的机制分析同向**"，**不得断言"换 schema 就能拿到 42 m 列距"**（那是 §19.51.5 (c) 待验证假设的内容）。
 
+### 19.51.3c 追加验证（已排队，结果待补）：`ed_ab` 族的列距优势在**现版本代码**下是否仍成立
+
+⚠️ §19.51.3b 的分层统计是**历史产物的横切统计，不是受控对照**——两族读数来自**不同代码版本**：
+
+| 族 | 读数出处 | `git_commit` | 日期 |
+| :--- | :--- | :--- | :--- |
+| `ed_ab` 族（gap 42–61 m） | `cmp_m1_maskab` / `stage1_det` / `w4v4_full` | `a589991d…` | 2026-11-11/12 |
+| `notch_incr` 族（gap 472–983 m） | 第 9 投 W4 窗口 + `adr083_official` | `154c1b8e…` | 2026-11-20 |
+
+期间物理层/控制器层改过（ADR-076/077/080/081 **全部在 `1bb7b02` 祖先链上**，见 §19.43）⇒ **"旧代码下的 42 m 列距"能否在现版本代码下复现，是未知数**。⇒ 若不能，则第 11 投的"回 `ed_ab` schema"干预面**不可直接用**，必须重新从头训。
+
+**已排队的追加验证**（工具 `scripts/probes/run_edab_gap_recheck.py` + 启动器 `scripts/cloud/launch_edab_gap_recheck.py`，计划任务 `MultiAgent_ADR083_edabrecheck`）：
+
+- **做法**：**现版本代码** + 与历史读数**同参**（31500 步 / decision_interval=10 / eval_seed=0 / init_speed 60 km/h / grade `shuozhou_ningwuxi_beidaniu_49km` / consist `10kt_1plus108`）跑两个代表 ckpt 的**官方整程确定性快评**：`ed_ab_v10_ep13`（`v10_l1_20261111_163412/seed0/mappo_fleet_ep13_dec_ad2_cp_seed0.pt`，历史 gap 42.0 m）与 `notchincr_w4_ep4`（第 9 投 ep4，历史 gap 940.4 m）⇒ **后者作同机同期对照**，排除"代码变了"的混淆；
+- **判读规则（前置写死）**：`ed_ab` 族在现版本代码下 `gap_err_mean_abs_m` **仍 ≤ ~150 m** ⇒ **"回 `ed_ab` schema"干预面成立**（历史读数可搬运）；**已退到 `notch_incr` 量级** ⇒ **历史读数已失效**、"回 schema"不可直接用、须从头训；
+- **红线**：**零新增训练、零云端机时**（不触红线 1）· **同机串行**（等放大探针 / followup pytest / 主指标敏感度探针三个产物全部落盘才启动，红线 2 附则）· **只跑整程 31500 步**（红线 3）· 产物落 `outputs/logs/adr083_gap_primary_metric_sweep/`（硬红线 4）；
+- **⚠️ 短窗护栏已内置**：脚本对 `max_steps < 31500` **自动作废判决**并写明"只作链路活性校验"（列距发散发生在全程前 5%~10%，短窗内尚未展开 ⇒ 短窗读数必然偏乐观）——冒烟链路已通（两族均 rc=0），**短窗产物已删除，不进对比集**；
+- **边界**：本验证只回答"这个干预面还存不存在"，**不构成对第 11 投方向的拍板**，读数**不得**直接当论文主表数字（须走 §0.8.2 与红线 5）。
+
 ### 19.51.4 机制定位：项目自己早已找到根因，但**闸没开**
 
 代码注释与诊断史（**一手**，`src/environments/train_fleet_env.py` + ADR-076）已完整写明这条链：
