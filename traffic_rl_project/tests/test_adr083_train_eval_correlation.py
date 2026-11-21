@@ -301,3 +301,31 @@ def test_no_single_gap_eff_threshold_can_isolate_the_break_episode():
     ranked = sorted(eps, key=lambda e: series["gap_eff_abs"][eps.index(e)],
                     reverse=True)
     assert ranked[0] == 7 and ranked[1] == 6
+
+
+def test_cost_metrics_worst_two_are_the_best_evaluation_episodes():
+    """Direction lock: the 'worst two' of a cost-type training metric must be
+    taken as the LARGEST two (cost highest). Getting this backwards silently
+    produced a wrong table in diagnostics 19.41 twice -- this test pins the
+    convention and the resulting facts.
+
+    Facts pinned (cost-type, largest two):
+      train peak_coupler_kN  -> ep1, ep4  -> the two LOWEST evaluation peaks
+      coupler_over_abs      -> ep7, ep1  -> ep1 is the lowest evaluation peak
+      violations            -> ep7, ep2  -> both normal evaluation peaks
+    """
+    eps, series = _train_series()
+    def worst2(name):
+        return sorted(eps, key=lambda e: series[name][eps.index(e)], reverse=True)[:2]
+    assert worst2("peak_coupler_kN") == [1, 4]
+    assert worst2("coupler_over_abs") == [7, 1]
+    assert worst2("violations") == [7, 2]
+    # the mirror relation: the two worst training-peak episodes are the two
+    # best evaluation episodes
+    eval_rank = sorted(eps, key=lambda e: EVAL_PEAK[e])
+    assert eval_rank[:2] == [1, 4]
+    # and the mirror at the other end: the LOWEST training-violations episode
+    # is the HIGHEST evaluation-peak episode
+    best_train = min(eps, key=lambda e: series["violations"][eps.index(e)])
+    assert best_train == 6
+    assert EVAL_PEAK[best_train] == max(EVAL_PEAK.values())
