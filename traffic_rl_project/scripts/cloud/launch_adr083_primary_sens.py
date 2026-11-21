@@ -4,8 +4,12 @@
 
 排队逻辑：
     先等 followup 队列收口（其最后一步的产物 = 全量 pytest 输出文件存在）
-    ⇒ 再跑主指标敏感度探针（0/1 ULP 两档整程，约 40 min）
+    ⇒ 再跑主指标敏感度探针（0 / +1 / **−1** ULP 三档整程，约 60 min）
     ⇒ 保证同机同一时刻只有一个 CPU 密集任务（红线 2 附则：同机多任务串行）。
+
+⚠️ **负档位（−1 ULP）是必跑项，不是可选项**（§19.48 判读规则）：
+    单向扰动曲线无法区分"混沌放大"与"系统性偏置"⇒ 必须双向对照。
+    ⇒ 启动器**硬编码 `--ulps 0,1,-1`**，不得删减负档位。
 
 ⚠️ 口径：产出 `outputs/logs/adr083_float_probe/primary_metric_sensitivity.json`，
     属**机制层敏感度诊断**，不得作为峰值/安全判据引用。
@@ -34,7 +38,7 @@ WSL_CMD = (
     "--checkpoint outputs/checkpoints/formation_10kt_1plus108/"
     "w4nincrgatecaprel_w4full_20261120_cloud/"
     "mappo_fleet_last_ep6_dec_ad1_cp_seed0_seed0.pt "
-    "--max_steps 31500 --ulps 0,1 "
+    "--max_steps 31500 --ulps 0,1,-1 "
     "> outputs/logs/adr083_float_probe/primary_sens_run.log 2>&1; "
     "echo '[pm-sens] probe rc='$? && date"
 )
