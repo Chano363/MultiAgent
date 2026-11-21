@@ -60,13 +60,23 @@ def test_w4_cloud_commit_is_ancestor_of_all_physics_commits():
             f"§19.43 的代码同源实证失效")
 
 
-def test_cloud_commit_to_head_diff_is_provenance_only():
-    """云端真实 commit → HEAD 的 src/ configs/ 差异只能是 provenance。"""
+# 【§19.43 落账时的本地 HEAD】—— 代码同源实证所核验的**那个**本地代码状态。
+# ⚠️ 守卫锁定的是**快照事实**（"在 §19.43 落账时，本地数值路径与云端相同"），
+#    **不是**"从今往后 HEAD 永远等于云端代码"——后者会把守卫变成"禁止任何
+#    src/ 改动"的假约束，从而阻断后续一切正当开发（如第 11 投候选的
+#    训练期逐列落盘）。若日后确需复核"当前 HEAD 与云端是否仍同源"，
+#    应重跑 §19.43 的核验并更新本常量 + 诊断文档，而不是让守卫持续漂移。
+LOCAL_HEAD_AT_1943 = "de7fdcd"
+
+
+def test_cloud_commit_to_local_head_at_1943_diff_is_provenance_only():
+    """云端真实 commit → §19.43 落账时本地 HEAD 的 src/ configs/ 差异只能是 provenance。"""
     import subprocess
 
     f = ROOT / ".preflight_ok"
     sha = re.search(r"commit=([0-9a-f]{7,40})", _read(f)).group(1)
-    out = subprocess.run(["git", "diff", "--stat", sha, "HEAD", "--", "src/", "configs/"],
+    out = subprocess.run(["git", "diff", "--stat", sha, LOCAL_HEAD_AT_1943,
+                          "--", "src/", "configs/"],
                          cwd=str(ROOT), capture_output=True, text=True).stdout
     changed = [ln.split("|")[0].strip() for ln in out.splitlines()
                if "|" in ln and ln.strip()]
@@ -76,7 +86,24 @@ def test_cloud_commit_to_head_diff_is_provenance_only():
     # 允许出现差异的文件（纯 provenance）
     allowed = {"src/metadata.py"}
     bad = [c for c in normalized if c not in allowed]
-    assert not bad, f"云端 commit {sha} 与 HEAD 在数值路径上存在差异：{bad}（§19.43 实证失效）"
+    assert not bad, (f"云端 commit {sha} 与 §19.43 落账时的本地 HEAD "
+                     f"{LOCAL_HEAD_AT_1943} 在数值路径上存在差异：{bad}"
+                     "（§19.43 的代码同源实证失效）")
+
+
+def test_1943_snapshot_commit_is_reachable_and_ancestry_holds():
+    """§19.43 落账时的本地 HEAD 必须在历史里，且仍是云端 commit 的后代。"""
+    import subprocess
+
+    rc = subprocess.run(["git", "cat-file", "-e", f"{LOCAL_HEAD_AT_1943}^{{commit}}"],
+                        cwd=str(ROOT), capture_output=True)
+    assert rc.returncode == 0, f"{LOCAL_HEAD_AT_1943} 不在 git 历史里"
+    f = ROOT / ".preflight_ok"
+    sha = re.search(r"commit=([0-9a-f]{7,40})", _read(f)).group(1)
+    rc = subprocess.run(["git", "merge-base", "--is-ancestor", sha, LOCAL_HEAD_AT_1943],
+                        cwd=str(ROOT), capture_output=True)
+    assert rc.returncode == 0, (
+        f"云端 commit {sha} 不是 {LOCAL_HEAD_AT_1943} 的祖先 ⇒ §19.43 的快照事实失效")
 
 
 def test_thread_order_probe_shows_bit_identical_across_threads():

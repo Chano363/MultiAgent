@@ -95,6 +95,8 @@ def train(
     curriculum: str = None,          # 可选：'300-1000-3000'（相对）或 '1000:66,3000:132'（绝对全局ep边界）
     resume: str = None,              # 可选：续训检查点路径（加载策略继续训练，前台分块训练用）
     start_ep: int = -1,              # 可选：起始全局回合号（-1=从 resume 历史推断；从头训练分块续训用）
+    figures_dir: str = None,         # 可选：学习曲线输出目录（None = 既有 'outputs/figures'，
+                                       #   零回归；探针/冒烟应指向自己的目录，避免往根级落盘）
 ):
     if device is None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -209,6 +211,10 @@ def train(
     episode_rewards = []
     episode_peak_coupler = []
     episode_violations = []
+    # 【ADR-083 / 诊断 §19.44】逐列车钩力量（**纯新增观测**，零物理改动）：
+    #   每集一行，形状 [n_cols]；落盘供"训练期同向性"检验（第 11 投候选前提②）
+    episode_col_peak = []      # [n_ep][n_cols] 逐列车钩力峰值 kN
+    episode_col_viol = []      # [n_ep][n_cols] 逐列超限步数
     best_reward = float('-inf')
     # 【2026-08-30 无缝续训】加载历史与 best（跨块不丢数据、best 全局跟踪）：
     # 分块训练每块重开 best=-inf 会让 best checkpoint 被后块劣质模型覆盖
@@ -220,6 +226,8 @@ def train(
             episode_rewards = list(h.get('rewards', []))
             episode_peak_coupler = list(h.get('peak_coupler_kN', []))
             episode_violations = list(h.get('violations', []))
+            episode_col_peak = list(h.get('col_peak_coupler_kN', []))
+            episode_col_viol = list(h.get('col_violations', []))
             best_reward = float(h.get('meta', {}).get('best_reward', float('-inf')))
             if start_ep < 0:
                 start_ep = len(episode_rewards)
@@ -277,6 +285,8 @@ def train(
         ep_reward = 0.0
         ep_peak = 0.0
         ep_viol = 0
+        ep_col_peak_vec = None   # 【ADR-083】本集逐列峰值（kN）
+        ep_col_viol_vec = None   # 【ADR-083】本集逐列超限步数
         step = 0
 
         # 【bug修复 2026-08-30】原用基础 max_steps 截断，而 curriculum 改的是
@@ -320,6 +330,23 @@ def train(
             ep_reward += reward
             ep_peak = max(ep_peak, info.get('coupler_force_peak', 0))
             ep_viol = info.get('coupler_limit_violations', 0)
+            # 【ADR-083 / §19.44】逐列车钩力量收集（**纯观测**，不改动力学/奖励/动作面）：
+            #   env 侧 info 的 col_peak_coupler_kN 是**本集累计**逐列峰值（单调），
+            #   col_coupler_viol_steps 是**本集累计**逐列超限步数 ⇒ 取末步值即全集。
+            #   峰值仍用 max 逐元素累积，防止 env 计数被外部重置导致峰值丢失。
+            _cp = info.get('col_peak_coupler_kN')
+            _cv = info.get('col_coupler_viol_steps')
+            if _cp is not None:
+                _cp = list(_cp) if isinstance(_cp, (list, tuple)) else [_cp]
+                if ep_col_peak_vec is None:
+                    ep_col_peak_vec = [float(x) for x in _cp]
+                else:
+                    for _i, _x in enumerate(_cp):
+                        if _i < len(ep_col_peak_vec):
+                            ep_col_peak_vec[_i] = max(ep_col_peak_vec[_i], float(_x))
+            if _cv is not None:
+                _cv = list(_cv) if isinstance(_cv, (list, tuple)) else [_cv]
+                ep_col_viol_vec = [float(x) for x in _cv]
             obs = next_obs
 
         metrics = agent.update()
@@ -327,6 +354,11 @@ def train(
         episode_rewards.append(ep_reward)
         episode_peak_coupler.append(ep_peak / 1e3)  # kN
         episode_violations.append(ep_viol)
+        # 【ADR-083 / §19.44】逐列量落盘（形状 [n_ep][n_cols]）
+        if ep_col_peak_vec is not None:
+            episode_col_peak.append(list(ep_col_peak_vec))
+            episode_col_viol.append(list(ep_col_viol_vec) if ep_col_viol_vec is not None
+                                    else [0.0] * len(ep_col_peak_vec))
         if ep_reward > best_reward:
             best_reward = ep_reward
             # 保存 best 模型（策略最优时的 checkpoint）——论文评估应报告 best 而非末 ep
@@ -370,8 +402,11 @@ def train(
                     'physics': 'R0(2026-09-06)+MT2统一(2026-09-07): 全列MT-2 Stribeck 750/500 + 卸载刚度 + 牵规β_c + 并行波速 + 段间衰减D + 两段式缓解τ=6s + Newmark-β + 曲线阻力600/(R-55)(2026-11-09 ADR-060)',
                 },
                 results_dir=results_dir,
-                figures_dir='outputs/figures',
+                figures_dir=figures_dir or 'outputs/figures',
                 tag=f"{cp_tag}_seed{seed}",
+                # 【ADR-083 / §19.44】逐列车钩力量（纯新增观测通道）
+                col_peak_coupler=episode_col_peak,
+                col_violations=episode_col_viol,
             )
 
     total_time = time.time() - start_time

@@ -60,11 +60,18 @@ class TrainingLogger:
         # 旧实现只在训练结束时把分量的全程累计打印一次日志 → 无法按 20 集窗口评估
         # "车钩峰值项占比降而 rel_anchor/gap_eff 不塌陷"（判据③），也无法事后复算。
         self._terms_csv_path = (self.log_dir / f"train_reward_terms_{tag}.csv").as_posix()
+        # 【ADR-083 / 诊断 §19.44】逐列车钩力量通道（**独立文件**，理由同上：既有 CSV
+        # 列数冻结）。落每列的 peak(kN) 与超限步数，使"训练期逐列量能否与评估态
+        # 同向"这一候选前提②可在下一次重训窗口内直接判定（否则只能事后猜）。
+        # ⚠️ 只写文件，不影响控制/学习路径（零物理改动）。
+        self._col_csv_path = (self.log_dir / f"train_col_coupler_{tag}.csv").as_posix()
+        self._num_trains = 0   # 由首行落盘时确定（续训时沿用既有列数）
 
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self._init_csv()
         self._init_loss_csv()
         self._init_terms_csv()
+        self._init_col_csv()
 
         # ---- tqdm 实时进度表（YOLO 风格的滚动行） ----
         self._tqdm = None
@@ -117,6 +124,55 @@ class TrainingLogger:
                 csv.writer(f).writerow(['episode', 'n_steps']
                                        + [f'{k}_sum' for k in TERM_KEYS]
                                        + ['total_sum'])
+
+    def _init_col_csv(self):
+        """逐列车钩力量 CSV（ADR-083 / §19.44）。续训保留旧行；首次训练覆写。
+
+        列数 = 1(episode) + 1(n_steps) + 2×n_cols(peak_kN / viol_steps)。
+        n_cols 由首行落盘时确定并写入表头；续训时若文件已存在，沿用其列数
+        （避免续训前后表头不一致 ⇒ 解析失败）。
+        """
+        if self.resume and Path(self._col_csv_path).exists():
+            try:
+                with open(self._col_csv_path, 'r', encoding='utf-8') as f:
+                    header = next(csv.reader(f))
+                self._num_trains = max(
+                    0, (len(header) - 2) // 2)
+            except Exception:
+                self._num_trains = 0
+            return
+        with open(self._col_csv_path, 'w', newline='', encoding='utf-8') as f:
+            csv.writer(f).writerow(['episode', 'n_steps'])
+
+    # ------------------------------------------------------------------ #
+    def log_col_coupler(self, ep: int, col_peak_kN, col_viol_steps, steps: int) -> None:
+        """逐集落盘**逐列**车钩力量（ADR-083 / §19.44，候选前提①的落盘通道）。
+
+        `col_peak_kN[i]` = 第 i 列本集断面力峰值（kN）；`col_viol_steps[i]` = 第 i 列
+        本集超限**步数**（口径与评估侧 `train_peak_coupler_kN` / `train_coupler_viol`
+        对齐）。只写文件，不影响控制/学习路径（零物理改动、零额外仿真成本）。
+
+        表头在首次落盘时按列数写入；后续集沿用（列数不应变）。
+        """
+        peaks = [float(x) for x in (col_peak_kN or [])]
+        viols = [int(x) for x in (col_viol_steps or [])]
+        n = min(len(peaks), len(viols))
+        peaks, viols = peaks[:n], viols[:n]
+        if n == 0:
+            return
+        if self._num_trains != n:
+            # 列数变化（首集确定列数 / 理论上不应变）⇒ 重写表头后追加本行
+            self._num_trains = n
+            with open(self._col_csv_path, 'w', newline='', encoding='utf-8') as f:
+                w = csv.writer(f)
+                w.writerow(['episode', 'n_steps']
+                           + [f'col{i}_peak_kN' for i in range(n)]
+                           + [f'col{i}_viol_steps' for i in range(n)])
+        with open(self._col_csv_path, 'a', newline='', encoding='utf-8') as f:
+            row = [int(ep), int(steps)]
+            row += [f"{p:.6g}" for p in peaks]
+            row += [int(v) for v in viols]
+            csv.writer(f).writerow(row)
 
     # ------------------------------------------------------------------ #
     def log_episode(self, ep: int, reward: float, peak_coupler_kN: float,

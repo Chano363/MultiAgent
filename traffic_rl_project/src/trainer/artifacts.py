@@ -17,6 +17,7 @@ logger = logging.getLogger('Artifacts')
 def save_training_artifacts(
     rewards, peak_coupler, violations, meta, results_dir, figures_dir, tag,
     write_csv: bool = True,
+    col_peak_coupler=None, col_violations=None,
 ):
     """保存训练历史（JSON/CSV）并绘制学习曲线 PNG（论文/PPT 用）。
 
@@ -26,6 +27,14 @@ def save_training_artifacts(
     下该 CSV 归 ExperimentLogger.log_episode 独占（8 列含 gap_min_m）；本函数只重写
     4 列会覆盖它，造成"前段 4 列 / 后段 8 列"的混合文件。legacy 入口（train_fleet /
     train_cyclic_braking）无 logger，保持默认 True。
+
+    `col_peak_coupler` / `col_violations`（**可选**，ADR-083 / 诊断 §19.44）：
+    逐集**逐列**车钩力峰值(kN) 与逐列超限步数，形状 [n_ep][n_cols]。
+    提供时另写独立文件 `train_col_coupler_{tag}.csv`（**独立文件**而非给既有
+    train_history 加列：既有 CSV 列数冻结，见 logger 侧同款理由），并在
+    `train_history_{tag}.json` 里带 `col_peak_coupler_kN` / `col_violations` 两键
+    （JSON 是变长结构，加键不破坏既有 schema）。
+    ⚠️ 纯落盘通道，不影响训练行为（零物理改动）。
     """
     Path(results_dir).mkdir(parents=True, exist_ok=True)
     Path(figures_dir).mkdir(parents=True, exist_ok=True)
@@ -35,9 +44,31 @@ def save_training_artifacts(
         'violations': [float(v) for v in violations],
         'meta': meta,
     }
+    # 【ADR-083 / §19.44】逐列通道：JSON 带两键（变长结构，加键不破坏既有 schema）
+    if col_peak_coupler is not None:
+        hist['col_peak_coupler_kN'] = [
+            [float(x) for x in row] for row in col_peak_coupler]
+    if col_violations is not None:
+        hist['col_violations'] = [
+            [float(x) for x in row] for row in col_violations]
     with open(Path(results_dir) / f"train_history_{tag}.json", 'w',
               encoding='utf-8') as f:
         json.dump(hist, f, ensure_ascii=False, indent=2)
+    # 【ADR-083 / §19.44】逐列 CSV（独立文件）
+    if col_peak_coupler is not None and col_violations is not None:
+        n_rows = min(len(col_peak_coupler), len(col_violations))
+        if n_rows > 0:
+            n_cols = len(col_peak_coupler[0])
+            with open(Path(results_dir) / f"train_col_coupler_{tag}.csv", 'w',
+                      newline='', encoding='utf-8') as f:
+                w = csv.writer(f)
+                w.writerow(['episode']
+                            + [f'col{i}_peak_kN' for i in range(n_cols)]
+                            + [f'col{i}_viol_steps' for i in range(n_cols)])
+                for i in range(n_rows):
+                    w.writerow([i + 1]
+                               + [f"{float(x):.6g}" for x in col_peak_coupler[i]]
+                               + [int(x) for x in col_violations[i]])
     if write_csv:
         with open(Path(results_dir) / f"train_history_{tag}.csv", 'w',
                   newline='', encoding='utf-8') as f:

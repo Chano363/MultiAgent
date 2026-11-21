@@ -6294,7 +6294,7 @@ DRILL_CLEANED prefix=zzdrill (drill tasks stopped+unregistered; no live guard le
 | 提交祖先核验 | ADR-076（`4a96d40` 08:10、ADR-077 `fb005d9` 10:07、ADR-080/081 `dcbe214` 12:45、ADR-081 修正 `fef27a3` 13:29、第 9 投配置 `b14e2bd` 15:13）**全部是 `1bb7b02`（18:47）的祖先** | 云端代码**确实包含** ADR-076/077/080/081 全部物理改动 |
 | `git diff --stat 1bb7b02 HEAD -- src/ configs/` | **仅 `src/metadata.py`（+17/−7，纯 provenance 写入）** | 云端真实代码与本地 HEAD 在**数值路径上逐文件相同** ⇒ **代码同源由推断升级为实证** |
 
-⇒ **§19.42 的归因第 1 段（代码同源）不仅成立，且证据等级更高**（不再依赖"配置创建时间"这类间接推理）。同时**顺带解释了 `metadata.git_commit=154c1b8` 的失真机制**：该字段写于 `154c1b8`（11-20 05:52）时的 `metadata.py`，其 `git_commit()` 实现是"`git rev-parse HEAD` 优先、失败才读 `.git_commit`"；云端 `.git` 是部署残留 ⇒ `rev-parse` 成功但返回**旧 commit** ⇒ 字段显示 `154c1b8` 而实际运行 `1bb7b02`。这与 `c675e05`（21:36，改为 `.git_commit` 优先）记录的诊断**完全一致**，且本节给出了失真的**具体成因**（不是"标签失真"这种泛称）。
+⇒ **§19.42 的归因第 1 段（代码同源）不仅成立，且证据等级更高**（不再依赖"配置创建时间"这类间接推理）。**⚠️ 本条是"快照事实"**：它判定的是"**W4 窗口开跑那一刻**本地代码与云端同源"，**不构成对后续本地开发的限制**——本地 `src/` 可继续演进，只需在**下一次开窗时重新核验**（守卫锁的是落账时快照 commit `de7fdcd`，不是当前 HEAD）。同时**顺带解释了 `metadata.git_commit=154c1b8` 的失真机制**：该字段写于 `154c1b8`（11-20 05:52）时的 `metadata.py`，其 `git_commit()` 实现是"`git rev-parse HEAD` 优先、失败才读 `.git_commit`"；云端 `.git` 是部署残留 ⇒ `rev-parse` 成功但返回**旧 commit** ⇒ 字段显示 `154c1b8` 而实际运行 `1bb7b02`。这与 `c675e05`（21:36，改为 `.git_commit` 优先）记录的诊断**完全一致**，且本节给出了失真的**具体成因**（不是"标签失真"这种泛称）。
 
 **(2) 浮点层排除 A：线程序 / BLAS 线程归约顺序 —— 不是放大层**
 
@@ -6370,3 +6370,37 @@ DRILL_CLEANED prefix=zzdrill (drill tasks stopped+unregistered; no live guard le
 ⇒ **可分性不再是未知项**，未知项收敛为"训练期逐列车钩力量是否与评估态同向"——这**仍然需要一次带落盘的重训窗口**（须 owner 按红线 1 批复四件套），**本节不构成对候选的否证，也不构成拍板**。
 
 **证据边界**：① 全部基于 **W4 单窗口 7 集 + 本地官方口径**（ep1–ep7，n=7）⇒ **跨窗口未验证**，且 n=7 下不得主张统计显著（§19.41）；② 逐列量属**形态量**，跨机器会翻转（§19.42）⇒ 本节全部结论只在**本地同机同码同参**口径内有效；③ 本节只判定**评估态侧**可分性，**不构成训练期落盘设计**，也**不产出任何峰值/安全判据**。
+
+---
+
+#### §19.45 第 11 投候选前提①的实现：训练期逐列车钩力量落盘（**纯新增观测，零物理改动，零额外仿真成本**）
+
+**承接 §19.44**：该节把候选前提②改写为"**训练期**同向性"，其前置是"训练期**存在**同口径的逐列车钩力量"。此前项目**没有任何训练期逐列通道**——训练期只落盘**总** peak / 总 viol（`train_history_*.json` 的 `peak_coupler_kN` / `violations`），因此"训练期逐列量"此前**在数据上不存在**，前提②无从检验。本节把这条通道**建起来**（实现 + 自检），使下一次带落盘的重训窗口可以**直接**产出同向性检验所需数据。
+
+**(1) 设计红线（先定纪律，再写代码）**
+
+| 约束 | 内容 | 理由 |
+| :--- | :--- | :--- |
+| **纯新增观测** | 只增计数器与落盘通道，**不改**动力学 / 奖励 / 动作面 / 安全层 | 红线 5：物理行为改动的验收口径是"同 ckpt 同 seed 复跑 20 集、peak 逐位相同"；纯观测不应触发该级验收的**物理**部分 |
+| **零额外仿真成本** | 逐列量取自 `coupler_interface_forces()` 的**同一次**读取（该函数在 `_step` 里本就每步被调用以算总 peak） | 复用既有读数 ⇒ 无额外计算、无额外开销 |
+| **口径与评估侧一致** | 逐列 peak = `max(abs(coupler_interface_forces()))`；超限步 = `count(abs(iface) > coupler_force_limit_n)`；单位 kN | §19.44 要求训练期量与评估态量**同口径**，否则"同向性"检验无意义 |
+| **独立产物文件** | JSON 加两键（变长结构不破坏既有 schema）+ 另写 `train_col_coupler_{tag}.csv` | 既有 `train_history_*.csv` 列数冻结（既有 `train_loss_*.csv` / `train_reward_terms_*.csv` 同款做法） |
+
+**(2) 实现落点**
+
+- **env 侧**（`src/environments/train_fleet_env.py`）：新增两个 episode 计数器 `self._ep_col_peak_coupler_n` / `self._ep_col_coupler_viol_steps`（`__init__` 与 `_reset_once` 两处初始化 ⇒ 每集清零）；在 `_step`（单列，索引 `i`）与 `_step_decomposed_fleet`（索引 `ti`）两处**复用已算出的 `interface`** 逐列累计；两处 `info` 字典新增 `col_peak_coupler_kN`（kN）与 `col_coupler_viol_steps`。
+- **trainer 侧**（`src/trainer/train_fleet.py`）：训练循环内逐元素取 max 得本集逐列 peak、取末步累计值得本集逐列超限步 ⇒ per-episode 列表 `episode_col_peak` / `episode_col_viol`；随 `save_training_artifacts(..., col_peak_coupler=..., col_violations=...)` 落盘；**续训路径同步恢复**（从 `train_history_*.json` 的两键读回，避免跨块丢失逐列历史）。
+- **产物侧**（`src/trainer/artifacts.py`）：`train_history_{tag}.json` 增 `col_peak_coupler_kN` / `col_violations` 两键；另写 `train_col_coupler_{tag}.csv`（表头 `episode` + 逐列 peak + 逐列超限步）。
+
+**(3) 自检（三层，全部零机时零费用）**
+
+| 层 | 手段 | 结果 |
+| :--- | :--- | :--- |
+| 静态 | 守卫 `tests/test_adr083_col_observer.py`（8 项）：通道存在 / 计数器每集清零 / trainer 接线 / **口径与评估侧一致**（逐列 peak 取断面力绝对值 max、超限判据同一 `coupler_force_limit_n`、单位同为 /1e3）/ **逐列量不得出现在 reward 与动作路径** / 产物 JSON+CSV 契约 / 不传逐列量时**向后兼容**（不产生空文件、不加键） | ✔ 全绿 |
+| **动态（纯观测的直接检验）** | 守卫内 `test_interface_force_read_is_side_effect_free`：同 seed、同动作序列跑两遍 rollout，**一遍在每步额外调用一次 `coupler_interface_forces()`**（即新增观测所做之事），比较 15 步观测轨迹 | ✔ **逐位相同** ⇒ 该读取**无副作用**，新增通道是纯观测 |
+| 端到端 | 冒烟 `scripts/probes/smoke_col_dump.py`：真实调 `train()`（2 集 × 60 步、3 列、seed 999 隔离），检查产物形状 | ✔ `[OK] ep=2 列数=3`，`col_peak_coupler_kN[0] = [766.22, 781.30, 807.82] kN`，`col_violations[0] = [0,0,0]` |
+
+**(4) 判决与边界**
+
+- **判决**：候选前提①（"训练期存在同口径逐列车钩力量落盘"）**已就位** ⇒ 下一次带落盘的重训窗口可以直接产出同向性检验所需数据；本节**不**回答同向性本身（那仍需窗口 + owner 批复红线 1 四件套）。
+- ⚠️ **边界**：① 冒烟 2 集 × 60 步只验**链路贯通**，**不作峰值/安全判据**（红线 3），其 kN 数值无参考意义；② 红线 5 的**完整**验收（"同 ckpt 同 seed 复跑 20 集、peak 逐位相同"）**仍待**带落盘的重训窗口才能做——本节的动态只读性检验覆盖的是"新增观测无副作用"，**不能替代**该窗口级验收；③ 本节**不构成对第 11 投方向的拍板**（方向仍待 owner 拍板），**也不新增任何峰值结论**；④ 全程零机时零费用。

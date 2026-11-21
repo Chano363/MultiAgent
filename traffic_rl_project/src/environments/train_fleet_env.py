@@ -917,6 +917,17 @@ class TrainFleetEnv:
         self._ep_overspeed_car_steps = 0
         self._ep_head_speed_sum_kmh = 0.0
         self._ep_head_steps = 0
+        # 【ADR-083 / 诊断 §19.44】逐列车钩力量逐集累计（**纯新增观测**）：
+        #   每列 peak（断面力口径，同 `_peak_coupler_n`）+ 每列超限**步数**。
+        #   动因：训练期只落全局 peak/viol（全局量），而评估态的失效面是**逐列**的
+        #   （ep6 中列承压）⇒ 全局量把中列承压平均掉了，无法承载逐列信号
+        #   （诊断 §19.41：训练期全局量与评估态 peak 秩相关为负，方向是反的）。
+        #   ⚠️ **零物理改动**：只增计数器与 info 字段，不改动力学/奖励/动作面/安全层
+        #      ⇒ 同一 ckpt 同 seed 复跑，物理量与旧版逐位相同（红线 5 验收口径）。
+        #   ⚠️ 口径与评估侧对齐：断面力 `coupler_interface_forces()` 的绝对值 max，
+        #      超限判据 = 同一 `coupler_force_limit_n`。
+        self._ep_col_peak_coupler_n = np.zeros(self.num_trains, dtype=float)
+        self._ep_col_coupler_viol_steps = np.zeros(self.num_trains, dtype=np.int64)
         # E21 追尾趋势：上一步各列间距误差（检测间距缩小→追尾风险，引导RL提前协同）
         self._prev_gap_err = None
 
@@ -1188,6 +1199,9 @@ class TrainFleetEnv:
         self._ep_overspeed_car_steps = 0
         self._ep_head_speed_sum_kmh = 0.0
         self._ep_head_steps = 0
+        # 【ADR-083 / 诊断 §19.44】逐列车钩力量逐集累计清零（见 __init__ 处说明）
+        self._ep_col_peak_coupler_n = np.zeros(self.num_trains, dtype=float)
+        self._ep_col_coupler_viol_steps = np.zeros(self.num_trains, dtype=np.int64)
         self._last_target_accels = np.zeros(self.num_trains)
         self._prev_gap_err = None
         # 【W4-v21 / ADR-072】切换幅度罚记账清零（新 episode 无历史）
@@ -1514,6 +1528,11 @@ class TrainFleetEnv:
                 self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(interface)))
                 self._coupler_limit_violations += int(
                     np.sum(interface > self.coupler_force_limit_n))
+                # 【ADR-083 / §19.44】逐列累计（纯观测，不改物理）
+                self._ep_col_peak_coupler_n[i] = max(
+                    self._ep_col_peak_coupler_n[i], float(np.max(interface)))
+                self._ep_col_coupler_viol_steps[i] += int(
+                    np.count_nonzero(interface > self.coupler_force_limit_n))
             self._safety_events += tr._safety_events
 
         # 记录本步各列目标加速度（供 obs 的"前列制动状态"，E4 协同预判用）
@@ -1543,6 +1562,12 @@ class TrainFleetEnv:
             'coupler_force_peak': float(self._peak_coupler_n),
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
+            # 【ADR-083 / §19.44】逐列车钩力量（逐集累计，纯观测）：
+            #   col_peak_coupler_kN[i] = 第 i 列本集断面力峰值（kN）
+            #   col_coupler_viol_steps[i] = 第 i 列本集超限**步数**
+            #   ⚠️ 口径与评估侧 `train_peak_coupler_kN` / `train_coupler_viol` 对齐。
+            'col_peak_coupler_kN': (self._ep_col_peak_coupler_n / 1e3).tolist(),
+            'col_coupler_viol_steps': self._ep_col_coupler_viol_steps.tolist(),
             'safety_events': int(self._safety_events),
             # 【2026-11-08 截断口径】本步是否因"头车到达剖面末端"而结束（区分步数上限）
             'route_end_reached': bool(route_end),
@@ -1979,6 +2004,11 @@ class TrainFleetEnv:
                 self._peak_coupler_n = max(self._peak_coupler_n, float(np.max(interface)))
                 self._coupler_limit_violations += int(
                     np.sum(interface > self.coupler_force_limit_n))
+                # 【ADR-083 / §19.44】逐列累计（纯观测，不改物理）
+                self._ep_col_peak_coupler_n[ti] = max(
+                    self._ep_col_peak_coupler_n[ti], float(np.max(interface)))
+                self._ep_col_coupler_viol_steps[ti] += int(
+                    np.count_nonzero(interface > self.coupler_force_limit_n))
             self._safety_events += tr._safety_events
 
         obs = self._get_obs_decomposed()
@@ -2004,6 +2034,12 @@ class TrainFleetEnv:
             'coupler_force_peak': float(self._peak_coupler_n),
             'coupler_force_limit': float(self.coupler_force_limit_n),
             'coupler_limit_violations': int(self._coupler_limit_violations),
+            # 【ADR-083 / §19.44】逐列车钩力量（逐集累计，纯观测）：
+            #   col_peak_coupler_kN[i] = 第 i 列本集断面力峰值（kN）
+            #   col_coupler_viol_steps[i] = 第 i 列本集超限**步数**
+            #   ⚠️ 口径与评估侧 `train_peak_coupler_kN` / `train_coupler_viol` 对齐。
+            'col_peak_coupler_kN': (self._ep_col_peak_coupler_n / 1e3).tolist(),
+            'col_coupler_viol_steps': self._ep_col_coupler_viol_steps.tolist(),
             'safety_events': int(self._safety_events),
             # 【2026-11-08 截断口径】本步是否因"头车到达剖面末端"而结束（区分步数上限）
             'route_end_reached': bool(route_end),
