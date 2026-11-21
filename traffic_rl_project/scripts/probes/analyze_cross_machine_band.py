@@ -77,15 +77,21 @@ def _load(path: Path):
         return json.load(f)
 
 
-def _local_path(ep: int) -> Path:
+def _local_path(ep: int, local_glob: str = None) -> Path:
+    """本地侧评估产物路径。local_glob 可覆盖（须含 {ep} 占位）。"""
+    if local_glob:
+        hits = sorted(LOCAL_DIR.glob(local_glob.format(ep)))
+        return hits[0] if hits else None
     return (LOCAL_DIR /
             f"eval_decompose_decompose_m1_ms31500_adr083_official_ep1_ep7_20261121_det_ep{ep}.json")
 
 
-def _cloud_path(ep: int):
+def _cloud_path(ep: int, cloud_glob: str = None):
     """云端快评 json 与本地同目录，文件名带云端 run_tag
-    （`..._w4nincrgatecaprel_w4full_20261120_det_ep<N>.json`）。"""
-    hits = sorted(LOCAL_DIR.glob(f"*w4nincrgatecaprel_w4full_20261120_det_ep{ep}.json"))
+    （`..._w4nincrgatecaprel_w4full_20261120_det_ep<N>.json`）。
+    cloud_glob 可覆盖（云端重标定场景用新的 out_suffix）。"""
+    pat = cloud_glob if cloud_glob else f"*w4nincrgatecaprel_w4full_20261120_det_ep{ep}.json"
+    hits = sorted(LOCAL_DIR.glob(pat.format(ep)))
     return hits[0] if hits else None
 
 
@@ -116,12 +122,19 @@ def _get(d, key):
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=None)
+    ap.add_argument("--local-glob", default=None,
+                    help="本地侧评估产物 glob（须含 {ep} 占位）；缺省 = 本地官方口径")
+    ap.add_argument("--cloud-glob", default=None,
+                    help="云端侧评估产物 glob（须含 {ep} 占位）；缺省 = W4 窗口快评")
+    ap.add_argument("--eps", default="2,4,6",
+                    help="参与配对的 ckpt 列表（逗号分隔）")
     args = ap.parse_args()
 
+    eps = [int(x) for x in args.eps.split(",") if x.strip()]
     paired = []
-    for ep in (2, 4, 6):
-        loc = _load(_local_path(ep))
-        cld_path = _cloud_path(ep)
+    for ep in eps:
+        loc = _load(_local_path(ep, args.local_glob))
+        cld_path = _cloud_path(ep, args.cloud_glob)
         cld = _load(cld_path) if cld_path else None
         if loc is None:
             print(f"[warn] 本地 ep{ep} 产物缺失：{_local_path(ep)}")
@@ -221,6 +234,9 @@ def main() -> int:
         )
 
     out = {
+        "paired_episodes": eps,
+        "local_glob": args.local_glob or "（默认：本地官方口径 adr083_official）",
+        "cloud_glob": args.cloud_glob or "（默认：W4 窗口快评）",
         "paired": paired,
         "cross_machine_bands": bands,
         "rank_stability": rank_stability,

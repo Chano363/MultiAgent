@@ -37,6 +37,12 @@ TRAIN_DIR = ROOT / "outputs/results/formation_10kt_1plus108/w4nincrgatecaprel_w4
 TRAIN_HIST = TRAIN_DIR / "train_history_dec_ad1_cp_seed0.csv"
 TRAIN_TERMS = TRAIN_DIR / "train_reward_terms_dec_ad1_cp_seed0.csv"
 EVAL_GLOB = "outputs/results/decompose/eval_decompose_*_adr083_official_*_ep{}.json"
+# 【§19.49】评估侧产物 glob 与训练期落盘路径**可由命令行覆盖**，
+# 以支持"在云端机上用同一分析器重做标定"（本地标定只能当先验、不能当判据）。
+# 用法：--eval-glob '<含 {ep} 占位的 glob>' --train-dir <训练期落盘目录>
+#       --out <输出 json> --label <标定标签，如 cloud>
+DEFAULT_EVAL_GLOB = EVAL_GLOB
+DEFAULT_TRAIN_DIR = TRAIN_DIR
 EPISODES = [1, 2, 3, 4, 5, 6, 7]
 
 
@@ -81,8 +87,11 @@ def loo_spearman(a, b):
 
 # ------------------------------------------------------------------ 读入
 
-def load_train():
-    rows = list(csv.DictReader(TRAIN_HIST.open(encoding="utf-8")))
+def load_train(train_dir=None):
+    train_dir = Path(train_dir) if train_dir else DEFAULT_TRAIN_DIR
+    train_hist = train_dir / "train_history_dec_ad1_cp_seed0.csv"
+    train_terms = train_dir / "train_reward_terms_dec_ad1_cp_seed0.csv"
+    rows = list(csv.DictReader(train_hist.open(encoding="utf-8")))
     tr = {}
     for r in rows:
         ep = int(r["episode"])
@@ -92,18 +101,19 @@ def load_train():
         raise FileNotFoundError(f"训练期落盘缺集（{sorted(tr)}）")
     # 奖励分量（每集一个 sum；按 episode 对齐）
     terms = {}
-    if TRAIN_TERMS.exists():
-        for r in csv.DictReader(TRAIN_TERMS.open(encoding="utf-8")):
+    if train_terms.exists():
+        for r in csv.DictReader(train_terms.open(encoding="utf-8")):
             ep = int(r["episode"])
             if ep in EPISODES:
                 terms[ep] = r
     return tr, terms
 
 
-def load_eval():
+def load_eval(eval_glob=None):
+    eval_glob = eval_glob or DEFAULT_EVAL_GLOB
     ev = {}
     for ep in EPISODES:
-        cands = [Path(p) for p in glob.glob(str(ROOT / EVAL_GLOB.format(ep)))
+        cands = [Path(p) for p in glob.glob(str(ROOT / eval_glob.format(ep)))
                  if p.endswith(f"_ep{ep}.json")]
         if not cands:
             raise FileNotFoundError(f"缺评估态 ep{ep} 官方口径产物")
@@ -197,8 +207,19 @@ def best_threshold(values, eps, target_ep, false_pos_eps, bigger_is_worse=True):
 
 
 def main() -> int:
-    tr, terms = load_train()
-    ev = load_eval()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--eval-glob", default=None,
+                    help="评估态产物 glob（须含 {ep} 占位）；缺省 = 本地官方口径")
+    ap.add_argument("--train-dir", default=None,
+                    help="训练期落盘目录（含 train_history_*.csv / train_reward_terms_*.csv）")
+    ap.add_argument("--out", default=None, help="输出 json 路径")
+    ap.add_argument("--label", default="local", help="标定标签（如 local / cloud）")
+    args = ap.parse_args()
+
+    eval_glob = args.eval_glob or DEFAULT_EVAL_GLOB
+    tr, terms = load_train(args.train_dir)
+    ev = load_eval(eval_glob)
     train_cands, eval_main, eval_eng = build_vectors(tr, terms, ev)
     corr = analyze(train_cands, eval_main, eval_eng)
 
@@ -237,8 +258,9 @@ def main() -> int:
                       f"误杀={res['false_positive_eps']}")
 
     out = {
-        "train_source": str(TRAIN_HIST.relative_to(ROOT)),
-        "eval_source": EVAL_GLOB,
+        "label": args.label,
+        "train_source": str(args.train_dir or DEFAULT_TRAIN_DIR),
+        "eval_source": eval_glob,
         "episodes": EPISODES,
         "table": {
             str(ep): {
@@ -262,7 +284,10 @@ def main() -> int:
             "只回答'训练期量能否当在线止损信号'，不产出峰值/安全判据",
         ],
     }
-    outp = ROOT / "outputs/logs/adr083_primary_metric_corr/primary_metric_corr.json"
+    # 默认仍写既有路径（守卫 tests/test_adr083_primary_metric.py 依赖它）；
+    # 云端重标定用 --out 显式指定，避免覆盖本地标定产物。
+    outp = Path(args.out) if args.out else (
+        ROOT / "outputs/logs/adr083_primary_metric_corr/primary_metric_corr.json")
     outp.parent.mkdir(parents=True, exist_ok=True)
     outp.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\n[写出] {outp}")

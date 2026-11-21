@@ -51,12 +51,15 @@ def test_get_reads_real_nested_result_structure():
 
 
 def test_tool_is_paired_by_episode_not_unpaired_batches():
-    """必须按 ep 配对（本地 epN ↔ 云端 epN），且配对集固定为有双侧产物的三个 ckpt。"""
+    """必须按 ep 配对（本地 epN ↔ 云端 epN），且配对集默认是 ep2/ep4/ep6 三个 ckpt。"""
     import inspect
     src = inspect.getsource(cmb.main)
-    assert "for ep in (2, 4, 6)" in src
-    # 本地与云端都按同一个 ep 取，再逐指标配对
-    assert "_local_path(ep)" in src and "_cloud_path(ep)" in src
+    # 配对循环：同一个 ep 同时取本地与云端
+    assert "for ep in eps:" in src
+    assert "_local_path(ep, args.local_glob)" in src
+    assert "_cloud_path(ep, args.cloud_glob)" in src
+    # 默认配对集必须仍是三个有双侧产物的 ckpt
+    assert '"--eps", default="2,4,6"' in src
 
 
 def test_outputs_both_band_and_rank_stability():
@@ -91,3 +94,21 @@ def test_signal_reference_points_to_19_47():
     assert any("band_rate" in k for k in cmb.SIGNAL)
     doc = cmb.__doc__ or ""
     assert "19.47" in doc
+
+
+def test_glob_override_supports_cloud_recalibration():
+    """必须支持用 --local-glob / --cloud-glob 覆盖两侧产物，
+    否则"云端重标定后与本地标定做配对比较"（§19.49 动作③）无法执行。"""
+    import inspect
+    src = inspect.getsource(cmb.main)
+    assert "--local-glob" in src and "--cloud-glob" in src
+    # 路径函数必须接受覆盖参数
+    assert "local_glob" in inspect.getsource(cmb._local_path)
+    assert "cloud_glob" in inspect.getsource(cmb._cloud_path)
+
+
+def test_episode_list_is_configurable():
+    """配对 ckpt 列表须可配置（云端重标定可能只有部分集）。"""
+    import inspect
+    src = inspect.getsource(cmb.main)
+    assert "--eps" in src
