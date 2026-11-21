@@ -47,18 +47,36 @@ def parse_eval_json(path: str | Path) -> dict:
     peak = results.get("peak_coupler_kN")
     band = results.get("band_rate")
     rear_end = results.get("rear_end_steps")
+    gap = results.get("gap_err_mean_abs_m")
     return {
         "peak_kN": float(peak) if peak is not None else float("nan"),
         "band": float(band) if band is not None else float("nan"),
         "rear_end": int(rear_end) if rear_end is not None else -1,
+        # 【2026-11-21 第 11 投】列距（主指标口径）：缺失时为 nan，
+        # 仅在显式启用列距判据时才参与判定（默认关 = 零回归）。
+        "gap_m": float(gap) if gap is not None else float("nan"),
     }
 
 
-def judge(eval_json: str | Path, prev_peak_kN: Optional[float] = None) -> dict:
+def judge(eval_json: str | Path, prev_peak_kN: Optional[float] = None,
+          prev_gap_m: Optional[float] = None,
+          gap_max_abs_m: Optional[float] = None,
+          gap_rise_tol: Optional[float] = None) -> dict:
     """返回 {pass: bool, reason: str, metrics: {...}}。reason 为空表示未破线。
 
     【fail-closed】peak/band 为 nan（字段缺失/结构漂移）时判不通过——
     杀护栏绝不允许静默放行；调用方（watch）会触发自停机，宁停不赌。
+
+    【2026-11-21 第 11 投新增 · 列距判据（默认关 = 零回归）】
+        第 11 投的主 claim 是**编队指标**（列距保持 + 速度带），故快评护栏必须
+        **看得见列距**，否则窗口内只能读峰值、无法判"列距在恶化"。
+        两个新判据**都需显式传入阈值才生效**（`gap_max_abs_m` / `gap_rise_tol`）：
+          · `gap_max_abs_m`：列距均值绝对上限（m）——超过即破线（**恶化护栏**，
+            不是"达标线"：窗口内不要求就达到 ~50–130 m，只要求**不塌**）；
+          · `gap_rise_tol`：相对上次快评的列距上行容差（比例）——超过即破线
+            （与 peak 的 2% 噪声带同构，用于捕捉"越训越散"）。
+        启用任一列距判据后，列距为 nan ⇒ **fail-closed**（与 peak/band 同款，
+        宁停不赌）；**未启用时列距完全不参与判定**（旧窗口行为逐位不变）。
     """
     m = parse_eval_json(eval_json)
     import math
@@ -67,6 +85,13 @@ def judge(eval_json: str | Path, prev_peak_kN: Optional[float] = None) -> dict:
         return {
             "pass": False,
             "reason": "metrics 不可解析（peak/band=nan，JSON 结构漂移？）",
+            "metrics": m,
+        }
+    gap_enabled = (gap_max_abs_m is not None) or (gap_rise_tol is not None)
+    if gap_enabled and math.isnan(m["gap_m"]):
+        return {
+            "pass": False,
+            "reason": "metrics 不可解析（gap_err_mean_abs_m=nan，已启用列距判据）",
             "metrics": m,
         }
     reasons = []
@@ -80,6 +105,12 @@ def judge(eval_json: str | Path, prev_peak_kN: Optional[float] = None) -> dict:
         rise = (m["peak_kN"] - prev_peak_kN) / prev_peak_kN
         if rise > PEAK_RISE_TOL:
             reasons.append(f"peak上行 {rise:.1%}>{PEAK_RISE_TOL:.0%}")
+    if gap_max_abs_m is not None and m["gap_m"] > gap_max_abs_m:
+        reasons.append(f"列距超限 gap={m['gap_m']:.1f}m>{gap_max_abs_m:.0f}m")
+    if gap_rise_tol is not None and prev_gap_m is not None and prev_gap_m > 0:
+        grise = (m["gap_m"] - prev_gap_m) / prev_gap_m
+        if grise > gap_rise_tol:
+            reasons.append(f"列距上行 {grise:.1%}>{gap_rise_tol:.0%}（{prev_gap_m:.1f}→{m['gap_m']:.1f}m）")
     return {
         "pass": not reasons,
         "reason": "; ".join(reasons),

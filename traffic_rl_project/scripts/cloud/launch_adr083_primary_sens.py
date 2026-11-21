@@ -28,16 +28,23 @@ WSL_CMD = (
     "mkdir -p outputs/logs/adr083_float_probe && "
     "echo '[pm-sens] waiting for followup queue (full pytest output)' && "
     "for i in $(seq 1 720); do "
-    # ⚠️ 2026-11-21 修正：等待条件必须判"上游**已完成**"，不能只判"文件存在"
-    # （shell 重定向会在 pytest **启动瞬间**就创建该文件 ⇒ 只判存在会让本队列
-    #  与仍在跑的 pytest **并发**，违反红线 2「同机多任务串行」）。
-    # ⇒ 追加判据：pytest 输出里必须出现收尾汇总行（passed/failed/error）。
+    # ⚠️ 2026-11-21 修正（两次）：
+    #   (a) 等待条件必须判"上游**已完成**"，不能只判"文件存在"
+    #       （shell 重定向会在 pytest **启动瞬间**就创建该文件 ⇒ 只判存在会让本队列
+    #        与仍在跑的 pytest **并发**，违反红线 2「同机多任务串行」）。
+    #   (b) 判据必须**大小写不敏感**且**不依赖最终计数行**：pytest 的收尾可能只留下
+    #       "short test summary info" + 大写 "FAILED"（如上游被中断时计数行缺失），
+    #       小写 grep 'failed' 会漏判 ⇒ 队列无限等待。
+    #   (c) 追加**进程判据**：pytest 进程不在了才算上游结束。
     "  if [ -f outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt ] && "
-    "     grep -qE 'passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt; then break; fi; "
+    "     grep -qiE 'short test summary info|passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt && "
+    "     ! pgrep -f 'pytest tests/' >/dev/null 2>&1; then break; fi; "
     "  sleep 30; "
     "done; "
-    "if ! grep -qE 'passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt 2>/dev/null; then "
+    "if ! grep -qiE 'short test summary info|passed|failed|error' outputs/logs/adr083_float_probe/full_pytest_after_col_observer.txt 2>/dev/null; then "
     "  echo '[pm-sens] ABORT: followup queue not finished after 6h'; exit 2; fi; "
+    "if pgrep -f 'pytest tests/' >/dev/null 2>&1; then "
+    "  echo '[pm-sens] ABORT: pytest still running ⇒ would violate 红线2 串行'; exit 2; fi; "
     "echo '[pm-sens] followup done, starting primary metric sensitivity probe' && "
     "python scripts/probes/probe_primary_metric_sensitivity.py "
     "--checkpoint outputs/checkpoints/formation_10kt_1plus108/"

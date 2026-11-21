@@ -10,6 +10,10 @@
 #
 # 环境变量（都有默认值）：
 #   RUN_ID / EPISODES / SEED / RESUME / CONFIG / ROOT / STALE_S / GRACE_S
+#   COVER_QUICK_EVAL=1（开逐 2 集确定性快评）/ COVER_EVAL_EVERY / COVER_EVAL_STEPS
+#   / COVER_EVAL_CFG（快评配置，必须锁本投配置）
+#   GAP_MAX_ABS_M / GAP_RISE_TOL（【2026-11-21 第 11 投】列距判据阈值，空 = 不启用；
+#     列距判据是**恶化护栏**（超过上限 / 较上次上行超容差即破线），不是达标线）
 set -uo pipefail
 
 ROOT=${ROOT:-/root/traffic_rl_project}
@@ -100,6 +104,7 @@ if [ "${COVER_QUICK_EVAL:-0}" = "1" ]; then
   RUN_ID="$RUN_ID" ROOT="$ROOT" EVERY="${COVER_EVAL_EVERY:-10}" \
   EVAL_STEPS="${COVER_EVAL_STEPS:-31500}" \
   EVAL_CFG="${COVER_EVAL_CFG:-configs/experiments/formation_ed_ab_3train_1plus108_cover.yaml}" \
+  GAP_MAX_ABS_M="${GAP_MAX_ABS_M:-}" GAP_RISE_TOL="${GAP_RISE_TOL:-}" \
   nohup bash scripts/cloud/cover_quick_eval_watch.sh \
     > "$LOG_DIR/quick_eval_$RUN_ID.log" 2>&1 &
   QPID=$!

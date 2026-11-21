@@ -24,6 +24,10 @@ mkdir -p "$RES_DIR" "$LOG_DIR"
 
 log() { echo "$(date -Is) [quick_eval] $*" | tee -a "$WLOG"; }
 prev_peak=""
+# 【2026-11-21 第 11 投】列距（主指标）通道：默认空 = 不启用（零回归，旧窗口行为不变）。
+#   GAP_MAX_ABS_M：列距均值绝对上限（m）；GAP_RISE_TOL：相对上次快评上行容差（比例）。
+#   例：GAP_MAX_ABS_M=1000 GAP_RISE_TOL=0.30 ⇒ 列距 >1000 m 或较上次上行 >30% 即破线。
+prev_gap=""
 done_marks="$RES_DIR/.quick_eval_done"
 
 # 等待 ckpt 出现（训练启动中）
@@ -61,13 +65,18 @@ while true; do
       if [ "$rc" -ne 0 ] || [ ! -f "$jf" ]; then
         log "eval_FAILED ep=$ep rc=$rc json=${jf:-?}（评估故障不判破线，仅留痕；deadline 兜底）"
       else
-        verdict=$(PREV_PEAK="$prev_peak" EVAL_JSON="$jf" python -c "
+        verdict=$(PREV_PEAK="$prev_peak" PREV_GAP="$prev_gap" \
+          GAP_MAX_ABS_M="${GAP_MAX_ABS_M:-}" GAP_RISE_TOL="${GAP_RISE_TOL:-}" \
+          EVAL_JSON="$jf" python -c "
 import os
 from src.evaluation.cover_quick_eval import judge
-prev = os.environ.get('PREV_PEAK', '')
-prev_f = float(prev) if prev else None
-r = judge(os.environ['EVAL_JSON'], prev_f)
-print(('PASS' if r['pass'] else 'BREAK') + '|' + r['reason'] + '|' + str(r['metrics']['peak_kN']))
+def _f(k):
+    v = os.environ.get(k, '').strip()
+    return float(v) if v else None
+prev_f = _f('PREV_PEAK')
+prev_g = _f('PREV_GAP')
+r = judge(os.environ['EVAL_JSON'], prev_f, prev_g, _f('GAP_MAX_ABS_M'), _f('GAP_RISE_TOL'))
+print(('PASS' if r['pass'] else 'BREAK') + '|' + r['reason'] + '|' + str(r['metrics']['peak_kN']) + '|' + str(r['metrics']['gap_m']))
 ")
         echo "$ep" >> "$done_marks"
         log "eval_done ep=$ep verdict=$verdict"
@@ -90,6 +99,7 @@ print(('PASS' if r['pass'] else 'BREAK') + '|' + r['reason'] + '|' + str(r['metr
             ;;
           PASS*)
             prev_peak=$(echo "$verdict" | cut -d'|' -f3)
+            prev_gap=$(echo "$verdict" | cut -d'|' -f4)
             ;;
         esac
       fi
