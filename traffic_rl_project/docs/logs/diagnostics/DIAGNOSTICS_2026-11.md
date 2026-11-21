@@ -6952,3 +6952,6 @@ if actual_gap >= d_eff:
 ⇒ **处置**：**脚本与产物当场撤除**（`scripts/probes/analyze_gap_within_family.py` 与 `within_family_analysis.json` 均已删除，未入库），**不拿未对齐的自动复现去覆盖已人工核对的 §19.51 结论**，也不据此提出任何反向主张。⇒ **该分析仍未闭合**，重做的前置条件是：① 解决 ckpt 目录缺失导致的配对丢失（或改从其它持久化位置取 `observation_schema`）；② 先在少量样本上验证自动复现能**逐条重现** §19.51.3b 表中的 n 与中位数，再允许扩展。
 
 ⚠️ **本条同时是一条方法论留痕**：**"脚本跑通"≠"口径对齐"** ⇒ 凡以自动化方式复现既有横切统计，必须先做**逐条重现校验**，否则其输出不得进入结论链。
+
+**【§19.54 后续，2026-11-21 12:5x】全量 pytest 的回归结果（队列最后一步）**：跑完 **1046 项**，**唯一失败项 = `test_adr083_cross_machine_mechanism.py::test_amplification_probe_artifact_contract`**（即上文那条"整程步数"守卫误报，**已修**，见 §19.48 口径澄清）⇒ **其余 1045 项全过** ⇒ **本轮改动未破坏任何既有测试**（新增守卫自测全绿：`test_adr083_torch_isa_path_probe.py` 9 项 / `test_adr083_queue_completion_guards.py` 4 项 / `test_adr083_cloud_isa_probe_script.py` 6 项 / `test_adr083_gap_primary_metric_sweep.py` 17 项 / `test_adr083_cross_machine_mechanism.py` 9 项）。
+⚠️ **待补**：因该次全量 pytest 在**守卫修正前**启动（收集时已加载旧代码）⇒ 修正后的**全绿复跑**排在队列之后执行（须与主指标敏感度探针**串行**，不得并发）。
