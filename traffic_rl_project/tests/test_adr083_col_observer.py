@@ -235,3 +235,21 @@ def test_pipeline_and_decisions_record_the_channel():
     dec = (ROOT / "docs" / "logs" / "decisions" / "DECISIONS.md").read_text(encoding="utf-8")
     assert "§19.45" in dec
     assert "train_col_coupler_" in dec
+
+
+def test_runtime_selfcheck_script_exists_and_checks_cumulative_peak():
+    """§19.45 的逐列通道**没有 env_cfg 键**（纯代码侧自动生效）⇒
+    没有任何配置开关能证明它开着 ⇒ 必须有一支**运行时读数**自证，
+    堵住"以为它开着"的缺口（ADR-077 教训的正面落地）。"""
+    import inspect
+    from scripts.probes import verify_col_channel_runtime as vcr  # noqa: F401
+    src = inspect.getsource(vcr.main)
+    # 必须断言 info 里真的出现两个键
+    assert "col_peak_coupler_kN" in src
+    assert "col_coupler_viol_steps" in src
+    # 必须用**断面力复算**口径，而不是信任 info 自述
+    assert "coupler_interface_forces" in src
+    # 必须验每集清零
+    assert "清零" in src
+    # 必须声明短窗边界
+    assert "不产出任何峰值/安全判据" in (vcr.__doc__ or "")
