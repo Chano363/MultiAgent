@@ -193,3 +193,31 @@ def test_1952_keeps_target_unchanged():
     sec = doc[doc.find("### 19.52"):]
     assert "靶子结论" in sec and "不变" in sec, "§19.52 必须声明靶子结论不变"
     assert "不得主张统计显著" in sec, "§19.52 必须保留 n=7 不得主张显著的纪律"
+
+
+def test_gap_eff_scale_mismatch_recorded():
+    """§19.51.3d：`GAP_EFF_SCALE_M = 150` 是硬编码常量，与第 9 投实测列距失配。
+
+    这是"奖励面看不见散开"的量化根源，也是第 11 投第 ② 干预面的必要组成项。
+    """
+    sec = _section(_text(DIAG))
+    assert "19.51.3d" in sec, f"{SEC} 必须含 §19.51.3d 奖励面根源"
+    assert "GAP_EFF_SCALE_M" in sec, f"{SEC} 必须点名 GAP_EFF_SCALE_M"
+    assert "278.7" in sec, f"{SEC} 必须给出零分区阈值（d_eff + 150）"
+    assert "硬编码" in sec, f"{SEC} 必须标明它是硬编码常量（非配置键）"
+    assert "待验证假设" in sec, f"{SEC} 必须把『调到 600 m 能拉回』标为待验证假设"
+
+
+def test_gap_eff_scale_is_hardcoded_not_config():
+    """守卫与代码一致：`GAP_EFF_SCALE_M` 必须是模块级常量，**不是** config 键。
+
+    若将来被改成可配置项，本守卫判过期 ⇒ 须更新诊断中"改它必须改代码"的表述。
+    """
+    env_src = (ROOT / "src" / "environments" / "train_fleet_env.py").read_text(
+        encoding="utf-8")
+    assert re.search(r"^GAP_EFF_SCALE_M\s*=\s*[\d.]+", env_src, flags=re.M), (
+        "GAP_EFF_SCALE_M 应仍是模块级常量"
+    )
+    assert not re.search(r"config\.get\(\s*['\"]gap_eff_scale", env_src), (
+        "GAP_EFF_SCALE_M 已改为配置键 ⇒ §19.51.3d 的『改它必须改代码』表述已过期"
+    )
